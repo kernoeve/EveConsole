@@ -394,4 +394,31 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>Your microphone stays open while connected to this server, and whatever is louder than the level in Sound Settings goes out. The keys above still work.</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Play a tone when I start and stop talking</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Ban List</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Nobody is banned.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Lift the ban on {0}?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Server version {0}, up to {1} kbit/s each. People here: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>Online for {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>idle for {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
 </root>

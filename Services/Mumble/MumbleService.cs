@@ -104,6 +104,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public const string EchoCancelPref = "mumble.echo_cancel";
     public const string NoiseReducePref = "mumble.noise_reduce";
     public const string VoiceLevelPref = "mumble.voice_level";
+    public const string TalkTonePref = "mumble.talk_tone";
+
+    /// <summary>A tone on pressing and letting go of a talk key.</summary>
+    public bool TalkTone { get; set; }
 
     /// <summary>Where voice activation starts out: over a quiet room, under a voice at a normal distance.</summary>
     public const double DefaultVoiceLevelDb = -40;
@@ -258,8 +262,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private void StopByVoice(MumbleSession session)
     {
-        session.TalkingByVoice = false;
         StopTalking(session, MumbleTalk.Shout);
+        session.TalkingByVoice = false;
     }
 
     /// <summary>
@@ -1052,7 +1056,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         // A key takes over from the voice: letting go of it, not a pause, is what ends this now.
         session.TalkingByVoice = false;
-        Interlocked.Exchange(ref session.Talking, (int)mode);
+        var was = (MumbleTalk)Interlocked.Exchange(ref session.Talking, (int)mode);
+        if (TalkTone && was == MumbleTalk.None) Mixer.PlayCue(starting: true);
         _micClose?.Cancel();
 
         if (Devices is { } devices && !devices.StartInput())
@@ -1087,8 +1092,11 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         if (onlyIf is { } mode && session.TalkingNow != mode) return;
 
+        var byVoice = session.TalkingByVoice;
         var was = (MumbleTalk)Interlocked.Exchange(ref session.Talking, (int)MumbleTalk.None);
         if (was == MumbleTalk.None) return;
+
+        if (TalkTone && !byVoice) Mixer.PlayCue(starting: false);
 
         // The last frame says they let go, so the listeners' clients stop at once rather than timing out. It goes
         // through the sender: an encoder has state, and only one thread may ever use it.
@@ -1108,7 +1116,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         var closing = _micClose = new CancellationTokenSource();
         _ = Task.Delay(MicLinger, closing.Token).ContinueWith(t =>
         {
-            if (!t.IsCanceled && !WantsOpenMic && !Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) Devices?.StopInput();
+            if (t.IsCanceled || WantsOpenMic || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
+
+            Devices?.StopInput();
+            MicLevelDb = -96;   // nothing is being heard now, rather than whatever was last
         }, TaskScheduler.Default);
     }
 

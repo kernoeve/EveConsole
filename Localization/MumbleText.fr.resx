@@ -340,4 +340,31 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>Votre micro reste ouvert tant que vous êtes connecté à ce serveur, et tout ce qui dépasse le niveau des réglages audio est transmis. Les touches ci-dessus fonctionnent toujours.</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Jouer un son au début et à la fin de la parole</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Liste des bannissements</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Personne n'est banni.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Lever le bannissement de {0} ?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Version du serveur {0}, jusqu'à {1} kbit/s par personne. Personnes ici : {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>En ligne depuis {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>inactif depuis {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
 </root>

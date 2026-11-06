@@ -46,6 +46,24 @@ public sealed class MumbleMixer
     private readonly object _gate = new();
     private readonly Dictionary<(int Server, uint Session), Speaker> _speakers = [];
     private readonly short[] _decoded = new short[MaxFrame];
+    private readonly Queue<short> _cue = new();
+
+    /// <summary>Plays a short tone to this listener alone: rising for starting to talk, falling for stopping.</summary>
+    public void PlayCue(bool starting)
+    {
+        const int Length = SampleRate * 80 / 1000;
+        var phase = 0.0;
+        lock (_gate)
+        {
+            _cue.Clear();
+            for (var i = 0; i < Length; i++)
+            {
+                var along = (double)i / Length;
+                phase += 2 * Math.PI * (starting ? 480 + 240 * along : 720 - 240 * along) / SampleRate;
+                _cue.Enqueue((short)(Math.Sin(phase) * Math.Sin(Math.PI * along) * 4000));
+            }
+        }
+    }
 
     /// <summary>Everything, from 0 silent to 1 as sent. Anyone's own volume multiplies this.</summary>
     public double Volume { get; set; } = 1.0;
@@ -127,7 +145,10 @@ public sealed class MumbleMixer
                 for (var i = 0; i < take; i++) mix[i] += speaker.Samples.Dequeue();
             }
 
-            if (heard > 0)
+            var cued = _cue.Count > 0;
+            for (var i = 0; i < into.Length && _cue.Count > 0; i++) mix[i] += _cue.Dequeue();
+
+            if (heard > 0 || cued)
             {
                 var volume = Volume;
                 for (var i = 0; i < into.Length; i++)

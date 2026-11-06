@@ -27,6 +27,24 @@ public enum MumblePermission : uint
     Kick = 0x10000, Ban = 0x20000, Register = 0x40000, SelfRegister = 0x80000, ResetUserContent = 0x100000,
 }
 
+/// <summary>Someone banned from a server. Kept as it came, as changing the list means sending all of it back.</summary>
+public sealed record MumbleBan(byte[] Raw, string Name, string Reason, string Started, uint DurationSeconds, string Address)
+{
+    public static MumbleBan Read(byte[] raw)
+    {
+        var m = new PbMessage(raw);
+        return new MumbleBan(raw, m.Text(3) ?? "", m.Text(5) ?? "", m.Text(6) ?? "", (uint)(m.UInt(7) ?? 0), AddressText(m.Bytes(1)));
+    }
+
+    /// <summary>A server holds every address in the long form, with an old one sitting inside a new one.</summary>
+    private static string AddressText(byte[]? bytes)
+    {
+        if (bytes is not { Length: 16 }) return "";
+        var address = new System.Net.IPAddress(bytes);
+        return (address.IsIPv4MappedToIPv6 ? address.MapToIPv4() : address).ToString();
+    }
+}
+
 public sealed class MumbleChannel
 {
     public uint   Id          { get; init; }
@@ -59,6 +77,12 @@ public sealed class MumbleUser
     /// <summary>A long comment comes only as this, until asked for.</summary>
     public bool   HasCommentToAsk { get; set; }
     public bool   PrioritySpeaker { get; set; }
+
+    /// <summary>What the server last said about them when asked. Null until then.</summary>
+    public uint?  OnlineSeconds { get; set; }
+    public uint?  IdleSeconds { get; set; }
+    public string ClientRelease { get; set; } = "";
+    public string ClientOs { get; set; } = "";
     public HashSet<uint> ListeningTo { get; } = [];
 }
 
@@ -132,6 +156,9 @@ public sealed class MumbleClient : IAsyncDisposable
 
     /// <summary>A user left: their session, and whether they are this client.</summary>
     public event Action<uint>? UserLeft;
+
+    /// <summary>The server's ban list, as asked for.</summary>
+    public event Action<IReadOnlyList<MumbleBan>>? BansReceived;
 
     public event Action<MumbleTextMessage>? TextReceived;
 
@@ -400,6 +427,29 @@ public sealed class MumbleClient : IAsyncDisposable
                 ApplyCrypt(m);
                 break;
 
+            case MumbleMessage.BanList:
+                var bans = new List<MumbleBan>();
+                try { foreach (var entry in m.AllBytes(1)) bans.Add(MumbleBan.Read(entry)); }
+                catch (InvalidDataException) { /* one that cannot be read cannot be shown, and the list is not worth the connection */ }
+                BansReceived?.Invoke(bans);
+                break;
+
+            case MumbleMessage.UserStats:
+                lock (_gate)
+                    if (_users.TryGetValue((uint)(m.UInt(1) ?? 0), out var seen))
+                    {
+                        if (m.UInt(16) is { } online) seen.OnlineSeconds = (uint)online;
+                        if (m.UInt(17) is { } idle) seen.IdleSeconds = (uint)idle;
+                        if (m.Bytes(12) is { Length: > 0 } version)
+                        {
+                            var about = new PbMessage(version);
+                            seen.ClientRelease = about.Text(2) ?? seen.ClientRelease;
+                            seen.ClientOs = about.Text(3) ?? seen.ClientOs;
+                        }
+                    }
+                Changed?.Invoke();
+                break;
+
             case MumbleMessage.PermissionQuery:
                 lock (_gate)
                 {
@@ -532,6 +582,35 @@ public sealed class MumbleClient : IAsyncDisposable
             channel.HasDescriptionToAsk = false;
         }
         Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(3, channel.Id).ToArray(), CancellationToken.None));
+    }
+
+    /// <summary>Asks what the server knows of someone. The answer arrives as <see cref="Changed"/>.</summary>
+    public void AskStats(uint session) =>
+        Quietly(SendAsync(MumbleMessage.UserStats, new PbWriter().UInt(1, session).ToArray(), CancellationToken.None));
+
+    /// <summary>Asks for the ban list. The answer arrives as <see cref="BansReceived"/>.</summary>
+    public Task AskBansAsync(CancellationToken ct) =>
+        SendAsync(MumbleMessage.BanList, new PbWriter().Bool(2, true).ToArray(), ct);
+
+    public static byte[] BanListMessage(IEnumerable<MumbleBan> bans)
+    {
+        var message = new PbWriter();
+        foreach (var ban in bans) message.Bytes(1, ban.Raw);
+        message.Bool(2, false);
+        return message.ToArray();
+    }
+
+    /// <summary>⚠️ This is the whole list: a server takes whatever it is sent as all there is, and anyone left off is unbanned.</summary>
+    public Task SetBansAsync(IEnumerable<MumbleBan> bans, CancellationToken ct) =>
+        SendAsync(MumbleMessage.BanList, BanListMessage(bans), ct);
+
+    /// <summary>Changes a channel's name or description. Whichever is null stays as it is.</summary>
+    public Task EditChannelAsync(uint channel, string? name, string? description, CancellationToken ct)
+    {
+        var state = new PbWriter().UInt(1, channel);
+        if (name is not null) state.Text(3, name);
+        if (description is not null) state.Text(5, description);
+        return SendAsync(MumbleMessage.ChannelState, state.ToArray(), ct);
     }
 
     // Anything below can be refused, which arrives later as Denied: asking is all these do.

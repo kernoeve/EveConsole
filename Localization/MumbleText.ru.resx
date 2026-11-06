@@ -340,4 +340,31 @@
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>Пока вы подключены к этому серверу, микрофон открыт, и всё громче порога из настроек звука передаётся. Клавиши выше продолжают работать.</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Сигнал в начале и конце разговора</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Список банов</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Никто не забанен.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Снять</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Снять бан с {0}?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Версия сервера {0}, до {1} кбит/с на человека. Здесь людей: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>В сети {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>неактивен {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
 </root>

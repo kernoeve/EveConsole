@@ -340,4 +340,31 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>Dein Mikrofon bleibt offen, solange du mit diesem Server verbunden bist, und alles über dem Pegel in den Toneinstellungen wird gesendet. Die Tasten oben funktionieren weiterhin.</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Ton beim Start und Ende des Sprechens</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Sperrliste</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Niemand ist gesperrt.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Sperre von {0} aufheben?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Serverversion {0}, bis zu {1} kbit/s je Person. Personen hier: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>Seit {0} online</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>seit {0} inaktiv</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Beschreibung</value>
+  </data>
 </root>

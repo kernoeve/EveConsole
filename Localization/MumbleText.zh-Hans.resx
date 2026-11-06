@@ -340,4 +340,31 @@
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>连接到此服务器时麦克风保持打开,高于声音设置中阈值的声音都会发送。上面的按键仍然有效。</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>开始和停止说话时播放提示音</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>封禁列表</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>没有人被封禁。</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>解除对 {0} 的封禁?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>服务器版本 {0},每人最高 {1} kbit/s,当前 {2} 人</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>在线 {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>空闲 {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
 </root>

@@ -155,6 +155,8 @@ public sealed class MumbleViewModel : ReactiveObject
         CreateChannelCommand    = ReactiveCommand.CreateFromTask(CreateChannelAsync);
         RemoveChannelCommand    = ReactiveCommand.CreateFromTask(RemoveChannelAsync);
         ToggleLinkCommand       = ReactiveCommand.CreateFromTask(ToggleLinkAsync);
+        SaveChannelCommand      = ReactiveCommand.CreateFromTask(SaveChannelAsync);
+        ToggleBansCommand       = ReactiveCommand.CreateFromTask(ToggleBansAsync);
 
         // Back from the server, later, in its own time. Blank means it did not say why.
         _service.Refused += (session, why) => Dispatcher.UIThread.Post(() =>
@@ -168,7 +170,7 @@ public sealed class MumbleViewModel : ReactiveObject
                      ToggleMuteCommand, ToggleDeafenCommand,
                      ToggleServerMuteCommand, ToggleServerDeafCommand, TogglePriorityCommand, ToggleLocalMuteCommand, ToggleIgnoreCommand,
                      MoveToMineCommand, MovePersonCommand, KickCommand, BanCommand, RegisterCommand, SaveCommentCommand,
-                     ToggleListenCommand, CreateChannelCommand, RemoveChannelCommand, ToggleLinkCommand,
+                     ToggleListenCommand, CreateChannelCommand, RemoveChannelCommand, ToggleLinkCommand, SaveChannelCommand, ToggleBansCommand,
                  })
             c.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -180,6 +182,8 @@ public sealed class MumbleViewModel : ReactiveObject
         _noiseReduce   = _prefs.GetBool(MumbleService.NoiseReducePref);
         _service.EchoCancel = _echoCancel;
         _service.NoiseReduce = _noiseReduce;
+        _talkTone      = _prefs.GetBool(MumbleService.TalkTonePref);
+        _service.TalkTone = _talkTone;
         _voiceLevel    = _prefs.GetLong(MumbleService.VoiceLevelPref, (long)MumbleService.DefaultVoiceLevelDb);
         _service.VoiceLevelDb = _voiceLevel;
         _showOverlay   = _prefs.GetBool(OverlayPref);
@@ -435,6 +439,9 @@ public sealed class MumbleViewModel : ReactiveObject
         MoveTarget = "";
         NewChannelName = "";
         _commentLoadedFor = null;
+        _channelLoadedFor = null;
+        ShowBans = false;
+        if (SelectedRow is { IsUser: true } picked && Session?.Client is { } asked) asked.AskStats(picked.Id);
         FillMoveChoices();
         ShowDetail();
     }
@@ -476,6 +483,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
             KeysText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeysSummary, KeyName(server.WhisperKey), KeyName(server.ShoutKey));
             ReachText = ReachOf(session);
+            ShowServerAbout(session);
 
             switch (row.Kind)
             {
@@ -588,6 +596,7 @@ public sealed class MumbleViewModel : ReactiveObject
             user.Recording ? MumbleText.PersonRecording : "",
         }.Where(s => s.Length > 0));
 
+        PersonInfo = PersonInfoOf(user);
         PersonComment = MumbleService.PlainText(user.Comment);
         this.RaisePropertyChanged(nameof(HasPersonComment));
 
@@ -598,6 +607,100 @@ public sealed class MumbleViewModel : ReactiveObject
             if (row.IsMe) MyComment = PersonComment;
         }
     }
+
+    private string _personInfo = "";
+    public string PersonInfo { get => _personInfo; private set { this.RaiseAndSetIfChanged(ref _personInfo, value); this.RaisePropertyChanged(nameof(HasPersonInfo)); } }
+    public bool HasPersonInfo => PersonInfo.Length > 0;
+
+    /// <summary>Whatever the server was willing to say about them: how much depends on what this client may do.</summary>
+    private static string PersonInfoOf(MumbleUser user) => string.Join(" \u00B7 ", new[]
+    {
+        user.OnlineSeconds is { } online ? string.Format(CultureInfo.CurrentCulture, MumbleText.PersonOnlineFor, Span(online)) : "",
+        user.IdleSeconds is { } idle ? string.Format(CultureInfo.CurrentCulture, MumbleText.PersonIdleFor, Span(idle)) : "",
+        user.ClientRelease.Length > 0 ? (user.ClientOs.Length > 0 ? $"{MumbleService.PlainText(user.ClientRelease)} ({MumbleService.PlainText(user.ClientOs)})" : MumbleService.PlainText(user.ClientRelease)) : "",
+    }.Where(s => s.Length > 0));
+
+    private static string Span(uint seconds)
+    {
+        var time = TimeSpan.FromSeconds(seconds);
+        return time.TotalHours >= 1 ? $"{(int)time.TotalHours} h {time.Minutes} m" : time.TotalMinutes >= 1 ? $"{time.Minutes} m" : $"{time.Seconds} s";
+    }
+
+    // ── What is shown about a server, and who it has banned ───────────────────
+
+    private string _serverAbout = "", _serverWelcome = "";
+    private bool _canSeeBans, _showBans;
+    private MumbleClient? _bansFrom;
+
+    public string ServerAbout { get => _serverAbout; private set => this.RaiseAndSetIfChanged(ref _serverAbout, value); }
+    public string ServerWelcome { get => _serverWelcome; private set { this.RaiseAndSetIfChanged(ref _serverWelcome, value); this.RaisePropertyChanged(nameof(HasServerWelcome)); } }
+    public bool HasServerWelcome => ServerWelcome.Length > 0;
+    public bool CanSeeBans { get => _canSeeBans; private set => this.RaiseAndSetIfChanged(ref _canSeeBans, value); }
+    public bool ShowBans { get => _showBans; private set { this.RaiseAndSetIfChanged(ref _showBans, value); this.RaisePropertyChanged(nameof(HasNoBans)); } }
+    public bool HasNoBans => ShowBans && Bans.Count == 0;
+
+    public ObservableCollection<MumbleBan> Bans { get; } = [];
+
+    public ReactiveCommand<Unit, Unit> ToggleBansCommand { get; }
+
+    private void ShowServerAbout(MumbleSession session)
+    {
+        if (session.State != MumbleState.Connected || session.Client is not { } client)
+        {
+            ServerAbout = ServerWelcome = "";
+            CanSeeBans = false;
+            return;
+        }
+
+        ServerAbout = string.Format(CultureInfo.CurrentCulture, MumbleText.ServerAbout,
+            MumbleService.PlainText(client.ServerRelease), (client.MaxBandwidth / 1000).ToString("N0", CultureInfo.CurrentCulture),
+            client.Users.Count.ToString("N0", CultureInfo.CurrentCulture));
+
+        var welcome = MumbleService.PlainText(client.WelcomeText);
+        ServerWelcome = welcome.Length > 800 ? welcome[..800] + "\u2026" : welcome;
+
+        CanSeeBans = (client.PermissionsIn(0) ?? MumblePermission.None).HasFlag(MumblePermission.Ban);
+    }
+
+    private async Task ToggleBansAsync()
+    {
+        if (ShowBans) { ShowBans = false; return; }
+        if (Session?.Client is not { } client) return;
+
+        if (!ReferenceEquals(_bansFrom, client))
+        {
+            _bansFrom = client;
+            client.BansReceived += bans => Dispatcher.UIThread.Post(() =>
+            {
+                Bans.Clear();
+                foreach (var ban in bans.OrderBy(b => b.Name, StringComparer.CurrentCultureIgnoreCase)) Bans.Add(ban);
+                this.RaisePropertyChanged(nameof(HasNoBans));
+            });
+        }
+
+        Bans.Clear();
+        ShowBans = true;
+        await Task.Run(() => client.AskBansAsync(default));
+    }
+
+    /// <summary>Lifts one ban. ⚠️ The whole list goes back, as that is how a server takes it, so it must be the list just read.</summary>
+    public async Task UnbanAsync(MumbleBan ban)
+    {
+        if (Session?.Client is not { } client) return;
+        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmUnban, ban.Name))) return;
+
+        Bans.Remove(ban);
+        this.RaisePropertyChanged(nameof(HasNoBans));
+        var left = Bans.ToList();
+        await Task.Run(() => client.SetBansAsync(left, default));
+    }
+
+    public static string BanText(MumbleBan ban) => string.Join(" \u00B7 ", new[]
+    {
+        ban.Address,
+        ChatTime.Of(ban.Started) is { Length: > 0 } when ? when : ban.Started,
+        MumbleService.PlainText(ban.Reason),
+    }.Where(s => s.Length > 0));
 
     private async Task OnPersonAsync(Func<MumbleClient, MumbleUser, Task> act)
     {
@@ -689,8 +792,44 @@ public sealed class MumbleViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> RemoveChannelCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleLinkCommand { get; }
 
+    private string _editChannelName = "", _editChannelDescription = "", _loadedChannelName = "", _loadedChannelDescription = "";
+    private uint? _channelLoadedFor;
+
+    public string EditChannelName { get => _editChannelName; set => this.RaiseAndSetIfChanged(ref _editChannelName, value); }
+    public string EditChannelDescription { get => _editChannelDescription; set => this.RaiseAndSetIfChanged(ref _editChannelDescription, value); }
+    public ReactiveCommand<Unit, Unit> SaveChannelCommand { get; }
+
+    private async Task SaveChannelAsync()
+    {
+        if (SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
+
+        // ⚠️ Only what was changed: a description written by hand with formatting is shown here as plain words, and
+        // sending that back unasked would lose the formatting.
+        var name = EditChannelName.Trim();
+        var description = EditChannelDescription.Trim();
+        var newName = name.Length > 0 && name != _loadedChannelName ? name : null;
+        var newDescription = description != _loadedChannelDescription
+            ? System.Net.WebUtility.HtmlEncode(description).Replace("\n", "<br>", StringComparison.Ordinal) : null;
+        if (newName is null && newDescription is null) return;
+
+        await Task.Run(() => client.EditChannelAsync(row.Id, newName, newDescription, default));
+        _loadedChannelName = newName ?? _loadedChannelName;
+        _loadedChannelDescription = newDescription is null ? _loadedChannelDescription : description;
+    }
+
     private void ShowChannelControls(MumbleClient client, MumbleChannel channel)
     {
+        // Not while it is being written: this runs whenever anything on the server changes. A description may arrive late.
+        var description = MumbleService.PlainText(channel.Description);
+        if (_channelLoadedFor != channel.Id || (_editChannelDescription == _loadedChannelDescription && description != _loadedChannelDescription))
+        {
+            _channelLoadedFor = channel.Id;
+            _loadedChannelName = channel.Name;
+            _loadedChannelDescription = description;
+            EditChannelName = channel.Name;
+            EditChannelDescription = description;
+        }
+
         client.AskPermissions(channel.Id);
         client.AskDescription(channel);
 
@@ -1032,6 +1171,18 @@ public sealed class MumbleViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _speakerVolume, value);
             _service.OutputVolume = value / 100.0;
             _ = _prefs.SetLongAsync(MumbleService.OutputVolumePref, (long)value);
+        }
+    }
+
+    private bool _talkTone;
+    public bool TalkTone
+    {
+        get => _talkTone;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _talkTone, value);
+            _service.TalkTone = value;
+            _ = _prefs.SetBoolAsync(MumbleService.TalkTonePref, value);
         }
     }
 

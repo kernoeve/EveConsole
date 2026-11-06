@@ -140,6 +140,28 @@ static string RawFile(string path)
         Check("echo: while the voice is barely touched", voiceDown < 4, $"voice down {voiceDown:F1} dB");
     }
 
+    // Someone suddenly far louder than the echo, once it has been learned. To a learning filter that is all a mistake
+    // of its own, and it goes badly astray: what is heard must not go with it.
+    {
+        var played = SpeechLike(14, 1, 0.5);
+        var near = SpeechLike(14, 2, 0.9);
+        for (var i = 0; i < Rate * 8; i++) near[i] = 0;
+        var echo = Room(played, Rate * 90 / 1000, 3, 0.15);
+        var cleanup = new MumbleVoiceCleanup { CancelEcho = true };
+        cleanup.StartTalk();
+        var result = Run(cleanup, played, Sum(echo, near));
+
+        const int Late = MumbleEchoCanceller.BlockSize * 2;
+        double together = 0, power = 0;
+        for (var i = Rate * 8; i < Rate * 14 - Late; i++)
+        {
+            together += result[i + Late] * echo[i];
+            power += echo[i] * echo[i];
+        }
+        var echoDown = -20 * Math.Log10(Math.Abs(together / power) + 1e-9);
+        Check("echo: stays down under a much louder voice", echoDown > 12, $"echo down {echoDown:F1} dB");
+    }
+
     // The room changes, as turning around with a laptop does.
     {
         var played = SpeechLike(24, 1, 0.5);
@@ -222,9 +244,10 @@ static string RawFile(string path)
     Check("voice: starts closed", !gate.IsOpen);
     Check("voice: a quiet room stays closed", !gate.Update(-60, -40));
     Check("voice: a voice opens it at once", gate.Update(-30, -40));
-    for (var i = 0; i < MumbleVoiceGate.HoldFrames - 1; i++) gate.Update(-60, -40);
+    for (var i = 0; i < 15; i++) gate.Update(-60, -40);   // 300 ms
     Check("voice: held open over the gap between words", gate.IsOpen);
-    Check("voice: and closes after", !gate.Update(-60, -40));
+    for (var i = 0; i < 10; i++) gate.Update(-60, -40);   // 500 ms
+    Check("voice: and closes after", !gate.IsOpen);
     Check("voice: exactly at the level counts", gate.Update(-40, -40));
     gate.Close();
     Check("voice: closes when told", !gate.IsOpen);
@@ -244,6 +267,24 @@ static string RawFile(string path)
 
     var kick = new PbMessage(MumbleClient.RemoveUserMessage(7, "Because", ban: false));
     Check("admin: a kick is no ban", kick.UInt(1) == 7 && kick.Text(3) == "Because" && kick.Bool(4) is null);
+
+    // A ban comes as the server wrote it and goes back unchanged, as anyone left off the list is unbanned.
+    var entry = new PbWriter().Bytes(1, System.Net.IPAddress.Parse("192.0.2.9").MapToIPv6().GetAddressBytes()).UInt(2, 128).Text(3, "Tester").Text(4, "abc").Text(5, "Because").Text(6, "2026-11-06T01:00:00").UInt(7, 0).ToArray();
+    var read = MumbleBan.Read(entry);
+    Check("bans: read", read is { Name: "Tester", Reason: "Because", Address: "192.0.2.9", DurationSeconds: 0 }, read.Address);
+    var sent = new PbMessage(MumbleClient.BanListMessage([read, read]));
+    Check("bans: go back exactly as they came", sent.AllBytes(1).Count == 2 && sent.AllBytes(1)[0].SequenceEqual(entry));
+    Check("bans: sending is not asking", sent.Bool(2) == false);
+    Check("bans: an empty list says nothing but that", new PbMessage(MumbleClient.BanListMessage([])).AllBytes(1).Count == 0);
+
+    // A tone of its own, heard by this listener alone, with nobody talking and no sound going out.
+    var cueMixer = new MumbleMixer();
+    var cueBuffer = new short[480];
+    cueMixer.PlayCue(starting: true);
+    cueMixer.ReadMix(cueBuffer);
+    Check("tone: plays with nobody talking", cueBuffer.Any(s => s != 0));
+    for (var i = 0; i < 10; i++) cueMixer.ReadMix(cueBuffer);
+    Check("tone: and ends", cueBuffer.All(s => s == 0));
 
     var ban = new PbMessage(MumbleClient.RemoveUserMessage(7, "", ban: true));
     Check("admin: a ban says so, and a blank reason is left out", ban.Bool(4) == true && ban.Text(3) is null);

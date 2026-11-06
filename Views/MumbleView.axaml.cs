@@ -92,6 +92,11 @@ public partial class MumbleView : UserControl
         else vm.MessageSelectedPerson();
     }
 
+    private async void OnUnban(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: EveConsole.Services.Mumble.MumbleBan ban } && DataContext is MumbleViewModel vm) await vm.UnbanAsync(ban);
+    }
+
     private void OnToggleChannel(object? sender, RoutedEventArgs e)
     {
         if (sender is Button { DataContext: MumbleRowVm row }) (DataContext as MumbleViewModel)?.ToggleChannel(row);
@@ -105,4 +110,11 @@ public partial class MumbleView : UserControl
         if (TopLevel.GetTopLevel(this) is not Window owner) return false;
         return await new ConfirmDialog(message).ShowDialog<bool>(owner);
     }
+}
+
+/// <summary>A ban's second line, for the list.</summary>
+public static class MumbleBanText
+{
+    public static readonly Avalonia.Data.Converters.IValueConverter Convert =
+        new Avalonia.Data.Converters.FuncValueConverter<EveConsole.Services.Mumble.MumbleBan, string>(b => b is null ? "" : MumbleViewModel.BanText(b));
 }

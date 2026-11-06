@@ -340,4 +340,31 @@
   <data name="VoiceActivatedNote" xml:space="preserve">
     <value>このサーバーに接続中はマイクが開いたままになり、サウンド設定のレベルを超える音が送信されます。上のキーも引き続き使えます。</value>
   </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>話し始めと話し終わりに音を鳴らす</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>BAN リスト</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>BAN されている人はいません。</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>{0} の BAN を解除しますか?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>サーバーバージョン {0}、1 人あたり最大 {1} kbit/s、現在 {2} 人</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>オンライン {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>アイドル {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>説明</value>
+  </data>
 </root>
