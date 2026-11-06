@@ -1846,6 +1846,90 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Ohne Haken wird dieser Abschnitt als Texttabelle gepostet. Discord bekommt immer den Text.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXT ÜBER DER TABELLE</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Steht unter dem Titel, auf Slack und in der Texttabelle. Emoji, Links und Erwähnungen funktionieren, und eine Erwähnung benachrichtigt wirklich.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>BILD</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Nur im Slack-Format, neben dem Titel. Slacks Box hat immer einen Titel, ein leerer verwendet daher den Standardtitel.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Keines</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC-Corporation</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Gegenstandstyp</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>BOX AUF SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Keine Box</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Schmal</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Breit</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>Die erste Zeile des Texts wird zum Titel der Box. Discord und reine Textposts behalten den Text wie geschrieben.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Aktivität der letzten 30 Tage</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Verkaufte Einheiten</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Ø-Preis</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Marge %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Gesamtumsatz</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Gesamtgewinn</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Top-Artikel</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Die Slack-Box hat keinen Platz für weitere Spalten. Entferne eine, um eine andere hinzuzufügen.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Zu breit für die Slack-Box. Diese Spalten fehlen im Beitrag: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — hier als Text gezeigt; Slack bekommt Bilder und ausgerichtete Spalten]</value>
   </data>

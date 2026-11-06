@@ -1810,6 +1810,90 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>オフの場合、このセクションはテキストの表として投稿されます。Discord には常にテキストが送られます。</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>表の上のテキスト</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>タイトルの下に、Slack とテキスト表の両方で表示されます。絵文字、リンク、メンションが使えます。メンションは実際に通知されます。</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>画像</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Slack 形式のみ、タイトルの横に表示されます。Slack のボックスには必ずタイトルが必要なため、空欄の場合は既定のタイトルを使います。</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>キャラクター</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>派閥</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC コーポレーション</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>エージェント</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>アイテムタイプ</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>Slack のボックス</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>ボックスなし</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>狭い</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>標準</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>広い</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>テキストの最初の行がボックスのタイトルになります。Discord とテキスト投稿では書いたとおりに表示されます。</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>過去 30 日間のアクティビティ</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>販売数</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>平均価格</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>利益率 %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>総売上</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>総利益</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>トップ項目</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Slack のボックスにはこれ以上列を追加できません。別の列を追加するには、列を削除してください。</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Slack のボックスには広すぎます。次の列は投稿から除外されます: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — ここではテキストで表示。Slack には画像と揃えた列で送られます]</value>
   </data>

@@ -2458,6 +2458,90 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Unticked, this section posts as the text table. Discord always gets the text.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXT ABOVE THE TABLE</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Printed under the title, on Slack and in the text table. Emoji, links and mentions work, and a mention really pings.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>PICTURE</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>In the Slack format only, beside the title. Slack's box always has a title, so a blank one uses the default.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Character</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Faction</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC corporation</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Item type</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>BOX ON SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>No box</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Narrow</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Wide</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>The text's first line becomes the box's title. Discord and plain posts keep the text as written.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Activity over the last 30 days</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Units Sold</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Avg Price</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Margin %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Total Sales</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Total Profit</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Top Item</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Slack's box has no room for more columns. Remove one to add another.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Too wide for Slack's box. These columns are left out of the post: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — shown as text here; Slack gets images and lined-up columns]</value>
   </data>

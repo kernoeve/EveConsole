@@ -1846,6 +1846,90 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Sin marcar, esta sección se publica como tabla de texto. Discord siempre recibe el texto.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXTO SOBRE LA TABLA</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Se publica bajo el título, en Slack y en la tabla de texto. Funcionan emojis, enlaces y menciones, y una mención avisa de verdad.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>IMAGEN</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Solo en el formato de Slack, junto al título. El cuadro de Slack siempre lleva título, así que uno vacío usa el predeterminado.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Ninguna</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Personaje</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Facción</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>Corporación NPC</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agente</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Tipo de objeto</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>CUADRO EN SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Sin cuadro</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Estrecho</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Estándar</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Ancho</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>La primera línea del texto se convierte en el título del cuadro. Discord y las publicaciones de texto lo dejan tal como está escrito.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Actividad de los últimos 30 días</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Unidades vendidas</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Precio medio</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Margen %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Ventas totales</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Beneficio total</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Artículo principal</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>El cuadro de Slack no tiene sitio para más columnas. Quita una para añadir otra.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Demasiado ancho para el cuadro de Slack. Estas columnas se omiten en la publicación: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — aquí se muestra como texto; Slack recibe imágenes y columnas alineadas]</value>
   </data>

@@ -1846,6 +1846,90 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>Décoché, cette section est publiée sous forme de tableau de texte. Discord reçoit toujours le texte.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXTE AU-DESSUS DU TABLEAU</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Publié sous le titre, sur Slack et dans le tableau texte. Les emojis, liens et mentions fonctionnent, et une mention notifie vraiment.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>IMAGE</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Uniquement au format Slack, à côté du titre. L'encadré Slack a toujours un titre : un titre vide utilise celui par défaut.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Personnage</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Faction</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>Corporation PNJ</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Type d'objet</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>ENCADRÉ SUR SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Sans encadré</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Étroit</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Large</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>La première ligne du texte devient le titre de l'encadré. Discord et les publications en texte le gardent tel qu'il est écrit.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Activité des 30 derniers jours</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Unités vendues</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Prix moyen</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Marge %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Ventes totales</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Bénéfice total</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Article en tête</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Le cadre Slack n'a plus de place pour d'autres colonnes. Retirez-en une pour en ajouter une autre.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Trop large pour le cadre Slack. Ces colonnes sont absentes de la publication : {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — affiché ici en texte ; Slack reçoit des images et des colonnes alignées]</value>
   </data>

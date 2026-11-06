@@ -132,28 +132,19 @@ public static class SlackColumns
     /// <para>⚠️ Each gap is worked out from where the text before it really ended, not from the
     /// column it was aiming for, so rounding does not add up along the row.</para>
     /// </summary>
-    /// <param name="offset">Blank space before the first column: a header row has no icon, so it
-    /// starts where the text of the rows under it starts.</param>
     public static string Place(
         IReadOnlyList<string> cells, IReadOnlyList<int> starts, IReadOnlyList<int> widths,
-        IReadOnlyList<bool> right, int offset = 0)
+        IReadOnlyList<bool> right)
     {
         var line = new StringBuilder();
         var at   = 0;
-
-        if (offset > 0)
-        {
-            var (lead, leadWidth) = Blanks(offset);
-            line.Append(lead);
-            at = leadWidth;
-        }
 
         for (var i = 0; i < cells.Count; i++)
         {
             if (cells[i].Length == 0) continue;
 
             var size   = Width(cells[i]);
-            var target = offset + starts[i] + (right[i] ? widths[i] - size : 0);
+            var target = starts[i] + (right[i] ? widths[i] - size : 0);
 
             var (pad, padWidth) = Blanks(target - at);
             line.Append(pad).Append(Escape(cells[i]));
@@ -192,11 +183,97 @@ public sealed record SlackRichList(string Title, IReadOnlyList<SlackRichRow> Row
 /// <param name="Share">The share of the whole, not of the list.</param>
 public sealed record SlackRichRow(string Name, string Icon, string LargeIcon, string? Value, string? FeaturedValue, string Share);
 
-/// <summary>One column of a wide table.</summary>
+/// <summary>One column of a list in a box.</summary>
 public sealed record SlackRichColumn(string Header, bool Right);
 
-/// <summary>One row of a wide table. The icon is null where the row has nothing to show.</summary>
-public sealed record SlackRichTableRow(IReadOnlyList<string> Cells, string? Icon, string IconAlt);
+/// <summary>A list in a box, with what introduces it.</summary>
+/// <param name="Title">What the box is headed. Slack refuses a box without one.</param>
+/// <param name="Text">What somebody wrote about the list, in Slack's markup; blank for none.</param>
+/// <param name="Picture">Beside the title; null for none.</param>
+/// <param name="Rows">A cell per column, in order.</param>
+public sealed record SlackListBox(
+    string Title, string Text, string? Picture, bool ShowHeaders,
+    IReadOnlyList<SlackRichColumn> Columns, IReadOnlyList<IReadOnlyList<string>> Rows);
+
+/// <summary>One of an item list's top item's figures.</summary>
+/// <param name="Strong">In bold: the figure the list is sorted by.</param>
+public sealed record SlackTopFact(string Label, string Value, bool Strong = false);
+
+/// <summary>One item on a list.</summary>
+/// <param name="Cells">A cell per column, the item's name first.</param>
+public sealed record SlackItemRow(string Icon, IReadOnlyList<string> Cells);
+
+/// <summary>A ranked list of items in a box. The first row is number 1, which the box features.</summary>
+/// <param name="Picture">Number 1's, beside its figures.</param>
+/// <param name="Before">Number 1's figures that are not about a period.</param>
+/// <param name="PeriodLine">Says what period <paramref name="InPeriod"/> covers.</param>
+/// <param name="FactFormat">How a label and its value read: {0} and {1}.</param>
+public sealed record SlackItemList(
+    string Title, string TopLabel, string Picture,
+    IReadOnlyList<SlackTopFact> Before, string PeriodLine, IReadOnlyList<SlackTopFact> InPeriod, string FactFormat,
+    bool ShowHeaders, IReadOnlyList<SlackRichColumn> Columns, IReadOnlyList<SlackItemRow> Rows);
+
+/// <summary>The sizes a box around a text section can be. Blank is no box.</summary>
+public static class SlackBoxWidth
+{
+    public const string None     = "";
+    public const string Narrow   = "narrow";
+    public const string Standard = "standard";
+    public const string Wide     = "wide";
+
+    public static bool IsBox(string width) => width is Narrow or Standard or Wide;
+}
+
+/// <summary>
+/// A picture chosen for a section: what it is, and where the game's image server keeps it.
+///
+/// <para>⚠️ Only a type has a choice of picture, and the server does not fall back between them:
+/// the wrong one answers 400, and Slack refuses a whole message over an image it cannot fetch.
+/// So a type's picture is settled when it is picked, by asking the server what it holds.</para>
+/// </summary>
+public static class SlackPicture
+{
+    public const string None           = "";
+    public const string Character      = "character";
+    public const string Corporation    = "corporation";
+    public const string Alliance       = "alliance";
+    public const string Faction        = "faction";
+    public const string NpcCorporation = "npc_corporation";
+    public const string Agent          = "agent";
+    public const string Type           = "type";
+
+    /// <summary>Big enough for anywhere a section shows it. Slack draws it at its own size.</summary>
+    private const int Size = 128;
+
+    private const string DefaultVariant = "icon";
+
+    /// <summary>The address, or null when nothing was chosen.</summary>
+    public static string? Url(string kind, long id, string variant)
+    {
+        if (id <= 0) return null;
+
+        return kind switch
+        {
+            Character or Agent => $"https://images.evetech.net/characters/{id}/portrait?size={Size}",
+
+            // ⚠️ A faction's logo is under corporations: the server has no factions path, and
+            // answers 400 for one.
+            Corporation or NpcCorporation or Faction => $"https://images.evetech.net/corporations/{id}/logo?size={Size}",
+
+            Alliance => $"https://images.evetech.net/alliances/{id}/logo?size={Size}",
+            Type     => $"https://images.evetech.net/types/{id}/{(variant.Length > 0 ? variant : DefaultVariant)}?size={Size}",
+            _        => null,
+        };
+    }
+
+    /// <summary>The best of what the server says it holds for a type. A render shows a ship or a
+    /// structure properly; a blueprint has only its print.</summary>
+    public static string BestVariant(IEnumerable<string> held)
+    {
+        var have = held.ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return new[] { "render", DefaultVariant, "bp", "bpc" }.FirstOrDefault(have.Contains) ?? DefaultVariant;
+    }
+}
 
 /// <summary>A job's row in the park table. A cell is null where the park does not do the job.</summary>
 public sealed record SlackParkRow(string Title, IReadOnlyList<SlackParkCell?> Cells);
@@ -214,11 +291,9 @@ public sealed record SlackJobBox(string Title, string About, string ImageUrl, IR
 
 /// <summary>A block on its way into a message.</summary>
 /// <param name="Block">What Slack gets.</param>
-/// <param name="Repeat">Goes first in the next message if this block has to start one: the header
-/// row of the table the block belongs to.</param>
 /// <param name="Room">How many blocks must fit for this one to stay in the current message, so a
 /// heading never ends a message with its table in the next.</param>
-public sealed record SlackRichItem(object Block, object? Repeat = null, int Room = 1);
+public sealed record SlackRichItem(object Block, int Room = 1);
 
 /// <summary>
 /// Slack's Block Kit, as the scheduled posts' rich formats use it. Nothing here touches Slack: what
@@ -249,10 +324,6 @@ public static class SlackRichBlocks
 
     private const int NameGap    = 750;
     private const int NumberGap  = 600;
-    private const int TableGap   = 1000;
-
-    /// <summary>An icon and the gap after it.</summary>
-    private const int IconOffset = 1923;
 
     /// <summary>Beside a lone box, so a list on its own keeps the width of the others. Slack
     /// refuses an empty section, and this draws as nothing.</summary>
@@ -352,9 +423,6 @@ public static class SlackRichBlocks
         "alliance"    => $"https://images.evetech.net/alliances/{id}/logo?size={size}",
         _             => $"https://images.evetech.net/characters/{id}/portrait?size={size}",
     };
-
-    public static string ItemIcon(int typeId, int size = 64) =>
-        $"https://images.evetech.net/types/{typeId}/icon?size={size}";
 
     // ── Top 10 ───────────────────────────────────────────────────────────────
 
@@ -495,51 +563,329 @@ public static class SlackRichBlocks
     /// together.</summary>
     private static string RankText(int rank) => rank < 10 ? $"*\u2007{rank}.*" : $"*{rank}.*";
 
-    // ── Wide tables ──────────────────────────────────────────────────────────
+    // ── Lists in a box ───────────────────────────────────────────────────────
 
     /// <summary>
-    /// A wide table in the message itself, with no box.
-    ///
-    /// <para>⚠️ Not in containers, though rows are a little tighter there. A container holds 10
-    /// blocks and each row is one, so a real list becomes several boxes, and on a phone their
-    /// columns stop agreeing with each other.</para>
+    /// What fits on one line of a box alone in a layout: about 673 px of text at 13 px, measured
+    /// from a real post, and a little short of it. A wider line wraps and takes the columns with it.
     /// </summary>
-    public static List<SlackRichItem> Table(
-        string heading, bool showHeaders, IReadOnlyList<SlackRichColumn> columns, IReadOnlyList<SlackRichTableRow> rows)
+    private const int ListBoxLineLimit = 51000;
+
+    private const int ListBoxGap = 1000;
+
+    /// <summary>However many columns a section turns on, the first keeps enough to be read.</summary>
+    private const int LeastFirstColumn = 8000;
+
+    /// <summary>What a box holds.</summary>
+    private const int BlocksPerBox = 10;
+
+    private const string BoxLabel = "List";
+
+    /// <summary>
+    /// A list as one box: its title and picture, what somebody wrote about it, a rule, and the
+    /// rows. A list too long for the box carries on in another, with its header row again.
+    ///
+    /// <para>⚠️ In a layout, alone. That is what makes it wider than a box's standard size without
+    /// being as wide as the message, and it is also why the picture is the box's own header icon: a
+    /// box in a layout cannot hold a layout, so a picture of any size could only go on the right.</para>
+    ///
+    /// <para>⚠️ The rows are lines of one text block, not a block each. A box holds 10 blocks, and
+    /// no row here needs an image, which is the only reason to give one a block of its own.</para>
+    ///
+    /// <para>⚠️ Only the first column gives way when a line is too wide. It is the longest by far
+    /// and the one that reads with its end missing; a number cannot.</para>
+    /// </summary>
+    public static List<SlackRichItem> ListBoxes(SlackListBox list)
     {
-        var items = new List<SlackRichItem>();
-        if (rows.Count == 0) return items;
+        if (list.Rows.Count == 0) return [];
 
-        var right  = columns.Select(c => c.Right).ToArray();
-        var widths = new int[columns.Count];
+        var columns = list.Columns;
+        var right   = columns.Select(c => c.Right).ToArray();
 
-        for (var i = 0; i < columns.Count; i++)
-        {
-            widths[i] = rows.Max(r => SlackColumns.Width(r.Cells[i]));
-            if (showHeaders) widths[i] = Math.Max(widths[i], SlackColumns.Width(columns[i].Header));
-        }
+        int Widest(IEnumerable<IReadOnlyList<string>> rows, int i) =>
+            rows.Select(r => SlackColumns.Width(r[i]))
+                .Append(list.ShowHeaders ? SlackColumns.Width(columns[i].Header) : 0).Max();
 
+        var others = Enumerable.Range(1, columns.Count - 1).Sum(i => Widest(list.Rows, i) + ListBoxGap);
+        var room   = Math.Max(ListBoxLineLimit - others, LeastFirstColumn);
+        var rows   = list.Rows
+            .Select(r => (IReadOnlyList<string>)[SlackColumns.Cut(r[0], room), .. r.Skip(1)]).ToList();
+
+        var widths = Enumerable.Range(0, columns.Count).Select(i => Widest(rows, i)).ToArray();
         var starts = new int[columns.Count];
-        for (var i = 1; i < columns.Count; i++) starts[i] = starts[i - 1] + widths[i - 1] + TableGap;
+        for (var i = 1; i < columns.Count; i++) starts[i] = starts[i - 1] + widths[i - 1] + ListBoxGap;
 
-        if (heading.Length > 0) items.Add(new SlackRichItem(TextSection(heading), Room: showHeaders ? 3 : 2));
+        var header = list.ShowHeaders ? SlackColumns.Place([.. columns.Select(c => c.Header)], starts, widths, right) : null;
 
-        object? header = null;
-        if (showHeaders)
+        var boxes = new List<List<object>> { new() };
+
+        void Add(object block)
         {
-            var offset = rows.Any(r => r.Icon is not null) ? IconOffset : 0;
-            header = Context(Mrkdwn(SlackColumns.Place(columns.Select(c => c.Header).ToArray(), starts, widths, right, offset)));
-            items.Add(new SlackRichItem(header, Room: 2));
+            if (boxes[^1].Count == BlocksPerBox) boxes.Add([]);
+            boxes[^1].Add(block);
         }
+
+        var text = list.Text.Trim();
+        if (text.Length > 0)
+        {
+            foreach (var part in SlackMessageSplitter.Split(text, MaxSectionText)) Add(TextSection(part));
+            Add(new Dictionary<string, object> { ["type"] = "divider" });
+        }
+
+        var lines  = new List<string>();
+        var length = 0;
+
+        void Line(string line)
+        {
+            lines.Add(line);
+            length += line.Length + 1;
+        }
+
+        if (header is not null) Line(header);
 
         foreach (var row in rows)
         {
-            var text = Mrkdwn(SlackColumns.Place(row.Cells, starts, widths, right));
-            var block = row.Icon is { } icon ? Context(Image(icon, row.IconAlt), text) : Context(text);
-            items.Add(new SlackRichItem(block, header));
+            var line = SlackColumns.Place(row, starts, widths, right);
+
+            if (length + line.Length > MaxSectionText)
+            {
+                Add(Context(Mrkdwn(string.Join("\n", lines))));
+                lines  = [];
+                length = 0;
+
+                if (header is not null && boxes[^1].Count == BlocksPerBox) Line(header);
+            }
+
+            Line(line);
         }
 
-        return items;
+        Add(Context(Mrkdwn(string.Join("\n", lines))));
+
+        return [.. boxes.Select((children, i) => new SlackRichItem(Box(list, children, withPicture: i == 0)))];
+    }
+
+    private static Dictionary<string, object> Box(SlackListBox list, List<object> children, bool withPicture)
+    {
+        var box = new Dictionary<string, object>
+        {
+            ["type"]            = "container",
+            ["title"]           = PlainTitle(list.Title),
+            ["rich_text_title"] = RichTitle(list.Title),
+            ["width"]           = "full",
+            ["child_blocks"]    = children,
+        };
+
+        if (withPicture && list.Picture is { } picture) box["icon"] = Image(picture, list.Title);
+
+        return new Dictionary<string, object>
+        {
+            ["type"]       = "layout",
+            ["label"]      = BoxLabel,
+            ["grid_lines"] = "none",
+            ["rows"]       = new object[]
+            {
+                new Dictionary<string, object>
+                {
+                    ["items"] = new object[] { new Dictionary<string, object> { ["block"] = box } },
+                },
+            },
+        };
+    }
+
+    // ── Text in a box ────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Text as a box. Its first line is the box's title, without the bold round it that it needed
+    /// as a line of text.
+    ///
+    /// <para>⚠️ Slack refuses a box with no title. Text that has no line to spare for one, being a
+    /// single line or a first line too long to be a title, keeps all its words and gets a blank
+    /// title, which costs an empty line at the top.</para>
+    /// </summary>
+    public static List<SlackRichItem> TextBoxes(string text, string width, string? picture)
+    {
+        var (title, body) = TitleAndBody(text);
+        if (title.Length == 0 && body.Length == 0) return [];
+
+        var boxes = new List<List<object>> { new() };
+        foreach (var part in SlackMessageSplitter.Split(body, MaxSectionText))
+        {
+            if (boxes[^1].Count == BlocksPerBox) boxes.Add([]);
+            boxes[^1].Add(TextSection(part));
+        }
+
+        return [.. boxes.Select((children, i) => new SlackRichItem(TopLevelBox(title, width, children, i == 0 ? picture : null)))];
+    }
+
+    /// <summary>Text split into a box's title and what goes under it. See <see cref="TextBoxes"/>.</summary>
+    public static (string Title, string Body) TitleAndBody(string text)
+    {
+        var all = text.Replace("\r\n", "\n").Trim();
+        if (all.Length == 0) return ("", "");
+
+        var end = all.IndexOf('\n');
+        if (end < 0) return (NothingToShow, all);
+
+        var first = all[..end].Trim();
+        if (first.Length >= 2 && first[0] is '*' or '_' && first[^1] == first[0]) first = first[1..^1].Trim();
+
+        var body = all[(end + 1)..].Trim();
+        return first.Length is 0 or > MaxTitle ? (NothingToShow, all) : (first, body);
+    }
+
+    private static Dictionary<string, object> TopLevelBox(string title, string width, List<object> children, string? picture)
+    {
+        var box = new Dictionary<string, object>
+        {
+            ["type"]         = "container",
+            ["title"]        = PlainTitle(title),
+            ["width"]        = width,
+            ["child_blocks"] = children,
+        };
+
+        // A blank title has nothing to draw, and a rich one needs something in it.
+        if (title != NothingToShow) box["rich_text_title"] = RichTitle(title);
+        if (picture is not null) box["icon"] = Image(picture, title);
+        return box;
+    }
+
+    // ── Items in a box ───────────────────────────────────────────────────────
+
+    /// <summary>What a line of a wide box can take. Measured from real posts at about 13 px.</summary>
+    private const int WideBoxLineLimit = 46750;
+
+    /// <summary>A row's rank and icon, before its text starts: 58 px, measured.</summary>
+    private const int ItemRowLead = 4424;
+
+    /// <summary>
+    /// A header row in a block of its own draws narrower than the rows under it, about 2% (measured:
+    /// 385 px against 393), so its columns are spread by that much to stay over theirs.
+    /// </summary>
+    private const double HeaderSpread = 393.0 / 385.0;
+
+    /// <summary>Blanks to bring a header row over the rows' text: a row's rank and icon, measured at
+    /// the header's narrower size.</summary>
+    private const int HeaderLead = 4514;
+
+    /// <summary>The same in a layout's cell, which starts about 8 px further in.</summary>
+    private const int HeaderLeadInLayout = 3801;
+
+    /// <summary>
+    /// A ranked list as a box: number 1's picture on the left and its figures beside it, then a
+    /// row for each of the others, each with its icon. A list too long for one box carries on in another.
+    ///
+    /// <para>⚠️ A box holds 10 blocks, which number 1 and nine rows use up, so the header row shares
+    /// a layout with number 1, a layout being one block however many rows it has. It cannot share
+    /// one with the rows under it: a layout pads its cells, about 8 px in and half as high again,
+    /// and that row would stop matching the others.</para>
+    ///
+    /// <para>⚠️ At the top level, not in a layout as a project list's box is. Only there can it hold
+    /// the layout that puts a picture on the left.</para>
+    ///
+    /// <para>⚠️ Always wide, so the caller keeps to the columns that fit (<see cref="ItemColumnsFit"/>).
+    /// Full is no way out: a layout stops at about 700 px however wide its box, so the header wraps
+    /// there, and outside the layout it is an eleventh block.</para>
+    /// </summary>
+    public static List<SlackRichItem> ItemBoxes(SlackItemList list)
+    {
+        if (list.Rows.Count == 0) return [];
+
+        var body  = list.Rows.Skip(1).ToList();
+        var count = list.Columns.Count;
+
+        int Widest(IEnumerable<SlackItemRow> rows, int i) =>
+            rows.Select(r => SlackColumns.Width(r.Cells[i]))
+                .Append(list.ShowHeaders ? SlackColumns.Width(list.Columns[i].Header) : 0).Max();
+
+        // Everything on a line but the name.
+        var rest = ItemRowLead + NameGap + Enumerable.Range(1, count - 1).Sum(i => Widest(body, i)) + NumberGap * Math.Max(count - 2, 0);
+        var room = Math.Max(WideBoxLineLimit - rest, LeastFirstColumn);
+
+        var rows = body.Select(r => new SlackItemRow(r.Icon, [SlackColumns.Cut(r.Cells[0], room), .. r.Cells.Skip(1)])).ToList();
+
+        var widths = Enumerable.Range(0, count).Select(i => Widest(rows, i)).ToArray();
+        var starts = new int[count];
+        for (var i = 1; i < count; i++) starts[i] = starts[i - 1] + widths[i - 1] + (i == 1 ? NameGap : NumberGap);
+
+        var right = list.Columns.Select(c => c.Right).ToArray();
+
+        string HeaderLine(int lead) => SlackColumns.Place(
+            [.. list.Columns.Select(c => c.Header)],
+            [.. starts.Select(x => (int)Math.Round(x * HeaderSpread) + lead)],
+            [.. widths.Select(x => (int)Math.Round(x * HeaderSpread))],
+            right);
+
+        var withHeaders = list.ShowHeaders && rows.Count > 0;
+
+        var topRows = new List<object> { new Dictionary<string, object> { ["items"] = TopItems(list) } };
+        if (withHeaders) topRows.Add(new Dictionary<string, object>
+        {
+            ["items"] = new object[] { new Dictionary<string, object> { ["block"] = Context(Mrkdwn(HeaderLine(HeaderLeadInLayout))) } },
+        });
+
+        var boxes = new List<List<object>>
+        {
+            new()
+            {
+                new Dictionary<string, object>
+                {
+                    ["type"] = "layout", ["label"] = BoxLabel, ["grid_lines"] = "none", ["rows"] = topRows,
+                },
+            },
+        };
+
+        for (var i = 0; i < rows.Count; i++)
+        {
+            if (boxes[^1].Count == BlocksPerBox)
+            {
+                boxes.Add([]);
+                if (withHeaders) boxes[^1].Add(Context(Mrkdwn(HeaderLine(HeaderLead))));
+            }
+
+            boxes[^1].Add(Context(
+                Mrkdwn(RankText(i + 2)),
+                Image(rows[i].Icon, body[i].Cells[0]),
+                Mrkdwn(SlackColumns.Place(rows[i].Cells, starts, widths, right))));
+        }
+
+        return [.. boxes.Select(children => new SlackRichItem(TopLevelBox(list.Title, SlackBoxWidth.Wide, children, null)))];
+    }
+
+    /// <summary>Whether columns this wide fit a row of <see cref="ItemBoxes"/>, after its rank, icon
+    /// and the least a name is cut to: the widths of the columns after the name.</summary>
+    public static bool ItemColumnsFit(IReadOnlyCollection<int> widths) =>
+        ItemRowLead + NameGap + widths.Sum() + NumberGap * Math.Max(widths.Count - 1, 0) + LeastFirstColumn <= WideBoxLineLimit;
+
+    /// <summary>A line of small text, the way a table's footnote reads.</summary>
+    public static Dictionary<string, object> Note(string text) => Context(Mrkdwn(text));
+
+    private static object[] TopItems(SlackItemList list)
+    {
+        var top = list.Rows[0];
+
+        string Fact(SlackTopFact f)
+        {
+            var value = SlackColumns.Escape(f.Value);
+            return string.Format(list.FactFormat, SlackColumns.Escape(f.Label), f.Strong ? $"*{value}*" : value);
+        }
+
+        var lines = new List<string> { string.Format(list.FactFormat, SlackColumns.Escape(list.TopLabel), $"*{SlackColumns.Escape(top.Cells[0])}*") };
+        lines.AddRange(list.Before.Select(Fact));
+
+        if (list.InPeriod.Count > 0)
+        {
+            lines.Add("");
+            lines.Add($"*{SlackColumns.Escape(list.PeriodLine)}*");
+        }
+
+        var figures = new Dictionary<string, object> { ["type"] = "section", ["text"] = Mrkdwn(string.Join("\n", lines)) };
+        if (list.InPeriod.Count > 0) figures["fields"] = list.InPeriod.Select(f => (object)Mrkdwn(Fact(f))).ToArray();
+
+        return
+        [
+            new Dictionary<string, object> { ["width"] = "narrow", ["block"] = Image(list.Picture, top.Cells[0]) },
+            new Dictionary<string, object> { ["width"] = "wide",   ["block"] = figures },
+        ];
     }
 
     // ── Real tables ──────────────────────────────────────────────────────────
@@ -798,8 +1144,7 @@ public static class SlackRichBlocks
     // ── Messages ─────────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Blocks into messages Slack will take, in order. A table that has to carry on in another
-    /// message takes its header row with it.
+    /// Blocks into messages Slack will take, in order.
     /// </summary>
     public static List<List<object>> Pack(IEnumerable<SlackRichItem> items, int max = MaxBlocksPerMessage)
     {
@@ -812,7 +1157,6 @@ public static class SlackRichBlocks
             {
                 messages.Add(current);
                 current = [];
-                if (item.Repeat is { } repeat) current.Add(repeat);
             }
 
             current.Add(item.Block);

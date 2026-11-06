@@ -329,6 +329,24 @@
                                        AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
                                        Watermark="{x:Static loc:AlarmsText.HintWhatToSaySlack}" />
 
+                              <!-- Text on Slack: optionally in a box, and then optionally with a picture. -->
+                              <StackPanel IsVisible="{Binding IsText}" Spacing="4">
+                                <StackPanel HorizontalAlignment="Left" Width="180">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.BoxWidthLabel}" />
+                                  <ComboBox ItemsSource="{Binding BoxWidths}" SelectedItem="{Binding BoxWidth}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                                <ContentControl Content="{Binding TextPicturePicker}" IsVisible="{Binding HasBox}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                                <TextBlock Classes="hint" IsVisible="{Binding HasBox}"
+                                           Text="{x:Static loc:AlarmsText.BoxWidthHint}" />
+                              </StackPanel>
+
                               <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
                               <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
                                 <StackPanel Grid.Column="0" Margin="0 0 8 0">
@@ -541,6 +559,13 @@
                                             VerticalAlignment="Bottom" Margin="0 0 0 5" />
                                 </Grid>
 
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IntroTextLabel}" />
+                                  <TextBox Text="{Binding IntroText}" AcceptsReturn="True" TextWrapping="Wrap"
+                                           MinHeight="56" MaxHeight="160" />
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.IntroTextHint}" />
+                                </StackPanel>
+
                                 <StackPanel Orientation="Horizontal" Spacing="14">
                                   <CheckBox IsChecked="{Binding ShowIskLeft}" Content="{x:Static loc:AlarmsText.IskLeftColumn}" />
                                   <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="{x:Static loc:AlarmsText.LastCompletedColumn}" />
@@ -550,6 +575,18 @@
                                           Content="{x:Static loc:AlarmsText.SlackRichOption}" />
                                 <TextBlock Classes="hint"
                                            Text="{x:Static loc:AlarmsText.SlackRichNote}" />
+
+                                <!-- The picture: what kind of thing, then which one. -->
+                                <StackPanel IsVisible="{Binding SlackRich}">
+                                  <ContentControl Content="{Binding ProjectPicturePicker}" IsVisible="{Binding SlackRich}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.PictureHint}" />
+                                </StackPanel>
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
                                            IsVisible="{Binding ProjectsNote, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
@@ -725,6 +762,11 @@
                                     <Button Classes="small" Content="{x:Static loc:AlarmsText.AddColumn}" Padding="10 3"
                                             Command="{Binding AddOppsColumnCommand}" />
                                   </StackPanel>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsBoxFull}"
+                                             IsVisible="{Binding OppsBoxFull}" />
+                                  <TextBlock Classes="hint" Text="{Binding OppsLeftOut}"
+                                             Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap"
+                                             IsVisible="{Binding HasOppsLeftOut}" />
                                   <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
                                 </StackPanel>
 
@@ -747,6 +789,11 @@
                                 </Grid>
 
                                 <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsSectionNote}" />
+
+                                <CheckBox IsChecked="{Binding SlackRich}"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
                               </StackPanel>
 
                             </StackPanel>
