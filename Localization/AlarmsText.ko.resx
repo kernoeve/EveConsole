@@ -1810,6 +1810,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>선택하지 않으면 이 섹션은 텍스트 표로 게시됩니다. Discord에는 항상 텍스트가 전송됩니다.</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>표 위 텍스트</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>제목 아래에 표시됩니다(Slack과 텍스트 표 모두). 이모지, 링크, 멘션을 쓸 수 있으며 멘션은 실제로 알림이 갑니다.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>이미지</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Slack 형식에서만 제목 옆에 표시됩니다. Slack 상자에는 항상 제목이 있어야 하므로 비워 두면 기본 제목을 사용합니다.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>캐릭터</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>팩션</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC 코퍼레이션</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>에이전트</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>아이템 유형</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — 여기서는 텍스트로 표시됩니다. Slack에는 이미지와 정렬된 열로 전송됩니다]</value>
   </data>

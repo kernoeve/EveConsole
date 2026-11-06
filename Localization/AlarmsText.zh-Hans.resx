@@ -1810,6 +1810,42 @@
   <data name="SlackRichNote" xml:space="preserve">
     <value>取消勾选时，此部分以文本表格发布。Discord 始终收到文本。</value>
   </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>表格上方的文字</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>显示在标题下方，Slack 和文本表格中都有。可以使用表情、链接和提及，提及会真正通知对方。</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>仅用于 Slack 格式，显示在标题旁。Slack 的框必须有标题，留空时使用默认标题。</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC 军团</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — 此处显示为文本；Slack 收到图片和对齐的列]</value>
   </data>

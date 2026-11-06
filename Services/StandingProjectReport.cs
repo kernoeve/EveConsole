@@ -87,8 +87,10 @@ public static class StandingProjectReport
     /// so magnitudes are comparable down the column instead of every number starting in the same
     /// place and ending wherever it happens to.</para>
     /// </summary>
+    /// <param name="bareIsk">ISK Left without the unit on every row, where the width is short and
+    /// the header already says it.</param>
     public static List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)> Columns(
-        string projectType, bool showIskLeft, bool showLastCompleted)
+        string projectType, bool showIskLeft, bool showLastCompleted, bool bareIsk = false)
     {
         var cols = new List<(string Header, Func<StandingProjectGridRow, string> Cell, bool Right)>();
 
@@ -115,13 +117,25 @@ public static class StandingProjectReport
         // project's reward per contribution. One answers "how much work", the other "how much is
         // in it", and neither implies the other.
         cols.Add((CorpText.ReportColRemaining, r => r.RemainingText, true));
-        if (showIskLeft) cols.Add((CorpText.ReportColIskLeft, r => r.RemainingPayoutText, true));
+        if (showIskLeft) cols.Add((CorpText.ReportColIskLeft, r => bareIsk ? Bare(r.RemainingPayoutText) : r.RemainingPayoutText, true));
 
         cols.Add(("%", r => r.RemainingPercentText, true));
         if (showLastCompleted) cols.Add((CorpText.ReportColLastCompleted, LastDone, false));
 
         return cols;
     }
+
+    private const string IskUnit = " ISK";
+
+    private static string Bare(string payout) =>
+        payout.EndsWith(IskUnit, StringComparison.Ordinal) ? payout[..^IskUnit.Length] : payout;
+
+    /// <summary>
+    /// The title on a Slack box, which cannot go without one. A section left blank gets the heading
+    /// it would have started with; the text table has no such limit, and prints none.
+    /// </summary>
+    public static string BoxTitle(string title, string projectType, string filter) =>
+        title.Trim().Length > 0 ? title.Trim() : DefaultTitle(projectType, filter);
 
     /// <summary>
     /// A set of expanded rows as a fenced block.
@@ -140,7 +154,8 @@ public static class StandingProjectReport
         bool   showHeaders      = false,
         bool   showIskLeft      = true,
         bool   showLastCompleted = true,
-        string formatName       = "Slack")
+        string formatName       = "Slack",
+        string intro            = "")
     {
         if (rows.Count == 0) return "";
 
@@ -171,6 +186,9 @@ public static class StandingProjectReport
         // alone — and a stray blank line above a table reads as a rendering fault.
         // Bold in the markup of wherever it is going: *x* on Slack, **x** on Discord.
         if (heading.Trim().Length > 0) sb.AppendLine(OutputFormat.ByName(formatName).Bold(heading.Trim()));
+
+        // What somebody wrote about the list, as they wrote it, between its heading and the table.
+        if (intro.Trim().Length > 0) sb.AppendLine(intro.Trim());
 
         sb.AppendLine("```");
 

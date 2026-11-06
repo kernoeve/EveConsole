@@ -1378,7 +1378,8 @@ public class MainWindowViewModel : ReactiveObject
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger, batchAddService,
-                                                        parkCompare, onlineServices);
+                                                        parkCompare, onlineServices,
+                                                        new SlackPictureSearch(entityBrowser, dbFactory));
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
         IndyParksVm.ParksChanged += () =>
