@@ -329,6 +329,24 @@
                                        AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
                                        Watermark="{x:Static loc:AlarmsText.HintWhatToSaySlack}" />
 
+                              <!-- Text on Slack: optionally in a box, and then optionally with a picture. -->
+                              <StackPanel IsVisible="{Binding IsText}" Spacing="4">
+                                <StackPanel HorizontalAlignment="Left" Width="180">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.BoxWidthLabel}" />
+                                  <ComboBox ItemsSource="{Binding BoxWidths}" SelectedItem="{Binding BoxWidth}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                                <ContentControl Content="{Binding TextPicturePicker}" IsVisible="{Binding HasBox}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                                <TextBlock Classes="hint" IsVisible="{Binding HasBox}"
+                                           Text="{x:Static loc:AlarmsText.BoxWidthHint}" />
+                              </StackPanel>
+
                               <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
                               <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
                                 <StackPanel Grid.Column="0" Margin="0 0 8 0">
@@ -560,36 +578,13 @@
 
                                 <!-- The picture: what kind of thing, then which one. -->
                                 <StackPanel IsVisible="{Binding SlackRich}">
-                                  <Grid ColumnDefinitions="180,10,*">
-                                    <StackPanel Grid.Column="0">
-                                      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.PictureLabel}" />
-                                      <ComboBox ItemsSource="{Binding PictureKinds}" SelectedItem="{Binding PictureKind}"
-                                                HorizontalAlignment="Stretch" />
-                                    </StackPanel>
-                                    <AutoCompleteBox Grid.Column="2" IsVisible="{Binding PicksPicture}"
-                                                     VerticalAlignment="Bottom"
-                                                     Text="{Binding PictureSearch}"
-                                                     SelectedItem="{Binding PickedPicture}"
-                                                     AsyncPopulator="{Binding PicturePopulator}"
-                                                     FilterMode="None"
-                                                     MinimumPrefixLength="2"
-                                                     MinimumPopulateDelay="0:0:0.35"
-                                                     MaxDropDownHeight="320"
-                                                     Watermark="{x:Static loc:CorpText.HintTypeAtLeastTwo}">
-                                      <AutoCompleteBox.ItemTemplate>
-                                        <DataTemplate x:DataType="svc:EntityMatch">
-                                          <Grid ColumnDefinitions="*,Auto" MinWidth="320">
-                                            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11.5"
-                                                       Foreground="{DynamicResource TextPrimaryBrush}" />
-                                            <TextBlock Grid.Column="1" Text="{Binding Subtitle}" FontSize="10"
-                                                       Foreground="{DynamicResource TextMutedBrush}"
-                                                       Margin="12 0 0 0" VerticalAlignment="Center"
-                                                       TextTrimming="CharacterEllipsis" MaxWidth="260" />
-                                          </Grid>
-                                        </DataTemplate>
-                                      </AutoCompleteBox.ItemTemplate>
-                                    </AutoCompleteBox>
-                                  </Grid>
+                                  <ContentControl Content="{Binding ProjectPicturePicker}" IsVisible="{Binding SlackRich}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
                                   <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.PictureHint}" />
                                 </StackPanel>
 
@@ -767,6 +762,11 @@
                                     <Button Classes="small" Content="{x:Static loc:AlarmsText.AddColumn}" Padding="10 3"
                                             Command="{Binding AddOppsColumnCommand}" />
                                   </StackPanel>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsBoxFull}"
+                                             IsVisible="{Binding OppsBoxFull}" />
+                                  <TextBlock Classes="hint" Text="{Binding OppsLeftOut}"
+                                             Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap"
+                                             IsVisible="{Binding HasOppsLeftOut}" />
                                   <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
                                 </StackPanel>
 
@@ -789,6 +789,11 @@
                                 </Grid>
 
                                 <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsSectionNote}" />
+
+                                <CheckBox IsChecked="{Binding SlackRich}"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
                               </StackPanel>
 
                             </StackPanel>

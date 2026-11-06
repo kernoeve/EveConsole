@@ -1846,6 +1846,54 @@
   <data name="PictureKindType" xml:space="preserve">
     <value>아이템 유형</value>
   </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>Slack 상자</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>상자 없음</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>좁게</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>표준</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>넓게</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>텍스트의 첫 줄이 상자 제목이 됩니다. Discord와 텍스트 게시물에는 작성한 그대로 표시됩니다.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>최근 30일 활동</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>판매 수량</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>평균 가격</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>이익률 %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>총 매출</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>총 이익</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>최상위 항목</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Slack 상자에 열을 더 넣을 공간이 없습니다. 다른 열을 추가하려면 하나를 제거하세요.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Slack 상자에 비해 너무 넓습니다. 다음 열은 게시물에서 제외됩니다: {0}</value>
+  </data>
   <data name="PreviewSlackRich" xml:space="preserve">
     <value>[{0} — 여기서는 텍스트로 표시됩니다. Slack에는 이미지와 정렬된 열로 전송됩니다]</value>
   </data>

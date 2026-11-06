@@ -83,8 +83,12 @@ public sealed class MessageBlock
     /// title and its table, in every format.</summary>
     public string IntroText { get; set; } = "";
 
-    /// <summary>Standing project blocks: what the picture is, one of <see cref="SlackPicture"/>. It
-    /// shows in the Slack format only.</summary>
+    /// <summary>Text blocks: post on Slack in a box of this size, one of <see cref="SlackBoxWidth"/>.
+    /// Everywhere else the text goes as it was written.</summary>
+    public string BoxWidth { get; set; } = SlackBoxWidth.None;
+
+    /// <summary>Standing project and boxed text blocks: what the picture is, one of
+    /// <see cref="SlackPicture"/>. It shows in the Slack format only.</summary>
     public string PictureKind { get; set; } = SlackPicture.None;
 
     public long PictureId { get; set; }
@@ -99,7 +103,10 @@ public sealed class MessageBlock
     [JsonIgnore]
     public bool UsesSlackRich => Type switch
     {
-        TypeTop10 or TypeProjects => SlackRich,
+        TypeTop10 or TypeProjects or TypeIndustryOpps => SlackRich,
+
+        // Text says so by having a box at all.
+        TypeText => SlackBoxWidth.IsBox(BoxWidth),
 
         // These two choose their outputs from a list, so the choice is already there.
         TypeSystemIndex => IndexOutputs.Contains(SystemIndexOutputs.NativeTable),
@@ -905,6 +912,18 @@ public class ScheduledBlockRenderer(
                 items.AddRange(boxes);
                 if (boxes.Count > 0) said.Add(StandingProjectReport.BoxTitle(b.SectionTitle, b.ProjectType, b.ProjectFilter));
             }
+            else if (b.UsesSlackRich && b.Type == MessageBlock.TypeIndustryOpps)
+            {
+                var boxes = await IndustryOppsBoxesAsync(b, ct);
+                items.AddRange(boxes);
+                if (boxes.Count > 0) said.Add(OppsTitle(b));
+            }
+            else if (b.UsesSlackRich && b.Type == MessageBlock.TypeText)
+            {
+                var boxes = SlackRichBlocks.TextBoxes(b.Text, b.BoxWidth, SlackPicture.Url(b.PictureKind, b.PictureId, b.PictureVariant));
+                items.AddRange(boxes);
+                if (boxes.Count > 0) said.Add(b.Text.Trim().Split('\n')[0].Trim());
+            }
             else if (b.UsesSlackRich && b.Type == MessageBlock.TypeSystemIndex)
             {
                 var table = await SystemIndexRichAsync(b, ct);
@@ -1308,6 +1327,36 @@ public class ScheduledBlockRenderer(
 
         var top = IndustryOppsReport.Top(result.Rows, b.OppsSortBy, b.OppsSortDescending, b.OppsRowLimit);
         return IndustryOppsReport.Export(top, b.OppsColumns, b.SectionTitle, b.ShowHeaders, formatName, b.OppsHeaders);
+    }
+
+    /// <summary>What heads the box, which Slack will not take without a title.</summary>
+    private static string OppsTitle(MessageBlock b) =>
+        b.SectionTitle.Trim().Length > 0 ? b.SectionTitle.Trim() : AlarmsText.OppsDefaultTitle;
+
+    /// <summary>The same list as the text table, in boxes.</summary>
+    private async Task<List<SlackRichItem>> IndustryOppsBoxesAsync(MessageBlock b, CancellationToken ct)
+    {
+        if (b.OppsConfigId <= 0) return [];
+
+        var result = await opps.CalculateAsync(b.ToOppsQuery(), ct);
+        if (result is null || result.NoRegion) return [];
+
+        var top = IndustryOppsReport.Top(result.Rows, b.OppsSortBy, b.OppsSortDescending, b.OppsRowLimit);
+        if (top.Count == 0) return [];
+
+        // Only some types have a render. Asked for one it does not hold, the image server answers
+        // 400 and Slack refuses the whole message.
+        var variant = await SlackPictureSearch.TypeVariantAsync(top[0].TypeId, ct);
+        var picture = SlackPicture.Url(SlackPicture.Type, top[0].TypeId, variant)!;
+
+        var items = SlackRichBlocks.ItemBoxes(IndustryOppsReport.SlackList(
+            top, b.OppsColumns, OppsTitle(b), b.OppsSortBy, b.ShowHeaders, picture, b.OppsHeaders));
+
+        // Only about a column the box has room for: a "*" left out needs no explaining.
+        if (IndustryOppsReport.NeedsHistoryNote(top, IndustryOppsReport.SlackBoxKeys(top, b.OppsColumns, b.ShowHeaders, b.OppsHeaders)))
+            items.Add(new SlackRichItem(SlackRichBlocks.Note(IndustryText.OppsReportHistoryPriced)));
+
+        return items;
     }
 
     /// <summary>The corp's name, or nothing — a header without one still reads correctly.</summary>
