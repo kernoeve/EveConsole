@@ -17,10 +17,10 @@
     <value>Elige una sala o un servidor a la izquierda.</value>
   </data>
   <data name="UnreadTip" xml:space="preserve">
-    <value>{0} mensajes nuevos</value>
+    <value>Mensajes nuevos: {0}</value>
   </data>
   <data name="MentionsTip" xml:space="preserve">
-    <value>Tu nombre, {0} veces, aún sin ver</value>
+    <value>Menciones de tu nombre sin ver: {0}</value>
   </data>
   <data name="MumbleNote" xml:space="preserve">
     <value>Todo lo dicho desde la conexión, en el canal en el que estuvieras. Dura hasta cerrar la aplicación, ya que un servidor de Mumble no guarda nada.</value>

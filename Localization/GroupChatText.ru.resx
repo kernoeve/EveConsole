@@ -20,7 +20,7 @@
     <value>Новых сообщений: {0}</value>
   </data>
   <data name="MentionsTip" xml:space="preserve">
-    <value>Ваше имя, упоминаний: {0}, ещё не просмотрено</value>
+    <value>Непросмотренных упоминаний вашего имени: {0}</value>
   </data>
   <data name="MumbleNote" xml:space="preserve">
     <value>Всё сказанное с момента подключения, в том канале, где вы были. Хранится до закрытия приложения, так как сервер Mumble ничего не сохраняет.</value>

@@ -188,6 +188,28 @@
             </StackPanel>
           </Button>
 
+          <!-- Group chat: dim with nothing new; lit with a count for new messages; in warning colours only when named. -->
+          <Button Command="{Binding OpenGroupChatCommand}" Background="Transparent" BorderThickness="0" Padding="4 1" Margin="0 0 10 0"
+                  VerticalAlignment="Center" ToolTip.Tip="{Binding GroupChatVm.IconTip}" ToolTip.Placement="Bottom">
+            <Button.Resources>
+              <StreamGeometry x:Key="GroupChatIcon">M3 5 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0 z M0.8 13.8 v-1.3 a3.5 3.5 0 0 1 3.5 -3.5 h2.4 a3.5 3.5 0 0 1 3.5 3.5 v1.3 z M10.2 2.6 a2.5 2.5 0 0 1 0 4.8 M11.8 9.1 a3.4 3.4 0 0 1 3.4 3.4 v1.3 h-2.6</StreamGeometry>
+            </Button.Resources>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Grid>
+                <Path IsVisible="{Binding !GroupChatVm.HasUnread}" Data="{StaticResource GroupChatIcon}"
+                      Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.2" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding GroupChatVm.HasOnlyUnread}" Data="{StaticResource GroupChatIcon}"
+                      Fill="{DynamicResource TextPrimaryBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding GroupChatVm.HasMentions}" Data="{StaticResource GroupChatIcon}"
+                      Fill="{DynamicResource WarnBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+              </Grid>
+              <TextBlock IsVisible="{Binding GroupChatVm.HasUnread}" Text="{Binding GroupChatVm.UnreadText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock IsVisible="{Binding GroupChatVm.HasMentions}" Text="{Binding GroupChatVm.MentionsText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            </StackPanel>
+          </Button>
+
           <!-- My characters online. Hover lists who, where, and in what — three columns that
                line up without a grid's chrome, green when docked, orange when in space. -->
           <StackPanel Orientation="Horizontal" Spacing="5" VerticalAlignment="Center"

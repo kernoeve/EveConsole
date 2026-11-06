@@ -294,6 +294,60 @@ public sealed class GroupChatViewModel : ReactiveObject
         }
     }
 
+    // ── The icon at the top of the main window ────────────────────────────────
+
+    private int _totalUnread, _totalMentions;
+
+    /// <summary>New messages across every room and server. ⚠️ From the rows, not from what was counted: that holds direct messages too.</summary>
+    public int TotalUnread
+    {
+        get => _totalUnread;
+        private set
+        {
+            if (_totalUnread == value) return;
+            this.RaiseAndSetIfChanged(ref _totalUnread, value);
+            this.RaisePropertyChanged(nameof(HasUnread));
+            this.RaisePropertyChanged(nameof(HasOnlyUnread));
+            this.RaisePropertyChanged(nameof(UnreadText));
+            this.RaisePropertyChanged(nameof(IconTip));
+        }
+    }
+
+    /// <summary>The person's name, said in any of them and not yet seen.</summary>
+    public int TotalMentions
+    {
+        get => _totalMentions;
+        private set
+        {
+            if (_totalMentions == value) return;
+            this.RaiseAndSetIfChanged(ref _totalMentions, value);
+            this.RaisePropertyChanged(nameof(HasMentions));
+            this.RaisePropertyChanged(nameof(HasOnlyUnread));
+            this.RaisePropertyChanged(nameof(MentionsText));
+            this.RaisePropertyChanged(nameof(IconTip));
+        }
+    }
+
+    public bool HasUnread => TotalUnread > 0;
+    public bool HasMentions => TotalMentions > 0;
+
+    /// <summary>A busy room is not an alarm: only being named lights the icon up in warning colours.</summary>
+    public bool HasOnlyUnread => HasUnread && !HasMentions;
+
+    public string UnreadText => TotalUnread.ToString("N0", CultureInfo.CurrentCulture);
+    public string MentionsText => "@" + TotalMentions.ToString("N0", CultureInfo.CurrentCulture);
+
+    public string IconTip
+    {
+        get
+        {
+            var lines = new List<string> { ShellText.NavGroupChat };
+            if (HasUnread) lines.Add(string.Format(CultureInfo.CurrentCulture, GroupChatText.UnreadTip, TotalUnread));
+            if (HasMentions) lines.Add(string.Format(CultureInfo.CurrentCulture, GroupChatText.MentionsTip, TotalMentions));
+            return string.Join("\n", lines);
+        }
+    }
+
     /// <summary>Many changes come in a burst on connecting: one refresh for the lot.</summary>
     private void QueueRefresh()
     {
@@ -357,6 +411,8 @@ public sealed class GroupChatViewModel : ReactiveObject
 
         SyncRows(rows);
         HasServers = Rows.Count > 0;
+        TotalUnread = Rows.Sum(r => r.ShownUnread);
+        TotalMentions = Rows.Sum(r => r.ShownMentions);
         RefreshDetail();
     }
 

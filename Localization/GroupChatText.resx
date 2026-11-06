@@ -17,10 +17,10 @@
     <value>Pick a room or a server on the left.</value>
   </data>
   <data name="UnreadTip" xml:space="preserve">
-    <value>{0} new messages</value>
+    <value>New messages: {0}</value>
   </data>
   <data name="MentionsTip" xml:space="preserve">
-    <value>Your name, {0} times, not yet seen</value>
+    <value>Unseen mentions of your name: {0}</value>
   </data>
   <data name="MumbleNote" xml:space="preserve">
     <value>Everything said since connecting, in whichever channel you were in. It lasts until the app closes, as a Mumble server keeps none of it.</value>

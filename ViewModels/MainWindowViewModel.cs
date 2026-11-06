@@ -282,6 +282,7 @@ public class MainWindowViewModel : ReactiveObject
 
     /// <summary>The top bar's icon: the Messages tool, on what most needs reading if anything does.</summary>
     public ReactiveCommand<Unit, Unit> OpenMessagesCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenGroupChatCommand { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -529,6 +530,12 @@ public class MainWindowViewModel : ReactiveObject
 
         MessagesVm.Show();
         return Task.CompletedTask;
+    }
+
+    private Task OpenGroupChatAsync()
+    {
+        OpenTool("group_chat");
+        return GroupChatVm.HasUnread ? GroupChatVm.ShowUnreadAsync() : Task.CompletedTask;
     }
 
     private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
@@ -1280,6 +1287,7 @@ public class MainWindowViewModel : ReactiveObject
         MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
         GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
+        OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
         JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
         MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
@@ -1653,8 +1661,8 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("communication", ShellText.NavGroupCommunication,
             [
+                // Group Chat is reached from its icon at the top of the window, which carries its counts.
                 new NavItem("messages", ShellText.NavMessages),
-                new NavItem("group_chat", ShellText.NavGroupChat),
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("jabber", ShellText.NavJabber),
                 new NavItem("mumble", ShellText.NavMumble),
