@@ -31,6 +31,24 @@ static string RawFile(string path)
 
 // ── Mumble's own number format, from its protocol document ───────────────────
 
+// ── What is asked of a server about someone else ───────────────────────────────────────
+{
+    var mute = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bool(6, true)));
+    Check("admin: a server mute names the person, and nothing else", mute.UInt(1) == 7 && mute.Bool(6) == true && mute.Bool(7) is null && mute.UInt(5) is null);
+
+    var move = new PbMessage(MumbleClient.UserStateMessage(7, m => m.UInt(5, 0)));
+    Check("admin: moving to the root says so", move.UInt(5) == 0);
+
+    var kick = new PbMessage(MumbleClient.RemoveUserMessage(7, "Because", ban: false));
+    Check("admin: a kick is no ban", kick.UInt(1) == 7 && kick.Text(3) == "Because" && kick.Bool(4) is null);
+
+    var ban = new PbMessage(MumbleClient.RemoveUserMessage(7, "", ban: true));
+    Check("admin: a ban says so, and a blank reason is left out", ban.Bool(4) == true && ban.Text(3) is null);
+
+    Check("admin: the bits are the published ones", (uint)MumblePermission.MuteDeafen == 0x10 && (uint)MumblePermission.Move == 0x20 && (uint)MumblePermission.Listen == 0x800
+        && (uint)MumblePermission.Kick == 0x10000 && (uint)MumblePermission.Ban == 0x20000 && (uint)MumblePermission.SelfRegister == 0x80000);
+}
+
 // ── Which channels are open in the list ─────────────────────────────────────────────────
 {
     // Root: Fleets (Alpha (Main, Dps), Bravo), Social (Lounge)

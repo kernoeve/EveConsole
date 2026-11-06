@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -258,5 +258,119 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} and subchannels</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>The server refused that. You may not have permission.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Server admin</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Server Mute</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Server Deafen</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Priority Speaker</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Mute for Me</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignore Their Messages</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Registered</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Muted by an admin</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Deafened by an admin</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Muted themselves</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Deafened themselves</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Not allowed to speak here</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Priority speaker</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Recording</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Move to channel</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Type part of a channel's name</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Move to My Channel</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Pick a channel from the list.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Reason (optional)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Kick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Kick {0} from this server?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Ban {0} from this server? Only an admin can undo this, from the server's ban list.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Register This Name</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Register {0} on this server? That ties the name to their certificate, and only an admin can undo it.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>What others see about you</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Listen to This Channel</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Stop Listening</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Link With My Channel</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Unlink From My Channel</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Remove Channel</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Remove {0} and every channel under it, for everyone on this server?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>New channel under this one</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Temporary: goes away when it empties</value>
   </data>
 </root>

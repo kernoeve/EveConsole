@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -204,5 +204,119 @@
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} 及子频道</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>服务器拒绝了此操作。您可能没有权限。</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>服务器管理</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>服务器静音</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>服务器禁听</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>优先发言人</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>仅对我静音</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>忽略其消息</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>已注册</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>被管理员静音</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>被管理员禁听</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>已自行静音</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>已自行禁听</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>不允许在此发言</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>优先发言人</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>正在录音</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>移动到频道</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>输入频道名称的一部分</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>移动</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>移动到我的频道</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>请从列表中选择频道。</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>原因（可选）</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>踢出</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>将 {0} 踢出此服务器?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>将 {0} 从此服务器封禁?只有管理员可以在封禁列表中撤销。</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>注册此名称</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>在此服务器上注册 {0}?该名称将与其证书绑定,只有管理员可以撤销。</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>他人看到的关于您的内容</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>收听此频道</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>停止收听</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>与我的频道链接</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>取消与我的频道的链接</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>删除频道</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>为此服务器上的所有人删除 {0} 及其下的所有频道?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>在此下新建频道</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>创建</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>临时:清空后消失</value>
   </data>
 </root>

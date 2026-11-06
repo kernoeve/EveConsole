@@ -2698,9 +2698,13 @@ public class App : Application
                         "ServerId" INTEGER NOT NULL DEFAULT 0,
                         "UserKey"  TEXT    NOT NULL DEFAULT '',
                         "Volume"   REAL    NOT NULL DEFAULT 1,
+                        "LocalMute"  INTEGER NOT NULL DEFAULT 0,
+                        "IgnoreText" INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("ServerId", "UserKey")
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "LocalMute" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "IgnoreText" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "MumbleDirectMessages" (
                         "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,

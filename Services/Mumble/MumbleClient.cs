@@ -18,12 +18,24 @@ public sealed class MumbleException(MumbleFailure failure, string message, Excep
     public string? CertificateSubject { get; init; }
 }
 
+/// <summary>What the server lets this client do in a channel, by the bits on the wire. Kick, ban and the two registers only mean anything at the root.</summary>
+[Flags]
+public enum MumblePermission : uint
+{
+    None = 0, Write = 0x1, Traverse = 0x2, Enter = 0x4, Speak = 0x8, MuteDeafen = 0x10, Move = 0x20, MakeChannel = 0x40,
+    LinkChannel = 0x80, Whisper = 0x100, TextMessage = 0x200, MakeTempChannel = 0x400, Listen = 0x800,
+    Kick = 0x10000, Ban = 0x20000, Register = 0x40000, SelfRegister = 0x80000, ResetUserContent = 0x100000,
+}
+
 public sealed class MumbleChannel
 {
     public uint   Id          { get; init; }
     public uint?  Parent      { get; set; }
     public string Name        { get; set; } = "";
     public string Description { get; set; } = "";
+
+    /// <summary>A long description comes only as this, until asked for.</summary>
+    public bool   HasDescriptionToAsk { get; set; }
     public int    Position    { get; set; }
     public bool   Temporary   { get; set; }
     public HashSet<uint> Links { get; } = [];
@@ -43,6 +55,11 @@ public sealed class MumbleUser
     public string Hash       { get; set; } = "";
     public bool   Recording  { get; set; }
     public string Comment    { get; set; } = "";
+
+    /// <summary>A long comment comes only as this, until asked for.</summary>
+    public bool   HasCommentToAsk { get; set; }
+    public bool   PrioritySpeaker { get; set; }
+    public HashSet<uint> ListeningTo { get; } = [];
 }
 
 public sealed record MumbleLogin(
@@ -81,6 +98,8 @@ public sealed class MumbleClient : IAsyncDisposable
     private readonly object _gate = new();
     private readonly Dictionary<uint, MumbleChannel> _channels = [];
     private readonly Dictionary<uint, MumbleUser> _users = [];
+    private readonly Dictionary<uint, MumblePermission> _permissions = [];
+    private readonly HashSet<uint> _permissionsAsked = [];
 
     private TcpClient? _tcp;
     private Stream? _stream;
@@ -324,6 +343,7 @@ public sealed class MumbleClient : IAsyncDisposable
             case MumbleMessage.ServerSync:
                 MaxBandwidth = (int)(m.UInt(2) ?? 0);
                 WelcomeText  = m.Text(3) ?? WelcomeText;
+                if (m.UInt(4) is { } rootPermissions) lock (_gate) _permissions[0] = (MumblePermission)(uint)rootPermissions;
                 Session      = (uint)(m.UInt(1) ?? 0);
                 Changed?.Invoke();
                 break;
@@ -379,6 +399,16 @@ public sealed class MumbleClient : IAsyncDisposable
             case MumbleMessage.CryptSetup:
                 ApplyCrypt(m);
                 break;
+
+            case MumbleMessage.PermissionQuery:
+                lock (_gate)
+                {
+                    // Everything known is out of date: what was granted has changed.
+                    if (m.Bool(3) == true) { _permissions.Clear(); _permissionsAsked.Clear(); }
+                    if (m.UInt(2) is { } granted) _permissions[(uint)(m.UInt(1) ?? 0)] = (MumblePermission)(uint)granted;
+                }
+                Changed?.Invoke();
+                break;
         }
     }
 
@@ -396,7 +426,8 @@ public sealed class MumbleClient : IAsyncDisposable
             // ⚠️ Never a loop: a channel inside itself would have anything walking the tree going round for ever.
             if (m.UInt(2) is { } parent && !WouldLoop(id, (uint)parent)) channel.Parent = (uint)parent;
             if (m.Text(3) is { } name) channel.Name = name;
-            if (m.Text(5) is { } description) channel.Description = description;
+            if (m.Text(5) is { } description) { channel.Description = description; channel.HasDescriptionToAsk = false; }
+            if (m.Bytes(10) is { Length: > 0 }) channel.HasDescriptionToAsk = m.Text(5) is null;
             if (m.Bool(8) is { } temporary) channel.Temporary = temporary;
             if (m.UInt(9) is { } position) channel.Position = (int)position;
 
@@ -439,7 +470,11 @@ public sealed class MumbleClient : IAsyncDisposable
             if (m.Bool(8) is { } suppress) user.Suppress = suppress;
             if (m.Bool(9) is { } selfMute) user.SelfMute = selfMute;
             if (m.Bool(10) is { } selfDeaf) user.SelfDeaf = selfDeaf;
-            if (m.Text(14) is { } comment) user.Comment = comment;
+            if (m.Text(14) is { } comment) { user.Comment = comment; user.HasCommentToAsk = false; }
+            if (m.Bytes(16) is { Length: > 0 }) user.HasCommentToAsk = m.Text(14) is null;
+            if (m.Bool(18) is { } priority) user.PrioritySpeaker = priority;
+            foreach (var c in m.UInts(21)) user.ListeningTo.Add((uint)c);
+            foreach (var c in m.UInts(22)) user.ListeningTo.Remove((uint)c);
             if (m.Text(15) is { } hash) user.Hash = hash;
             if (m.Bool(19) is { } recording) user.Recording = recording;
         }
@@ -453,6 +488,94 @@ public sealed class MumbleClient : IAsyncDisposable
     /// <summary>Says this client is muted or deafened, which also stops the server sending it voice when deaf.</summary>
     public Task SetSelfMuteAsync(bool mute, bool deaf, CancellationToken ct) =>
         SendAsync(MumbleMessage.UserState, new PbWriter().UInt(1, Session).Bool(9, mute || deaf).Bool(10, deaf).ToArray(), ct);
+
+    /// <summary>What this client may do in a channel, or null until the server has said. See <see cref="AskPermissions"/>.</summary>
+    public MumblePermission? PermissionsIn(uint channel)
+    {
+        lock (_gate)
+        {
+            // ⚠️ A server never answers SuperUser's questions: they may do anything, anywhere, so what it said for the root is what holds.
+            if (IsSuperUser && _permissions.TryGetValue(0, out var everything)) return everything;
+            return _permissions.TryGetValue(channel, out var granted) ? granted : null;
+        }
+    }
+
+    private bool IsSuperUser => _users.TryGetValue(Session, out var me) && me.UserId == 0;
+
+    /// <summary>Asks once per channel what this client may do there. The answer arrives as <see cref="Changed"/>.</summary>
+    public void AskPermissions(uint channel)
+    {
+        // Takes the lock itself, around asking whether it is known at all.
+        lock (_gate)
+            if (IsSuperUser || _permissions.ContainsKey(channel) || !_permissionsAsked.Add(channel)) return;
+
+        Quietly(SendAsync(MumbleMessage.PermissionQuery, new PbWriter().UInt(1, channel).ToArray(), CancellationToken.None));
+    }
+
+    /// <summary>Asks for a comment too long to have come with the person. The answer arrives as <see cref="Changed"/>.</summary>
+    public void AskComment(MumbleUser user)
+    {
+        lock (_gate)
+        {
+            if (!user.HasCommentToAsk) return;
+            user.HasCommentToAsk = false;
+        }
+        Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(2, user.Session).ToArray(), CancellationToken.None));
+    }
+
+    /// <summary>The same for a channel's description.</summary>
+    public void AskDescription(MumbleChannel channel)
+    {
+        lock (_gate)
+        {
+            if (!channel.HasDescriptionToAsk) return;
+            channel.HasDescriptionToAsk = false;
+        }
+        Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(3, channel.Id).ToArray(), CancellationToken.None));
+    }
+
+    // Anything below can be refused, which arrives later as Denied: asking is all these do.
+
+    public static byte[] UserStateMessage(uint session, Action<PbWriter> fill)
+    {
+        var message = new PbWriter().UInt(1, session);
+        fill(message);
+        return message.ToArray();
+    }
+
+    public static byte[] RemoveUserMessage(uint session, string reason, bool ban)
+    {
+        var message = new PbWriter().UInt(1, session);
+        if (reason.Length > 0) message.Text(3, reason);
+        if (ban) message.Bool(4, true);
+        return message.ToArray();
+    }
+
+    private Task SendUserStateAsync(uint session, Action<PbWriter> fill, CancellationToken ct) =>
+        SendAsync(MumbleMessage.UserState, UserStateMessage(session, fill), ct);
+
+    public Task SetServerMuteAsync(uint session, bool mute, CancellationToken ct) => SendUserStateAsync(session, m => m.Bool(6, mute), ct);
+    public Task SetServerDeafAsync(uint session, bool deaf, CancellationToken ct) => SendUserStateAsync(session, m => m.Bool(7, deaf), ct);
+    public Task SetPrioritySpeakerAsync(uint session, bool priority, CancellationToken ct) => SendUserStateAsync(session, m => m.Bool(18, priority), ct);
+    public Task MoveUserAsync(uint session, uint channel, CancellationToken ct) => SendUserStateAsync(session, m => m.UInt(5, channel), ct);
+
+    /// <summary>Ties a name to its certificate on this server, for good unless an admin undoes it.</summary>
+    public Task RegisterUserAsync(uint session, CancellationToken ct) => SendUserStateAsync(session, m => m.UInt(4, 0), ct);
+
+    public Task SetCommentAsync(string html, CancellationToken ct) => SendUserStateAsync(Session, m => m.Text(14, html), ct);
+
+    /// <summary>Hears a channel without going there, for this connection.</summary>
+    public Task SetListeningAsync(uint channel, bool listen, CancellationToken ct) =>
+        SendUserStateAsync(Session, m => m.UInt(listen ? 21 : 22, channel), ct);
+
+    public Task KickOrBanAsync(uint session, string reason, bool ban, CancellationToken ct) =>
+        SendAsync(MumbleMessage.UserRemove, RemoveUserMessage(session, reason, ban), ct);
+
+    public Task RemoveChannelAsync(uint channel, CancellationToken ct) =>
+        SendAsync(MumbleMessage.ChannelRemove, new PbWriter().UInt(1, channel).ToArray(), ct);
+
+    public Task SetChannelLinkAsync(uint channel, uint with, bool linked, CancellationToken ct) =>
+        SendAsync(MumbleMessage.ChannelState, new PbWriter().UInt(1, channel).UInt(linked ? 6 : 7, with).ToArray(), ct);
 
     public Task SendTextToChannelAsync(uint channel, string message, CancellationToken ct) =>
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(3, channel).Text(5, message).ToArray(), ct);

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -204,5 +204,119 @@
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} とサブチャンネル</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>サーバーに拒否されました。権限がない可能性があります。</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>サーバー管理</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>サーバーミュート</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>サーバー聴覚オフ</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>優先スピーカー</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>自分だけミュート</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>メッセージを無視</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>登録済み</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>管理者によりミュート</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>管理者により聴覚オフ</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>自分でミュート中</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>自分で聴覚オフ中</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>ここでは発言できません</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>優先スピーカー</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>録音中</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>チャンネルへ移動</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>チャンネル名の一部を入力</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>自分のチャンネルへ移動</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>リストからチャンネルを選んでください。</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>理由（任意）</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>キック</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>BAN</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>{0} をこのサーバーからキックしますか?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{0} をこのサーバーから BAN しますか? 元に戻せるのは管理者だけです(BAN リストから)。</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>この名前を登録</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>{0} をこのサーバーに登録しますか? 名前が証明書に結び付けられ、元に戻せるのは管理者だけです。</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>他の人に表示される内容</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>このチャンネルを聴く</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>聴くのをやめる</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>自分のチャンネルとリンク</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>自分のチャンネルとのリンクを解除</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>チャンネルを削除</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>{0} とその下のすべてのチャンネルを、このサーバーの全員に対して削除しますか?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>この下に新しいチャンネル</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>作成</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>一時的: 空になると消えます</value>
   </data>
 </root>

@@ -75,4 +75,10 @@ public class MumbleUserVolume
 
     /// <summary>1 as sent, 0 silent, up to 3.</summary>
     public double Volume   { get; set; } = 1.0;
+
+    /// <summary>Not heard here, whatever anyone else hears. The volume is kept for when that ends.</summary>
+    public bool   LocalMute { get; set; }
+
+    /// <summary>Their words are dropped here as they arrive.</summary>
+    public bool   IgnoreText { get; set; }
 }

@@ -50,6 +50,10 @@ public sealed class MumbleSession(MumbleServer server)
     internal CancellationTokenSource? Run { get; set; }
     internal Task? Loop { get; set; }
     internal Dictionary<string, double> Volumes { get; set; } = [];
+
+    /// <summary>Who is not heard, and whose words are dropped, on this client alone. ⚠️ Read on the connection's thread.</summary>
+    internal System.Collections.Concurrent.ConcurrentDictionary<string, bool> LocalMuted { get; set; } = [];
+    internal System.Collections.Concurrent.ConcurrentDictionary<string, bool> Ignored { get; set; } = [];
     internal bool MicFailed { get; set; }
     internal Task? VoiceSending { get; set; }
     internal GlobalHotkeyService? WhisperHook { get; set; }
@@ -75,6 +79,8 @@ public sealed class MumbleSession(MumbleServer server)
     }
 
     public double VolumeOf(MumbleUser user) => Volumes.GetValueOrDefault(MumbleService.UserKey(user), 1.0);
+    public bool IsLocalMuted(MumbleUser user) => LocalMuted.ContainsKey(MumbleService.UserKey(user));
+    public bool IsIgnored(MumbleUser user) => Ignored.ContainsKey(MumbleService.UserKey(user));
 }
 
 /// <summary>
@@ -169,6 +175,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     public event Action<MumbleSession>? SessionChanged;
     public event Action<MumbleSession, MumbleChatLine>? ChatReceived;
+
+    /// <summary>The server refused something, in its words if it gave any. Blank if it did not say why.</summary>
+    public event Action<MumbleSession, string>? Refused;
 
     /// <summary>Who is talking changed. On a timer thread.</summary>
     public event Action? TalkersChanged;
@@ -583,7 +592,11 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         client.VoiceReceived += v => OnVoice(session, v);
         client.UserLeft += s => { Mixer.Remove(server.Id, s); TalkersChanged?.Invoke(); };
         client.TextReceived += t => OnText(session, client, t);
-        client.Denied += why => { if (why.Length > 0) { session.Detail = why; SessionChanged?.Invoke(session); } };
+        client.Denied += why =>
+        {
+            Refused?.Invoke(session, why);
+            if (why.Length > 0) { session.Detail = why; SessionChanged?.Invoke(session); }
+        };
 
         // ⚠️ Where to return to is read before connecting, and nothing is remembered until that is done:
         // every login starts at the root, which would otherwise overwrite it on the way in.
@@ -607,7 +620,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         await client.ConnectAsync(ct);
 
         session.Encoder = new MumbleEncoder(MumbleEncoder.BitrateFor(client.MaxBandwidth));
-        session.Volumes = await LoadVolumesAsync(server.Id, ct);
+        await LoadVolumesAsync(session, ct);
 
         // Back where they were, and as muted as they were.
         if (FindChannel(client, returnTo) is { } channel && channel != client.Me?.ChannelId)
@@ -691,16 +704,50 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         if (client.UserOf(packet.Session) is not { } user) return;
 
         var gain = session.VolumeOf(user);
-        if (gain <= 0) return;
+        if (gain <= 0 || session.IsLocalMuted(user)) return;
 
         Mixer.Receive(session.Server.Id, packet, gain);
     }
 
-    private async Task<Dictionary<string, double>> LoadVolumesAsync(int serverId, CancellationToken ct)
+    private async Task LoadVolumesAsync(MumbleSession session, CancellationToken ct)
     {
+        var id = session.Server.Id;
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        return await db.MumbleUserVolumes.AsNoTracking().Where(v => v.ServerId == serverId)
-                       .ToDictionaryAsync(v => v.UserKey, v => v.Volume, ct);
+        var rows = await db.MumbleUserVolumes.AsNoTracking().Where(v => v.ServerId == id).ToListAsync(ct);
+
+        session.Volumes    = rows.ToDictionary(v => v.UserKey, v => v.Volume);
+        session.LocalMuted = new(rows.Where(v => v.LocalMute).Select(v => KeyValuePair.Create(v.UserKey, true)));
+        session.Ignored    = new(rows.Where(v => v.IgnoreText).Select(v => KeyValuePair.Create(v.UserKey, true)));
+    }
+
+    /// <summary>Stops hearing someone on this client alone, or starts again, and remembers it.</summary>
+    public async Task SetLocalMuteAsync(MumbleSession session, MumbleUser user, bool mute, CancellationToken ct = default)
+    {
+        if (mute) { session.LocalMuted[UserKey(user)] = true; Mixer.Remove(session.Server.Id, user.Session); }
+        else session.LocalMuted.TryRemove(UserKey(user), out _);
+
+        await SavePersonAsync(session, user, row => row.LocalMute = mute, ct);
+        SessionChanged?.Invoke(session);
+    }
+
+    /// <summary>Stops taking someone's words on this client alone, or starts again, and remembers it.</summary>
+    public async Task SetIgnoredAsync(MumbleSession session, MumbleUser user, bool ignore, CancellationToken ct = default)
+    {
+        if (ignore) session.Ignored[UserKey(user)] = true;
+        else session.Ignored.TryRemove(UserKey(user), out _);
+
+        await SavePersonAsync(session, user, row => row.IgnoreText = ignore, ct);
+        SessionChanged?.Invoke(session);
+    }
+
+    private async Task SavePersonAsync(MumbleSession session, MumbleUser user, Action<MumbleUserVolume> change, CancellationToken ct)
+    {
+        var key = UserKey(user);
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var row = await db.MumbleUserVolumes.FirstOrDefaultAsync(v => v.ServerId == session.Server.Id && v.UserKey == key, ct);
+        if (row is null) db.MumbleUserVolumes.Add(row = new MumbleUserVolume { ServerId = session.Server.Id, UserKey = key, Volume = session.VolumeOf(user) });
+        change(row);
+        await db.SaveChangesAsync(ct);
     }
 
     /// <summary>Sets how loud someone is for this listener, and remembers it.</summary>
@@ -712,7 +759,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var row = await db.MumbleUserVolumes.FirstOrDefaultAsync(v => v.ServerId == session.Server.Id && v.UserKey == key, ct);
-        if (row is null) db.MumbleUserVolumes.Add(new MumbleUserVolume { ServerId = session.Server.Id, UserKey = key, Volume = value });
+        if (row is null) db.MumbleUserVolumes.Add(new MumbleUserVolume { ServerId = session.Server.Id, UserKey = key, Volume = value, LocalMute = session.IsLocalMuted(user), IgnoreText = session.IsIgnored(user) });
         else row.Volume = value;
         await db.SaveChangesAsync(ct);
     }
@@ -754,6 +801,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private void OnText(MumbleSession session, MumbleClient client, MumbleTextMessage text)
     {
+        if (text.Actor is { } said && client.UserOf(said) is { } author && session.IsIgnored(author)) return;
+
         var sender = text.Actor is { } actor ? client.UserOf(actor)?.Name ?? "" : "";
         var words = PlainText(text.Message);
         if (words.Length > MostChatChars) words = words[..MostChatChars] + "\u2026";

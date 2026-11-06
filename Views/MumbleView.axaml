@@ -50,13 +50,17 @@
                     <Path IsVisible="{Binding IsOpen}" Data="M0 1 L9 1 L4.5 6 Z" Fill="{DynamicResource TextMutedBrush}" />
                   </Panel>
                 </Button>
-                <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="5">
+                  <TextBlock Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                  <Path IsVisible="{Binding IsListening}" Data="M3 7a4 4 0 1 1 7 2.6c-.8.9-1.5 1.4-1.5 2.4a1.8 1.8 0 0 1-3.2 1" Stroke="{DynamicResource GoodBrush}" StrokeThickness="1.1" Width="12" Height="14" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MumbleText.StopListening}" />
+                </StackPanel>
               </Grid>
               <!-- A person -->
               <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto">
                 <Ellipse Classes="user" Classes.talking="{Binding Talking}" HorizontalAlignment="Left" />
                 <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
                 <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" VerticalAlignment="Center" Margin="6 0 0 0">
+                  <Path IsVisible="{Binding IsLocalMuted}" Data="M1.5 4.5h2l3-3v9l-3-3h-2zM8.5 4.5l3 3M11.5 4.5l-3 3" Stroke="{DynamicResource TextFaintBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.LocalMute}" />
                   <Path IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
                   <Path IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" Stroke="{DynamicResource WarnBrush}" StrokeThickness="1.1" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
                 </StackPanel>
@@ -164,12 +168,28 @@
       <StackPanel Grid.Row="0" IsVisible="{Binding ShowChannel}" Margin="20 14 20 6" Spacing="6">
         <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
         <TextBlock Text="{Binding Subtitle}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextFaintBrush}" />
-        <Button Content="{x:Static loc:MumbleText.JoinChannel}" Command="{Binding JoinChannelCommand}" HorizontalAlignment="Left" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:MumbleText.JoinChannel}" Command="{Binding JoinChannelCommand}" />
+          <Button Content="{Binding ListenText}" Command="{Binding ToggleListenCommand}" IsVisible="{Binding CanListen}" />
+          <Button Content="{Binding LinkText}" Command="{Binding ToggleLinkCommand}" IsVisible="{Binding CanLinkChannel}" />
+          <Button Content="{x:Static loc:MumbleText.RemoveChannel}" Command="{Binding RemoveChannelCommand}" IsVisible="{Binding CanRemoveChannel}" />
+        </StackPanel>
+        <StackPanel IsVisible="{Binding ShowNewChannel}" Spacing="4" Margin="0 8 0 0" Width="420" HorizontalAlignment="Left">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelNewChannel}" />
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBox Text="{Binding NewChannelName}" Width="280" />
+            <Button Content="{x:Static loc:MumbleText.CreateChannel}" Command="{Binding CreateChannelCommand}" />
+          </StackPanel>
+          <CheckBox IsChecked="{Binding NewChannelTemporary}" IsVisible="{Binding CanChooseTemporary}" FontSize="11" Content="{x:Static loc:MumbleText.NewChannelTemporary}" />
+        </StackPanel>
       </StackPanel>
 
       <!-- A person -->
-      <StackPanel Grid.Row="0" IsVisible="{Binding ShowUser}" Margin="20 14 20 6" Spacing="6">
+      <ScrollViewer Grid.Row="0" Grid.RowSpan="2" IsVisible="{Binding ShowUser}" VerticalScrollBarVisibility="Auto">
+      <StackPanel Margin="20 14 20 6" Spacing="6">
         <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Classes="note" Text="{Binding PersonStatus}" IsVisible="{Binding HasPersonStatus}" />
+        <TextBlock Text="{Binding PersonComment}" IsVisible="{Binding HasPersonComment}" TextWrapping="Wrap" FontSize="11" MaxWidth="620" HorizontalAlignment="Left" Foreground="{DynamicResource TextMutedBrush}" />
         <StackPanel IsVisible="{Binding !SelectedIsMe}" Spacing="4">
           <Button Content="{x:Static loc:MessagesText.SendMessage}" Click="OnMessagePerson" HorizontalAlignment="Left" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.UserVolume}" />
@@ -177,8 +197,47 @@
             <Slider Minimum="0" Maximum="300" Value="{Binding UserVolume}" Width="260" />
             <TextBlock Text="{Binding UserVolumeText}" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
           </StackPanel>
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <ToggleButton Content="{x:Static loc:MumbleText.LocalMute}" IsChecked="{Binding IsPersonLocalMuted, Mode=OneWay}" Command="{Binding ToggleLocalMuteCommand}" />
+            <ToggleButton Content="{x:Static loc:MumbleText.IgnoreMessages}" IsChecked="{Binding IsPersonIgnored, Mode=OneWay}" Command="{Binding ToggleIgnoreCommand}" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- What this client says about itself -->
+        <StackPanel IsVisible="{Binding SelectedIsMe}" Spacing="4" Width="520" HorizontalAlignment="Left">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelComment}" />
+          <TextBox Text="{Binding MyComment}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+          <Button Content="{x:Static loc:MumbleText.SaveComment}" Command="{Binding SaveCommentCommand}" HorizontalAlignment="Left" />
+        </StackPanel>
+        <Button Content="{x:Static loc:MumbleText.RegisterName}" Command="{Binding RegisterCommand}" IsVisible="{Binding CanRegister}" HorizontalAlignment="Left" />
+
+        <!-- What the server lets this client do to them: nothing shows that would only be refused -->
+        <StackPanel IsVisible="{Binding ShowPersonAdmin}" Spacing="4" Margin="0 10 0 0" Width="520" HorizontalAlignment="Left">
+          <TextBlock Classes="label" Text="{x:Static loc:MumbleText.HeadingAdmin}" />
+          <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding CanServerMute}">
+            <ToggleButton Content="{x:Static loc:MumbleText.ServerMute}" IsChecked="{Binding IsServerMuted, Mode=OneWay}" Command="{Binding ToggleServerMuteCommand}" />
+            <ToggleButton Content="{x:Static loc:MumbleText.ServerDeafen}" IsChecked="{Binding IsServerDeaf, Mode=OneWay}" Command="{Binding ToggleServerDeafCommand}" />
+            <ToggleButton Content="{x:Static loc:MumbleText.PrioritySpeaker}" IsChecked="{Binding IsPriority, Mode=OneWay}" Command="{Binding TogglePriorityCommand}" />
+          </StackPanel>
+          <StackPanel IsVisible="{Binding CanMovePerson}" Spacing="4">
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelMoveTo}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <AutoCompleteBox Text="{Binding MoveTarget}" ItemsSource="{Binding MoveChoices}" FilterMode="Contains" Width="300" Watermark="{x:Static loc:MumbleText.MoveHint}" />
+              <Button Content="{x:Static loc:MumbleText.Move}" Command="{Binding MovePersonCommand}" />
+              <Button Content="{x:Static loc:MumbleText.MoveToMine}" Command="{Binding MoveToMineCommand}" />
+            </StackPanel>
+          </StackPanel>
+          <StackPanel IsVisible="{Binding CanRemovePerson}" Spacing="4">
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelReason}" />
+            <TextBox Text="{Binding AdminReason}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <Button Content="{x:Static loc:MumbleText.Kick}" Command="{Binding KickCommand}" IsVisible="{Binding CanKick}" />
+              <Button Content="{x:Static loc:MumbleText.Ban}" Command="{Binding BanCommand}" IsVisible="{Binding CanBan}" />
+            </StackPanel>
+          </StackPanel>
         </StackPanel>
       </StackPanel>
+      </ScrollViewer>
 
       <TextBlock Grid.Row="2" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4" Foreground="{DynamicResource BadBrush}" />
     </Grid>

@@ -53,6 +53,14 @@ public sealed class MumbleRowVm : ReactiveObject
 
     /// <summary>A channel with channels under it, which can be opened and closed.</summary>
     public bool HasChildren { get => _hasChildren; set => this.RaiseAndSetIfChanged(ref _hasChildren, value); }
+
+    private bool _isListening, _isLocalMuted;
+
+    /// <summary>A channel this client is hearing without being in it.</summary>
+    public bool IsListening { get => _isListening; set => this.RaiseAndSetIfChanged(ref _isListening, value); }
+
+    /// <summary>Someone not heard on this client alone.</summary>
+    public bool IsLocalMuted { get => _isLocalMuted; set => this.RaiseAndSetIfChanged(ref _isLocalMuted, value); }
     public bool IsOpen { get => _isOpen; set => this.RaiseAndSetIfChanged(ref _isOpen, value); }
 
     public void Fill(MumbleRowVm from)
@@ -61,6 +69,7 @@ public sealed class MumbleRowVm : ReactiveObject
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
         HasChildren = from.HasChildren; IsOpen = from.IsOpen;
+        IsListening = from.IsListening; IsLocalMuted = from.IsLocalMuted;
     }
 }
 
@@ -131,10 +140,35 @@ public sealed class MumbleViewModel : ReactiveObject
         ToggleDeafenCommand   = ReactiveCommand.CreateFromTask(ToggleDeafenAsync);
         ToggleAudioCommand    = ReactiveCommand.Create(() => { IsAudioOpen = !IsAudioOpen; if (IsAudioOpen) LoadDevices(); });
 
+        ToggleServerMuteCommand = ReactiveCommand.CreateFromTask(() => OnPersonAsync((c, u) => c.SetServerMuteAsync(u.Session, !u.Mute, default)));
+        ToggleServerDeafCommand = ReactiveCommand.CreateFromTask(() => OnPersonAsync((c, u) => c.SetServerDeafAsync(u.Session, !u.Deaf, default)));
+        TogglePriorityCommand   = ReactiveCommand.CreateFromTask(() => OnPersonAsync((c, u) => c.SetPrioritySpeakerAsync(u.Session, !u.PrioritySpeaker, default)));
+        ToggleLocalMuteCommand  = ReactiveCommand.CreateFromTask(() => OnPersonAsync((_, u) => _service.SetLocalMuteAsync(Session!, u, !Session!.IsLocalMuted(u))));
+        ToggleIgnoreCommand     = ReactiveCommand.CreateFromTask(() => OnPersonAsync((_, u) => _service.SetIgnoredAsync(Session!, u, !Session!.IsIgnored(u))));
+        MoveToMineCommand       = ReactiveCommand.CreateFromTask(MoveToMineAsync);
+        MovePersonCommand       = ReactiveCommand.CreateFromTask(MovePersonAsync);
+        KickCommand             = ReactiveCommand.CreateFromTask(() => RemovePersonAsync(ban: false));
+        BanCommand              = ReactiveCommand.CreateFromTask(() => RemovePersonAsync(ban: true));
+        RegisterCommand         = ReactiveCommand.CreateFromTask(RegisterAsync);
+        SaveCommentCommand      = ReactiveCommand.CreateFromTask(SaveCommentAsync);
+        ToggleListenCommand     = ReactiveCommand.CreateFromTask(ToggleListenAsync);
+        CreateChannelCommand    = ReactiveCommand.CreateFromTask(CreateChannelAsync);
+        RemoveChannelCommand    = ReactiveCommand.CreateFromTask(RemoveChannelAsync);
+        ToggleLinkCommand       = ReactiveCommand.CreateFromTask(ToggleLinkAsync);
+
+        // Back from the server, later, in its own time. Blank means it did not say why.
+        _service.Refused += (session, why) => Dispatcher.UIThread.Post(() =>
+        {
+            if (Session == session) StatusText = why.Length > 0 ? MumbleService.PlainText(why) : MumbleText.Refused;
+        });
+
         foreach (var c in new IHandleObservableErrors[]
                  {
                      SaveServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, JoinChannelCommand,
                      ToggleMuteCommand, ToggleDeafenCommand,
+                     ToggleServerMuteCommand, ToggleServerDeafCommand, TogglePriorityCommand, ToggleLocalMuteCommand, ToggleIgnoreCommand,
+                     MoveToMineCommand, MovePersonCommand, KickCommand, BanCommand, RegisterCommand, SaveCommentCommand,
+                     ToggleListenCommand, CreateChannelCommand, RemoveChannelCommand, ToggleLinkCommand,
                  })
             c.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -212,7 +246,12 @@ public sealed class MumbleViewModel : ReactiveObject
 
         foreach (var session in _service.Sessions) AddServer(wanted, session, talking);
 
+        var chosen = SelectedRow?.Identity;
         Sync(wanted);
+
+        // ⚠️ Someone moving gets a new row, at their new depth. Whoever was selected stays selected.
+        if (chosen is not null && (SelectedRow is null || !Rows.Contains(SelectedRow)) && Rows.FirstOrDefault(r => r.Identity == chosen) is { } again)
+            SelectedRow = again;
         HasServers = _service.Sessions.Count > 0;
         ShowDetail();
     }
@@ -270,6 +309,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 Kind = MumbleRowKind.Channel, ServerId = id, Id = c.Id, Depth = depth,
                 Text = c.Name.Length > 0 ? c.Name : MumbleText.RootChannel,
                 HasChildren = hasChildren, IsOpen = open,
+                IsListening = client.Me?.ListeningTo.Contains(c.Id) == true,
             });
 
             // With nothing under it there is nothing to close it with, so whoever is in it always shows.
@@ -284,6 +324,7 @@ public sealed class MumbleViewModel : ReactiveObject
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",
                     IsDeaf = u.Deaf || u.SelfDeaf,
                     IsMuted = u.Mute || u.SelfMute || u.Suppress,
+                    IsLocalMuted = session.IsLocalMuted(u),
                 });
 
             foreach (var child in children[channel]
@@ -378,6 +419,13 @@ public sealed class MumbleViewModel : ReactiveObject
             this.RaisePropertyChanged(name);
 
         StatusText = "";
+
+        // What is being written belongs to who it was for.
+        AdminReason = "";
+        MoveTarget = "";
+        NewChannelName = "";
+        _commentLoadedFor = null;
+        FillMoveChoices();
         ShowDetail();
     }
 
@@ -431,6 +479,7 @@ public sealed class MumbleViewModel : ReactiveObject
                     var channel = session.Client?.ChannelOf(row.Id);
                     Title = row.Text;
                     Subtitle = channel is { Description.Length: > 0 } ? MumbleService.PlainText(channel.Description) : "";
+                    if (channel is not null && session.Client is { } here) ShowChannelControls(here, channel);
                     break;
 
                 case MumbleRowKind.User:
@@ -438,7 +487,11 @@ public sealed class MumbleViewModel : ReactiveObject
                     Title = row.Text;
                     Subtitle = "";
                     SelectedIsMe = row.IsMe;
-                    if (user is not null) UserVolume = session.VolumeOf(user) * 100;
+                    if (user is not null)
+                    {
+                        UserVolume = session.VolumeOf(user) * 100;
+                        if (session.Client is { } there) ShowPersonControls(session, there, user, row);
+                    }
                     break;
             }
         }
@@ -446,6 +499,243 @@ public sealed class MumbleViewModel : ReactiveObject
     }
 
     private static string KeyName(int key) => key == 0 ? MumbleText.KeyNone : GlobalHotkeyService.VkName(key);
+
+    // ── What can be done to a person ──────────────────────────────────────────
+
+    private bool _canServerMute, _canMovePerson, _canKick, _canBan, _canRegister, _isServerMuted, _isServerDeaf, _isPriority, _isPersonLocalMuted, _isPersonIgnored;
+    private string _personStatus = "", _personComment = "", _myComment = "", _adminReason = "", _moveTarget = "";
+    private uint? _commentLoadedFor;
+
+    /// <summary>Each by what the server says this client may do, so nothing is offered only to be refused.</summary>
+    public bool CanServerMute { get => _canServerMute; private set { this.RaiseAndSetIfChanged(ref _canServerMute, value); this.RaisePropertyChanged(nameof(ShowPersonAdmin)); } }
+    public bool CanMovePerson { get => _canMovePerson; private set { this.RaiseAndSetIfChanged(ref _canMovePerson, value); this.RaisePropertyChanged(nameof(ShowPersonAdmin)); } }
+    public bool CanKick { get => _canKick; private set { this.RaiseAndSetIfChanged(ref _canKick, value); this.RaisePropertyChanged(nameof(ShowPersonAdmin)); this.RaisePropertyChanged(nameof(CanRemovePerson)); } }
+    public bool CanBan { get => _canBan; private set { this.RaiseAndSetIfChanged(ref _canBan, value); this.RaisePropertyChanged(nameof(ShowPersonAdmin)); this.RaisePropertyChanged(nameof(CanRemovePerson)); } }
+    public bool CanRegister { get => _canRegister; private set => this.RaiseAndSetIfChanged(ref _canRegister, value); }
+    public bool CanRemovePerson => CanKick || CanBan;
+    public bool ShowPersonAdmin => CanServerMute || CanMovePerson || CanKick || CanBan;
+
+    public bool IsServerMuted { get => _isServerMuted; private set => this.RaiseAndSetIfChanged(ref _isServerMuted, value); }
+    public bool IsServerDeaf { get => _isServerDeaf; private set => this.RaiseAndSetIfChanged(ref _isServerDeaf, value); }
+    public bool IsPriority { get => _isPriority; private set => this.RaiseAndSetIfChanged(ref _isPriority, value); }
+    public bool IsPersonLocalMuted { get => _isPersonLocalMuted; private set => this.RaiseAndSetIfChanged(ref _isPersonLocalMuted, value); }
+    public bool IsPersonIgnored { get => _isPersonIgnored; private set => this.RaiseAndSetIfChanged(ref _isPersonIgnored, value); }
+
+    public string PersonStatus { get => _personStatus; private set { this.RaiseAndSetIfChanged(ref _personStatus, value); this.RaisePropertyChanged(nameof(HasPersonStatus)); } }
+    public bool HasPersonStatus => PersonStatus.Length > 0;
+    public string PersonComment { get => _personComment; private set { this.RaiseAndSetIfChanged(ref _personComment, value); this.RaisePropertyChanged(nameof(HasPersonComment)); } }
+    public bool HasPersonComment => PersonComment.Length > 0 && !SelectedIsMe;
+
+    /// <summary>What this client says about itself, being edited.</summary>
+    public string MyComment { get => _myComment; set => this.RaiseAndSetIfChanged(ref _myComment, value); }
+    public string AdminReason { get => _adminReason; set => this.RaiseAndSetIfChanged(ref _adminReason, value); }
+    public string MoveTarget { get => _moveTarget; set => this.RaiseAndSetIfChanged(ref _moveTarget, value); }
+
+    public ObservableCollection<string> MoveChoices { get; } = [];
+    private readonly Dictionary<string, uint> _moveTargets = new(StringComparer.CurrentCultureIgnoreCase);
+
+    public ReactiveCommand<Unit, Unit> ToggleServerMuteCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleServerDeafCommand { get; }
+    public ReactiveCommand<Unit, Unit> TogglePriorityCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleLocalMuteCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleIgnoreCommand { get; }
+    public ReactiveCommand<Unit, Unit> MoveToMineCommand { get; }
+    public ReactiveCommand<Unit, Unit> MovePersonCommand { get; }
+    public ReactiveCommand<Unit, Unit> KickCommand { get; }
+    public ReactiveCommand<Unit, Unit> BanCommand { get; }
+    public ReactiveCommand<Unit, Unit> RegisterCommand { get; }
+    public ReactiveCommand<Unit, Unit> SaveCommentCommand { get; }
+
+    private void ShowPersonControls(MumbleSession session, MumbleClient client, MumbleUser user, MumbleRowVm row)
+    {
+        client.AskPermissions(user.ChannelId);
+        client.AskPermissions(0);
+        client.AskComment(user);
+
+        var here = client.PermissionsIn(user.ChannelId) ?? MumblePermission.None;
+        var root = client.PermissionsIn(0) ?? MumblePermission.None;
+
+        CanServerMute = here.HasFlag(MumblePermission.MuteDeafen);
+        CanMovePerson = here.HasFlag(MumblePermission.Move) && !row.IsMe;
+        CanKick = root.HasFlag(MumblePermission.Kick) && !row.IsMe;
+        CanBan = root.HasFlag(MumblePermission.Ban) && !row.IsMe;
+        CanRegister = user.UserId is null && root.HasFlag(row.IsMe ? MumblePermission.SelfRegister : MumblePermission.Register);
+
+        IsServerMuted = user.Mute;
+        IsServerDeaf = user.Deaf;
+        IsPriority = user.PrioritySpeaker;
+        IsPersonLocalMuted = session.IsLocalMuted(user);
+        IsPersonIgnored = session.IsIgnored(user);
+
+        PersonStatus = string.Join(" \u00B7 ", new[]
+        {
+            user.UserId is not null ? MumbleText.PersonRegistered : "",
+            user.Mute ? MumbleText.PersonServerMuted : "",
+            user.Deaf ? MumbleText.PersonServerDeafened : "",
+            user.SelfDeaf ? MumbleText.PersonSelfDeafened : user.SelfMute ? MumbleText.PersonSelfMuted : "",
+            user.Suppress ? MumbleText.PersonSuppressed : "",
+            user.PrioritySpeaker ? MumbleText.PersonPriority : "",
+            user.Recording ? MumbleText.PersonRecording : "",
+        }.Where(s => s.Length > 0));
+
+        PersonComment = MumbleService.PlainText(user.Comment);
+        this.RaisePropertyChanged(nameof(HasPersonComment));
+
+        // Not while it is being written: this runs whenever anything on the server changes.
+        if (_commentLoadedFor != row.Id && (row.IsMe || user.Comment.Length > 0))
+        {
+            _commentLoadedFor = row.Id;
+            if (row.IsMe) MyComment = PersonComment;
+        }
+    }
+
+    private async Task OnPersonAsync(Func<MumbleClient, MumbleUser, Task> act)
+    {
+        if (SelectedRow is { IsUser: true } row && Session?.Client is { } client && client.UserOf(row.Id) is { } user)
+            await Task.Run(() => act(client, user));
+    }
+
+    private void FillMoveChoices()
+    {
+        MoveChoices.Clear();
+        _moveTargets.Clear();
+        if (SelectedRow is not { IsUser: true } || Session?.Client is not { } client) return;
+
+        foreach (var channel in client.Channels)
+        {
+            var path = MumbleService.PathOf(client, channel.Id);
+            if (path.Length == 0) path = channel.Name;
+            _moveTargets[path] = channel.Id;
+        }
+        foreach (var path in _moveTargets.Keys.Order(StringComparer.CurrentCultureIgnoreCase)) MoveChoices.Add(path);
+    }
+
+    private Task MoveToMineAsync() => OnPersonAsync((c, u) => c.Me is { } me ? c.MoveUserAsync(u.Session, me.ChannelId, default) : Task.CompletedTask);
+
+    private async Task MovePersonAsync()
+    {
+        if (!_moveTargets.TryGetValue(MoveTarget.Trim(), out var channel))
+        {
+            StatusText = MumbleText.MoveNoSuchChannel;
+            return;
+        }
+
+        await OnPersonAsync((c, u) => c.MoveUserAsync(u.Session, channel, default));
+        MoveTarget = "";
+    }
+
+    private async Task RemovePersonAsync(bool ban)
+    {
+        if (SelectedRow is not { IsUser: true } row) return;
+
+        var ask = string.Format(CultureInfo.CurrentCulture, ban ? MumbleText.ConfirmBan : MumbleText.ConfirmKick, row.Text);
+        if (Confirm is null || !await Confirm(ask)) return;
+
+        var reason = AdminReason.Trim();
+        await OnPersonAsync((c, u) => c.KickOrBanAsync(u.Session, reason, ban, default));
+        AdminReason = "";
+    }
+
+    private async Task RegisterAsync()
+    {
+        if (SelectedRow is not { IsUser: true } row) return;
+        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmRegister, row.Text))) return;
+
+        await OnPersonAsync((c, u) => c.RegisterUserAsync(u.Session, default));
+    }
+
+    private async Task SaveCommentAsync()
+    {
+        if (Session?.Client is not { } client) return;
+
+        var html = System.Net.WebUtility.HtmlEncode(MyComment.Trim()).Replace("\n", "<br>", StringComparison.Ordinal);
+        await Task.Run(() => client.SetCommentAsync(html, default));
+    }
+
+    // ── What can be done to a channel ─────────────────────────────────────────
+
+    private bool _canListen, _isListening, _canMakeChannel, _canMakeTempChannel, _canRemoveChannel, _canLinkChannel, _isLinkedToMine, _newChannelTemporary;
+    private string _newChannelName = "";
+
+    public bool CanListen { get => _canListen; private set => this.RaiseAndSetIfChanged(ref _canListen, value); }
+    public bool IsListening { get => _isListening; private set { this.RaiseAndSetIfChanged(ref _isListening, value); this.RaisePropertyChanged(nameof(ListenText)); } }
+    public string ListenText => IsListening ? MumbleText.StopListening : MumbleText.Listen;
+
+    public bool CanMakeChannel { get => _canMakeChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeChannel, value); this.RaisePropertyChanged(nameof(ShowNewChannel)); } }
+    public bool CanMakeTempChannel { get => _canMakeTempChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeTempChannel, value); this.RaisePropertyChanged(nameof(ShowNewChannel)); } }
+    public bool ShowNewChannel => CanMakeChannel || CanMakeTempChannel;
+    public bool CanChooseTemporary => CanMakeChannel && CanMakeTempChannel;
+
+    public bool CanRemoveChannel { get => _canRemoveChannel; private set => this.RaiseAndSetIfChanged(ref _canRemoveChannel, value); }
+    public bool CanLinkChannel { get => _canLinkChannel; private set => this.RaiseAndSetIfChanged(ref _canLinkChannel, value); }
+    public bool IsLinkedToMine { get => _isLinkedToMine; private set { this.RaiseAndSetIfChanged(ref _isLinkedToMine, value); this.RaisePropertyChanged(nameof(LinkText)); } }
+    public string LinkText => IsLinkedToMine ? MumbleText.UnlinkFromMine : MumbleText.LinkToMine;
+
+    public string NewChannelName { get => _newChannelName; set => this.RaiseAndSetIfChanged(ref _newChannelName, value); }
+    public bool NewChannelTemporary { get => _newChannelTemporary; set => this.RaiseAndSetIfChanged(ref _newChannelTemporary, value); }
+
+    public ReactiveCommand<Unit, Unit> ToggleListenCommand { get; }
+    public ReactiveCommand<Unit, Unit> CreateChannelCommand { get; }
+    public ReactiveCommand<Unit, Unit> RemoveChannelCommand { get; }
+    public ReactiveCommand<Unit, Unit> ToggleLinkCommand { get; }
+
+    private void ShowChannelControls(MumbleClient client, MumbleChannel channel)
+    {
+        client.AskPermissions(channel.Id);
+        client.AskDescription(channel);
+
+        var here = client.PermissionsIn(channel.Id) ?? MumblePermission.None;
+        var me = client.Me;
+
+        if (me is not null) client.AskPermissions(me.ChannelId);
+        var mine = me is null ? MumblePermission.None : client.PermissionsIn(me.ChannelId) ?? MumblePermission.None;
+
+        CanListen = here.HasFlag(MumblePermission.Listen) && me?.ChannelId != channel.Id;
+        IsListening = me?.ListeningTo.Contains(channel.Id) == true;
+
+        CanMakeChannel = here.HasFlag(MumblePermission.MakeChannel);
+        CanMakeTempChannel = here.HasFlag(MumblePermission.MakeTempChannel);
+        this.RaisePropertyChanged(nameof(CanChooseTemporary));
+        CanRemoveChannel = here.HasFlag(MumblePermission.Write) && channel.Id != 0;
+
+        CanLinkChannel = me is not null && me.ChannelId != channel.Id && here.HasFlag(MumblePermission.LinkChannel) && mine.HasFlag(MumblePermission.LinkChannel);
+        IsLinkedToMine = me is not null && channel.Links.Contains(me.ChannelId);
+    }
+
+    private async Task ToggleListenAsync()
+    {
+        if (SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
+
+        var listen = client.Me?.ListeningTo.Contains(row.Id) != true;
+        await Task.Run(() => client.SetListeningAsync(row.Id, listen, default));
+    }
+
+    private async Task CreateChannelAsync()
+    {
+        var name = NewChannelName.Trim();
+        if (name.Length == 0 || SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
+
+        // Only one sort is open to them: that is the sort it is.
+        var temporary = CanChooseTemporary ? NewChannelTemporary : CanMakeTempChannel;
+        await Task.Run(() => client.CreateChannelAsync(row.Id, name, temporary, default));
+        NewChannelName = "";
+    }
+
+    private async Task RemoveChannelAsync()
+    {
+        if (SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
+        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmRemoveChannel, row.Text))) return;
+
+        await Task.Run(() => client.RemoveChannelAsync(row.Id, default));
+    }
+
+    private async Task ToggleLinkAsync()
+    {
+        if (SelectedRow is not { IsChannel: true } row || Session?.Client is not { Me: { } me } client) return;
+
+        var linked = client.ChannelOf(row.Id)?.Links.Contains(me.ChannelId) != true;
+        await Task.Run(() => client.SetChannelLinkAsync(row.Id, me.ChannelId, linked, default));
+    }
 
     private bool _selectedIsMe;
     public bool SelectedIsMe { get => _selectedIsMe; private set => this.RaiseAndSetIfChanged(ref _selectedIsMe, value); }

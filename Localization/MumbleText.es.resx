@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -204,5 +204,119 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} y subcanales</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>El servidor lo rechazó. Puede que no tengas permiso.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Administración del servidor</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Silenciar en el servidor</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Ensordecer en el servidor</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Orador prioritario</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Silenciar para mí</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignorar sus mensajes</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Registrado</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Silenciado por un administrador</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Ensordecido por un administrador</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Se ha silenciado</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Se ha ensordecido</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>No puede hablar aquí</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Orador prioritario</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Grabando</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Mover al canal</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Escribe parte del nombre del canal</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Mover</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Mover a mi canal</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Elige un canal de la lista.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Motivo (opcional)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Expulsar</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Prohibir</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>¿Expulsar a {0} de este servidor?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>¿Prohibir a {0} en este servidor? Solo un administrador puede deshacerlo, desde la lista de prohibiciones.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Registrar este nombre</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>¿Registrar a {0} en este servidor? El nombre queda ligado a su certificado y solo un administrador puede deshacerlo.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Lo que otros ven de ti</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Escuchar este canal</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Dejar de escuchar</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Enlazar con mi canal</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Desenlazar de mi canal</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Eliminar canal</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>¿Eliminar {0} y todos los canales que contiene, para todos en este servidor?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>Nuevo canal bajo este</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Crear</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Temporal: desaparece cuando se vacía</value>
   </data>
 </root>

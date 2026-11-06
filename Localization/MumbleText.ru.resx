@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -204,5 +204,119 @@
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} и подканалы</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>Сервер отказал. Возможно, у вас нет на это прав.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Администрирование сервера</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Заглушить на сервере</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Отключить звук на сервере</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Приоритетный докладчик</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Заглушить для себя</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Игнорировать сообщения</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Зарегистрирован</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Заглушён администратором</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Звук отключён администратором</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Заглушил себя</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Отключил себе звук</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Здесь нельзя говорить</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Приоритетный докладчик</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Ведёт запись</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Переместить в канал</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Введите часть названия канала</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Переместить</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>В мой канал</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Выберите канал из списка.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Причина (необязательно)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Выгнать</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Забанить</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Выгнать {0} с этого сервера?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Забанить {0} на этом сервере? Отменить это сможет только администратор, через список банов.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Зарегистрировать это имя</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Зарегистрировать {0} на этом сервере? Имя будет привязано к сертификату, и отменить это сможет только администратор.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Что о вас видят другие</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Слушать этот канал</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Перестать слушать</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Связать с моим каналом</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Отвязать от моего канала</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Удалить канал</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Удалить {0} и все каналы внутри него для всех на этом сервере?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>Новый канал внутри этого</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Создать</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Временный: исчезнет, когда опустеет</value>
   </data>
 </root>

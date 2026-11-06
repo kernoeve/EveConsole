@@ -1155,6 +1155,8 @@ public static class PostgresSchema
             "ServerId" INTEGER          NOT NULL DEFAULT 0,
             "UserKey"  TEXT             NOT NULL DEFAULT '',
             "Volume"   DOUBLE PRECISION NOT NULL DEFAULT 1,
+            "LocalMute"  BOOLEAN NOT NULL DEFAULT FALSE,
+            "IgnoreText" BOOLEAN NOT NULL DEFAULT FALSE,
             CONSTRAINT "PK_MumbleUserVolumes" PRIMARY KEY ("ServerId", "UserKey")
         )
         """,
@@ -1711,6 +1713,12 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "JabberRooms" ADD COLUMN IF NOT EXISTS "RoomType" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "MumbleUserVolumes" ADD COLUMN IF NOT EXISTS "LocalMute" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "MumbleUserVolumes" ADD COLUMN IF NOT EXISTS "IgnoreText" BOOLEAN NOT NULL DEFAULT FALSE
         """,
         """
         ALTER TABLE "JabberAccounts" ADD COLUMN IF NOT EXISTS "SavedShow" INTEGER NOT NULL DEFAULT 1

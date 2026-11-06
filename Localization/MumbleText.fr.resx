@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -204,5 +204,119 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="ChatTreeLabel" xml:space="preserve">
     <value>{0} et sous-canaux</value>
     <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>Le serveur a refusé. Vous n'avez peut-être pas l'autorisation.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Administration du serveur</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Couper le micro (serveur)</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Couper le son (serveur)</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Orateur prioritaire</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Couper pour moi</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignorer ses messages</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Enregistré</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Micro coupé par un administrateur</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Son coupé par un administrateur</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>A coupé son micro</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>A coupé son son</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Ne peut pas parler ici</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Orateur prioritaire</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Enregistre</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Déplacer vers le canal</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Saisissez une partie du nom du canal</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Déplacer</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Déplacer vers mon canal</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Choisissez un canal dans la liste.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Raison (facultatif)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Expulser</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Bannir</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Expulser {0} de ce serveur ?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Bannir {0} de ce serveur ? Seul un administrateur peut annuler cela, depuis la liste des bannissements.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Enregistrer ce nom</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Enregistrer {0} sur ce serveur ? Le nom sera lié à son certificat, et seul un administrateur pourra annuler cela.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Ce que les autres voient de vous</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Écouter ce canal</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Arrêter d'écouter</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Lier à mon canal</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Délier de mon canal</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Supprimer le canal</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Supprimer {0} et tous les canaux en dessous, pour tout le monde sur ce serveur ?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>Nouveau canal sous celui-ci</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Temporaire : disparaît quand il se vide</value>
   </data>
 </root>
