@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>Join Again</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>General is for talking. An Intel room is also read for reports, like an intel channel in the chat logs, and they reach the map and the intel alarms. A report already held from another source is not counted twice.</value>
+  </data>
 </root>

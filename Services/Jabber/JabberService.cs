@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Channels;
 using EveConsole.Data;
 using EveConsole.Models;
+using EveConsole.Monitoring;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Jabber;
@@ -148,6 +149,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     public event Action<JabberStoredMessage>? AlertArrived;
 
     public event Action? UnreadChanged;
+
+    /// <summary>A room marked Intel brought lines for the intel parser.</summary>
+    public event Action? IntelLinesSaved;
+
+    /// <summary>Which rooms are marked Intel may have changed.</summary>
+    public event Action? IntelRoomsChanged;
 
     /// <summary>Someone corrected a saved message: the conversation needs reading again.</summary>
     public event Action<int, string>? ConversationEdited;
@@ -873,10 +880,29 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
         MessageStored?.Invoke(row);
         if (!row.IsRead) UnreadChanged?.Invoke();
+        if (room is { Room.RoomType: JabberRoomType.Intel }) await FeedIntelAsync(db, room.Room, row, ct);
 
         // ⚠️ Not one sound per mention for a whole absence: a room's catch-up shows as unread, and that is enough.
         if (row.IsAlert && !row.IsRead && !(row.IsRoom && message.ArchiveId.Length > 0)) AlertArrived?.Invoke(row);
         return row;
+    }
+
+    /// <summary>Hands a room's message to the intel parser. A failure here is the parser's loss, not the message's: that is saved.</summary>
+    private async Task FeedIntelAsync(AppDbContext db, JabberRoom room, JabberStoredMessage row, CancellationToken ct)
+    {
+        var lines = IntelRooms.ToChatLines(room, row);
+        if (lines.Count == 0) return;
+
+        try
+        {
+            db.ChatMessages.AddRange(lines);
+            await db.SaveChangesAsync(ct);
+            IntelLinesSaved?.Invoke();
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            errors.Log(nameof(JabberService), "saving a room's intel", e);
+        }
     }
 
     /// <summary>
@@ -1107,7 +1133,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     }
 
     /// <summary>Adds a room to the account, and joins it. A password, if any, is held per machine.</summary>
-    public async Task<JabberRoom> JoinRoomAsync(JabberSession session, string roomJid, string name, string nickname, string password, CancellationToken ct = default)
+    public async Task<JabberRoom> JoinRoomAsync(JabberSession session, string roomJid, string name, string nickname, string password, CancellationToken ct = default, int? roomType = null)
     {
         var bare = XmppAddress.Parse(roomJid).Bare;
 
@@ -1115,12 +1141,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var room = await db.JabberRooms.FirstOrDefaultAsync(r => r.AccountId == session.Account.Id && r.RoomJid == bare, ct);
         if (room is null)
         {
-            room = new JabberRoom { AccountId = session.Account.Id, RoomJid = bare, Name = name, Nickname = nickname };
+            room = new JabberRoom { AccountId = session.Account.Id, RoomJid = bare, Name = name, Nickname = nickname, RoomType = roomType ?? JabberRoomType.General };
             db.JabberRooms.Add(room);
         }
         else
         {
             if (nickname.Length > 0) room.Nickname = nickname;
+            if (roomType is { } type) room.RoomType = type;
             room.AutoJoin = true;
             room.Left = false;
         }
@@ -1135,6 +1162,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         session.Locked(s => s.RoomMap[bare] = new JabberRoomState(room));
         if (session.Client is { } client) await JoinCoreAsync(session, client, room, ct);
 
+        IntelRoomsChanged?.Invoke();
         SessionChanged?.Invoke(session);
         return room;
     }
@@ -1158,6 +1186,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
                               .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
         if (cleared > 0) UnreadChanged?.Invoke();
 
+        IntelRoomsChanged?.Invoke();
         SessionChanged?.Invoke(session);
     }
 
@@ -1175,6 +1204,17 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid)
                 .ExecuteUpdateAsync(u => u.SetProperty(r => r.AlertMode, mode), ct);
         session.Locked(s => { if (s.RoomMap.TryGetValue(roomJid, out var r)) r.Room.AlertMode = mode; });
+        SessionChanged?.Invoke(session);
+    }
+
+    /// <summary>Changes what a room is for. Only what it says from now on is affected, either way.</summary>
+    public async Task SetRoomTypeAsync(JabberSession session, string roomJid, int roomType, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid)
+                .ExecuteUpdateAsync(u => u.SetProperty(r => r.RoomType, roomType), ct);
+        session.Locked(s => { if (s.RoomMap.TryGetValue(roomJid, out var r)) r.Room.RoomType = roomType; });
+        IntelRoomsChanged?.Invoke();
         SessionChanged?.Invoke(session);
     }
 

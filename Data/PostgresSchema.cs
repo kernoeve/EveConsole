@@ -1202,6 +1202,7 @@ public static class PostgresSchema
             "Left"      BOOLEAN NOT NULL DEFAULT FALSE,
             "ArchiveResumeFrom" TEXT NOT NULL DEFAULT '',
             "AlertMode" INTEGER NOT NULL DEFAULT 1,
+            "RoomType"  INTEGER NOT NULL DEFAULT 0,
             CONSTRAINT "PK_JabberRooms" PRIMARY KEY ("Id")
         )
         """,
@@ -1707,6 +1708,9 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "JabberRooms" ADD COLUMN IF NOT EXISTS "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberRooms" ADD COLUMN IF NOT EXISTS "RoomType" INTEGER NOT NULL DEFAULT 0
         """,
         """
         ALTER TABLE "JabberAccounts" ADD COLUMN IF NOT EXISTS "SavedShow" INTEGER NOT NULL DEFAULT 1

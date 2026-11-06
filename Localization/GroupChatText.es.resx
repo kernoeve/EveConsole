@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>Volver a unirse</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>General es para hablar. Una sala de inteligencia también se analiza en busca de informes, como un canal de inteligencia en los registros de chat, y estos llegan al mapa y a las alarmas de inteligencia. Un informe que ya se tiene de otra fuente no se cuenta dos veces.</value>
+  </data>
 </root>

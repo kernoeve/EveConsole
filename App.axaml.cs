@@ -382,6 +382,28 @@ public class App : Application
                 if (written > 0)
                     await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
             };
+
+            // And after what a Jabber room marked Intel brings, which has nothing to do with the chat logs being on.
+            // One pass for a burst, and it waits its turn: a pass already running may have read before this arrived.
+            var jabberRooms = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>();
+            var intelPassQueued = 0;
+            jabberRooms.IntelLinesSaved += () =>
+            {
+                if (Interlocked.Exchange(ref intelPassQueued, 1) == 1) return;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(300));
+                    Interlocked.Exchange(ref intelPassQueued, 0);
+                    try
+                    {
+                        if (await intel.ProcessNewAsync(waitForTurn: true) > 0)
+                            await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+                    }
+                    catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after a Jabber room", ex); }
+                });
+            };
+            jabberRooms.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
+
             // An undock, likewise: the location poll is what knows, and it says so the moment
             // the character's pass is done, so the undock alarms are evaluated then — seconds
             // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
@@ -2725,10 +2747,12 @@ public class App : Application
                         "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
                         "Left"      INTEGER NOT NULL DEFAULT 0,
                         "AlertMode" INTEGER NOT NULL DEFAULT 1,
-                        "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''
+                        "ArchiveResumeFrom" TEXT NOT NULL DEFAULT '',
+                        "RoomType"  INTEGER NOT NULL DEFAULT 0
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberRooms" ADD COLUMN "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberRooms" ADD COLUMN "RoomType" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberRooms_Room" ON "JabberRooms" ("AccountId", "RoomJid")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberMessages" (
@@ -4335,6 +4359,7 @@ public class App : Application
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
+        _ = Services.GetRequiredService<IntelService>().RefreshRoomChannelsAsync();   // ⚠️ Here: it reads a column the upgrade adds.
         _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
 

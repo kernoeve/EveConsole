@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>重新加入</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>“常规”用于聊天。情报房间还会像聊天日志中的情报频道一样读取报告，并显示在地图和情报警报中。已从其他来源获得的报告不会重复计算。</value>
+  </data>
 </root>

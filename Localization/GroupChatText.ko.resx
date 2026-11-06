@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>다시 참여</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>유형</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>일반</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>'일반'은 대화용입니다. 인텔 방은 채팅 로그의 인텔 채널처럼 보고도 읽어 지도와 인텔 알람에 반영합니다. 다른 출처에서 이미 받은 보고는 두 번 세지 않습니다.</value>
+  </data>
 </root>

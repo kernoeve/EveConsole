@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>再度参加</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>「一般」は会話用です。インテルのルームは、チャットログのインテルチャンネルと同様にレポートも読み取り、マップとインテルアラームに反映します。別のソースから既に得ているレポートは二重に数えません。</value>
+  </data>
 </root>

@@ -7,6 +7,7 @@ using System.Xml.Linq;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Localization;
+using EveConsole.Monitoring;
 using EveConsole.Services;
 using EveConsole.Services.Jabber;
 using EveConsole.ViewModels;
@@ -330,6 +331,55 @@ void Check(string name, bool ok, string detail = "")
         Check("person in a room: a room since left, by its service", JabberService.IsSomeoneInARoom(XmppAddress.Parse("old@ROOMS.example.test/Nick"), false, services));
         Check("person in a room: not the room itself", !JabberService.IsSomeoneInARoom(XmppAddress.Parse("old@rooms.example.test"), false, services));
         Check("person in a room: not someone's phone", !JabberService.IsSomeoneInARoom(XmppAddress.Parse("them@example.test/phone"), false, services));
+    }
+
+    // ── Rooms marked Intel: what reaches the parser, and a report held from another source ──
+    {
+        var room = new JabberRoom { AccountId = 3, RoomJid = "ops@rooms.example.test", Name = "Operations" };
+        JabberStoredMessage Said(string body, long id = 7, bool isRoom = true) => new() { Id = id, IsRoom = isRoom, Sender = "Scout", Body = body, SentAt = "2026-11-05T18:00:30Z" };
+
+        var plain = IntelRooms.ToChatLines(room, Said("QZ-X77 Sampler")).Single();
+        Check("intel rooms: a line as said", plain is { ChannelName: "Jabber: Operations", SenderName: "Scout", Message: "QZ-X77 Sampler", OccurredAt: "2026-11-05T18:00:30Z" });
+        Check("intel rooms: named from the address without a name", IntelRooms.ChannelOf(new JabberRoom { RoomJid = "ops@rooms.example.test" }) == "Jabber: ops");
+
+        var relayed = IntelRooms.ToChatLines(room, Said("[ 2026.11.05 18:00:12 ] Tester > QZ-X77 Sampler")).Single();
+        Check("intel rooms: a relayed chat line is who said it, when", relayed is { SenderName: "Tester", Message: "QZ-X77 Sampler", OccurredAt: "2026-11-05T18:00:12Z" });
+
+        var stale = IntelRooms.ToChatLines(room, Said("[ 2026.11.01 18:00:12 ] Tester > QZ-X77 Sampler")).Single();
+        Check("intel rooms: a time too far off is not believed", stale.OccurredAt == "2026-11-05T18:00:30Z");
+        Check("intel rooms: the game's own lines are not reports", IntelRooms.ToChatLines(room, Said("[ 2026.11.05 18:00:12 ] EVE System > Channel MOTD")).Count == 0);
+
+        var several = IntelRooms.ToChatLines(room, Said("QZ-X77 Sampler\n\nXQ1-Z2 Tester"));
+        Check("intel rooms: each line of a message", several.Count == 2 && several[1].Message == "XQ1-Z2 Tester" && several[0].LineNumber != several[1].LineNumber);
+        Check("intel rooms: lines of other messages stay apart", IntelRooms.ToChatLines(room, Said("a", id: 8)).Single().LineNumber != IntelRooms.ToChatLines(room, Said("a")).Single().LineNumber);
+        Check("intel rooms: not private words", IntelRooms.ToChatLines(room, Said("QZ-X77", isRoom: false)).Count == 0);
+
+        IntelReport Report(string channel, string at, string message, int count = 1, int flags = 0, int system = 9001) =>
+            new() { ChannelName = channel, ReportedAt = at, SystemId = system, Message = message, PlayerCount = count, Flags = flags };
+        long[] pilot = [100], other = [200];
+        bool CopyOf(IntelReport held, long[] heldPilots, IntelReport next, long[] nextPilots)
+        {
+            var seen = new IntelDuplicates();
+            seen.Add(held, heldPilots);
+            return seen.IsCopy(next, nextPilots);
+        }
+
+        var chat = Report("Chat", "2026-11-05T18:00:00Z", "QZ-X77 Sampler");
+        Check("copies: relayed word for word", CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Sampler"), pilot));
+        Check("copies: whichever arrived first", CopyOf(Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Sampler"), pilot, chat, pilot));
+        Check("copies: other capitals and spacing", CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "qz-x77   sampler"), pilot));
+        Check("copies: a relay's label in front, however it parsed", CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "[Intel] Tester: QZ-X77 Sampler", 2), [100, 300]));
+        Check("copies: the same facts in other words", CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "Sampler is in QZ-X77"), pilot));
+        Check("copies: not within one channel", !CopyOf(chat, pilot, Report("Chat", "2026-11-05T18:00:20Z", "QZ-X77 Sampler"), pilot));
+        Check("copies: not long after", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:02:01Z", "QZ-X77 Sampler"), pilot));
+        Check("copies: right at the limit", CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:02:00Z", "QZ-X77 Sampler"), pilot));
+        Check("copies: not another system", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Sampler", system: 9002), pilot));
+        Check("copies: not another pilot", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Tester"), other));
+        Check("copies: not when it says more", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Sampler +5", 6), pilot));
+        Check("copies: not when it adds bubbles", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77 Sampler bubbles", 1, 4), pilot));
+        Check("copies: a bare system is not the fuller report", !CopyOf(Report("Chat", "2026-11-05T18:00:00Z", "QZ-X77", 0), [], Report("Jabber: Ops", "2026-11-05T18:00:20Z", "Sampler QZ-X77"), pilot));
+        Check("copies: nor the other way", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77", 0), []));
+        Check("copies: a time that cannot be read is no match", !CopyOf(chat, pilot, Report("Jabber: Ops", "", "QZ-X77 Sampler"), pilot));
     }
 
     Check("lines: nothing said until asked", JabberViewModel.RoomArchiveLine(null, false).Length == 0 && JabberViewModel.AccountArchiveLine(null, 0, 0).Length == 0);

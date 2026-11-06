@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Reactive;
 using Avalonia.Threading;
@@ -796,10 +796,12 @@ public class ApiActivityViewModel : ReactiveObject
             ? string.Format(DataText.ZkbCoverageThrough, d)
             : DataText.ZkbCoverageNone;
 
-        // Intel. Chat import is the gate — parsing runs off its loop, so with chat off nothing
-        // reaches the parser however many channels are ticked.
-        var intelChannels = _monitoring.ChatIntelChannels;
-        IntelState = !_monitoring.ChatEnabled
+        // Intel. Chat import is the gate for the channels ticked: parsing runs off its loop, so with
+        // chat off nothing of theirs reaches the parser. A Jabber room marked Intel does not need it.
+        IReadOnlyList<string> intelChannels = _monitoring.ChatEnabled
+            ? [.. _monitoring.ChatIntelChannels, .. _intel.RoomChannels]
+            : _intel.RoomChannels;
+        IntelState = !_monitoring.ChatEnabled && intelChannels.Count == 0
             ? DataText.IntelDisabled
             : intelChannels.Count == 0
                 ? DataText.IntelNoChannels

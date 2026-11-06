@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>Войти снова</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Общая</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>«Общая» — для разговоров. Комната разведки также читается на предмет донесений, как канал разведки в журналах чата, и они попадают на карту и в оповещения разведки. Донесение, уже полученное из другого источника, не учитывается дважды.</value>
+  </data>
 </root>

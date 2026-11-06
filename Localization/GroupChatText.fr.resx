@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>Rejoindre à nouveau</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>Général sert à discuter. Un salon de renseignements est aussi analysé pour y trouver des rapports, comme un canal de renseignements dans les journaux de discussion, et ceux-ci alimentent la carte et les alarmes de renseignements. Un rapport déjà reçu d'une autre source n'est pas compté deux fois.</value>
+  </data>
 </root>

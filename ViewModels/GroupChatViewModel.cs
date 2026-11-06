@@ -34,6 +34,12 @@ public sealed class GroupChatRowVm : ReactiveObject
     public int Unread { get; init; }
     public int Mentions { get; init; }
 
+    /// <summary>What a room is for: see <see cref="JabberRoomType"/>.</summary>
+    public int RoomType { get; init; }
+
+    /// <summary>The same, kept up to date on a row that stays in the list.</summary>
+    public int ShownRoomType { get; private set; }
+
     public string Identity => $"{Kind}:{ServerId}:{Key}";
 
     public bool IsServer => Kind is GroupRowKind.JabberServer or GroupRowKind.MumbleServer;
@@ -97,6 +103,7 @@ public sealed class GroupChatRowVm : ReactiveObject
     {
         ShownText = from.Text; ShownDetail = from.Detail; ShownDot = from.Dot;
         ShownUnread = from.Unread; ShownMentions = from.Mentions;
+        ShownRoomType = from.RoomType;
         return this;
     }
 }
@@ -141,6 +148,8 @@ public sealed partial class GroupLineVm
 }
 
 public sealed record JabberAlertChoice(int Mode, string Label);
+
+public sealed record JabberRoomTypeChoice(int Type, string Label);
 
 public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 {
@@ -258,6 +267,14 @@ public sealed class GroupChatViewModel : ReactiveObject
             new(JabberRoomAlert.All, JabberText.RoomAlertAll),
             new(JabberRoomAlert.None, JabberText.RoomAlertNone),
         ];
+
+        // ⚠️ The one list of room types, for both dropdowns and the room list: a new type only needs adding here.
+        RoomTypeChoices =
+        [
+            new(JabberRoomType.General, GroupChatText.RoomTypeGeneral),
+            new(JabberRoomType.Intel, GroupChatText.RoomTypeIntel),
+        ];
+        _joinRoomType = RoomTypeChoices[0];
 
         _soundOn = _prefs.GetBool(SoundPref, true);
 
@@ -440,12 +457,17 @@ public sealed class GroupChatViewModel : ReactiveObject
             rows.Add(new GroupChatRowVm
             {
                 Kind = GroupRowKind.Room, ServerId = id, Key = room.RoomJid, Text = JabberViewModel.DisplayRoom(room),
-                Detail = state?.Failure is { } failure ? JabberViewModel.RoomFailureText(failure, state.FailureText) : "",
+                Detail = state?.Failure is { } failure ? JabberViewModel.RoomFailureText(failure, state.FailureText) : RoomTypeNote(room.RoomType),
+                RoomType = room.RoomType,
                 Dot = state is { Joined: true } ? "green" : state?.Failure is not null ? "red" : "grey",
                 Unread = count.Count, Mentions = count.Mentions,
             });
         }
     }
+
+    /// <summary>A room's type as its line in the list says it. The usual type needs no saying.</summary>
+    private string RoomTypeNote(int type) =>
+        type == JabberRoomType.General ? "" : RoomTypeChoices.FirstOrDefault(c => c.Type == type)?.Label ?? "";
 
     private static string NameOf(JabberSession session) => session.Account.Name.Length > 0 ? session.Account.Name : session.Account.Address;
     private static string NameOf(MumbleSession session) => session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host;
@@ -775,6 +797,22 @@ public sealed class GroupChatViewModel : ReactiveObject
         }
     }
 
+    public IReadOnlyList<JabberRoomTypeChoice> RoomTypeChoices { get; }
+
+    private JabberRoomTypeChoice? _chosenRoomType;
+
+    /// <summary>What the room open is for.</summary>
+    public JabberRoomTypeChoice? ChosenRoomType
+    {
+        get => _chosenRoomType;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _chosenRoomType, value);
+            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
+                _ = _jabber.SetRoomTypeAsync(session, row.Key, value.Type);
+        }
+    }
+
     private void RefreshDetail()
     {
         this.RaisePropertyChanged(nameof(ShowNothing));
@@ -823,6 +861,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         var state = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key));
         var connected = session.State == JabberState.Connected;
 
+        ChosenRoomType = RoomTypeChoices.FirstOrDefault(c => c.Type == row.ShownRoomType);
         CanSend = connected && state is { Joined: true };
         CanAttach = CanSend && session.UploadService is not null;
         DraftHint = JabberText.MessageHint;
@@ -928,7 +967,10 @@ public sealed class GroupChatViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _roomChoice, value);
-            if (value is not null) JoinRoom = value.Jid;
+            if (value is null) return;
+
+            JoinRoom = value.Jid;
+            JoinRoomType = TypeOfKept(value.Jid);
         }
     }
 
@@ -936,6 +978,18 @@ public sealed class GroupChatViewModel : ReactiveObject
     public string JoinRoom { get => _joinRoom; set => this.RaiseAndSetIfChanged(ref _joinRoom, value); }
     public string JoinNick { get => _joinNick; set => this.RaiseAndSetIfChanged(ref _joinNick, value); }
     public string JoinPassword { get => _joinPassword; set => this.RaiseAndSetIfChanged(ref _joinPassword, value); }
+
+    private JabberRoomTypeChoice _joinRoomType;
+
+    /// <summary>What the room being added is for. The usual type until someone says otherwise.</summary>
+    public JabberRoomTypeChoice JoinRoomType { get => _joinRoomType; set => this.RaiseAndSetIfChanged(ref _joinRoomType, value ?? RoomTypeChoices[0]); }
+
+    /// <summary>The type of a room already kept, so joining it again does not quietly change it. The usual type for any other.</summary>
+    private JabberRoomTypeChoice TypeOfKept(string room)
+    {
+        var type = _jabber.SessionOf(_addingAccount)?.Locked(s => s.RoomMap.GetValueOrDefault(room)?.Room.RoomType) ?? JabberRoomType.General;
+        return RoomTypeChoices.FirstOrDefault(c => c.Type == type) ?? RoomTypeChoices[0];
+    }
 
     private void FillChoices()
     {
@@ -966,6 +1020,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         var key = row.Key;
         await BrowseAsync(session);
         JoinRoom = key;
+        JoinRoomType = TypeOfKept(key);
     }
 
     private async Task BrowseAsync(JabberSession session)
@@ -975,6 +1030,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         _addingAccount = session.Account.Id;
         AddingTo = string.Format(CultureInfo.CurrentCulture, GroupChatText.AddingTo, NameOf(session));
         JoinRoom = JoinNick = JoinPassword = "";
+        JoinRoomType = RoomTypeChoices[0];
         _allChoices.Clear();
         RoomChoices.Clear();
         _roomFilter = "";
@@ -1038,9 +1094,12 @@ public sealed class GroupChatViewModel : ReactiveObject
         var bare = XmppAddress.Parse(room).Bare;
         var choice = _allChoices.FirstOrDefault(c => c.Jid == bare);
 
-        // Already in it: there is nothing to do but go there.
-        if (!session.Locked(s => s.RoomMap.TryGetValue(bare, out var state) && state.Joined))
-            await Task.Run(() => _jabber.JoinRoomAsync(session, room, choice?.Name ?? "", JoinNick.Trim(), JoinPassword));
+        // Already in it: there is nothing to do but go there, as what the dropdown now says it is for.
+        var type = JoinRoomType.Type;
+        if (session.Locked(s => s.RoomMap.TryGetValue(bare, out var state) && state.Joined))
+            await Task.Run(() => _jabber.SetRoomTypeAsync(session, bare, type));
+        else
+            await Task.Run(() => _jabber.JoinRoomAsync(session, room, choice?.Name ?? "", JoinNick.Trim(), JoinPassword, roomType: type));
 
         JoinPassword = "";
         IsAddingRooms = false;

@@ -58,4 +58,16 @@
   <data name="JoinAgain" xml:space="preserve">
     <value>Erneut beitreten</value>
   </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>„Allgemein“ ist zum Reden da. Ein Intel-Raum wird zusätzlich auf Meldungen ausgewertet, wie ein Intel-Kanal in den Chat-Logs, und diese erscheinen auf der Karte und in den Intel-Alarmen. Eine Meldung, die bereits aus einer anderen Quelle vorliegt, wird nicht doppelt gezählt.</value>
+  </data>
 </root>

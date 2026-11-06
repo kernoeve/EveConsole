@@ -64,12 +64,27 @@ public class JabberRoom
     /// <summary>See <see cref="JabberRoomAlert"/>.</summary>
     public int    AlertMode { get; set; } = JabberRoomAlert.Mentions;
 
+    /// <summary>See <see cref="JabberRoomType"/>.</summary>
+    public int    RoomType  { get; set; } = JabberRoomType.General;
+
     /// <summary>
     /// Where an unfinished catch-up from the room's archive starts again, as sorted UTC text. Blank when there is
     /// none. ⚠️ Kept apart from the newest saved message, because a live message saved during a catch-up that then
     /// gets cut off is newer than everything still missing, and asking from it would lose those for good.
     /// </summary>
     public string ArchiveResumeFrom { get; set; } = "";
+}
+
+/// <summary>
+/// What a room is for. The choices shown are listed in GroupChatViewModel.RoomTypeChoices: a new type goes in both, and
+/// is stored as its number, so never renumber these.
+/// </summary>
+public static class JabberRoomType
+{
+    public const int General = 0;
+
+    /// <summary>Also read for intel reports, like an intel channel in the chat logs.</summary>
+    public const int Intel   = 1;
 }
 
 public static class JabberRoomAlert
