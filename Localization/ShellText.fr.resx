@@ -706,4 +706,7 @@ Cliquez pour voir les limites ESI.</value>
   <data name="NavGroupChat" xml:space="preserve">
     <value>Discussion de groupe</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Rapport de bataille</value>
+  </data>
 </root>

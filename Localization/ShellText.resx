@@ -892,4 +892,8 @@ Click for the ESI limits.</value>
   <data name="NavGroupChat" xml:space="preserve">
     <value>Group Chat</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Battle Report</value>
+    <comment>Tool name in the menu (Corp group) and its tab: a report of one battle, live or finished.</comment>
+  </data>
 </root>

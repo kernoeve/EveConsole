@@ -700,4 +700,7 @@ PID：{2}
   <data name="NavGroupChat" xml:space="preserve">
     <value>群聊</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>战斗报告</value>
+  </data>
 </root>

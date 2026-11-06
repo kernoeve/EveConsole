@@ -2076,6 +2076,16 @@ public class App : Application
                     )
                     """);
 
+                // The battles the user defined and kept. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SavedBattles" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "Definition" TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL
+                    )
+                    """);
+
                 // ── Hauls ticked off at a loop's stops ──────────────────────────────
                 // Held only until the asset poll catches up. Mirrored for PostgreSQL in PostgresSchema.
                 db.Database.ExecuteSqlRaw("""
@@ -4889,6 +4899,7 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
+        services.AddSingleton<EveConsole.Services.Battle.BattleReportService>();
         services.AddSingleton<CorpTop10ExcludeService>();
         services.AddSingleton<CorpReportTitles>();
         services.AddSingleton<MarketCompetitionService>();

@@ -320,6 +320,7 @@ public class MainWindowViewModel : ReactiveObject
     public CorpStructuresViewModel        CorpStructuresVm       { get; }
     public MercenaryDensViewModel         MercenaryDensVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
+    public BattleReportViewModel          BattleReportVm         { get; }
     public EveMailViewModel               EveMailVm              { get; }
     public PriceHistorySettingsViewModel  PriceHistorySettingsVm { get; }
     public PollingSettingsViewModel       PollingSettingsVm      { get; }
@@ -994,6 +995,7 @@ public class MainWindowViewModel : ReactiveObject
             "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
             "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
+            "battle_report"  => (ShellText.NavBattleReport,   BattleReportVm,    true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "messages"       => (ShellText.NavMessages,      MessagesVm,        true),
             "group_chat"     => (ShellText.NavGroupChat,     GroupChatVm,       true),
@@ -1146,6 +1148,7 @@ public class MainWindowViewModel : ReactiveObject
         IndyStructureLinkService        indyStructureLink,
         IndyBulkAddService              indyBulkAdd,
         KillmailBrowserService          killmailBrowserService,
+        EveConsole.Services.Battle.BattleReportService battleReportService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
         EveConsole.Services.Jabber.JabberService jabberService,
@@ -1280,6 +1283,8 @@ public class MainWindowViewModel : ReactiveObject
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
+        BattleReportVm    = new BattleReportViewModel(battleReportService,
+            ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
         JabberVm          = new JabberViewModel(jabberService, appPrefs);
@@ -1457,6 +1462,7 @@ public class MainWindowViewModel : ReactiveObject
         EntityNavigator.Instance.OpenSystem   = id => { OpenTool("universe"); MapVm.OpenSystem(id); };
         EntityNavigator.Instance.OpenItem     = id => { OpenTool("items"); _ = ItemBrowserVm.NavigateToItemCommand.Execute(id).Subscribe(); };
         EntityNavigator.Instance.OpenKillmail = id => { OpenTool("killmails"); KillmailBrowserVm.SelectById(id); };
+        EntityNavigator.Instance.OpenBattleReport = id => { OpenTool("battle_report"); _ = BattleReportVm.OpenFromKillAsync(id); };
         EntityNavigator.Instance.OpenStructure = id => { OpenTool("structure_browser"); StructureBrowserVm.Open(id); };
         EntityNavigator.Instance.OpenContract  = id => { OpenTool("contracts"); ContractsVm.SelectById(id); };
         EntityNavigator.Instance.OpenPublicContract = id => { OpenTool("contracts"); ContractsVm.SelectPublicById(id); };
@@ -1656,6 +1662,7 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("corp_structures", ShellText.NavCorpStructures),
                 new NavItem("mercenary_dens",  ShellText.NavMercenaryDens),
                 new NavItem("killmails",     ShellText.NavKillmails),
+                new NavItem("battle_report", ShellText.NavBattleReport),
                 new NavItem("player_entities", ShellText.NavPlayerEntities),
                 new NavItem("npc_entities",    ShellText.NavNpcEntities),
             ]),

@@ -718,4 +718,7 @@ PID: {2}
   <data name="NavGroupChat" xml:space="preserve">
     <value>Групповой чат</value>
   </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Боевой отчёт</value>
+  </data>
 </root>

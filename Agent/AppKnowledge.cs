@@ -484,6 +484,7 @@ public static class AppKnowledge
         ("corp_structures",     "Corp Structures",        "Corp Structures"),
         ("mercenary_dens",      "Mercenary Dens",         "Mercenary Dens"),
         ("killmails",           "Killmails",              "Killmails"),
+        ("battle_report",       "Battle Report",          "Battle Report"),
         ("player_entities",     "Player Entities",        "Player Entities"),
         ("npc_entities",        "NPC Entities",           "NPC Entities"),
         ("eve_mail",            "Eve Mail",               "Eve Mail"),

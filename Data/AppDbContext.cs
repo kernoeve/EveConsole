@@ -50,6 +50,7 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
     public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
+    public DbSet<SavedBattle>                SavedBattles            => Set<SavedBattle>();
     public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
@@ -931,6 +932,12 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.PlanetId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiPlanetaryColonies"); });
+
+        // The battles the user defined and kept. Mirrored by hand in App.axaml.cs (SQLite) and
+        // PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<SavedBattle>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("SavedBattles"); });
 
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
         // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
