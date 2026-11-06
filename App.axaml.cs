@@ -2715,8 +2715,10 @@ public class App : Application
                         "IsAlert"    INTEGER NOT NULL DEFAULT 0
                     )
                     """);
-                foreach (var column in new[] { "\"PeerKey\" TEXT NOT NULL DEFAULT ''", "\"PeerName\" TEXT NOT NULL DEFAULT ''", "\"IsRead\" INTEGER NOT NULL DEFAULT 0", "\"IsAlert\" INTEGER NOT NULL DEFAULT 0" })
-                    try { db.Database.ExecuteSqlRaw("ALTER TABLE \"MumbleDirectMessages\" ADD COLUMN " + column); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "PeerKey" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "PeerName" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsRead" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
