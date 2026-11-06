@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -21,7 +21,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
-    <value>대화를 선택하거나 Jabber 또는 Mumble 도구에서 사람을 선택해 시작하세요.</value>
+    <value>대화를 선택하거나 '새 대화'를 눌러 접속 중인 사람에게 메시지를 보내세요.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="ToggleList" xml:space="preserve">
@@ -67,5 +67,20 @@
   <data name="PresenceOffline" xml:space="preserve">
     <value>오프라인</value>
     <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>새 대화</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>접속 중인 사람의 이름</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>일치하는 접속자가 없습니다.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>연결된 서버에 다른 접속자가 없습니다.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0}명 더 있습니다. 이름을 더 입력해 좁혀 보세요.</value>
   </data>
 </root>

@@ -86,7 +86,7 @@ public sealed class MumbleSession(MumbleServer server)
 /// </summary>
 public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
 {
-    public const int MaxChatLines = 500;
+    public const int MaxChatLines = 5000;
     public const string InputDevicePref = "mumble.input_device";
     public const string OutputDevicePref = "mumble.output_device";
     public const string OutputVolumePref = "mumble.output_volume";

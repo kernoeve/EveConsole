@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -21,7 +21,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
-    <value>Elige una conversación o selecciona a una persona en la herramienta Jabber o Mumble para iniciar una.</value>
+    <value>Elige una conversación o pulsa Nueva conversación para escribir a alguien conectado.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="ToggleList" xml:space="preserve">
@@ -67,5 +67,20 @@
   <data name="PresenceOffline" xml:space="preserve">
     <value>Desconectado</value>
     <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Nueva conversación</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Nombre de alguien conectado</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Nadie conectado coincide.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>No hay nadie más conectado en los servidores a los que estás conectado.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0} más. Escribe más del nombre para acotar.</value>
   </data>
 </root>

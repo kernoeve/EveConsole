@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Threading;
 using EveConsole.Services;
 using EveConsole.ViewModels;
 
@@ -17,14 +16,8 @@ public partial class MumbleView : UserControl
 
         DataContextChanged += (_, _) =>
         {
-            if (DataContext is not MumbleViewModel vm) return;
-
-            vm.ScrollChatRequested -= ScrollChat;
-            vm.ScrollChatRequested += ScrollChat;
-            vm.Confirm = AskAsync;
+            if (DataContext is MumbleViewModel vm) vm.Confirm = AskAsync;
         };
-
-        DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
     }
 
     // ⚠️ On the window, not on this view. A key goes only as far as what has the focus, and after a click on a button
@@ -87,11 +80,6 @@ public partial class MumbleView : UserControl
         vm.TakeCapturedKey(vk);
     }
 
-    private void ScrollChat() => Dispatcher.UIThread.Post(() =>
-    {
-        if (DataContext is MumbleViewModel { Chat.Count: > 0 } vm) ChatList.ScrollIntoView(vm.Chat[^1]);
-    }, DispatcherPriority.Background);
-
     /// <summary>Double-clicking a channel joins it, as in every Mumble client, and a person opens the conversation with them.</summary>
     private async void OnRowDoubleTapped(object? sender, TappedEventArgs e)
     {
@@ -102,15 +90,6 @@ public partial class MumbleView : UserControl
     }
 
     private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as MumbleViewModel)?.MessageSelectedPerson();
-
-    private void OnDraftKey(object? sender, KeyEventArgs e)
-    {
-        if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
-
-        e.Handled = true;
-        if (DataContext is MumbleViewModel vm && !string.IsNullOrWhiteSpace(vm.Draft))
-            vm.SendCommand.Execute().Subscribe(_ => { }, _ => { });
-    }
 
     private async Task<bool> AskAsync(string message)
     {

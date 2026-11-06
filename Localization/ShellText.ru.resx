@@ -715,4 +715,7 @@ PID: {2}
     <value>Сообщения</value>
     <comment>Main menu.</comment>
   </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
+  </data>
 </root>

@@ -703,4 +703,7 @@ Cliquez pour voir les limites ESI.</value>
     <value>Messages</value>
     <comment>Main menu.</comment>
   </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Discussion de groupe</value>
+  </data>
 </root>

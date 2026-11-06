@@ -120,7 +120,7 @@ public sealed class JabberSession(JabberAccount account)
 }
 
 /// <summary>Unread messages in one conversation.</summary>
-public readonly record struct JabberUnread(int AccountId, string Conversation, int Count, int Alerts);
+public readonly record struct JabberUnread(int AccountId, string Conversation, int Count, int Alerts, int Mentions);
 
 /// <summary>
 /// The Jabber accounts: keeping each connected as asked, and saving what they say.
@@ -194,9 +194,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         lock (_gate)
         {
             if (_sessions.TryGetValue(account.Id, out var known)) { known.Account = account; return known; }
-            return _sessions[account.Id] = new JabberSession(account);
+            return _sessions[account.Id] = new JabberSession(account) { Show = SavedShowOf(account), Status = account.SavedStatus };
         }
     }
+
+    /// <summary>The status this account was left on. Nothing but a real choice: a client cannot sign in as offline.</summary>
+    private static XmppShow SavedShowOf(JabberAccount account) =>
+        Enum.IsDefined((XmppShow)account.SavedShow) && (XmppShow)account.SavedShow != XmppShow.Offline ? (XmppShow)account.SavedShow : XmppShow.Online;
 
     // ── Accounts ──────────────────────────────────────────────────────────────
 
@@ -808,6 +812,14 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { /* going */ }
     }
 
+    /// <summary>
+    /// Whether an address is one person in a room. ⚠️ By the service as well as the rooms kept: the archive is read
+    /// before the rooms are, and can hold words with someone in a room since left. Filed under the room's own address,
+    /// those would all run together as if the room were one person.
+    /// </summary>
+    public static bool IsSomeoneInARoom(XmppAddress address, bool roomIsKept, IReadOnlyList<string> conferenceServices) =>
+        address.Resource.Length > 0 && (roomIsKept || conferenceServices.Contains(address.Domain, StringComparer.OrdinalIgnoreCase));
+
     /// <summary>Saves a message unless it has been seen, and says so. Returns what was saved, or null.</summary>
     public async Task<JabberStoredMessage?> StoreAsync(JabberSession session, XmppMessage message, CancellationToken ct = default)
     {
@@ -821,11 +833,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (room is { HistoryDone: true } && message is { Sent: not null, ArchiveId.Length: 0, DateJudged: false }) message = message with { Sent = null };
         if (message.Sent > now + MostAhead) message = message with { Sent = now };
 
-        // What this account says privately to someone in a room stays with them, not with the room.
-        var privateTo = message is { FromThisAccount: true, To.Resource.Length: > 0 }
-                     && session.Locked(s => s.RoomMap.ContainsKey(message.To.Bare));
+        // What is said privately to someone in a room stays with them, not with the room, either way round.
+        var other = message.FromThisAccount ? message.To : message.From;
+        var privateInRoom = message.Type != "groupchat" && session.Locked(s => IsSomeoneInARoom(other, s.RoomMap.ContainsKey(other.Bare), s.ConferenceServices));
 
-        var row = ToStored(session.Account, room?.Nick, room?.Room, message, now, privateInRoom: known is not null && room is null || privateTo);
+        var row = ToStored(session.Account, room?.Nick, room?.Room, message, now, privateInRoom: privateInRoom || known is not null && room is null);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -955,10 +967,16 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             IsOutgoing   = outgoing,
             IsRead       = outgoing || replayed,
             IsAlert      = alert,
+            IsMention    = isRoom && !outgoing && NamesThem(account, roomNick, message.Body),
             DedupeKey    = DedupeKey(conversation, sender, message),
             MessageId    = message.Id,
         };
     }
+
+    /// <summary>Whether a room message says this person's name on this server: the one they go by in the room, or their usual one.</summary>
+    public static bool NamesThem(JabberAccount account, string? roomNick, string body) =>
+        roomNick is { Length: > 0 } && ContainsWord(body, roomNick)
+        || account.Nickname.Length > 0 && ContainsWord(body, account.Nickname);
 
     /// <summary>Whether a room message should call for attention, by that room's setting.</summary>
     public static bool RoomAlerts(JabberAccount account, string? nick, JabberRoom? room, string body)
@@ -1069,7 +1087,22 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         session.Show   = show;
         session.Status = status;
-        if (session.Client is { } client) await client.SetPresenceAsync(show, status, ct);
+        session.Account.SavedShow   = (int)show;
+        session.Account.SavedStatus = status;
+
+        // Saved before it is sent: the choice is the person's, whether or not the connection lasts to deliver it.
+        var id = session.Account.Id;
+        await using (var db = await dbFactory.CreateDbContextAsync(ct))
+            await db.JabberAccounts.Where(a => a.Id == id)
+                    .ExecuteUpdateAsync(u => u.SetProperty(a => a.SavedShow, (int)show).SetProperty(a => a.SavedStatus, status), ct);
+
+        if (session.Client is { } client)
+        {
+            await client.SetPresenceAsync(show, status, ct);
+
+            var rooms = session.Locked(s => s.RoomMap.Values.Where(r => r.Joined).Select(r => (r.Room.RoomJid, r.Nick)).ToList());
+            foreach (var (room, nick) in rooms) await client.SetRoomPresenceAsync(room, nick, ct);
+        }
         SessionChanged?.Invoke(session);
     }
 
@@ -1160,6 +1193,22 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         SessionChanged?.Invoke(session);
     }
 
+    /// <summary>Every room kept, for every account, whether or not it is connected. ⚠️ From the database: an account's live list only fills on connecting.</summary>
+    public async Task<List<JabberRoom>> SavedRoomsAsync(CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.JabberRooms.AsNoTracking().Where(r => !r.Left).ToListAsync(ct);
+    }
+
+    /// <summary>What a room says about itself. Null when it will not say in reasonable time, so one silent room holds up nothing.</summary>
+    public async Task<XmppRoomDetails?> RoomDetailsAsync(JabberSession session, string roomJid, CancellationToken ct = default)
+    {
+        if (session.Client is not { } client) return null;
+
+        try { return await client.RoomDetailsAsync(roomJid, ct).WaitAsync(TimeSpan.FromSeconds(6), ct); }
+        catch (Exception e) when (e is TimeoutException or XmppException) { return null; }
+    }
+
     /// <summary>The rooms a conference service lists, for browsing.</summary>
     public Task<IReadOnlyList<XmppRoomInfo>> BrowseRoomsAsync(JabberSession session, string service, CancellationToken ct = default) =>
         session.Client?.ItemsOfAsync(service, ct) ?? throw new XmppException(XmppFailure.Network, "Not connected.");
@@ -1212,9 +1261,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var rows = await db.JabberMessages.AsNoTracking().Where(m => !m.IsRead)
             .GroupBy(m => new { m.AccountId, m.Conversation })
-            .Select(g => new { g.Key.AccountId, g.Key.Conversation, Count = g.Count(), Alerts = g.Count(m => m.IsAlert) })
+            .Select(g => new { g.Key.AccountId, g.Key.Conversation, Count = g.Count(), Alerts = g.Count(m => m.IsAlert), Mentions = g.Count(m => m.IsMention) })
             .ToListAsync(ct);
-        return [.. rows.Select(r => new JabberUnread(r.AccountId, r.Conversation, r.Count, r.Alerts))];
+        return [.. rows.Select(r => new JabberUnread(r.AccountId, r.Conversation, r.Count, r.Alerts, r.Mentions))];
     }
 
     /// <summary>Messages waiting that call for attention: what the Overview's alert counts.</summary>

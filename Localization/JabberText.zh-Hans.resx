@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} 邀请了你</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>聊天室</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>联系人</value>
@@ -134,7 +131,7 @@
     <value>添加服务器</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>请在左侧选择服务器、聊天室或联系人。</value>
+    <value>请在左侧选择服务器或联系人。</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>连接</value>
@@ -156,12 +153,6 @@
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>信任此证书</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>加入聊天室</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>浏览聊天室</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>加入</value>
@@ -228,9 +219,6 @@
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>提醒关键词，以逗号分隔</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>聊天室</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>提醒我</value>

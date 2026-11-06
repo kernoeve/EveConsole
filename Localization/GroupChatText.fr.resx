@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Ajouter des salons</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Ajouter des salons sur {0}</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Les salons et la discussion des serveurs s'affichent ici. Configurez d'abord un serveur dans l'outil Jabber ou Mumble.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Choisissez un salon ou un serveur à gauche.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>{0} nouveaux messages</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Votre nom, {0} fois, pas encore vu</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Tout ce qui a été dit depuis la connexion, dans le canal où vous étiez. Cela dure jusqu'à la fermeture de l'application, car un serveur Mumble n'en garde rien.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Filtrer par nom ou description</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Interrogation des salons...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} dans le salon</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Sujet : {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Mot de passe requis</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Membres uniquement</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Modéré</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Temporaire</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Rejoint</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Salon (choisissez ci-dessus ou saisissez un nom)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Rejoindre à nouveau</value>
+  </data>
+</root>

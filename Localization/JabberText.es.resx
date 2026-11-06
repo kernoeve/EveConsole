@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} te ha invitado</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>Salas</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>Personas</value>
@@ -134,7 +131,7 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
     <value>Añadir servidor</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Elige un servidor, una sala o una persona a la izquierda.</value>
+    <value>Elige un servidor o una persona a la izquierda.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Conectar</value>
@@ -156,12 +153,6 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>Confiar en este certificado</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>Entrar en sala</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>Explorar salas</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>Entrar</value>
@@ -228,9 +219,6 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>Palabras clave de alerta, separadas por comas</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>Sala</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>Avisarme</value>

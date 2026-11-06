@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} hat dich eingeladen</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>Räume</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>Personen</value>
@@ -134,7 +131,7 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
     <value>Server hinzufügen</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Wähle links einen Server, Raum oder eine Person aus.</value>
+    <value>Wähle links einen Server oder eine Person.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Verbinden</value>
@@ -156,12 +153,6 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>Diesem Zertifikat vertrauen</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>Raum beitreten</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>Räume durchsuchen</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>Beitreten</value>
@@ -228,9 +219,6 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>Alarm-Stichwörter, durch Kommas getrennt</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>Raum</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>Benachrichtigen</value>

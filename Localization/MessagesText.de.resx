@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -21,7 +21,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
-    <value>Wähle eine Unterhaltung aus oder wähle im Jabber- oder Mumble-Tool eine Person aus, um eine zu beginnen.</value>
+    <value>Wähle eine Unterhaltung oder drücke „Neue Unterhaltung“, um jemandem zu schreiben, der online ist.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="ToggleList" xml:space="preserve">
@@ -67,5 +67,20 @@
   <data name="PresenceOffline" xml:space="preserve">
     <value>Offline</value>
     <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Neue Unterhaltung</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Name einer Person, die online ist</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Niemand online passt dazu.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>Auf den verbundenen Servern ist sonst niemand online.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0} weitere. Tippe mehr vom Namen, um einzugrenzen.</value>
   </data>
 </root>

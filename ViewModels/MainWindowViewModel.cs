@@ -278,6 +278,7 @@ public class MainWindowViewModel : ReactiveObject
     public JabberViewModel                JabberVm               { get; }
     public MumbleViewModel                MumbleVm               { get; }
     public MessagesViewModel              MessagesVm             { get; }
+    public GroupChatViewModel             GroupChatVm            { get; }
 
     /// <summary>The top bar's icon: the Messages tool, on what most needs reading if anything does.</summary>
     public ReactiveCommand<Unit, Unit> OpenMessagesCommand { get; }
@@ -988,6 +989,7 @@ public class MainWindowViewModel : ReactiveObject
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "messages"       => (ShellText.NavMessages,      MessagesVm,        true),
+            "group_chat"     => (ShellText.NavGroupChat,     GroupChatVm,       true),
             "jabber"         => (ShellText.NavJabber,        JabberVm,          true),
             "mumble"         => (ShellText.NavMumble,        MumbleVm,          true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
@@ -1273,9 +1275,10 @@ public class MainWindowViewModel : ReactiveObject
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
-        JabberVm          = new JabberViewModel(jabberService, appPrefs, alarmSounds, alarmMute);
+        JabberVm          = new JabberViewModel(jabberService, appPrefs);
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
         MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
+        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
         JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
@@ -1302,7 +1305,7 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.NavigateToEveMail           = () => { OpenTool("eve_mail"); EveMailVm.ShowUnread(); };
-        OverviewVm.NavigateToJabber            = () => { OpenTool("jabber"); _ = JabberVm.ShowUnreadAsync(); };
+        OverviewVm.NavigateToGroupChat         = () => { OpenTool("group_chat"); _ = GroupChatVm.ShowUnreadAsync(); };
         OverviewVm.NavigateToMessages          = () => _ = MessagesVm.ShowUnreadAsync();
         WatchJabberAlerts(jabberService, directMessages);
         OverviewVm.RequestOpenKillmail = killMailId =>
@@ -1651,6 +1654,7 @@ public class MainWindowViewModel : ReactiveObject
             new("communication", ShellText.NavGroupCommunication,
             [
                 new NavItem("messages", ShellText.NavMessages),
+                new NavItem("group_chat", ShellText.NavGroupChat),
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("jabber", ShellText.NavJabber),
                 new NavItem("mumble", ShellText.NavMumble),

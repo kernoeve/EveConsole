@@ -4,7 +4,7 @@ using EveConsole.Services.Jabber;
 
 namespace EveConsole.Services.Messages;
 
-/// <summary>Jabber's direct messages for the Messages window. Rooms stay in the Jabber tool.</summary>
+/// <summary>Jabber's direct messages for the Messages window. Rooms are Group Chat's.</summary>
 public sealed class JabberDmSource : IDmSource
 {
     public const string Name = "jabber";
@@ -56,7 +56,7 @@ public sealed class JabberDmSource : IDmSource
 
         // Written to through a room rather than to their own address, which only works while they are in it.
         var address = XmppAddress.Parse(key.Peer);
-        if (address.Resource.Length > 0 && session.Rooms.FirstOrDefault(r => r.Room.RoomJid == address.Bare) is var room && room is not null || address.Resource.Length > 0)
+        if (address.Resource.Length > 0)
         {
             var here = session.Rooms.FirstOrDefault(r => r.Room.RoomJid == address.Bare);
             var inRoom = here is not null && session.Locked(_ => here.Occupants.ContainsKey(address.Resource));
@@ -71,7 +71,7 @@ public sealed class JabberDmSource : IDmSource
         }
 
         var contact = session.Contacts.FirstOrDefault(c => c.Jid == key.Peer);
-        var shown   = contact is { Name.Length: > 0 } ? contact.Name : key.Peer;
+        var shown   = contact is { Name.Length: > 0 } ? contact.Name : NameInRooms(session, key.Peer) ?? (name.Length > 0 ? name : key.Peer);
         var presence = contact is null ? DmPresence.Unknown : contact.Show switch
         {
             XmppShow.Offline => DmPresence.Offline,
@@ -91,6 +91,59 @@ public sealed class JabberDmSource : IDmSource
             MostFileBytes = session.UploadService?.MaxBytes ?? 0,
             HasContacts = true, IsContact = contact is not null,
         };
+    }
+
+    /// <summary>What someone goes by in a room this account is in, for one whose real address the room shows.</summary>
+    private static string? NameInRooms(JabberSession session, string bareAddress) =>
+        session.Locked(s => s.RoomMap.Values
+            .SelectMany(r => r.Occupants.Values)
+            .FirstOrDefault(o => !o.Self && XmppAddress.Parse(o.RealJid).Bare == bareAddress)?.Nick);
+
+    public IReadOnlyList<DmPerson> OnlinePeople()
+    {
+        var found = new Dictionary<DmKey, DmPerson>();
+
+        foreach (var session in _service.Sessions.Where(s => s.State == JabberState.Connected))
+        {
+            var server = session.Account.Name.Length > 0 ? session.Account.Name : session.Account.Address;
+            var me = XmppAddress.Parse(session.Account.Address).Bare;
+
+            foreach (var contact in session.Contacts.Where(c => c.Show != XmppShow.Offline && c.Jid != me))
+            {
+                var key = KeyOf(session.Account.Id, contact.Jid);
+                found[key] = new DmPerson(key, contact.Name.Length > 0 ? contact.Name : contact.Jid, server, ShellText.NavJabber)
+                {
+                    Presence = contact.Show is XmppShow.Online or XmppShow.Chat ? DmPresence.Online : DmPresence.Away,
+                };
+            }
+
+            // People in the rooms too, who need not be contacts. Where a room hides real addresses, they can only be
+            // reached through that room, under the name they have there.
+            var rooms = session.Locked(s => s.RoomMap.Values.Where(r => r.Joined)
+                .Select(r => (r.Room, r.Nick, People: r.Occupants.Values.ToList())).ToList());
+
+            foreach (var (room, nick, people) in rooms)
+                foreach (var person in people.Where(o => !o.Self && !o.Left && o.Nick != nick))
+                {
+                    var real = XmppAddress.Parse(person.RealJid).Bare;
+                    if (real == me) continue;
+
+                    var key = KeyOf(session.Account.Id, real.Length > 0 ? real : $"{room.RoomJid}/{person.Nick}");
+                    if (found.TryGetValue(key, out var known))
+                    {
+                        if (known.Name != person.Nick) found[key] = known with { OtherNames = $"{known.OtherNames} {person.Nick}" };
+                        continue;
+                    }
+
+                    var where = real.Length > 0 ? server : $"{server} · {(room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.RoomJid).Local)}";
+                    found[key] = new DmPerson(key, person.Nick, where, ShellText.NavJabber)
+                    {
+                        Presence = person.Show is XmppShow.Online or XmppShow.Chat ? DmPresence.Online : DmPresence.Away,
+                    };
+                }
+        }
+
+        return [.. found.Values];
     }
 
     public async Task<IReadOnlyList<DmLine>> LoadAsync(DmKey key, long beforeId, int limit, CancellationToken ct = default) =>

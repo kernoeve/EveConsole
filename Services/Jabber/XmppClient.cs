@@ -56,6 +56,10 @@ public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, N
 /// <summary>A room on a conference service, as found by browsing it.</summary>
 public sealed record XmppRoomInfo(string Jid, string Name);
 
+/// <summary>What a room says about itself when asked. Each piece is there only if the server chose to say it.</summary>
+public sealed record XmppRoomDetails(string Jid, string Name, string Description, string Subject, int? People,
+                                     bool NeedsPassword, bool MembersOnly, bool Moderated, bool Temporary);
+
 /// <summary>A room the account has saved on its server.</summary>
 public sealed record XmppBookmark(string Jid, string Name, string Nick, bool AutoJoin, string Password);
 
@@ -507,6 +511,32 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
     }
 
+    /// <summary>Asks a room about itself. The details are its identity, its features, and a form of whatever else it offers.</summary>
+    public async Task<XmppRoomDetails> RoomDetailsAsync(string room, CancellationToken ct)
+    {
+        var answer = await QueryAsync("get", room, new XElement(DiscoInfo + "query"), ct);
+        return ParseRoomDetails(room, answer.Element(DiscoInfo + "query"));
+    }
+
+    public static XmppRoomDetails ParseRoomDetails(string room, XElement? query)
+    {
+        var features = query?.Elements(DiscoInfo + "feature").Select(f => (string?)f.Attribute("var") ?? "").ToHashSet() ?? [];
+        var fields = query?.Elements(DataForm + "x").Elements(DataForm + "field")
+                          .GroupBy(f => (string?)f.Attribute("var") ?? "")
+                          .ToDictionary(g => g.Key, g => (string?)g.First().Element(DataForm + "value") ?? "") ?? [];
+
+        return new XmppRoomDetails(
+            room,
+            (string?)query?.Element(DiscoInfo + "identity")?.Attribute("name") ?? "",
+            fields.GetValueOrDefault("muc#roominfo_description", ""),
+            fields.GetValueOrDefault("muc#roominfo_subject", ""),
+            int.TryParse(fields.GetValueOrDefault("muc#roominfo_occupants"), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var people) ? people : null,
+            features.Contains("muc_passwordprotected"),
+            features.Contains("muc_membersonly"),
+            features.Contains("muc_moderated"),
+            features.Contains("muc_temporary"));
+    }
+
     public async Task<IReadOnlyList<XmppRoomInfo>> ItemsOfAsync(string to, CancellationToken ct)
     {
         var answer = await QueryAsync("get", to, new XElement(DiscoItems + "query"), ct);
@@ -553,9 +583,24 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     }
 
     /// <summary>Tells contacts this client is here. Stored messages from the server arrive after this.</summary>
+    private XmppShow _show = XmppShow.Online;
+    private string _status = "";
+
+    /// <summary>Tells everyone subscribed how this account stands. Rooms are not among them: see <see cref="SetRoomPresenceAsync"/>.</summary>
     public Task SetPresenceAsync(XmppShow show, string status, CancellationToken ct)
     {
-        var presence = new XElement(Client + "presence");
+        _show = show;
+        _status = status;
+        return connection.WriteAsync(WithPresence(new XElement(Client + "presence")), ct);
+    }
+
+    /// <summary>The same for one room this account is in, as a server does not pass a status on to rooms by itself.</summary>
+    public Task SetRoomPresenceAsync(string room, string nick, CancellationToken ct) =>
+        connection.WriteAsync(WithPresence(new XElement(Client + "presence", new XAttribute("to", $"{room}/{nick}"))), ct);
+
+    private XElement WithPresence(XElement presence)
+    {
+        var (show, status) = (_show, _status);
         var word = show switch
         {
             XmppShow.Chat         => "chat",
@@ -566,7 +611,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         };
         if (word is not null) presence.Add(new XElement(Client + "show", word));
         if (status.Length > 0) presence.Add(new XElement(Client + "status", Clean(status)));
-        return connection.WriteAsync(presence, ct);
+        return presence;
     }
 
     /// <summary>Copies of what this account writes and receives in its other clients, if the server can.</summary>
@@ -823,7 +868,8 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             ? new XElement(Muc + "history", new XAttribute("since", s.UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture)))
             : new XElement(Muc + "history", new XAttribute("maxstanzas", "50")));
 
-        return connection.WriteAsync(new XElement(Client + "presence", new XAttribute("to", $"{room}/{nick}"), x), ct);
+        // With the status, as a room would otherwise show everyone as plainly online until it next changed.
+        return connection.WriteAsync(WithPresence(new XElement(Client + "presence", new XAttribute("to", $"{room}/{nick}"), x)), ct);
     }
 
     public Task LeaveRoomAsync(string room, string nick, CancellationToken ct) =>

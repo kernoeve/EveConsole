@@ -697,4 +697,7 @@ PID: {2}
     <value>메시지</value>
     <comment>Main menu.</comment>
   </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>그룹 채팅</value>
+  </data>
 </root>

@@ -1,0 +1,995 @@
+using System.Collections.ObjectModel;
+using System.Globalization;
+using System.Reactive;
+using Avalonia.Threading;
+using EveConsole.Localization;
+using EveConsole.Models;
+using EveConsole.Services;
+using EveConsole.Services.Jabber;
+using EveConsole.Services.Mumble;
+using ReactiveUI;
+
+namespace EveConsole.ViewModels;
+
+public enum GroupRowKind { JabberServer, Room, Invite, MumbleServer }
+
+/// <summary>
+/// A line on the left: a server, or a room under one.
+///
+/// <para>⚠️ Kept and updated in place. Rebuilt on each change, the list control dropped its selection with every
+/// message that arrived, and the pane on the right went stale behind it.</para>
+/// </summary>
+public sealed class GroupChatRowVm : ReactiveObject
+{
+    public GroupRowKind Kind { get; init; }
+    public int ServerId { get; init; }
+
+    /// <summary>The room's address, for a room or an invitation to one.</summary>
+    public string Key { get; init; } = "";
+    public string Text { get; init; } = "";
+    public string Detail { get; init; } = "";
+
+    /// <summary>Red, amber, green or grey: what state it is in at a glance.</summary>
+    public string Dot { get; init; } = "";
+    public int Unread { get; init; }
+    public int Mentions { get; init; }
+
+    public string Identity => $"{Kind}:{ServerId}:{Key}";
+
+    public bool IsServer => Kind is GroupRowKind.JabberServer or GroupRowKind.MumbleServer;
+    public bool IsRoom => Kind == GroupRowKind.Room;
+    public bool IsMumble => Kind == GroupRowKind.MumbleServer;
+
+    public Avalonia.Thickness Indent => new(IsServer ? 0 : 14, IsServer ? 4 : 0, 0, 0);
+
+    private string _text = "", _detail = "", _dot = "";
+    private int _unread, _mentions;
+
+    public string ShownText { get => _text; private set => this.RaiseAndSetIfChanged(ref _text, value); }
+    public string ShownDetail { get => _detail; private set { this.RaiseAndSetIfChanged(ref _detail, value); this.RaisePropertyChanged(nameof(HasDetail)); } }
+    public bool HasDetail => _detail.Length > 0;
+
+    public string ShownDot
+    {
+        get => _dot;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _dot, value);
+            foreach (var name in new[] { nameof(DotGreen), nameof(DotAmber), nameof(DotRed) }) this.RaisePropertyChanged(name);
+        }
+    }
+    public bool DotGreen => _dot == "green";
+    public bool DotAmber => _dot == "amber";
+    public bool DotRed => _dot == "red";
+
+    public int ShownUnread
+    {
+        get => _unread;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _unread, value);
+            this.RaisePropertyChanged(nameof(HasUnread));
+            this.RaisePropertyChanged(nameof(UnreadText));
+            this.RaisePropertyChanged(nameof(UnreadTip));
+        }
+    }
+    public bool HasUnread => _unread > 0;
+    public string UnreadText => _unread.ToString("N0", CultureInfo.CurrentCulture);
+    public string UnreadTip => string.Format(CultureInfo.CurrentCulture, GroupChatText.UnreadTip, _unread);
+
+    public int ShownMentions
+    {
+        get => _mentions;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _mentions, value);
+            this.RaisePropertyChanged(nameof(HasMentions));
+            this.RaisePropertyChanged(nameof(MentionsText));
+            this.RaisePropertyChanged(nameof(MentionsTip));
+        }
+    }
+    public bool HasMentions => _mentions > 0;
+    public string MentionsText => "@" + _mentions.ToString("N0", CultureInfo.CurrentCulture);
+    public string MentionsTip => string.Format(CultureInfo.CurrentCulture, GroupChatText.MentionsTip, _mentions);
+
+    /// <summary>Takes on what a freshly worked-out line says.</summary>
+    public GroupChatRowVm Fill(GroupChatRowVm from)
+    {
+        ShownText = from.Text; ShownDetail = from.Detail; ShownDot = from.Dot;
+        ShownUnread = from.Unread; ShownMentions = from.Mentions;
+        return this;
+    }
+}
+
+/// <summary>One message in a room or on a Mumble server. Both read the same on the screen.</summary>
+public sealed partial class GroupLineVm
+{
+    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention)
+    {
+        Id = id;
+        Sender = sender;
+        Body = body;
+        When = when;
+        Channel = channel;
+        IsMention = isMention;
+        Links = [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+    }
+
+    public long Id { get; }
+    public string Sender { get; }
+    public string Body { get; }
+    public string When { get; }
+
+    /// <summary>Which Mumble channel it was said in. A room's are all in the room.</summary>
+    public string Channel { get; }
+    public bool HasChannel => Channel.Length > 0;
+
+    public bool IsMention { get; }
+
+    /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
+    public IReadOnlyList<string> Links { get; }
+    public bool HasLinks => Links.Count > 0;
+
+    [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
+    private static partial System.Text.RegularExpressions.Regex UrlPattern();
+
+    public static string WhenText(DateTimeOffset when)
+    {
+        var local = when.ToLocalTime();
+        return local.ToString(local.Date == DateTime.Today ? "t" : "g", CultureInfo.CurrentCulture);
+    }
+}
+
+public sealed record JabberAlertChoice(int Mode, string Label);
+
+public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
+{
+    public bool DotGreen => Dot == "green";
+    public bool DotAmber => Dot == "amber";
+    public bool DotRed => Dot == "red";
+}
+
+/// <summary>A room a server lists, with whatever it says about itself once it has been asked.</summary>
+public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : ReactiveObject
+{
+    public string Jid => room.Jid;
+    public bool IsJoined => joined;
+
+    private string _name = room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.Jid).Local;
+    private string _description = "", _topic = "", _people = "", _flags = "";
+
+    public string Name { get => _name; private set => this.RaiseAndSetIfChanged(ref _name, value); }
+    public string Description { get => _description; private set { this.RaiseAndSetIfChanged(ref _description, value); this.RaisePropertyChanged(nameof(HasDescription)); } }
+    public bool HasDescription => Description.Length > 0;
+    public string Topic { get => _topic; private set { this.RaiseAndSetIfChanged(ref _topic, value); this.RaisePropertyChanged(nameof(HasTopic)); } }
+    public bool HasTopic => Topic.Length > 0;
+    public string People { get => _people; private set { this.RaiseAndSetIfChanged(ref _people, value); this.RaisePropertyChanged(nameof(HasPeople)); } }
+    public bool HasPeople => People.Length > 0;
+    public string Flags { get => _flags; private set { this.RaiseAndSetIfChanged(ref _flags, value); this.RaisePropertyChanged(nameof(HasFlags)); } }
+    public bool HasFlags => Flags.Length > 0;
+
+    public void Apply(XmppRoomDetails details)
+    {
+        if (details.Name.Length > 0) Name = details.Name;
+        Description = details.Description;
+        Topic = details.Subject.Length > 0 ? string.Format(CultureInfo.CurrentCulture, GroupChatText.RoomTopic, details.Subject) : "";
+        People = details.People is { } count ? string.Format(CultureInfo.CurrentCulture, GroupChatText.RoomPeople, count) : "";
+        Flags = string.Join(" · ", new[]
+        {
+            details.NeedsPassword ? GroupChatText.FlagPassword : "",
+            details.MembersOnly ? GroupChatText.FlagMembersOnly : "",
+            details.Moderated ? GroupChatText.FlagModerated : "",
+            details.Temporary ? GroupChatText.FlagTemporary : "",
+        }.Where(f => f.Length > 0));
+    }
+
+    public bool Matches(string words) =>
+        Name.Contains(words, StringComparison.CurrentCultureIgnoreCase)
+        || Jid.Contains(words, StringComparison.CurrentCultureIgnoreCase)
+        || Description.Contains(words, StringComparison.CurrentCultureIgnoreCase);
+}
+
+/// <summary>
+/// Group Chat: what is said to many at once, by server. Every Jabber server with the rooms kept on it, and each Mumble
+/// server as one entry.
+///
+/// <para>⚠️ Mumble is one entry on purpose. A Mumble client only ever hears the channel it is in, so its chat is a single
+/// thread that follows the person around, not a set of conversations to choose between. It lasts as long as the app
+/// runs, because a Mumble server keeps none of it.</para>
+///
+/// <para>⚠️ Reading is what clears a count. A message in what is open only counts as read while the tool is actually
+/// in front of the person.</para>
+/// </summary>
+public sealed class GroupChatViewModel : ReactiveObject
+{
+    public const string SoundPref = "group_chat.alert_sound";
+
+    private const int PageSize = 200;
+
+    /// <summary>A busy room left open for days should not grow without end. The rest are a click away.</summary>
+    private const int MostShown = MumbleService.MaxChatLines;
+
+    /// <summary>A server can list thousands, and asking each one is a question per room.</summary>
+    private const int MostRoomsAsked = 300;
+    private const int RoomsAskedAtOnce = 6;
+
+    private readonly JabberService _jabber;
+    private readonly MumbleService _mumble;
+    private readonly AlarmSoundService _sound;
+    private readonly AlarmMuteState _mute;
+    private readonly AppPreferencesService _prefs;
+
+    private List<JabberUnread> _unread = [];
+    private readonly Dictionary<int, (int Count, int Mentions)> _mumbleUnread = [];
+    private readonly Dictionary<string, string> _drafts = [];
+    private int _refreshQueued;
+    private Task? _refreshing;
+    private bool _refreshAgain;
+    private bool _loadingDetail;
+
+    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    {
+        _jabber = jabber;
+        _mumble = mumble;
+        _prefs = prefs;
+        _sound = sound;
+        _mute = mute;
+
+        SendCommand = ReactiveCommand.CreateFromTask(SendAsync, this.WhenAnyValue(x => x.Draft, x => x.CanSend, (d, can) => can && !string.IsNullOrWhiteSpace(d)));
+        LoadEarlierCommand = ReactiveCommand.CreateFromTask(LoadEarlierAsync);
+        LeaveRoomCommand = ReactiveCommand.CreateFromTask(LeaveRoomAsync);
+        ConnectCommand = ReactiveCommand.Create(Connect);
+        AddRoomsCommand = ReactiveCommand.CreateFromTask(AddRoomsAsync);
+        JoinAgainCommand = ReactiveCommand.CreateFromTask(JoinAgainAsync);
+        JoinRoomCommand = ReactiveCommand.CreateFromTask(JoinRoomAsync);
+        CancelAddRoomsCommand = ReactiveCommand.Create(() => { IsAddingRooms = false; });
+        AcceptInviteCommand = ReactiveCommand.CreateFromTask(() => AnswerInviteAsync(true));
+        DeclineInviteCommand = ReactiveCommand.CreateFromTask(() => AnswerInviteAsync(false));
+
+        foreach (var command in new IHandleObservableErrors[]
+                 {
+                     SendCommand, LoadEarlierCommand, LeaveRoomCommand, AddRoomsCommand, JoinAgainCommand, JoinRoomCommand, AcceptInviteCommand, DeclineInviteCommand,
+                 })
+            command.ThrownExceptions.Subscribe(e => StatusText = e.Message);
+
+        AlertChoices =
+        [
+            new(JabberRoomAlert.Mentions, JabberText.RoomAlertMentions),
+            new(JabberRoomAlert.All, JabberText.RoomAlertAll),
+            new(JabberRoomAlert.None, JabberText.RoomAlertNone),
+        ];
+
+        _soundOn = _prefs.GetBool(SoundPref, true);
+
+        _jabber.SessionChanged += _ => QueueRefresh();
+        _jabber.UnreadChanged += QueueRefresh;
+        _jabber.MessageStored += m => Dispatcher.UIThread.Post(() => OnRoomMessage(m));
+        _jabber.AlertArrived += OnRoomAlert;
+        _jabber.ConversationEdited += (account, conversation) => Dispatcher.UIThread.Post(() =>
+        {
+            if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = OpenSelectedAsync();
+        });
+        _mumble.SessionChanged += _ => QueueRefresh();
+        _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnMumbleChat(session, line));
+
+        QueueRefresh();
+    }
+
+    // ── The list on the left ──────────────────────────────────────────────────
+
+    public ObservableCollection<GroupChatRowVm> Rows { get; } = [];
+
+    private GroupChatRowVm? _selectedRow;
+    public GroupChatRowVm? SelectedRow
+    {
+        get => _selectedRow;
+        set
+        {
+            if (ReferenceEquals(_selectedRow, value)) return;
+
+            this.RaiseAndSetIfChanged(ref _selectedRow, value);
+            IsAddingRooms = false;
+            this.RaisePropertyChanged(nameof(Draft));
+            _ = OpenSelectedAsync();
+        }
+    }
+
+    /// <summary>Many changes come in a burst on connecting: one refresh for the lot.</summary>
+    private void QueueRefresh()
+    {
+        if (Interlocked.Exchange(ref _refreshQueued, 1) == 1) return;
+
+        _ = Task.Delay(TimeSpan.FromMilliseconds(150)).ContinueWith(_ =>
+        {
+            Interlocked.Exchange(ref _refreshQueued, 0);
+            Dispatcher.UIThread.Post(() => _ = RefreshAsync());
+        }, TaskScheduler.Default);
+    }
+
+    /// <summary>Brings the list up to date. ⚠️ One at a time: each reads the database first, and an older one finishing after a newer one put the old state back.</summary>
+    public Task RefreshAsync()
+    {
+        if (_refreshing is { IsCompleted: false })
+        {
+            _refreshAgain = true;
+            return _refreshing;
+        }
+
+        return _refreshing = Run();
+
+        async Task Run()
+        {
+            do
+            {
+                _refreshAgain = false;
+                await RefreshOnceAsync();
+            }
+            while (_refreshAgain);
+        }
+    }
+
+    private async Task RefreshOnceAsync()
+    {
+        _unread = await Task.Run(() => _jabber.UnreadAsync());
+        var rooms = await Task.Run(() => _jabber.SavedRoomsAsync());
+
+        var rows = new List<GroupChatRowVm>();
+        foreach (var session in _jabber.Sessions.OrderBy(s => NameOf(s), StringComparer.CurrentCultureIgnoreCase))
+            AddJabberRows(rows, session, rooms);
+
+        foreach (var session in _mumble.Sessions.OrderBy(s => NameOf(s), StringComparer.CurrentCultureIgnoreCase))
+        {
+            var count = _mumbleUnread.GetValueOrDefault(session.Server.Id);
+            rows.Add(new GroupChatRowVm
+            {
+                Kind = GroupRowKind.MumbleServer, ServerId = session.Server.Id, Text = NameOf(session),
+                Detail = $"{ShellText.NavMumble} · {MumbleViewModel.StateText(session)}",
+                Dot = session.State switch
+                {
+                    MumbleState.Connected => "green",
+                    MumbleState.Failed => "red",
+                    MumbleState.Offline => "grey",
+                    _ => "amber",
+                },
+                Unread = count.Count, Mentions = count.Mentions,
+            });
+        }
+
+        SyncRows(rows);
+        HasServers = Rows.Count > 0;
+        RefreshDetail();
+    }
+
+    private void AddJabberRows(List<GroupChatRowVm> rows, JabberSession session, List<JabberRoom> rooms)
+    {
+        var id = session.Account.Id;
+        rows.Add(new GroupChatRowVm
+        {
+            Kind = GroupRowKind.JabberServer, ServerId = id, Text = NameOf(session),
+            Detail = $"{ShellText.NavJabber} · {JabberViewModel.StateText(session)}",
+            Dot = JabberViewModel.StateDot(session.State),
+        });
+
+        foreach (var invite in session.Invites)
+            rows.Add(new GroupChatRowVm
+            {
+                Kind = GroupRowKind.Invite, ServerId = id, Key = invite.Room, Text = XmppAddress.Parse(invite.Room).Local, Dot = "amber",
+                Detail = string.Format(CultureInfo.CurrentCulture, JabberText.RowInvitedBy, invite.From),
+            });
+
+        foreach (var room in rooms.Where(r => r.AccountId == id).OrderBy(JabberViewModel.DisplayRoom, StringComparer.CurrentCultureIgnoreCase))
+        {
+            var state = session.Locked(s => s.RoomMap.GetValueOrDefault(room.RoomJid));
+            var count = _unread.FirstOrDefault(u => u.AccountId == id && u.Conversation == room.RoomJid);
+            rows.Add(new GroupChatRowVm
+            {
+                Kind = GroupRowKind.Room, ServerId = id, Key = room.RoomJid, Text = JabberViewModel.DisplayRoom(room),
+                Detail = state?.Failure is { } failure ? JabberViewModel.RoomFailureText(failure, state.FailureText) : "",
+                Dot = state is { Joined: true } ? "green" : state?.Failure is not null ? "red" : "grey",
+                Unread = count.Count, Mentions = count.Mentions,
+            });
+        }
+    }
+
+    private static string NameOf(JabberSession session) => session.Account.Name.Length > 0 ? session.Account.Name : session.Account.Address;
+    private static string NameOf(MumbleSession session) => session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host;
+
+    /// <summary>Makes the list say this, moving as little as it can. See <see cref="GroupChatRowVm"/>.</summary>
+    private void SyncRows(List<GroupChatRowVm> wanted)
+    {
+        var have = Rows.ToDictionary(r => r.Identity);
+
+        for (var i = 0; i < wanted.Count; i++)
+            wanted[i] = have.TryGetValue(wanted[i].Identity, out var kept) ? kept.Fill(wanted[i]) : wanted[i].Fill(wanted[i]);
+
+        var keep = wanted.Select(r => r.Identity).ToHashSet();
+        for (var i = Rows.Count - 1; i >= 0; i--)
+            if (!keep.Contains(Rows[i].Identity))
+            {
+                if (ReferenceEquals(Rows[i], SelectedRow)) SelectedRow = null;
+                Rows.RemoveAt(i);
+            }
+
+        for (var i = 0; i < wanted.Count; i++)
+        {
+            if (i < Rows.Count && ReferenceEquals(Rows[i], wanted[i])) continue;
+
+            var at = Rows.IndexOf(wanted[i]);
+            if (at >= 0) Rows.Move(at, i);
+            else Rows.Insert(i, wanted[i]);
+        }
+    }
+
+    // ── The pane on the right ─────────────────────────────────────────────────
+
+    private bool _hasServers;
+    public bool HasServers
+    {
+        get => _hasServers;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _hasServers, value);
+            this.RaisePropertyChanged(nameof(ShowWelcome));
+            this.RaisePropertyChanged(nameof(ShowNothing));
+        }
+    }
+
+    public bool ShowWelcome => !HasServers;
+    public bool ShowNothing => HasServers && SelectedRow is null;
+    public bool ShowConversation => SelectedRow is { Kind: GroupRowKind.Room or GroupRowKind.MumbleServer } && !IsAddingRooms;
+    public bool ShowOccupants => SelectedRow is { IsRoom: true } && !IsAddingRooms;
+    public bool ShowRoomControls => SelectedRow is { IsRoom: true };
+    public bool ShowSubchannels => SelectedRow is { IsMumble: true };
+    public bool ShowJabberServer => SelectedRow is { Kind: GroupRowKind.JabberServer } && !IsAddingRooms;
+    public bool ShowInvite => SelectedRow is { Kind: GroupRowKind.Invite };
+
+    private JabberSession? JabberOf(GroupChatRowVm? row) => row is { IsMumble: false } ? _jabber.SessionOf(row.ServerId) : null;
+    private MumbleSession? MumbleOf(GroupChatRowVm? row) => row is { IsMumble: true } ? _mumble.SessionOf(row.ServerId) : null;
+
+    public ObservableCollection<GroupLineVm> Lines { get; } = [];
+    public ObservableCollection<JabberOccupantVm> Occupants { get; } = [];
+
+    /// <summary>Asks the view to bring the newest message into sight.</summary>
+    public event Action? ScrollToEndRequested;
+
+    private string _title = "", _subtitle = "", _serverState = "", _archiveText = "", _draftHint = "", _cannotSend = "", _roomProblem = "", _sendingFile = "", _status = "";
+    private bool _canSend, _canAttach, _hasEarlier, _canConnect, _canAddRooms, _includeSubchannels;
+
+    public string Title { get => _title; private set => this.RaiseAndSetIfChanged(ref _title, value); }
+    public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
+    public string ServerState { get => _serverState; private set => this.RaiseAndSetIfChanged(ref _serverState, value); }
+    public string ArchiveText { get => _archiveText; private set { this.RaiseAndSetIfChanged(ref _archiveText, value); this.RaisePropertyChanged(nameof(HasArchiveText)); } }
+    public bool HasArchiveText => ArchiveText.Length > 0;
+    public string DraftHint { get => _draftHint; private set => this.RaiseAndSetIfChanged(ref _draftHint, value); }
+    public string CannotSend { get => _cannotSend; private set { this.RaiseAndSetIfChanged(ref _cannotSend, value); this.RaisePropertyChanged(nameof(HasCannotSend)); } }
+    public bool HasCannotSend => CannotSend.Length > 0;
+    public string RoomProblem { get => _roomProblem; private set { this.RaiseAndSetIfChanged(ref _roomProblem, value); this.RaisePropertyChanged(nameof(HasRoomProblem)); } }
+    public bool HasRoomProblem => RoomProblem.Length > 0;
+    public bool CanSend { get => _canSend; private set => this.RaiseAndSetIfChanged(ref _canSend, value); }
+    public bool CanAttach { get => _canAttach; private set => this.RaiseAndSetIfChanged(ref _canAttach, value); }
+    public bool HasEarlier { get => _hasEarlier; private set => this.RaiseAndSetIfChanged(ref _hasEarlier, value); }
+    public bool CanConnect { get => _canConnect; private set => this.RaiseAndSetIfChanged(ref _canConnect, value); }
+    public bool CanAddRooms { get => _canAddRooms; private set => this.RaiseAndSetIfChanged(ref _canAddRooms, value); }
+
+    /// <summary>A Mumble message goes to the channel the person is in, and optionally everything under it.</summary>
+    public bool IncludeSubchannels { get => _includeSubchannels; set => this.RaiseAndSetIfChanged(ref _includeSubchannels, value); }
+
+    public string SendingFile { get => _sendingFile; private set { this.RaiseAndSetIfChanged(ref _sendingFile, value); this.RaisePropertyChanged(nameof(IsSendingFile)); } }
+    public bool IsSendingFile => SendingFile.Length > 0;
+
+    public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
+    public bool HasStatus => StatusText.Length > 0;
+
+    /// <summary>What is being written here. Each room and server keeps its own while the person looks elsewhere.</summary>
+    public string Draft
+    {
+        get => SelectedRow is { } row ? _drafts.GetValueOrDefault(row.Identity, "") : "";
+        set
+        {
+            if (SelectedRow is not { } row || Draft == value) return;
+            _drafts[row.Identity] = value;
+            this.RaisePropertyChanged();
+        }
+    }
+
+    private bool _isBeingLookedAt;
+
+    /// <summary>Whether this tool is on screen, in a window with the person's attention. Set by the view.</summary>
+    public bool IsBeingLookedAt
+    {
+        get => _isBeingLookedAt;
+        set
+        {
+            _isBeingLookedAt = value;
+            if (value) _ = MarkOpenReadAsync();
+        }
+    }
+
+    private void RaisePanes()
+    {
+        foreach (var name in new[] { nameof(ShowNothing), nameof(ShowConversation), nameof(ShowOccupants), nameof(ShowRoomControls), nameof(ShowSubchannels), nameof(ShowJabberServer), nameof(ShowInvite), nameof(ShowAddRooms) })
+            this.RaisePropertyChanged(name);
+    }
+
+    private async Task OpenSelectedAsync()
+    {
+        RaisePanes();
+
+        Lines.Clear();
+        Occupants.Clear();
+        HasEarlier = false;
+        StatusText = "";
+        RefreshDetail();
+
+        var row = SelectedRow;
+        if (row is { IsMumble: true })
+        {
+            if (MumbleOf(row) is { } session)
+                foreach (var line in session.Chat) Lines.Add(ToLine(session, line));
+        }
+        else if (row is { IsRoom: true })
+        {
+            var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, limit: PageSize));
+            if (!ReferenceEquals(SelectedRow, row)) return;
+
+            foreach (var m in page) Lines.Add(ToLine(m));
+            HasEarlier = page.Count == PageSize;
+        }
+        else return;
+
+        ScrollToEndRequested?.Invoke();
+        await MarkOpenReadAsync();
+    }
+
+    private static GroupLineVm ToLine(JabberStoredMessage m) => new(
+        m.Id, m.Sender, m.Body,
+        DateTimeOffset.TryParse(m.SentAt, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when) ? GroupLineVm.WhenText(when) : "",
+        "", m.IsMention);
+
+    private static GroupLineVm ToLine(MumbleSession session, MumbleChatLine line) => new(
+        0, line.Sender, line.Text, GroupLineVm.WhenText(line.When),
+        line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel,
+        NamesMe(session, line));
+
+    /// <summary>Their name said on this server. Their own messages do not count, whatever is in them.</summary>
+    private static bool NamesMe(MumbleSession session, MumbleChatLine line) =>
+        !line.IsOutgoing && session.Client?.Me?.Name is { Length: > 0 } me && JabberService.ContainsWord(line.Text, me);
+
+    /// <summary>Clears what is open, if it is really being looked at.</summary>
+    private async Task MarkOpenReadAsync()
+    {
+        if (!IsBeingLookedAt || SelectedRow is not { } row) return;
+
+        if (row.IsMumble)
+        {
+            if (_mumbleUnread.Remove(row.ServerId)) QueueRefresh();
+        }
+        else if (row.IsRoom) await Task.Run(() => _jabber.MarkReadAsync(row.ServerId, row.Key));
+    }
+
+    private void OnRoomMessage(JabberStoredMessage message)
+    {
+        if (!message.IsRoom || SelectedRow is not { IsRoom: true } row || row.ServerId != message.AccountId || row.Key != message.Conversation) return;
+        if (Lines.Any(l => l.Id == message.Id)) return;
+
+        Add(ToLine(message));
+        _ = MarkOpenReadAsync();
+    }
+
+    private void OnMumbleChat(MumbleSession session, MumbleChatLine line)
+    {
+        var open = SelectedRow is { IsMumble: true } row && row.ServerId == session.Server.Id;
+        if (open) Add(ToLine(session, line));
+
+        var mention = NamesMe(session, line);
+        if (line.IsOutgoing || open && IsBeingLookedAt) return;
+
+        var (count, mentions) = _mumbleUnread.GetValueOrDefault(session.Server.Id);
+        _mumbleUnread[session.Server.Id] = (count + 1, mentions + (mention ? 1 : 0));
+        QueueRefresh();
+        if (mention) Ring();
+    }
+
+    private void Add(GroupLineVm line)
+    {
+        Lines.Add(line);
+        if (Lines.Count > MostShown)
+        {
+            Lines.RemoveAt(0);
+            HasEarlier = SelectedRow is { IsRoom: true };
+        }
+        ScrollToEndRequested?.Invoke();
+    }
+
+    private async Task LoadEarlierAsync()
+    {
+        if (SelectedRow is not { IsRoom: true } row || Lines.Count == 0) return;
+
+        var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, Lines[0].Id, PageSize));
+        for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToLine(page[i]));
+        HasEarlier = page.Count == PageSize;
+    }
+
+    private async Task SendAsync()
+    {
+        if (SelectedRow is not { } row) return;
+
+        var text = Draft;
+        Draft = "";
+        StatusText = "";
+        try
+        {
+            if (MumbleOf(row) is { } mumble)
+            {
+                var tree = IncludeSubchannels;
+                await Task.Run(() => _mumble.SendTextAsync(mumble, text, null, tree));
+
+                // ⚠️ Not left on: the next message should not reach a whole tree of channels because this one did.
+                IncludeSubchannels = false;
+            }
+            else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text));
+        }
+        catch
+        {
+            if (ReferenceEquals(SelectedRow, row)) Draft = text;   // nothing typed is lost to a dropped connection
+            else _drafts[row.Identity] = text;
+            throw;
+        }
+    }
+
+    /// <summary>Sends a file the person chose to the room open.</summary>
+    public async Task SendFileAsync(Stream content, string fileName, long size)
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.FileTooBig, fileName, JabberViewModel.SizeText(size), JabberViewModel.SizeText(service.MaxBytes));
+            return;
+        }
+
+        StatusText = "";
+        SendingFile = string.Format(CultureInfo.CurrentCulture, JabberText.SendingFile, fileName);
+        try
+        {
+            await Task.Run(() => _jabber.SendFileAsync(session, row.Key, true, content, fileName, size, JabberViewModel.ContentTypeOf(fileName)));
+        }
+        catch (Exception e) when (e is XmppException or HttpRequestException or IOException or TaskCanceledException)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.SendFileFailed, fileName, e.Message);
+        }
+        finally { SendingFile = ""; }
+    }
+
+    /// <summary>Opens the first thing waiting to be read, for the alert: where they were named first.</summary>
+    public async Task ShowUnreadAsync()
+    {
+        await RefreshAsync();
+
+        var next = Rows.FirstOrDefault(r => r.HasMentions) ?? Rows.FirstOrDefault(r => r.HasUnread);
+        if (next is not null) SelectedRow = next;
+    }
+
+    private void OnRoomAlert(JabberStoredMessage message)
+    {
+        // A direct message is the Messages tool's to sound.
+        if (!message.IsRoom) return;
+
+        // No sound for what is already on screen and being read.
+        if (IsBeingLookedAt && SelectedRow is { IsRoom: true } open && open.ServerId == message.AccountId && open.Key == message.Conversation) return;
+
+        Ring();
+    }
+
+    private void Ring()
+    {
+        if (SoundOn && !_mute.Muted) _ = PlaySoundAsync();
+    }
+
+    private async Task PlaySoundAsync()
+    {
+        try { await _sound.PlayAsync(AlarmSoundService.DefaultKey); }
+        catch (Exception e) when (e is IOException or InvalidOperationException) { StatusText = e.Message; }
+    }
+
+    private bool _soundOn;
+    public bool SoundOn
+    {
+        get => _soundOn;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _soundOn, value);
+            _ = _prefs.SetBoolAsync(SoundPref, value);
+        }
+    }
+
+    // ── Details of what is selected ───────────────────────────────────────────
+
+    public IReadOnlyList<JabberAlertChoice> AlertChoices { get; }
+
+    private JabberAlertChoice? _chosenAlert;
+    public JabberAlertChoice? ChosenAlert
+    {
+        get => _chosenAlert;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _chosenAlert, value);
+            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
+                _ = _jabber.SetRoomAlertAsync(session, row.Key, value.Mode);
+        }
+    }
+
+    private void RefreshDetail()
+    {
+        this.RaisePropertyChanged(nameof(ShowNothing));
+        CanAddRooms = _jabber.Sessions.Any(s => s.State == JabberState.Connected);
+
+        if (SelectedRow is not { } row) return;
+
+        _loadingDetail = true;
+        try
+        {
+            Title = row.ShownText;
+            ArchiveText = "";
+            RoomProblem = "";
+
+            if (MumbleOf(row) is { } mumble) ShowMumble(mumble);
+            else if (JabberOf(row) is { } session)
+            {
+                ServerState = JabberViewModel.StateText(session);
+                CanConnect = session.State is JabberState.Offline or JabberState.Failed;
+
+                if (row.Kind == GroupRowKind.JabberServer) Subtitle = session.Account.Address;
+                else if (row.Kind == GroupRowKind.Invite) Subtitle = row.ShownDetail;
+                else ShowRoom(row, session);
+            }
+        }
+        finally { _loadingDetail = false; }
+    }
+
+    private void ShowMumble(MumbleSession session)
+    {
+        var client = session is { State: MumbleState.Connected } ? session.Client : null;
+        var channel = client?.Me is { } me ? client.ChannelOf(me.ChannelId)?.Name ?? "" : "";
+
+        ServerState = MumbleViewModel.StateText(session);
+        CanConnect = session.State is MumbleState.Offline or MumbleState.Failed;
+        Subtitle = ServerState;
+        ArchiveText = GroupChatText.MumbleNote;
+        CanSend = client is not null;
+        CanAttach = false;
+        CannotSend = client is null ? string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected, NameOf(session)) : "";
+        DraftHint = string.Format(CultureInfo.CurrentCulture, MumbleText.MessageHint, channel);
+    }
+
+    private void ShowRoom(GroupChatRowVm row, JabberSession session)
+    {
+        var state = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key));
+        var connected = session.State == JabberState.Connected;
+
+        CanSend = connected && state is { Joined: true };
+        CanAttach = CanSend && session.UploadService is not null;
+        DraftHint = JabberText.MessageHint;
+        CannotSend = !connected ? string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected, NameOf(session)) : "";
+        Subtitle = state is { Subject.Length: > 0 } ? state.Subject : row.Key;
+
+        Occupants.Clear();
+        if (state is null) return;
+
+        ChosenAlert = AlertChoices.FirstOrDefault(c => c.Mode == state.Room.AlertMode);
+        if (connected) ArchiveText = JabberViewModel.RoomArchiveLine(state.HasArchive, state.ArchiveRefused);
+        if (state.Failure is { } failure) RoomProblem = JabberViewModel.RoomFailureText(failure, state.FailureText);
+
+        var people = session.Locked(_ => state.Occupants.Values.ToList());
+        foreach (var o in people.OrderBy(o => RoleRank(o.Role)).ThenBy(o => o.Nick, StringComparer.CurrentCultureIgnoreCase))
+            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role));
+    }
+
+    private static int RoleRank(string role) => role switch { "moderator" => 0, "participant" => 1, _ => 2 };
+
+    // ── Commands ──────────────────────────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> SendCommand { get; }
+    public ReactiveCommand<Unit, Unit> LoadEarlierCommand { get; }
+    public ReactiveCommand<Unit, Unit> LeaveRoomCommand { get; }
+    public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddRoomsCommand { get; }
+    public ReactiveCommand<Unit, Unit> JoinAgainCommand { get; }
+    public ReactiveCommand<Unit, Unit> JoinRoomCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelAddRoomsCommand { get; }
+    public ReactiveCommand<Unit, Unit> AcceptInviteCommand { get; }
+    public ReactiveCommand<Unit, Unit> DeclineInviteCommand { get; }
+
+    private void Connect()
+    {
+        if (MumbleOf(SelectedRow) is { } mumble) _mumble.Connect(mumble);
+        else if (JabberOf(SelectedRow) is { } jabber) _jabber.Connect(jabber);
+    }
+
+    private async Task LeaveRoomAsync()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        await _jabber.LeaveRoomAsync(session, row.Key);
+        SelectedRow = null;
+        await RefreshAsync();
+    }
+
+    private async Task AnswerInviteAsync(bool accept)
+    {
+        if (SelectedRow is not { Kind: GroupRowKind.Invite } row || JabberOf(row) is not { } session) return;
+
+        await Task.Run(() => _jabber.AnswerInviteAsync(session, row.Key, accept));
+        await RefreshAsync();
+        if (accept) SelectedRow = Rows.FirstOrDefault(r => r.IsRoom && r.ServerId == row.ServerId && r.Key == XmppAddress.Parse(row.Key).Bare);
+    }
+
+    // ── Adding rooms ──────────────────────────────────────────────────────────
+
+    private bool _isAddingRooms;
+    public bool IsAddingRooms
+    {
+        get => _isAddingRooms;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _isAddingRooms, value);
+            if (!value) _browseStamp++;
+            RaisePanes();
+        }
+    }
+
+    public bool ShowAddRooms => IsAddingRooms;
+
+    private string _addingTo = "";
+
+    /// <summary>Which server rooms are being added on.</summary>
+    public string AddingTo { get => _addingTo; private set => this.RaiseAndSetIfChanged(ref _addingTo, value); }
+
+    private bool _isLoadingRooms;
+    public bool IsLoadingRooms { get => _isLoadingRooms; private set => this.RaiseAndSetIfChanged(ref _isLoadingRooms, value); }
+
+    private readonly List<GroupRoomChoiceVm> _allChoices = [];
+    private int _browseStamp;
+    private int _addingAccount;
+
+    public ObservableCollection<GroupRoomChoiceVm> RoomChoices { get; } = [];
+
+    private string _roomFilter = "";
+    public string RoomFilter
+    {
+        get => _roomFilter;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _roomFilter, value);
+            FillChoices();
+        }
+    }
+
+    private GroupRoomChoiceVm? _roomChoice;
+    public GroupRoomChoiceVm? RoomChoice
+    {
+        get => _roomChoice;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _roomChoice, value);
+            if (value is not null) JoinRoom = value.Jid;
+        }
+    }
+
+    private string _joinRoom = "", _joinNick = "", _joinPassword = "";
+    public string JoinRoom { get => _joinRoom; set => this.RaiseAndSetIfChanged(ref _joinRoom, value); }
+    public string JoinNick { get => _joinNick; set => this.RaiseAndSetIfChanged(ref _joinNick, value); }
+    public string JoinPassword { get => _joinPassword; set => this.RaiseAndSetIfChanged(ref _joinPassword, value); }
+
+    private void FillChoices()
+    {
+        var words = RoomFilter.Trim();
+        var shown = _allChoices.Where(c => words.Length == 0 || c.Matches(words)).ToList();
+        if (RoomChoices.SequenceEqual(shown)) return;
+
+        RoomChoices.Clear();
+        foreach (var choice in shown) RoomChoices.Add(choice);
+    }
+
+    /// <summary>Lists what the server open offers, or the first one connected when something else is open.</summary>
+    private async Task AddRoomsAsync()
+    {
+        var session = JabberOf(SelectedRow) is { State: JabberState.Connected } here
+            ? here
+            : _jabber.Sessions.FirstOrDefault(s => s.State == JabberState.Connected);
+        if (session is null) return;
+
+        await BrowseAsync(session);
+    }
+
+    /// <summary>Brings a room that would not take this person back up with its name filled in, to fix what stopped it.</summary>
+    private async Task JoinAgainAsync()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        var key = row.Key;
+        await BrowseAsync(session);
+        JoinRoom = key;
+    }
+
+    private async Task BrowseAsync(JabberSession session)
+    {
+        var stamp = ++_browseStamp;
+
+        _addingAccount = session.Account.Id;
+        AddingTo = string.Format(CultureInfo.CurrentCulture, GroupChatText.AddingTo, NameOf(session));
+        JoinRoom = JoinNick = JoinPassword = "";
+        _allChoices.Clear();
+        RoomChoices.Clear();
+        _roomFilter = "";
+        this.RaisePropertyChanged(nameof(RoomFilter));
+        StatusText = "";
+
+        _isAddingRooms = true;
+        this.RaisePropertyChanged(nameof(IsAddingRooms));
+        RaisePanes();
+        IsLoadingRooms = true;
+        try
+        {
+            var kept = session.Locked(s => s.RoomMap.Values.Where(r => r.Joined).Select(r => r.Room.RoomJid).ToHashSet(StringComparer.Ordinal));
+
+            foreach (var service in session.ConferenceServices)
+                foreach (var room in await Task.Run(() => _jabber.BrowseRoomsAsync(session, service)))
+                    _allChoices.Add(new GroupRoomChoiceVm(room, kept.Contains(room.Jid)));
+
+            _allChoices.Sort((a, b) => StringComparer.CurrentCultureIgnoreCase.Compare(a.Name, b.Name));
+            FillChoices();
+            if (_allChoices.Count == 0) StatusText = JabberText.NoRoomsListed;
+
+            await AskRoomsAsync(session, stamp);
+        }
+        finally
+        {
+            if (stamp == _browseStamp) IsLoadingRooms = false;
+        }
+    }
+
+    /// <summary>Fills in what each room says about itself, as the answers come. ⚠️ A few at a time: this is a question per room, to one server.</summary>
+    private async Task AskRoomsAsync(JabberSession session, int stamp)
+    {
+        using var gate = new SemaphoreSlim(RoomsAskedAtOnce);
+
+        await Task.WhenAll(_allChoices.Take(MostRoomsAsked).ToList().Select(async choice =>
+        {
+            await gate.WaitAsync();
+            try
+            {
+                if (stamp != _browseStamp) return;
+
+                var details = await Task.Run(() => _jabber.RoomDetailsAsync(session, choice.Jid));
+                if (details is not null && stamp == _browseStamp) choice.Apply(details);
+            }
+            finally { gate.Release(); }
+        }));
+
+        if (stamp == _browseStamp) FillChoices();   // a filter may match what only just arrived
+    }
+
+    private async Task JoinRoomAsync()
+    {
+        if (_jabber.SessionOf(_addingAccount) is not { } session) return;
+
+        // A bare name joins on the server's own conference service, as nobody should have to know its name.
+        var room = JoinRoom.Trim();
+        if (room.Length == 0) return;
+        if (!room.Contains('@') && session.ConferenceServices.Count > 0) room = $"{room}@{session.ConferenceServices[0]}";
+
+        var bare = XmppAddress.Parse(room).Bare;
+        var choice = _allChoices.FirstOrDefault(c => c.Jid == bare);
+
+        // Already in it: there is nothing to do but go there.
+        if (!session.Locked(s => s.RoomMap.TryGetValue(bare, out var state) && state.Joined))
+            await Task.Run(() => _jabber.JoinRoomAsync(session, room, choice?.Name ?? "", JoinNick.Trim(), JoinPassword));
+
+        JoinPassword = "";
+        IsAddingRooms = false;
+        await RefreshAsync();
+        SelectedRow = Rows.FirstOrDefault(r => r.IsRoom && r.ServerId == session.Account.Id && r.Key == bare);
+        RaisePanes();
+    }
+}

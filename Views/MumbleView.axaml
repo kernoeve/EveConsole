@@ -20,9 +20,6 @@
     <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
     <Style Selector="ToggleButton"><Setter Property="FontSize" Value="12" /></Style>
     <Style Selector="ListBox#Rows ListBoxItem"><Setter Property="Padding" Value="6 2" /><Setter Property="MinHeight" Value="0" /></Style>
-    <Style Selector="ListBox#ChatList ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
-    <Style Selector="ListBox#ChatList ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
-    <Style Selector="ListBox#ChatList ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
   </UserControl.Styles>
 
   <Grid ColumnDefinitions="300,4,*">
@@ -173,29 +170,6 @@
           </StackPanel>
         </StackPanel>
       </StackPanel>
-
-      <!-- Text chat, for whichever server is selected -->
-      <Grid Grid.Row="1" IsVisible="{Binding ShowChat}" RowDefinitions="*,Auto">
-        <ListBox x:Name="ChatList" ItemsSource="{Binding Chat}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-          <ListBox.ItemTemplate>
-            <DataTemplate x:DataType="vm:MumbleChatVm">
-              <StackPanel Margin="14 3">
-                <StackPanel Orientation="Horizontal" Spacing="8">
-                  <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
-                  <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                  <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
-                </StackPanel>
-                <SelectableTextBlock Text="{Binding Text}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
-              </StackPanel>
-            </DataTemplate>
-          </ListBox.ItemTemplate>
-        </ListBox>
-        <Grid Grid.Row="1" ColumnDefinitions="*,Auto,Auto" Margin="10 6">
-          <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="90" Watermark="{Binding ChatHint}" />
-          <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-          <Button Grid.Column="2" Content="{x:Static loc:MumbleText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-        </Grid>
-      </Grid>
 
       <TextBlock Grid.Row="2" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4" Foreground="{DynamicResource BadBrush}" />
     </Grid>

@@ -1186,6 +1186,8 @@ public static class PostgresSchema
             "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
             "AutoConnect"        BOOLEAN NOT NULL DEFAULT FALSE,
             "AlertWords"         TEXT    NOT NULL DEFAULT '',
+            "SavedShow"          INTEGER NOT NULL DEFAULT 1,
+            "SavedStatus"        TEXT    NOT NULL DEFAULT '',
             CONSTRAINT "PK_JabberAccounts" PRIMARY KEY ("Id")
         )
         """,
@@ -1696,6 +1698,15 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "JabberRooms" ADD COLUMN IF NOT EXISTS "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberAccounts" ADD COLUMN IF NOT EXISTS "SavedShow" INTEGER NOT NULL DEFAULT 1
+        """,
+        """
+        ALTER TABLE "JabberAccounts" ADD COLUMN IF NOT EXISTS "SavedStatus" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "IsMention" BOOLEAN NOT NULL DEFAULT FALSE
         """,
     ];
 }

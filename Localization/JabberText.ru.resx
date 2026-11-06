@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} приглашает вас</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>Комнаты</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>Люди</value>
@@ -134,7 +131,7 @@
     <value>Добавить сервер</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Выберите слева сервер, комнату или человека.</value>
+    <value>Выберите сервер или человека слева.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Подключить</value>
@@ -156,12 +153,6 @@
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>Доверять этому сертификату</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>Войти в комнату</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>Обзор комнат</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>Войти</value>
@@ -228,9 +219,6 @@
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>Ключевые слова для оповещений, через запятую</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>Комната</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>Оповещать</value>

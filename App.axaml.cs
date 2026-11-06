@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EveConsole.Agent;
@@ -2698,9 +2698,13 @@ public class App : Application
                         "Nickname"           TEXT    NOT NULL DEFAULT '',
                         "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
                         "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
-                        "AlertWords"         TEXT    NOT NULL DEFAULT ''
+                        "AlertWords"         TEXT    NOT NULL DEFAULT '',
+                        "SavedShow"          INTEGER NOT NULL DEFAULT 1,
+                        "SavedStatus"        TEXT    NOT NULL DEFAULT ''
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberAccounts" ADD COLUMN "SavedShow" INTEGER NOT NULL DEFAULT 1"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberAccounts" ADD COLUMN "SavedStatus" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberRooms" (
                         "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -2729,9 +2733,11 @@ public class App : Application
                         "IsRead"       INTEGER NOT NULL DEFAULT 0,
                         "IsAlert"      INTEGER NOT NULL DEFAULT 0,
                         "DedupeKey"    TEXT    NOT NULL DEFAULT '',
-                        "MessageId"    TEXT    NOT NULL DEFAULT ''
+                        "MessageId"    TEXT    NOT NULL DEFAULT '',
+                        "IsMention"    INTEGER NOT NULL DEFAULT 0
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "IsMention" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""");

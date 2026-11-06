@@ -382,7 +382,7 @@ public class OverviewViewModel : ReactiveObject
     /// <summary>The Contracts tool on every character and personal corporation, active only, soonest to expire first.</summary>
     public Action?          NavigateToActiveContracts               { get; set; }
     public Action?          NavigateToEveMail                       { get; set; }
-    public Action?          NavigateToJabber                        { get; set; }
+    public Action?          NavigateToGroupChat                     { get; set; }
     public Action?          NavigateToMessages                      { get; set; }
     public Action?          NavigateToOrderTracker                  { get; set; }
     public Action<int>?     RequestOpenKillmail                     { get; set; }
@@ -1774,7 +1774,7 @@ public class OverviewViewModel : ReactiveObject
                 newAlerts.Add(new AlertRowVm
                 {
                     Message = Counted(nameof(OverviewText.AlertUnreadJabberOther), waiting),
-                    NavigateCommand = NavigateToJabber is not null ? ReactiveCommand.Create(NavigateToJabber) : null,
+                    NavigateCommand = NavigateToGroupChat is not null ? ReactiveCommand.Create(NavigateToGroupChat) : null,
                 });
         }
         catch (Exception ex) { _errorLogger.Log("OverviewViewModel", "UnreadJabberAlert", ex); }

@@ -296,6 +296,42 @@ void Check(string name, bool ok, string detail = "")
     Check("room archive: what I said elsewhere is mine, and read", JabberService.ToStored(account, "Them", kept, missed, DateTimeOffset.UtcNow) is { IsRead: true, IsOutgoing: true });
     Check("room archive: a replay is still only history", JabberService.ToStored(account, "Me", kept, missed with { ArchiveId = "", Body = "hey me" }, DateTimeOffset.UtcNow) is { IsRead: true, IsAlert: false });
 
+    // ── Group Chat: mentions, room details, and who is a person in a room ───────────────────
+    {
+        var named = new JabberAccount { Id = 1, Address = "me@example.test", Nickname = "Pilot" };
+        var inRoom = new XmppMessage(XmppAddress.Parse("room@rooms.example.test/Someone"), XmppAddress.Parse("me@example.test"), "groupchat", "RoomNick, over here", "", "id1", null, "", false);
+        Check("mentions: the name in this room", JabberService.ToStored(named, "RoomNick", null, inRoom, DateTimeOffset.UtcNow).IsMention);
+        Check("mentions: the usual name too", JabberService.NamesThem(named, "RoomNick", "pilot: over here"));
+        Check("mentions: not inside another word", !JabberService.NamesThem(named, "Al", "already there, Pilots"));
+        Check("mentions: nobody names themselves", !JabberService.ToStored(named, "Someone", null, inRoom with { Body = "Someone here" }, DateTimeOffset.UtcNow).IsMention);
+        Check("mentions: a direct message is not one", !JabberService.ToStored(named, null, null, inRoom with { Type = "chat", Body = "Pilot" }, DateTimeOffset.UtcNow).IsMention);
+
+        var details = XmppClient.ParseRoomDetails("room@rooms.example.test", System.Xml.Linq.XElement.Parse(
+            """
+            <query xmlns='http://jabber.org/protocol/disco#info'>
+              <identity category='conference' name='The Room' type='text'/>
+              <feature var='muc_passwordprotected'/><feature var='muc_membersonly'/><feature var='muc_moderated'/><feature var='muc_temporary'/>
+              <x xmlns='jabber:x:data' type='result'>
+                <field var='FORM_TYPE' type='hidden'><value>http://jabber.org/protocol/muc#roominfo</value></field>
+                <field var='muc#roominfo_description'><value>What it is for</value></field>
+                <field var='muc#roominfo_subject'><value>Today's topic</value></field>
+                <field var='muc#roominfo_occupants'><value>12</value></field>
+              </x>
+            </query>
+            """));
+        Check("details: all of it", details is { Name: "The Room", Description: "What it is for", Subject: "Today's topic", People: 12, NeedsPassword: true, MembersOnly: true, Moderated: true, Temporary: true });
+
+        var bare = XmppClient.ParseRoomDetails("room@rooms.example.test", System.Xml.Linq.XElement.Parse("<query xmlns='http://jabber.org/protocol/disco#info'><field>12</field></query>"));
+        Check("details: a room saying nothing is still a room", bare is { Name: "", Description: "", People: null, NeedsPassword: false });
+        Check("details: nothing at all", XmppClient.ParseRoomDetails("r@s", null).People is null);
+
+        string[] services = ["rooms.example.test"];
+        Check("person in a room: a room kept", JabberService.IsSomeoneInARoom(XmppAddress.Parse("kept@elsewhere.test/Nick"), true, []));
+        Check("person in a room: a room since left, by its service", JabberService.IsSomeoneInARoom(XmppAddress.Parse("old@ROOMS.example.test/Nick"), false, services));
+        Check("person in a room: not the room itself", !JabberService.IsSomeoneInARoom(XmppAddress.Parse("old@rooms.example.test"), false, services));
+        Check("person in a room: not someone's phone", !JabberService.IsSomeoneInARoom(XmppAddress.Parse("them@example.test/phone"), false, services));
+    }
+
     Check("lines: nothing said until asked", JabberViewModel.RoomArchiveLine(null, false).Length == 0 && JabberViewModel.AccountArchiveLine(null, 0, 0).Length == 0);
     Check("lines: a room that keeps one", JabberViewModel.RoomArchiveLine(true, false) == JabberText.ArchiveRoomYes);
     Check("lines: a room that does not", JabberViewModel.RoomArchiveLine(false, false) == JabberText.ArchiveRoomNo);

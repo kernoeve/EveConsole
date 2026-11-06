@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} から招待されました</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>ルーム</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>連絡先</value>
@@ -134,7 +131,7 @@
     <value>サーバーを追加</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>左側からサーバー、ルーム、相手を選んでください。</value>
+    <value>左からサーバーまたは人を選んでください。</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>接続</value>
@@ -156,12 +153,6 @@
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>この証明書を信頼</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>ルームに参加</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>ルームを探す</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>参加</value>
@@ -228,9 +219,6 @@
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>通知キーワード (カンマ区切り)</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>ルーム</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>通知</value>

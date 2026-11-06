@@ -889,4 +889,7 @@ Click for the ESI limits.</value>
     <value>Messages</value>
     <comment>Main menu.</comment>
   </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
 </root>

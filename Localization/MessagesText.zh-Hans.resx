@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -21,7 +21,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
-    <value>选择一个会话，或在 Jabber 或 Mumble 工具中选择一个人开始。</value>
+    <value>请选择一个会话，或点击“新建会话”给在线用户发消息。</value>
     <comment>Messages window.</comment>
   </data>
   <data name="ToggleList" xml:space="preserve">
@@ -67,5 +67,20 @@
   <data name="PresenceOffline" xml:space="preserve">
     <value>离线</value>
     <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>新建会话</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>在线用户的名称</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>没有匹配的在线用户。</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>已连接的服务器上没有其他在线用户。</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>还有 {0} 人。请继续输入名称以缩小范围。</value>
   </data>
 </root>

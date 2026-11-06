@@ -12,6 +12,7 @@
     <Style Selector="ListBox#TabList"><Setter Property="Background" Value="Transparent" /></Style>
     <Style Selector="ListBox#TabList ListBoxItem"><Setter Property="Padding" Value="10 5" /><Setter Property="MinHeight" Value="0" /></Style>
     <Style Selector="ListBox#ConversationList ListBoxItem"><Setter Property="Padding" Value="8 5" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="ListBox#PeopleList ListBoxItem"><Setter Property="Padding" Value="8 5" /><Setter Property="MinHeight" Value="0" /></Style>
     <Style Selector="ListBox.lines ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
     <Style Selector="ListBox.lines ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
     <Style Selector="ListBox.lines ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
@@ -24,12 +25,39 @@
     <!-- ── Every saved conversation ──────────────────────────────────────── -->
     <Grid Grid.Column="0" Width="290" RowDefinitions="Auto,*,Auto" IsVisible="{Binding ShowList}" Background="{DynamicResource SurfacePanelBrush}">
       <StackPanel Grid.Row="0" Margin="8" Spacing="6">
-        <TextBlock Text="{x:Static loc:MessagesText.AllConversations}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-        <TextBox Text="{Binding Search}" Watermark="{x:Static loc:MessagesText.SearchHint}" FontSize="11" />
+        <StackPanel Spacing="6" IsVisible="{Binding ShowSaved}">
+          <Button Content="{x:Static loc:MessagesText.NewConversation}" Command="{Binding NewConversationCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="12" />
+          <TextBlock Text="{x:Static loc:MessagesText.AllConversations}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBox Text="{Binding Search}" Watermark="{x:Static loc:MessagesText.SearchHint}" FontSize="11" />
+        </StackPanel>
+
+        <StackPanel Spacing="6" IsVisible="{Binding IsFinding}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{x:Static loc:MessagesText.NewConversation}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <Button Grid.Column="1" Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelNewConversationCommand}" FontSize="11" />
+          </Grid>
+          <TextBox x:Name="FindBox" Text="{Binding FindWords}" Watermark="{x:Static loc:MessagesText.FindHint}" FontSize="11" />
+          <TextBlock Text="{Binding FindNote}" IsVisible="{Binding HasFindNote}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+        </StackPanel>
       </StackPanel>
 
-      <TextBlock Grid.Row="1" IsVisible="{Binding HasNoConversations}" Text="{x:Static loc:MessagesText.NoConversations}" TextWrapping="Wrap" Margin="12" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
-      <ListBox x:Name="ConversationList" Grid.Row="1" ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <!-- Who is online now, on everything connected. -->
+      <ListBox x:Name="PeopleList" Grid.Row="1" IsVisible="{Binding IsFinding}" ItemsSource="{Binding People}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:MessagesPersonVm">
+            <Grid ColumnDefinitions="14,*" Background="Transparent" Tapped="OnPersonTapped">
+              <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" HorizontalAlignment="Left" />
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Where}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{Binding Where}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding ShowNoSaved}" Text="{x:Static loc:MessagesText.NoConversations}" TextWrapping="Wrap" Margin="12" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+      <ListBox x:Name="ConversationList" Grid.Row="1" IsVisible="{Binding ShowSaved}" ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:MessagesConversationVm">
             <Grid ColumnDefinitions="14,*,Auto">
@@ -75,7 +103,9 @@
       <TextBlock Grid.Row="1" IsVisible="{Binding ShowNothingOpen}" Text="{x:Static loc:MessagesText.NothingOpen}" VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
 
       <!-- One conversation, the same whichever service it is on. -->
-      <Grid Grid.Row="1" IsVisible="{Binding HasTab}" DataContext="{Binding SelectedTab}" x:DataType="vm:MessagesTabVm" RowDefinitions="Auto,Auto,*,Auto">
+      <!-- ⚠️ Shown from outside: on the grid itself, this would be asked of the tab, not of the tool, and always show. -->
+      <Panel Grid.Row="1" IsVisible="{Binding HasTab}">
+      <Grid DataContext="{Binding SelectedTab}" x:DataType="vm:MessagesTabVm" RowDefinitions="Auto,Auto,*,Auto">
         <Border Grid.Row="0" Padding="14 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
           <Grid ColumnDefinitions="*,Auto">
             <StackPanel>
@@ -127,6 +157,7 @@
           </Grid>
         </StackPanel>
       </Grid>
+      </Panel>
     </Grid>
   </Grid>
 </UserControl>

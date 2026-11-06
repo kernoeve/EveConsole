@@ -59,20 +59,6 @@ public sealed class MumbleRowVm : ReactiveObject
 
 public sealed record MumbleKeyChoice(int Key, string Label);
 
-public sealed class MumbleChatVm(MumbleChatLine line)
-{
-    public string Sender { get; } = line.Sender;
-    public string Text   { get; } = line.Text;
-
-    /// <summary>Time alone for today, with the date for anything older.</summary>
-    public string When { get; } = line.When.ToLocalTime().Date == DateTime.Today
-        ? line.When.ToLocalTime().ToString("t", CultureInfo.CurrentCulture)
-        : line.When.ToLocalTime().ToString("g", CultureInfo.CurrentCulture);
-
-    public string Channel => line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel;
-    public bool HasChannel => line.Channel.Length > 0;
-}
-
 /// <summary>Somebody on the always-on-top list.</summary>
 /// <summary>Someone in the talking list: talking now, or recently enough to still be there.</summary>
 public sealed class MumbleOverlayLine(int serverId, uint session, string name, string server, bool isSelf) : ReactiveObject
@@ -106,7 +92,6 @@ public sealed class MumbleViewModel : ReactiveObject
     public const string OverlayYPref = "mumble.overlay.y";
 
     private const int MostDepth = 64;
-    private const int MostChatShown = 1000;
 
     private readonly MumbleService _service;
     private readonly AppPreferencesService _prefs;
@@ -125,8 +110,6 @@ public sealed class MumbleViewModel : ReactiveObject
         ClearWhisperCommand   = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditWhisper = ChoiceFor(0); });
         ClearShoutCommand     = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditShout = ChoiceFor(0); });
 
-        var hasText = this.WhenAnyValue(x => x.Draft, d => !string.IsNullOrWhiteSpace(d));
-
         AddServerCommand      = ReactiveCommand.Create(BeginAdd);
         EditServerCommand     = ReactiveCommand.Create(BeginEdit);
         SaveServerCommand     = ReactiveCommand.CreateFromTask(SaveAsync);
@@ -138,13 +121,12 @@ public sealed class MumbleViewModel : ReactiveObject
         JoinChannelCommand    = ReactiveCommand.CreateFromTask(JoinSelectedAsync);
         ToggleMuteCommand     = ReactiveCommand.CreateFromTask(ToggleMuteAsync);
         ToggleDeafenCommand   = ReactiveCommand.CreateFromTask(ToggleDeafenAsync);
-        SendCommand           = ReactiveCommand.CreateFromTask(SendAsync, hasText);
         ToggleAudioCommand    = ReactiveCommand.Create(() => { IsAudioOpen = !IsAudioOpen; if (IsAudioOpen) LoadDevices(); });
 
         foreach (var c in new IHandleObservableErrors[]
                  {
                      SaveServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, JoinChannelCommand,
-                     ToggleMuteCommand, ToggleDeafenCommand, SendCommand,
+                     ToggleMuteCommand, ToggleDeafenCommand,
                  })
             c.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -164,8 +146,6 @@ public sealed class MumbleViewModel : ReactiveObject
 
         // Someone stops being listed by time passing, and their mute can change while they are quiet.
         _overlayTimer = new Timer(_ => Dispatcher.UIThread.Post(() => { if (Talkers.Count > 0) RefreshOverlay(); }), null, TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1));
-        _service.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnChat(session, line));
-
         QueueRefresh();
     }
 
@@ -307,7 +287,7 @@ public sealed class MumbleViewModel : ReactiveObject
         }
     }
 
-    private static string StateText(MumbleSession session) => session.State switch
+    public static string StateText(MumbleSession session) => session.State switch
     {
         MumbleState.Connected    => session.Client?.Me is { } me && session.Client.ChannelOf(me.ChannelId) is { } c && c.Name.Length > 0
             ? string.Format(CultureInfo.CurrentCulture, MumbleText.StateInChannel, c.Name) : MumbleText.StateConnected,
@@ -337,7 +317,6 @@ public sealed class MumbleViewModel : ReactiveObject
     public bool ShowServer  => SelectedRow is { IsServer: true } && !IsEditing;
     public bool ShowChannel => SelectedRow is { IsChannel: true } && !IsEditing;
     public bool ShowUser    => SelectedRow is { IsUser: true } && !IsEditing;
-    public bool ShowChat    => !IsEditing && SelectedRow is not null && Session?.State == MumbleState.Connected;
 
     private string _title = "", _subtitle = "", _serverState = "", _serverDetail = "", _certificateText = "", _status = "";
     public string Title { get => _title; private set => this.RaiseAndSetIfChanged(ref _title, value); }
@@ -349,7 +328,7 @@ public sealed class MumbleViewModel : ReactiveObject
     public bool HasStatus => StatusText.Length > 0;
 
     private bool _isConnected, _canConnect, _hasCertificateProblem, _isMuted, _isDeafened;
-    public bool IsConnected { get => _isConnected; private set { this.RaiseAndSetIfChanged(ref _isConnected, value); this.RaisePropertyChanged(nameof(ShowChat)); } }
+    public bool IsConnected { get => _isConnected; private set => this.RaiseAndSetIfChanged(ref _isConnected, value); }
     public bool CanConnect { get => _canConnect; private set => this.RaiseAndSetIfChanged(ref _canConnect, value); }
     public bool HasCertificateProblem { get => _hasCertificateProblem; private set => this.RaiseAndSetIfChanged(ref _hasCertificateProblem, value); }
     public bool IsMuted { get => _isMuted; private set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
@@ -363,26 +342,11 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private void ShowChosen()
     {
-        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ChatHint) })
+        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser) })
             this.RaisePropertyChanged(name);
 
         StatusText = "";
         ShowDetail();
-        ReloadChat();
-    }
-
-    private int _chatServer;
-
-    private void ReloadChat()
-    {
-        var server = SelectedRow?.ServerId ?? 0;
-        if (server == _chatServer && Chat.Count > 0) return;
-
-        _chatServer = server;
-        Chat.Clear();
-        if (Session is { } session)
-            foreach (var line in session.Chat) Chat.Add(new MumbleChatVm(line));
-        ScrollChatRequested?.Invoke();
     }
 
     /// <summary>What each key reaches from where this client is now, read from the server's own channel links.</summary>
@@ -420,7 +384,6 @@ public sealed class MumbleViewModel : ReactiveObject
                                 string.Join(' ', session.CertificateFingerprint.Chunk(4).Select(c => new string(c))))
                 : "";
 
-            this.RaisePropertyChanged(nameof(ChatHint));   // it names a channel, and this client may have just moved
             KeysText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeysSummary, KeyName(server.WhisperKey), KeyName(server.ShoutKey));
             ReachText = ReachOf(session);
 
@@ -469,9 +432,7 @@ public sealed class MumbleViewModel : ReactiveObject
     }
     public string UserVolumeText => $"{UserVolume:N0}%";
 
-    // ── Text ──────────────────────────────────────────────────────────────────
-
-    /// <summary>Opens a conversation in the Messages window: server, who it is filed under, and their name.</summary>
+    /// <summary>Opens a conversation in the Messages tool: server, who it is filed under, and their name.</summary>
     public Action<int, string, string>? OpenDirect { get; set; }
 
     /// <summary>Opens the conversation with the person selected. Not for this client itself.</summary>
@@ -479,48 +440,6 @@ public sealed class MumbleViewModel : ReactiveObject
     {
         if (SelectedRow is { IsUser: true, IsMe: false } row && Session is { } session && session.Client?.UserOf(row.Id) is { } person)
             OpenDirect?.Invoke(session.Server.Id, MumbleService.UserKey(person), person.Name);
-    }
-
-    public ObservableCollection<MumbleChatVm> Chat { get; } = [];
-    public event Action? ScrollChatRequested;
-
-    public string ChatHint => string.Format(CultureInfo.CurrentCulture, MumbleText.MessageHint, ChatChannelName);
-
-    /// <summary>The channel selected, or with nothing of the kind selected, the one this client is in.</summary>
-    private uint? ChatChannel => SelectedRow is { IsChannel: true } row ? row.Id : Session?.Client?.Me?.ChannelId;
-
-    private string ChatChannelName => ChatChannel is { } id ? Session?.Client?.ChannelOf(id)?.Name ?? "" : "";
-
-    private bool _includeSubchannels;
-    public bool IncludeSubchannels { get => _includeSubchannels; set => this.RaiseAndSetIfChanged(ref _includeSubchannels, value); }
-
-    private string _draft = "";
-    public string Draft { get => _draft; set => this.RaiseAndSetIfChanged(ref _draft, value); }
-
-    private void OnChat(MumbleSession session, MumbleChatLine line)
-    {
-        if (SelectedRow?.ServerId != session.Server.Id) return;
-        Chat.Add(new MumbleChatVm(line));
-        if (Chat.Count > MostChatShown) Chat.RemoveAt(0);
-        ScrollChatRequested?.Invoke();
-    }
-
-    private async Task SendAsync()
-    {
-        if (Session is not { } session) return;
-        var text = Draft;
-        Draft = "";
-
-        var channel = ChatChannel;
-        var tree = IncludeSubchannels;
-        try
-        {
-            await Task.Run(() => _service.SendTextAsync(session, text, channel, tree));
-
-            // ⚠️ Not left on: the next message should not reach a whole tree of channels because this one did.
-            IncludeSubchannels = false;
-        }
-        catch { Draft = text; throw; }
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────
@@ -536,7 +455,6 @@ public sealed class MumbleViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> JoinChannelCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleMuteCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleDeafenCommand { get; }
-    public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleAudioCommand { get; }
 
     private void Connect() { if (Session is { } session) _service.Connect(session); }
@@ -607,7 +525,7 @@ public sealed class MumbleViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _isEditing, value);
-            foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowChat), nameof(ShowWelcome) })
+            foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowWelcome) })
                 this.RaisePropertyChanged(name);
         }
     }

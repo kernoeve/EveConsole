@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-public enum JabberRowKind { Account, Heading, Contact, Room, Request, Invite }
+public enum JabberRowKind { Account, Heading, Contact, Request }
 
 /// <summary>A server's own line reads heavier than the people and rooms under it.</summary>
 public static class JabberBold
@@ -21,7 +21,7 @@ public static class JabberBold
 }
 
 /// <summary>
-/// A line in the left-hand list: an account, a heading, a person, a room.
+/// A line in the left-hand list: an account, a heading, a person.
 ///
 /// <para>⚠️ Kept and updated in place. Rebuilt on each change, the list control dropped its selection
 /// with every message that arrived, and the pane on the right went stale behind it.</para>
@@ -31,7 +31,7 @@ public sealed class JabberRowVm : ReactiveObject
     public JabberRowKind Kind { get; init; }
     public int    AccountId   { get; init; }
 
-    /// <summary>The address the line is about. For a person or a room, the conversation.</summary>
+    /// <summary>The address the line is about.</summary>
     public string Key         { get; init; } = "";
     public string Text        { get; init; } = "";
     public string Detail      { get; init; } = "";
@@ -43,7 +43,6 @@ public sealed class JabberRowVm : ReactiveObject
 
     public bool IsAccount => Kind == JabberRowKind.Account;
     public bool IsHeading => Kind == JabberRowKind.Heading;
-    public bool IsItem    => Kind is JabberRowKind.Contact or JabberRowKind.Room or JabberRowKind.Request or JabberRowKind.Invite;
 
     public string Identity => $"{Kind}:{AccountId}:{Key}";
 
@@ -94,69 +93,23 @@ public sealed class JabberRowVm : ReactiveObject
     }
 }
 
-public sealed partial class JabberMessageVm(JabberStoredMessage m, string shownSender)
-{
-    /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
-    public IReadOnlyList<string> Links { get; } = [.. UrlPattern().Matches(m.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
-    public bool HasLinks => Links.Count > 0;
-
-    [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
-    private static partial System.Text.RegularExpressions.Regex UrlPattern();
-
-    public long   Id         => m.Id;
-    public string Sender     { get; } = shownSender;
-    public string Body       => m.Body;
-    public bool   IsOutgoing => m.IsOutgoing;
-    public bool   IsAlert    => m.IsAlert;
-
-    public string When { get; } = Local(m.SentAt);
-
-    /// <summary>Time alone for today, with the date for anything older.</summary>
-    private static string Local(string sent)
-    {
-        if (!DateTimeOffset.TryParse(sent, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var when)) return "";
-        var local = when.ToLocalTime();
-        return local.Date == DateTime.Today ? local.ToString("t", CultureInfo.CurrentCulture) : local.ToString("g", CultureInfo.CurrentCulture);
-    }
-}
-
 public sealed record JabberShowChoice(XmppShow Show, string Label);
-public sealed record JabberAlertChoice(int Mode, string Label);
-
-public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
-{
-    public bool DotGreen => Dot == "green";
-    public bool DotAmber => Dot == "amber";
-    public bool DotRed   => Dot == "red";
-}
-
 /// <summary>
-/// The Jabber tool: every account down the left with its people and rooms, the conversation on the right.
-///
-/// <para>⚠️ Reading is what clears an alert. A message in the open conversation only counts as read while
-/// the tool is actually on screen, so a ping arriving behind another tool still waits to be seen.</para>
+/// The Jabber tool: every server down the left with its people, and how each is set up on the right. Conversations
+/// are elsewhere: with one person in Messages, in a room in Group Chat.
 /// </summary>
 public sealed class JabberViewModel : ReactiveObject
 {
-    private const int PageSize = 200;
-
     private readonly JabberService _service;
     private readonly AppPreferencesService _prefs;
-    private readonly AlarmSoundService _sound;
-    private readonly AlarmMuteState _mute;
     private List<JabberUnread> _unread = [];
     private int _refreshQueued;
 
-    public JabberViewModel(JabberService service, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    public JabberViewModel(JabberService service, AppPreferencesService prefs)
     {
         _service = service;
         _prefs   = prefs;
-        _sound   = sound;
-        _mute    = mute;
 
-        var hasText = this.WhenAnyValue(x => x.Draft, d => !string.IsNullOrWhiteSpace(d));
-
-        SendCommand            = ReactiveCommand.CreateFromTask(SendAsync, hasText);
         AddAccountCommand      = ReactiveCommand.Create(BeginAddAccount);
         EditAccountCommand     = ReactiveCommand.Create(BeginEditAccount);
         SaveAccountCommand     = ReactiveCommand.CreateFromTask(SaveAccountAsync);
@@ -165,24 +118,16 @@ public sealed class JabberViewModel : ReactiveObject
         ConnectCommand         = ReactiveCommand.Create(Connect);
         DisconnectCommand      = ReactiveCommand.CreateFromTask(DisconnectAsync);
         TrustCertificateCommand = ReactiveCommand.CreateFromTask(TrustCertificateAsync);
-        BeginJoinCommand       = ReactiveCommand.Create(BeginJoin);
-        BrowseRoomsCommand     = ReactiveCommand.CreateFromTask(BrowseRoomsAsync);
-        JoinRoomCommand        = ReactiveCommand.CreateFromTask(JoinRoomAsync);
-        CancelJoinCommand      = ReactiveCommand.Create(() => { IsJoining = false; });
-        LeaveRoomCommand       = ReactiveCommand.CreateFromTask(LeaveRoomAsync);
         BeginAddContactCommand = ReactiveCommand.Create(() => { ContactAddress = ""; ContactName = ""; IsAddingContact = true; });
         AddContactCommand      = ReactiveCommand.CreateFromTask(AddContactAsync);
         CancelAddContactCommand = ReactiveCommand.Create(() => { IsAddingContact = false; });
         RemoveContactCommand   = ReactiveCommand.CreateFromTask(RemoveContactAsync);
         AcceptRequestCommand   = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(true));
         DenyRequestCommand     = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(false));
-        LoadEarlierCommand     = ReactiveCommand.CreateFromTask(LoadEarlierAsync);
-
         foreach (var command in new IHandleObservableErrors[]
                  {
-                     SendCommand, SaveAccountCommand, DeleteAccountCommand, DisconnectCommand, TrustCertificateCommand,
-                     BrowseRoomsCommand, JoinRoomCommand, LeaveRoomCommand, AddContactCommand, RemoveContactCommand,
-                     AcceptRequestCommand, DenyRequestCommand, LoadEarlierCommand,
+                     SaveAccountCommand, DeleteAccountCommand, DisconnectCommand, TrustCertificateCommand,
+                     AddContactCommand, RemoveContactCommand, AcceptRequestCommand, DenyRequestCommand,
                  })
             command.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -192,29 +137,12 @@ public sealed class JabberViewModel : ReactiveObject
             new(XmppShow.Away, JabberText.ShowAway), new(XmppShow.ExtendedAway, JabberText.ShowExtendedAway),
             new(XmppShow.DoNotDisturb, JabberText.ShowDoNotDisturb),
         ];
-        AlertChoices =
-        [
-            new(JabberRoomAlert.Mentions, JabberText.RoomAlertMentions),
-            new(JabberRoomAlert.All, JabberText.RoomAlertAll),
-            new(JabberRoomAlert.None, JabberText.RoomAlertNone),
-        ];
-
-        SoundOn     = _prefs.Get(SoundPref) != "0";
         HistoryDays = int.TryParse(_prefs.Get(JabberService.HistoryDaysPref), out var days) ? days : JabberService.DefaultHistoryDays;
 
         _service.SessionChanged += _ => QueueRefresh();
         _service.UnreadChanged  += QueueRefresh;
-        _service.MessageStored  += m => Dispatcher.UIThread.Post(() => OnMessage(m));
-        _service.AlertArrived   += OnAlert;
-        _service.ConversationEdited += (account, conversation) => Dispatcher.UIThread.Post(() =>
-        {
-            if (SelectedRow is { } row && row.AccountId == account && row.Key == conversation) _ = OpenSelectedAsync();
-        });
-
         QueueRefresh();
     }
-
-    public const string SoundPref = "jabber.alert_sound";
 
     // ── The list on the left ──────────────────────────────────────────────────
 
@@ -228,7 +156,7 @@ public sealed class JabberViewModel : ReactiveObject
         {
             if (value is { IsHeading: true }) return;   // a heading is not something to open
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
-            _ = OpenSelectedAsync();
+            OpenSelected();
         }
     }
 
@@ -296,37 +224,13 @@ public sealed class JabberViewModel : ReactiveObject
             Kind = JabberRowKind.Account, AccountId = id, Key = session.Account.Address,
             Text = session.Account.Name.Length > 0 ? session.Account.Name : session.Account.Address,
             Detail = StateText(session), Dot = StateDot(session.State),
-            Unread = _unread.Where(u => u.AccountId == id).Sum(u => u.Count),
-            HasAlert = _unread.Any(u => u.AccountId == id && u.Alerts > 0),
         });
-
-        foreach (var invite in session.Invites)
-            rows.Add(new JabberRowVm
-            {
-                Kind = JabberRowKind.Invite, AccountId = id, Key = invite.Room, Text = invite.Room, Dot = "amber",
-                Detail = string.Format(CultureInfo.CurrentCulture, JabberText.RowInvitedBy, invite.From),
-            });
 
         // By the name already saved for them, if any: someone asking is often someone already on the list.
         foreach (var request in session.SubscriptionRequests)
         {
             var saved = session.Contacts.FirstOrDefault(c => c.Jid == request)?.Name;
             rows.Add(new JabberRowVm { Kind = JabberRowKind.Request, AccountId = id, Key = request, Text = saved is { Length: > 0 } ? saved : request, Detail = JabberText.RowWantsToAdd, Dot = "amber" });
-        }
-
-        // Rooms kept, plus any left with old messages.
-        var rooms = session.Rooms;
-        if (rooms.Count > 0) rows.Add(new JabberRowVm { Kind = JabberRowKind.Heading, AccountId = id, Key = "rooms", Text = JabberText.HeadingRooms });
-        foreach (var room in rooms.OrderBy(r => DisplayRoom(r.Room), StringComparer.CurrentCultureIgnoreCase))
-        {
-            var count = Unread(id, room.Room.RoomJid);
-            rows.Add(new JabberRowVm
-            {
-                Kind = JabberRowKind.Room, AccountId = id, Key = room.Room.RoomJid, Text = DisplayRoom(room.Room),
-                Detail = room.Failure is { } failure ? RoomFailureText(failure, room.FailureText) : "",
-                Dot = room.Joined ? "green" : room.Failure is not null ? "red" : "grey",
-                Unread = count.Count, HasAlert = count.Alerts > 0,
-            });
         }
 
         // Contacts. Anyone else who has written is in the Messages window, where every conversation is.
@@ -381,9 +285,9 @@ public sealed class JabberViewModel : ReactiveObject
         return (u.Count, u.Alerts);
     }
 
-    private static string DisplayRoom(JabberRoom room) => room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.RoomJid).Local;
+    public static string DisplayRoom(JabberRoom room) => room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.RoomJid).Local;
 
-    private static string StateDot(JabberState state) => state switch
+    public static string StateDot(JabberState state) => state switch
     {
         JabberState.Connected  => "green",
         JabberState.Failed     => "red",
@@ -391,7 +295,7 @@ public sealed class JabberViewModel : ReactiveObject
         _                      => "amber",
     };
 
-    private static string ShowDot(XmppShow show) => show switch
+    public static string ShowDot(XmppShow show) => show switch
     {
         XmppShow.Online or XmppShow.Chat => "green",
         XmppShow.Away or XmppShow.ExtendedAway => "amber",
@@ -399,7 +303,7 @@ public sealed class JabberViewModel : ReactiveObject
         _ => "grey",
     };
 
-    private static string StateText(JabberSession session) => session.State switch
+    public static string StateText(JabberSession session) => session.State switch
     {
         JabberState.Connected    => JabberText.StateConnected,
         JabberState.Connecting   => JabberText.StateConnecting,
@@ -417,7 +321,7 @@ public sealed class JabberViewModel : ReactiveObject
         _                        => JabberText.StateOffline,
     };
 
-    private static string RoomFailureText(XmppRoomFailure failure, string words)
+    public static string RoomFailureText(XmppRoomFailure failure, string words)
     {
         var text = failure switch
         {
@@ -439,13 +343,11 @@ public sealed class JabberViewModel : ReactiveObject
     public bool ShowWelcome => !HasAccounts && !IsEditingAccount;
 
     public bool ShowAccount      => SelectedRow is { IsAccount: true } && !IsEditingAccount;
-    public bool ShowConversation => SelectedRow is { Kind: JabberRowKind.Room } && !IsEditingAccount;
-    public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request or JabberRowKind.Invite } && !IsEditingAccount;
+    public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request } && !IsEditingAccount;
     public bool ShowNothing      => HasAccounts && SelectedRow is null && !IsEditingAccount;
-    public bool ShowOccupants    => SelectedRow is { Kind: JabberRowKind.Room } && !IsEditingAccount;
     public bool ShowPerson       => SelectedRow is { Kind: JabberRowKind.Contact } && !IsEditingAccount;
 
-    /// <summary>Opens a conversation in the Messages window: account, address and name.</summary>
+    /// <summary>Opens a conversation in the Messages tool: account, address and name.</summary>
     public Action<int, string, string>? OpenDirect { get; set; }
 
     /// <summary>Opens the conversation with the contact selected.</summary>
@@ -456,33 +358,11 @@ public sealed class JabberViewModel : ReactiveObject
 
     private JabberSession? Session => SelectedRow is { } row ? _service.SessionOf(row.AccountId) : null;
 
-    public ObservableCollection<JabberMessageVm> Messages { get; } = [];
-    public ObservableCollection<JabberOccupantVm> Occupants { get; } = [];
-
     private string _title = "";
     public string Title { get => _title; private set => this.RaiseAndSetIfChanged(ref _title, value); }
 
     private string _subtitle = "";
     public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
-
-    private string _draft = "";
-    public string Draft
-    {
-        get => _draft;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _draft, value);
-        }
-    }
-
-    // ── Files ─────────────────────────────────────────────────────────────────
-
-    private bool _canAttach;
-    public bool CanAttach { get => _canAttach; private set => this.RaiseAndSetIfChanged(ref _canAttach, value); }
-
-    private string _sendingFile = "";
-    public string SendingFile { get => _sendingFile; private set { this.RaiseAndSetIfChanged(ref _sendingFile, value); this.RaisePropertyChanged(nameof(IsSendingFile)); } }
-    public bool IsSendingFile => SendingFile.Length > 0;
 
     /// <summary>Plain words for a size: the person is choosing what to do about it.</summary>
     public static string SizeText(long bytes) => bytes >= 1024 * 1024
@@ -502,166 +382,20 @@ public sealed class JabberViewModel : ReactiveObject
         _       => "application/octet-stream",
     };
 
-    /// <summary>Sends a file the person chose to the open conversation.</summary>
-    public async Task SendFileAsync(Stream content, string fileName, long size)
+    private void OpenSelected()
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row || Session is not { } session) return;
-
-        if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)
-        {
-            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.FileTooBig, fileName, SizeText(size), SizeText(service.MaxBytes));
-            return;
-        }
+        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowPerson) })
+            this.RaisePropertyChanged(name);
 
         StatusText = "";
-        SendingFile = string.Format(CultureInfo.CurrentCulture, JabberText.SendingFile, fileName);
-        try
-        {
-            await Task.Run(() => _service.SendFileAsync(session, row.Key, row.Kind == JabberRowKind.Room, content, fileName, size, ContentTypeOf(fileName)));
-        }
-        catch (Exception e) when (e is XmppException or HttpRequestException or IOException or TaskCanceledException)
-        {
-            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.SendFileFailed, fileName, e.Message);
-        }
-        finally { SendingFile = ""; }
+        RefreshDetail();
     }
 
     private string _status = "";
     public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
     public bool HasStatus => StatusText.Length > 0;
 
-    private bool _hasEarlier;
-    public bool HasEarlier { get => _hasEarlier; private set => this.RaiseAndSetIfChanged(ref _hasEarlier, value); }
-
-    /// <summary>Asks the view to bring the newest message into sight.</summary>
-    public event Action? ScrollToEndRequested;
-
-    /// <summary>Whether someone can actually see this tool. Set by the view.</summary>
-    public bool IsOnScreen { get; set; }
-
-    /// <summary>Whether the app's window has the person's attention. Set by the view.</summary>
-    public bool IsWindowActive { get; set; } = true;
-
-    private async Task OpenSelectedAsync()
-    {
-        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowOccupants), nameof(ShowPerson) })
-            this.RaisePropertyChanged(name);
-
-        Messages.Clear();
-        Occupants.Clear();
-        HasEarlier = false;
-        StatusText = "";
-        RefreshDetail();
-
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row) return;
-
-        var page = await Task.Run(() => _service.LoadConversationAsync(row.AccountId, row.Key, limit: PageSize));
-        if (!ReferenceEquals(SelectedRow, row)) return;
-
-        foreach (var m in page) Messages.Add(ToVm(m, row));
-        HasEarlier = page.Count == PageSize;
-        ScrollToEndRequested?.Invoke();
-
-        await MarkOpenConversationReadAsync();
-    }
-
-    /// <summary>Clears what is open, if it is really being looked at. Called when the view comes back too.</summary>
-    public async Task MarkOpenConversationReadAsync()
-    {
-        if (!IsOnScreen || !IsWindowActive) return;
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row) return;
-        await Task.Run(() => _service.MarkReadAsync(row.AccountId, row.Key));
-    }
-
-    private JabberMessageVm ToVm(JabberStoredMessage m, JabberRowVm row)
-    {
-        var sender = m.Sender;
-        if (m.IsOutgoing && !m.IsRoom) sender = JabberText.SenderYou;
-        else if (!m.IsRoom && m.Sender == row.Key) sender = row.ShownText;
-        return new JabberMessageVm(m, sender);
-    }
-
-    /// <summary>A busy room left open for days should not grow without end. The rest are a click away.</summary>
-    private const int MostShown = 2000;
-
-    private void OnMessage(JabberStoredMessage message)
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row
-            || row.AccountId != message.AccountId || row.Key != message.Conversation) return;
-
-        Messages.Add(ToVm(message, row));
-        if (Messages.Count > MostShown)
-        {
-            Messages.RemoveAt(0);
-            HasEarlier = true;
-        }
-        ScrollToEndRequested?.Invoke();
-        _ = MarkOpenConversationReadAsync();
-    }
-
-    private async Task LoadEarlierAsync()
-    {
-        if (SelectedRow is not { } row || Messages.Count == 0) return;
-
-        var page = await Task.Run(() => _service.LoadConversationAsync(row.AccountId, row.Key, Messages[0].Id, PageSize));
-        for (var i = page.Count - 1; i >= 0; i--) Messages.Insert(0, ToVm(page[i], row));
-        HasEarlier = page.Count == PageSize;
-    }
-
-    private async Task SendAsync()
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row || Session is not { } session) return;
-
-        if (session.State != JabberState.Connected) { StatusText = JabberText.NotConnected; return; }
-
-        var text = Draft;
-
-        Draft = "";
-        try { await Task.Run(() => _service.SendAsync(session, row.Key, row.Kind == JabberRowKind.Room, text)); }
-        catch { Draft = text; throw; }   // nothing typed is lost to a dropped connection
-    }
-
-    /// <summary>Opens the first thing waiting to be read, for the alert: the most urgent first.</summary>
-    public async Task ShowUnreadAsync()
-    {
-        await RefreshAsync();
-
-        var next = Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Room, ShownAlert: true })
-                ?? Rows.FirstOrDefault(r => r is { Kind: JabberRowKind.Room, HasUnread: true });
-
-        if (next is not null) SelectedRow = next;
-    }
-
-    private void OnAlert(JabberStoredMessage message)
-    {
-        // A direct message is the Messages window's to sound.
-        if (!message.IsRoom || !SoundOn || _mute.Muted) return;
-
-        // No sound for what is already on screen and being read.
-        var open = SelectedRow;
-        if (IsOnScreen && IsWindowActive && open is not null && open.AccountId == message.AccountId && open.Key == message.Conversation) return;
-
-        _ = PlaySoundAsync();
-    }
-
-    private async Task PlaySoundAsync()
-    {
-        try { await _sound.PlayAsync(AlarmSoundService.DefaultKey); }
-        catch (Exception e) when (e is IOException or InvalidOperationException) { StatusText = e.Message; }
-    }
-
     // ── Settings for the whole tool ───────────────────────────────────────────
-
-    private bool _soundOn;
-    public bool SoundOn
-    {
-        get => _soundOn;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _soundOn, value);
-            _ = _prefs.SetAsync(SoundPref, value ? "1" : "0");
-        }
-    }
 
     private int _historyDays;
     public int HistoryDays
@@ -678,7 +412,6 @@ public sealed class JabberViewModel : ReactiveObject
     // ── Details of what is selected ───────────────────────────────────────────
 
     public IReadOnlyList<JabberShowChoice> ShowChoices { get; }
-    public IReadOnlyList<JabberAlertChoice> AlertChoices { get; }
 
     private JabberShowChoice? _chosenShow;
     public JabberShowChoice? ChosenShow
@@ -707,18 +440,6 @@ public sealed class JabberViewModel : ReactiveObject
     {
         get => _statusMessage;
         set => this.RaiseAndSetIfChanged(ref _statusMessage, value);
-    }
-
-    private JabberAlertChoice? _chosenAlert;
-    public JabberAlertChoice? ChosenAlert
-    {
-        get => _chosenAlert;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _chosenAlert, value);
-            if (value is not null && !_loadingDetail && SelectedRow is { Kind: JabberRowKind.Room } row && Session is { } session)
-                _ = _service.SetRoomAlertAsync(session, row.Key, value.Mode);
-        }
     }
 
     private bool _loadingDetail;
@@ -758,10 +479,8 @@ public sealed class JabberViewModel : ReactiveObject
         _loadingDetail = true;
         try
         {
-            CanAttach = row.Kind is JabberRowKind.Contact or JabberRowKind.Room
-                        && session.UploadService is not null && session.State == JabberState.Connected;
             Title    = row.ShownText;
-            Subtitle = row.Kind == JabberRowKind.Account ? session.Account.Address : row.ShownDetail.Length > 0 && row.Kind == JabberRowKind.Invite ? row.ShownDetail : row.Key;
+            Subtitle = row.Kind == JabberRowKind.Account ? session.Account.Address : row.Key;
 
             AccountState  = StateText(session);
             AccountDetail = session.State == JabberState.Reconnecting || session is { State: JabberState.Failed, Problem: JabberProblem.Other } ? session.Detail : "";
@@ -790,25 +509,9 @@ public sealed class JabberViewModel : ReactiveObject
                     var (keeping, joined) = session.Locked(s => (s.RoomMap.Values.Count(r => r.Joined && r.HasArchive == true && !r.ArchiveRefused), s.RoomMap.Values.Count(r => r.Joined)));
                     ArchiveText = AccountArchiveLine(session.HasArchive, keeping, joined);
                 }
-                else if (row.Kind == JabberRowKind.Room && session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)) is { } here)
-                    ArchiveText = RoomArchiveLine(here.HasArchive, here.ArchiveRefused);
             }
 
-            if (row.Kind == JabberRowKind.Room)
-            {
-                var state = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key));
-                if (state is not null)
-                {
-                    Subtitle = state.Subject.Length > 0 ? state.Subject : row.Key;
-                    ChosenAlert = AlertChoices.FirstOrDefault(c => c.Mode == state.Room.AlertMode);
-
-                    var people = session.Locked(_ => state.Occupants.Values.ToList());
-                    Occupants.Clear();
-                    foreach (var o in people.OrderBy(o => RoleRank(o.Role)).ThenBy(o => o.Nick, StringComparer.CurrentCultureIgnoreCase))
-                        Occupants.Add(new JabberOccupantVm(o.Nick, ShowDot(o.Show), o.Role));
-                }
-            }
-            else if (row.Kind == JabberRowKind.Contact)
+            if (row.Kind == JabberRowKind.Contact)
             {
                 var contact = session.Locked(s => s.ContactMap.GetValueOrDefault(row.Key));
                 Subtitle = contact is { Status.Length: > 0 } ? $"{row.Key} · {contact.Status}" : row.Key;
@@ -817,15 +520,12 @@ public sealed class JabberViewModel : ReactiveObject
         finally { _loadingDetail = false; }
     }
 
-    private static int RoleRank(string role) => role switch { "moderator" => 0, "participant" => 1, _ => 2 };
-
     /// <summary>Hex in fours, as a person compares a fingerprint against what the server's admin published.</summary>
     private static string Grouped(string fingerprint) =>
         string.Join(' ', fingerprint.Chunk(4).Select(c => new string(c)));
 
     // ── Commands ──────────────────────────────────────────────────────────────
 
-    public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> AddAccountCommand { get; }
     public ReactiveCommand<Unit, Unit> EditAccountCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveAccountCommand { get; }
@@ -834,18 +534,12 @@ public sealed class JabberViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
     public ReactiveCommand<Unit, Unit> TrustCertificateCommand { get; }
-    public ReactiveCommand<Unit, Unit> BeginJoinCommand { get; }
-    public ReactiveCommand<Unit, Unit> BrowseRoomsCommand { get; }
-    public ReactiveCommand<Unit, Unit> JoinRoomCommand { get; }
-    public ReactiveCommand<Unit, Unit> CancelJoinCommand { get; }
-    public ReactiveCommand<Unit, Unit> LeaveRoomCommand { get; }
     public ReactiveCommand<Unit, Unit> BeginAddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> AddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelAddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> RemoveContactCommand { get; }
     public ReactiveCommand<Unit, Unit> AcceptRequestCommand { get; }
     public ReactiveCommand<Unit, Unit> DenyRequestCommand { get; }
-    public ReactiveCommand<Unit, Unit> LoadEarlierCommand { get; }
 
     private void Connect() { if (Session is { } session) _service.Connect(session); }
 
@@ -865,7 +559,7 @@ public sealed class JabberViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _isEditingAccount, value);
-            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowConversation), nameof(ShowPerson), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome), nameof(ShowOccupants) })
+            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowPerson), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome) })
                 this.RaisePropertyChanged(name);
         }
     }
@@ -928,6 +622,7 @@ public sealed class JabberViewModel : ReactiveObject
             DirectTls = EditDirectTls, Resource = EditResource.Trim(), Nickname = EditNickname.Trim(),
             AutoConnect = EditAutoConnect, AlertWords = EditAlertWords.Trim(),
             TrustedCertificate = old is not null && old.Address == address.Bare && old.Host == EditHost.Trim() ? old.TrustedCertificate : "",
+            SavedShow = old?.SavedShow ?? (int)XmppShow.Online, SavedStatus = old?.SavedStatus ?? "",
         };
 
         var session = await _service.SaveAccountAsync(account, EditPassword.Length > 0 ? EditPassword : null);
@@ -952,74 +647,6 @@ public sealed class JabberViewModel : ReactiveObject
         IsEditingAccount = false;
         SelectedRow = null;
         await _service.DeleteAccountAsync(session.Account.Id);
-        await RefreshAsync();
-    }
-
-    // ── Joining a room ────────────────────────────────────────────────────────
-
-    private bool _isJoining;
-    public bool IsJoining { get => _isJoining; set => this.RaiseAndSetIfChanged(ref _isJoining, value); }
-
-    private string _joinRoom = "", _joinNick = "", _joinPassword = "";
-    public string JoinRoom { get => _joinRoom; set => this.RaiseAndSetIfChanged(ref _joinRoom, value); }
-    public string JoinNick { get => _joinNick; set => this.RaiseAndSetIfChanged(ref _joinNick, value); }
-    public string JoinPassword { get => _joinPassword; set => this.RaiseAndSetIfChanged(ref _joinPassword, value); }
-
-    public ObservableCollection<XmppRoomInfo> BrowsedRooms { get; } = [];
-
-    private XmppRoomInfo? _browsedRoom;
-    public XmppRoomInfo? BrowsedRoom
-    {
-        get => _browsedRoom;
-        set
-        {
-            this.RaiseAndSetIfChanged(ref _browsedRoom, value);
-            if (value is not null) JoinRoom = value.Jid;
-        }
-    }
-
-    private void BeginJoin()
-    {
-        JoinRoom = JoinNick = JoinPassword = "";
-        BrowsedRooms.Clear();
-        IsJoining = true;
-    }
-
-    private async Task BrowseRoomsAsync()
-    {
-        if (Session is not { } session) return;
-
-        BrowsedRooms.Clear();
-        foreach (var service in session.ConferenceServices)
-            foreach (var room in (await Task.Run(() => _service.BrowseRoomsAsync(session, service))).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase))
-                BrowsedRooms.Add(room);
-
-        StatusText = BrowsedRooms.Count == 0 ? JabberText.NoRoomsListed : "";
-    }
-
-    private async Task JoinRoomAsync()
-    {
-        if (Session is not { } session) return;
-
-        // A bare name joins on the server's own conference service, as nobody should have to know its name.
-        var room = JoinRoom.Trim();
-        if (room.Length == 0) return;
-        if (!room.Contains('@') && session.ConferenceServices.Count > 0) room = $"{room}@{session.ConferenceServices[0]}";
-
-        var name = BrowsedRooms.FirstOrDefault(r => r.Jid == room)?.Name ?? "";
-        await Task.Run(() => _service.JoinRoomAsync(session, room, name, JoinNick.Trim(), JoinPassword));
-
-        IsJoining = false;
-        JoinPassword = "";
-        await RefreshAsync();
-        SelectedRow = Rows.FirstOrDefault(r => r.Kind == JabberRowKind.Room && r.AccountId == session.Account.Id && r.Key == XmppAddress.Parse(room).Bare);
-    }
-
-    private async Task LeaveRoomAsync()
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Room } row || Session is not { } session) return;
-        await _service.LeaveRoomAsync(session, row.Key);
-        SelectedRow = null;
         await RefreshAsync();
     }
 
@@ -1051,11 +678,9 @@ public sealed class JabberViewModel : ReactiveObject
 
     private async Task AnswerRequestAsync(bool accept)
     {
-        if (SelectedRow is not { Kind: JabberRowKind.Request or JabberRowKind.Invite } row || Session is not { } session) return;
+        if (SelectedRow is not { Kind: JabberRowKind.Request } row || Session is not { } session) return;
 
-        await Task.Run(() => row.Kind == JabberRowKind.Invite
-            ? _service.AnswerInviteAsync(session, row.Key, accept)
-            : _service.AnswerRequestAsync(session, row.Key, accept));
+        await Task.Run(() => _service.AnswerRequestAsync(session, row.Key, accept));
 
         SelectedRow = null;
     }

@@ -4,7 +4,7 @@ using EveConsole.Services.Mumble;
 
 namespace EveConsole.Services.Messages;
 
-/// <summary>Mumble's private messages for the Messages window. Channel chat stays in the Mumble tool.</summary>
+/// <summary>Mumble's private messages for the Messages window. Channel chat is Group Chat's.</summary>
 public sealed class MumbleDmSource : IDmSource
 {
     public const string Name = "mumble";
@@ -58,6 +58,14 @@ public sealed class MumbleDmSource : IDmSource
                        : "",
         };
     }
+
+    public IReadOnlyList<DmPerson> OnlinePeople() =>
+        [.. _service.Sessions
+            .Where(s => s is { State: MumbleState.Connected, Client: not null })
+            .SelectMany(s => s.Client!.Users
+                .Where(u => u.Session != s.Client.Session)
+                .Select(u => new DmPerson(new DmKey(Name, s.Server.Id, MumbleService.UserKey(u)), u.Name,
+                                          s.Server.Name.Length > 0 ? s.Server.Name : s.Server.Host, ShellText.NavMumble)))];
 
     public async Task<IReadOnlyList<DmLine>> LoadAsync(DmKey key, long beforeId, int limit, CancellationToken ct = default) =>
         [.. (await _service.LoadDirectAsync(key.ServerId, key.Peer, beforeId, limit, ct)).Select(ToLine)];

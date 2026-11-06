@@ -39,6 +39,10 @@ public class JabberAccount
 
     /// <summary>Words that make a room message call for attention, separated by commas. The nickname always does.</summary>
     public string AlertWords { get; set; } = "";
+
+    /// <summary>The status chosen, as an XmppShow, and its words. Kept so a restart comes back the way it was left.</summary>
+    public int    SavedShow   { get; set; } = 1;
+    public string SavedStatus { get; set; } = "";
 }
 
 /// <summary>A room an account keeps. One saved on the server as a bookmark is added here when it is seen.</summary>
@@ -108,4 +112,7 @@ public class JabberStoredMessage
 
     /// <summary>The id it was sent with, which is what a correction names.</summary>
     public string MessageId    { get; set; } = "";
+
+    /// <summary>A room message with the person's name in it, whatever the room is set to alert on.</summary>
+    public bool   IsMention    { get; set; }
 }

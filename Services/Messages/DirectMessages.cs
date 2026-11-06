@@ -46,6 +46,15 @@ public sealed record DmSummary(DmKey Key, string Name, string Server, string Ser
 
 public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing);
 
+/// <summary>Someone who can be written to right now, to start a conversation with.</summary>
+public sealed record DmPerson(DmKey Key, string Name, string Server, string Service)
+{
+    public DmPresence Presence { get; init; } = DmPresence.Online;
+
+    /// <summary>Other names they go by, which find them too: a saved contact may be known by another name in a room.</summary>
+    public string OtherNames { get; init; } = "";
+}
+
 /// <summary>
 /// A service people can be messaged on. ⚠️ Everything the Messages window knows goes through this, so a new service
 /// needs only one of these and nothing on the screen changes.
@@ -71,6 +80,9 @@ public interface IDmSource
 
     /// <summary>How someone stands now, for a conversation that may have nothing saved yet.</summary>
     DmSummary Describe(DmKey key, string name);
+
+    /// <summary>Everyone online on every server connected right now. Each once, and never this person themselves.</summary>
+    IReadOnlyList<DmPerson> OnlinePeople();
 
     Task<IReadOnlyList<DmLine>> LoadAsync(DmKey key, long beforeId, int limit, CancellationToken ct = default);
     Task MarkReadAsync(DmKey key, CancellationToken ct = default);
@@ -106,6 +118,21 @@ public sealed class DirectMessagesService
     }
 
     public IDmSource? SourceOf(DmKey key) => _sources.GetValueOrDefault(key.Source);
+
+    /// <summary>Everyone online on anything connected whose name or server has these words in it, by name.</summary>
+    public IReadOnlyList<DmPerson> FindOnline(string words)
+    {
+        words = words.Trim();
+        return [.. _sources.Values.SelectMany(s => s.OnlinePeople())
+            .Where(p => words.Length == 0
+                     || p.Name.Contains(words, StringComparison.CurrentCultureIgnoreCase)
+                     || p.Server.Contains(words, StringComparison.CurrentCultureIgnoreCase)
+                     || p.OtherNames.Contains(words, StringComparison.CurrentCultureIgnoreCase)
+                     || p.Key.Peer.Contains(words, StringComparison.CurrentCultureIgnoreCase))
+            .OrderBy(p => !p.Name.StartsWith(words, StringComparison.CurrentCultureIgnoreCase))
+            .ThenBy(p => p.Name, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(p => p.Server, StringComparer.CurrentCultureIgnoreCase)];
+    }
 
     /// <summary>Everything saved, newest first.</summary>
     public async Task<IReadOnlyList<DmSummary>> ConversationsAsync(CancellationToken ct = default)

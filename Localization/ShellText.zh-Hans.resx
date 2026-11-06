@@ -697,4 +697,7 @@ PID：{2}
     <value>消息</value>
     <comment>Main menu.</comment>
   </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>群聊</value>
+  </data>
 </root>

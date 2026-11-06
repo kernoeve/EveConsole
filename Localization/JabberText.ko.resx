@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -51,9 +51,6 @@
   </data>
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0}님이 초대했습니다</value>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>대화방</value>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>사람</value>
@@ -134,7 +131,7 @@
     <value>서버 추가</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>왼쪽에서 서버, 대화방 또는 사람을 선택하세요.</value>
+    <value>왼쪽에서 서버나 사람을 선택하세요.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>연결</value>
@@ -156,12 +153,6 @@
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>이 인증서 신뢰</value>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>대화방 참가</value>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>대화방 찾아보기</value>
   </data>
   <data name="Join" xml:space="preserve">
     <value>참가</value>
@@ -228,9 +219,6 @@
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>알림 키워드 (쉼표로 구분)</value>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>대화방</value>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
     <value>알림</value>

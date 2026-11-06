@@ -25,6 +25,7 @@ public partial class MessagesView : UserControl
         InitializeComponent();
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        FindBox.AddHandler(KeyDownEvent, OnFindKey, RoutingStrategies.Tunnel);
 
         DataContextChanged += (_, _) => Adopt(DataContext as MessagesViewModel);
     }
@@ -44,6 +45,10 @@ public partial class MessagesView : UserControl
     private void OnVmChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(MessagesViewModel.SelectedTab)) Watch(_vm?.SelectedTab);
+
+        // The point of pressing the button is to type a name.
+        if (e.PropertyName == nameof(MessagesViewModel.IsFinding) && _vm is { IsFinding: true })
+            Dispatcher.UIThread.Post(() => FindBox.Focus(), DispatcherPriority.Background);
     }
 
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
@@ -111,6 +116,19 @@ public partial class MessagesView : UserControl
         e.Handled = true;
         if (_watching is { CanSend: true } tab && !string.IsNullOrWhiteSpace(tab.Draft))
             tab.SendCommand.Execute().Subscribe(_ => { }, _ => { });
+    }
+
+    private void OnFindKey(object? sender, KeyEventArgs e)
+    {
+        if (_vm is not { } vm) return;
+
+        if (e.Key == Key.Enter) { e.Handled = true; _ = vm.StartWithFirstFoundAsync(); }
+        else if (e.Key == Key.Escape) { e.Handled = true; vm.IsFinding = false; }
+    }
+
+    private void OnPersonTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { DataContext: MessagesPersonVm person } && _vm is { } vm) _ = vm.StartConversationAsync(person);
     }
 
     private void OnCloseTab(object? sender, RoutedEventArgs e)

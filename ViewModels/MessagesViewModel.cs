@@ -10,6 +10,16 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
+/// <summary>Someone found online, to start a conversation with.</summary>
+public sealed class MessagesPersonVm(DmPerson person)
+{
+    public DmPerson Person => person;
+    public string Name => person.Name;
+    public string Where => $"{person.Service} · {person.Server}";
+    public bool DotGreen => person.Presence == DmPresence.Online;
+    public bool DotAmber => person.Presence == DmPresence.Away;
+}
+
 /// <summary>A line in the list of every saved conversation.</summary>
 public sealed class MessagesConversationVm(DmSummary summary)
 {
@@ -317,6 +327,8 @@ public sealed class MessagesViewModel : ReactiveObject
         _showList = _prefs.GetBool(ShowListPref, true);
 
         ToggleListCommand = ReactiveCommand.Create(() => { ShowList = !ShowList; });
+        NewConversationCommand = ReactiveCommand.Create(BeginNewConversation);
+        CancelNewConversationCommand = ReactiveCommand.Create(() => { IsFinding = false; });
 
         _service.Changed += QueueRefresh;
         _service.UnreadChanged += QueueRefresh;
@@ -328,6 +340,87 @@ public sealed class MessagesViewModel : ReactiveObject
     }
 
     public ReactiveCommand<Unit, Unit> ToggleListCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewConversationCommand { get; }
+    public ReactiveCommand<Unit, Unit> CancelNewConversationCommand { get; }
+
+    // ── Starting a conversation ───────────────────────────────────────────────
+
+    /// <summary>A very busy server could list thousands, and nobody reads past this before typing more.</summary>
+    private const int MostPeopleListed = 100;
+
+    public ObservableCollection<MessagesPersonVm> People { get; } = [];
+
+    private bool _isFinding;
+
+    /// <summary>The search for someone online is showing, in place of the saved list.</summary>
+    public bool IsFinding
+    {
+        get => _isFinding;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _isFinding, value);
+            this.RaisePropertyChanged(nameof(ShowSaved));
+            this.RaisePropertyChanged(nameof(ShowNoSaved));
+            if (!value) FindWords = "";
+        }
+    }
+
+    public bool ShowSaved => !IsFinding;
+    public bool ShowNoSaved => !IsFinding && HasNoConversations;
+
+    private string _findWords = "";
+    public string FindWords
+    {
+        get => _findWords;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _findWords, value);
+            FillPeople();
+        }
+    }
+
+    private string _findNote = "";
+
+    /// <summary>Why the list is empty, or that it is not everyone.</summary>
+    public string FindNote { get => _findNote; private set { this.RaiseAndSetIfChanged(ref _findNote, value); this.RaisePropertyChanged(nameof(HasFindNote)); } }
+    public bool HasFindNote => FindNote.Length > 0;
+
+    private void BeginNewConversation()
+    {
+        ShowList = true;
+        FindWords = "";
+        IsFinding = true;
+        FillPeople();
+    }
+
+    private void FillPeople()
+    {
+        if (!IsFinding) return;
+
+        var found = _service.FindOnline(FindWords);
+        var shown = found.Take(MostPeopleListed).ToList();
+
+        // Replaced only when someone came or went: a list that rebuilds under the pointer loses the click.
+        if (!People.Select(p => p.Person).SequenceEqual(shown))
+        {
+            People.Clear();
+            foreach (var person in shown) People.Add(new MessagesPersonVm(person));
+        }
+
+        FindNote = found.Count == 0 ? (FindWords.Trim().Length > 0 ? MessagesText.FindNobodyMatches : MessagesText.FindNobodyOnline)
+                 : found.Count > shown.Count ? string.Format(CultureInfo.CurrentCulture, MessagesText.FindMore, found.Count - shown.Count)
+                 : "";
+    }
+
+    /// <summary>Opens the conversation with someone found: the one already there, or a new one for a first message.</summary>
+    public Task StartConversationAsync(MessagesPersonVm person)
+    {
+        IsFinding = false;
+        return OpenTabAsync(person.Person.Key, person.Name);
+    }
+
+    /// <summary>Enter in the search box: whoever is at the top of the list, as they are the best match.</summary>
+    public Task StartWithFirstFoundAsync() => People.Count > 0 ? StartConversationAsync(People[0]) : Task.CompletedTask;
 
     public ObservableCollection<MessagesTabVm> Tabs { get; } = [];
     public ObservableCollection<MessagesConversationVm> Conversations { get; } = [];
@@ -594,6 +687,7 @@ public sealed class MessagesViewModel : ReactiveObject
                 _all = [.. await Task.Run(() => _service.ConversationsAsync())];
                 TotalUnread = _all.Sum(c => c.Unread);
                 FillList();
+                FillPeople();
 
                 foreach (var tab in Tabs)
                 {
@@ -633,5 +727,6 @@ public sealed class MessagesViewModel : ReactiveObject
 
         _hasConversations = _all.Count > 0;
         this.RaisePropertyChanged(nameof(HasNoConversations));
+        this.RaisePropertyChanged(nameof(ShowNoSaved));
     }
 }

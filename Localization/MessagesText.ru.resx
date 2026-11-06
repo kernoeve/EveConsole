@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -21,7 +21,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
-    <value>Выберите беседу или выберите человека в инструменте Jabber или Mumble, чтобы начать.</value>
+    <value>Выберите разговор или нажмите «Новый разговор», чтобы написать тому, кто в сети.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="ToggleList" xml:space="preserve">
@@ -67,5 +67,20 @@
   <data name="PresenceOffline" xml:space="preserve">
     <value>Не в сети</value>
     <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Новый разговор</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Имя того, кто в сети</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Среди тех, кто в сети, таких нет.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>На подключённых серверах больше никого нет в сети.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>Ещё {0}. Введите имя полнее, чтобы сузить список.</value>
   </data>
 </root>

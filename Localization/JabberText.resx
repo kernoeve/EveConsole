@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <root>
   <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
   <resheader name="version"><value>2.0</value></resheader>
@@ -67,10 +67,6 @@
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} invited you</value>
     <comment>Beside a room invitation. {0} = who.</comment>
-  </data>
-  <data name="HeadingRooms" xml:space="preserve">
-    <value>Rooms</value>
-    <comment>Section in the list.</comment>
   </data>
   <data name="HeadingPeople" xml:space="preserve">
     <value>People</value>
@@ -176,7 +172,7 @@ Trust it only if this matches what the server's admin published. From then on, o
     <comment>Button.</comment>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Pick a server, room or person on the left.</value>
+    <value>Pick a server or person on the left.</value>
     <comment>Nothing selected.</comment>
   </data>
   <data name="Connect" xml:space="preserve">
@@ -205,14 +201,6 @@ Trust it only if this matches what the server's admin published. From then on, o
   </data>
   <data name="TrustCertificate" xml:space="preserve">
     <value>Trust This Certificate</value>
-    <comment>Button.</comment>
-  </data>
-  <data name="JoinRoom" xml:space="preserve">
-    <value>Join Room</value>
-    <comment>Button.</comment>
-  </data>
-  <data name="BrowseRooms" xml:space="preserve">
-    <value>Browse Rooms</value>
     <comment>Button.</comment>
   </data>
   <data name="Join" xml:space="preserve">
@@ -301,10 +289,6 @@ Trust it only if this matches what the server's admin published. From then on, o
   </data>
   <data name="LabelAlertWords" xml:space="preserve">
     <value>Alert keywords, separated by commas</value>
-    <comment>Field.</comment>
-  </data>
-  <data name="LabelRoom" xml:space="preserve">
-    <value>Room</value>
     <comment>Field.</comment>
   </data>
   <data name="LabelRoomAlert" xml:space="preserve">
