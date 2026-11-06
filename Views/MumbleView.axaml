@@ -42,7 +42,16 @@
                 <TextBlock Grid.Column="2" Text="{Binding Flags}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
               </Grid>
               <!-- A channel -->
-              <TextBlock IsVisible="{Binding IsChannel}" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+              <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*">
+                <Button IsVisible="{Binding HasChildren}" Click="OnToggleChannel" Focusable="False" Background="Transparent" BorderThickness="0" Padding="0" MinWidth="0" MinHeight="0"
+                        Width="14" Height="14" VerticalAlignment="Center" HorizontalContentAlignment="Center" VerticalContentAlignment="Center">
+                  <Panel>
+                    <Path IsVisible="{Binding !IsOpen}" Data="M1 0 L6 4.5 L1 9 Z" Fill="{DynamicResource TextMutedBrush}" />
+                    <Path IsVisible="{Binding IsOpen}" Data="M0 1 L9 1 L4.5 6 Z" Fill="{DynamicResource TextMutedBrush}" />
+                  </Panel>
+                </Button>
+                <TextBlock Grid.Column="1" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+              </Grid>
               <!-- A person -->
               <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto">
                 <Ellipse Classes="user" Classes.talking="{Binding Talking}" HorizontalAlignment="Left" />

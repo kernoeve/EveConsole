@@ -85,8 +85,17 @@ public partial class MumbleView : UserControl
     {
         if (DataContext is not MumbleViewModel vm) return;
 
+        // ⚠️ Not from the arrow: clicking it twice quickly is opening and closing, not joining whatever is selected.
+        if (e.Source is Avalonia.Visual from && Avalonia.VisualTree.VisualExtensions.FindAncestorOfType<Button>(from, true) is not null) return;
+
         if (vm.SelectedRow is { IsChannel: true }) await vm.JoinSelectedAsync();
         else vm.MessageSelectedPerson();
+    }
+
+    private void OnToggleChannel(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Button { DataContext: MumbleRowVm row }) (DataContext as MumbleViewModel)?.ToggleChannel(row);
+        e.Handled = true;
     }
 
     private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as MumbleViewModel)?.MessageSelectedPerson();

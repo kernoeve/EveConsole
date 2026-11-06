@@ -7,6 +7,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Mumble;
+using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 var checks = 0;
@@ -29,6 +30,74 @@ static string RawFile(string path)
 }
 
 // ── Mumble's own number format, from its protocol document ───────────────────
+
+// ── Which channels are open in the list ─────────────────────────────────────────────────
+{
+    // Root: Fleets (Alpha (Main, Dps), Bravo), Social (Lounge)
+    (uint Id, uint? Parent)[] tree = [(0, null), (1, 0), (2, 1), (3, 2), (4, 2), (5, 1), (6, 0), (7, 6)];
+    const uint Root = 0, Fleets = 1, Alpha = 2, Main = 3, Dps = 4, Bravo = 5, Social = 6, Lounge = 7;
+
+    var t = new MumbleChannelTree();
+    t.Update(tree, [], null);
+    Check("channels: nobody there, all closed", !t.IsOpen(Root) && !t.IsOpen(Fleets) && !t.IsOpen(Main));
+
+    t.Update(tree, [Main], null);
+    Check("channels: someone arrives, the way to them opens", t.IsOpen(Root) && t.IsOpen(Fleets) && t.IsOpen(Alpha) && t.IsOpen(Main));
+    Check("channels: and nothing else", !t.IsOpen(Dps) && !t.IsOpen(Bravo) && !t.IsOpen(Social) && !t.IsOpen(Lounge));
+
+    t.Update(tree, [Main, Lounge], null);
+    t.Update(tree, [Lounge], null);
+    Check("channels: they leave, what only they kept open closes", !t.IsOpen(Fleets) && !t.IsOpen(Alpha) && !t.IsOpen(Main));
+    Check("channels: what others keep open stays", t.IsOpen(Root) && t.IsOpen(Social));
+
+    t.Toggle(Fleets);
+    Check("channels: an empty one opens by hand", t.IsOpen(Fleets));
+    t.Update(tree, [Lounge], null);
+    Check("channels: and stays open while nothing changes", t.IsOpen(Fleets));
+    t.Toggle(Fleets);
+    Check("channels: and closes by hand", !t.IsOpen(Fleets));
+
+    t.Toggle(Social);
+    Check("channels: one with people closes by hand", !t.IsOpen(Social));
+    t.Update(tree, [Lounge, Lounge], null);
+    Check("channels: another arriving does not reopen it", !t.IsOpen(Social));
+    t.Update(tree, [], null);
+    t.Update(tree, [Lounge], null);
+    Check("channels: once it has emptied, the next arrival opens it", t.IsOpen(Social));
+
+    t.Update(tree, [], null);
+    t.Toggle(Root);
+    t.Toggle(Fleets);
+    t.Toggle(Alpha);
+    Check("channels: opened by hand with nobody there", t.IsOpen(Alpha));
+    t.Update(tree, [Main], null);
+    Check("channels: someone arriving takes over", t.IsOpen(Alpha));
+    t.Update(tree, [], null);
+    Check("channels: and leaving closes what they were in", !t.IsOpen(Root) && !t.IsOpen(Fleets) && !t.IsOpen(Alpha));
+
+    t.Update(tree, [Main, Lounge], null);
+    t.Toggle(Dps);
+    Check("channels: an empty one under people, opened by hand", t.IsOpen(Dps));
+    t.Update(tree, [Lounge], null);
+    Check("channels: closes with what it was under", !t.IsOpen(Dps));
+
+    t.Update(tree, [Lounge], Lounge);
+    t.Toggle(Social);
+    t.Update(tree, [Lounge], Lounge);
+    Check("channels: closed by hand over the person using this", !t.IsOpen(Social));
+    t.Update(tree, [Lounge, Main], Main);
+    t.Toggle(Fleets);
+    t.Update(tree, [Lounge, Main], Lounge);
+    Check("channels: their own move always opens the way to them", t.IsOpen(Social));
+
+    (uint Id, uint? Parent)[] loop = [(10, 11), (11, 10)];
+    var odd = new MumbleChannelTree();
+    odd.Update(loop, [10, 99], 10);
+    odd.Toggle(11);
+    odd.Update(loop, [], null);
+    Check("channels: a server's circular channels end", !odd.IsOpen(10));
+}
+
 {
     (long Value, string Bytes)[] vectors =
     [

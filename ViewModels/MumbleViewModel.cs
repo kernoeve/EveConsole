@@ -49,11 +49,18 @@ public sealed class MumbleRowVm : ReactiveObject
     public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
     public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
 
+    private bool _hasChildren, _isOpen;
+
+    /// <summary>A channel with channels under it, which can be opened and closed.</summary>
+    public bool HasChildren { get => _hasChildren; set => this.RaiseAndSetIfChanged(ref _hasChildren, value); }
+    public bool IsOpen { get => _isOpen; set => this.RaiseAndSetIfChanged(ref _isOpen, value); }
+
     public void Fill(MumbleRowVm from)
     {
         Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking;
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
+        HasChildren = from.HasChildren; IsOpen = from.IsOpen;
     }
 }
 
@@ -99,6 +106,7 @@ public sealed class MumbleViewModel : ReactiveObject
     private Task? _refreshing;
     private bool _refreshAgain;
     private bool _loadingDetail;
+    private readonly Dictionary<int, MumbleChannelTree> _trees = [];
 
     public MumbleViewModel(MumbleService service, AppPreferencesService prefs)
     {
@@ -209,7 +217,16 @@ public sealed class MumbleViewModel : ReactiveObject
         ShowDetail();
     }
 
-    private static void AddServer(List<MumbleRowVm> rows, MumbleSession session, HashSet<(int, uint)> talking)
+    /// <summary>Opens or closes a channel in the list, at the person's own click.</summary>
+    public void ToggleChannel(MumbleRowVm row)
+    {
+        if (row is not { IsChannel: true, HasChildren: true } || !_trees.TryGetValue(row.ServerId, out var tree)) return;
+
+        tree.Toggle(row.Id);
+        _ = RefreshAsync();
+    }
+
+    private void AddServer(List<MumbleRowVm> rows, MumbleSession session, HashSet<(int, uint)> talking)
     {
         var id = session.Server.Id;
         rows.Add(new MumbleRowVm
@@ -223,7 +240,12 @@ public sealed class MumbleViewModel : ReactiveObject
             Flags = session.Server.SelfDeafened ? MumbleText.FlagDeaf : session.Server.SelfMuted ? MumbleText.FlagMuted : "",
         });
 
-        if (session.State != MumbleState.Connected || session.Client is not { } client) return;
+        // A new connection starts from who is there then, not from what was opened on the last one.
+        if (session.State != MumbleState.Connected || session.Client is not { } client)
+        {
+            _trees.Remove(id);
+            return;
+        }
 
         // ⚠️ Looked up, not searched: this runs each time someone starts or stops talking, on servers of hundreds.
         var channels = client.Channels.ToDictionary(c => c.Id);
@@ -232,16 +254,26 @@ public sealed class MumbleViewModel : ReactiveObject
         var me       = client.Session;
         var shown    = new HashSet<uint>();
 
+        if (!_trees.TryGetValue(id, out var tree)) _trees[id] = tree = new MumbleChannelTree();
+        tree.Update(client.Channels.Select(c => (c.Id, c.Parent)), client.Users.Select(u => u.ChannelId), client.Me?.ChannelId);
+
         void Add(uint channel, int depth)
         {
             // However a server describes its channels, this cannot go round in circles or too deep for the stack.
             if (depth > MostDepth || !shown.Add(channel) || !channels.TryGetValue(channel, out var c)) return;
 
+            var hasChildren = children[channel].Any();
+            var open = tree.IsOpen(channel);
+
             rows.Add(new MumbleRowVm
             {
                 Kind = MumbleRowKind.Channel, ServerId = id, Id = c.Id, Depth = depth,
                 Text = c.Name.Length > 0 ? c.Name : MumbleText.RootChannel,
+                HasChildren = hasChildren, IsOpen = open,
             });
+
+            // With nothing under it there is nothing to close it with, so whoever is in it always shows.
+            if (hasChildren && !open) return;
 
             foreach (var u in users[channel].OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase))
                 rows.Add(new MumbleRowVm
