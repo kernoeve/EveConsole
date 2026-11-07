@@ -50,8 +50,6 @@
        A runtime guard is not enough — OperatingSystem.IsWindows() still leaves the type
        referenced, and the compiler wants the assembly on every target. -->
   <ItemGroup Condition="'$(IsWindowsTarget)' == 'true'">
-    <PackageReference Include="Concentus" Version="2.2.2" />
-    <PackageReference Include="DnsClient" Version="1.8.0" />
     <PackageReference Include="VideoLAN.LibVLC.Windows" Version="3.0.21" />
   </ItemGroup>
 
@@ -136,6 +134,10 @@
 
     <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
     <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
+
+    <!-- Opus for Mumble voice, and the SRV lookups that find a Jabber server. -->
+    <PackageReference Include="Concentus" Version="2.2.2" />
+    <PackageReference Include="DnsClient" Version="1.8.0" />
 
     <!-- WebRTC's echo canceller for Mumble voice, with its native libraries. The wrapper is all that is called: the audio
          framework it lists as a dependency, and that framework's own native libraries, are left out of what ships. -->
