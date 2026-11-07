@@ -36,7 +36,16 @@ public sealed class JabberDmSource : IDmSource
 
     private static DmKey KeyOf(int account, string peer) => new(Name, account, peer);
 
-    private static DmLine ToLine(JabberStoredMessage m) => new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing, m.Deleted, m.DeletedReason, m.MessageId);
+    private static DmLine ToLine(JabberStoredMessage m) =>
+        new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing, m.Deleted, m.DeletedReason, m.MessageId, m.ReplyId, m.ReplyQuote, m.SeenByThem);
+
+    public bool CanEditMessages => true;
+
+    public Task SendAsync(DmKey key, string text, XmppSendExtras extras, CancellationToken ct = default) =>
+        _service.SendAsync(SessionOf(key), key.Peer, false, text, ct, extras);
+
+    public Task DeleteOwnAsync(DmKey key, string ownId, CancellationToken ct = default) =>
+        _service.DeleteOwnAsync(SessionOf(key), key.Peer, false, ownId, ownId, ct);
 
     public Task<Dictionary<string, List<JabberReactionCount>>> ReactionsAsync(DmKey key, IReadOnlyCollection<string> targets, CancellationToken ct = default) =>
         _service.ReactionsAsync(key.ServerId, key.Peer, targets,

@@ -109,7 +109,7 @@ public sealed class GroupChatRowVm : ReactiveObject
 }
 
 /// <summary>One message in a room or on a Mumble server. Both read the same on the screen.</summary>
-public sealed partial class GroupLineVm
+public sealed partial class GroupLineVm : ReactiveObject
 {
     public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention, EmoteSet? emotes = null,
         int deleted = JabberDeleted.No, string deletedReason = "")
@@ -134,6 +134,24 @@ public sealed partial class GroupLineVm
     /// <summary>What a reaction to it names: the room's id for it. Blank where it cannot be reacted to.</summary>
     public string ReactTarget { get; init; } = "";
     public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
+
+    /// <summary>The id it was sent with, which a correction names.</summary>
+    public string MessageId { get; init; } = "";
+    public bool IsOutgoing { get; init; }
+
+    /// <summary>What it answers, shown above it: who, and the start of what they said.</summary>
+    public string ReplyText { get; init; } = "";
+    public bool HasReply => ReplyText.Length > 0;
+
+    private bool _canEdit;
+
+    /// <summary>This account's latest message here, the only one the protocol lets it correct.</summary>
+    public bool CanEdit { get => _canEdit; set => this.RaiseAndSetIfChanged(ref _canEdit, value); }
+
+    /// <summary>One of this account's, which it can take back.</summary>
+    public bool CanDelete => IsOutgoing && !IsDeleted && ReactTarget.Length > 0 && MessageId.Length > 0;
+
+    public bool CanReply => CanReact;
 
     public ObservableCollection<ReactionChipVm> Reactions { get; } = [];
 
@@ -376,6 +394,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
             IsAddingRooms = false;
+            CancelDraftMode();
             this.RaisePropertyChanged(nameof(Draft));
             DraftEmotes = value is { IsRoom: true } room ? EmotesOf(room.ServerId) : EmoteSet.None;
             _ = OpenSelectedAsync();
@@ -684,6 +703,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
             foreach (var m in page) Lines.Add(ToLine(m));
             HasEarlier = page.Count == PageSize;
+            MarkLastEditable();
             await LoadReactionsAsync();
         }
         else return;
@@ -699,7 +719,105 @@ public sealed class GroupChatViewModel : ReactiveObject
     {
         Avatar = new AvatarRef(JabberService.AvatarServiceName, m.AccountId, m.IsOutgoing ? "me" : $"{m.Conversation}/{m.Sender}", m.Sender),
         ReactTarget = m.IsRoom ? m.StanzaId : "",
+        MessageId = m.MessageId,
+        IsOutgoing = m.IsOutgoing,
+        ReplyText = ReplyTextFor(m.ReplyId, m.ReplyQuote, Lines, l => l.ReactTarget, l => l.Sender, l => l.Body),
     };
+
+    /// <summary>
+    /// What a reply answers, as a line above it: who and the start of what they said, from the message itself where it
+    /// is showing, else what the reply quoted of it.
+    /// </summary>
+    public static string ReplyTextFor<T>(string replyId, string quote, IEnumerable<T> lines, Func<T, string> idOf, Func<T, string> senderOf, Func<T, string> bodyOf)
+    {
+        if (replyId.Length == 0) return "";
+
+        // ⚠️ Found or not, said apart: a default is not "none" for every kind of line.
+        var found = false;
+        T answered = default!;
+        foreach (var line in lines)
+            if (idOf(line) == replyId) { answered = line; found = true; }
+
+        var text = found ? $"{senderOf(answered)}: {bodyOf(answered)}" : quote;
+        text = string.Join(" ", text.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries));
+        return "↩ " + (text.Length > 120 ? text[..120] + "…" : text.Length > 0 ? text : JabberText.ReplyUnknown);
+    }
+
+    /// <summary>Only this account's latest message here can be corrected: the protocol's rule, which other clients keep to.</summary>
+    private void MarkLastEditable()
+    {
+        var last = Lines.LastOrDefault(l => l.IsOutgoing && !l.IsDeleted && l.MessageId.Length > 0);
+        foreach (var line in Lines) line.CanEdit = ReferenceEquals(line, last);
+    }
+
+    // ── What the message box is doing: a reply, or a correction ──────────────
+
+    private enum DraftMode { None, Reply, Edit }
+    private DraftMode _mode;
+    private GroupLineVm? _modeLine;
+    private string _draftBar = "";
+
+    /// <summary>"Replying to…" or "Editing…" above the box, while it is.</summary>
+    public string DraftBarText { get => _draftBar; private set { this.RaiseAndSetIfChanged(ref _draftBar, value); this.RaisePropertyChanged(nameof(HasDraftBar)); } }
+    public bool HasDraftBar => DraftBarText.Length > 0;
+
+    public void BeginReply(GroupLineVm line)
+    {
+        if (!line.CanReply) return;
+        _mode = DraftMode.Reply;
+        _modeLine = line;
+        DraftBarText = string.Format(CultureInfo.CurrentCulture, JabberText.ReplyingTo, line.Sender);
+    }
+
+    public void BeginEdit(GroupLineVm line)
+    {
+        if (!line.CanEdit) return;
+        _mode = DraftMode.Edit;
+        _modeLine = line;
+        DraftBarText = JabberText.EditingMessage;
+        Draft = line.Body;
+    }
+
+    /// <summary>The Up key in an empty box, as in other clients: corrects this account's latest message.</summary>
+    public bool BeginEditLast()
+    {
+        if (Lines.LastOrDefault(l => l.CanEdit) is not { } last) return false;
+        BeginEdit(last);
+        return true;
+    }
+
+    public void CancelDraftMode()
+    {
+        if (_mode == DraftMode.Edit) Draft = "";
+        _mode = DraftMode.None;
+        _modeLine = null;
+        DraftBarText = "";
+    }
+
+    /// <summary>What the next message sent says beyond its words, which is then forgotten.</summary>
+    private XmppSendExtras? TakeExtras(string room)
+    {
+        var extras = (_mode, _modeLine) switch
+        {
+            (DraftMode.Edit, { } l) => new XmppSendExtras(ReplaceId: l.MessageId),
+            (DraftMode.Reply, { } l) => new XmppSendExtras(ReplyTo: $"{room}/{l.Sender}", ReplyId: l.ReactTarget, ReplyQuote: XmppClient.QuoteFor(l.Sender, l.Body)),
+            _ => null,
+        };
+        _mode = DraftMode.None;
+        _modeLine = null;
+        DraftBarText = "";
+        return extras;
+    }
+
+    /// <summary>Takes back one of this account's messages, for everyone. The room's copy back says it is gone.</summary>
+    public async Task DeleteOwnAsync(GroupLineVm line)
+    {
+        if (!line.CanDelete || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        StatusText = "";
+        try { await Task.Run(() => _jabber.DeleteOwnAsync(session, row.Key, true, line.ReactTarget, line.MessageId)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
+    }
 
     private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
 
@@ -758,6 +876,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private void Add(GroupLineVm line)
     {
         Lines.Add(line);
+        if (line.IsOutgoing) MarkLastEditable();
         if (Lines.Count > MostShown)
         {
             Lines.RemoveAt(0);
@@ -782,7 +901,8 @@ public sealed class GroupChatViewModel : ReactiveObject
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
-        var me = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)?.Nick) ?? "";
+        // Who this account is there, as its reactions were kept: by the room's lasting id for it where it gives one.
+        var me = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key) is { } r ? (r.MyOccupantId.Length > 0 ? r.MyOccupantId : r.Nick) : "");
         var counts = await Task.Run(() => _jabber.ReactionsAsync(row.ServerId, row.Key, [.. lines.Select(l => l.ReactTarget)], me));
         if (!ReferenceEquals(SelectedRow, row)) return;
 
@@ -807,6 +927,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         if (SelectedRow is not { } row) return;
 
         var text = Draft;
+        var extras = TakeExtras(row.Key);
         Draft = "";
         StatusText = "";
         try
@@ -819,7 +940,7 @@ public sealed class GroupChatViewModel : ReactiveObject
                 // ⚠️ Not left on: the next message should not reach a whole tree of channels because this one did.
                 IncludeSubchannels = false;
             }
-            else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text));
+            else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text, default, extras));
         }
         catch
         {

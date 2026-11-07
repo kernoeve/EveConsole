@@ -128,7 +128,7 @@
     <value>Добавить сервер</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Выберите сервер или человека слева.</value>
+    <value>Выберите сервер слева.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Подключить</value>
@@ -398,5 +398,47 @@
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>Символы</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Вас выгнали из этой комнаты.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>Служба комнаты закрыла её.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>участник {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Этот человек удалил сообщение, но ваш клиент не может это показать.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Ответить</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Изменить (или стрелка вверх в пустом поле)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Удалить у всех</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Ответ для {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Изменение сообщения</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>сообщение, которого здесь нет</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Удалить это сообщение у всех? Поддерживающие клиенты уберут его, а старые, например Pidgin, будут показывать дальше.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Просмотрено</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Сообщать, что я прочитал сообщения</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Только в личной переписке, как в других клиентах: у собеседника сообщение будет помечено как прочитанное. Никогда в комнатах.</value>
   </data>
 </root>

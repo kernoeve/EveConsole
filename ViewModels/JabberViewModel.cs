@@ -292,6 +292,8 @@ public sealed class JabberViewModel : ReactiveObject
             XmppRoomFailure.Banned           => JabberText.RoomFailBanned,
             XmppRoomFailure.NotAMember       => JabberText.RoomFailMembers,
             XmppRoomFailure.NotFound         => JabberText.RoomFailNotFound,
+            XmppRoomFailure.Kicked           => JabberText.RoomFailKicked,
+            XmppRoomFailure.Closed           => JabberText.RoomFailClosed,
             _                                => JabberText.RoomFailOther,
         };
         return words.Length > 0 ? $"{text} {words}" : text;
@@ -361,6 +363,17 @@ public sealed class JabberViewModel : ReactiveObject
             var days = Math.Max(0, value);
             this.RaiseAndSetIfChanged(ref _historyDays, days);
             _ = _prefs.SetAsync(JabberService.HistoryDaysPref, days.ToString(CultureInfo.InvariantCulture));
+        }
+    }
+
+    /// <summary>Tells people when their messages have been seen here, as other clients do. On unless switched off.</summary>
+    public bool SendReadMarkers
+    {
+        get => _prefs.Get(JabberService.ReadMarkersPref) != "false";
+        set
+        {
+            _ = _prefs.SetAsync(JabberService.ReadMarkersPref, value ? "true" : "false");
+            this.RaisePropertyChanged();
         }
     }
 

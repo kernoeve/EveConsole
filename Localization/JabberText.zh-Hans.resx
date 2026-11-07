@@ -128,7 +128,7 @@
     <value>添加服务器</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>请在左侧选择服务器或联系人。</value>
+    <value>请在左侧选择服务器。</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>连接</value>
@@ -398,5 +398,47 @@
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>符号</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>你被踢出了这个房间。</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>房间的服务关闭了它。</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>由 {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>此人删除了一条消息，但你的客户端无法显示。</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>回复</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>编辑（或在空框中按上方向键）</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>为所有人删除</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>正在回复 {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>正在编辑你的消息</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>此处未保存的消息</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>为所有人删除这条消息？支持的客户端会移除它；Pidgin 等旧客户端仍会显示。</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>告知对方我已读其消息</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>仅限与个人的对话（与其他客户端一样）：对方客户端会显示为已读。房间中从不发送。</value>
   </data>
 </root>

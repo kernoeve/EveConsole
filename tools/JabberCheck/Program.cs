@@ -1325,6 +1325,266 @@ finally
     try { Directory.Delete(emoteDir, recursive: true); } catch (IOException) { /* the same */ }
 }
 
+// ── Styling (XEP-0393): the marks kept, styled only where the protocol says ──
+{
+    string Shape(string text) => string.Join("|", MessageStyling.Parse(text).Select(s => $"{s.Text}:{(int)s.Style}"));
+    const int B = (int)TextStyle.Bold, I = (int)TextStyle.Italic, D = (int)TextStyle.Directive, M = (int)TextStyle.Mono, Q = (int)TextStyle.Quote;
+
+    Check("styling: bold, its marks kept and faint", Shape("a *b* c") == $"a :0|*:{B | D}|b:{B}|*:{B | D}| c:0", Shape("a *b* c"));
+    Check("styling: within another", Shape("*_x_*") == $"*:{B | D}|_:{B | I | D}|x:{B | I}|_:{B | I | D}|*:{B | D}", Shape("*_x_*"));
+    Check("styling: none inside words or sums", Shape("snake_case_name and 2*3*4") == "snake_case_name and 2*3*4:0", Shape("snake_case_name and 2*3*4"));
+    Check("styling: none with a space inside the mark, or never closed", Shape("* not* and *open") == "* not* and *open:0");
+    Check("styling: not across lines", Shape("*a\nb*") == "*a\nb*:0", Shape("*a\nb*"));
+    Check("styling: nothing styled inside code", Shape("`*x*`") == $"`:{M | D}|*x*:{M}|`:{M | D}", Shape("`*x*`"));
+    Check("styling: a quote", Shape("> said *it*") == $"> :{Q | D}|said :{Q}|*:{Q | B | D}|it:{Q | B}|*:{Q | B | D}", Shape("> said *it*"));
+    Check("styling: a block of code", Shape("```\n*x*\n```\nafter") == $"```\n:{M | D}|*x*\n:{M}|```\n:{M | D}|after:0", Shape("```\n*x*\n```\nafter"));
+    Check("styling: every character kept, in order", string.Concat(MessageStyling.Parse("x *y* _z_ `w`\n> q\n```\nc").Select(s => s.Text)) == "x *y* _z_ `w`\n> q\n```\nc");
+    Check("styling: plain text is passed by cheaply", !MessageStyling.MayHaveStyling("just words") && MessageStyling.MayHaveStyling("> q"));
+}
+
+// ── Replies (XEP-0461), corrections, and what goes out with a message ─────
+{
+    var self = XmppAddress.Parse("me@example/here");
+    XElement From(XElement sent, string from)
+    {
+        var copy = new XElement(sent);
+        copy.SetAttributeValue("from", from);
+        copy.SetAttributeValue("to", "me@example/here");
+        return copy;
+    }
+
+    var quote = XmppClient.QuoteFor("Al 🚀", "first line\r\nsecond\nthird");
+    Check("reply: the quote names who, and two lines of theirs", quote == "> Al 🚀:\n> first line\n> second\n", quote);
+
+    var reply = XmppClient.OutgoingMessage("id1", "bob@example", "chat", "my answer 👍", new XmppSendExtras(ReplyTo: "al@example", ReplyId: "m9", ReplyQuote: quote));
+    var fallback = reply.Element(XmppClient.Fallback + "fallback")?.Element(XmppClient.Fallback + "body");
+    Check("reply: says what it answers", reply.Element(XmppClient.ReplyNs + "reply") is { } r && (string?)r.Attribute("id") == "m9" && (string?)r.Attribute("to") == "al@example");
+    Check("reply: the quote marked as only for older clients, counted in characters not halves",
+          (string?)fallback?.Attribute("start") == "0" && (string?)fallback?.Attribute("end") == quote.EnumerateRunes().Count().ToString(), fallback?.ToString() ?? "none");
+    Check("reply: older clients see the quote, then the words", reply.Element(XmppClient.Client + "body")?.Value == quote + "my answer 👍");
+
+    var read = XmppClient.ParseMessage(From(reply, "bob@example/phone"), self);
+    Check("reply: read back without the quote", read is { ReplyId: "m9", ReplyTo: "al@example", Body: "my answer 👍" }, read?.Body ?? "null");
+    Check("reply: what was quoted kept, for when what it answers is not here", read?.ReplyQuote == "Al 🚀: first line second", read?.ReplyQuote ?? "null");
+
+    var otherFallback = XmppClient.OutgoingMessage("id1b", "bob@example", "chat", "text");
+    otherFallback.Add(new XElement(XmppClient.Fallback + "fallback", new XAttribute("for", "urn:something:else"),
+        new XElement(XmppClient.Fallback + "body", new XAttribute("start", 0), new XAttribute("end", 2))));
+    Check("reply: another kind of fallback is not taken out", XmppClient.ParseMessage(From(otherFallback, "bob@example/phone"), self)?.Body == "text");
+
+    var plain = XmppClient.OutgoingMessage("id2", "bob@example", "chat", "hello");
+    Check("send: its own id kept by the server, and seen asked for, with a person",
+          (string?)plain.Element(XmppClient.StanzaId + "origin-id")?.Attribute("id") == "id2" && plain.Element(XmppClient.Markers + "markable") is not null);
+    var inRoom = XmppClient.OutgoingMessage("id3", "ops@rooms.example", "groupchat", "hello");
+    Check("send: seen is never asked for in a room", inRoom.Element(XmppClient.Markers + "markable") is null && inRoom.Element(XmppClient.ChatStates + "active") is null);
+    Check("send: a reply with no quote has no fallback",
+          XmppClient.OutgoingMessage("id4", "b@x", "chat", "hi", new XmppSendExtras(ReplyTo: "b@x", ReplyId: "m1")) is var bare
+          && bare.Element(XmppClient.Fallback + "fallback") is null && bare.Element(XmppClient.Client + "body")?.Value == "hi");
+
+    var fix = XmppClient.OutgoingMessage("id5", "bob@example", "chat", "fixed", new XmppSendExtras(ReplaceId: "id2"));
+    Check("correction: names what it corrects", XmppClient.ParseMessage(From(fix, "bob@example/phone"), self) is { IsCorrection: true, ReplaceId: "id2", Body: "fixed" });
+    Check("send: what nobody asked for is not added", fix.Element(XmppClient.ReplyNs + "reply") is null && plain.Element(XmppClient.Correct + "replace") is null);
+}
+
+// ── Seen (XEP-0333), the room's lasting ids (XEP-0421), and being put out ──
+{
+    var self = XmppAddress.Parse("me@example/here");
+
+    var marker = XmppClient.DisplayedMarker("bob@example", "id7");
+    marker.SetAttributeValue("from", "bob@example/phone");
+    var seen = XmppClient.ParseMessage(marker, self);
+    Check("seen: read as a marker, not a message", seen is { DisplayedId: "id7", Body.Length: 0 }, seen?.ToString() ?? "null");
+    Check("seen: kept by the server for their other clients", marker.Element(XmppClient.Hints + "store") is not null && (string?)marker.Attribute("type") == "chat");
+
+    var asked = XmppClient.OutgoingMessage("id8", "me@example", "chat", "hi");
+    asked.SetAttributeValue("from", "bob@example/phone");
+    Check("seen: a message asking for it says so", XmppClient.ParseMessage(asked, self) is { Markable: true });
+
+    var withId = new XElement(XmppClient.Client + "message", new XAttribute("from", "ops@rooms.example/al"), new XAttribute("type", "groupchat"),
+        new XElement(XmppClient.Client + "body", "hi"), new XElement(XmppClient.OccupantIdNs + "occupant-id", new XAttribute("id", "occ-1")));
+    Check("room ids: read", XmppClient.ParseMessage(withId, self) is { OccupantId: "occ-1" });
+
+    JabberStoredMessage Said(string sender, string occupant) => new() { Sender = sender, OccupantId = occupant };
+    Check("room ids: the same id is the same person, whatever the name", JabberService.SamePerson(Said("al", "o1"), Said("al_away", "o1")));
+    Check("room ids: a different id is someone else, even with the name", !JabberService.SamePerson(Said("al", "o1"), Said("al", "o2")));
+    Check("room ids: without them, by name", JabberService.SamePerson(Said("al", ""), Said("al", "o2")) && !JabberService.SamePerson(Said("al", ""), Said("bo", "")));
+
+    XmppOccupant Out(params string[] codes) =>
+        new("r@rooms.example", "me", XmppShow.Offline, "none", "none", "", true, true, "") { Codes = codes, Actor = "boss", Reason = "spam" };
+    Check("put out: kicked, banned, no longer a member, room closed",
+          JabberService.RemovedBecause(Out("110", "307")) == XmppRoomFailure.Kicked && JabberService.RemovedBecause(Out("110", "301")) == XmppRoomFailure.Banned
+          && JabberService.RemovedBecause(Out("321")) == XmppRoomFailure.NotAMember && JabberService.RemovedBecause(Out("332")) == XmppRoomFailure.Closed);
+    Check("put out: leaving of its own accord is not", JabberService.RemovedBecause(Out("110")) is null);
+    Check("put out: by whom and why", JabberService.RemovedText(Out("307")) is var text && text.Contains("boss", StringComparison.Ordinal) && text.EndsWith(": spam", StringComparison.Ordinal), JabberService.RemovedText(Out("307")));
+    Check("put out: nothing said, nothing shown", JabberService.RemovedText(Out("307") with { Actor = "", Reason = "" }) == "");
+
+    var retract = XmppClient.RetractionMessage("ops@rooms.example", "groupchat", "S1", "own1", "gone");
+    Check("delete own: both forms, the room's id and its own", (string?)retract.Element(XmppClient.Retract + "retract")?.Attribute("id") == "S1"
+          && (string?)retract.Element(XmppClient.Fasten + "apply-to")?.Attribute("id") == "own1" && retract.Element(XmppClient.Client + "body")?.Value == "gone");
+    retract.SetAttributeValue("from", "ops@rooms.example/me");
+    Check("delete own: read back as the delete it is", XmppClient.ParseMessage(retract, self) is { RetractId: "S1", RetractByModerator: false });
+}
+
+// ── What a reply shows above it ───────────────────────────────────────────
+{
+    var lines = new[] { (Id: "m1", Who: "Al", Text: "hello\nthere"), (Id: "m2", Who: "Bo", Text: new string('x', 300)) };
+    string Show(string id, string quote) => GroupChatViewModel.ReplyTextFor(id, quote, lines, l => l.Id, l => l.Who, l => l.Text);
+
+    Check("reply shown: from the message itself, on one line", Show("m1", "ignored") == "↩ Al: hello there", Show("m1", "ignored"));
+    Check("reply shown: else what was quoted", Show("gone", "Al: old words") == "↩ Al: old words");
+    Check("reply shown: else says it is not here", Show("gone", "") == "↩ " + JabberText.ReplyUnknown);
+    Check("reply shown: none for a message that answers nothing", Show("", "quote") == "");
+    Check("reply shown: a long one cut short", Show("m2", "") is var cut && cut.EndsWith('…') && cut.Length == 2 + 120 + 1, Show("m2", "").Length.ToString());
+}
+
+// ── Stream management (XEP-0198), against a scripted server ───────────────
+{
+    Check("stream: counts go round", XmppConnection.After(1, 0) && !XmppConnection.After(0, 0) && XmppConnection.After(0, uint.MaxValue) && !XmppConnection.After(uint.MaxValue, 0));
+
+    using var cert = EveConsole.Services.Mumble.MumbleClient.NewClientCertificate("example");
+    var listener = new TcpListener(IPAddress.Loopback, 0);
+    listener.Start();
+    var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+    var login = new XmppLogin("me@example", "pw", "127.0.0.1", port, "r", XmppConnection.Fingerprint(cert), DirectTls: true);
+    using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(40));
+    var ct = stop.Token;
+
+    const string Header = "<?xml version='1.0'?><stream:stream xmlns='jabber:client' xmlns:stream='http://etherx.jabber.org/streams' id='s' version='1.0' from='example'>";
+    const string SmNs = "urn:xmpp:sm:3";
+    string Bind(string jid) => $"<iq type='result' id='bind'><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'><jid>{jid}</jid></bind></iq>";
+    XElement Out(string id, string body) => new(XmppClient.Client + "message", new XAttribute("to", "bob@example"), new XAttribute("type", "chat"),
+        new XAttribute("id", id), new XElement(XmppClient.Client + "body", body));
+
+    var heard = new Dictionary<string, string>();
+    var resent = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+
+    // One connection of the server's: logged in and offering stream management, then waiting on what it is told.
+    async Task<(Func<string, Task<string>> Until, Func<string, Task> Seen, Func<string, Task> Send, Func<Task> Closed)> LoggedInAsync(TcpClient tcp)
+    {
+        var tls = new System.Net.Security.SslStream(tcp.GetStream());
+        await tls.AuthenticateAsServerAsync(cert);
+        var text = new StringBuilder();
+        var used = 0;
+        var buffer = new byte[8192];
+
+        async Task More()
+        {
+            var n = await tls.ReadAsync(buffer, ct);
+            if (n == 0) throw new IOException("closed");
+            text.Append(Encoding.UTF8.GetString(buffer, 0, n));
+        }
+        async Task<string> Until(string mark)
+        {
+            while (text.ToString().IndexOf(mark, used, StringComparison.Ordinal) is var at && at < 0) await More();
+            var all = text.ToString();
+            var end = all.IndexOf(mark, used, StringComparison.Ordinal) + mark.Length;
+            var part = all[used..end];
+            used = end;
+            return part;
+        }
+        async Task Seen(string mark) { while (!text.ToString().Contains(mark, StringComparison.Ordinal)) await More(); }
+        async Task Send(string s) { await tls.WriteAsync(Encoding.UTF8.GetBytes(s), ct); await tls.FlushAsync(ct); }
+        async Task Closed() { try { while (true) await More(); } catch (Exception e) when (e is IOException or OperationCanceledException or ObjectDisposedException) { } }
+
+        await Until("streams'>");
+        await Send(Header + "<stream:features><mechanisms xmlns='urn:ietf:params:xml:ns:xmpp-sasl'><mechanism>PLAIN</mechanism></mechanisms></stream:features>");
+        await Until("</auth>");
+        await Send("<success xmlns='urn:ietf:params:xml:ns:xmpp-sasl'/>");
+        await Until("streams'>");
+        await Send(Header + $"<stream:features><bind xmlns='urn:ietf:params:xml:ns:xmpp-bind'/><sm xmlns='{SmNs}'/></stream:features>");
+        return (Until, Seen, Send, Closed);
+    }
+
+    var server = Task.Run(async () =>
+    {
+        // First: a session that counts. A message in with a request to say so; two out, of which only the first is confirmed.
+        using (var tcp = await listener.AcceptTcpClientAsync(ct))
+        {
+            var (until, seen, send, closed) = await LoggedInAsync(tcp);
+            await until("</iq>");
+            await send(Bind("me@example/r1"));
+            heard["enable"] = await until("/>");
+            await send($"<enabled xmlns='{SmNs}' id='S1' resume='true'/>");
+            await send($"<message from='al@example/x' to='me@example/r1' type='chat' id='in1'><body>hi</body></message><r xmlns='{SmNs}'/>");
+            await seen("<a h=\"1\"");
+            await seen("two</body></message><r xmlns='urn:xmpp:sm:3'/>");
+            await send($"<a xmlns='{SmNs}' h='1'/><message from='al@example/x' to='me@example/r1' type='chat' id='in2'><body>again</body></message>");
+            await closed();
+        }
+
+        // Second: the dropped stream picked up, the server having had only the first of the two.
+        using (var tcp = await listener.AcceptTcpClientAsync(ct))
+        {
+            var (until, seen, send, closed) = await LoggedInAsync(tcp);
+            await until("<resume");
+            heard["resume"] = await until("/>");
+            await send($"<resumed xmlns='{SmNs}' previd='S1' h='1'/>");
+            await seen("two</body>");
+            resent.TrySetResult(true);
+            await closed();
+        }
+
+        // Third: too late, the server no longer has it. A new session, and a server that will not count this time.
+        using (var tcp = await listener.AcceptTcpClientAsync(ct))
+        {
+            var (until, _, send, closed) = await LoggedInAsync(tcp);
+            await until("<resume");
+            await send($"<failed xmlns='{SmNs}' h='1'/>");
+            await until("</iq>");
+            await send(Bind("me@example/r2"));
+            await until("<enable");
+            await send($"<failed xmlns='{SmNs}'/>");
+            await closed();
+        }
+    }, ct);
+
+    try
+    {
+        var first = new XmppConnection(login);
+        await first.ConnectAsync(ct);
+        var bound = first.Bound;
+        Check("stream: counting once the server agrees, keeping it if dropped", first.Counting && heard.GetValueOrDefault("enable", "").Contains("resume=\"true\"", StringComparison.Ordinal), heard.GetValueOrDefault("enable", ""));
+
+        var in1 = await first.ReadStanzaAsync(ct);
+        var waiting = first.ReadStanzaAsync(ct);
+        await first.WriteAsync(Out("out1", "one"), ct);
+        await first.WriteAsync(Out("out2", "two"), ct);
+        var in2 = await waiting.WaitAsync(TimeSpan.FromSeconds(10), ct);
+        Check("stream: its own messages are not handed on", (string?)in1?.Attribute("id") == "in1" && (string?)in2?.Attribute("id") == "in2", $"{in1} / {in2}");
+
+        var kept = first.Resumable;
+        Check("stream: what picking it up takes", kept is { Id: "S1", Inbound: 2, Outbound: 2 } && kept.Unacked.Count == 1 && kept.Unacked[0].Stanza.Element(XmppClient.Client + "body")?.Value == "two",
+              kept is null ? "null" : $"{kept.Id} in {kept.Inbound} out {kept.Outbound} unacked {kept.Unacked.Count}");
+        first.Abandon();
+
+        var second = new XmppConnection(login, kept);
+        await second.ConnectAsync(ct);
+        Check("stream: picked up with what came in counted", heard.GetValueOrDefault("resume", "") is var asked && asked.Contains("previd=\"S1\"", StringComparison.Ordinal) && asked.Contains("h=\"2\"", StringComparison.Ordinal), heard.GetValueOrDefault("resume", ""));
+        Check("stream: picked up as it was, the same address", second.Resumed && second.Counting && second.Bound == bound, second.Bound.Full);
+        Check("stream: what the server never had sent again", await resent.Task.WaitAsync(TimeSpan.FromSeconds(10), ct));
+        Check("stream: sent again, and counted again", second.Resumable is { Outbound: 2 } again && again.Unacked.Count == 1);
+        second.Abandon();
+
+        var third = new XmppConnection(login, kept);
+        await third.ConnectAsync(ct);
+        var unsent = third.TakeUnsent();
+        Check("stream: too late, a new session", !third.Resumed && third.Bound.Full == "me@example/r2" && !third.Counting && third.Resumable is null, third.Bound.Full);
+        Check("stream: what was never confirmed is handed back to send again, once",
+              unsent.Count == 1 && unsent[0].Element(XmppClient.Client + "body")?.Value == "two" && third.TakeUnsent().Count == 0, unsent.Count.ToString());
+        await third.DisposeAsync();
+
+        await server.WaitAsync(TimeSpan.FromSeconds(10), ct);
+    }
+    catch (Exception e)
+    {
+        Check("stream: the scripted server ran to the end", false, e.GetType().Name + ": " + e.Message);
+    }
+    finally
+    {
+        listener.Stop();
+    }
+}
+
 static async Task<string?> FailsAsync(Func<Task> act)
 {
     try { await act(); return null; }

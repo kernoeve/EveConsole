@@ -46,6 +46,9 @@
       <StackPanel Grid.Row="2" Margin="8" Spacing="4">
         <TextBlock Classes="label" Text="{x:Static loc:JabberText.HistoryDays}" TextWrapping="Wrap" />
         <NumericUpDown Value="{Binding HistoryDays}" Minimum="0" Maximum="36500" Increment="1" FormatString="0" FontSize="11" HorizontalAlignment="Left" Width="120" />
+        <CheckBox IsChecked="{Binding SendReadMarkers}" FontSize="11" Margin="0 6 0 0" ToolTip.Tip="{x:Static loc:JabberText.ReadMarkersTip}">
+          <TextBlock Text="{x:Static loc:JabberText.ReadMarkersOption}" TextWrapping="Wrap" />
+        </CheckBox>
       </StackPanel>
     </Grid>
 

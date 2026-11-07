@@ -115,6 +115,16 @@ public partial class MessagesView : UserControl
     {
         // Choosing from the emote list comes first: Enter there picks one.
         if (EmoteBox.HandleKey(e)) return;
+
+        // Up in an empty box corrects this account's latest message; Escape stops replying or correcting.
+        if (e.Key == Key.Up && string.IsNullOrEmpty(DraftBox.Text) && _watching?.BeginEditLast() == true)
+        {
+            e.Handled = true;
+            DraftBox.CaretIndex = DraftBox.Text?.Length ?? 0;
+            return;
+        }
+        if (e.Key == Key.Escape && _watching is { HasDraftBar: true } tab2) { e.Handled = true; tab2.CancelDraftMode(); return; }
+
         if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
 
         e.Handled = true;
@@ -187,6 +197,24 @@ public partial class MessagesView : UserControl
         _reactPicker!.Reset();
         _reactFlyout.ShowAt(at);
     }
+
+    private void OnReply(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<MessagesLineVm>(sender) is { } line && _watching is { } tab) { tab.BeginReply(line); DraftBox.Focus(); }
+    }
+
+    private void OnEditOwn(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<MessagesLineVm>(sender) is { } line && _watching is { } tab) { tab.BeginEdit(line); DraftBox.Focus(); DraftBox.CaretIndex = DraftBox.Text?.Length ?? 0; }
+    }
+
+    private async void OnDeleteOwn(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<MessagesLineVm>(sender) is not { } line || _watching is not { } tab) return;
+        if (await AskAsync(EveConsole.Localization.JabberText.ConfirmDeleteOwn)) await tab.DeleteOwnAsync(line);
+    }
+
+    private void OnCancelDraftMode(object? sender, RoutedEventArgs e) => _watching?.CancelDraftMode();
 
     private void OnAddReaction(object? sender, RoutedEventArgs e)
     {

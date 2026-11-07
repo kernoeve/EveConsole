@@ -128,7 +128,7 @@
     <value>サーバーを追加</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>左からサーバーまたは人を選んでください。</value>
+    <value>左からサーバーを選んでください。</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>接続</value>
@@ -398,5 +398,47 @@
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>記号</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>このルームからキックされました。</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>ルームのサービスがルームを閉じました。</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>{0} による</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>この人はメッセージを削除しましたが、お使いのクライアントでは表示できません。</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>返信</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>編集（空欄で↑キーでも可）</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>全員から削除</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>{0} に返信中</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>メッセージを編集中</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>ここに残っていないメッセージ</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>このメッセージを全員から削除しますか？ 対応するクライアントでは消えますが、Pidgin など古いものでは表示されたままです。</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>既読</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>メッセージを読んだことを相手に知らせる</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>個人とのやり取りのみ（他のクライアントと同様）：相手のクライアントで既読と表示されます。ルームでは送りません。</value>
   </data>
 </root>

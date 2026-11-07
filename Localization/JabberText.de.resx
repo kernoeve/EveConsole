@@ -128,7 +128,7 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
     <value>Server hinzufügen</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Wähle links einen Server oder eine Person.</value>
+    <value>Wähle links einen Server.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Verbinden</value>
@@ -398,5 +398,47 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>Symbole</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Du wurdest aus diesem Raum geworfen.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>Der Dienst des Raums hat ihn geschlossen.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>von {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Diese Person hat eine Nachricht gelöscht, was dein Programm nicht anzeigen kann.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Antworten</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Bearbeiten (oder Pfeil hoch im leeren Feld)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Für alle löschen</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Antwort an {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Du bearbeitest deine Nachricht</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>eine hier nicht gespeicherte Nachricht</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Diese Nachricht für alle löschen? Programme, die das unterstützen, entfernen sie; ältere wie Pidgin zeigen sie weiter an.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Gesehen</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Anderen zeigen, wenn ich ihre Nachrichten gelesen habe</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Nur mit einzelnen Personen, wie andere Programme: deren Programm kann die Nachricht dann als gesehen anzeigen. Nie in Räumen.</value>
   </data>
 </root>

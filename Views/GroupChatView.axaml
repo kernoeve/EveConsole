@@ -12,8 +12,8 @@
       <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
     <Style Selector="Button.reaction.mine"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" /></Style>
     <!-- Reacting is offered where the pointer is: a message's own button shows only while it is over that message. -->
-    <Style Selector="Button.addreaction"><Setter Property="Padding" Value="3 0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Opacity" Value="0" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
-    <Style Selector=":is(Panel).msgline:pointerover Button.addreaction, Border.line:pointerover Button.addreaction"><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector="Button.linebtn"><Setter Property="Padding" Value="3 0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Opacity" Value="0" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector=":is(Panel).msgline:pointerover Button.linebtn, Border.line:pointerover Button.linebtn"><Setter Property="Opacity" Value="1" /></Style>
     <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
@@ -204,7 +204,16 @@
                       <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                       <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
-                      <Button Classes="addreaction" IsVisible="{Binding CanReact}" Click="OnAddReaction" ToolTip.Tip="{x:Static loc:JabberText.AddReactionTip}">
+                      <Button Classes="linebtn" IsVisible="{Binding CanReply}" Click="OnReply" ToolTip.Tip="{x:Static loc:JabberText.ReplyTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M8 4 L3 9 L8 14 M3 9 H12 A5 5 0 0 1 17 14 V17" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanEdit}" Click="OnEditOwn" ToolTip.Tip="{x:Static loc:JabberText.EditTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M3 17 L3.5 13.5 L13 4 L16 7 L6.5 16.5 Z M11 6 L14 9" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanDelete}" Click="OnDeleteOwn" ToolTip.Tip="{x:Static loc:JabberText.DeleteTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M3 6 H17 M8 6 V3.5 H12 V6 M5 6 L6 17 H14 L15 6" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanReact}" Click="OnAddReaction" ToolTip.Tip="{x:Static loc:JabberText.AddReactionTip}">
                         <Viewbox Width="14" Height="14">
                           <Canvas Width="24" Height="24">
                             <Ellipse Canvas.Left="2" Canvas.Top="3" Width="17" Height="17" StrokeThickness="1.8" Stroke="{DynamicResource TextMutedBrush}" />
@@ -215,6 +224,9 @@
                         </Viewbox>
                       </Button>
                     </StackPanel>
+<Border IsVisible="{Binding HasReply}" BorderBrush="{DynamicResource TextFaintBrush}" BorderThickness="2 0 0 0" Padding="6 0" Margin="0 1 0 2" HorizontalAlignment="Left">
+                      <TextBlock Text="{Binding ReplyText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                    </Border>
                     <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
@@ -263,6 +275,12 @@
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
           <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
           <TextBlock Text="{Binding CannotSend}" IsVisible="{Binding HasCannotSend}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource WarnBrush}" />
+<Border IsVisible="{Binding HasDraftBar}" Margin="10 4 10 0" Padding="8 3" CornerRadius="4" Background="{DynamicResource SurfaceRaisedBrush}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding DraftBarText}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+              <Button Grid.Column="1" Content="×" Click="OnCancelDraftMode" Padding="6 0" FontSize="13" Background="Transparent" BorderThickness="0" ToolTip.Tip="{x:Static loc:JabberText.Cancel}" />
+            </Grid>
+          </Border>
           <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="10 6">
             <TextBox x:Name="DraftBox" Text="{Binding Draft}" IsEnabled="{Binding CanSend}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120" Watermark="{Binding DraftHint}" />
             <views:EmoteButton x:Name="EmoteBox" Grid.Column="1" Emotes="{Binding DraftEmotes}" IsEnabled="{Binding CanSend}" Margin="4 0 0 0" VerticalAlignment="Bottom" />

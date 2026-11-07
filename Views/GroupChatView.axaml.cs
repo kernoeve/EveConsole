@@ -88,6 +88,16 @@ public partial class GroupChatView : UserControl
     {
         // Choosing from the emote list comes first: Enter there picks one.
         if (EmoteBox.HandleKey(e)) return;
+
+        // Up in an empty box corrects this account's latest message; Escape stops replying or correcting.
+        if (e.Key == Key.Up && string.IsNullOrEmpty(DraftBox.Text) && _vm?.BeginEditLast() == true)
+        {
+            e.Handled = true;
+            DraftBox.CaretIndex = DraftBox.Text?.Length ?? 0;
+            return;
+        }
+        if (e.Key == Key.Escape && _vm is { HasDraftBar: true } vm2) { e.Handled = true; vm2.CancelDraftMode(); return; }
+
         if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
 
         e.Handled = true;
@@ -257,6 +267,24 @@ public partial class GroupChatView : UserControl
         _reactPicker!.Reset();
         _reactFlyout.ShowAt(at);
     }
+
+    private void OnReply(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm) { vm.BeginReply(line); DraftBox.Focus(); }
+    }
+
+    private void OnEditOwn(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm) { vm.BeginEdit(line); DraftBox.Focus(); DraftBox.CaretIndex = DraftBox.Text?.Length ?? 0; }
+    }
+
+    private async void OnDeleteOwn(object? sender, RoutedEventArgs e)
+    {
+        if (LineOf<GroupLineVm>(sender) is not { } line || _vm is not { } vm) return;
+        if (await ConfirmAsync(EveConsole.Localization.JabberText.ConfirmDeleteOwn)) await vm.DeleteOwnAsync(line);
+    }
+
+    private void OnCancelDraftMode(object? sender, RoutedEventArgs e) => _vm?.CancelDraftMode();
 
     private void OnAddReaction(object? sender, RoutedEventArgs e)
     {
