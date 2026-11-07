@@ -234,6 +234,17 @@ jobs:
           grep -q "Stopping" worker.log
           test "$code" = 0
 
+      # ⚠️ Do the two bootstraps still agree, and can a SQLite user still move to PostgreSQL? An
+      # index added for SQLite and not in PostgresSchema is no error, only a screen that is slow
+      # for PostgreSQL users; a model property the migration's binary COPY cannot type fails a
+      # user's first migration at the first row, as an enum once did. Neither shows anywhere else.
+      # Against the worker's database it also checks the seed rows, and that a second apply — what
+      # every launch after the first does — changes nothing.
+      - name: PostgreSQL schema matches SQLite's, migrates, and re-applies cleanly
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/PgSchemaCheck/PgSchemaCheck.csproj -c Release
+
       # The worker has just built the whole schema in an empty database, and that database is
       # still running — the one place in CI with every table PostgreSQL will see. So PgSqlCheck
       # PREPAREs every hand-written statement against it.
