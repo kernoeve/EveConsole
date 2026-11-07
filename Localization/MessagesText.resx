@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>No saved conversations yet. Select a person on the Jabber or Mumble tab in Settings to start one.</value>
+    <value>No saved conversations yet. Press New Conversation, or right-click someone in a room or on a Mumble server.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

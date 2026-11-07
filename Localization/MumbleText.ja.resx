@@ -52,9 +52,6 @@
 
 多くの Mumble サーバーは独自の証明書を使います。想定どおりのサーバーの場合のみ信頼してください。以後はこの証明書のみ受け入れます。</value>
   </data>
-  <data name="KeysSummary" xml:space="preserve">
-    <value>ささやきキー: {0}。シャウトキー: {1}。</value>
-  </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>サーバーのホストとユーザー名を入力してください。</value>
   </data>
@@ -106,12 +103,6 @@
   <data name="LabelTokens" xml:space="preserve">
     <value>アクセストークン (任意、カンマ区切り)</value>
   </data>
-  <data name="LabelWhisperKey" xml:space="preserve">
-    <value>ささやきキー (現在のチャンネルのみに話す)</value>
-  </data>
-  <data name="LabelShoutKey" xml:space="preserve">
-    <value>シャウトキー (プッシュトゥトーク: 現在のチャンネルとリンクされたチャンネル)</value>
-  </data>
   <data name="KeysNote" xml:space="preserve">
     <value>これらのキーはこのサーバー専用で、接続中はアプリがバックグラウンドでも機能します。</value>
   </data>
@@ -124,9 +115,6 @@
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>キャンセル</value>
-  </data>
   <data name="Delete" xml:space="preserve">
     <value>削除</value>
   </data>
@@ -138,9 +126,6 @@
   </data>
   <data name="Disconnect" xml:space="preserve">
     <value>切断</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>編集</value>
   </data>
   <data name="Mute" xml:space="preserve">
     <value>ミュート</value>
@@ -204,9 +189,6 @@
   </data>
   <data name="Refused" xml:space="preserve">
     <value>サーバーに拒否されました。権限がない可能性があります。</value>
-  </data>
-  <data name="HeadingAdmin" xml:space="preserve">
-    <value>サーバー管理</value>
   </data>
   <data name="ServerMute" xml:space="preserve">
     <value>サーバーミュート</value>
@@ -277,9 +259,6 @@
   <data name="ConfirmBan" xml:space="preserve">
     <value>{0} をこのサーバーから BAN しますか? 元に戻せるのは管理者だけです(BAN リストから)。</value>
   </data>
-  <data name="RegisterName" xml:space="preserve">
-    <value>この名前を登録</value>
-  </data>
   <data name="ConfirmRegister" xml:space="preserve">
     <value>{0} をこのサーバーに登録しますか? 名前が証明書に結び付けられ、元に戻せるのは管理者だけです。</value>
   </data>
@@ -301,20 +280,8 @@
   <data name="UnlinkFromMine" xml:space="preserve">
     <value>自分のチャンネルとのリンクを解除</value>
   </data>
-  <data name="RemoveChannel" xml:space="preserve">
-    <value>チャンネルを削除</value>
-  </data>
   <data name="ConfirmRemoveChannel" xml:space="preserve">
     <value>{0} とその下のすべてのチャンネルを、このサーバーの全員に対して削除しますか?</value>
-  </data>
-  <data name="LabelNewChannel" xml:space="preserve">
-    <value>この下に新しいチャンネル</value>
-  </data>
-  <data name="CreateChannel" xml:space="preserve">
-    <value>作成</value>
-  </data>
-  <data name="NewChannelTemporary" xml:space="preserve">
-    <value>一時的: 空になると消えます</value>
   </data>
   <data name="NoiseReduce" xml:space="preserve">
     <value>背景ノイズを低減</value>
@@ -372,5 +339,119 @@
   </data>
   <data name="StatusTip" xml:space="preserve">
     <value>{0}、{1}: このチャンネルで聴取オフでない人 {2} 名</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>サーバー</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>チャンネルターゲット</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>新しいサーバー</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>ホスト、ポート、ユーザー名、パスワード、トークンの変更は、次回このサーバーに接続したときに適用されます。</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>各チャンネルターゲットは、このサーバーで1つのキーが話しかける相手です。チャンネル、それに付随するもの、どこにいても届く相手を自由に変更できます。</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>キー</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>チャンネル</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>チャンネルターゲットを追加</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>チャンネルを追加</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>リンクされたチャンネル</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>サブチャンネル</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>どこにいても届く相手（名前をカンマで区切る）</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>それらのチャンネル内のこのサーバーグループのメンバーのみ（任意）</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>自分がいるチャンネル</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>新しいターゲット</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>ささやき：自分がいるチャンネル</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>シャウト：自分のチャンネルとリンク先</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>サーバーには通常の会話のほかに {0} 個のターゲットを保存できます。</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>パスワードは、データベースパスワードから得たキーで暗号化され、共有データベースに保存されます。</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>詳細…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>音量と詳細…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>サーバー情報…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>この名前を登録…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>移動先…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>キック…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>BAN…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>新しいチャンネル…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>新しい一時チャンネル…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>チャンネルを削除…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>新しいチャンネル</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>新しい一時チャンネル</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>{0} の下に作るチャンネルの名前</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>人を探す</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>各チャンネルの人を表示</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>その名前の人はいません。</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} 人がいて、そのうち {1} 人が聞いています</value>
   </data>
 </root>

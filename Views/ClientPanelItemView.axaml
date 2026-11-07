@@ -1,0 +1,102 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.ClientPanelItemView"
+             x:DataType="vm:MainWindowViewModel"
+             VerticalAlignment="Center">
+
+  <!-- One item on a panel, looking and behaving as it does on the main screen, with the same values
+       and clicks. Only the one chosen shows. The gear drops the main screen's vertical padding so
+       it fits a 25 px bar. -->
+  <Panel>
+    <Button x:Name="SettingsItem" IsVisible="False" Content="⚙" FontSize="18"
+            Background="Transparent" BorderThickness="0" MinHeight="0" Padding="8 0"
+            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+            ToolTip.Tip="{x:Static loc:ShellText.TipSettings}"
+            Click="OnSettingsClick" />
+
+    <StackPanel x:Name="EveTimeItem" IsVisible="False" Orientation="Horizontal" Spacing="4"
+                Background="Transparent" Cursor="Hand" VerticalAlignment="Center"
+                ToolTip.Tip="{Binding EveTimeLinkTip}" PointerPressed="OnEveTimeClick">
+      <TextBlock Text="EVE" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+      <TextBlock Text="{Binding EveTimeText}" FontSize="14" FontWeight="SemiBold"
+                 FontFamily="Consolas, Courier New, DejaVu Sans Mono, Liberation Mono, monospace"
+                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <StackPanel x:Name="LocalTimeItem" IsVisible="False" Orientation="Horizontal" Spacing="4"
+                Background="Transparent" VerticalAlignment="Center">
+      <TextBlock Text="{x:Static loc:ClientLayoutsText.ItemLocalTimeShort}" FontSize="10"
+                 Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+      <TextBlock Text="{Binding LocalTimeText}" FontSize="14" FontWeight="SemiBold"
+                 FontFamily="Consolas, Courier New, DejaVu Sans Mono, Liberation Mono, monospace"
+                 Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+    </StackPanel>
+
+    <StackPanel x:Name="ServerStatusItem" IsVisible="False" Orientation="Horizontal" Spacing="4"
+                Background="Transparent" Cursor="Hand" VerticalAlignment="Center"
+                ToolTip.Tip="{Binding ServerStatusTip}" PointerPressed="OnServerStatusClick">
+      <Ellipse Width="8" Height="8" VerticalAlignment="Center" Fill="{Binding ServerStatusColor}" />
+      <TextBlock Text="{Binding ServerStatusText}" FontSize="10" VerticalAlignment="Center"
+                 Foreground="{Binding ServerStatusColor}" />
+      <TextBlock Text="{Binding ServerPlayersText}" FontSize="10" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextFaintBrush}" />
+    </StackPanel>
+
+    <!-- The user's own characters, with the same hover list as the main screen. -->
+    <StackPanel x:Name="UsersOnlineItem" IsVisible="False" Orientation="Horizontal" Spacing="5"
+                VerticalAlignment="Center" Background="Transparent"
+                ToolTip.Placement="Bottom" ToolTip.ShowDelay="300">
+      <StackPanel.Styles>
+        <Style Selector="TextBlock.docked">
+          <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+        </Style>
+        <Style Selector="TextBlock.space">
+          <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+        </Style>
+      </StackPanel.Styles>
+      <ToolTip.Tip>
+        <!-- An explicit ToolTip, for its MaxWidth: the theme's 320px cap clips the ship column. -->
+        <ToolTip MaxWidth="1400">
+          <StackPanel Spacing="2" Margin="2">
+            <TextBlock Text="{x:Static loc:ShellText.NoneOfYourCharactersAre}" FontSize="11"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       IsVisible="{Binding !HasOnlineCharacters}" />
+            <ItemsControl ItemsSource="{Binding OnlineCharacters}" Grid.IsSharedSizeScope="True"
+                          IsVisible="{Binding HasOnlineCharacters}">
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:OnlineCharacterVm">
+                  <Grid Margin="0 1">
+                    <Grid.ColumnDefinitions>
+                      <ColumnDefinition Width="22" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="who" />
+                      <ColumnDefinition Width="16" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="where" />
+                      <ColumnDefinition Width="16" />
+                      <ColumnDefinition Width="22" />
+                      <ColumnDefinition Width="Auto" SharedSizeGroup="ship" />
+                    </Grid.ColumnDefinitions>
+                    <Image Grid.Column="0" Source="{Binding Portrait}" Width="18" Height="18"
+                           HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                               Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                    <TextBlock Grid.Column="3" Text="{Binding Location}" FontSize="11" VerticalAlignment="Center"
+                               Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                    <Image Grid.Column="5" Source="{Binding ShipIcon}" Width="18" Height="18"
+                           HorizontalAlignment="Left" VerticalAlignment="Center" />
+                    <TextBlock Grid.Column="6" Text="{Binding Ship}" FontSize="11" VerticalAlignment="Center"
+                               Classes.docked="{Binding IsDocked}" Classes.space="{Binding !IsDocked}" />
+                  </Grid>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+          </StackPanel>
+        </ToolTip>
+      </ToolTip.Tip>
+      <Ellipse Width="7" Height="7" VerticalAlignment="Center" Fill="{Binding OnlineCharactersColor}" />
+      <TextBlock Text="{Binding OnlineCharactersText}" FontSize="10"
+                 Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+    </StackPanel>
+  </Panel>
+</UserControl>

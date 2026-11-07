@@ -18,22 +18,8 @@ public sealed class ElevenLabsTtsService : IDisposable
         Timeout = TimeSpan.FromSeconds(90),
     };
 
-    // Reuse the LibVLC instance already initialized by OpenAiTtsService.
-    private static LibVLC? _vlc;
-    private static bool _vlcInitialized;
-
-    private static LibVLC? GetVlc()
-    {
-        if (_vlcInitialized) return _vlc;
-        _vlcInitialized = true;
-        try
-        {
-            VlcRuntime.Initialize();
-            _vlc = new LibVLC(enableDebugLogs: false);
-        }
-        catch { _vlc = null; }
-        return _vlc;
-    }
+    // The app's one LibVLC (see VlcRuntime.Shared); null if native libs are unavailable.
+    private static LibVLC? GetVlc() => VlcRuntime.Shared;
 
     public static bool IsVlcAvailable => GetVlc() is not null;
 

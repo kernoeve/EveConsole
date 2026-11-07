@@ -272,8 +272,24 @@ public partial class OverviewCustomizeWindow : Window
         e.Handled = true;
     }
 
+    private OverviewLayoutsEditVm? _session;
+    private IDisposable? _selectedSub;
+
+    /// <summary>The layouts to edit. The window shows whichever is picked; Apply returns them all.</summary>
+    public OverviewLayoutsEditVm? Session
+    {
+        get => _session;
+        set
+        {
+            _selectedSub?.Dispose();
+            _session = value;
+            LayoutBar.DataContext = value;
+            if (value is not null)
+                _selectedSub = value.WhenAnyValue(s => s.Selected).Subscribe(entry => DataContext = entry.Editor);
+        }
+    }
+
     private void OnCancel(object? sender, RoutedEventArgs e) => Close(null);
 
-    private void OnApply(object? sender, RoutedEventArgs e)
-        => Close((DataContext as OverviewCustomizeViewModel)?.Build());
+    private void OnApply(object? sender, RoutedEventArgs e) => Close(_session?.Build());
 }

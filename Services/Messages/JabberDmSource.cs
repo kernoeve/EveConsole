@@ -17,6 +17,7 @@ public sealed class JabberDmSource : IDmSource
     public event Action? UnreadChanged;
     public event Action<DmKey, DmLine, bool>? Arrived;
     public event Action<DmKey>? Edited;
+    public event Action<DmKey>? ReactionsChanged;
     public event Action<DmKey, bool>? Typing;
 
     public JabberDmSource(JabberService service)
@@ -29,12 +30,20 @@ public sealed class JabberDmSource : IDmSource
             if (!row.IsRoom) Arrived?.Invoke(KeyOf(row.AccountId, row.Conversation), ToLine(row), row is { IsAlert: true, IsRead: false });
         };
         _service.ConversationEdited += (account, conversation) => Edited?.Invoke(KeyOf(account, conversation));
+        _service.ReactionsChanged += (account, conversation) => ReactionsChanged?.Invoke(KeyOf(account, conversation));
         _service.TypingChanged += (account, conversation, typing) => Typing?.Invoke(KeyOf(account, conversation), typing);
     }
 
     private static DmKey KeyOf(int account, string peer) => new(Name, account, peer);
 
-    private static DmLine ToLine(JabberStoredMessage m) => new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing);
+    private static DmLine ToLine(JabberStoredMessage m) => new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing, m.Deleted, m.DeletedReason, m.MessageId);
+
+    public Task<Dictionary<string, List<JabberReactionCount>>> ReactionsAsync(DmKey key, IReadOnlyCollection<string> targets, CancellationToken ct = default) =>
+        _service.ReactionsAsync(key.ServerId, key.Peer, targets,
+            _service.SessionOf(key.ServerId) is { } s ? XmppAddress.Parse(s.Account.Address).Bare : "", ct);
+
+    public Task ReactAsync(DmKey key, string target, IReadOnlyList<string> emojis, CancellationToken ct = default) =>
+        _service.SendReactionsAsync(SessionOf(key), key.Peer, false, target, emojis, ct);
 
     public async Task<IReadOnlyList<DmSummary>> ConversationsAsync(CancellationToken ct = default)
     {
@@ -165,4 +174,7 @@ public sealed class JabberDmSource : IDmSource
     public Task AddContactAsync(DmKey key, CancellationToken ct = default) => _service.AddContactAsync(SessionOf(key), key.Peer, "", ct);
 
     public Task RemoveContactAsync(DmKey key, CancellationToken ct = default) => _service.RemoveContactAsync(SessionOf(key), key.Peer, ct);
+
+    public string MyName(int serverId) =>
+        _service.SessionOf(serverId)?.Account is { } a ? a.Nickname.Length > 0 ? a.Nickname : XmppAddress.Parse(a.Address).Local : "";
 }

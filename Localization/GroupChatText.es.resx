@@ -82,4 +82,82 @@
   <data name="RoomSortPeople" xml:space="preserve">
     <value>Personas en la sala</value>
   </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>Mensaje directo</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>Dar voz</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>Quitar voz</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>Hacer moderador</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>Quitar moderador</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>Hacer miembro</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>Quitar membresía</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>Hacer administrador</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>Quitar administrador</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Expulsar…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Vetar…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>Expulsar a {0}</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>Vetar a {0}</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Motivo (opcional), se le muestra</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>¿Vetar a {0} ({1}) en {2}? No podrá volver hasta que se levante el veto.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>Cambiar tema…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>Tema de {0}</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>El nuevo tema, visible para todos en la sala</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>Invitar a alguien…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>Invitar a alguien a {0}</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>Su dirección</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>Levantar un veto…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>Levantar un veto en {0}</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>A quién dejar volver</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>No hay nadie vetado en {0}.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>Elige a alguien de la lista.</value>
+  </data>
 </root>

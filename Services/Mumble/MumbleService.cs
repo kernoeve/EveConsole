@@ -59,8 +59,34 @@ public sealed class MumbleSession(MumbleServer server)
     internal System.Collections.Concurrent.ConcurrentDictionary<string, bool> Ignored { get; set; } = [];
     internal bool MicFailed { get; set; }
     internal Task? VoiceSending { get; set; }
-    internal GlobalHotkeyService? WhisperHook { get; set; }
-    internal GlobalHotkeyService? ShoutHook { get; set; }
+    /// <summary>One for each channel target with a key, for as long as the server is connected.</summary>
+    internal List<GlobalHotkeyService> KeyHooks { get; } = [];
+
+    /// <summary>The voice target number each packet names while talking. Set before <see cref="Talking"/> says so.</summary>
+    public int TalkSlot;
+
+    /// <summary>What this connection has told the server each saved target holds, so that it is only told what changed.</summary>
+    internal Dictionary<int, byte[]> SentTargets { get; } = [];
+
+    private MumbleServer? _targetsOf;
+    private List<MumbleTalkTarget> _targets = [];
+
+    /// <summary>This server's targets. Kept, as what reads them runs on every change the server reports.</summary>
+    internal List<MumbleTalkTarget> Targets
+    {
+        get
+        {
+            lock (SentTargets)
+            {
+                if (!ReferenceEquals(_targetsOf, Server))
+                {
+                    _targets = MumbleTargets.Read(Server);
+                    _targetsOf = Server;
+                }
+                return _targets;
+            }
+        }
+    }
     internal MumbleEncoder? Encoder { get; set; }
 
     /// <summary>What is being said right now, if anything, and what its last frame must be.</summary>
@@ -96,7 +122,7 @@ public sealed class MumbleSession(MumbleServer server)
 /// <para>⚠️ Desktop only, for the same reason as Jabber: a worker logging in as the owner would fight
 /// their real client for the same seat, and has no one to listen.</para>
 /// </summary>
-public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
+public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, AvatarService? avatars = null)
 {
     public const int MaxChatLines = 5000;
     public const string InputDevicePref = "mumble.input_device";
@@ -144,7 +170,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     private Task? _keyWorker;
 
     /// <summary>A frame for everyone talking, or the last one for someone who just stopped.</summary>
-    private readonly record struct VoiceWork(short[]? Frame, MumbleSession? EndOf, MumbleTalk EndMode);
+    private readonly record struct VoiceWork(short[]? Frame, MumbleSession? EndOf, int EndSlot);
 
     /// <summary>What the protocol lets a message be, past which no real person's text goes.</summary>
     private const int MostChatChars = 20_000;
@@ -307,12 +333,13 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             foreach (var s in Sessions.Where(s => ListensForVoice(s) && s.Client is not null && s.Encoder is not null && s.TalkingNow == MumbleTalk.None))
             {
                 s.TalkingByVoice = true;
+                Volatile.Write(ref s.TalkSlot, PlainTalk);
                 Interlocked.Exchange(ref s.Talking, (int)MumbleTalk.Shout);
                 started = true;
             }
             if (started)
             {
-                while (_preRoll.TryDequeue(out var before)) _frames.Writer.TryWrite(new VoiceWork(before, null, MumbleTalk.None));
+                while (_preRoll.TryDequeue(out var before)) _frames.Writer.TryWrite(new VoiceWork(before, null, PlainTalk));
                 TalkersChanged?.Invoke();
             }
         }
@@ -346,6 +373,30 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public static int ListeningIn(IEnumerable<MumbleUser> users, uint channel) => users.Count(u => u.ChannelId == channel && !u.Deaf && !u.SelfDeaf);
 
     /// <summary>A person's lasting identity on a server: their certificate if they have one.</summary>
+    /// <summary>The name pictures are filed under for Mumble: the same as the Messages tool's.</summary>
+    public const string AvatarServiceName = "mumble";
+
+    /// <summary>
+    /// People's pictures, by their key, by "name:" and their name for the chat, which only has that, and as "me". One too
+    /// big to come with them is asked for. Nothing is fetched twice: the store keeps what it has seen.
+    /// </summary>
+    private void NoteTextures(MumbleSession session, MumbleClient client)
+    {
+        if (avatars is null) return;
+        var me = client.Session;
+        foreach (var user in client.Users)
+        {
+            if (user.Texture is { } bytes)
+            {
+                if (user.TextureHash.Length == 0) user.TextureHash = Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(bytes));
+                List<string> persons = [UserKey(user), "name:" + user.Name];
+                if (user.Session == me) persons.Add("me");
+                _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, user.TextureHash, () => Task.FromResult<byte[]?>(bytes));
+            }
+            else if (user.HasTextureToAsk) client.AskTexture(user);
+        }
+    }
+
     public static string UserKey(MumbleUser user) => user.Hash.Length > 0 ? user.Hash : $"name:{user.Name}";
 
     /// <summary>Loads the servers and connects the ones set to connect on their own.</summary>
@@ -579,11 +630,17 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(id), password), ct);
         }
 
+        var keysChanged = SessionOf(server.Id)?.Server is not { } before || before.TalkTargets != server.TalkTargets;
         var session = Track(server);
 
-        // A key changed while held would never be seen to come up.
-        StopTalking(session);
-        BindKeys(session);
+        // A key changed while held would never be seen to come up. ⚠️ Only then: this runs each time typing pauses in
+        // Settings, and correcting a server's name shouldn't cut anyone off.
+        if (keysChanged)
+        {
+            StopTalking(session);
+            BindKeys(session);
+            if (session.Client is { } client && session.State == MumbleState.Connected) _ = SendTargetsAsync(session, client, CancellationToken.None);
+        }
         UpdateOpenMic();
         SessionChanged?.Invoke(session);
         return session;
@@ -651,6 +708,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public void Connect(MumbleSession session)
     {
         if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
+
+        // A server still being filled in.
+        if (session.Server.Host.Length == 0 || session.Server.Username.Length == 0) return;
 
         lock (_gate)
         {
@@ -801,17 +861,21 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         uint lastChannel = uint.MaxValue;
         client.Changed += () =>
         {
-            // Whisper names a channel by id, so it follows this client whenever it moves.
             if (client.Me is { } me && me.ChannelId != lastChannel)
             {
                 lastChannel = me.ChannelId;
-                _ = SendTargetAsync(session, client, me.ChannelId, ct);
                 if (Volatile.Read(ref settled)) _ = RememberChannelAsync(session, client, me.ChannelId);
             }
+
+            // Targets name channels and people by ids, so they follow this client moving, people coming and going, and
+            // channels being made.
+            _ = SendTargetsAsync(session, client, ct);
+            NoteTextures(session, client);
             SessionChanged?.Invoke(session);
         };
 
         session.Client = client;
+        lock (session.SentTargets) session.SentTargets.Clear();
         await client.ConnectAsync(ct);
 
         session.Encoder = new MumbleEncoder(MumbleEncoder.BitrateFor(client.MaxBandwidth));
@@ -835,9 +899,29 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             throw new MumbleException(MumbleFailure.Network, "The connection ended.");
     }
 
-    private static async Task SendTargetAsync(MumbleSession session, MumbleClient client, uint channel, CancellationToken ct)
+    /// <summary>Tells the server any saved target that has changed, whether in Settings or by things moving on the server.</summary>
+    private static async Task SendTargetsAsync(MumbleSession session, MumbleClient client, CancellationToken ct)
     {
-        try { await client.SetChannelTargetAsync(ChannelOnlyTarget, channel, ct); }
+        var targets = session.Targets;
+        var slots = MumbleTargets.Slots(targets);
+        for (var i = 0; i < targets.Count; i++)
+        {
+            if (slots[i] <= 0) continue;
+
+            var message = MumbleClient.VoiceTargetMessage(slots[i], MumbleTargets.EntriesOf(targets[i], client));
+            lock (session.SentTargets)
+            {
+                if (session.SentTargets.TryGetValue(slots[i], out var sent) && sent.AsSpan().SequenceEqual(message)) continue;
+                session.SentTargets[slots[i]] = message;
+            }
+
+            await SendTargetAsync(client, message, ct);
+        }
+    }
+
+    private static async Task SendTargetAsync(MumbleClient client, byte[] message, CancellationToken ct)
+    {
+        try { await client.SendVoiceTargetAsync(message, ct); }
         catch (Exception e) when (e is MumbleException or OperationCanceledException or IOException) { /* the next connection sets it again */ }
     }
 
@@ -1088,31 +1172,36 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         UnbindKeys(session);
         if (session.State != MumbleState.Connected && session.Client is null) return;
 
-        session.WhisperHook = Hook(session.Server.WhisperKey, MumbleTalk.Channel);
-        session.ShoutHook   = Hook(session.Server.ShoutKey, MumbleTalk.Shout);
-
-        GlobalHotkeyService? Hook(int key, MumbleTalk mode)
+        var targets = session.Targets;
+        var slots = MumbleTargets.Slots(targets);
+        for (var i = 0; i < targets.Count; i++)
         {
-            if (key == 0) return null;
+            if (targets[i].Key == 0 || slots[i] < 0) continue;
+
+            var slot = slots[i];
+            var mode = slot == PlainTalk ? MumbleTalk.Shout : MumbleTalk.Channel;
             var hook = new GlobalHotkeyService
             {
-                OnPress   = () => _keyEvents.Writer.TryWrite(() => StartTalking(session, mode)),
-                OnRelease = () => _keyEvents.Writer.TryWrite(() => StopTalking(session, mode)),
+                OnPress   = () => _keyEvents.Writer.TryWrite(() => StartTalking(session, mode, slot)),
+                OnRelease = () => _keyEvents.Writer.TryWrite(() => StopTalkingFrom(session, slot)),
             };
-            hook.Configure(key);
-            return hook;
+            hook.Configure(targets[i].Key);
+            session.KeyHooks.Add(hook);
         }
     }
 
     private static void UnbindKeys(MumbleSession session)
     {
-        session.WhisperHook?.Dispose();
-        session.ShoutHook?.Dispose();
-        session.WhisperHook = session.ShoutHook = null;
+        foreach (var hook in session.KeyHooks) hook.Dispose();
+        session.KeyHooks.Clear();
     }
 
+    /// <summary>Starts sending the microphone to this server, as plain talk or to the first saved target.</summary>
+    public void StartTalking(MumbleSession session, MumbleTalk mode) => StartTalking(session, mode, TargetOf(mode));
+
     /// <summary>Starts sending the microphone to this server, on this key's terms.</summary>
-    public void StartTalking(MumbleSession session, MumbleTalk mode)
+    /// <param name="slot">The voice target each packet names: see <see cref="MumbleTargets.Slots"/>.</param>
+    public void StartTalking(MumbleSession session, MumbleTalk mode, int slot)
     {
         if (session.Client is null || session.Encoder is null || session.Server.Silent) return;
 
@@ -1128,6 +1217,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         // A key takes over from the voice: letting go of it, not a pause, is what ends this now.
         session.TalkingByVoice = false;
+        Volatile.Write(ref session.TalkSlot, slot);
         var was = (MumbleTalk)Interlocked.Exchange(ref session.Talking, (int)mode);
         if (TalkTone && was == MumbleTalk.None) Mixer.PlayCue(starting: true);
         _micClose?.Cancel();
@@ -1159,12 +1249,19 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         }
     }
 
-    /// <summary>Stops, if this key is the one talking: letting go of Shout while holding the other changes nothing.</summary>
+    /// <summary>Stops, if this target's key is the one talking: letting go of one while holding another changes nothing.</summary>
+    private void StopTalkingFrom(MumbleSession session, int slot)
+    {
+        if (Volatile.Read(ref session.TalkSlot) == slot) StopTalking(session);
+    }
+
+    /// <summary>Stops, if this way of talking is the one going: a voice ending doesn't end a key being held.</summary>
     public void StopTalking(MumbleSession session, MumbleTalk? onlyIf = null)
     {
         if (onlyIf is { } mode && session.TalkingNow != mode) return;
 
         var byVoice = session.TalkingByVoice;
+        var slot = Volatile.Read(ref session.TalkSlot);
         var was = (MumbleTalk)Interlocked.Exchange(ref session.Talking, (int)MumbleTalk.None);
         if (was == MumbleTalk.None) return;
 
@@ -1172,7 +1269,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         // The last frame says they let go, so the listeners' clients stop at once rather than timing out. It goes
         // through the sender: an encoder has state, and only one thread may ever use it.
-        _frames.Writer.TryWrite(new VoiceWork(null, session, was));
+        _frames.Writer.TryWrite(new VoiceWork(null, session, slot));
 
         ReleaseMicIfIdle();
         TalkersChanged?.Invoke();
@@ -1240,7 +1337,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
                 // Only once someone is talking: with the microphone open all the time, this would otherwise be most of it.
                 if (Sessions.Any(s => s.TalkingNow != MumbleTalk.None))
-                    _frames.Writer.TryWrite(new VoiceWork(frame, null, MumbleTalk.None));
+                    _frames.Writer.TryWrite(new VoiceWork(frame, null, PlainTalk));
             }
         }
     }
@@ -1264,13 +1361,13 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             try
             {
                 if (work.EndOf is { Client: { } endClient, Encoder: { } endEncoder } ended)
-                    SendOut(ended, endClient, endEncoder.Encode(silence, TargetOf(work.EndMode), last: true), mustGo: true);
+                    SendOut(ended, endClient, endEncoder.Encode(silence, work.EndSlot, last: true), mustGo: true);
                 else if (work.Frame is { } frame)
                     foreach (var session in Sessions)
                     {
                         var mode = session.TalkingNow;
                         if (mode == MumbleTalk.None || session.Client is not { } client || session.Encoder is not { } encoder) continue;
-                        SendOut(session, client, encoder.Encode(frame, TargetOf(mode), last: false), mustGo: false);
+                        SendOut(session, client, encoder.Encode(frame, Volatile.Read(ref session.TalkSlot), last: false), mustGo: false);
                     }
             }
             catch (Exception e) { errors.Log(nameof(MumbleService), "send voice", e); }
@@ -1339,15 +1436,16 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     /// </summary>
     public static string? KeyClash(MumbleServer server, IEnumerable<MumbleServer> others)
     {
-        if (server.WhisperKey != 0 && server.WhisperKey == server.ShoutKey) return server.Name;
+        var keys = KeysOf(server);
+        if (keys.Count != keys.Distinct().Count()) return server.Name;
 
         foreach (var other in others)
         {
             if (other.Id == server.Id) continue;
-            foreach (var key in new[] { server.WhisperKey, server.ShoutKey })
-                if (key != 0 && (key == other.WhisperKey || key == other.ShoutKey))
-                    return other.Name.Length > 0 ? other.Name : other.Host;
+            if (KeysOf(other).Intersect(keys).Any()) return other.Name.Length > 0 ? other.Name : other.Host;
         }
         return null;
     }
+
+    private static List<int> KeysOf(MumbleServer server) => [.. MumbleTargets.Read(server).Select(t => t.Key).Where(k => k != 0)];
 }

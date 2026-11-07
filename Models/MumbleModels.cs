@@ -1,5 +1,35 @@
 namespace EveConsole.Models;
 
+/// <summary>Who one talk key reaches on a server. Saved inside the server's row, so nothing here is a table.</summary>
+public sealed class MumbleTalkTarget
+{
+    public string Name { get; set; } = "";
+
+    /// <summary>The key that talks to it. Zero for none.</summary>
+    public int Key { get; set; }
+
+    public List<MumbleTargetChannel> Channels { get; set; } = [];
+
+    /// <summary>People it reaches wherever they are, by name, separated by commas.</summary>
+    public string People { get; set; } = "";
+
+    /// <summary>When set, only members of this server group, in the channels above, hear it.</summary>
+    public string Group { get; set; } = "";
+}
+
+/// <summary>One channel a target reaches.</summary>
+public sealed class MumbleTargetChannel
+{
+    /// <summary>The channel by its names from the root. Empty for wherever this client is at the time; see MumbleTargets.RootPath.</summary>
+    public string Path { get; set; } = "";
+
+    /// <summary>The channels linked to it as well.</summary>
+    public bool Links { get; set; }
+
+    /// <summary>The channels under it as well.</summary>
+    public bool Subchannels { get; set; }
+}
+
 /// <summary>
 /// One Mumble server, with its own keys and its own idea of how to connect. Any number of them, connected
 /// at once if wanted, each talking only on its own keys.
@@ -29,11 +59,17 @@ public class MumbleServer
     /// </summary>
     public bool   AutoConnect { get; set; }
 
-    /// <summary>The key that talks only to the current channel, and nothing linked to it. Zero for none.</summary>
+    /// <summary>
+    /// ⚠️ Only what a server saved before channel targets, read once into its first target by
+    /// <see cref="Services.Mumble.MumbleTargets.Read"/>. The key that talks only to the current channel. Zero for none.
+    /// </summary>
     public int    WhisperKey { get; set; }
 
     /// <summary>The key that shouts, the standard client's Push to Talk: the current channel and those linked to it. Zero for none.</summary>
     public int    ShoutKey   { get; set; }
+
+    /// <summary>Who each talk key reaches, as JSON: see <see cref="Services.Mumble.MumbleTargets"/>. Empty until first saved.</summary>
+    public string TalkTargets { get; set; } = "";
 
     /// <summary>Whether the person chose to be muted. ⚠️ Not changed by deafening, so that undeafening puts back what they had: see <see cref="Silent"/>.</summary>
     public bool   SelfMuted    { get; set; }

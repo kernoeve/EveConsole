@@ -52,9 +52,6 @@
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} hat dich eingeladen</value>
   </data>
-  <data name="HeadingPeople" xml:space="preserve">
-    <value>Personen</value>
-  </data>
   <data name="StateConnected" xml:space="preserve">
     <value>Verbunden</value>
   </data>
@@ -272,5 +269,134 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   </data>
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>Warte auf den Hintergrundprozess</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Das ist kein Pidgin-Smiley-Thema: Es enthält keine Datei namens theme.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>Die Datei theme ist zu groß für ein Smiley-Thema.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>Das Paket ist zu groß. Ein Paket darf bis zu 5.000 Bilder und 64 MB enthalten.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>Die Datei ließ sich nicht als ZIP öffnen.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>Keines der Bilder, die das Thema nennt, war verwendbar, daher wurde nichts geladen.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Emotes suchen</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>Kein Emote hat das im Namen.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Emotes (oder : und die ersten Buchstaben tippen)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>{0:N0} Codes · {1:N0} Bilder</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Emote-Pakete</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Codes wie :wave: erscheinen in den Räumen und Nachrichten dieses Servers als ihr Bild und lassen sich beim Schreiben auswählen. Pakete sind Pidgin-Smiley-Themen. Haben zwei Pakete denselben Code, gilt das weiter oben stehende.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>Dieser Server hat keine Emote-Pakete, Codes erscheinen daher als normaler Text.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Nach oben: hat Vorrang vor den Paketen darunter</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Nach unten</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Paket laden…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Ein Pidgin-Smiley-Thema: seine ZIP-Datei oder die Datei theme in einem entpackten Ordner. Einmal geladen, ist es auf jedem PC mit dieser Datenbank vorhanden.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Diesem Server ein Paket geben, das schon für einen anderen geladen ist</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Paket wird geladen…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0} geladen: {1:N0} Codes, {2:N0} Bilder.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} mit dieser Kopie aktualisiert, für jeden Server, der es hat: {1:N0} Codes, {2:N0} Bilder.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>{0:N0} Bilder, die das Thema nennt, fehlen im Paket und wurden ausgelassen.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} Dateien waren keine Bilder oder zu groß für ein Emote und wurden ausgelassen.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>{0} entfernen? Kein anderer Server hat es, daher wird es gelöscht. Zum Zurückholen erneut laden.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} entfernt und gelöscht, da kein anderer Server es hatte.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} von diesem Server entfernt. Andere Server, die es haben, behalten es.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Emote-Paket laden</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin-Smiley-Thema</value>
+  </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Diese Nachricht wurde gelöscht.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Von einem Moderator entfernt.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Von einem Moderator entfernt: {0}</value>
+  </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Reagieren</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Emojis suchen (englische Namen)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Smileys</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Personen und Gesten</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Herzen und Zeichen</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Tiere und Natur</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Essen und Trinken</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Aktivitäten</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Reisen und Orte</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Gegenstände</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Symbole</value>
   </data>
 </root>

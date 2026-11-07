@@ -462,6 +462,326 @@ void Check(string name, bool ok, string detail = "")
     Check("files: a type from the name", EveConsole.ViewModels.JabberViewModel.ContentTypeOf("MAP.PNG") == "image/png" && EveConsole.ViewModels.JabberViewModel.ContentTypeOf("x.unknown") == "application/octet-stream");
 }
 
+// ── Emote packs: the theme file, what is typed, and what is found in a message ───
+{
+    var theme = EmotePackReader.ParseTheme(
+        "Name=Test pack\r\nDescription=For the check\r\nIcon=wave.png\r\nAuthor=Nobody\r\n\r\n# a comment\r\n" +
+        "[default]\r\nwave.png :wave: :hi:\r\n! hidden.gif :hidden:\r\n!tight.gif :tight:\r\nlonely.png\r\nother.png :wave:\r\n" +
+        "[AIM]\r\naim.png :aim:\r\n[XMPP]\r\nxmpp.png :xmpp:\r\n");
+    Check("emote theme: the header", theme is { Name: "Test pack", Description: "For the check", Icon: "wave.png", Author: "Nobody" }, theme.ToString());
+    var codes = theme.Lines.SelectMany(l => l.Codes.Select(c => $"{l.File}={c}")).ToList();
+    Check("emote theme: every code of a line, hidden ones too, other networks left out",
+          string.Join(",", codes) == "wave.png=:wave:,wave.png=:hi:,hidden.gif=:hidden:,tight.gif=:tight:,xmpp.png=:xmpp:", string.Join(",", codes));
+}
+{
+    Check("emote typing: from the start", EmoteSet.TypedCode(":si", 3) == (0, ":si"));
+    Check("emote typing: after a space", EmoteSet.TypedCode("hi :si", 6) == (3, ":si"));
+    Check("emote typing: right after another code", EmoteSet.TypedCode(":siren::sk", 10) == (7, ":sk"));
+    Check("emote typing: not inside a word", EmoteSet.TypedCode("hi:si", 5) is null);
+    Check("emote typing: not before two letters", EmoteSet.TypedCode("hi :s", 5) is null);
+    Check("emote typing: not once the code is closed", EmoteSet.TypedCode("a :siren:", 9) is null);
+    Check("emote typing: not in an address", EmoteSet.TypedCode("see http://x.example", 20) is null);
+    Check("emote typing: only up to the caret", EmoteSet.TypedCode(":siren and more", 4) == (0, ":sir"));
+
+    var set = new EmoteSet(1);
+    set.Fill([
+        new EmoteRef(":wave:", "a", 20, 20, false), new EmoteRef(":siren:", "b", 20, 20, true), new EmoteRef(":)", "c", 16, 16, false),
+        new EmoteRef(":wave:", "z", 20, 20, false), new EmoteRef(":sirenspin:", "d", 20, 20, true),
+    ], [new EmotePickItem(new EmoteRef(":wave:", "a", 20, 20, false), [":wave:"], "Test pack")]);
+
+    string Shown(string text) => string.Join("|", set.Split(text).Select(p => p.Emote is { } e ? $"[{e.Hash}]" : p.Text));
+    Check("emote split: a code between words", Shown("hi :wave: there") == "hi |[a]| there", Shown("hi :wave: there"));
+    Check("emote split: two against each other", Shown(":wave::siren:") == "[a]|[b]", Shown(":wave::siren:"));
+    Check("emote split: case does not matter for a colon code", Shown(":WAVE:") == "[a]", Shown(":WAVE:"));
+    Check("emote split: the first pack wins a code", set.Find(":wave:")?.Hash == "a");
+    Check("emote split: an unknown code stays text", Shown("a :nope: b") == "a :nope: b", Shown("a :nope: b"));
+    Check("emote split: never inside a web address", Shown("see https://x.example/:wave:/y ok") == "see https://x.example/:wave:/y ok", Shown("see https://x.example/:wave:/y ok"));
+    Check("emote split: after an address, found again", Shown("https://x.example :wave:") == "https://x.example |[a]", Shown("https://x.example :wave:"));
+    Check("emote split: a face on its own", Shown("ok :) then") == "ok |[c]| then" && Shown(":)") == "[c]", Shown("ok :) then"));
+    Check("emote split: a face inside a word is left", Shown("a:)b") == "a:)b" && Shown(":)x") == ":)x", Shown("a:)b"));
+    Check("emote split: a colon that opens nothing", Shown("time 12:30 and :") == "time 12:30 and :", Shown("time 12:30 and :"));
+    Check("emote split: no packs, no change", EmoteSet.None.Split("hi :wave:") is [{ Text: "hi :wave:", Emote: null }]);
+
+    var starting = set.StartingWith(":si", 8).Select(e => e.Code).ToList();
+    Check("emote list: codes starting with what is typed, in order", string.Join(",", starting) == ":siren:,:sirenspin:", string.Join(",", starting));
+    Check("emote list: as many as asked", set.StartingWith(":si", 1).Count == 1);
+    Check("emote list: faces are not offered", set.StartingWith(":)", 8).Count == 0);
+    Check("emote picker: search on any part of a code", set.Search("AV").Count == 1 && set.Search("nothing").Count == 0 && set.Search(" ").Count == 1);
+}
+
+// A real pack on disk: a picture, a moving one, one that is not a picture, one missing and one reaching outside.
+static byte[] Png()
+{
+    using var bitmap = new SkiaSharp.SKBitmap(4, 4);
+    bitmap.Erase(SkiaSharp.SKColors.Orange);
+    using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+    return image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).ToArray();
+}
+
+// One pixel, two frames of 100 ms: red, then blue.
+static byte[] Gif() =>
+[
+    (byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'9', (byte)'a', 1, 0, 1, 0, 0x80, 0, 0,
+    0xFF, 0, 0, 0, 0, 0xFF,
+    0x21, 0xFF, 0x0B, (byte)'N', (byte)'E', (byte)'T', (byte)'S', (byte)'C', (byte)'A', (byte)'P', (byte)'E', (byte)'2', (byte)'.', (byte)'0', 3, 1, 0, 0, 0,
+    0x21, 0xF9, 4, 0, 10, 0, 0, 0, 0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x44, 0x01, 0,
+    0x21, 0xF9, 4, 0, 10, 0, 0, 0, 0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x4C, 0x01, 0,
+    0x3B,
+];
+
+static string ZipPack(string folder, string name, string themeText, bool withPictures = true)
+{
+    var path = Path.Combine(folder, name);
+    using var zip = System.IO.Compression.ZipFile.Open(path, System.IO.Compression.ZipArchiveMode.Create);
+    void Put(string entry, byte[] bytes) { using var s = zip.CreateEntry(entry).Open(); s.Write(bytes); }
+    if (themeText.Length > 0) Put("pack/theme", Encoding.UTF8.GetBytes(themeText));
+    if (withPictures)
+    {
+        Put("pack/still.png", Png());
+        Put("pack/moving.gif", Gif());
+        Put("pack/broken.gif", Encoding.UTF8.GetBytes("not a picture"));
+        Put("evil.png", Png());
+    }
+    return path;
+}
+
+var emoteDir = Path.Combine(Path.GetTempPath(), $"jabbercheck-emotes-{Guid.NewGuid():N}");
+Directory.CreateDirectory(emoteDir);
+const string PackTheme = "Name=Check pack\nIcon=still.png\n[default]\nstill.png :still: :wave:\nmoving.gif :moving:\nbroken.gif :broken:\ngone.png :gone:\n../evil.png :evil:\n";
+const string OtherTheme = "Name=Check pack no menu\n[default]\n! moving.gif :wave:\n! still.png :still:\n";
+var packZip = ZipPack(emoteDir, "pack.zip", PackTheme);
+var otherZip = ZipPack(emoteDir, "other.zip", OtherTheme);
+{
+    var pack = EmotePackReader.Read(packZip);
+    Check("emote pack: the pictures that are pictures", pack.Pictures.Keys.Order().SequenceEqual(["moving.gif", "still.png"]), string.Join(",", pack.Pictures.Keys));
+    Check("emote pack: a file not there is missing", pack.Missing.SequenceEqual(["gone.png"]), string.Join(",", pack.Missing));
+    Check("emote pack: not a picture, or outside the pack, is not used", pack.Unusable.Order().SequenceEqual(["../evil.png", "broken.gif"]), string.Join(",", pack.Unusable));
+    Check("emote pack: a GIF's frames are counted", pack.Info["moving.gif"].Frames == 2 && pack.Info["still.png"] is { Width: 4, Height: 4, Frames: 1 });
+
+    var unpacked = Path.Combine(emoteDir, "unpacked");
+    System.IO.Compression.ZipFile.ExtractToDirectory(packZip, unpacked);
+    var fromFolder = EmotePackReader.Read(Path.Combine(unpacked, "pack"));
+    var fromTheme = EmotePackReader.Read(Path.Combine(unpacked, "pack", "theme"));
+    Check("emote pack: an unpacked folder reads the same", fromFolder.Pictures.Count == 2 && fromFolder.Missing.Count == 1 && fromFolder.Unusable.Count == 2);
+    Check("emote pack: and so does its theme file", fromTheme.Pictures.Count == 2 && fromTheme.Theme.Name == "Check pack");
+    Check("emote pack: the folder above is found from one level up", EmotePackReader.Read(unpacked).Pictures.Count == 2);
+
+    var notZip = Path.Combine(emoteDir, "not.zip");
+    File.WriteAllText(notZip, "this is not a zip");
+    Check("emote pack: not a zip says so", Throws(() => EmotePackReader.Read(notZip)) == JabberText.EmoteNotAPack);
+    Check("emote pack: a zip with no theme says so", Throws(() => EmotePackReader.Read(ZipPack(emoteDir, "bare.zip", ""))) == JabberText.EmoteNoTheme);
+    Check("emote pack: a picture too big for an emote is refused",
+          EmotePackReader.Probe(Png()) is not null && EmotePackReader.Probe(Encoding.UTF8.GetBytes("text")) is null);
+}
+
+static string? Throws(Action act)
+{
+    try { act(); return null; }
+    catch (InvalidDataException e) { return e.Message; }
+}
+
+// ── Rooms saved the newer way (XEP-0402) ───────────────────────────────────
+{
+    XElement Item(string id, XElement? room) => new(XmppClient.PubSub + "item", new XAttribute("id", id), room);
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", new XAttribute("node", XmppClient.Bookmarks2.NamespaceName),
+            Item("ops@rooms.example", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "Operations"), new XAttribute("autojoin", "true"),
+                new XElement(XmppClient.Bookmarks2 + "nick", "Pilot"), new XElement(XmppClient.Bookmarks2 + "password", "secret"))),
+            Item("quiet@rooms.example/ignored", new XElement(XmppClient.Bookmarks2 + "conference")),
+            Item("", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "no address"))),
+            Item("other@rooms.example", new XElement(XmppClient.Bookmarks + "conference", new XAttribute("name", "the old kind, misplaced"))))));
+    var saved = XmppClient.ParseNewBookmarks(answer);
+    Check("new bookmarks: name, joining, nickname and password",
+          saved.Count == 2 && saved[0] == new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret"), string.Join(";", saved));
+    Check("new bookmarks: a room by its bare address, not joining unless it says", saved[1] == new XmppBookmark("quiet@rooms.example", "", "", false, ""));
+    Check("new bookmarks: none kept at all", XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq")).Count == 0);
+
+    // Written back: what is read again is what was meant, and nothing else in the older list is lost.
+    var room = new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret");
+    var publish = XmppClient.NewBookmarkPublish(room, withOptions: true);
+    var asRead = XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", publish.Element(XmppClient.PubSub + "publish")!.Elements()))));
+    Check("bookmark write: reads back as it was meant", asRead.SequenceEqual([room]), string.Join(";", asRead));
+    var options = publish.Element(XmppClient.PubSub + "publish-options")?.Descendants(XmppClient.DataForm + "field")
+        .ToDictionary(f => (string?)f.Attribute("var") ?? "", f => f.Element(XmppClient.DataForm + "value")?.Value ?? "");
+    Check("bookmark write: kept, and readable only by this account", options is not null && options["pubsub#persist_items"] == "true" && options["pubsub#access_model"] == "whitelist");
+    Check("bookmark write: without options for a server that will not take them", XmppClient.NewBookmarkPublish(room, withOptions: false).Element(XmppClient.PubSub + "publish-options") is null);
+    Check("bookmark write: nothing written that is not known",
+          XmppClient.NewBookmarkItem(new XmppBookmark("q@rooms.example", "", "", false, "")).ToString(SaveOptions.DisableFormatting).Contains("<nick") is false);
+
+    var storage = new XElement(XmppClient.Bookmarks + "storage",
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "ops@rooms.example"), new XAttribute("autojoin", "true"), new XElement(XmppClient.Bookmarks + "nick", "Old")),
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "other@rooms.example"), new XAttribute("name", "Someone else's")),
+        new XElement(XmppClient.Bookmarks + "url", new XAttribute("url", "https://example.test"), new XAttribute("name", "a link")));
+    var left = XmppClient.WithOldBookmark(storage, room with { AutoJoin = false });
+    var rooms = left.Elements(XmppClient.Bookmarks + "conference").ToList();
+    Check("old bookmarks: the room changed in place, once",
+          rooms.Count(c => (string?)c.Attribute("jid") == "ops@rooms.example") == 1
+          && rooms.Single(c => (string?)c.Attribute("jid") == "ops@rooms.example") is var ops && (string?)ops.Attribute("autojoin") == "false" && ops.Element(XmppClient.Bookmarks + "nick")?.Value == "Pilot");
+    Check("old bookmarks: other rooms and links are kept", rooms.Any(c => (string?)c.Attribute("jid") == "other@rooms.example") && left.Element(XmppClient.Bookmarks + "url") is not null);
+    Check("old bookmarks: the list read is not changed itself", storage.Elements(XmppClient.Bookmarks + "conference").First().Element(XmppClient.Bookmarks + "nick")?.Value == "Old");
+    Check("old bookmarks: none yet, one now", XmppClient.WithOldBookmark(null, room).Elements(XmppClient.Bookmarks + "conference").Count() == 1);
+}
+
+// ── Pictures: what presence says, and what a vCard holds ──────────────────
+{
+    XElement Presence(params object[] inside) => new(XmppClient.Client + "presence", new XAttribute("from", "them@example/x"), inside);
+    XElement Update(XElement? photo) => new(XmppClient.VCardUpdate + "x", photo);
+
+    Check("picture: the hash a presence names", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", " ABCDEF0123 ")))) == "abcdef0123");
+    Check("picture: an empty one says there is none", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo")))) == "");
+    Check("picture: not said, unknown", XmppClient.PhotoHashIn(Presence(Update(null))) is null && XmppClient.PhotoHashIn(Presence()) is null);
+    Check("picture: not a hash, not used", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", "../../etc")))) is null);
+
+    var card = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "TYPE", "image/png"),
+            new XElement(XmppClient.VCard + "BINVAL", "AQID\nBAU="))));
+    Check("picture: from a vCard, its lines joined", XmppClient.ParseVCardPhoto(card) is [1, 2, 3, 4, 5]);
+    Check("picture: a vCard with none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard"))) is null);
+    Check("picture: one that is not base64 is none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "BINVAL", "not base64!"))))) is null);
+
+    Check("initials: the first letter, in capitals", AvatarService.Initial("  bob talkalot") == "B" && AvatarService.Initial("[TAG] carl") == "T" && AvatarService.Initial("--") == "?");
+    Check("initials: the same colour for the same name, whatever its case", AvatarService.ColorIndex("Bob", 8) == AvatarService.ColorIndex(" bob ", 8));
+    Check("pictures: filed under the Messages tool's names",
+          JabberService.AvatarServiceName == EveConsole.Services.Messages.JabberDmSource.Name
+          && EveConsole.Services.Mumble.MumbleService.AvatarServiceName == EveConsole.Services.Messages.MumbleDmSource.Name);
+}
+
+// ── Reactions: what is read and what is sent ──────────────────────────────
+{
+    XElement With(string? id, params string[] emojis) =>
+        new(XmppClient.Client + "message", new XElement(XmppClient.Reactions + "reactions", id is null ? null : new XAttribute("id", id),
+            emojis.Select(e => new XElement(XmppClient.Reactions + "reaction", e))));
+
+    var read = XmppClient.ReactionsIn(With("m1", "👍", "🔥", "👍"));
+    Check("reactions: the set, each once, in order", read is ("m1", ["👍", "🔥"]), read is { } r ? string.Join(",", r.Emojis) : "null");
+    Check("reactions: an empty set takes them back", XmppClient.ReactionsIn(With("m1")) is ("m1", []));
+    Check("reactions: none without what they react to", XmppClient.ReactionsIn(With(null, "👍")) is null && XmppClient.ReactionsIn(new XElement(XmppClient.Client + "message")) is null);
+    Check("reactions: words, spaces and long strings are not emojis",
+          XmppClient.ReactionsIn(With("m1", "hello", "👍 👍", string.Concat(Enumerable.Repeat("😀", 20)), "", "❤️")) is ("m1", ["❤️"]));
+    Check("reactions: only so many", XmppClient.ReactionsIn(With("m1", [.. Enumerable.Range(0, 40).Select(i => char.ConvertFromUtf32(0x1F600 + i))]))?.Emojis.Count == XmppClient.MostReactions);
+
+    var sent = XmppClient.ReactionsMessage("ops@rooms.example", "groupchat", "S1", ["👍", "🔥"]);
+    Check("reactions: sent as the whole set, kept by the server",
+          (string?)sent.Attribute("type") == "groupchat" && XmppClient.ReactionsIn(sent) is ("S1", ["👍", "🔥"]) && sent.Element(XmppClient.Hints + "store") is not null);
+    var echoed = new XElement(sent);
+    echoed.SetAttributeValue("from", "ops@rooms.example/alice");
+    Check("reactions: what is sent is read back as a reaction, not a message",
+          XmppClient.ParseMessage(echoed, XmppAddress.Parse("me@example/here")) is { ReactionsTo: "S1", Body.Length: 0 });
+}
+
+// ── Deletes: every form they come in ──────────────────────────────────────
+{
+    var self = XmppAddress.Parse("me@example/here");
+    XElement Stanza(string from, string type, params object[] inside) =>
+        new(XmppClient.Client + "message", new XAttribute("from", from), new XAttribute("to", "me@example/here"), new XAttribute("type", type),
+            new XAttribute("id", "r1"), inside);
+
+    var own = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m1")),
+        new XElement(XmppClient.Client + "body", "/me retracted a previous message, but it's unsupported by your client.")), self);
+    Check("delete: the sender's own, as sent now", own is { RetractId: "m1", RetractByModerator: false }, own?.ToString() ?? "null");
+
+    var bare = XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m2"))), self);
+    Check("delete: with no words for older clients still counts", bare is { RetractId: "m2", Body.Length: 0 });
+
+    var moderated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "s1"),
+            new XElement(XmppClient.Moderate + "moderated", new XAttribute("by", "ops@rooms.example/boss")),
+            new XElement(XmppClient.Retract + "reason", "off topic"))), self);
+    Check("delete: a moderator's, with the reason", moderated is { RetractId: "s1", RetractByModerator: true, RetractReason: "off topic" }, moderated?.ToString() ?? "null");
+
+    var older = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "m3"), new XElement(XmppClient.OldRetract + "retract"))), self);
+    Check("delete: the older form, the sender's", older is { RetractId: "m3", RetractByModerator: false });
+
+    var olderModerated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "s2"),
+            new XElement(XmppClient.OldModerate + "moderated", new XAttribute("by", "ops@rooms.example/boss"),
+                new XElement(XmppClient.OldRetract + "retract"), new XElement(XmppClient.OldModerate + "reason", "spam")))), self);
+    Check("delete: the older form, a moderator's", olderModerated is { RetractId: "s2", RetractByModerator: true, RetractReason: "spam" });
+
+    Check("delete: an ordinary message is none", XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Client + "body", "hi")), self) is { RetractId.Length: 0 });
+
+    var roomSaid = XmppClient.ParseMessage(Stanza("ops@rooms.example/someone", "groupchat", new XElement(XmppClient.Client + "body", "hi"),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "someone@example"), new XAttribute("id", "forged")),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "ops@rooms.example"), new XAttribute("id", "real"))), self);
+    Check("delete: a room message's id is the one the room gave, not one put in by its sender", roomSaid is { RoomStanzaId: "real" }, roomSaid?.RoomStanzaId ?? "null");
+}
+
+// ── Running a room: who may do what, and what is sent for it ──────────────
+{
+    XmppOccupant P(string nick, string role, string affiliation, string jid = "", bool self = false) =>
+        new("r@rooms.example", nick, XmppShow.Online, role, affiliation, jid, self, false, "");
+
+    var owner = P("me", "moderator", "owner", "me@example", self: true);
+    var admin = P("me", "moderator", "admin", "me@example", self: true);
+    var mod = P("me", "moderator", "none", "me@example", self: true);
+    var plain = P("me", "participant", "member", "me@example", self: true);
+
+    var guest = P("guest", "participant", "none", "guest@example");
+    var hidden = P("hidden", "participant", "none");
+    var visitor = P("quiet", "visitor", "none", "quiet@example");
+    var member = P("member", "participant", "member", "member@example");
+    var otherAdmin = P("boss", "moderator", "admin", "boss@example");
+    var otherOwner = P("top", "moderator", "owner", "top@example");
+    var memberMod = P("helper", "moderator", "member", "helper@example");
+
+    Check("room rights: nothing over yourself", !JabberRoomRights.Over(owner, owner).Any && !JabberRoomRights.Over(owner, P("me", "moderator", "owner")).Any);
+    Check("room rights: nothing without a place in the room", !JabberRoomRights.Over(null, guest).Any);
+    Check("room rights: an ordinary member can do nothing to anyone", !JabberRoomRights.Over(plain, guest).Any && !JabberRoomRights.Over(plain, visitor).Any);
+
+    var m = JabberRoomRights.Over(mod, guest);
+    Check("room rights: a moderator kicks and takes voice, no more", m is { Kick: true, TakeVoice: true, GiveVoice: false, Ban: false, MakeMember: false, MakeModerator: false }, m.ToString());
+    Check("room rights: a moderator gives a visitor voice", JabberRoomRights.Over(mod, visitor) is { GiveVoice: true, TakeVoice: false });
+    Check("room rights: no moderator touches an admin or owner", !JabberRoomRights.Over(mod, otherAdmin).Kick && !JabberRoomRights.Over(admin, otherOwner).Kick && !JabberRoomRights.Over(owner, otherAdmin).Kick);
+
+    var a = JabberRoomRights.Over(admin, guest);
+    Check("room rights: an admin bans, gives membership and moderation", a is { Ban: true, MakeMember: true, MakeModerator: true, MakeAdmin: false }, a.ToString());
+    Check("room rights: an admin cannot ban another admin or an owner", !JabberRoomRights.Over(admin, otherAdmin).Ban && !JabberRoomRights.Over(admin, otherOwner).Ban);
+    Check("room rights: membership taken back, not given twice", JabberRoomRights.Over(admin, member) is { MakeMember: false, RemoveMember: true });
+    Check("room rights: a member made moderator can be put back", JabberRoomRights.Over(admin, memberMod) is { RemoveModerator: true, MakeModerator: false });
+    Check("room rights: an admin's moderation is theirs by right", !JabberRoomRights.Over(owner, otherAdmin).RemoveModerator);
+    Check("room rights: only an owner makes and unmakes admins",
+          JabberRoomRights.Over(owner, guest).MakeAdmin && JabberRoomRights.Over(owner, otherAdmin) is { RemoveAdmin: true, Ban: true } && !JabberRoomRights.Over(admin, guest).MakeAdmin);
+    Check("room rights: no address shown, nothing that needs one",
+          JabberRoomRights.Over(owner, hidden) is { Kick: true, Ban: false, MakeMember: false, MakeAdmin: false });
+
+    Check("room rights: the room's own lines",
+          JabberRoomRights.OfRoom(mod) is { ChangeTopic: true, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(plain) is { ChangeTopic: false, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(admin) is { LiftBan: true } && JabberRoomRights.OfRoom(null) is { Invite: false });
+
+    var kick = XmppClient.RoleQuery("guest", "none", "spam");
+    var item = kick.Element(XmppClient.MucAdmin + "item");
+    Check("room admin: a kick is role none by nickname, with the reason",
+          kick.Name == XmppClient.MucAdmin + "query" && (string?)item?.Attribute("nick") == "guest" && (string?)item?.Attribute("role") == "none"
+          && item?.Element(XmppClient.MucAdmin + "reason")?.Value == "spam", kick.ToString());
+    var ban = XmppClient.AffiliationQuery("Guest@Example/phone", "outcast", "");
+    Check("room admin: a ban is of the bare address, no empty reason sent",
+          (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("jid") == "guest@example"
+          && (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("affiliation") == "outcast"
+          && ban.Element(XmppClient.MucAdmin + "item")?.Element(XmppClient.MucAdmin + "reason") is null, ban.ToString());
+    var topic = XmppClient.SubjectMessage("r@rooms.example", "Ops at 20:00");
+    Check("room admin: a topic is a room message with a subject and no body",
+          (string?)topic.Attribute("type") == "groupchat" && topic.Element(XmppClient.Client + "subject")?.Value == "Ops at 20:00" && topic.Element(XmppClient.Client + "body") is null);
+    var invite = XmppClient.InviteMessage("r@rooms.example", "friend@example/pc", "come along");
+    var through = invite.Element(XmppClient.MucUser + "x")?.Element(XmppClient.MucUser + "invite");
+    Check("room admin: an invitation goes through the room, to the bare address",
+          (string?)invite.Attribute("to") == "r@rooms.example" && (string?)through?.Attribute("to") == "friend@example"
+          && through?.Element(XmppClient.MucUser + "reason")?.Value == "come along", invite.ToString());
+
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.MucAdmin + "query",
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "spammer@example"),
+            new XElement(XmppClient.MucAdmin + "reason", "spam")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "other@example")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"))));
+    var bans = XmppClient.ParseBans(answer);
+    Check("room admin: the ban list, with reasons, nothing without an address",
+          bans.Count == 2 && bans[0] == new XmppBan("spammer@example", "spam") && bans[1] == new XmppBan("other@example", ""), string.Join(";", bans));
+}
+
 var dbPath = Path.Combine(Path.GetTempPath(), $"jabbercheck-{Guid.NewGuid():N}.db");
 try
 {
@@ -577,6 +897,117 @@ try
 
         await using var cleanup = factory.CreateDbContext();
         await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
+
+    // Reactions: kept per person per message, counted, and only for messages kept here.
+    {
+        var changed = new List<string>();
+        service.ReactionsChanged += (_, c) => changed.Add(c);
+        XmppMessage To(string who, string id, string body) =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+        XmppMessage Reacting(string who, string target, params string[] emojis) =>
+            To(who, "re" + Guid.NewGuid().ToString("N")[..6], "") with { ReactionsTo = target, Reactions = emojis };
+
+        await service.StoreAsync(session, To("fan@example", "r1", "react to this"));
+        Check("reactions: not a message of their own", await service.StoreAsync(session, Reacting("fan@example", "r1", "👍", "🔥")) is null);
+        var mine = new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("fan@example"), "chat", "", "", "mr1", null, "", true)
+            { ReactionsTo = "r1", Reactions = ["👍"] };
+        await service.StoreAsync(session, mine);
+        await service.StoreAsync(session, Reacting("fan@example", "nothing-here", "😂"));
+
+        var counts = await service.ReactionsAsync(1, "fan@example", ["r1", "nothing-here"], "me@example");
+        string Shown(Dictionary<string, List<JabberReactionCount>> c, string t) =>
+            string.Join(" ", c.GetValueOrDefault(t, []).Select(x => $"{x.Emoji}{x.Count}{(x.Mine ? "*" : "")}").Order(StringComparer.Ordinal));
+        Check("reactions: counted, this account's own marked", Shown(counts, "r1") == string.Join(" ", new[] { "👍2*", "🔥1" }.Order(StringComparer.Ordinal)), Shown(counts, "r1"));
+        Check("reactions: to a message not kept here, not kept", !counts.ContainsKey("nothing-here"));
+        Check("reactions: the screens are told", changed.Count(c => c == "fan@example") == 2, string.Join(",", changed));
+
+        await service.StoreAsync(session, Reacting("fan@example", "r1", "😮"));
+        Check("reactions: a new set replaces the old", Shown(await service.ReactionsAsync(1, "fan@example", ["r1"], "me@example"), "r1") == string.Join(" ", new[] { "👍1*", "😮1" }.Order(StringComparer.Ordinal)));
+        await service.StoreAsync(session, Reacting("fan@example", "r1"));
+        await service.StoreAsync(session, mine with { Reactions = [] });
+        Check("reactions: an empty set takes them back", (await service.ReactionsAsync(1, "fan@example", ["r1"], "me@example")).Count == 0);
+
+        const string Hall = "hall@rooms.example";
+        session.Locked(s => s.RoomMap[Hall] = new JabberRoomState(new JabberRoom { AccountId = 1, RoomJid = Hall }) { Nick = "me", HistoryDone = true });
+        XmppMessage Said(string nick, string id, string body, string stanza = "") =>
+            new XmppMessage(XmppAddress.Parse($"{Hall}/{nick}"), XmppAddress.Parse("me@example"), "groupchat", body, "", id, null, stanza, false) { RoomStanzaId = stanza };
+        await service.StoreAsync(session, Said("alice", "a9", "room words", "S9"));
+        await service.StoreAsync(session, Said("bob", "b9", "") with { ReactionsTo = "S9", Reactions = ["🎉"] });
+        await service.StoreAsync(session, Said("me", "m9", "") with { ReactionsTo = "S9", Reactions = ["🎉"] });
+        await service.StoreAsync(session, Said("carl", "c9", "") with { ReactionsTo = "a9", Reactions = ["😂"] });
+        var room = await service.ReactionsAsync(1, Hall, ["S9", "a9"], "me");
+        Check("room reactions: by the room's id for the message, this account's own by its nickname", Shown(room, "S9") == "🎉2*", Shown(room, "S9"));
+        Check("room reactions: not by the sender's own id", !room.ContainsKey("a9"));
+
+        await using (var db = factory.CreateDbContext())
+            await db.JabberMessages.Where(m => m.Conversation == Hall || m.Conversation == "fan@example").ExecuteDeleteAsync();
+        await service.PurgeOldAsync();
+        await using (var db = factory.CreateDbContext())
+            Check("reactions: go with the messages they react to", !await db.JabberReactions.AnyAsync(r => r.Conversation == Hall));
+        session.Locked(s => s.RoomMap.Remove(Hall));
+    }
+
+    // Deletes: honoured only from whoever may, and the message keeps its place.
+    {
+        XmppMessage Said(string who, string id, string body) =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+        XmppMessage Deletes(string who, string id) => Said(who, "d" + id, "") with { RetractId = id };
+
+        await service.StoreAsync(session, Said("del@example", "k1", "keep this"));
+        await service.StoreAsync(session, Said("del@example", "k2", "regret this"));
+        var mine = new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("del@example"), "chat", "my words", "", "k3", null, "", true);
+        await service.StoreAsync(session, mine);
+        await service.StoreAsync(session, Deletes("del@example", "k3"));
+        var editedBefore = edited.Count;
+        Check("delete: is not a message of its own", await service.StoreAsync(session, Deletes("del@example", "k2")) is null);
+        await service.StoreAsync(session, Deletes("someone@example", "k1"));
+        await service.StoreAsync(session, Said("someone@example", "dk", "") with { RetractId = "k1", RetractByModerator = true });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == "del@example").OrderBy(m => m.Id).ToListAsync();
+            Check("delete: they cannot delete what this account said to them", rows.Count == 3 && rows[2] is { Body: "my words", Deleted: JabberDeleted.No, IsOutgoing: true });
+            await service.StoreAsync(session, mine with { Id = "dk3", Body = "", RetractId = "k3" });
+            await using (var again = factory.CreateDbContext())
+                Check("delete: but this account can, from its other client", await again.JabberMessages.AnyAsync(m => m.MessageId == "k3" && m.Deleted == JabberDeleted.BySender && m.Body == ""));
+            Check("delete: the sender's own goes, keeping its place", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender, IsRead: true, IsAlert: false }, string.Join(";", rows.Select(r => $"{r.Body}/{r.Deleted}")));
+            Check("delete: nobody else can delete theirs, nor claim to moderate a person", rows[0] is { Body: "keep this", Deleted: JabberDeleted.No });
+            Check("delete: the screen is told", edited.Count == editedBefore + 2, $"{edited.Count - editedBefore}");
+        }
+
+        const string Ops = "ops@rooms.example";
+        session.Locked(s => s.RoomMap[Ops] = new JabberRoomState(new JabberRoom { AccountId = 1, RoomJid = Ops }) { Nick = "me", HistoryDone = true });
+        XmppMessage InRoom(string nick, string id, string body, string stanza = "") =>
+            new XmppMessage(XmppAddress.Parse(nick.Length > 0 ? $"{Ops}/{nick}" : Ops), XmppAddress.Parse("me@example"), "groupchat", body, "", id, null, stanza, false) { RoomStanzaId = stanza };
+
+        await service.StoreAsync(session, InRoom("alice", "a1", "first", "S1"));
+        await service.StoreAsync(session, InRoom("alice", "a2", "second", "S2"));
+        await service.StoreAsync(session, InRoom("bob", "b1", "third", "S3"));
+
+        await service.StoreAsync(session, InRoom("bob", "x1", "") with { RetractId = "S1" });
+        await service.StoreAsync(session, InRoom("alice", "x2", "") with { RetractId = "S2" });
+        await service.StoreAsync(session, InRoom("mallory", "x3", "") with { RetractId = "S3", RetractByModerator = true });
+        await service.StoreAsync(session, InRoom("", "x4", "") with { RetractId = "S3", RetractByModerator = true, RetractReason = "off topic" });
+        await service.StoreAsync(session, InRoom("", "x5", "") with { RetractId = "S1" });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == Ops).OrderBy(m => m.Id).ToListAsync();
+            string Shown(JabberStoredMessage m) => $"{m.Sender}:{m.Body}:{m.Deleted}:{m.DeletedReason}";
+            Check("room delete: only their own, by the room's id for it", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender } && rows[0].Body == "first",
+                  string.Join(" | ", rows.Select(Shown)));
+            Check("room delete: a moderator's only from the room itself, with the reason",
+                  rows[2] is { Body: "", Deleted: JabberDeleted.ByModerator, DeletedReason: "off topic" }, Shown(rows[2]));
+            Check("room delete: the room deleting as if it were the sender changes nothing", rows[0] is { Deleted: JabberDeleted.No });
+            await db.JabberMessages.Where(m => m.Conversation == Ops || m.Conversation == "del@example").ExecuteDeleteAsync();
+        }
+        session.Locked(s => s.RoomMap.Remove(Ops));
+
+        Check("deleted line: says so, keeps nothing that was said",
+              new GroupLineVm(1, "a", "", "", "", true, null, JabberDeleted.ByModerator, "spam") is { IsDeleted: true, IsMention: false, Links.Count: 0 } line
+              && line.Body == string.Format(JabberText.MessageRemovedReason, "spam")
+              && new GroupLineVm(2, "a", "", "", "", false, null, JabberDeleted.BySender).Body == JabberText.MessageDeleted);
     }
 
     // Rules a hostile member or a strange clock could otherwise get round.
@@ -809,14 +1240,109 @@ try
         try { Directory.Delete(relayProfile, recursive: true); } catch (IOException) { /* a temp folder */ }
     }
 
+    // ── Pictures in the database: fetched only when new ──────────────────────
+    {
+        var pictures = new AvatarService(factory, new AppErrorLogger(null!));
+        var fetches = 0;
+        Func<Task<byte[]?>> Fetch(byte[]? bytes) => () => { fetches++; return Task.FromResult(bytes); };
+        async Task<List<(string Person, string Hash)>> Owners() { await using var db = factory.CreateDbContext(); return [.. (await db.ChatAvatarOwners.ToListAsync()).Select(o => (o.Person, o.Hash))]; }
+        async Task<int> Pictures() { await using var db = factory.CreateDbContext(); return await db.ChatAvatars.CountAsync(); }
+
+        var png = Png();
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        var owners = await Owners();
+        Check("pictures: fetched, kept once, under every name they go by",
+              fetches == 1 && await Pictures() == 1 && owners.Count == 2 && owners.All(o => o.Hash == owners[0].Hash), string.Join(";", owners));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        Check("pictures: the same hash again is not fetched again", fetches == 1);
+
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        Check("pictures: with no hash said, asked once", fetches == 2 && await Pictures() == 1 && (await Owners()).Count == 3);
+
+        await pictures.NoteAsync("jabber", 1, ["junk@example"], "h9", Fetch(System.Text.Encoding.UTF8.GetBytes("not a picture")));
+        Check("pictures: what is not a picture is not kept", (await Owners()).All(o => o.Person != "junk@example"));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example", "other@example"], "", Fetch(png));
+        Check("pictures: none any more, forgotten, and the picture with them", (await Owners()).Count == 0 && await Pictures() == 0);
+
+        // ⚠️ What a restart looks like: a picture saved before, announced again by the presences that
+        // arrive as the app connects. It once cost each presence three queries and a save, hundreds a
+        // second, because who has which picture was only read once one was drawn.
+        var real = Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(png));
+        string[] people = ["carol@example", "dave@example", "erin@example", "fred@example", "gina@example"];
+        foreach (var person in people) await pictures.NoteAsync("jabber", 1, [person], real, Fetch(png));
+        var fetchesBefore = fetches;
+        var restarted = new AvatarService(factory, new AppErrorLogger(null!));
+        using var counting = new CommandCounter();
+        foreach (var person in people) await restarted.NoteAsync("jabber", 1, [person], real, Fetch(png));
+        Check("pictures: after a restart, people whose pictures are saved cost only the one read of who has which",
+              fetches == fetchesBefore && counting.Count <= 3, $"{counting.Count} commands for {people.Length} people, {fetches - fetchesBefore} fetches");
+        await pictures.NoteAsync("jabber", 1, people, "", Fetch(png));
+    }
+
+    // ── Emote packs in the database: each server its own ────────────────────
+    {
+        var emotes = new EmoteService(factory, new AppErrorLogger(null!));
+        async Task<int> Count<T>(Func<AppDbContext, IQueryable<T>> of) { await using var db = factory.CreateDbContext(); return await of(db).CountAsync(); }
+
+        var loaded = await emotes.ImportAsync(packZip, 1);
+        Check("emote db: a pack loaded for a server", loaded is { Name: "Check pack", Codes: 3, Pictures: 2, Missing: 1, Unusable: 2, Replaced: false }, loaded.ToString());
+        Check("emote db: that server reads with it", emotes.For(1).Find(":moving:") is { Animated: true } && emotes.For(1).Find(":wave:") is { Width: 4 });
+        Check("emote db: another server does not", emotes.For(2).IsEmpty);
+        Check("emote db: one picture for each, not for each code", emotes.For(1).Pictures.Count == 2 && emotes.For(1).Pictures.Any(p => p.Codes.SequenceEqual([":still:", ":wave:"])));
+
+        var again = await emotes.ImportAsync(packZip, 1);
+        Check("emote db: loading it again replaces it", again.Replaced && again.PackId == loaded.PackId && await Count(db => db.EmotePacks) == 1 && await Count(db => db.EmoteCodes) == 3);
+
+        var other = await emotes.ImportAsync(otherZip, 2);
+        Check("emote db: a second pack with the same pictures keeps one copy of each", await Count(db => db.EmoteImages) == 2 && other.PackId != loaded.PackId);
+        Check("emote db: and its hidden lines are read", emotes.For(2).Find(":wave:") is { Animated: true });
+
+        await emotes.AddToAsync(2, loaded.PackId);
+        Check("emote db: a loaded pack given to a second server, after its own", emotes.For(2).Find(":wave:") is { Animated: true } && emotes.For(2).Find(":moving:") is not null);
+        await emotes.MoveAsync(2, loaded.PackId, -1);
+        Check("emote db: moved up, its code wins", emotes.For(2).Find(":wave:") is { Animated: false });
+        Check("emote db: the loaded server is untouched", (await emotes.PackIdsOfAsync(1)).SequenceEqual([loaded.PackId]) && emotes.For(1).Find(":wave:") is { Animated: false });
+
+        var packs = await emotes.PacksAsync();
+        Check("emote db: the list says which servers have each", packs.First(p => p.Id == loaded.PackId).AccountIds.Order().SequenceEqual([1, 2]) && packs.First(p => p.Id == loaded.PackId).Pictures == 2);
+
+        Check("emote db: taken off one server, kept for the other", !await emotes.RemoveFromAsync(1, loaded.PackId) && emotes.For(1).IsEmpty && emotes.For(2).Find(":moving:") is not null);
+        Check("emote db: taken off the last, it is deleted", await emotes.RemoveFromAsync(2, loaded.PackId) && await Count(db => db.EmotePacks) == 1);
+        Check("emote db: and pictures another pack has are kept", await Count(db => db.EmoteImages) == 2);
+
+        // What deleting a server does to its packs. ⚠️ Not by DeleteAccountAsync itself: that also clears a saved password.
+        await using (var db = factory.CreateDbContext())
+        {
+            await db.JabberEmotePacks.Where(l => l.AccountId == 2).ExecuteDeleteAsync();
+            await EmoteService.DeleteUnusedAsync(db);
+        }
+        Check("emote db: a server deleted takes its packs and pictures with it",
+              await Count(db => db.EmotePacks) == 0 && await Count(db => db.EmoteCodes) == 0 && await Count(db => db.EmoteImages) == 0 && await Count(db => db.JabberEmotePacks) == 0);
+
+        var bad = Path.Combine(emoteDir, "nothing.zip");
+        ZipPack(emoteDir, "nothing.zip", "Name=Empty\n[default]\ngone.png :gone:\n", withPictures: false);
+        Check("emote db: a pack with no usable picture loads nothing", await FailsAsync(() => emotes.ImportAsync(bad, 1)) == JabberText.EmoteNoPictures && await Count(db => db.EmotePacks) == 0);
+    }
+
     var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
     Check("agent: Jabber's tables are kept from the in-app agent",
           !schema.TableNames.Any(t => t.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)) && schema.TableNames.Count > 0);
+    Check("agent: and so are the emote packs", !schema.TableNames.Any(t => t.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)));
 }
 finally
 {
     Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
     try { File.Delete(dbPath); } catch (IOException) { /* a temp file, and the result is what matters */ }
+    try { Directory.Delete(emoteDir, recursive: true); } catch (IOException) { /* the same */ }
+}
+
+static async Task<string?> FailsAsync(Func<Task> act)
+{
+    try { await act(); return null; }
+    catch (InvalidDataException e) { return e.Message; }
 }
 
 Console.WriteLine($"Jabber check: {checks} check(s), {failures.Count} failure(s).");
@@ -826,6 +1352,34 @@ return failures.Count == 0 ? 0 : 1;
 sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext() => new(o);
+}
+
+/// <summary>How many database commands Entity Framework runs while this is alive, from its diagnostic events.</summary>
+sealed class CommandCounter : IObserver<System.Diagnostics.DiagnosticListener>, IObserver<KeyValuePair<string, object?>>, IDisposable
+{
+    private readonly IDisposable _all;
+    private readonly List<IDisposable> _subscriptions = [];
+    private int _count;
+
+    public CommandCounter() => _all = System.Diagnostics.DiagnosticListener.AllListeners.Subscribe(this);
+
+    public int Count => Volatile.Read(ref _count);
+
+    public void OnNext(System.Diagnostics.DiagnosticListener listener)
+    {
+        if (listener.Name == "Microsoft.EntityFrameworkCore")
+            lock (_subscriptions) _subscriptions.Add(listener.Subscribe(this, name => name.EndsWith("CommandExecuted", StringComparison.Ordinal)));
+    }
+
+    public void OnNext(KeyValuePair<string, object?> e) => Interlocked.Increment(ref _count);
+    public void OnCompleted() { }
+    public void OnError(Exception error) { }
+
+    public void Dispose()
+    {
+        _all.Dispose();
+        lock (_subscriptions) foreach (var s in _subscriptions) s.Dispose();
+    }
 }
 
 sealed class RelaySpy : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor

@@ -502,6 +502,16 @@ static string RawFile(string path)
     odd.Toggle(11);
     odd.Update(loop, [], null);
     Check("channels: a server's circular channels end", !odd.IsOpen(10));
+
+    // A search shows only the channels with someone found in them, and the way down to them.
+    var found = new MumbleChannelTree();
+    found.Update(tree, [Main, Lounge], null);
+    var holding = found.Holding([Dps, Bravo]);
+    Check("find: their channels and every one above", holding.SetEquals([Dps, Alpha, Bravo, Fleets, Root]), string.Join(",", holding.Order()));
+    Check("find: nothing else, people or not", !holding.Contains(Main) && !holding.Contains(Social) && !holding.Contains(Lounge));
+    Check("find: nobody found, nothing shown", found.Holding([]).Count == 0);
+    odd.Update(loop, [], null);
+    Check("find: circular channels end", odd.Holding([10]).SetEquals([10, 11]));
 }
 
 {
@@ -757,7 +767,265 @@ static string RawFile(string path)
     catch (Exception) { survived = false; }
     Check("mixer: voice that does not decode costs only that frame", survived);
 
+    // ── The jitter buffer: a made-up network, on a clock of its own ──
+    {
+        var jitterEncoder = new MumbleEncoder(40_000);
+        var made = new List<MumbleVoicePacket>();
+        for (var f = 0; f < 100; f++)
+            made.Add(jitterEncoder.Encode(Frame(), 0, last: false) with { Session = 3 });
+
+        // What came out over time: each 10 ms, whether anyone was heard, and the sound. Sent every 20 ms unless told otherwise.
+        (List<bool> Heard, List<short> Sound) Run(IEnumerable<(double At, MumbleVoicePacket Packet)> arrivals, double forMs, MumbleMixer? using_ = null)
+        {
+            var clock = 0.0;
+            var m = using_ ?? new MumbleMixer();
+            m.Clock = () => clock;
+            var pending = new Queue<(double At, MumbleVoicePacket Packet)>(arrivals.OrderBy(a => a.At));
+            var heard = new List<bool>();
+            var sound = new List<short>();
+            var chunk = new short[MumbleMixer.SamplesPer10Ms];
+            for (; clock < forMs; clock += 10)
+            {
+                while (pending.Count > 0 && pending.Peek().At <= clock) m.Receive(1, pending.Dequeue().Packet);
+                heard.Add(m.ReadMix(chunk) > 0);
+                sound.AddRange(chunk);
+            }
+            return (heard, sound);
+        }
+
+        IEnumerable<(double, MumbleVoicePacket)> Steady(IEnumerable<MumbleVoicePacket> packets) =>
+            packets.Select((p, i) => (20.0 * i, p));
+
+        // How many stretches of silence fall between the first sound and the last.
+        int Holes(List<bool> heard)
+        {
+            var first = heard.IndexOf(true);
+            var last = heard.LastIndexOf(true);
+            if (first < 0) return 0;
+            var holes = 0;
+            for (var i = first + 1; i <= last; i++)
+                if (!heard[i] && heard[i - 1]) holes++;
+            return holes;
+        }
+
+        var ten = 100 * 2;
+
+        var steady = Run(Steady(made), 3000);
+        Check("jitter: a clean connection has no holes", Holes(steady.Heard) == 0);
+        Check("jitter: and nothing goes missing", steady.Heard.Count(h => h) >= ten - 10, steady.Heard.Count(h => h).ToString());
+        Check("jitter: starting takes no longer than it used to", steady.Heard.IndexOf(true) <= 7, steady.Heard.IndexOf(true).ToString());
+
+        // Two swapped on the way: what comes out is exactly what would have, with the same arrival time for both.
+        var swapped = made.Select((p, i) => (At: 20.0 * i, Packet: p)).ToList();
+        (swapped[40], swapped[41]) = ((swapped[41].At, made[40]), (swapped[40].At, made[41]));
+        var inOrder = Run(swapped.Select((x, i) => (20.0 * i, made[i])), 3000);
+        var reordered = Run(swapped.OrderBy(x => x.Packet.Sequence == made[41].Sequence ? 20.0 * 40 : x.Packet.Sequence == made[40].Sequence ? 20.0 * 41 : x.At), 3000);
+        Check("jitter: packets arriving out of order play in order", inOrder.Sound.SequenceEqual(reordered.Sound));
+
+        // One never arrives.
+        var lostOne = Run(Steady(made).Where((_, i) => i != 50).Select((x, i) => (20.0 * (i >= 50 ? i + 1 : i), x.Item2)), 3000);
+        Check("jitter: a lost packet leaves no hole", Holes(lostOne.Heard) == 0);
+        Check("jitter: and takes no time out of what they said",
+              Math.Abs(lostOne.Heard.Count(h => h) - steady.Heard.Count(h => h)) <= 1, $"{lostOne.Heard.Count(h => h)} vs {steady.Heard.Count(h => h)}");
+
+        // ⚠️ The guess has to be sound, not silence, or the hole is only hidden from the count above.
+        var missingPart = lostOne.Sound.Skip(steady.Heard.IndexOf(true) * MumbleMixer.SamplesPer10Ms + 50 * MumbleEncoder.FrameSamples).Take(MumbleEncoder.FrameSamples).Select(v => (double)v * v).ToList();
+        Check("jitter: the guess is sound", Math.Sqrt(missingPart.Average()) > 2000, Math.Sqrt(missingPart.Average()).ToString("N0"));
+
+        // Several in a row, then they carry on.
+        var lostSome = Run(Steady(made).Where((_, i) => i is < 30 or > 32).Select(x => (x.Item1, x.Item2)), 3000);
+        Check("jitter: a few lost in a row leave no hole", Holes(lostSome.Heard) == 0);
+        Check("jitter: and take no time out either", Math.Abs(lostSome.Heard.Count(h => h) - steady.Heard.Count(h => h)) <= 1, lostSome.Heard.Count(h => h).ToString());
+
+        // A long stretch lost, and then they carry on. The guess stops rather than droning on.
+        var outage = Run(Steady(made).Where((_, i) => i is < 30 or > 60).Select(x => (x.Item1, x.Item2)), 3000);
+        Check("jitter: a long loss doesn't get guessed at", outage.Heard.Count(h => h) < steady.Heard.Count(h => h) - 40, outage.Heard.Count(h => h).ToString());
+        Check("jitter: and they come back after it", outage.Heard.LastIndexOf(true) > 200, outage.Heard.LastIndexOf(true).ToString());
+
+        // Nothing more arrives, and no terminator either: they stop by themselves, with only a few frames guessed.
+        var cutOff = Run(Steady(made.Take(50)), 3000);
+        Check("jitter: when a connection stops, the sound stops soon after", cutOff.Heard.Count(h => h) <= 100 + 3 * 2 + 2, cutOff.Heard.Count(h => h).ToString());
+
+        // Let go properly: nothing guessed after the last frame.
+        var tail = made.Take(49).Append(made[49] with { Last = true });
+        var letGo = Run(Steady(tail), 3000);
+        Check("jitter: letting go adds no sound they didn't make", letGo.Heard.Count(h => h) == 100, letGo.Heard.Count(h => h).ToString());
+
+        // A very short press is under the wait, and still plays.
+        var blip = Run(Steady(new[] { made[0] with { Last = true } }), 500);
+        Check("jitter: one short frame still plays", blip.Heard.Count(h => h) == 2, blip.Heard.Count(h => h).ToString());
+
+        // The next press counts from zero, as a client may after letting go.
+        var again = new List<(double, MumbleVoicePacket)>(Steady(tail));
+        again.AddRange(made.Take(29).Append(made[29] with { Last = true }).Select((p, i) => (3000 + 20.0 * i, p)));
+        var pressTwice = Run(again, 5000);
+        Check("jitter: a new press may start counting again", pressTwice.Heard.Count(h => h) == 160, pressTwice.Heard.Count(h => h).ToString());
+
+        // The next press carries on counting, a moment later: the pause isn't a loss to guess at.
+        var carryOn = new List<(double, MumbleVoicePacket)>(Steady(made.Take(49).Append(made[49] with { Last = true })));
+        carryOn.AddRange(made.Skip(58).Take(29).Append(made[87] with { Last = true }).Select((p, i) => (20.0 * 58 + 20.0 * i, p)));
+        var carriedOn = Run(carryOn, 5000);
+        Check("jitter: a pause between presses isn't guessed at", carriedOn.Heard.Count(h => h) == 160, carriedOn.Heard.Count(h => h).ToString());
+
+        // The terminator overtakes the last frames: they still play.
+        var overtaken = Steady(made.Take(50)).ToList();
+        overtaken.Add((19.0 * 49, made[49] with { Last = true, Opus = [] }));
+        var overtake = Run(overtaken, 3000);
+        Check("jitter: a terminator ahead of the last frames doesn't cut them off", overtake.Heard.Count(h => h) >= 94, overtake.Heard.Count(h => h).ToString());
+
+        // A packet whose place has gone by.
+        var stale = Steady(made.Take(60)).ToList();
+        stale.Add((20.0 * 58, made[5]));
+        var late = Run(stale, 3000);
+        Check("jitter: a packet too late to use isn't played", Math.Abs(late.Heard.Count(h => h) - Run(Steady(made.Take(60)), 3000).Heard.Count(h => h)) == 0);
+
+        // Same packet twice.
+        var doubled = Steady(made.Take(60)).Concat(Steady(made.Take(60)).Select(x => (x.Item1 + 3, x.Item2)));
+        var twice = Run(doubled, 3000);
+        Check("jitter: a packet arriving twice plays once", Math.Abs(twice.Heard.Count(h => h) - Run(Steady(made.Take(60)), 3000).Heard.Count(h => h)) <= 2, twice.Heard.Count(h => h).ToString());
+
+        // Uneven by up to 80 ms: the old fixed 60 ms ran dry. It may run dry while learning, and then it has to stop.
+        var random = new Random(4);
+        var unevenMade = new List<MumbleVoicePacket>();
+        for (var f = 0; f < 600; f++) unevenMade.Add(jitterEncoder.Encode(Frame(), 0, last: false) with { Session = 3 });
+        var unevenMixer = new MumbleMixer();
+        var uneven = Run(unevenMade.Select((p, i) => (20.0 * i + random.NextDouble() * (i < 100 ? 5 : 120), p)), 13_000, unevenMixer);
+        Check("jitter: a longer wait means packets stop coming too late", unevenMixer.LatePackets <= 20, $"{unevenMixer.LatePackets} of 600 too late");
+        Check("jitter: and few have to be guessed", unevenMixer.GuessedFrames <= 25, $"{unevenMixer.GuessedFrames} guessed");
+        var unevenHoles = Holes(uneven.Heard);
+
+        // The wait is learned once. Each press after the first has it from its first frame, and loses nothing to learning.
+        var pressesRandom = new Random(9);
+        var presses = new List<(double, MumbleVoicePacket)>();
+        var pressAt = 0.0;
+        var pressStart = new List<double>();
+        for (var press = 0; press < 12; press++)
+        {
+            pressStart.Add(pressAt);
+            var length = press == 0 ? 300 : 40;
+            for (var f = 0; f < length; f++)
+                presses.Add((pressAt + 20.0 * f + pressesRandom.NextDouble() * 120, jitterEncoder.Encode(Frame(), 0, last: f == length - 1) with { Session = 3 }));
+            pressAt += 20.0 * length + 1000;
+        }
+        var pressMixer = new MumbleMixer();
+        var firstPress = presses.Where(p => p.Item1 < pressStart[1]).ToList();
+        Run(firstPress, pressStart[1], pressMixer);
+        var lateAfterFirst = pressMixer.LatePackets;
+        var guessedAfterFirst = pressMixer.GuessedFrames;
+        var pressClock = pressStart[1];
+        pressMixer.Clock = () => pressClock;
+        var pressChunk = new short[MumbleMixer.SamplesPer10Ms];
+        var pressPending = new Queue<(double, MumbleVoicePacket)>(presses.Where(p => p.Item1 >= pressStart[1]).OrderBy(p => p.Item1));
+        for (; pressClock < pressAt; pressClock += 10)
+        {
+            while (pressPending.Count > 0 && pressPending.Peek().Item1 <= pressClock) pressMixer.Receive(1, pressPending.Dequeue().Item2);
+            pressMixer.ReadMix(pressChunk);
+        }
+        var laterLate = pressMixer.LatePackets - lateAfterFirst;
+        var laterGuessed = pressMixer.GuessedFrames - guessedAfterFirst;
+        Check("jitter: later presses start with the wait already learned", laterLate + laterGuessed <= 60, $"{laterLate} too late, {laterGuessed} guessed, of 440");
+        var learned = Holes([.. uneven.Heard.Skip(500)]);
+        Check("jitter: an uneven connection gets a longer wait", learned == 0, $"{unevenHoles} in all, {learned} after the first 5 s");
+        Check("jitter: uneven costs no words", uneven.Heard.Count(h => h) >= 600 * 2 - 40, uneven.Heard.Count(h => h).ToString());
+
+        // A burst all at once, after a stall: dropped down to the limit, not kept as a delay.
+        var flood = Run(unevenMade.Take(200).Select(p => (0.0, p)), 6000);
+        Check("jitter: a flood is cut to the longest it may fall behind", flood.Heard.Count(h => h) <= 46, flood.Heard.Count(h => h).ToString());
+
+        // A stall partway, then steady: the delay it left comes back down, without waiting for them to let go.
+        var longTalk = new List<MumbleVoicePacket>();
+        for (var f = 0; f < 800; f++) longTalk.Add(jitterEncoder.Encode(Frame(), 0, last: f == 799) with { Session = 3 });
+        var stalled = Run(longTalk.Select((p, i) => (i is >= 100 and < 110 ? 20.0 * 110 : 20.0 * i, p)), 18_000);
+        var lastHeardAt = stalled.Heard.LastIndexOf(true) * 10;
+        Check("jitter: the delay after a stall comes back down", lastHeardAt <= 800 * 20 + 100, $"{lastHeardAt} ms, last sent at {800 * 20}");
+
+        // Volume still applies to what's waiting, and to a guess.
+        var halfMixer = new MumbleMixer();
+        var clock2 = 0.0;
+        halfMixer.Clock = () => clock2;
+        var chunk2 = new short[MumbleMixer.SamplesPer10Ms];
+        var halfSound = new List<short>();
+        for (var f = 0; f < 200; f++, clock2 += 10)
+        {
+            if (f % 2 == 0 && f / 2 < 100 && f / 2 != 60) halfMixer.Receive(1, made[f / 2], 0.5);
+            halfMixer.ReadMix(chunk2);
+            halfSound.AddRange(chunk2);
+        }
+        var halfRms = Math.Sqrt(halfSound.Skip(halfSound.Count / 2).Take(halfSound.Count / 4).Select(v => (double)v * v).Average());
+        Check("jitter: someone's volume still applies, guess included", halfRms is > 4000 and < 7000, halfRms.ToString("N0"));
+
+        var damaged = new MumbleMixer { Clock = () => 0 };
+        var junkAndGood = new short[MumbleMixer.SamplesPer10Ms];
+        var damagedOk = true;
+        try
+        {
+            damaged.Receive(1, new MumbleVoicePacket(0, 9, 0, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF], false));
+            for (var f = 1; f < 8; f++) damaged.Receive(1, made[f] with { Session = 9, Sequence = f * 2 });
+            for (var f = 0; f < 20; f++) damaged.ReadMix(junkAndGood);
+        }
+        catch (Exception) { damagedOk = false; }
+        Check("jitter: a damaged packet costs only itself when its turn comes", damagedOk);
+    }
+
     Check("encoder: stays within what the server allows", MumbleEncoder.BitrateFor(40_000) <= 40_000 && MumbleEncoder.BitrateFor(0) > 0, $"{MumbleEncoder.BitrateFor(40_000)}");
+}
+
+// ── Channel targets ──────────────────────────────────────────────────
+{
+    var old = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x70, ShoutKey = 0x71 };
+    var firstRead = MumbleTargets.Read(old);
+    Check("targets: a server from before them has the two defaults", firstRead.Count == 2);
+    Check("targets: and keeps the keys it had", firstRead[0].Key == 0x70 && firstRead[1].Key == 0x71);
+    Check("targets: whisper is the channel I'm in, and nothing else", firstRead[0].Channels is [{ Path.Length: 0, Links: false, Subchannels: false }]);
+    Check("targets: shout is plain talk", MumbleTargets.IsPlainTalk(firstRead[1]));
+    Check("targets: whisper isn't", !MumbleTargets.IsPlainTalk(firstRead[0]));
+    Check("targets: numbered as the server expects", MumbleTargets.Slots(firstRead) is [1, 0]);
+
+    var saved = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x70, ShoutKey = 0x71, TalkTargets = MumbleTargets.Write(firstRead) };
+    var again = MumbleTargets.Read(saved);
+    Check("targets: survive being saved", again.Count == 2 && again[0].Key == 0x70 && again[0].Name == firstRead[0].Name && again[1].Channels[0].Links);
+
+    var none = new MumbleServer { TalkTargets = MumbleTargets.Write([]), WhisperKey = 0x70 };
+    Check("targets: all removed stay removed", MumbleTargets.Read(none).Count == 0);
+    Check("targets: nothing left on the old keys either", MumbleService.KeyClash(new MumbleServer { Id = 9, WhisperKey = 0x70 }, [none]) is null);
+
+    var broken = new MumbleServer { TalkTargets = "{not json", WhisperKey = 0x70 };
+    Check("targets: what can't be read becomes the defaults", MumbleTargets.Read(broken) is [{ Key: 0x70 }, _]);
+
+    MumbleTalkTarget Plain(params MumbleTargetChannel[] channels) => new() { Channels = [.. channels] };
+    Check("targets: a group stops it being plain talk", !MumbleTargets.IsPlainTalk(new MumbleTalkTarget { Group = "admin", Channels = [new MumbleTargetChannel { Links = true }] }));
+    Check("targets: people stop it being plain talk", !MumbleTargets.IsPlainTalk(new MumbleTalkTarget { People = "Ann", Channels = [new MumbleTargetChannel { Links = true }] }));
+    Check("targets: subchannels stop it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Links = true, Subchannels = true })));
+    Check("targets: a named channel stops it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Path = "Ops", Links = true })));
+    Check("targets: a second channel stops it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Links = true }, new MumbleTargetChannel { Path = "Ops" })));
+
+    var many = Enumerable.Range(0, 33).Select(_ => Plain(new MumbleTargetChannel { Path = "Ops" })).ToList();
+    var manySlots = MumbleTargets.Slots(many);
+    Check("targets: a server has room for 30", manySlots[29] == 30 && manySlots[30] == -1 && manySlots[32] == -1);
+
+    // What goes to the server.
+    var written = MumbleClient.VoiceTargetMessage(5, [new MumbleTargetEntry(7, "admin", true, true, [])]);
+    var expected = new PbWriter().UInt(1, 5).Bytes(2, new PbWriter().UInt(2, 7).Text(3, "admin").Bool(4, true).Bool(5, true).ToArray()).ToArray();
+    Check("targets: a channel, with its group, links and subchannels", written.SequenceEqual(expected));
+
+    var people = MumbleClient.VoiceTargetMessage(6, [new MumbleTargetEntry(null, "", false, false, [11, 12])]);
+    var peopleExpected = new PbWriter().UInt(1, 6).Bytes(2, new PbWriter().UInt(1, 11).UInt(1, 12).ToArray()).ToArray();
+    Check("targets: people by session, with no channel", people.SequenceEqual(peopleExpected));
+
+    var both = MumbleClient.VoiceTargetMessage(6, [new MumbleTargetEntry(7, "", false, false, []), new MumbleTargetEntry(8, "", false, false, [])]);
+    Check("targets: several parts go as several", both.SequenceEqual(new PbWriter().UInt(1, 6).Bytes(2, new PbWriter().UInt(2, 7).ToArray()).Bytes(2, new PbWriter().UInt(2, 8).ToArray()).ToArray()));
+
+    // Keys across targets and servers.
+    MumbleServer WithKeys(int id, params int[] keys) => new()
+    {
+        Id = id, Name = $"S{id}",
+        TalkTargets = MumbleTargets.Write(keys.Select(k => new MumbleTalkTarget { Key = k, Channels = [new MumbleTargetChannel()] })),
+    };
+    Check("targets: two keys alike on one server clash", MumbleService.KeyClash(WithKeys(1, 5, 5), []) == "S1");
+    Check("targets: a third target's key clashes with another server's", MumbleService.KeyClash(WithKeys(1, 5, 6, 7), [WithKeys(2, 7)]) == "S2");
+    Check("targets: and with an old server's", MumbleService.KeyClash(WithKeys(1, 0x70), [new MumbleServer { Id = 2, Name = "Old", ShoutKey = 0x70 }]) == "Old");
+    Check("targets: no key is no clash", MumbleService.KeyClash(WithKeys(1, 0, 0), [WithKeys(2, 0)]) is null);
+    Check("targets: different keys are fine", MumbleService.KeyClash(WithKeys(1, 5, 6), [WithKeys(2, 7)]) is null);
 }
 
 // ── Each key belongs to one server ────────────────────────────────────────────

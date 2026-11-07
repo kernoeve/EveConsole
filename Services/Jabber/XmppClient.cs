@@ -26,6 +26,23 @@ public sealed record XmppMessage(
 
     /// <summary>Its date has already been judged, on arrival: it was held back until a room's catch-up finished.</summary>
     public bool DateJudged { get; init; }
+
+    /// <summary>The room's own id for it, from the room itself. What a moderator's removal names.</summary>
+    public string RoomStanzaId { get; init; } = "";
+
+    /// <summary>Not a message but a delete of one: the id it names. Blank for an ordinary message.</summary>
+    public string RetractId { get; init; } = "";
+
+    /// <summary>The delete is a room moderator's, not the sender's own.</summary>
+    public bool RetractByModerator { get; init; }
+
+    public string RetractReason { get; init; } = "";
+
+    /// <summary>Not a message but someone's reactions to one: its id. Blank for an ordinary message.</summary>
+    public string ReactionsTo { get; init; } = "";
+
+    /// <summary>Their whole set of reactions to it now. Empty takes them all back.</summary>
+    public IReadOnlyList<string> Reactions { get; init; } = [];
 }
 
 /// <summary>How far an archive query got.</summary>
@@ -41,7 +58,11 @@ public sealed record XmppUploadSlot(string PutUrl, string GetUrl, IReadOnlyList<
 
 public sealed record XmppRosterItem(string Jid, string Name, string Subscription, bool AskedByUs, IReadOnlyList<string> Groups);
 
-public sealed record XmppPresence(XmppAddress From, XmppShow Show, string Status);
+public sealed record XmppPresence(XmppAddress From, XmppShow Show, string Status)
+{
+    /// <summary>The picture they say they have (XEP-0153): its hash, "" for none, or null when they say nothing.</summary>
+    public string? PhotoHash { get; init; }
+}
 
 /// <summary>An invitation into a room.</summary>
 public sealed record XmppInvite(string Room, string From, string Reason, string Password);
@@ -49,7 +70,11 @@ public sealed record XmppInvite(string Room, string From, string Reason, string 
 /// <summary>Someone in a room, as of their latest presence there.</summary>
 /// <param name="Self">The server says this presence is about this client's own nickname.</param>
 public sealed record XmppOccupant(
-    string Room, string Nick, XmppShow Show, string Role, string Affiliation, string RealJid, bool Self, bool Left, string Status);
+    string Room, string Nick, XmppShow Show, string Role, string Affiliation, string RealJid, bool Self, bool Left, string Status)
+{
+    /// <summary>See <see cref="XmppPresence.PhotoHash"/>.</summary>
+    public string? PhotoHash { get; init; }
+}
 
 public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, NotFound, Other }
 
@@ -72,7 +97,7 @@ public sealed record XmppBookmark(string Jid, string Name, string Nick, bool Aut
 /// <para>⚠️ Events fire on the reading thread, in the order the server sent things. Anything slow done
 /// inside one holds up everything behind it, including the keep-alive's answers.</para>
 /// </summary>
-public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
+public sealed partial class XmppClient(XmppConnection connection) : IAsyncDisposable
 {
     public static readonly XNamespace Client    = XmppConnection.Client;
     public static readonly XNamespace Roster    = "jabber:iq:roster";
@@ -96,11 +121,20 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
     public static readonly XNamespace StanzaId  = "urn:xmpp:sid:0";
     public static readonly XNamespace Private   = "jabber:iq:private";
     public static readonly XNamespace Bookmarks = "storage:bookmarks";
+    public static readonly XNamespace Bookmarks2 = "urn:xmpp:bookmarks:1";
+    public static readonly XNamespace PubSub    = "http://jabber.org/protocol/pubsub";
     public static readonly XNamespace Version   = "jabber:iq:version";
     public static readonly XNamespace Stanzas   = "urn:ietf:params:xml:ns:xmpp-stanzas";
     public static readonly XNamespace Receipts  = "urn:xmpp:receipts";
     public static readonly XNamespace Correct   = "urn:xmpp:message-correct:0";
     public static readonly XNamespace DirectInvite = "jabber:x:conference";
+    public static readonly XNamespace Retract   = "urn:xmpp:message-retract:1";
+    public static readonly XNamespace OldRetract = "urn:xmpp:message-retract:0";
+    public static readonly XNamespace Moderate  = "urn:xmpp:message-moderate:1";
+    public static readonly XNamespace OldModerate = "urn:xmpp:message-moderate:0";
+    public static readonly XNamespace Fasten    = "urn:xmpp:fasten:0";
+    public static readonly XNamespace VCard     = "vcard-temp";
+    public static readonly XNamespace VCardUpdate = "vcard-temp:x:update";
 
     private static readonly TimeSpan IqTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(60);
@@ -296,8 +330,42 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             return;
         }
 
-        if (message.Body.Length > 0) MessageReceived?.Invoke(message);
+        // A delete usually carries words for clients that cannot do one, but need not.
+        if (message.Body.Length > 0 || message.RetractId.Length > 0 || message.ReactionsTo.Length > 0) MessageReceived?.Invoke(message);
     }
+
+    /// <summary>
+    /// What a delete names, if this is one: the sender's own (XEP-0424), or a room moderator's (XEP-0425), in the current
+    /// form or the older one still in use, which wrapped it in apply-to. Who may delete what is decided where it is saved.
+    /// </summary>
+    public static (string Id, bool Moderated, string Reason)? RetractionIn(XElement inner)
+    {
+        if (inner.Element(Retract + "retract") is { } retract && (string?)retract.Attribute("id") is { Length: > 0 } id)
+            return (id, retract.Element(Moderate + "moderated") is not null,
+                    retract.Element(Retract + "reason")?.Value ?? retract.Element(Moderate + "reason")?.Value ?? "");
+
+        if (inner.Element(Fasten + "apply-to") is { } apply && (string?)apply.Attribute("id") is { Length: > 0 } old)
+        {
+            if (apply.Element(OldModerate + "moderated") is { } moderated && moderated.Element(OldRetract + "retract") is not null)
+                return (old, true, moderated.Element(OldModerate + "reason")?.Value ?? "");
+            if (apply.Element(OldRetract + "retract") is not null) return (old, false, "");
+        }
+        return null;
+    }
+
+    private static XmppMessage WithRetraction(XmppMessage message, XElement inner)
+    {
+        if (RetractionIn(inner) is (string id, bool moderated, string reason))
+            message = message with { RetractId = id, RetractByModerator = moderated, RetractReason = reason };
+        if (ReactionsIn(inner) is (string target, List<string> emojis))
+            message = message with { ReactionsTo = target, Reactions = emojis };
+        return message;
+    }
+
+    /// <summary>The id a room gave a message, only when the room itself says so: anyone in it could put one in.</summary>
+    private static string RoomStanzaIdIn(XElement inner, string room) =>
+        (string?)inner.Elements(StanzaId + "stanza-id")
+            .FirstOrDefault(e => XmppAddress.Parse((string?)e.Attribute("by")).Bare == room)?.Attribute("id") ?? "";
 
     /// <summary>An invitation, in either of the forms servers and clients send, or null.</summary>
     public static XmppInvite? ParseInvite(XElement stanza)
@@ -357,10 +425,13 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                  && DateTimeOffset.TryParseExact((string?)old.Attribute("stamp"), "yyyyMMdd'T'HH:mm:ss", CultureInfo.InvariantCulture,
                      DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var oldStamp)) sent = oldStamp;
 
-        return new XmppMessage(
-            XmppAddress.Parse((string?)inner.Attribute("from")),
+        var from = XmppAddress.Parse((string?)inner.Attribute("from"));
+        var type = (string?)inner.Attribute("type") ?? "normal";
+
+        return WithRetraction(new XmppMessage(
+            from,
             XmppAddress.Parse((string?)inner.Attribute("to")),
-            (string?)inner.Attribute("type") ?? "normal",
+            type,
             inner.Element(Client + "body")?.Value ?? "",
             inner.Element(Client + "subject")?.Value ?? "",
             (string?)inner.Attribute("id") ?? "",
@@ -370,7 +441,8 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         {
             IsCorrection = inner.Element(Correct + "replace") is not null,
             ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
-        };
+            RoomStanzaId = type == "groupchat" ? RoomStanzaIdIn(inner, from.Bare) : "",
+        }, inner);
     }
 
     private void HandlePresence(XElement stanza)
@@ -396,6 +468,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
 
         var show   = type == "unavailable" ? XmppShow.Offline : ParseShow(stanza.Element(Client + "show")?.Value);
         var status = stanza.Element(Client + "status")?.Value ?? "";
+        var photo  = PhotoHashIn(stanza);
 
         if (user is not null)
         {
@@ -413,11 +486,38 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
                 from.Bare, from.Resource, show,
                 (string?)item?.Attribute("role") ?? "", (string?)item?.Attribute("affiliation") ?? "",
                 XmppAddress.Parse((string?)item?.Attribute("jid")).Bare,
-                codes.Contains("110"), type == "unavailable", status));
+                codes.Contains("110"), type == "unavailable", status) { PhotoHash = photo });
             return;
         }
 
-        PresenceChanged?.Invoke(new XmppPresence(from, show, status));
+        PresenceChanged?.Invoke(new XmppPresence(from, show, status) { PhotoHash = photo });
+    }
+
+    /// <summary>
+    /// The picture a presence names (XEP-0153): its hash, "" when it says there is none, or null when it does not say,
+    /// as a client that has not read its own vCard yet is to do. ⚠️ Only a hash's own characters: it is used as a key.
+    /// </summary>
+    public static string? PhotoHashIn(XElement presence)
+    {
+        if (presence.Element(VCardUpdate + "x") is not { } update || update.Element(VCardUpdate + "photo") is not { } photo) return null;
+        var hash = photo.Value.Trim().ToLowerInvariant();
+        return hash.Length <= 64 && hash.All(Uri.IsHexDigit) ? hash : null;
+    }
+
+    /// <summary>The picture in a vCard, or null for none.</summary>
+    public static byte[]? ParseVCardPhoto(XElement answer)
+    {
+        var data = answer.Element(VCard + "vCard")?.Element(VCard + "PHOTO")?.Element(VCard + "BINVAL")?.Value;
+        if (string.IsNullOrWhiteSpace(data)) return null;
+        try { return Convert.FromBase64String(string.Concat(data.Where(c => !char.IsWhiteSpace(c)))); }
+        catch (FormatException) { return null; }
+    }
+
+    /// <summary>Someone's picture from their vCard: at an address, or this account's own with none. Null for none or no answer.</summary>
+    public async Task<byte[]?> VCardPhotoAsync(string? at, CancellationToken ct)
+    {
+        try { return ParseVCardPhoto(await QueryAsync("get", at, new XElement(VCard + "vCard"), ct)); }
+        catch (Exception e) when (e is XmppException or TimeoutException) { return null; }
     }
 
     public static XmppShow ParseShow(string? show) => show?.Trim() switch
@@ -673,7 +773,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         if (type is "groupchat" or "error") return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        if (body.Length == 0) return null;
+        if (body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null) return null;
 
         var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
 
@@ -686,7 +786,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         if (DateTimeOffset.TryParse((string?)forwarded.Element(Delay + "delay")?.Attribute("stamp"), CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp)) sent = stamp;
 
-        return new XmppMessage(
+        return WithRetraction(new XmppMessage(
             sender,
             XmppAddress.Parse((string?)inner.Attribute("to")),
             type, body,
@@ -699,7 +799,10 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
             ArchiveId = (string?)result.Attribute("id") ?? "",
             IsCorrection = inner.Element(Correct + "replace") is not null,
             ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
-        };
+
+            // A room's archive is the room speaking, and its id for each message is the one its moderators name.
+            RoomStanzaId = type == "groupchat" ? (string?)result.Attribute("id") ?? "" : "",
+        }, inner);
     }
 
     /// <summary>
@@ -727,7 +830,7 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         if (sender.Bare != room) return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        return body.Length == 0 ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
+        return body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
     }
 
     /// <summary>Whether this account's server keeps an archive to ask.</summary>
@@ -894,6 +997,103 @@ public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
         }
         catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
     }
+
+    /// <summary>
+    /// The rooms saved the newer way (XEP-0402): one item each in the account's own store, under the room's address.
+    /// Empty when the server keeps none this way. Newer clients save only here, older ones only in the private store.
+    /// </summary>
+    public async Task<IReadOnlyList<XmppBookmark>> GetNewBookmarksAsync(CancellationToken ct)
+    {
+        try
+        {
+            var answer = await QueryAsync("get", null,
+                new XElement(PubSub + "pubsub", new XElement(PubSub + "items", new XAttribute("node", Bookmarks2.NamespaceName))), ct);
+            return ParseNewBookmarks(answer);
+        }
+        catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
+    }
+
+    public const string BookmarksInStepFeature = "urn:xmpp:bookmarks:1#compat";
+
+    /// <summary>A room as the newer store keeps it: an item under the room's address. Only what is known is written.</summary>
+    public static XElement NewBookmarkItem(XmppBookmark b) =>
+        new(PubSub + "item", new XAttribute("id", b.Jid),
+            new XElement(Bookmarks2 + "conference",
+                b.Name.Length > 0 ? new XAttribute("name", b.Name) : null,
+                new XAttribute("autojoin", b.AutoJoin ? "true" : "false"),
+                b.Nick.Length > 0 ? new XElement(Bookmarks2 + "nick", b.Nick) : null,
+                b.Password.Length > 0 ? new XElement(Bookmarks2 + "password", b.Password) : null));
+
+    /// <summary>
+    /// The publish for one room. ⚠️ With the options the protocol asks for, so the list is kept and only this account
+    /// can read it: rooms' passwords are in it. A server that will not take options is asked without them.
+    /// </summary>
+    public static XElement NewBookmarkPublish(XmppBookmark b, bool withOptions)
+    {
+        var pubsub = new XElement(PubSub + "pubsub",
+            new XElement(PubSub + "publish", new XAttribute("node", Bookmarks2.NamespaceName), NewBookmarkItem(b)));
+        if (withOptions)
+            pubsub.Add(new XElement(PubSub + "publish-options", new XElement(DataForm + "x", new XAttribute("type", "submit"),
+                Field("FORM_TYPE", "http://jabber.org/protocol/pubsub#publish-options", hidden: true),
+                Field("pubsub#persist_items", "true"),
+                Field("pubsub#max_items", "max"),
+                Field("pubsub#send_last_published_item", "never"),
+                Field("pubsub#access_model", "whitelist"))));
+        return pubsub;
+
+        static XElement Field(string name, string value, bool hidden = false) =>
+            new(DataForm + "field", new XAttribute("var", name), hidden ? new XAttribute("type", "hidden") : null, new XElement(DataForm + "value", value));
+    }
+
+    /// <summary>A room as the older private store keeps it.</summary>
+    public static XElement OldBookmarkElement(XmppBookmark b) =>
+        new(Bookmarks + "conference", new XAttribute("jid", b.Jid),
+            b.Name.Length > 0 ? new XAttribute("name", b.Name) : null,
+            new XAttribute("autojoin", b.AutoJoin ? "true" : "false"),
+            b.Nick.Length > 0 ? new XElement(Bookmarks + "nick", b.Nick) : null,
+            b.Password.Length > 0 ? new XElement(Bookmarks + "password", b.Password) : null);
+
+    /// <summary>
+    /// The older store with one room put in or changed. ⚠️ The store is one list written whole, so everything else in it
+    /// (other rooms, saved links, what other clients added) is carried over as it was.
+    /// </summary>
+    public static XElement WithOldBookmark(XElement? storage, XmppBookmark b)
+    {
+        var copy = storage is null ? new XElement(Bookmarks + "storage") : new XElement(storage);
+        copy.Elements(Bookmarks + "conference").Where(c => XmppAddress.Parse((string?)c.Attribute("jid")).Bare == b.Jid).Remove();
+        copy.Add(OldBookmarkElement(b));
+        return copy;
+    }
+
+    public async Task PublishNewBookmarkAsync(XmppBookmark b, CancellationToken ct)
+    {
+        try { await QueryAsync("set", null, NewBookmarkPublish(b, withOptions: true), ct); }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { await QueryAsync("set", null, NewBookmarkPublish(b, withOptions: false), ct); }
+    }
+
+    public async Task SaveOldBookmarkAsync(XmppBookmark b, CancellationToken ct)
+    {
+        XElement? storage;
+        try
+        {
+            var answer = await QueryAsync("get", null, new XElement(Private + "query", new XElement(Bookmarks + "storage")), ct);
+            storage = answer.Element(Private + "query")?.Element(Bookmarks + "storage");
+        }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { storage = null; }
+
+        await QueryAsync("set", null, new XElement(Private + "query", WithOldBookmark(storage, b)), ct);
+    }
+
+    public static List<XmppBookmark> ParseNewBookmarks(XElement answer) =>
+        [.. (answer.Element(PubSub + "pubsub")?.Element(PubSub + "items")?.Elements(PubSub + "item") ?? [])
+            .Select(item => (Jid: XmppAddress.Parse((string?)item.Attribute("id")).Bare, Room: item.Element(Bookmarks2 + "conference")))
+            .Where(x => x.Jid.Length > 0 && x.Room is not null)
+            .Select(x => new XmppBookmark(
+                x.Jid,
+                (string?)x.Room!.Attribute("name") ?? "",
+                x.Room.Element(Bookmarks2 + "nick")?.Value ?? "",
+                (string?)x.Room.Attribute("autojoin") is "true" or "1",
+                x.Room.Element(Bookmarks2 + "password")?.Value ?? ""))];
 
     /// <summary>Removes what XML cannot carry. ⚠️ One stray control character would otherwise throw on send.</summary>
     public static string Clean(string text) =>

@@ -111,16 +111,43 @@ public sealed class GroupChatRowVm : ReactiveObject
 /// <summary>One message in a room or on a Mumble server. Both read the same on the screen.</summary>
 public sealed partial class GroupLineVm
 {
-    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention)
+    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention, EmoteSet? emotes = null,
+        int deleted = JabberDeleted.No, string deletedReason = "")
     {
         Id = id;
+        IsDeleted = deleted != JabberDeleted.No;
+        Emotes = IsDeleted ? EmoteSet.None : emotes ?? EmoteSet.None;
         Sender = sender;
-        Body = body;
+        Body = IsDeleted ? DeletedText(deleted, deletedReason) : body;
         When = when;
         Channel = channel;
-        IsMention = isMention;
-        Links = [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+        IsMention = isMention && !IsDeleted;
+        Links = IsDeleted ? [] : [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
     }
+
+    /// <summary>A deleted message keeps its place, and says so, as other clients show it.</summary>
+    public bool IsDeleted { get; }
+
+    /// <summary>Whose picture goes beside it.</summary>
+    public AvatarRef? Avatar { get; init; }
+
+    /// <summary>What a reaction to it names: the room's id for it. Blank where it cannot be reacted to.</summary>
+    public string ReactTarget { get; init; } = "";
+    public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
+
+    public ObservableCollection<ReactionChipVm> Reactions { get; } = [];
+
+    /// <summary>Takes on its reactions as they stand. ⚠️ In place: the chips are on screen.</summary>
+    public void SetReactions(IReadOnlyList<JabberReactionCount>? counts)
+    {
+        Reactions.Clear();
+        foreach (var c in counts ?? []) Reactions.Add(new ReactionChipVm(c));
+    }
+
+    public static string DeletedText(int deleted, string reason) =>
+        deleted != JabberDeleted.ByModerator ? JabberText.MessageDeleted
+        : reason.Length > 0 ? string.Format(CultureInfo.CurrentCulture, JabberText.MessageRemovedReason, reason)
+        : JabberText.MessageRemoved;
 
     public long Id { get; }
     public string Sender { get; }
@@ -133,12 +160,24 @@ public sealed partial class GroupLineVm
 
     public bool IsMention { get; }
 
+    /// <summary>The emotes of the server it was said on. None for a Mumble server's.</summary>
+    public EmoteSet Emotes { get; }
+
     /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
     public IReadOnlyList<string> Links { get; }
     public bool HasLinks => Links.Count > 0;
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
     private static partial System.Text.RegularExpressions.Regex UrlPattern();
+}
+
+/// <summary>One emoji under a message, how many chose it, and who, for its tip.</summary>
+public sealed class ReactionChipVm(JabberReactionCount count)
+{
+    public string Emoji => count.Emoji;
+    public string CountText => count.Count.ToString("N0", CultureInfo.CurrentCulture);
+    public string Tip => string.Join(", ", count.Who);
+    public bool Mine => count.Mine;
 }
 
 public sealed record JabberAlertChoice(int Mode, string Label);
@@ -149,6 +188,13 @@ public sealed record GroupRoomSortChoice(int Sort, string Label);
 
 public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 {
+    /// <summary>All the room says about them: affiliation, real address, whether it is the person themselves.</summary>
+    public XmppOccupant? Person { get; init; }
+
+    public bool IsSelf => Person?.Self ?? false;
+
+    public AvatarRef? Avatar { get; init; }
+
     public bool DotGreen => Dot == "green";
     public bool DotAmber => Dot == "amber";
     public bool DotRed => Dot == "red";
@@ -238,6 +284,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private readonly AlarmSoundService _sound;
     private readonly AlarmMuteState _mute;
     private readonly AppPreferencesService _prefs;
+    private readonly EmoteService? _emotes;
 
     private List<JabberUnread> _unread = [];
     private readonly Dictionary<int, (int Count, int Mentions)> _mumbleUnread = [];
@@ -247,8 +294,9 @@ public sealed class GroupChatViewModel : ReactiveObject
     private bool _refreshAgain;
     private bool _loadingDetail;
 
-    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null)
     {
+        _emotes = emotes;
         _jabber = jabber;
         _mumble = mumble;
         _prefs = prefs;
@@ -304,6 +352,10 @@ public sealed class GroupChatViewModel : ReactiveObject
         {
             if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = OpenSelectedAsync();
         });
+        _jabber.ReactionsChanged += (account, conversation) => Dispatcher.UIThread.Post(() =>
+        {
+            if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = LoadReactionsAsync();
+        });
         _mumble.SessionChanged += _ => QueueRefresh();
         _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnMumbleChat(session, line));
 
@@ -325,6 +377,7 @@ public sealed class GroupChatViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
             IsAddingRooms = false;
             this.RaisePropertyChanged(nameof(Draft));
+            DraftEmotes = value is { IsRoom: true } room ? EmotesOf(room.ServerId) : EmoteSet.None;
             _ = OpenSelectedAsync();
         }
     }
@@ -631,6 +684,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
             foreach (var m in page) Lines.Add(ToLine(m));
             HasEarlier = page.Count == PageSize;
+            await LoadReactionsAsync();
         }
         else return;
 
@@ -638,15 +692,29 @@ public sealed class GroupChatViewModel : ReactiveObject
         await MarkOpenReadAsync();
     }
 
-    private static GroupLineVm ToLine(JabberStoredMessage m) => new(
+    private GroupLineVm ToLine(JabberStoredMessage m) => new(
         m.Id, m.Sender, m.Body,
         ChatTime.Of(m.SentAt),
-        "", m.IsMention);
+        "", m.IsMention, EmotesOf(m.AccountId), m.Deleted, m.DeletedReason)
+    {
+        Avatar = new AvatarRef(JabberService.AvatarServiceName, m.AccountId, m.IsOutgoing ? "me" : $"{m.Conversation}/{m.Sender}", m.Sender),
+        ReactTarget = m.IsRoom ? m.StanzaId : "",
+    };
+
+    private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
+
+    private EmoteSet _draftEmotes = EmoteSet.None;
+
+    /// <summary>The emotes the message being written can use: the room's server's. None for a Mumble server.</summary>
+    public EmoteSet DraftEmotes { get => _draftEmotes; private set => this.RaiseAndSetIfChanged(ref _draftEmotes, value); }
 
     private static GroupLineVm ToLine(MumbleSession session, MumbleChatLine line) => new(
         0, line.Sender, line.Text, ChatTime.Of(line.When),
         line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel,
-        NamesMe(session, line));
+        NamesMe(session, line))
+    {
+        Avatar = new AvatarRef(MumbleService.AvatarServiceName, session.Server.Id, line.IsOutgoing ? "me" : "name:" + line.Sender, line.Sender),
+    };
 
     /// <summary>Their name said on this server. Their own messages do not count, whatever is in them.</summary>
     private static bool NamesMe(MumbleSession session, MumbleChatLine line) =>
@@ -705,6 +773,33 @@ public sealed class GroupChatViewModel : ReactiveObject
         var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, Lines[0].Id, PageSize));
         for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToLine(page[i]));
         HasEarlier = page.Count == PageSize;
+        await LoadReactionsAsync();
+    }
+
+    /// <summary>The reactions to every message showing, as they stand now.</summary>
+    private async Task LoadReactionsAsync()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
+        var me = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)?.Nick) ?? "";
+        var counts = await Task.Run(() => _jabber.ReactionsAsync(row.ServerId, row.Key, [.. lines.Select(l => l.ReactTarget)], me));
+        if (!ReferenceEquals(SelectedRow, row)) return;
+
+        foreach (var line in lines) line.SetReactions(counts.GetValueOrDefault(line.ReactTarget));
+    }
+
+    /// <summary>Adds an emoji to this person's reactions to a message, or takes it back if it is theirs already.</summary>
+    public async Task ToggleReactionAsync(GroupLineVm line, string emoji)
+    {
+        if (!line.CanReact || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        var mine = line.Reactions.Where(c => c.Mine).Select(c => c.Emoji).ToList();
+        if (!mine.Remove(emoji)) mine.Add(emoji);
+
+        StatusText = "";
+        try { await Task.Run(() => _jabber.SendReactionsAsync(session, row.Key, true, line.ReactTarget, mine)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
     }
 
     private async Task SendAsync()
@@ -896,8 +991,89 @@ public sealed class GroupChatViewModel : ReactiveObject
 
         var people = session.Locked(_ => state.Occupants.Values.ToList());
         foreach (var o in people.OrderBy(o => RoleRank(o.Role)).ThenBy(o => o.Nick, StringComparer.CurrentCultureIgnoreCase))
-            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role));
+            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role)
+            {
+                Person = o,
+                Avatar = new AvatarRef(JabberService.AvatarServiceName, session.Account.Id, o.Self ? "me" : $"{row.Key}/{o.Nick}", o.Nick),
+            });
     }
+
+    // ── Running the room: what the right-click menus do ───────────────────────
+
+    /// <summary>Opens a conversation in the Messages tool: account, address and name.</summary>
+    public Action<int, string, string>? OpenDirect { get; set; }
+
+    private (JabberSession Session, JabberRoomState State)? OpenRoom()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return null;
+        return session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)) is { } state ? (session, state) : null;
+    }
+
+    /// <summary>The person themselves in the room open, as the room sees them.</summary>
+    private XmppOccupant? Me() => OpenRoom() is (JabberSession session, JabberRoomState state)
+        ? session.Locked(_ => state.Occupants.Values.FirstOrDefault(o => o.Self) ?? state.Occupants.GetValueOrDefault(state.Nick))
+        : null;
+
+    public JabberPersonRights RightsOver(JabberOccupantVm person) =>
+        person.Person is { } them ? JabberRoomRights.Over(Me(), them) : JabberPersonRights.None;
+
+    public JabberRoomRightsSet RoomRights() => JabberRoomRights.OfRoom(Me());
+
+    /// <summary>The room open, as the menus and their questions name it.</summary>
+    public string RoomName => Title;
+
+    /// <summary>
+    /// Writes to someone in the room in the Messages tool: at their own address where the room shows it, so it is the
+    /// same conversation as anywhere else, or through the room where it hides it.
+    /// </summary>
+    public void MessageOccupant(JabberOccupantVm person)
+    {
+        if (SelectedRow is not { IsRoom: true } row || person.IsSelf) return;
+        var real = XmppAddress.Parse(person.Person?.RealJid).Bare;
+        OpenDirect?.Invoke(row.ServerId, real.Length > 0 ? real : $"{row.Key}/{person.Nick}", person.Nick);
+    }
+
+    /// <summary>The addresses of the people this server knows, to offer when inviting.</summary>
+    public IReadOnlyList<string> KnownAddresses() =>
+        OpenRoom() is (JabberSession session, _) ? [.. session.Contacts.Select(c => c.Jid).Order(StringComparer.OrdinalIgnoreCase)] : [];
+
+    private async Task AdminAsync(Func<JabberSession, string, Task> act)
+    {
+        StatusText = "";
+        if (OpenRoom() is not (JabberSession session, JabberRoomState state)) return;
+        try { await Task.Run(() => act(session, state.Room.RoomJid)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
+    }
+
+    public Task SetRoleAsync(JabberOccupantVm person, string role, string reason = "") =>
+        AdminAsync((session, room) => _jabber.SetRoomRoleAsync(session, room, person.Nick, role, reason));
+
+    public Task SetAffiliationAsync(JabberOccupantVm person, string affiliation, string reason = "") =>
+        AdminAsync((session, room) => _jabber.SetRoomAffiliationAsync(session, room, person.Person?.RealJid ?? "", affiliation, reason));
+
+    public Task SetSubjectAsync(string subject) =>
+        AdminAsync((session, room) => _jabber.SetRoomSubjectAsync(session, room, subject));
+
+    public Task InviteAsync(string address, string reason)
+    {
+        var jid = XmppAddress.Parse(address);
+        if (jid.Local.Length == 0 || jid.Domain.Length == 0) { StatusText = JabberText.AddressInvalid; return Task.CompletedTask; }
+        return AdminAsync((session, room) => _jabber.InviteToRoomAsync(session, room, jid.Bare, reason));
+    }
+
+    /// <summary>Who the room has banned. Empty, with what went wrong said, when it will not say.</summary>
+    public async Task<List<XmppBan>> BansAsync()
+    {
+        StatusText = "";
+        if (OpenRoom() is not (JabberSession session, JabberRoomState state)) return [];
+        try { return await Task.Run(() => _jabber.RoomBansAsync(session, state.Room.RoomJid)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; return []; }
+    }
+
+    public Task LiftBanAsync(string jid) =>
+        AdminAsync((session, room) => _jabber.SetRoomAffiliationAsync(session, room, jid, "none", ""));
+
+    public void SetStatus(string text) => StatusText = text;
 
     private static int RoleRank(string role) => role switch { "moderator" => 0, "participant" => 1, _ => 2 };
 

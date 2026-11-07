@@ -5,6 +5,7 @@ using System.Text.Json;
 using Avalonia.Threading;
 using EveConsole.Localization;
 using EveConsole.Services;
+using EveConsole.Services.Jabber;
 using EveConsole.Services.Messages;
 using ReactiveUI;
 
@@ -15,6 +16,7 @@ public sealed class MessagesPersonVm(DmPerson person)
 {
     public DmPerson Person => person;
     public string Name => person.Name;
+    public AvatarRef Avatar { get; } = new(person.Key.Source, person.Key.ServerId, person.Key.Peer, person.Name);
     public string Where => $"{person.Service} · {person.Server}";
     public bool DotGreen => person.Presence == DmPresence.Online;
     public bool DotAmber => person.Presence == DmPresence.Away;
@@ -35,17 +37,36 @@ public sealed class MessagesConversationVm(DmSummary summary)
     public bool DotAmber => summary.Presence == DmPresence.Away;
 }
 
-public sealed partial class MessagesLineVm(DmLine line, string shownSender)
+public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null)
 {
+    /// <summary>What a reaction to it names. Blank where it cannot be reacted to.</summary>
+    public string ReactTarget => line.Target;
+    public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
+
+    public ObservableCollection<ReactionChipVm> Reactions { get; } = [];
+
+    public void SetReactions(IReadOnlyList<JabberReactionCount>? counts)
+    {
+        Reactions.Clear();
+        foreach (var c in counts ?? []) Reactions.Add(new ReactionChipVm(c));
+    }
+
+    /// <summary>Whose picture goes beside it.</summary>
+    public AvatarRef? Avatar => avatar;
+
     public DmLine Line       => line;
+
+    /// <summary>The emotes of the server the conversation is on. None for one that is not on Jabber.</summary>
+    public EmoteSet Emotes   => IsDeleted ? EmoteSet.None : emotes;
     public long   Id         => line.Id;
     public string Sender     { get; } = shownSender;
-    public string Body       => line.Body;
+    public bool   IsDeleted  => line.Deleted != EveConsole.Models.JabberDeleted.No;
+    public string Body       => IsDeleted ? GroupLineVm.DeletedText(line.Deleted, line.DeletedReason) : line.Body;
     public bool   IsOutgoing => line.IsOutgoing;
     public string When       { get; } = ChatTime.Of(line.SentAt);
 
     /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
-    public IReadOnlyList<string> Links { get; } = [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+    public IReadOnlyList<string> Links { get; } = line.Deleted != EveConsole.Models.JabberDeleted.No ? [] : [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
     public bool HasLinks => Links.Count > 0;
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
@@ -65,10 +86,11 @@ public sealed class MessagesTabVm : ReactiveObject
     private DateTime _lastTypingSent = DateTime.MinValue;
     private int _theirTypingStamp;
 
-    public MessagesTabVm(IDmSource source, DmSummary summary)
+    public MessagesTabVm(IDmSource source, DmSummary summary, EmoteSet? emotes = null)
     {
         _source = source;
         Key = summary.Key;
+        Emotes = emotes ?? EmoteSet.None;
         Apply(summary);
 
         SendCommand = ReactiveCommand.CreateFromTask(SendAsync, this.WhenAnyValue(x => x.Draft, x => x.CanSend, (d, can) => can && !string.IsNullOrWhiteSpace(d)));
@@ -81,6 +103,9 @@ public sealed class MessagesTabVm : ReactiveObject
     }
 
     public DmKey Key { get; }
+
+    /// <summary>The emotes this conversation's messages are read and written with.</summary>
+    public EmoteSet Emotes { get; }
 
     public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadEarlierCommand { get; }
@@ -182,7 +207,14 @@ public sealed class MessagesTabVm : ReactiveObject
     public string SendingFile { get => _sendingFile; private set { this.RaiseAndSetIfChanged(ref _sendingFile, value); this.RaisePropertyChanged(nameof(IsSendingFile)); } }
     public bool IsSendingFile => SendingFile.Length > 0;
 
-    private MessagesLineVm ToVm(DmLine line) => new(line, line.IsOutgoing ? JabberText.SenderYou : Name);
+    private MessagesLineVm ToVm(DmLine line)
+    {
+        var sender = line.IsOutgoing ? JabberText.SenderYou : Name;
+        return new(line, sender, Emotes, new AvatarRef(Key.Source, Key.ServerId, line.IsOutgoing ? "me" : Key.Peer, line.IsOutgoing ? MyName : Name));
+    }
+
+    /// <summary>For this account's own picture's initial, where it has none: "You" would give everyone a Y.</summary>
+    public string MyName { get; init; } = "";
 
     public async Task LoadAsync()
     {
@@ -191,6 +223,30 @@ public sealed class MessagesTabVm : ReactiveObject
         foreach (var line in page) Lines.Add(ToVm(line));
         HasEarlier = page.Count == PageSize;
         ScrollToEndRequested?.Invoke();
+        await LoadReactionsAsync();
+    }
+
+    /// <summary>The reactions to every message showing, as they stand now.</summary>
+    public async Task LoadReactionsAsync()
+    {
+        var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
+        if (lines.Count == 0) return;
+
+        var counts = await Task.Run(() => _source.ReactionsAsync(Key, [.. lines.Select(l => l.ReactTarget)]));
+        foreach (var line in lines) line.SetReactions(counts.GetValueOrDefault(line.ReactTarget));
+    }
+
+    /// <summary>Adds an emoji to this person's reactions to a message, or takes it back if it is theirs already.</summary>
+    public async Task ToggleReactionAsync(MessagesLineVm line, string emoji)
+    {
+        if (!line.CanReact) return;
+
+        var mine = line.Reactions.Where(c => c.Mine).Select(c => c.Emoji).ToList();
+        if (!mine.Remove(emoji)) mine.Add(emoji);
+
+        StatusText = "";
+        try { await Task.Run(() => _source.ReactAsync(Key, line.ReactTarget, mine)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
     }
 
     private async Task LoadEarlierAsync()
@@ -200,6 +256,7 @@ public sealed class MessagesTabVm : ReactiveObject
         var page = await Task.Run(() => _source.LoadAsync(Key, Lines[0].Id, PageSize));
         for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToVm(page[i]));
         HasEarlier = page.Count == PageSize;
+        await LoadReactionsAsync();
     }
 
     public void Add(DmLine line)
@@ -304,12 +361,18 @@ public sealed class MessagesViewModel : ReactiveObject
     private readonly AppPreferencesService _prefs;
     private readonly AlarmSoundService _sound;
     private readonly AlarmMuteState _mute;
+    private readonly EmoteService? _emotes;
 
     private List<DmSummary> _all = [];
     private int _refreshQueued;
 
-    public MessagesViewModel(DirectMessagesService service, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    /// <summary>A Jabber conversation is read with its server's emotes. Nothing else has any.</summary>
+    private EmoteSet EmotesOf(DmKey key) =>
+        key.Source == JabberDmSource.Name && _emotes is not null ? _emotes.For(key.ServerId) : EmoteSet.None;
+
+    public MessagesViewModel(DirectMessagesService service, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null)
     {
+        _emotes = emotes;
         _service = service;
         _prefs = prefs;
         _sound = sound;
@@ -326,6 +389,7 @@ public sealed class MessagesViewModel : ReactiveObject
         _service.UnreadChanged += QueueRefresh;
         _service.Arrived += (key, line, alert) => Dispatcher.UIThread.Post(() => OnArrived(key, line, alert));
         _service.Edited += key => Dispatcher.UIThread.Post(() => { if (TabOf(key) is { } tab) _ = tab.LoadAsync(); });
+        _service.ReactionsChanged += key => Dispatcher.UIThread.Post(() => { if (TabOf(key) is { } tab) _ = tab.LoadReactionsAsync(); });
         _service.Typing += (key, typing) => Dispatcher.UIThread.Post(() => TabOf(key)?.TheyAreTyping(typing));
 
         QueueRefresh();
@@ -563,7 +627,7 @@ public sealed class MessagesViewModel : ReactiveObject
         {
             if (_service.SourceOf(key) is not { } source) return;
 
-            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name)) { Confirm = AskAsync };
+            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name), EmotesOf(key)) { Confirm = AskAsync, MyName = source.MyName(key.ServerId) };
             Tabs.Add(tab);
             tab.Unread = _all.FirstOrDefault(c => c.Key == key)?.Unread ?? 0;
             await tab.LoadAsync();
@@ -609,7 +673,7 @@ public sealed class MessagesViewModel : ReactiveObject
             // Nothing saved any more, as when its server was deleted: there is nothing to come back to.
             if (known is null) continue;
 
-            var tab = new MessagesTabVm(source, known) { Confirm = AskAsync, Unread = known.Unread };
+            var tab = new MessagesTabVm(source, known, EmotesOf(key)) { Confirm = AskAsync, Unread = known.Unread, MyName = source.MyName(key.ServerId) };
             Tabs.Add(tab);
             await tab.LoadAsync();
         }

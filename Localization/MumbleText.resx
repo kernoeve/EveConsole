@@ -67,10 +67,6 @@
 Most Mumble servers use their own certificate. Trust it only if you expect this server. From then on, only this certificate is accepted.</value>
     <comment>{0} = subject, {1} = SHA-256 fingerprint.</comment>
   </data>
-  <data name="KeysSummary" xml:space="preserve">
-    <value>Whisper key: {0}. Shout key: {1}.</value>
-    <comment>{0}, {1} = key names.</comment>
-  </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Enter the server's host and your username.</value>
     <comment>Validation.</comment>
@@ -139,14 +135,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Access tokens (optional, separated by commas)</value>
     <comment>Field.</comment>
   </data>
-  <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Whisper key (talks only to your current channel)</value>
-    <comment>Field.</comment>
-  </data>
-  <data name="LabelShoutKey" xml:space="preserve">
-    <value>Shout key (Push to Talk: your channel and channels linked to it)</value>
-    <comment>Field.</comment>
-  </data>
   <data name="KeysNote" xml:space="preserve">
     <value>These keys are for this server alone, and work while it is connected, even with the app in the background.</value>
     <comment>Hint.</comment>
@@ -163,10 +151,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Save</value>
     <comment>Button.</comment>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Cancel</value>
-    <comment>Button.</comment>
-  </data>
   <data name="Delete" xml:space="preserve">
     <value>Delete</value>
     <comment>Button.</comment>
@@ -181,10 +165,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   </data>
   <data name="Disconnect" xml:space="preserve">
     <value>Disconnect</value>
-    <comment>Button.</comment>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Edit</value>
     <comment>Button.</comment>
   </data>
   <data name="Mute" xml:space="preserve">
@@ -258,9 +238,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="Refused" xml:space="preserve">
     <value>The server refused that. You may not have permission.</value>
   </data>
-  <data name="HeadingAdmin" xml:space="preserve">
-    <value>Server admin</value>
-  </data>
   <data name="ServerMute" xml:space="preserve">
     <value>Server Mute</value>
   </data>
@@ -330,9 +307,6 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="ConfirmBan" xml:space="preserve">
     <value>Ban {0} from this server? Only an admin can undo this, from the server's ban list.</value>
   </data>
-  <data name="RegisterName" xml:space="preserve">
-    <value>Register This Name</value>
-  </data>
   <data name="ConfirmRegister" xml:space="preserve">
     <value>Register {0} on this server? That ties the name to their certificate, and only an admin can undo it.</value>
   </data>
@@ -354,20 +328,8 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="UnlinkFromMine" xml:space="preserve">
     <value>Unlink From My Channel</value>
   </data>
-  <data name="RemoveChannel" xml:space="preserve">
-    <value>Remove Channel</value>
-  </data>
   <data name="ConfirmRemoveChannel" xml:space="preserve">
     <value>Remove {0} and every channel under it, for everyone on this server?</value>
-  </data>
-  <data name="LabelNewChannel" xml:space="preserve">
-    <value>New channel under this one</value>
-  </data>
-  <data name="CreateChannel" xml:space="preserve">
-    <value>Create</value>
-  </data>
-  <data name="NewChannelTemporary" xml:space="preserve">
-    <value>Temporary: goes away when it empties</value>
   </data>
   <data name="NoiseReduce" xml:space="preserve">
     <value>Reduce background noise</value>
@@ -425,5 +387,119 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   </data>
   <data name="StatusTip" xml:space="preserve">
     <value>{0}, {1}: {2} not deafened in this channel</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>Servers</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>Connection</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>Channel Targets</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>New server</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>Changes to the host, port, username, password and tokens apply the next time this server connects.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>Each channel target is who one key talks to on this server. Change these as you like: any channels, what comes with them, and people wherever they are.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>Key</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>Add Channel Target</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>Add Channel</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>Linked channels</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>Subchannels</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>People, wherever they are (names, separated by commas)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>Only members of this server group, in those channels (optional)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>The channel I'm in</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>New target</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>Whisper: the channel I'm in</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>Shout: my channel and those linked to it</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>A server has room for {0} targets, besides plain talk.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>The password is saved in the shared database, encrypted with a key taken from the database password.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>Details…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>Volume and Details…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>Server Information…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>Register This Name…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>Move To…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Kick…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Ban…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>New Channel…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>New Temporary Channel…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>Remove Channel…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>New Channel</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>New Temporary Channel</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>Its name, under {0}</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Find someone</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Show the people in each channel</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Nobody here by that name.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} here, {1} of them can hear</value>
   </data>
 </root>

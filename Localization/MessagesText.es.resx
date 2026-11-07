@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>Aún no hay conversaciones guardadas. Selecciona a una persona en la pestaña Jabber o Mumble de Ajustes para iniciar una.</value>
+    <value>Aún no hay conversaciones guardadas. Pulsa Nueva conversación, o haz clic derecho en alguien de una sala o de un servidor de Mumble.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

@@ -52,9 +52,6 @@
 
 Большинство серверов Mumble используют собственный сертификат. Доверяйте ему, только если ожидаете этот сервер. После этого будет приниматься только этот сертификат.</value>
   </data>
-  <data name="KeysSummary" xml:space="preserve">
-    <value>Клавиша шёпота: {0}. Клавиша крика: {1}.</value>
-  </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Введите хост сервера и имя пользователя.</value>
   </data>
@@ -106,12 +103,6 @@
   <data name="LabelTokens" xml:space="preserve">
     <value>Токены доступа (необязательно, через запятую)</value>
   </data>
-  <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Клавиша шёпота (говорит только в текущий канал)</value>
-  </data>
-  <data name="LabelShoutKey" xml:space="preserve">
-    <value>Клавиша крика (нажми и говори: ваш канал и связанные с ним)</value>
-  </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Эти клавиши только для этого сервера и работают, пока он подключён, даже если приложение в фоне.</value>
   </data>
@@ -124,9 +115,6 @@
   <data name="Save" xml:space="preserve">
     <value>Сохранить</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Отмена</value>
-  </data>
   <data name="Delete" xml:space="preserve">
     <value>Удалить</value>
   </data>
@@ -138,9 +126,6 @@
   </data>
   <data name="Disconnect" xml:space="preserve">
     <value>Отключить</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Изменить</value>
   </data>
   <data name="Mute" xml:space="preserve">
     <value>Выкл. микрофон</value>
@@ -204,9 +189,6 @@
   </data>
   <data name="Refused" xml:space="preserve">
     <value>Сервер отказал. Возможно, у вас нет на это прав.</value>
-  </data>
-  <data name="HeadingAdmin" xml:space="preserve">
-    <value>Администрирование сервера</value>
   </data>
   <data name="ServerMute" xml:space="preserve">
     <value>Заглушить на сервере</value>
@@ -277,9 +259,6 @@
   <data name="ConfirmBan" xml:space="preserve">
     <value>Забанить {0} на этом сервере? Отменить это сможет только администратор, через список банов.</value>
   </data>
-  <data name="RegisterName" xml:space="preserve">
-    <value>Зарегистрировать это имя</value>
-  </data>
   <data name="ConfirmRegister" xml:space="preserve">
     <value>Зарегистрировать {0} на этом сервере? Имя будет привязано к сертификату, и отменить это сможет только администратор.</value>
   </data>
@@ -301,20 +280,8 @@
   <data name="UnlinkFromMine" xml:space="preserve">
     <value>Отвязать от моего канала</value>
   </data>
-  <data name="RemoveChannel" xml:space="preserve">
-    <value>Удалить канал</value>
-  </data>
   <data name="ConfirmRemoveChannel" xml:space="preserve">
     <value>Удалить {0} и все каналы внутри него для всех на этом сервере?</value>
-  </data>
-  <data name="LabelNewChannel" xml:space="preserve">
-    <value>Новый канал внутри этого</value>
-  </data>
-  <data name="CreateChannel" xml:space="preserve">
-    <value>Создать</value>
-  </data>
-  <data name="NewChannelTemporary" xml:space="preserve">
-    <value>Временный: исчезнет, когда опустеет</value>
   </data>
   <data name="NoiseReduce" xml:space="preserve">
     <value>Подавлять фоновый шум</value>
@@ -372,5 +339,119 @@
   </data>
   <data name="StatusTip" xml:space="preserve">
     <value>{0}, {1}: в этом канале без отключённого звука: {2}</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>Серверы</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>Подключение</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>Цели каналов</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>Новый сервер</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>Изменения хоста, порта, имени пользователя, пароля и токенов вступят в силу при следующем подключении к этому серверу.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>Каждая цель канала определяет, к кому обращается клавиша на этом сервере. Меняйте их как угодно: любые каналы, то, что с ними связано, и люди, где бы они ни были.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>Клавиша</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>Добавить цель канала</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>Добавить канал</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>Связанные каналы</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>Подканалы</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>Люди, где бы они ни были (имена через запятую)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>Только участники этой группы сервера в этих каналах (необязательно)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>Канал, где я нахожусь</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>Новая цель</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>Шёпот: канал, где я нахожусь</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>Крик: мой канал и связанные с ним</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>На сервере помещается {0} целей, не считая обычной речи.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>Пароль хранится в общей базе данных, зашифрованный ключом, полученным из пароля базы данных.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>Сведения…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>Громкость и сведения…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>Сведения о сервере…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>Зарегистрировать это имя…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>Переместить в…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Выгнать…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Забанить…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>Новый канал…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>Новый временный канал…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>Удалить канал…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>Новый канал</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>Новый временный канал</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>Его имя, внутри {0}</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Найти человека</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Показывать людей в каналах</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Здесь нет никого с таким именем.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>Здесь {0}, слышат {1}</value>
   </data>
 </root>

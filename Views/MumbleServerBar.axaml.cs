@@ -1,4 +1,5 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 using EveConsole.ViewModels;
 
@@ -20,6 +21,16 @@ public partial class MumbleServerBar : UserControl
         }
     }
 
+    /// <summary>
+    /// The server's name in green, as a panel's Mumble control shows it: the bar only shows while
+    /// connected, and the control shows the name grey when it isn't. The toolbar keeps it dim.
+    /// </summary>
+    public bool ShowsConnected
+    {
+        set => ServerName[!TextBlock.ForegroundProperty] =
+            new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension(value ? "GoodBrush" : "TextDimBrush");
+    }
+
     private Flyout? _openTree;
 
     private MumbleOverlayColumn? Column => DataContext as MumbleOverlayColumn;
@@ -36,8 +47,8 @@ public partial class MumbleServerBar : UserControl
     /// <summary>Where this client is, on a server with more channels than fit.</summary>
     private void OnTreeOpened(object? sender, EventArgs e)
     {
-        if (Column is { } column && sender is Flyout { Content: ScrollViewer { Content: ItemsControl list } })
-            list.ScrollIntoView(column.Rows.Select((row, at) => (row, at)).FirstOrDefault(r => r.row.IsMe).at);
+        if (Column is { } column)
+            Tree.ScrollIntoView(column.Rows.Select((row, at) => (row, at)).FirstOrDefault(r => r.row.IsHere || r.row.IsMe).at);
     }
 
     private void OnTreeClosed(object? sender, EventArgs e)
@@ -57,6 +68,31 @@ public partial class MumbleServerBar : UserControl
 
         _ = column.Owner.JoinFromOverlayAsync(column, row.Id);
         _openTree?.Hide();
+    }
+
+    private MumbleRowMenu? _rowMenu;
+
+    /// <summary>What can be done to what was right-clicked. ⚠️ Attached only while it shows: one menu, for hundreds of rows that come and go.</summary>
+    private void OnRowMenu(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { DataContext: MumbleRowVm row } at || Column is not { } column) return;
+
+        e.Handled = true;
+        column.Owner.SelectedRow = row;
+
+        _rowMenu ??= new MumbleRowMenu { HideTree = () => _openTree?.Hide(), ShowTree = () => TreeButton.Flyout?.ShowAt(TreeButton) };
+        _rowMenu.DataContext = column.Owner;
+        _rowMenu.Host = TopLevel.GetTopLevel(this) as Window;
+
+        at.ContextMenu = _rowMenu;
+        _rowMenu.Closed += Detach;
+        _rowMenu.Open(at);
+
+        void Detach(object? s, RoutedEventArgs a)
+        {
+            _rowMenu.Closed -= Detach;
+            at.ContextMenu = null;
+        }
     }
 
     private void OnSoundOpening(object? sender, EventArgs e) => Column?.Owner.LoadDevices();

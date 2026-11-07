@@ -29,18 +29,8 @@ public sealed class PiperTtsService : IDisposable
         : Path.Combine(LocalAppPiperDir, "piper",
             OperatingSystem.IsWindows() ? "piper.exe" : "piper");
 
-    // LibVLC instance (shared with OpenAI TTS — VLC is already initialised by then).
-    private static readonly LibVLC? _vlc;
-
-    static PiperTtsService()
-    {
-        try
-        {
-            VlcRuntime.Initialize();
-            _vlc = new LibVLC(enableDebugLogs: false);
-        }
-        catch { _vlc = null; }
-    }
+    // The app's one LibVLC (see VlcRuntime.Shared); null if native libs are unavailable.
+    private static LibVLC? _vlc => VlcRuntime.Shared;
 
     // Curated English voice list (huggingface key → display label).
     // Quality tiers: low (fast, small), medium (balanced), high (best).

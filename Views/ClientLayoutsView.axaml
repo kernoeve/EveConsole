@@ -1,0 +1,411 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.ClientLayoutsView"
+             x:DataType="vm:ClientLayoutsViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock.title">
+      <Setter Property="FontSize"   Value="11" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
+    <Style Selector="TextBlock.label">
+      <Setter Property="FontSize"          Value="11" />
+      <Setter Property="Foreground"        Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.note">
+      <Setter Property="FontSize"     Value="10" />
+      <Setter Property="Foreground"   Value="{DynamicResource TextDimBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="TextBlock.warn">
+      <Setter Property="FontSize"     Value="11" />
+      <Setter Property="Foreground"   Value="{DynamicResource WarnBrush}" />
+      <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+    <Style Selector="Border.section">
+      <Setter Property="Background"      Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush"     Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius"    Value="4" />
+      <Setter Property="Padding"         Value="10" />
+    </Style>
+  </UserControl.Styles>
+
+  <TabControl>
+
+    <!-- ── Monitors ─────────────────────────────────────────────────────── -->
+    <TabItem Header="{x:Static loc:ClientLayoutsText.TabMonitors}">
+      <Grid RowDefinitions="Auto,*">
+
+        <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
+                BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10">
+            <TextBlock Grid.Column="0" Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelDesktop}" />
+            <TextBox Grid.Column="1" Width="180" Text="{Binding DeviceName}" LostFocus="DeviceName_LostFocus"
+                     TextChanged="DeviceName_TextChanged" />
+            <CheckBox Grid.Column="2" IsChecked="{Binding PlacementOn}"
+                      Content="{x:Static loc:ClientLayoutsText.TogglePlacement}"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipPlacement}" />
+            <Button Grid.Column="4" Content="{x:Static loc:ClientLayoutsText.Apply}"
+                    Command="{Binding ApplyCommand}" IsEnabled="{Binding PlacementOn}"
+                    ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipApply}" />
+            <StackPanel Grid.Row="1" Grid.ColumnSpan="5" Orientation="Horizontal" Spacing="8" Margin="0 8 0 0">
+              <TextBlock Classes="label" VerticalAlignment="Center" Text="{x:Static loc:ClientLayoutsText.LabelProfile}" />
+              <ComboBox Width="200" ItemsSource="{Binding Profiles}" SelectedItem="{Binding SelectedProfile}"
+                        ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipProfile}">
+                <ComboBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ProfileRowVm">
+                    <TextBlock Text="{Binding Name}" />
+                  </DataTemplate>
+                </ComboBox.ItemTemplate>
+              </ComboBox>
+              <TextBlock Classes="label" VerticalAlignment="Center" Text="{x:Static loc:ClientLayoutsText.LabelProfileName}" />
+              <TextBox Width="180" Text="{Binding SelectedProfile.Name, FallbackValue=''}" LostFocus="ProfileName_LostFocus"
+                       TextChanged="ProfileName_TextChanged" />
+              <Button Content="{x:Static loc:ClientLayoutsText.NewLayout}" Command="{Binding NewProfileCommand}" />
+              <Button Content="{x:Static loc:ClientLayoutsText.DuplicateLayout}" Command="{Binding DuplicateProfileCommand}" />
+              <Button Content="{x:Static loc:ClientLayoutsText.DeleteLayout}" Command="{Binding DeleteProfileCommand}" />
+              <TextBlock Classes="note" VerticalAlignment="Center" Text="{Binding ProfileInUse}" />
+            </StackPanel>
+            <StackPanel Grid.Row="2" Grid.ColumnSpan="5" Orientation="Horizontal" Spacing="12" Margin="0 6 0 0">
+              <TextBlock Classes="note" Text="{Binding Pending}" />
+              <TextBlock Classes="note" Text="{Binding Status}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" ColumnDefinitions="*,380" RowDefinitions="*,Auto" Margin="10" ColumnSpacing="10" RowSpacing="10">
+
+          <Border Grid.Column="0" Classes="section" Padding="4">
+            <views:ClientMonitorMap Items="{Binding MapItems}" Pick="{Binding PickMonitor}" />
+          </Border>
+
+          <Border Grid.Column="0" Grid.Row="1" Classes="section" IsVisible="{Binding HasNotices}" MaxHeight="150">
+            <StackPanel Spacing="4">
+              <TextBlock Classes="title" Text="{x:Static loc:ClientLayoutsText.NoticesTitle}" />
+              <ScrollViewer MaxHeight="110">
+                <ItemsControl ItemsSource="{Binding Notices}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <TextBlock Classes="note" Text="{Binding}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </StackPanel>
+          </Border>
+
+          <ScrollViewer Grid.Column="1" Grid.RowSpan="2">
+            <StackPanel Spacing="10">
+              <Border Classes="section" IsVisible="{Binding HasMonitor}">
+                <StackPanel Spacing="8">
+                  <TextBlock Classes="title" Text="{Binding MonitorTitle}" />
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelLayout}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding LayoutChoices}"
+                            SelectedItem="{Binding MonitorLayout}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:LayoutRowVm">
+                        <TextBlock Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelPanelStart}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding PanelStarts}"
+                            SelectedItem="{Binding MonitorPanelStart}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:PanelStartChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <CheckBox IsChecked="{Binding MonitorFull}"
+                            Content="{x:Static loc:ClientLayoutsText.FullMonitor}" />
+                  <ItemsControl ItemsSource="{Binding Warnings}" IsVisible="{Binding HasWarnings}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="x:String">
+                        <TextBlock Classes="warn" Text="{Binding}" />
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
+              <Border Classes="section" IsVisible="{Binding HasNoCells}">
+                <TextBlock Classes="note" Text="{x:Static loc:ClientLayoutsText.NoCells}" />
+              </Border>
+
+              <ItemsControl ItemsSource="{Binding Cells}">
+                <ItemsControl.ItemsPanel>
+                  <ItemsPanelTemplate><StackPanel Spacing="10" /></ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ClientCellVm">
+                    <Border Classes="section">
+                      <StackPanel Spacing="6">
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                          <TextBlock Classes="title" Text="{Binding Title}" />
+                          <TextBlock Classes="note" VerticalAlignment="Center" Text="{Binding Size}" />
+                        </StackPanel>
+                        <ItemsControl ItemsSource="{Binding Characters}">
+                          <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                          </ItemsControl.ItemsPanel>
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:CellCharacterVm">
+                              <Border Background="{DynamicResource SurfaceRaisedBrush}" CornerRadius="3"
+                                      Padding="6 2" Margin="0 0 4 4">
+                                <StackPanel Orientation="Horizontal" Spacing="6">
+                                  <TextBlock FontSize="11" VerticalAlignment="Center" Text="{Binding Name}" />
+                                  <Button Padding="4 0" FontSize="10" Content="×"
+                                          Command="{Binding RemoveCommand}"
+                                          ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipRemoveCharacter}" />
+                                </StackPanel>
+                              </Border>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6">
+                          <AutoCompleteBox Grid.Column="0" ItemsSource="{Binding Candidates}"
+                                           Text="{Binding NewName}" FilterMode="ContainsOrdinal"
+                                           Watermark="{x:Static loc:ClientLayoutsText.AddCharacterHint}">
+                            <AutoCompleteBox.KeyBindings>
+                              <KeyBinding Gesture="Enter" Command="{Binding AddCommand}" />
+                            </AutoCompleteBox.KeyBindings>
+                          </AutoCompleteBox>
+                          <Button Grid.Column="1" Content="{x:Static loc:ClientLayoutsText.Add}"
+                                  Command="{Binding AddCommand}" />
+                        </Grid>
+                      </StackPanel>
+                    </Border>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <Border Classes="section" IsVisible="{Binding HasOtherDevices}">
+                <StackPanel Spacing="6">
+                  <TextBlock Classes="title" Text="{x:Static loc:ClientLayoutsText.OtherDesktops}" />
+                  <TextBlock Classes="note" Text="{x:Static loc:ClientLayoutsText.OtherDesktopsNote}" />
+                  <ItemsControl ItemsSource="{Binding OtherDevices}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:OtherDeviceVm">
+                        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" Margin="0 0 0 4">
+                          <TextBox Grid.Column="0" Text="{Binding Name}" LostFocus="OtherDeviceName_LostFocus" />
+                          <Button Grid.Column="1" Content="{Binding TakeOverLabel}" Command="{Binding TakeOverCommand}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+            </StackPanel>
+          </ScrollViewer>
+        </Grid>
+      </Grid>
+    </TabItem>
+
+    <!-- ── Layouts ──────────────────────────────────────────────────────── -->
+    <TabItem Header="{x:Static loc:ClientLayoutsText.TabLayouts}">
+      <Grid ColumnDefinitions="220,*,260" Margin="10" ColumnSpacing="10">
+
+        <Border Grid.Column="0" Classes="section">
+          <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+            <TextBlock Grid.Row="0" Classes="title" Text="{x:Static loc:ClientLayoutsText.LayoutsTitle}" />
+            <ListBox Grid.Row="1" ItemsSource="{Binding Layouts}" SelectedItem="{Binding SelectedLayout}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:LayoutRowVm">
+                  <TextBlock FontSize="11" Text="{Binding Name}" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <WrapPanel Grid.Row="2">
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.NewLayout}" Command="{Binding NewLayoutCommand}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DuplicateLayout}" Command="{Binding DuplicateLayoutCommand}" IsEnabled="{Binding HasLayout}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DeleteLayout}" Command="{Binding DeleteLayoutCommand}" IsEnabled="{Binding HasLayout}" />
+            </WrapPanel>
+          </Grid>
+        </Border>
+
+        <Border Grid.Column="1" Classes="section" Padding="4">
+          <Grid RowDefinitions="Auto,*">
+            <TextBlock Grid.Row="0" Classes="note" Margin="4 2 4 6" Text="{x:Static loc:ClientLayoutsText.LayoutHint}" />
+            <views:ClientLayoutCanvas Grid.Row="1" Root="{Binding EditingRoot}" Space="{Binding PreviewSpace}"
+                                      Revision="{Binding Revision}" SelectedId="{Binding SelectedId}"
+                                      Edited="{Binding LayoutEdited}" />
+          </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Column="2">
+          <StackPanel Spacing="10">
+            <Border Classes="section" IsVisible="{Binding HasLayout}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelLayoutName}" />
+                <TextBox Text="{Binding SelectedLayout.Name, FallbackValue=''}" LostFocus="LayoutName_LostFocus"
+                         TextChanged="LayoutName_TextChanged" />
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelPreviewOn}" />
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding PreviewChoices}" SelectedItem="{Binding PreviewOn}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PanelPreviewChoice">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Classes="note" Text="{Binding Status}" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasNamed}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelPanelName}" />
+                <TextBox Text="{Binding SelectedName}" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasControl}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelControl}" />
+                <TextBlock Text="{Binding SelectedControlName}" />
+                <StackPanel Spacing="6" IsVisible="{Binding IsMumbleControl}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelMumbleServer}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding MumbleServers}" SelectedItem="{Binding SelectedMumbleServer}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:MumbleServerChoice">
+                        <TextBlock Text="{Binding Name}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelMumbleMode}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding MumbleModes}" SelectedItem="{Binding SelectedMumbleMode}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:MumbleModeChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- The Worklist: the list, or one line that drops it down. -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsWorklistControl}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelWorklistMode}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding WorklistModes}" SelectedItem="{Binding SelectedWorklistMode}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:WorklistModeChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- The menu: where it opens tools. -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsMenuControl}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelMenuTarget}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding MenuTargets}" SelectedItem="{Binding SelectedMenuTarget}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:MenuTargetChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+
+                <!-- A Tool Container: its name, one tool or tabs, splitting, and the tools it opens with. -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsToolContainer}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelContainerName}" />
+                  <TextBox Text="{Binding SelectedName}" />
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelContainerMode}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding ContainerModes}" SelectedItem="{Binding SelectedContainerMode}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ContainerModeChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <CheckBox IsChecked="{Binding ContainerSplit}" IsVisible="{Binding ContainerHoldsTabs}"
+                            Content="{x:Static loc:ClientLayoutsText.ContainerSplit}" />
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelContainerTools}" />
+                  <!-- Pick a tool to set what it opens with, below. -->
+                  <ListBox ItemsSource="{Binding ContainerTools}" SelectedItem="{Binding SelectedContainerTool}"
+                           Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:ContainerToolRowVm">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
+                          <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                          <CheckBox Grid.Column="1" IsChecked="{Binding CanClose}" IsVisible="{Binding HoldsTabs}"
+                                    Content="{x:Static loc:ClientLayoutsText.ContainerToolCanClose}" />
+                          <Button Grid.Column="2" Content="×" Padding="8 2" Command="{Binding RemoveCommand}"
+                                  ToolTip.Tip="{x:Static loc:ClientLayoutsText.ContainerToolRemove}" />
+                        </Grid>
+                      </DataTemplate>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3" Padding="8"
+                          IsVisible="{Binding SelectedContainerTool, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="label" Text="{Binding SelectedToolTitle}" />
+                      <StackPanel Spacing="6" IsVisible="{Binding SelectedToolIsOverview}">
+                        <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelOverviewLayout}" />
+                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding OverviewLayouts}" SelectedItem="{Binding SelectedOverviewLayout}" />
+                      </StackPanel>
+                      <TextBlock Classes="note" Text="{x:Static loc:ClientLayoutsText.ToolNoSettings}" IsVisible="{Binding SelectedToolHasNoSettings}" />
+                    </StackPanel>
+                  </Border>
+                  <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" IsVisible="{Binding CanAddTool}">
+                    <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" ItemsSource="{Binding ToolChoices}" SelectedItem="{Binding ToolToAdd}">
+                      <ComboBox.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ToolChoice">
+                          <TextBlock Text="{Binding Label}" />
+                        </DataTemplate>
+                      </ComboBox.ItemTemplate>
+                    </ComboBox>
+                    <Button Grid.Column="1" Content="{x:Static loc:ClientLayoutsText.ContainerToolAdd}" Command="{Binding AddToolCommand}" />
+                  </Grid>
+                  <TextBlock Classes="note" Text="{x:Static loc:ClientLayoutsText.ContainerNote}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasSize}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{Binding SizeLabel}" />
+                <NumericUpDown Value="{Binding SelectedSize}" Minimum="1" Maximum="16000" FormatString="0" Increment="10" />
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasNamed}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelColor}" />
+                <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                  <ColorPicker Grid.Column="0" Color="{Binding SelectedColor}" IsAlphaEnabled="False" IsAlphaVisible="False" />
+                  <Button Grid.Column="1" Content="{x:Static loc:ClientLayoutsText.ResetColor}" Command="{Binding ResetColorCommand}" />
+                </Grid>
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelStyle}" />
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding StyleChoices}" SelectedItem="{Binding SelectedStyle}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:PanelStyleChoice">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasLayoutWarnings}">
+              <ItemsControl ItemsSource="{Binding LayoutWarnings}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="x:String">
+                    <TextBlock Classes="warn" Text="{Binding}" Margin="0 0 0 4" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+            </Border>
+          </StackPanel>
+        </ScrollViewer>
+      </Grid>
+    </TabItem>
+  </TabControl>
+</UserControl>

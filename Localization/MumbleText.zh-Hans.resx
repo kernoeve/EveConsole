@@ -52,9 +52,6 @@
 
 大多数 Mumble 服务器使用自己的证书。仅在你确认是此服务器时才信任。之后将只接受此证书。</value>
   </data>
-  <data name="KeysSummary" xml:space="preserve">
-    <value>耳语键：{0}。呼喊键：{1}。</value>
-  </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>请输入服务器主机和用户名。</value>
   </data>
@@ -106,12 +103,6 @@
   <data name="LabelTokens" xml:space="preserve">
     <value>访问令牌（可选，以逗号分隔）</value>
   </data>
-  <data name="LabelWhisperKey" xml:space="preserve">
-    <value>耳语键（仅向当前频道讲话）</value>
-  </data>
-  <data name="LabelShoutKey" xml:space="preserve">
-    <value>呼喊键（按键通话：当前频道及其链接的频道）</value>
-  </data>
   <data name="KeysNote" xml:space="preserve">
     <value>这些按键仅用于此服务器，只要已连接，即使应用在后台也可使用。</value>
   </data>
@@ -124,9 +115,6 @@
   <data name="Save" xml:space="preserve">
     <value>保存</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>取消</value>
-  </data>
   <data name="Delete" xml:space="preserve">
     <value>删除</value>
   </data>
@@ -138,9 +126,6 @@
   </data>
   <data name="Disconnect" xml:space="preserve">
     <value>断开</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>编辑</value>
   </data>
   <data name="Mute" xml:space="preserve">
     <value>静音</value>
@@ -204,9 +189,6 @@
   </data>
   <data name="Refused" xml:space="preserve">
     <value>服务器拒绝了此操作。您可能没有权限。</value>
-  </data>
-  <data name="HeadingAdmin" xml:space="preserve">
-    <value>服务器管理</value>
   </data>
   <data name="ServerMute" xml:space="preserve">
     <value>服务器静音</value>
@@ -277,9 +259,6 @@
   <data name="ConfirmBan" xml:space="preserve">
     <value>将 {0} 从此服务器封禁?只有管理员可以在封禁列表中撤销。</value>
   </data>
-  <data name="RegisterName" xml:space="preserve">
-    <value>注册此名称</value>
-  </data>
   <data name="ConfirmRegister" xml:space="preserve">
     <value>在此服务器上注册 {0}?该名称将与其证书绑定,只有管理员可以撤销。</value>
   </data>
@@ -301,20 +280,8 @@
   <data name="UnlinkFromMine" xml:space="preserve">
     <value>取消与我的频道的链接</value>
   </data>
-  <data name="RemoveChannel" xml:space="preserve">
-    <value>删除频道</value>
-  </data>
   <data name="ConfirmRemoveChannel" xml:space="preserve">
     <value>为此服务器上的所有人删除 {0} 及其下的所有频道?</value>
-  </data>
-  <data name="LabelNewChannel" xml:space="preserve">
-    <value>在此下新建频道</value>
-  </data>
-  <data name="CreateChannel" xml:space="preserve">
-    <value>创建</value>
-  </data>
-  <data name="NewChannelTemporary" xml:space="preserve">
-    <value>临时:清空后消失</value>
   </data>
   <data name="NoiseReduce" xml:space="preserve">
     <value>降低背景噪音</value>
@@ -372,5 +339,119 @@
   </data>
   <data name="StatusTip" xml:space="preserve">
     <value>{0}，{1}：此频道中未禁听的有 {2} 人</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>频道目标</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>新服务器</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>对主机、端口、用户名、密码和令牌的更改将在下次连接此服务器时生效。</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>每个频道目标决定一个按键在此服务器上对谁说话。可随意更改：任意频道、随之包含的内容，以及无论身在何处的人。</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>按键</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>添加频道目标</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>添加频道</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>已链接的频道</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>子频道</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>无论身在何处的人（姓名，以逗号分隔）</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>仅这些频道中此服务器组的成员（可选）</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>我所在的频道</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>新目标</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>悄悄话：我所在的频道</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>喊话：我的频道及其链接的频道</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>除普通通话外，服务器可容纳 {0} 个目标。</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>密码保存在共享数据库中，并使用从数据库密码派生的密钥加密。</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>详细信息…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>音量和详细信息…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>服务器信息…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>注册此名称…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>移动到…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>踢出…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>封禁…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>新建频道…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>新建临时频道…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>删除频道…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>新建频道</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>新建临时频道</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>名称，位于 {0} 下</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>查找某人</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>显示每个频道里的人</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>这里没有叫这个名字的人。</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} 人在此，其中 {1} 人能听到</value>
   </data>
 </root>

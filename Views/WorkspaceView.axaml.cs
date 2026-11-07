@@ -48,11 +48,12 @@ public partial class WorkspaceView : UserControl
     /// <summary>
     /// Where <paramref name="tab"/> dropped at <paramref name="at"/> goes: a strip (at a place along
     /// it), the split zone (the right side), or a side's tool (the end of its strip) — but not the
-    /// side it came from, when it came from here. Null for nowhere.
+    /// side it came from, when it came from here. Null for nowhere, which is also the answer for a
+    /// tab that can't come here from <paramref name="from"/>.
     /// </summary>
-    internal (ToolPane Pane, int? Index)? DropTarget(Point at, ToolTab tab)
+    internal (ToolPane Pane, int? Index)? DropTarget(Point at, ToolTab tab, TabWorkspace from)
     {
-        if (Workspace is not { } ws) return null;
+        if (Workspace is not { } ws || !TabWorkspace.CanMove(tab, from, ws)) return null;
         foreach (var side in ShownSides)
             if (side.Pane is { } pane && side.StripBounds(this).Contains(at))
                 return (pane, side.InsertIndexAt(at, this));

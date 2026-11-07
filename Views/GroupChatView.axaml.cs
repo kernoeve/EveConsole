@@ -1,11 +1,15 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using System.Reactive.Threading.Tasks;
+using EveConsole.Localization;
 using EveConsole.Services;
+using EveConsole.Services.Jabber;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -21,6 +25,7 @@ public partial class GroupChatView : UserControl
         InitializeComponent();
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        EmoteBox.Target = DraftBox;
 
         DataContextChanged += (_, _) => Adopt(DataContext as GroupChatViewModel);
     }
@@ -81,6 +86,8 @@ public partial class GroupChatView : UserControl
     /// <summary>Enter sends and Shift+Enter is a new line, as in every chat client.</summary>
     private void OnDraftKey(object? sender, KeyEventArgs e)
     {
+        // Choosing from the emote list comes first: Enter there picks one.
+        if (EmoteBox.HandleKey(e)) return;
         if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
 
         e.Handled = true;
@@ -99,6 +106,168 @@ public partial class GroupChatView : UserControl
         var size = (await file.GetBasicPropertiesAsync()).Size ?? 0;
         await using var content = await file.OpenReadAsync();
         await vm.SendFileAsync(content, file.Name, (long)size);
+    }
+
+    // ── Right-click: someone in the room, or the room ─────────────────────────
+
+    /// <summary>
+    /// Direct Message for anyone else, then whatever the room lets the person do to them. ⚠️ Only lines the room allows
+    /// are there at all, worked out when the menu opens, so they are always for the person and room as they are now.
+    /// </summary>
+    private void OnOccupantMenu(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { DataContext: JabberOccupantVm person } at || _vm is not { } vm) return;
+        e.Handled = true;
+
+        var rights = vm.RightsOver(person);
+        var room = vm.RoomName;
+        var lines = new List<Control>();
+        if (!person.IsSelf) lines.Add(Line(GroupChatText.MenuDirectMessage, () => { vm.MessageOccupant(person); return Task.CompletedTask; }));
+
+        var admin = new List<Control>();
+        if (rights.GiveVoice) admin.Add(Line(GroupChatText.MenuGiveVoice, () => vm.SetRoleAsync(person, "participant")));
+        if (rights.TakeVoice) admin.Add(Line(GroupChatText.MenuTakeVoice, () => vm.SetRoleAsync(person, "visitor")));
+        if (rights.MakeModerator) admin.Add(Line(GroupChatText.MenuMakeModerator, () => vm.SetRoleAsync(person, "moderator")));
+        if (rights.RemoveModerator) admin.Add(Line(GroupChatText.MenuRemoveModerator, () => vm.SetRoleAsync(person, "participant")));
+        if (rights.MakeMember) admin.Add(Line(GroupChatText.MenuMakeMember, () => vm.SetAffiliationAsync(person, "member")));
+        if (rights.RemoveMember) admin.Add(Line(GroupChatText.MenuRemoveMember, () => vm.SetAffiliationAsync(person, "none")));
+        if (rights.MakeAdmin) admin.Add(Line(GroupChatText.MenuMakeAdmin, () => vm.SetAffiliationAsync(person, "admin")));
+        if (rights.RemoveAdmin) admin.Add(Line(GroupChatText.MenuRemoveAdmin, () => vm.SetAffiliationAsync(person, "member")));
+        if (rights.Kick) admin.Add(Line(GroupChatText.MenuKick, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.KickTitle, person.Nick), "", GroupChatText.LabelReason, "", null) is { } reason)
+                await vm.SetRoleAsync(person, "none", reason);
+        }));
+        if (rights.Ban) admin.Add(Line(GroupChatText.MenuBan, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.BanTitle, person.Nick), "", GroupChatText.LabelReason, "", null) is not { } reason) return;
+            if (await ConfirmAsync(Format(GroupChatText.ConfirmBan, person.Nick, person.Person?.RealJid ?? "", room)))
+                await vm.SetAffiliationAsync(person, "outcast", reason);
+        }));
+
+        if (lines.Count > 0 && admin.Count > 0) lines.Add(new Separator());
+        lines.AddRange(admin);
+        Show(at, lines);
+    }
+
+    /// <summary>A room's own menu: its topic, inviting, bans, leaving. The room is opened first, as a click would.</summary>
+    private void OnRowMenu(object? sender, ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { DataContext: GroupChatRowVm { IsRoom: true } row } at || _vm is not { } vm) return;
+        e.Handled = true;
+        vm.SelectedRow = row;
+
+        var rights = vm.RoomRights();
+        var room = row.ShownText;
+        var lines = new List<Control>();
+        if (rights.ChangeTopic) lines.Add(Line(GroupChatText.MenuChangeTopic, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
+                await vm.SetSubjectAsync(topic);
+        }));
+        if (rights.Invite) lines.Add(Line(GroupChatText.MenuInvite, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", GroupChatText.LabelInvitee, "name@server", vm.KnownAddresses()) is { Length: > 0 } who)
+                await vm.InviteAsync(who, "");
+        }));
+        if (rights.LiftBan) lines.Add(Line(GroupChatText.MenuLiftBan, async () =>
+        {
+            var bans = await vm.BansAsync();
+            if (bans.Count == 0) { if (!vm.HasStatus) vm.SetStatus(Format(GroupChatText.NoBans, room)); return; }
+
+            var shown = bans.Select(b => b.Reason.Length > 0 ? $"{b.Jid}  ({b.Reason})" : b.Jid).ToList();
+            if (await AskAsync(Format(GroupChatText.LiftBanTitle, room), "", GroupChatText.LabelBanned, "", shown) is not { Length: > 0 } picked) return;
+
+            var jid = picked.Split("  (")[0].Trim();
+            if (bans.Any(b => b.Jid == jid)) await vm.LiftBanAsync(jid);
+            else vm.SetStatus(GroupChatText.PickBanned);
+        }));
+        if (lines.Count > 0) lines.Add(new Separator());
+        lines.Add(Line(JabberText.LeaveRoom, () => vm.LeaveRoomCommand.Execute().ToTask()));
+        Show(at, lines);
+    }
+
+    private static string Format(string text, params object[] values) => string.Format(System.Globalization.CultureInfo.CurrentCulture, text, values);
+
+    private static MenuItem Line(string header, Func<Task> act)
+    {
+        var item = new MenuItem { Header = header };
+        item.Click += async (_, _) => await act();
+        return item;
+    }
+
+    /// <summary>
+    /// Opens the menu on what was right-clicked, and only while it is open. ⚠️ Closed when the window stops being the one
+    /// in use: a menu is a topmost window of its own and would otherwise sit over the next program.
+    /// </summary>
+    private void Show(Control at, List<Control> lines)
+    {
+        if (lines.Count == 0) return;
+
+        var menu = new ContextMenu { ItemsSource = lines };
+        var window = TopLevel.GetTopLevel(this) as Window;
+        void Leave(object? s, EventArgs a) => menu.Close();
+        if (window is not null) window.Deactivated += Leave;
+        menu.Closed += (_, _) =>
+        {
+            at.ContextMenu = null;
+            if (window is not null) window.Deactivated -= Leave;
+        };
+        at.ContextMenu = menu;
+        menu.Open(at);
+    }
+
+    private async Task<string?> AskAsync(string title, string message, string label, string hint, IEnumerable<string>? choices) =>
+        TopLevel.GetTopLevel(this) is Window owner ? await new AskDialog(title, message, label, hint, choices).ShowDialog<string?>(owner) : null;
+
+    private async Task<bool> ConfirmAsync(string message) =>
+        // ⚠️ No window means nobody to ask, so nothing that cannot be undone goes ahead.
+        TopLevel.GetTopLevel(this) is Window owner && await new ConfirmDialog(message).ShowDialog<bool>(owner);
+
+
+    // ── Reactions ─────────────────────────────────────────────────────────────
+
+    private Flyout? _reactFlyout;
+    private ReactionPicker? _reactPicker;
+    private Func<string, Task>? _reacting;
+
+    /// <summary>The message a control under it belongs to.</summary>
+    private static T? LineOf<T>(object? sender) where T : class =>
+        (sender as Visual)?.GetSelfAndVisualAncestors().OfType<Control>().Select(c => c.DataContext).OfType<T>().FirstOrDefault();
+
+    /// <summary>
+    /// The picker, at the message's own button. ⚠️ Put away when the window stops being the one in use: a flyout is a
+    /// topmost window of its own and would otherwise sit over the next program.
+    /// </summary>
+    private void OpenReactionPicker(Control at, Func<string, Task> react)
+    {
+        if (_reactFlyout is null)
+        {
+            _reactPicker = new ReactionPicker();
+            _reactFlyout = new Flyout { Content = _reactPicker, Placement = PlacementMode.TopEdgeAlignedRight };
+            _reactPicker.Picked += emoji =>
+            {
+                _reactFlyout.Hide();
+                if (_reacting is { } chosen) _ = chosen(emoji);
+            };
+            if (TopLevel.GetTopLevel(this) is Window window) window.Deactivated += (_, _) => _reactFlyout.Hide();
+        }
+
+        _reacting = react;
+        _reactPicker!.Reset();
+        _reactFlyout.ShowAt(at);
+    }
+
+    private void OnAddReaction(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control at && LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm)
+            OpenReactionPicker(at, emoji => vm.ToggleReactionAsync(line, emoji));
+    }
+
+    private void OnReactionChip(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ReactionChipVm chip } && LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm)
+            _ = vm.ToggleReactionAsync(line, chip.Emoji);
     }
 
     /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>

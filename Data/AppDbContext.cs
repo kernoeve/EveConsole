@@ -51,6 +51,11 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
     public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
     public DbSet<SavedBattle>                SavedBattles            => Set<SavedBattle>();
+    public DbSet<ClientLayout>               ClientLayouts           => Set<ClientLayout>();
+    public DbSet<ClientLayoutDevice>         ClientLayoutDevices     => Set<ClientLayoutDevice>();
+    public DbSet<ClientLayoutProfile>        ClientLayoutProfiles    => Set<ClientLayoutProfile>();
+    public DbSet<ClientLayoutMonitor>        ClientLayoutMonitors    => Set<ClientLayoutMonitor>();
+    public DbSet<ClientLayoutCharacter>      ClientLayoutCharacters  => Set<ClientLayoutCharacter>();
     public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
@@ -99,6 +104,13 @@ public class AppDbContext : DbContext
     public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
     public DbSet<JabberLiveState>       JabberLiveStates         => Set<JabberLiveState>();
     public DbSet<JabberCommand>         JabberCommands           => Set<JabberCommand>();
+    public DbSet<EmotePack>             EmotePacks               => Set<EmotePack>();
+    public DbSet<EmoteImage>            EmoteImages              => Set<EmoteImage>();
+    public DbSet<EmoteCode>             EmoteCodes               => Set<EmoteCode>();
+    public DbSet<JabberEmotePack>       JabberEmotePacks         => Set<JabberEmotePack>();
+    public DbSet<ChatAvatar>            ChatAvatars              => Set<ChatAvatar>();
+    public DbSet<JabberReaction>        JabberReactions          => Set<JabberReaction>();
+    public DbSet<ChatAvatarOwner>       ChatAvatarOwners         => Set<ChatAvatarOwner>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
@@ -941,6 +953,28 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.ToTable("SavedBattles"); });
 
+        // Client layouts: the shapes, the desktops, their monitors and who runs where. Mirrored by
+        // hand in App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds them only into a
+        // new database.
+        mb.Entity<ClientLayout>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayouts"); });
+        mb.Entity<ClientLayoutDevice>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("ClientLayoutDevices"); });
+        mb.Entity<ClientLayoutProfile>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayoutProfiles"); });
+        mb.Entity<ClientLayoutMonitor>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.DeviceId, x.ProfileId, x.HardwareKey }).IsUnique();
+            e.ToTable("ClientLayoutMonitors"); });
+        mb.Entity<ClientLayoutCharacter>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.MonitorId);
+            e.ToTable("ClientLayoutCharacters"); });
+
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
         // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
         mb.Entity<HaulMark>(e => {
@@ -1235,6 +1269,40 @@ public class AppDbContext : DbContext
         mb.Entity<JabberCommand>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("JabberCommands"); });
+
+        mb.Entity<EmotePack>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EmotePacks"); });
+
+        mb.Entity<EmoteImage>(e => {
+            e.HasKey(x => x.Hash);
+            e.ToTable("EmoteImages"); });
+
+        mb.Entity<EmoteCode>(e => {
+            e.HasKey(x => new { x.PackId, x.Code });
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.HasIndex(x => x.ImageHash).HasDatabaseName("IX_EmoteCodes_Image");
+            e.ToTable("EmoteCodes"); });
+
+        mb.Entity<JabberReaction>(e => {
+            e.HasKey(x => new { x.AccountId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.ToTable("JabberReactions"); });
+
+        mb.Entity<ChatAvatar>(e => {
+            e.HasKey(x => x.Hash);
+            e.ToTable("ChatAvatars"); });
+
+        mb.Entity<ChatAvatarOwner>(e => {
+            e.HasKey(x => new { x.Service, x.ServerId, x.Person });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("ChatAvatarOwners"); });
+
+        mb.Entity<JabberEmotePack>(e => {
+            e.HasKey(x => new { x.AccountId, x.PackId });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.ToTable("JabberEmotePacks"); });
 
         mb.Entity<CharMercenaryDen>(e => {
             e.HasKey(x => new { x.CharacterId, x.DenId });

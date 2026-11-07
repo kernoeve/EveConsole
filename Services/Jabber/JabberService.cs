@@ -97,6 +97,9 @@ public sealed class JabberSession(JabberAccount account)
     /// <summary>The server says it keeps an archive of this account's direct messages. Null until asked.</summary>
     public bool? HasArchive { get; internal set; }
 
+    /// <summary>The server copies its two stores of saved rooms into each other, so writing the newer one is enough.</summary>
+    internal bool BookmarksInStep { get; set; }
+
     internal XmppClient? Client { get; set; }
 
     /// <summary>Where this connection's messages go to be saved.</summary>
@@ -133,7 +136,7 @@ public readonly record struct JabberUnread(int AccountId, string Conversation, i
 /// <para>⚠️ One process connects, and that is whichever holds the worker lease, with or without a window: two would fight
 /// for the same login. Every other client shows what it saves, and asks it for the rest. See JabberRelay.cs.</para>
 /// </summary>
-public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
+public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null, AvatarService? avatars = null)
 {
     /// <summary>How long to wait between attempts: quick for a blip, then settling once a server is down.</summary>
     private static readonly int[] BackoffSeconds = [5, 10, 30, 60, 120, 300];
@@ -242,7 +245,14 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberMessages.Where(m => m.AccountId == accountId).ExecuteDeleteAsync(ct);
+        await db.JabberReactions.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
         await db.JabberRooms.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            await db.JabberEmotePacks.Where(l => l.AccountId == accountId).ExecuteDeleteAsync(ct);
+            await EmoteService.DeleteUnusedAsync(db, ct);
+            await tx.CommitAsync(ct);
+        }
         await db.JabberAccounts.Where(a => a.Id == accountId).ExecuteDeleteAsync(ct);
 
         await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(accountId), null), ct);
@@ -421,12 +431,18 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             session.Locked(s => s.InviteMap[invite.Room] = invite);
             SessionChanged?.Invoke(session);
         };
-        client.RoomSubjectChanged += (room, subject) => session.Locked(s =>
+        client.RoomSubjectChanged += (room, subject) =>
         {
-            if (!s.RoomMap.TryGetValue(room, out var r)) return;
-            r.Subject = subject;
-            r.HistoryDone = true;
-        });
+            session.Locked(s =>
+            {
+                if (!s.RoomMap.TryGetValue(room, out var r)) return;
+                r.Subject = subject;
+                r.HistoryDone = true;
+            });
+
+            // ⚠️ Told, or a new topic only showed once the room was opened again, and other clients only saw it later.
+            SessionChanged?.Invoke(session);
+        };
 
         var reading = client.RunAsync(ct);
         var saving  = SaveInboxAsync(session, inbox.Reader, ct);
@@ -628,6 +644,9 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         await client.EnableCarbonsAsync(ct);
         await client.SetPresenceAsync(session.Show, session.Status, ct);
 
+        // This account's own picture, read again on each connect: no presence of its own says when it changes.
+        NoteAvatar(session, client, [client.Self.Bare, "me"], null, null, refresh: true);
+
         try { session.ConferenceServices = await client.ConferenceServicesAsync(ct); }
         catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.ConferenceServices = []; }
 
@@ -637,9 +656,12 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        // Rooms saved on the server join the account's list the first time they are seen.
+        // Rooms saved on the server join the account's list the first time they are seen: the newer way first, which
+        // wins where a room is saved both ways, as it is the one a newer client keeps up to date.
         // ⚠️ By address, once each: a list saved with a room in it twice would otherwise break the login every time.
-        foreach (var bookmark in (await client.GetBookmarksAsync(ct)).DistinctBy(b => b.Jid))
+        session.BookmarksInStep = (await client.FeaturesOfAsync(client.Self.Bare, ct)).Contains(XmppClient.BookmarksInStepFeature);
+        var saved = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct)).ToList();
+        foreach (var bookmark in saved.DistinctBy(b => b.Jid))
         {
             if (await db.JabberRooms.AnyAsync(r => r.AccountId == session.Account.Id && r.RoomJid == bookmark.Jid, ct)) continue;
             db.JabberRooms.Add(new JabberRoom
@@ -659,6 +681,49 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         // Together: each first asks whether its room keeps an archive, and one slow room should not hold up the rest.
         await Task.WhenAll(rooms.Where(r => r.AutoJoin && !r.Left).Select(room => JoinCoreAsync(session, client, room, ct)));
+
+        // Both ways: a room joined here before the server was told is saved there too, as other clients do. ⚠️ Only what
+        // is missing. A saved room's own setting is left as it is: here cannot tell an old one from another client's choice.
+        var savedThere = saved.Select(b => b.Jid).ToHashSet(StringComparer.Ordinal);
+        foreach (var room in rooms.Where(r => r.AutoJoin && !r.Left && !savedThere.Contains(r.RoomJid)))
+            await SaveBookmarkAsync(session, client, room.RoomJid, autoJoin: true, ct);
+    }
+
+    /// <summary>
+    /// Saves a room in the server's bookmarks, so the person's other clients have it as well, as theirs do for this one.
+    /// Leaving turns its autojoin off rather than removing it, as the protocol asks. What the server already has for it
+    /// (its name, nickname, password) is kept unless this has its own.
+    ///
+    /// <para>The newer store always, and the older one too unless the server copies between them, so an older client such
+    /// as Pidgin sees it as well. A failure here is logged and changes nothing else: the room is joined or left either way.</para>
+    /// </summary>
+    private async Task SaveBookmarkAsync(JabberSession session, XmppClient client, string roomJid, bool autoJoin, CancellationToken ct)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var id = session.Account.Id;
+            var room = await db.JabberRooms.AsNoTracking().FirstOrDefaultAsync(r => r.AccountId == id && r.RoomJid == roomJid, ct);
+            var there = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct)).FirstOrDefault(b => b.Jid == roomJid);
+            var password = room is null ? "" : await Task.Run(() => AppConfig.GetServicePassword(RoomPasswordReference(room.Id)) ?? "", ct);
+
+            var bookmark = new XmppBookmark(
+                roomJid,
+                room is { Name.Length: > 0 } ? room.Name : there?.Name ?? "",
+                room is { Nickname.Length: > 0 } ? room.Nickname : there?.Nick ?? "",
+                autoJoin,
+                password.Length > 0 ? password : there?.Password ?? "");
+
+            var newer = true;
+            try { await client.PublishNewBookmarkAsync(bookmark, ct); }
+            catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { newer = false; }
+
+            if (!newer || !session.BookmarksInStep) await client.SaveOldBookmarkAsync(bookmark, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            errors.Log(nameof(JabberService), "save a room in the server's bookmarks", e);
+        }
     }
 
     private async Task JoinCoreAsync(JabberSession session, XmppClient client, JabberRoom room, CancellationToken ct)
@@ -747,8 +812,27 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         contact.Subscription = item.Subscription;
     }
 
+    /// <summary>The name pictures are filed under for Jabber: the same as the Messages tool's.</summary>
+    public const string AvatarServiceName = "jabber";
+
+    /// <summary>
+    /// What a presence said of someone's picture, for <see cref="EveConsole.Services.AvatarService"/> to fetch from their vCard if it is
+    /// new. Only where the connection is: that is the only place it can be asked.
+    /// </summary>
+    private void NoteAvatar(JabberSession session, XmppClient? client, IReadOnlyList<string> persons, string? askAt, string? hash, bool refresh = false)
+    {
+        if (avatars is null || client is null) return;
+        _ = avatars.NoteAsync(AvatarServiceName, session.Account.Id, persons, hash, () => client.VCardPhotoAsync(askAt, CancellationToken.None), refresh);
+    }
+
     private void OnPresence(JabberSession session, XmppPresence presence)
     {
+        if (presence.PhotoHash is { } photo)
+        {
+            var bare = presence.From.Bare;
+            NoteAvatar(session, session.Client, bare == XmppAddress.Parse(session.Account.Address).Bare ? [bare, "me"] : [bare], bare, photo);
+        }
+
         session.Locked(s =>
         {
             if (!s.ContactMap.TryGetValue(presence.From.Bare, out var contact)) return;
@@ -767,6 +851,17 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     private void OnOccupant(JabberSession session, XmppClient client, XmppOccupant occupant, CancellationToken ct)
     {
+        // Someone in a room by room/nickname, and at their own address too where the room shows it.
+        if (occupant is { PhotoHash: { } photo, Left: false })
+        {
+            var inRoom = $"{occupant.Room}/{occupant.Nick}";
+            var real = XmppAddress.Parse(occupant.RealJid).Bare;
+            List<string> persons = [inRoom];
+            if (real.Length > 0) persons.Add(real);
+            if (occupant.Self) persons.Add("me");
+            NoteAvatar(session, client, persons, real.Length > 0 ? real : inRoom, photo);
+        }
+
         JabberRoomState? entered = null;
         session.Locked(s =>
         {
@@ -877,6 +972,20 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // Reactions are not a message of their own either, whatever words come with them for older clients.
+        if (message.ReactionsTo.Length > 0)
+        {
+            await ApplyReactionsAsync(db, row.AccountId, row.Conversation, room is not null, row.Sender, message.ReactionsTo, message.Reactions, ct);
+            return null;
+        }
+
+        // A delete is never a message of its own, whether or not it finds what it names.
+        if (message.RetractId.Length > 0)
+        {
+            await ApplyRetractionAsync(db, row, message, isRoom: room is not null, ct);
+            return null;
+        }
+
         if (message.IsCorrection)
         {
             if (await ApplyCorrectionAsync(db, row, message.ReplaceId, ct)) return null;
@@ -965,6 +1074,58 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     private static readonly TimeSpan ArchiveSameMoment = TimeSpan.FromMinutes(2);
 
+    private const int LongestDeleteReason = 300;
+
+    /// <summary>
+    /// Deletes what a retraction names, keeping its place. ⚠️ Only from whoever may: in a room, someone's own message by
+    /// the room's id for it, or anyone's when the room itself says a moderator removed it; with a person, only their
+    /// own, or this account's from another of its clients. Anything else is left as it is, and nothing is said.
+    /// </summary>
+    private async Task ApplyRetractionAsync(AppDbContext db, JabberStoredMessage row, XmppMessage message, bool isRoom, CancellationToken ct)
+    {
+        var id = message.RetractId;
+        var recent = db.JabberMessages
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation)
+            .OrderByDescending(m => m.Id).Take(2000);
+
+        JabberStoredMessage? target;
+        if (isRoom)
+        {
+            var byRoom = message.From.Resource.Length == 0;
+            if (message.RetractByModerator != byRoom) return;
+
+            target = await recent.FirstOrDefaultAsync(m => m.StanzaId == id, ct)
+                  ?? (byRoom ? null : await recent.FirstOrDefaultAsync(m => m.MessageId == id && m.Sender == row.Sender, ct));
+            if (target is null || !byRoom && target.Sender != row.Sender) return;
+        }
+        else
+        {
+            if (message.RetractByModerator) return;
+            target = await recent.FirstOrDefaultAsync(m => m.MessageId == id && m.Sender == row.Sender, ct);
+            if (target is null) return;
+        }
+
+        var reason = message.RetractByModerator ? message.RetractReason.Trim() : "";
+        if (target.Deleted != JabberDeleted.No && target.Body.Length == 0) return;
+
+        target.Body = "";
+        target.Deleted = message.RetractByModerator ? JabberDeleted.ByModerator : JabberDeleted.BySender;
+        target.DeletedReason = reason.Length > LongestDeleteReason ? reason[..LongestDeleteReason] : reason;
+        var wasUnread = !target.IsRead;
+        target.IsRead = true;
+        target.IsAlert = false;
+        target.IsMention = false;
+        await db.SaveChangesAsync(ct);
+
+        ConversationEdited?.Invoke(row.AccountId, row.Conversation);
+        Tell($"edit|{row.AccountId}|{row.Conversation}");
+        if (wasUnread)
+        {
+            UnreadChanged?.Invoke();
+            Tell("unread");
+        }
+    }
+
     /// <summary>
     /// A correction changes that person's latest message in the conversation, which is the only one the
     /// protocol lets them correct. False when nothing of theirs is saved, and it stands as a new message.
@@ -1028,6 +1189,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             IsMention    = isRoom && !outgoing && NamesThem(account, roomNick, message.Body),
             DedupeKey    = DedupeKey(conversation, sender, message),
             MessageId    = message.Id,
+            StanzaId     = isRoom ? message.RoomStanzaId : "",
         };
     }
 
@@ -1247,7 +1409,11 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         if (room is null) return;
 
         session.Locked(s => s.RoomMap[roomJid] = new JabberRoomState(room));
-        if (session.Client is { } client) await JoinCoreAsync(session, client, room, ct);
+        if (session.Client is { } client)
+        {
+            await JoinCoreAsync(session, client, room, ct);
+            _ = SaveBookmarkAsync(session, client, roomJid, autoJoin: true, ct);
+        }
 
         RoomTypesChanged();
         SessionChanged?.Invoke(session);
@@ -1267,6 +1433,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         var state = session.Locked(s => { s.RoomMap.Remove(roomJid, out var r); return r; });
         if (state is not null && session.Client is { } client && state.Joined)
             await client.LeaveRoomAsync(roomJid, state.Nick, ct);
+        if (session.Client is { } connected) _ = SaveBookmarkAsync(session, connected, roomJid, autoJoin: false, ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
@@ -1463,10 +1630,12 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
             var days  = int.TryParse(saved, out var d) ? d : DefaultHistoryDays;
-            if (days <= 0) return;   // keep it all
-
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
-            await db.JabberMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+            if (days > 0)   // none keeps it all
+            {
+                var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+                await db.JabberMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+            }
+            await DeleteOrphanReactionsAsync(db, ct);
         }
         catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
         {

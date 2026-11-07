@@ -319,6 +319,7 @@ public class MainWindowViewModel : ReactiveObject
     public CorpActivityViewModel          CorpActivityVm         { get; }
     public CorpStructuresViewModel        CorpStructuresVm       { get; }
     public MercenaryDensViewModel         MercenaryDensVm        { get; }
+    public ClientLayoutsViewModel         ClientLayoutsVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public BattleReportViewModel          BattleReportVm         { get; }
     public EveMailViewModel               EveMailVm              { get; }
@@ -351,13 +352,31 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _eveTimeText, value);
     }
 
+    private string _localTimeText = "";
+    /// <summary>Shown only by the panel item of that name; the main screen has just the EVE clock.</summary>
+    public string LocalTimeText
+    {
+        get => _localTimeText;
+        private set => this.RaiseAndSetIfChanged(ref _localTimeText, value);
+    }
+
+    /// <summary>For Mumble controls on panels, which can be for a server that isn't connected.</summary>
+    public EveConsole.Services.Mumble.MumbleService MumbleService { get; }
+
+    /// <summary>Opens Settings without blocking anything, centered on the monitor given.</summary>
+    public Action<Avalonia.PixelRect>? OpenSettingsOnMonitor { get; set; }
+
     private void StartEveTimeClock()
     {
-        EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss");
+        void Tick()
+        {
+            EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss");
+            LocalTimeText = DateTimeOffset.Now.ToString("HH:mm:ss");
+        }
+
+        Tick();
         var timer = new System.Timers.Timer(1000) { AutoReset = true };
-        timer.Elapsed += (_, _) =>
-            Avalonia.Threading.Dispatcher.UIThread.Post(
-                () => EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss"));
+        timer.Elapsed += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(Tick);
         timer.Start();
     }
 
@@ -520,7 +539,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
             {
                 Interlocked.Exchange(ref queued, 0);
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OverviewVm.LoadAsync());
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (var overview in AllTabs.Select(t => t.ViewModel).OfType<OverviewViewModel>().Append(OverviewVm).Distinct())
+                        _ = overview.LoadAsync();
+                });
             }, TaskScheduler.Default);
         }
     }
@@ -819,7 +842,11 @@ public class MainWindowViewModel : ReactiveObject
     /// window opens a window for each one added and closes it when it is removed.</summary>
     public ObservableCollection<TabWorkspace> Hosts { get; } = [];
 
-    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main);
+    /// <summary>The Tool Containers on the panels of client layouts, while they're on screen.</summary>
+    public IReadOnlyList<TabWorkspace> Containers => _containerList;
+    private readonly List<TabWorkspace> _containerList = [];
+
+    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main).Concat(_containerList);
 
     // The main window's own, as it and the agent read them.
     public ToolPane LeftPane  => Main.LeftPane;
@@ -864,20 +891,17 @@ public class MainWindowViewModel : ReactiveObject
     {
         if (WorkspaceOf(tab) is not { } from || to.Workspace is not { } dest) return;
         if (from == dest) { from.Move(tab, to, index); return; }
-        if (!CanLeaveMain(tab) && !dest.IsMain) return;
+        if (!TabWorkspace.CanMove(tab, from, dest)) return;
         from.Remove(tab);
         dest.Add(tab, to, index);
         DropIfEmpty(from);
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
-    /// <summary>Any tool but the Overview can go to a window of its own.</summary>
-    public static bool CanLeaveMain(ToolTab tab) => tab.Id != "overview";
-
     /// <summary>Takes <paramref name="tab"/> out into a window of its own; the view opens the window.</summary>
     public TabWorkspace? DetachTab(ToolTab tab)
     {
-        if (!CanLeaveMain(tab) || WorkspaceOf(tab) is not { } from) return null;
+        if (WorkspaceOf(tab) is not { } from || !TabWorkspace.CanDetach(tab, from)) return null;
         from.Remove(tab);
         var ws = new TabWorkspace(isMain: false);
         ws.Add(tab);
@@ -890,19 +914,271 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>A window of tabs was closed: its tools close with it, as closing a tab does.</summary>
     public void CloseWorkspace(TabWorkspace ws)
     {
-        if (ws.IsMain) return;
+        if (!ws.IsFloating) return;
         foreach (var tab in ws.OpenTabs.ToList())
         {
             ws.Remove(tab);
-            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
-            if (navItem is not null) navItem.IsOpen = false;
+            Forget(tab);
         }
         Hosts.Remove(ws);
     }
 
     private void DropIfEmpty(TabWorkspace ws)
     {
-        if (!ws.IsMain && ws.IsEmpty) Hosts.Remove(ws);
+        if (ws.IsFloating && ws.IsEmpty) Hosts.Remove(ws);
+    }
+
+    // ── Tool Containers, and where a menu opens tools ─────────────────────────
+
+    private sealed class ContainerEntry(string key, TabWorkspace workspace, string spec)
+    {
+        public string Key { get; } = key;
+        public TabWorkspace Workspace { get; } = workspace;
+        public string Spec { get; } = spec;
+        public int Claims { get; set; } = 1;
+    }
+
+    /// <summary>By monitor and control id: a layout used on two monitors has a container on each.</summary>
+    private readonly Dictionary<string, ContainerEntry> _containers = [];
+
+    private static string ContainerKey(string monitorKey, string controlId) => monitorKey + "|" + controlId;
+
+    /// <summary>Tools that open as a tab, and so can go in a container: not those that open
+    /// somewhere else now (the Map's own tabs, Settings). The Overview in a container is one of
+    /// its own (<see cref="ContainerOverviewId"/>), not the main window's.</summary>
+    public IReadOnlyList<NavItem> ContainerToolChoices =>
+        [.. _allNavItems.Where(i => i.ToolId is not ("jump_planner" or "route_planner" or "jabber" or "mumble"))];
+
+    private readonly Func<string?, OverviewViewModel> _newOverview;
+
+    /// <summary>
+    /// A container's Overview loads once the main one has. At startup all of them load together,
+    /// each reading the same things, and the main window waits for its own: the others only made
+    /// that wait longer.
+    /// </summary>
+    private async Task LoadAfterMainAsync(OverviewViewModel overview)
+    {
+        try { await OverviewVm.EnsureLoadedAsync(); }
+        catch (Exception) { /* the main one's failure is its own; this one still loads */ }
+        await overview.LoadAsync();
+    }
+    private int _containerOverviews;
+
+    /// <summary>
+    /// The tab id of an Overview made for a container. Never "overview", which is the main window's:
+    /// opening the Overview from the navigation still finds that one.
+    /// </summary>
+    private string ContainerOverviewId() => "overview#" + Interlocked.Increment(ref _containerOverviews);
+
+    /// <summary>
+    /// A tab closed for good: the navigation no longer marks it open, and an Overview made for a
+    /// container stops refreshing.
+    /// </summary>
+    private void Forget(ToolTab tab)
+    {
+        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+        if (navItem is not null) navItem.IsOpen = false;
+        if (tab.ViewModel is OverviewViewModel overview && overview != OverviewVm) overview.Dispose();
+    }
+
+    /// <summary>
+    /// The tabs of the Tool Container that control <paramref name="controlId"/> shows on a monitor,
+    /// made with its starting tools when it first shows. A panel built again keeps the one it had,
+    /// unless what the container is set to hold has changed. Each claim is given back with
+    /// <see cref="ReleaseContainer"/>.
+    /// </summary>
+    public TabWorkspace ClaimContainer(string monitorKey, string controlId, Services.ClientLayouts.ControlOptions? options)
+    {
+        var key = ContainerKey(monitorKey, controlId);
+        var tools = Services.ClientLayouts.PanelControls.ToolsOf(options);
+        var spec = string.Join(";", tools.Select(t => t.ToolId + (t.CanClose ? "" : "!") + (t.Layout is { Length: > 0 } l ? "@" + l : "")))
+                   + "|" + Services.ClientLayouts.PanelControls.HoldsTabs(options) + Services.ClientLayouts.PanelControls.Splits(options);
+        if (_containers.TryGetValue(key, out var entry))
+        {
+            if (entry.Spec == spec)
+            {
+                entry.Claims++;
+                return entry.Workspace;
+            }
+            CloseContainer(entry);
+        }
+
+        var ws = TabWorkspace.Container(Services.ClientLayouts.PanelControls.HoldsTabs(options), Services.ClientLayouts.PanelControls.Splits(options));
+        _containers[key] = new ContainerEntry(key, ws, spec);
+        _containerList.Add(ws);
+
+        var choices = ContainerToolChoices.Select(i => i.ToolId).ToHashSet();
+        ToolTab? first = null;
+        foreach (var tool in tools.Where(t => choices.Contains(t.ToolId)))
+        {
+            // The Overview here is one of the container's own, showing the layout it sets; the
+            // main window's is left where it is.
+            if (tool.ToolId == "overview")
+            {
+                var overview = new ToolTab(ContainerOverviewId(), ShellText.NavOverview, _newOverview(tool.Layout));
+                ws.Add(overview);
+                if (!tool.CanClose) overview.PinnedIn = ws;
+                first ??= overview;
+                continue;
+            }
+
+            var tab = AllTabs.FirstOrDefault(t => t.Id == tool.ToolId);
+            if (tab is null)
+            {
+                OpenToolIn(tool.ToolId, ws);
+                tab = ws.OpenTabs.FirstOrDefault(t => t.Id == tool.ToolId);
+            }
+            // Already open elsewhere, it comes here, unless it's kept where it is.
+            else if (tab.PinnedIn is null && WorkspaceOf(tab) is { } from && from != ws)
+            {
+                from.Remove(tab);
+                ws.Add(tab);
+                DropIfEmpty(from);
+            }
+            else continue;
+            if (tab is null || !ws.Contains(tab)) continue;
+            if (!tool.CanClose) tab.PinnedIn = ws;
+            first ??= tab;
+        }
+        if (first is not null) ws.SelectedTab = first;
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        return ws;
+    }
+
+    /// <summary>
+    /// A container's control has gone. Its tools close with it, as a window's do, unless the panel
+    /// was only built again and claimed it back in the meantime.
+    /// </summary>
+    public void ReleaseContainer(TabWorkspace ws)
+    {
+        if (_containers.Values.FirstOrDefault(e => e.Workspace == ws) is not { } entry) return;
+        entry.Claims--;
+        if (entry.Claims > 0) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (entry.Claims <= 0 && _containers.TryGetValue(entry.Key, out var now) && now == entry) CloseContainer(entry);
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    private void CloseContainer(ContainerEntry entry)
+    {
+        _containers.Remove(entry.Key);
+        _containerList.Remove(entry.Workspace);
+        foreach (var tab in entry.Workspace.OpenTabs.ToList())
+        {
+            tab.PinnedIn = null;
+            entry.Workspace.Remove(tab);
+            Forget(tab);
+        }
+        if (_lastUsed == entry.Workspace) _lastUsed = null;
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    private TabWorkspace? _lastUsed;
+
+    /// <summary>
+    /// Where a tool opens when nothing says where: the window of tabs worked in last (the main
+    /// window, a window of its own, or a container of tabs), or failing that any window of tabs.
+    /// Null when there is none, and a tool then opens in a window of its own.
+    /// <para>⚠️ Not simply the main window: the main window is to become optional.</para>
+    /// </summary>
+    public TabWorkspace? LastUsedWorkspace
+    {
+        get => _lastUsed is { ShowsTabs: true } ws && Workspaces.Contains(ws) ? ws : Workspaces.FirstOrDefault(w => w.ShowsTabs);
+        set { if (value is { ShowsTabs: true }) _lastUsed = value; }
+    }
+
+    private TabWorkspace? _openInto;
+    private bool _openInNewWindow;
+
+    /// <summary>Opens a tool that isn't open yet in <paramref name="into"/> rather than the main window.</summary>
+    private void OpenToolIn(string toolId, TabWorkspace into)
+    {
+        var was = _openInto;
+        _openInto = into;
+        try { OpenTool(toolId); }
+        finally { _openInto = was; }
+    }
+
+    /// <summary>
+    /// Where a tool opened just now goes: where it was asked for, else the window of tabs used
+    /// last, else any, else a window of its own.
+    /// </summary>
+    private void PlaceNewTab(ToolTab tab)
+    {
+        var into = _openInNewWindow ? null : _openInto is { } target && Workspaces.Contains(target) ? target : LastUsedWorkspace;
+        if (into is null)
+        {
+            var ws = new TabWorkspace(isMain: false);
+            ws.Add(tab);
+            Hosts.Add(ws);
+            return;
+        }
+        into.Add(tab);
+    }
+
+    /// <summary>
+    /// What a panel's menu does: opens a tool in a window of its own, in the window worked in last,
+    /// or in a Tool Container, preferring the one on the menu's own monitor. A tool already open
+    /// moves there, unless it's kept where it is (the Overview, a pinned tab), when it's just shown.
+    /// A container that isn't on screen falls back to the window worked in last.
+    /// </summary>
+    public void OpenToolAt(string toolId, string target, string? monitorKey)
+    {
+        var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
+        if (target == Services.ClientLayouts.ToolTargets.NewWindow)
+        {
+            if (existing is null)
+            {
+                _openInNewWindow = true;
+                try { OpenTool(toolId); }
+                finally { _openInNewWindow = false; }
+            }
+            else if (WorkspaceOf(existing) is { } from && !(from.IsFloating && from.OpenTabs.Count() == 1) && TabWorkspace.CanDetach(existing, from))
+                DetachTab(existing);
+            else Show(existing);
+            return;
+        }
+
+        var into = target == Services.ClientLayouts.ToolTargets.LastUsed ? LastUsedWorkspace : ContainerById(target, monitorKey) ?? LastUsedWorkspace;
+        if (existing is null)
+        {
+            if (into is null) OpenTool(toolId);   // nowhere to go: a window of its own
+            else OpenToolIn(toolId, into);
+        }
+        else
+        {
+            if (into is not null && WorkspaceOf(existing) is { } from && from != into && TabWorkspace.CanMove(existing, from, into))
+                MoveTab(existing, into.ActivePane);
+            Show(existing);
+        }
+        BringForwardWindowOf(toolId);
+    }
+
+    /// <summary>
+    /// Opens a tool from a panel the usual way, shown where it is if it's open already, and brings
+    /// whichever window shows it forward, the main one too.
+    /// </summary>
+    public void ShowTool(string toolId)
+    {
+        OpenTool(toolId);
+        BringForwardWindowOf(toolId);
+    }
+
+    /// <summary>Asked for from a panel, so whichever window shows the tool comes forward, the main one too.</summary>
+    private void BringForwardWindowOf(string toolId)
+    {
+        if (AllTabs.FirstOrDefault(t => t.Id == toolId) is { } shown && WorkspaceOf(shown) is { IsMain: true } main)
+            ShowWorkspaceRequested?.Invoke(main);
+    }
+
+    /// <summary>A container of tabs: one holding a single tool never takes another.</summary>
+    private TabWorkspace? ContainerById(string controlId, string? monitorKey)
+    {
+        if (monitorKey is not null && _containers.TryGetValue(ContainerKey(monitorKey, controlId), out var here) && here.Workspace.ShowsTabs)
+            return here.Workspace;
+        return _containers.Values.Where(e => e.Key.EndsWith("|" + controlId, StringComparison.Ordinal) && e.Workspace.ShowsTabs)
+            .Select(e => e.Workspace).FirstOrDefault();
     }
 
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
@@ -1004,6 +1280,7 @@ public class MainWindowViewModel : ReactiveObject
             "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
             "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
             "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
+            "client_layouts" => (ShellText.NavClientLayouts,  ClientLayoutsVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "battle_report"  => (ShellText.NavBattleReport,   BattleReportVm,    true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
@@ -1024,7 +1301,7 @@ public class MainWindowViewModel : ReactiveObject
         // not a visibility check — see IPeriodicRefresh.
         if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
-        Main.Add(tab);
+        PlaceNewTab(tab);
         this.RaisePropertyChanged(nameof(SelectedTab));
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
@@ -1051,7 +1328,7 @@ public class MainWindowViewModel : ReactiveObject
     public void OpenToolInBackground(string toolId)
     {
         if (AllTabs.Any(t => t.Id == toolId)) return;
-        var showing = Main.SelectedTab;
+        var showing = LastUsedWorkspace?.SelectedTab;
         OpenTool(toolId);
         if (showing is not null) Show(showing);
     }
@@ -1090,7 +1367,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
         var tab = new ToolTab(id, title, viewModel, canClose: true);
-        Main.Add(tab);
+        PlaceNewTab(tab);
         this.RaisePropertyChanged(nameof(SelectedTab));
         return id;
     }
@@ -1100,8 +1377,7 @@ public class MainWindowViewModel : ReactiveObject
         if (!tab.CanClose || WorkspaceOf(tab) is not { } ws) return;
         ws.Remove(tab);
 
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
-        if (navItem is not null) navItem.IsOpen = false;
+        Forget(tab);
         DropIfEmpty(ws);
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
@@ -1129,6 +1405,8 @@ public class MainWindowViewModel : ReactiveObject
         HoboImportService               hoboService,
         EsiPollingService               pollingService,
         WorkerLease                     workerLease,
+        Services.ClientLayouts.ClientLayoutStore clientLayoutStore,
+        Services.ClientLayouts.ClientLayoutService clientLayoutService,
         WorkerActivityService           workerActivity,
         ApiActivityViewModel            activityVm,
         AlarmMuteState                  alarmMute,
@@ -1160,6 +1438,7 @@ public class MainWindowViewModel : ReactiveObject
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
         EveConsole.Services.Jabber.JabberService jabberService,
+        EveConsole.Services.Jabber.EmoteService emoteService,
         EveConsole.Services.Mumble.MumbleService mumbleService,
         EveConsole.Services.Messages.DirectMessagesService directMessages,
         IServiceScopeFactory            scopeFactory,
@@ -1217,28 +1496,51 @@ public class MainWindowViewModel : ReactiveObject
         ParkComparisonService           parkCompare,
         CostIndexHistoryService         costIndexHistory)
     {
+        StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
         Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
 
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
+        StartupTrace.Step("new OtherSettingsVm");
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
+        StartupTrace.Step("new DataRetentionVm");
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
         ThemeService.Changed   += OnThemeChanged;
         UiScaleService.Changed += OnUiScaleChanged;
 
         Slack             = slackService;
+        StartupTrace.Step("new SlackSettingsVm");
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        StartupTrace.Step("new OnlineServicesSettingsVm");
         OnlineServicesSettingsVm = new OnlineServicesSettingsViewModel(onlineServices);
+        StartupTrace.Step("new DiscordSettingsVm");
         DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
+        StartupTrace.Step("new GameLogSettingsVm");
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
+        StartupTrace.Step("new ChatLogSettingsVm");
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
+        StartupTrace.Step("new ZkbSettingsVm");
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
+        StartupTrace.Step("new MapStatsSettingsVm");
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
+        StartupTrace.Step("new AlertSettingsVm");
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
+        StartupTrace.Step("new OverviewVm");
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
+        // Another Overview, for a Tool Container: its own layout, everything else as the main one (WireLike).
+        _newOverview = layoutKey =>
+        {
+            var overview = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService,
+                dbFactory, esi, standingBuyOrderService, indyFacilityCheck, isMain: false, layoutKey: layoutKey);
+            overview.WireLike(OverviewVm);
+            _ = LoadAfterMainAsync(overview);
+            return overview;
+        };
+        StartupTrace.Step("new CharacterVm");
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
+        StartupTrace.Step("new SdeVm");
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
@@ -1265,44 +1567,69 @@ public class MainWindowViewModel : ReactiveObject
         _workerTimer.Tick += (_, _) => _ = RefreshWorkerAsync();
         _workerTimer.Start();
         ActivityVm        = activityVm;
+        StartupTrace.Step("new CharacterViewerVm");
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
             characterSummaryService);
+        StartupTrace.Step("new NetWorthVm");
         NetWorthVm        = new NetWorthViewModel(dbFactory);
+        StartupTrace.Step("new IncomeExpenseVm");
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new IncomeExpenseToolVm");
         IncomeExpenseToolVm = new IncomeExpenseToolViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new MarketVm");
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi);
+        StartupTrace.Step("new FittingVm");
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
         // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
         // fitting tool reads the new game data; one that loaded during the import gets its second try.
         SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
             .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
+        StartupTrace.Step("new MarketLevelVm");
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
         // until far below this line, and passing it here handed the view model a null.
+        StartupTrace.Step("new InvLevelVm");
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters);
+        StartupTrace.Step("new SalePostingVm");
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi);
+        StartupTrace.Step("new StoresVm");
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
+        StartupTrace.Step("new CorpActivityVm");
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
+        StartupTrace.Step("new CorpStructuresVm");
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
+        StartupTrace.Step("new MercenaryDensVm");
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
+        MumbleService     = mumbleService;
+        StartupTrace.Step("new ClientLayoutsVm");
+        ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger,
+            () => [.. mumbleService.Sessions.Select(s => new MumbleServerChoice(s.Server.Id, s.Server.Name.Length > 0 ? s.Server.Name : s.Server.Host))],
+            () => [.. ContainerToolChoices.Select(i => new ToolChoice(i.ToolId, i.Title))]);
+        StartupTrace.Step("new KillmailBrowserVm");
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
+        StartupTrace.Step("new BattleReportVm");
         BattleReportVm    = new BattleReportViewModel(battleReportService,
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
         MailSvc           = eveMailService;
+        StartupTrace.Step("new EveMailVm");
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
-        JabberVm          = new JabberViewModel(jabberService, appPrefs);
+        StartupTrace.Step("new JabberVm");
+        JabberVm          = new JabberViewModel(jabberService, appPrefs, emoteService);
+        StartupTrace.Step("new MumbleVm");
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
-        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
-        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute);
+        StartupTrace.Step("new MessagesVm");
+        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute, emoteService);
+        StartupTrace.Step("new GroupChatVm");
+        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
-        JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
+        GroupChatVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
         MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
@@ -1335,26 +1662,40 @@ public class MainWindowViewModel : ReactiveObject
             KillmailBrowserVm.SelectById(killMailId);
         };
         OverviewVm.OpenToolRequested = OpenTool;
+        StartupTrace.Step("new TimerVm");
         TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings, timerForce);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
+        StartupTrace.Step("new PriceHistorySettingsVm");
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
+        StartupTrace.Step("new PollingSettingsVm");
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
+        StartupTrace.Step("new CorpTop10SettingsVm");
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude, corpReportTitles);
+        StartupTrace.Step("new ItemBrowserVm");
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
+        StartupTrace.Step("new IndyParksVm");
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         // Indy Parks, Compare, and the System Index tool: one record of cost indices for both.
         IndyParksVm.Compare = new ParkComparisonViewModel(parkCompare, costIndexHistory, dbFactory);
         IndyParksVm.ParksChanged += () => _ = IndyParksVm.Compare.LoadParksAsync();
+        StartupTrace.Step("new SystemIndexVm");
         SystemIndexVm       = new SystemIndexViewModel(dbFactory, costIndexHistory);
+        StartupTrace.Step("new WalletVm");
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new ContractsVm");
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
+        StartupTrace.Step("new NotificationsVm");
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
+        StartupTrace.Step("new MarketViewerVm");
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new SalesTrackerVm");
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
+        StartupTrace.Step("new SaleListingBuildVm");
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
+        StartupTrace.Step("new SaleListingMarketVm");
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
         OverviewVm.SaleListingMarket = SaleListingMarketVm;
@@ -1366,8 +1707,11 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
+        StartupTrace.Step("new OrderTrackerVm");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
+        StartupTrace.Step("new StandingBuyOrdersVm");
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        StartupTrace.Step("new WorklistVm");
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
@@ -1398,17 +1742,25 @@ public class MainWindowViewModel : ReactiveObject
             await WorklistVm.StationLevelsVm.LoadAsync();
         };
 
+        StartupTrace.Step("new LpMarketValuesVm");
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        StartupTrace.Step("new ItemValuationVm");
         ItemValuationVm        = new ItemValuationViewModel(dbFactory);
+        StartupTrace.Step("new PlayerEntitiesVm");
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
                                      new PlayerActivityService(dbFactory, corpActivityService));
+        StartupTrace.Step("new NpcEntitiesVm");
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        StartupTrace.Step("new ProductionCalcVm");
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
+        StartupTrace.Step("new PriceOverrideVm");
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StartupTrace.Step("new StructureBrowserVm");
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
         Pi                     = piService;
+        StartupTrace.Step("new PlanetaryIndustryVm");
         PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
         // Refresh in the PI tool reads the colonies from ESI on the poll's next pass, and the
         // tool shows what that brings as soon as the layouts are in.
@@ -1439,14 +1791,18 @@ public class MainWindowViewModel : ReactiveObject
             },
         };
         // The jump planner and the route planner are tabs of the map tool.
+        StartupTrace.Step("new JumpPlannerVm");
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
+        StartupTrace.Step("new MapVm");
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
+        StartupTrace.Step("new AlarmsVm");
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
+        StartupTrace.Step("new SchedulerVm");
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger, batchAddService,
                                                         parkCompare, onlineServices,
@@ -1552,18 +1908,27 @@ public class MainWindowViewModel : ReactiveObject
 
         using var tmpDb      = dbFactory.CreateDbContext();
         var connString       = tmpDb.Database.GetConnectionString()!;
+        StartupTrace.Step("new ExplorerVm");
         ExplorerVm           = new EsiExplorerViewModel(connString);
+        StartupTrace.Step("new ErrorLogVm");
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new AgentUsageVm");
         AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
         // A model a paid service has added gets a rate row of its own when the tool is opened.
         AgentUsageVm.SyncListedRates = ct => agentService.Telemetry is { } telemetry
             ? EveConsole.Agent.ListedRates.SyncAsync(agentService.Settings, telemetry, ct)
             : Task.FromResult(0);
+        StartupTrace.Step("new GameLogViewerVm");
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new ChatLogViewerVm");
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
+        StartupTrace.Step("new AssetBrowserVm");
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
+        StartupTrace.Step("new IndustryBrowserVm");
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck, new Services.Worklist.InventionService(dbFactory));
+        StartupTrace.Step("new TradeOpportunitiesVm");
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
+        StartupTrace.Step("new IndustryOpportunitiesVm");
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.AlarmToolFactory =
@@ -1582,6 +1947,7 @@ public class MainWindowViewModel : ReactiveObject
         SpeechInputService = speechInputService;
         HotkeyService      = hotkeyService;
         AppPrefs           = appPrefs;
+        StartupTrace.Step("new UpdateVm");
         UpdateVm           = new UpdateViewModel(appPrefs, errorLogger);
         DbBackup           = dbBackup;
 
@@ -1591,6 +1957,7 @@ public class MainWindowViewModel : ReactiveObject
                                      s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage,
                                      s.OpenAiTranscriptionModel ?? "");
 
+        StartupTrace.Step("new AgentVm");
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();
@@ -1619,6 +1986,10 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("overview",    ShellText.NavOverview),
                 new NavItem("worklist",    ShellText.NavWorklist),
                 new NavItem("characters",  ShellText.NavCharacters),
+                // Only Windows gives us the game's windows, so nowhere else is it offered.
+                .. (Services.ClientLayouts.ClientLayoutService.IsSupported
+                    ? new[] { new NavItem("client_layouts", ShellText.NavClientLayouts) }
+                    : []),
             ]),
             new("assets", ShellText.NavGroupAssets,
             [

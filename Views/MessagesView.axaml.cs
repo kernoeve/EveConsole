@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -25,6 +26,7 @@ public partial class MessagesView : UserControl
         InitializeComponent();
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        EmoteBox.Target = DraftBox;
         FindBox.AddHandler(KeyDownEvent, OnFindKey, RoutingStrategies.Tunnel);
 
         DataContextChanged += (_, _) => Adopt(DataContext as MessagesViewModel);
@@ -111,6 +113,8 @@ public partial class MessagesView : UserControl
     /// <summary>Enter sends and Shift+Enter is a new line, as in every chat client.</summary>
     private void OnDraftKey(object? sender, KeyEventArgs e)
     {
+        // Choosing from the emote list comes first: Enter there picks one.
+        if (EmoteBox.HandleKey(e)) return;
         if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
 
         e.Handled = true;
@@ -148,6 +152,52 @@ public partial class MessagesView : UserControl
         var size = (await file.GetBasicPropertiesAsync()).Size ?? 0;
         await using var content = await file.OpenReadAsync();
         await tab.SendFileAsync(content, file.Name, (long)size);
+    }
+
+
+    // ── Reactions ─────────────────────────────────────────────────────────────
+
+    private Flyout? _reactFlyout;
+    private ReactionPicker? _reactPicker;
+    private Func<string, Task>? _reacting;
+
+    /// <summary>The message a control under it belongs to.</summary>
+    private static T? LineOf<T>(object? sender) where T : class =>
+        (sender as Visual)?.GetSelfAndVisualAncestors().OfType<Control>().Select(c => c.DataContext).OfType<T>().FirstOrDefault();
+
+    /// <summary>
+    /// The picker, at the message's own button. ⚠️ Put away when the window stops being the one in use: a flyout is a
+    /// topmost window of its own and would otherwise sit over the next program.
+    /// </summary>
+    private void OpenReactionPicker(Control at, Func<string, Task> react)
+    {
+        if (_reactFlyout is null)
+        {
+            _reactPicker = new ReactionPicker();
+            _reactFlyout = new Flyout { Content = _reactPicker, Placement = PlacementMode.TopEdgeAlignedRight };
+            _reactPicker.Picked += emoji =>
+            {
+                _reactFlyout.Hide();
+                if (_reacting is { } chosen) _ = chosen(emoji);
+            };
+            if (TopLevel.GetTopLevel(this) is Window window) window.Deactivated += (_, _) => _reactFlyout.Hide();
+        }
+
+        _reacting = react;
+        _reactPicker!.Reset();
+        _reactFlyout.ShowAt(at);
+    }
+
+    private void OnAddReaction(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control at && LineOf<MessagesLineVm>(sender) is { } line && _watching is { } tab)
+            OpenReactionPicker(at, emoji => tab.ToggleReactionAsync(line, emoji));
+    }
+
+    private void OnReactionChip(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ReactionChipVm chip } && LineOf<MessagesLineVm>(sender) is { } line && _watching is { } tab)
+            _ = tab.ToggleReactionAsync(line, chip.Emoji);
     }
 
     /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>

@@ -2,11 +2,19 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
              x:Class="EveConsole.Views.GroupChatView"
              x:DataType="vm:GroupChatViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
+    <Style Selector="Button.reaction"><Setter Property="Padding" Value="6 1" /><Setter Property="Margin" Value="0 0 4 2" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
+    <Style Selector="Button.reaction.mine"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" /></Style>
+    <!-- Reacting is offered where the pointer is: a message's own button shows only while it is over that message. -->
+    <Style Selector="Button.addreaction"><Setter Property="Padding" Value="3 0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Opacity" Value="0" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector=":is(Panel).msgline:pointerover Button.addreaction, Border.line:pointerover Button.addreaction"><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
     <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
@@ -39,7 +47,7 @@
       <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:GroupChatRowVm">
-            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}">
+            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
               <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" HorizontalAlignment="Left" />
               <StackPanel Grid.Column="1">
                 <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
@@ -189,13 +197,25 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:GroupLineVm">
                 <Border Classes="line" Classes.mention="{Binding IsMention}" Padding="14 4">
-                  <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*">
+                  <views:AvatarView Of="{Binding Avatar}" Size="28" VerticalAlignment="Top" Margin="0 3 10 0" />
+                  <StackPanel Grid.Column="1">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                       <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                      <Button Classes="addreaction" IsVisible="{Binding CanReact}" Click="OnAddReaction" ToolTip.Tip="{x:Static loc:JabberText.AddReactionTip}">
+                        <Viewbox Width="14" Height="14">
+                          <Canvas Width="24" Height="24">
+                            <Ellipse Canvas.Left="2" Canvas.Top="3" Width="17" Height="17" StrokeThickness="1.8" Stroke="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="6.6" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="12" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Path Data="M6.4 14 Q10.5 17.6 14.6 14 M20 1 V7 M17 4 H23" StrokeThickness="1.8" StrokeLineCap="Round" Stroke="{DynamicResource TextMutedBrush}" />
+                          </Canvas>
+                        </Viewbox>
+                      </Button>
                     </StackPanel>
-                    <SelectableTextBlock Text="{Binding Body}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
@@ -203,7 +223,24 @@
                         </DataTemplate>
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
+                    <!-- Reactions: each emoji once, with how many chose it. A click adds this person's, or takes it back. -->
+                    <ItemsControl ItemsSource="{Binding Reactions}" Margin="0 3 0 0">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ReactionChipVm">
+                          <Button Classes="reaction" Classes.mine="{Binding Mine}" Click="OnReactionChip" ToolTip.Tip="{Binding Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Binding Emoji}" FontFamily="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Text="{Binding CountText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                   </StackPanel>
+                  </Grid>
                 </Border>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -214,8 +251,9 @@
         <ListBox Grid.Row="1" Grid.Column="1" IsVisible="{Binding ShowOccupants}" ItemsSource="{Binding Occupants}" Width="180" Background="{DynamicResource SurfacePanelBrush}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:JabberOccupantVm">
-              <StackPanel Orientation="Horizontal" Spacing="6">
+              <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent" ContextRequested="OnOccupantMenu">
                 <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" />
+                <views:AvatarView Of="{Binding Avatar}" Size="20" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding Nick}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Role}" />
               </StackPanel>
             </DataTemplate>
@@ -225,12 +263,13 @@
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
           <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
           <TextBlock Text="{Binding CannotSend}" IsVisible="{Binding HasCannotSend}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource WarnBrush}" />
-          <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="10 6">
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="10 6">
             <TextBox x:Name="DraftBox" Text="{Binding Draft}" IsEnabled="{Binding CanSend}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120" Watermark="{Binding DraftHint}" />
-            <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding ShowSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-            <Button Grid.Column="2" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
+            <views:EmoteButton x:Name="EmoteBox" Grid.Column="1" Emotes="{Binding DraftEmotes}" IsEnabled="{Binding CanSend}" Margin="4 0 0 0" VerticalAlignment="Bottom" />
+            <CheckBox Grid.Column="2" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding ShowSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="3" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
                     ToolTip.Tip="{x:Static loc:JabberText.AttachTip}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-            <Button Grid.Column="3" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="4" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
           </Grid>
         </StackPanel>
       </Grid>

@@ -28,6 +28,9 @@ public enum MumblePermission : uint
 }
 
 /// <summary>Someone banned from a server. Kept as it came, as changing the list means sending all of it back.</summary>
+/// <summary>One part of a voice target: a channel, with what comes along with it, or some people by session.</summary>
+public readonly record struct MumbleTargetEntry(uint? Channel, string Group, bool Links, bool Subchannels, IReadOnlyList<uint> Sessions);
+
 public sealed record MumbleBan(byte[] Raw, string Name, string Reason, string Started, uint DurationSeconds, string Address)
 {
     public static MumbleBan Read(byte[] raw)
@@ -84,6 +87,13 @@ public sealed class MumbleUser
     public string ClientRelease { get; set; } = "";
     public string ClientOs { get; set; } = "";
     public HashSet<uint> ListeningTo { get; } = [];
+
+    /// <summary>Their picture's hash as lower-case hex, blank until known, and the picture once it has come.</summary>
+    public string TextureHash { get; set; } = "";
+    public byte[]? Texture { get; set; }
+
+    /// <summary>A picture too big to have come with the person, until asked for.</summary>
+    public bool HasTextureToAsk { get; set; }
 }
 
 public sealed record MumbleLogin(
@@ -526,6 +536,19 @@ public sealed class MumbleClient : IAsyncDisposable
             foreach (var c in m.UInts(21)) user.ListeningTo.Add((uint)c);
             foreach (var c in m.UInts(22)) user.ListeningTo.Remove((uint)c);
             if (m.Text(15) is { } hash) user.Hash = hash;
+
+            // A picture comes with the person, or only as its hash until asked for.
+            if (m.Bytes(11) is { } texture)
+            {
+                user.Texture = texture.Length > 0 ? texture : null;
+                if (m.Bytes(17) is null) user.TextureHash = "";
+                user.HasTextureToAsk = false;
+            }
+            if (m.Bytes(17) is { } textureHash && Convert.ToHexStringLower(textureHash) is var hex && hex != user.TextureHash)
+            {
+                user.TextureHash = hex;
+                if (m.Bytes(11) is null) { user.Texture = null; user.HasTextureToAsk = hex.Length > 0; }
+            }
             if (m.Bool(19) is { } recording) user.Recording = recording;
         }
     }
@@ -571,6 +594,17 @@ public sealed class MumbleClient : IAsyncDisposable
             user.HasCommentToAsk = false;
         }
         Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(2, user.Session).ToArray(), CancellationToken.None));
+    }
+
+    /// <summary>The same for a picture. The answer arrives as <see cref="Changed"/>.</summary>
+    public void AskTexture(MumbleUser user)
+    {
+        lock (_gate)
+        {
+            if (!user.HasTextureToAsk) return;
+            user.HasTextureToAsk = false;
+        }
+        Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(1, user.Session).ToArray(), CancellationToken.None));
     }
 
     /// <summary>The same for a channel's description.</summary>
@@ -667,14 +701,30 @@ public sealed class MumbleClient : IAsyncDisposable
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(2, session).Text(5, message).ToArray(), ct);
 
     /// <summary>
-    /// Saves a voice target that reaches this one channel and nothing linked to it or under it. It is set again
-    /// whenever this client moves, because the target names a channel by id rather than "wherever I am".
+    /// A voice target that reaches this one channel and nothing linked to it or under it. It has to be set again whenever
+    /// this client moves, as a target names a channel by id rather than "wherever I am".
     /// </summary>
-    public Task SetChannelTargetAsync(int targetId, uint channel, CancellationToken ct) =>
-        SendAsync(MumbleMessage.VoiceTarget, ChannelTargetMessage(targetId, channel), ct);
-
     public static byte[] ChannelTargetMessage(int targetId, uint channel) =>
-        new PbWriter().UInt(1, (ulong)targetId).Bytes(2, new PbWriter().UInt(2, channel).ToArray()).ToArray();
+        VoiceTargetMessage(targetId, [new MumbleTargetEntry(channel, "", false, false, [])]);
+
+    /// <summary>Saves a voice target, under a number each packet of voice can name. It replaces what that number held.</summary>
+    public static byte[] VoiceTargetMessage(int targetId, IEnumerable<MumbleTargetEntry> entries)
+    {
+        var message = new PbWriter().UInt(1, (ulong)targetId);
+        foreach (var entry in entries)
+        {
+            var target = new PbWriter();
+            foreach (var session in entry.Sessions) target.UInt(1, session);
+            if (entry.Channel is { } channel) target.UInt(2, channel);
+            if (entry.Group.Length > 0) target.Text(3, entry.Group);
+            if (entry.Links) target.Bool(4, true);
+            if (entry.Subchannels) target.Bool(5, true);
+            message.Bytes(2, target.ToArray());
+        }
+        return message.ToArray();
+    }
+
+    public Task SendVoiceTargetAsync(byte[] message, CancellationToken ct) => SendAsync(MumbleMessage.VoiceTarget, message, ct);
 
     /// <summary>
     /// The other channels that plain talk from this one reaches. The server follows links onward, so a link of a
