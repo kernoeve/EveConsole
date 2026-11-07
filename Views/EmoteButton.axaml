@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.EmoteButton"
+             x:DataType="views:EmoteButton">
+
+  <UserControl.Styles>
+    <Style Selector="Border.suggest"><Setter Property="Background" Value="Transparent" /><Setter Property="CornerRadius" Value="3" /><Setter Property="Padding" Value="6 3" /></Style>
+    <Style Selector="Border.suggest:pointerover"><Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
+    <Style Selector="Border.suggest.current"><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
+  </UserControl.Styles>
+
+  <Panel>
+    <Button x:Name="Opener" IsVisible="False" Padding="6 5" Background="Transparent" BorderThickness="0" VerticalAlignment="Bottom"
+            ToolTip.Tip="{x:Static loc:JabberText.EmoteButtonTip}">
+      <Button.Flyout>
+        <Flyout Placement="TopEdgeAlignedRight">
+          <views:EmotePicker x:Name="Picker" />
+        </Flyout>
+      </Button.Flyout>
+      <!-- A drawn face rather than an emoji character, which looks different in every font. -->
+      <Viewbox Width="18" Height="18">
+        <Canvas Width="24" Height="24">
+          <Ellipse Canvas.Left="2" Canvas.Top="2" Width="20" Height="20" StrokeThickness="1.8" Stroke="{DynamicResource TextMutedBrush}" />
+          <Ellipse Canvas.Left="7.6" Canvas.Top="8" Width="2.6" Height="2.6" Fill="{DynamicResource TextMutedBrush}" />
+          <Ellipse Canvas.Left="13.8" Canvas.Top="8" Width="2.6" Height="2.6" Fill="{DynamicResource TextMutedBrush}" />
+          <Path Data="M 7.5 14.2 Q 12 18.8 16.5 14.2" StrokeThickness="1.8" StrokeLineCap="Round" Stroke="{DynamicResource TextMutedBrush}" />
+        </Canvas>
+      </Viewbox>
+    </Button>
+
+    <!-- What the colon being typed could become. Nothing in it takes focus, so typing carries on in the box. -->
+    <Popup x:Name="Suggest" Placement="TopEdgeAlignedLeft" IsLightDismissEnabled="False">
+      <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" CornerRadius="4" Padding="3" MinWidth="220">
+        <ItemsControl x:Name="SuggestList">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="views:EmoteSuggestion">
+              <Border Classes="suggest" Classes.current="{Binding IsCurrent}" PointerPressed="OnSuggestPressed">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <views:EmoteView Emote="{Binding Emote}" Box="22" />
+                  <TextBlock Text="{Binding Emote.Code}" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </StackPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </Border>
+    </Popup>
+  </Panel>
+</UserControl>

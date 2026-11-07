@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>Noch keine gespeicherten Unterhaltungen. Wähle im Tab Jabber oder Mumble der Einstellungen eine Person aus, um eine zu beginnen.</value>
+    <value>Noch keine gespeicherten Unterhaltungen. Auf Neue Unterhaltung klicken oder in einem Raum oder auf einem Mumble-Server mit der rechten Maustaste auf jemanden klicken.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

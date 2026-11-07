@@ -94,7 +94,6 @@ public sealed class MumbleRowVm : ReactiveObject
     }
 }
 
-public sealed record MumbleKeyChoice(int Key, string Label);
 
 /// <summary>Someone on the always-on-top list: this client, or someone talking now or recently enough to still be there.</summary>
 public sealed class MumbleOverlayLine(uint session, string name) : ReactiveObject
@@ -200,23 +199,14 @@ public sealed class MumbleViewModel : ReactiveObject
         _service = service;
         _prefs   = prefs;
 
-        CaptureWhisperCommand = ReactiveCommand.Create(() => Capture(KeyBeingSet.Whisper));
-        CaptureShoutCommand   = ReactiveCommand.Create(() => Capture(KeyBeingSet.Shout));
-        ClearWhisperCommand   = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditWhisper = ChoiceFor(0); });
-        ClearShoutCommand     = ReactiveCommand.Create(() => { Capture(KeyBeingSet.None); EditShout = ChoiceFor(0); });
-
-        AddServerCommand      = ReactiveCommand.Create(BeginAdd);
-        EditServerCommand     = ReactiveCommand.Create(BeginEdit);
-        SaveServerCommand     = ReactiveCommand.CreateFromTask(SaveAsync);
-        CancelEditCommand     = ReactiveCommand.Create(() => { IsEditing = false; });
+        _autoSave = new AutoSave(SaveEditedAsync, e => StatusText = e.Message);
+        AddTargetCommand      = ReactiveCommand.Create(AddTarget);
+        AddServerCommand      = ReactiveCommand.CreateFromTask(AddServerAsync);
         DeleteServerCommand   = ReactiveCommand.CreateFromTask(DeleteAsync);
         ConnectCommand        = ReactiveCommand.Create(Connect);
         DisconnectCommand     = ReactiveCommand.CreateFromTask(DisconnectAsync);
         TrustCertificateCommand = ReactiveCommand.CreateFromTask(TrustAsync);
         JoinChannelCommand    = ReactiveCommand.CreateFromTask(JoinSelectedAsync);
-        ToggleMuteCommand     = ReactiveCommand.CreateFromTask(ToggleMuteAsync);
-        ToggleDeafenCommand   = ReactiveCommand.CreateFromTask(ToggleDeafenAsync);
-        ToggleAudioCommand    = ReactiveCommand.Create(() => { IsAudioOpen = !IsAudioOpen; if (IsAudioOpen) LoadDevices(); });
 
         ToggleServerMuteCommand = ReactiveCommand.CreateFromTask(() => OnPersonAsync((c, u) => c.SetServerMuteAsync(u.Session, !u.Mute, default)));
         ToggleServerDeafCommand = ReactiveCommand.CreateFromTask(() => OnPersonAsync((c, u) => c.SetServerDeafAsync(u.Session, !u.Deaf, default)));
@@ -224,14 +214,9 @@ public sealed class MumbleViewModel : ReactiveObject
         ToggleLocalMuteCommand  = ReactiveCommand.CreateFromTask(() => OnPersonAsync((_, u) => _service.SetLocalMuteAsync(Session!, u, !Session!.IsLocalMuted(u))));
         ToggleIgnoreCommand     = ReactiveCommand.CreateFromTask(() => OnPersonAsync((_, u) => _service.SetIgnoredAsync(Session!, u, !Session!.IsIgnored(u))));
         MoveToMineCommand       = ReactiveCommand.CreateFromTask(MoveToMineAsync);
-        MovePersonCommand       = ReactiveCommand.CreateFromTask(MovePersonAsync);
-        KickCommand             = ReactiveCommand.CreateFromTask(() => RemovePersonAsync(ban: false));
-        BanCommand              = ReactiveCommand.CreateFromTask(() => RemovePersonAsync(ban: true));
-        RegisterCommand         = ReactiveCommand.CreateFromTask(RegisterAsync);
+        MessagePersonCommand    = ReactiveCommand.Create(MessageSelectedPerson);
         SaveCommentCommand      = ReactiveCommand.CreateFromTask(SaveCommentAsync);
         ToggleListenCommand     = ReactiveCommand.CreateFromTask(ToggleListenAsync);
-        CreateChannelCommand    = ReactiveCommand.CreateFromTask(CreateChannelAsync);
-        RemoveChannelCommand    = ReactiveCommand.CreateFromTask(RemoveChannelAsync);
         ToggleLinkCommand       = ReactiveCommand.CreateFromTask(ToggleLinkAsync);
         SaveChannelCommand      = ReactiveCommand.CreateFromTask(SaveChannelAsync);
         ToggleBansCommand       = ReactiveCommand.CreateFromTask(ToggleBansAsync);
@@ -239,16 +224,15 @@ public sealed class MumbleViewModel : ReactiveObject
         // Back from the server, later, in its own time. Blank means it did not say why.
         _service.Refused += (session, why) => Dispatcher.UIThread.Post(() =>
         {
-            if (Session == session) StatusText = why.Length > 0 ? MumbleService.PlainText(why) : MumbleText.Refused;
+            if (Session == session || EditSession == session) StatusText = why.Length > 0 ? MumbleService.PlainText(why) : MumbleText.Refused;
         });
 
         foreach (var c in new IHandleObservableErrors[]
                  {
-                     SaveServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, JoinChannelCommand,
-                     ToggleMuteCommand, ToggleDeafenCommand,
+                     AddServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, JoinChannelCommand,
                      ToggleServerMuteCommand, ToggleServerDeafCommand, TogglePriorityCommand, ToggleLocalMuteCommand, ToggleIgnoreCommand,
-                     MoveToMineCommand, MovePersonCommand, KickCommand, BanCommand, RegisterCommand, SaveCommentCommand,
-                     ToggleListenCommand, CreateChannelCommand, RemoveChannelCommand, ToggleLinkCommand, SaveChannelCommand, ToggleBansCommand,
+                     MoveToMineCommand, MessagePersonCommand, SaveCommentCommand,
+                     ToggleListenCommand, ToggleLinkCommand, SaveChannelCommand, ToggleBansCommand,
                  })
             c.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -347,6 +331,7 @@ public sealed class MumbleViewModel : ReactiveObject
         if (chosen is not null && (SelectedRow is null || !Rows.Contains(SelectedRow)) && Rows.FirstOrDefault(r => r.Identity == chosen) is { } again)
             SelectedRow = again;
         HasServers = _service.Sessions.Count > 0;
+        SyncServerItems();
         ShowDetail();
     }
 
@@ -479,52 +464,45 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private bool _hasServers;
     public bool HasServers { get => _hasServers; private set { this.RaiseAndSetIfChanged(ref _hasServers, value); this.RaisePropertyChanged(nameof(ShowWelcome)); } }
-    public bool ShowWelcome => !HasServers && !IsEditing;
+    public bool ShowWelcome => !HasServers;
 
     private MumbleSession? Session => SelectedRow is { } row ? _service.SessionOf(row.ServerId) : null;
 
-    public bool ShowServer  => SelectedRow is { IsServer: true } && !IsEditing;
-    public bool ShowChannel => SelectedRow is { IsChannel: true } && !IsEditing;
-    public bool ShowUser    => SelectedRow is { IsUser: true } && !IsEditing;
+    public bool ShowServer  => SelectedRow is { IsServer: true };
+    public bool ShowChannel => SelectedRow is { IsChannel: true };
+    public bool ShowUser    => SelectedRow is { IsUser: true };
+    public bool ShowOtherPerson => SelectedRow is { IsUser: true, IsMe: false };
+    public bool ShowMe      => SelectedRow is { IsUser: true, IsMe: true };
+    public bool ShowRootChannel => SelectedRow is { IsChannel: true, Id: 0 };
 
-    private string _title = "", _subtitle = "", _serverState = "", _serverDetail = "", _certificateText = "", _status = "";
+    private string _title = "", _subtitle = "", _serverState = "", _serverDetail = "", _status = "";
     public string Title { get => _title; private set => this.RaiseAndSetIfChanged(ref _title, value); }
     public string Subtitle { get => _subtitle; private set => this.RaiseAndSetIfChanged(ref _subtitle, value); }
     public string ServerState { get => _serverState; private set => this.RaiseAndSetIfChanged(ref _serverState, value); }
     public string ServerDetail { get => _serverDetail; private set => this.RaiseAndSetIfChanged(ref _serverDetail, value); }
-    public string CertificateText { get => _certificateText; private set => this.RaiseAndSetIfChanged(ref _certificateText, value); }
     public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
     public bool HasStatus => StatusText.Length > 0;
 
-    private bool _isConnected, _canConnect, _hasCertificateProblem, _isMuted, _isDeafened;
-    public bool IsConnected { get => _isConnected; private set => this.RaiseAndSetIfChanged(ref _isConnected, value); }
-    public bool CanConnect { get => _canConnect; private set => this.RaiseAndSetIfChanged(ref _canConnect, value); }
-    public bool HasCertificateProblem { get => _hasCertificateProblem; private set => this.RaiseAndSetIfChanged(ref _hasCertificateProblem, value); }
-    public bool IsMuted { get => _isMuted; private set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
-    public bool IsDeafened { get => _isDeafened; private set => this.RaiseAndSetIfChanged(ref _isDeafened, value); }
-
-    private string _keysText = "";
-    public string KeysText { get => _keysText; private set => this.RaiseAndSetIfChanged(ref _keysText, value); }
 
     private string _reachText = "";
     public string ReachText { get => _reachText; private set => this.RaiseAndSetIfChanged(ref _reachText, value); }
 
     private void ShowChosen()
     {
-        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser) })
+        foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowOtherPerson), nameof(ShowMe), nameof(ShowRootChannel) })
             this.RaisePropertyChanged(name);
+
+        // ⚠️ One menu shows these for people and for channels: nothing carries over from what was selected before.
+        CanServerMute = CanMovePerson = CanKick = CanBan = CanRegister = false;
+        CanJoin = CanListen = CanMakeChannel = CanMakeTempChannel = CanRemoveChannel = CanLinkChannel = false;
 
         StatusText = "";
 
         // What is being written belongs to who it was for.
-        AdminReason = "";
-        MoveTarget = "";
-        NewChannelName = "";
         _commentLoadedFor = null;
         _channelLoadedFor = null;
         ShowBans = false;
         if (SelectedRow is { IsUser: true } picked && Session?.Client is { } asked) asked.AskStats(picked.Id);
-        FillMoveChoices();
         ShowDetail();
     }
 
@@ -552,19 +530,7 @@ public sealed class MumbleViewModel : ReactiveObject
             var server = session.Server;
             ServerState  = StateText(session);
             ServerDetail = session.State is MumbleState.Failed ? "" : session.Detail;
-            IsConnected  = session.State == MumbleState.Connected;
-            CanConnect   = session.State is MumbleState.Offline or MumbleState.Failed;
-            IsMuted      = server.Silent;
-            IsDeafened   = server.SelfDeafened;
 
-            HasCertificateProblem = session.Problem == MumbleProblem.Certificate && session.CertificateFingerprint.Length > 0;
-            CertificateText = HasCertificateProblem
-                ? string.Format(CultureInfo.CurrentCulture, MumbleText.CertificateAsk, session.CertificateSubject,
-                                string.Join(' ', session.CertificateFingerprint.Chunk(4).Select(c => new string(c))))
-                : "";
-
-            KeysText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeysSummary, KeyName(server.WhisperKey), KeyName(server.ShoutKey));
-            ReachText = ReachOf(session);
             ShowServerAbout(session);
 
             switch (row.Kind)
@@ -598,12 +564,11 @@ public sealed class MumbleViewModel : ReactiveObject
         finally { _loadingDetail = false; }
     }
 
-    private static string KeyName(int key) => key == 0 ? MumbleText.KeyNone : GlobalHotkeyService.VkName(key);
 
     // ── What can be done to a person ──────────────────────────────────────────
 
     private bool _canServerMute, _canMovePerson, _canKick, _canBan, _canRegister, _isServerMuted, _isServerDeaf, _isPriority, _isPersonLocalMuted, _isPersonIgnored;
-    private string _personStatus = "", _personComment = "", _myComment = "", _adminReason = "", _moveTarget = "";
+    private string _personStatus = "", _personComment = "", _myComment = "";
     private uint? _commentLoadedFor;
 
     /// <summary>Each by what the server says this client may do, so nothing is offered only to be refused.</summary>
@@ -628,11 +593,6 @@ public sealed class MumbleViewModel : ReactiveObject
 
     /// <summary>What this client says about itself, being edited.</summary>
     public string MyComment { get => _myComment; set => this.RaiseAndSetIfChanged(ref _myComment, value); }
-    public string AdminReason { get => _adminReason; set => this.RaiseAndSetIfChanged(ref _adminReason, value); }
-    public string MoveTarget { get => _moveTarget; set => this.RaiseAndSetIfChanged(ref _moveTarget, value); }
-
-    public ObservableCollection<string> MoveChoices { get; } = [];
-    private readonly Dictionary<string, uint> _moveTargets = new(StringComparer.CurrentCultureIgnoreCase);
 
     public ReactiveCommand<Unit, Unit> ToggleServerMuteCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleServerDeafCommand { get; }
@@ -640,10 +600,7 @@ public sealed class MumbleViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ToggleLocalMuteCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleIgnoreCommand { get; }
     public ReactiveCommand<Unit, Unit> MoveToMineCommand { get; }
-    public ReactiveCommand<Unit, Unit> MovePersonCommand { get; }
-    public ReactiveCommand<Unit, Unit> KickCommand { get; }
-    public ReactiveCommand<Unit, Unit> BanCommand { get; }
-    public ReactiveCommand<Unit, Unit> RegisterCommand { get; }
+    public ReactiveCommand<Unit, Unit> MessagePersonCommand { get; }
     public ReactiveCommand<Unit, Unit> SaveCommentCommand { get; }
 
     private void ShowPersonControls(MumbleSession session, MumbleClient client, MumbleUser user, MumbleRowVm row)
@@ -768,14 +725,28 @@ public sealed class MumbleViewModel : ReactiveObject
     /// <summary>Lifts one ban. ⚠️ The whole list goes back, as that is how a server takes it, so it must be the list just read.</summary>
     public async Task UnbanAsync(MumbleBan ban)
     {
-        if (Session?.Client is not { } client) return;
-        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmUnban, ban.Name))) return;
+        if (_bansFrom is not { } client) return;
 
         Bans.Remove(ban);
         this.RaisePropertyChanged(nameof(HasNoBans));
         var left = Bans.ToList();
-        await Task.Run(() => client.SetBansAsync(left, default));
+        await Tried(() => client.SetBansAsync(left, default));
     }
+
+    /// <summary>The server the selected row is on, for what is about the server as a whole.</summary>
+    public void SelectServerOfRow()
+    {
+        if (SelectedRow is { } row && Rows.FirstOrDefault(r => r.IsServer && r.ServerId == row.ServerId) is { } server) SelectedRow = server;
+    }
+
+    /// <summary>What a dialog asked for, once answered: there is no command for it to report through.</summary>
+    private async Task Tried(Func<Task> act)
+    {
+        try { await Task.Run(act); }
+        catch (Exception e) { StatusText = e.Message; }
+    }
+
+    private MumbleClient? ClientOf(MumbleRowVm row) => _service.SessionOf(row.ServerId)?.Client;
 
     public static string BanText(MumbleBan ban) => string.Join(" \u00B7 ", new[]
     {
@@ -790,53 +761,43 @@ public sealed class MumbleViewModel : ReactiveObject
             await Task.Run(() => act(client, user));
     }
 
-    private void FillMoveChoices()
+    /// <summary>Every channel on the row's server by its path, the root by its name, as it has no path.</summary>
+    private static Dictionary<string, uint> ChannelPaths(MumbleClient client)
     {
-        MoveChoices.Clear();
-        _moveTargets.Clear();
-        if (SelectedRow is not { IsUser: true } || Session?.Client is not { } client) return;
-
+        var paths = new Dictionary<string, uint>(StringComparer.CurrentCultureIgnoreCase);
         foreach (var channel in client.Channels)
         {
             var path = MumbleService.PathOf(client, channel.Id);
-            if (path.Length == 0) path = channel.Name;
-            _moveTargets[path] = channel.Id;
+            paths[path.Length > 0 ? path : channel.Name] = channel.Id;
         }
-        foreach (var path in _moveTargets.Keys.Order(StringComparer.CurrentCultureIgnoreCase)) MoveChoices.Add(path);
+        return paths;
     }
+
+    public IReadOnlyList<string> ChannelPathsOf(MumbleRowVm row) =>
+        ClientOf(row) is { } client ? [.. ChannelPaths(client).Keys.Order(StringComparer.CurrentCultureIgnoreCase)] : [];
 
     private Task MoveToMineAsync() => OnPersonAsync((c, u) => c.Me is { } me ? c.MoveUserAsync(u.Session, me.ChannelId, default) : Task.CompletedTask);
 
-    private async Task MovePersonAsync()
+    public async Task MovePersonAsync(MumbleRowVm row, string to)
     {
-        if (!_moveTargets.TryGetValue(MoveTarget.Trim(), out var channel))
+        if (ClientOf(row) is not { } client) return;
+        if (!ChannelPaths(client).TryGetValue(to, out var channel))
         {
             StatusText = MumbleText.MoveNoSuchChannel;
             return;
         }
 
-        await OnPersonAsync((c, u) => c.MoveUserAsync(u.Session, channel, default));
-        MoveTarget = "";
+        await Tried(() => client.MoveUserAsync(row.Id, channel, default));
     }
 
-    private async Task RemovePersonAsync(bool ban)
+    public async Task RemovePersonAsync(MumbleRowVm row, string reason, bool ban)
     {
-        if (SelectedRow is not { IsUser: true } row) return;
-
-        var ask = string.Format(CultureInfo.CurrentCulture, ban ? MumbleText.ConfirmBan : MumbleText.ConfirmKick, row.Text);
-        if (Confirm is null || !await Confirm(ask)) return;
-
-        var reason = AdminReason.Trim();
-        await OnPersonAsync((c, u) => c.KickOrBanAsync(u.Session, reason, ban, default));
-        AdminReason = "";
+        if (ClientOf(row) is { } client) await Tried(() => client.KickOrBanAsync(row.Id, reason, ban, default));
     }
 
-    private async Task RegisterAsync()
+    public async Task RegisterAsync(MumbleRowVm row)
     {
-        if (SelectedRow is not { IsUser: true } row) return;
-        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmRegister, row.Text))) return;
-
-        await OnPersonAsync((c, u) => c.RegisterUserAsync(u.Session, default));
+        if (ClientOf(row) is { } client) await Tried(() => client.RegisterUserAsync(row.Id, default));
     }
 
     private async Task SaveCommentAsync()
@@ -849,29 +810,22 @@ public sealed class MumbleViewModel : ReactiveObject
 
     // ── What can be done to a channel ─────────────────────────────────────────
 
-    private bool _canListen, _isListening, _canMakeChannel, _canMakeTempChannel, _canRemoveChannel, _canLinkChannel, _isLinkedToMine, _newChannelTemporary;
-    private string _newChannelName = "";
+    private bool _canJoin, _canListen, _isListening, _canMakeChannel, _canMakeTempChannel, _canRemoveChannel, _canLinkChannel, _isLinkedToMine;
 
+    public bool CanJoin { get => _canJoin; private set => this.RaiseAndSetIfChanged(ref _canJoin, value); }
     public bool CanListen { get => _canListen; private set => this.RaiseAndSetIfChanged(ref _canListen, value); }
     public bool IsListening { get => _isListening; private set { this.RaiseAndSetIfChanged(ref _isListening, value); this.RaisePropertyChanged(nameof(ListenText)); } }
     public string ListenText => IsListening ? MumbleText.StopListening : MumbleText.Listen;
 
-    public bool CanMakeChannel { get => _canMakeChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeChannel, value); this.RaisePropertyChanged(nameof(ShowNewChannel)); } }
-    public bool CanMakeTempChannel { get => _canMakeTempChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeTempChannel, value); this.RaisePropertyChanged(nameof(ShowNewChannel)); } }
-    public bool ShowNewChannel => CanMakeChannel || CanMakeTempChannel;
-    public bool CanChooseTemporary => CanMakeChannel && CanMakeTempChannel;
-
-    public bool CanRemoveChannel { get => _canRemoveChannel; private set => this.RaiseAndSetIfChanged(ref _canRemoveChannel, value); }
+    public bool CanMakeChannel { get => _canMakeChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
+    public bool CanMakeTempChannel { get => _canMakeTempChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeTempChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
+    public bool CanRemoveChannel { get => _canRemoveChannel; private set { this.RaiseAndSetIfChanged(ref _canRemoveChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
+    public bool ShowChannelAdmin => CanMakeChannel || CanMakeTempChannel || CanRemoveChannel;
     public bool CanLinkChannel { get => _canLinkChannel; private set => this.RaiseAndSetIfChanged(ref _canLinkChannel, value); }
     public bool IsLinkedToMine { get => _isLinkedToMine; private set { this.RaiseAndSetIfChanged(ref _isLinkedToMine, value); this.RaisePropertyChanged(nameof(LinkText)); } }
     public string LinkText => IsLinkedToMine ? MumbleText.UnlinkFromMine : MumbleText.LinkToMine;
 
-    public string NewChannelName { get => _newChannelName; set => this.RaiseAndSetIfChanged(ref _newChannelName, value); }
-    public bool NewChannelTemporary { get => _newChannelTemporary; set => this.RaiseAndSetIfChanged(ref _newChannelTemporary, value); }
-
     public ReactiveCommand<Unit, Unit> ToggleListenCommand { get; }
-    public ReactiveCommand<Unit, Unit> CreateChannelCommand { get; }
-    public ReactiveCommand<Unit, Unit> RemoveChannelCommand { get; }
     public ReactiveCommand<Unit, Unit> ToggleLinkCommand { get; }
 
     private string _editChannelName = "", _editChannelDescription = "", _loadedChannelName = "", _loadedChannelDescription = "";
@@ -921,12 +875,12 @@ public sealed class MumbleViewModel : ReactiveObject
         if (me is not null) client.AskPermissions(me.ChannelId);
         var mine = me is null ? MumblePermission.None : client.PermissionsIn(me.ChannelId) ?? MumblePermission.None;
 
+        CanJoin = here.HasFlag(MumblePermission.Enter) && me?.ChannelId != channel.Id;
         CanListen = here.HasFlag(MumblePermission.Listen) && me?.ChannelId != channel.Id;
         IsListening = me?.ListeningTo.Contains(channel.Id) == true;
 
         CanMakeChannel = here.HasFlag(MumblePermission.MakeChannel);
         CanMakeTempChannel = here.HasFlag(MumblePermission.MakeTempChannel);
-        this.RaisePropertyChanged(nameof(CanChooseTemporary));
         CanRemoveChannel = here.HasFlag(MumblePermission.Write) && channel.Id != 0;
 
         CanLinkChannel = me is not null && me.ChannelId != channel.Id && here.HasFlag(MumblePermission.LinkChannel) && mine.HasFlag(MumblePermission.LinkChannel);
@@ -941,23 +895,14 @@ public sealed class MumbleViewModel : ReactiveObject
         await Task.Run(() => client.SetListeningAsync(row.Id, listen, default));
     }
 
-    private async Task CreateChannelAsync()
+    public async Task CreateChannelAsync(MumbleRowVm row, string name, bool temporary)
     {
-        var name = NewChannelName.Trim();
-        if (name.Length == 0 || SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
-
-        // Only one sort is open to them: that is the sort it is.
-        var temporary = CanChooseTemporary ? NewChannelTemporary : CanMakeTempChannel;
-        await Task.Run(() => client.CreateChannelAsync(row.Id, name, temporary, default));
-        NewChannelName = "";
+        if (ClientOf(row) is { } client) await Tried(() => client.CreateChannelAsync(row.Id, name, temporary, default));
     }
 
-    private async Task RemoveChannelAsync()
+    public async Task RemoveChannelAsync(MumbleRowVm row)
     {
-        if (SelectedRow is not { IsChannel: true } row || Session?.Client is not { } client) return;
-        if (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmRemoveChannel, row.Text))) return;
-
-        await Task.Run(() => client.RemoveChannelAsync(row.Id, default));
+        if (ClientOf(row) is { } client) await Tried(() => client.RemoveChannelAsync(row.Id, default));
     }
 
     private async Task ToggleLinkAsync()
@@ -998,21 +943,23 @@ public sealed class MumbleViewModel : ReactiveObject
     // ── Commands ──────────────────────────────────────────────────────────────
 
     public ReactiveCommand<Unit, Unit> AddServerCommand { get; }
-    public ReactiveCommand<Unit, Unit> EditServerCommand { get; }
-    public ReactiveCommand<Unit, Unit> SaveServerCommand { get; }
-    public ReactiveCommand<Unit, Unit> CancelEditCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddTargetCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteServerCommand { get; }
     public ReactiveCommand<Unit, Unit> ConnectCommand { get; }
     public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
     public ReactiveCommand<Unit, Unit> TrustCertificateCommand { get; }
     public ReactiveCommand<Unit, Unit> JoinChannelCommand { get; }
-    public ReactiveCommand<Unit, Unit> ToggleMuteCommand { get; }
-    public ReactiveCommand<Unit, Unit> ToggleDeafenCommand { get; }
-    public ReactiveCommand<Unit, Unit> ToggleAudioCommand { get; }
 
-    private void Connect() { if (Session is { } session) _service.Connect(session); }
-    private async Task DisconnectAsync() { if (Session is { } session) await _service.DisconnectAsync(session); }
-    private async Task TrustAsync() { if (Session is { } session) await _service.TrustCertificateAsync(session); }
+    private void Connect()
+    {
+        if (EditSession is not { } session) return;
+        if (session.Server.Host.Length == 0 || session.Server.Username.Length == 0) { StatusText = MumbleText.HostAndNameRequired; return; }
+        StatusText = "";
+        _service.Connect(session);
+    }
+
+    private async Task DisconnectAsync() { if (EditSession is { } session) await _service.DisconnectAsync(session); }
+    private async Task TrustAsync() { if (EditSession is { } session) await _service.TrustCertificateAsync(session); }
 
     public async Task JoinSelectedAsync()
     {
@@ -1020,177 +967,282 @@ public sealed class MumbleViewModel : ReactiveObject
             await Task.Run(() => _service.JoinChannelAsync(session, row.Id));
     }
 
-    private async Task ToggleMuteAsync()
-    {
-        if (Session is { } session) await ToggleMuteOf(session);
-    }
-
-    private async Task ToggleDeafenAsync()
-    {
-        if (Session is { } session) await ToggleDeafenOf(session);
-    }
-
     private Task ToggleMuteOf(MumbleSession session) => Task.Run(() => _service.ToggleMuteAsync(session));
     private Task ToggleDeafenOf(MumbleSession session) => Task.Run(() => _service.ToggleDeafenAsync(session));
 
-    /// <summary>Set by the view: asks before something that cannot be undone.</summary>
+    /// <summary>Set by the view: asks before deleting a server. What the channel tree does asks from its own window.</summary>
     public Func<string, Task<bool>>? Confirm { get; set; }
 
-    // ── The server editor ─────────────────────────────────────────────────────
+    // ── The Servers tab ─────────────────────────────────────────────────
 
-    private enum KeyBeingSet { None, Whisper, Shout }
-    private KeyBeingSet _keyBeingSet;
+    /// <summary>The servers, one row each.</summary>
+    public ObservableCollection<MumbleRowVm> ServerItems { get; } = [];
 
-    public ReactiveCommand<Unit, Unit> CaptureWhisperCommand { get; }
-    public ReactiveCommand<Unit, Unit> CaptureShoutCommand { get; }
-    public ReactiveCommand<Unit, Unit> ClearWhisperCommand { get; }
-    public ReactiveCommand<Unit, Unit> ClearShoutCommand { get; }
-
-    public static MumbleKeyChoice ChoiceFor(int vk) => new(vk, vk == 0 ? MumbleText.KeyNone : GlobalHotkeyService.VkName(vk));
-
-    /// <summary>The next key or button pressed in this tool goes to one of the two talk keys.</summary>
-    public bool IsCapturingKey => _keyBeingSet != KeyBeingSet.None;
-
-    public string WhisperKeyText => _keyBeingSet == KeyBeingSet.Whisper ? MumbleText.KeyPressNow : EditWhisper?.Label ?? MumbleText.KeyNone;
-    public string ShoutKeyText   => _keyBeingSet == KeyBeingSet.Shout ? MumbleText.KeyPressNow : EditShout?.Label ?? MumbleText.KeyNone;
-
-    private void Capture(KeyBeingSet which)
+    private MumbleRowVm? _selectedServer;
+    public MumbleRowVm? SelectedServer
     {
-        _keyBeingSet = which;
-        this.RaisePropertyChanged(nameof(IsCapturingKey));
-        this.RaisePropertyChanged(nameof(WhisperKeyText));
-        this.RaisePropertyChanged(nameof(ShoutKeyText));
-    }
-
-    public void CancelKeyCapture() => Capture(KeyBeingSet.None);
-
-    /// <summary>Takes what was pressed for the talk key being chosen. Zero is something that cannot be used: it keeps waiting.</summary>
-    public void TakeCapturedKey(int vk)
-    {
-        if (vk == 0) return;
-
-        if (_keyBeingSet == KeyBeingSet.Whisper) EditWhisper = ChoiceFor(vk);
-        else if (_keyBeingSet == KeyBeingSet.Shout) EditShout = ChoiceFor(vk);
-        Capture(KeyBeingSet.None);
-    }
-
-    private bool _isEditing;
-    public bool IsEditing
-    {
-        get => _isEditing;
+        get => _selectedServer;
         set
         {
-            this.RaiseAndSetIfChanged(ref _isEditing, value);
-            foreach (var name in new[] { nameof(ShowServer), nameof(ShowChannel), nameof(ShowUser), nameof(ShowWelcome) })
-                this.RaisePropertyChanged(name);
+            if (ReferenceEquals(_selectedServer, value) || value is null && ServerItems.Count > 0) return;
+            _ = ChooseServerAsync(value);
         }
     }
 
-    private int _editId;
-    public bool EditIsExisting => _editId != 0;
+    /// <summary>⚠️ What was being typed for the last server is saved to that one first, before these boxes change.</summary>
+    private async Task ChooseServerAsync(MumbleRowVm? row)
+    {
+        await _autoSave.FlushAsync();
+        _selectedServer = row;
+        this.RaisePropertyChanged(nameof(SelectedServer));
+        this.RaisePropertyChanged(nameof(HasSelectedServer));
+        LoadEdited();
+        ShowEditedState();
+    }
+
+    public bool HasSelectedServer => _selectedServer is not null;
+
+    /// <summary>The server the Servers tab is showing.</summary>
+    private MumbleSession? EditSession => _selectedServer is { } row ? _service.SessionOf(row.ServerId) : null;
+
+    private void SyncServerItems()
+    {
+        var sessions = _service.Sessions.ToList();
+        for (var i = ServerItems.Count - 1; i >= 0; i--)
+            if (sessions.All(s => s.Server.Id != ServerItems[i].ServerId)) ServerItems.RemoveAt(i);
+
+        var at = 0;
+        foreach (var session in sessions)
+        {
+            var row = new MumbleRowVm
+            {
+                Kind = MumbleRowKind.Server, ServerId = session.Server.Id,
+                Text = session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host,
+                Detail = StateText(session),
+                Good = session.State == MumbleState.Connected,
+                Warn = session.State is MumbleState.Connecting or MumbleState.Reconnecting,
+                Bad = session.State == MumbleState.Failed,
+            };
+            var known = ServerItems.FirstOrDefault(r => r.ServerId == row.ServerId);
+            if (known is null) ServerItems.Insert(at, row);
+            else known.Fill(row);
+            at++;
+        }
+
+        if (_selectedServer is not null && !ServerItems.Contains(_selectedServer)) _ = ChooseServerAsync(ServerItems.FirstOrDefault());
+        else if (_selectedServer is null && ServerItems.Count > 0) _ = ChooseServerAsync(ServerItems[0]);
+        else ShowEditedState();
+    }
+
+    private string _editState = "", _editDetail = "", _certificateAsk = "";
+    private bool _canConnect, _hasCertificateProblem;
+
+    public string EditState { get => _editState; private set => this.RaiseAndSetIfChanged(ref _editState, value); }
+    public string EditDetail { get => _editDetail; private set => this.RaiseAndSetIfChanged(ref _editDetail, value); }
+    public string CertificateText { get => _certificateAsk; private set => this.RaiseAndSetIfChanged(ref _certificateAsk, value); }
+    public bool CanConnect { get => _canConnect; private set => this.RaiseAndSetIfChanged(ref _canConnect, value); }
+    public bool HasCertificateProblem { get => _hasCertificateProblem; private set => this.RaiseAndSetIfChanged(ref _hasCertificateProblem, value); }
+
+    /// <summary>How the server shown is doing. ⚠️ Nothing being edited: this runs whenever anything changes on a server.</summary>
+    private void ShowEditedState()
+    {
+        if (EditSession is not { } session) return;
+
+        EditState  = StateText(session);
+        EditDetail = session.State is MumbleState.Failed ? "" : session.Detail;
+        CanConnect = session.State is MumbleState.Offline or MumbleState.Failed;
+        HasCertificateProblem = session.Problem == MumbleProblem.Certificate && session.CertificateFingerprint.Length > 0;
+        CertificateText = HasCertificateProblem
+            ? string.Format(CultureInfo.CurrentCulture, MumbleText.CertificateAsk, session.CertificateSubject,
+                            string.Join(' ', session.CertificateFingerprint.Chunk(4).Select(c => new string(c))))
+            : "";
+        ReachText = ReachOf(session);
+        FillChannelChoices(session);
+    }
+
+    private readonly AutoSave _autoSave;
+
+    /// <summary>Saves anything still waiting on the typing pause: the Settings window, as a box loses focus and as it closes.</summary>
+    public Task FlushAsync() => _autoSave.FlushAsync();
 
     private string _editName = "", _editHost = "", _editUsername = "", _editPassword = "", _editTokens = "";
     private int _editPort = 64738;
     private bool _editAutoConnect, _editVoiceActivated;
-    public bool EditVoiceActivated { get => _editVoiceActivated; set => this.RaiseAndSetIfChanged(ref _editVoiceActivated, value); }
-    private MumbleKeyChoice? _editWhisper, _editShout;
 
-    public string EditName { get => _editName; set => this.RaiseAndSetIfChanged(ref _editName, value); }
-    public string EditHost { get => _editHost; set => this.RaiseAndSetIfChanged(ref _editHost, value); }
-    public int EditPort { get => _editPort; set => this.RaiseAndSetIfChanged(ref _editPort, value); }
-    public string EditUsername { get => _editUsername; set => this.RaiseAndSetIfChanged(ref _editUsername, value); }
-    public string EditPassword { get => _editPassword; set => this.RaiseAndSetIfChanged(ref _editPassword, value); }
-    public string EditTokens { get => _editTokens; set => this.RaiseAndSetIfChanged(ref _editTokens, value); }
-    public bool EditAutoConnect { get => _editAutoConnect; set => this.RaiseAndSetIfChanged(ref _editAutoConnect, value); }
-    public MumbleKeyChoice? EditWhisper
+    public string EditName { get => _editName; set { this.RaiseAndSetIfChanged(ref _editName, value); _autoSave.Typed(); } }
+    public string EditHost { get => _editHost; set { this.RaiseAndSetIfChanged(ref _editHost, value); _autoSave.Typed(); } }
+    public int EditPort { get => _editPort; set { this.RaiseAndSetIfChanged(ref _editPort, value); _autoSave.Typed(); } }
+    public string EditUsername { get => _editUsername; set { this.RaiseAndSetIfChanged(ref _editUsername, value); _autoSave.Typed(); } }
+    public string EditPassword { get => _editPassword; set { this.RaiseAndSetIfChanged(ref _editPassword, value); _autoSave.Typed(); } }
+    public string EditTokens { get => _editTokens; set { this.RaiseAndSetIfChanged(ref _editTokens, value); _autoSave.Typed(); } }
+    public bool EditAutoConnect { get => _editAutoConnect; set { this.RaiseAndSetIfChanged(ref _editAutoConnect, value); _autoSave.Changed(); } }
+    public bool EditVoiceActivated { get => _editVoiceActivated; set { this.RaiseAndSetIfChanged(ref _editVoiceActivated, value); _autoSave.Changed(); } }
+
+    public string PasswordNote => DbEngine.IsPostgres ? MumbleText.PasswordShared : SecretStore.Description;
+
+    /// <summary>A new server is there at once, under a made-up name, and is filled in where it stands.</summary>
+    private async Task AddServerAsync()
     {
-        get => _editWhisper;
-        set { this.RaiseAndSetIfChanged(ref _editWhisper, value); this.RaisePropertyChanged(nameof(WhisperKeyText)); }
-    }
-
-    public MumbleKeyChoice? EditShout
-    {
-        get => _editShout;
-        set { this.RaiseAndSetIfChanged(ref _editShout, value); this.RaisePropertyChanged(nameof(ShoutKeyText)); }
-    }
-
-    public string PasswordNote => SecretStore.Description;
-
-    private void BeginAdd()
-    {
-        _editId = 0;
-        EditName = EditHost = EditUsername = EditPassword = EditTokens = "";
-        EditPort = 64738;
-        EditAutoConnect = false;
-        EditVoiceActivated = false;
-        EditWhisper = EditShout = ChoiceFor(0);
-        CancelKeyCapture();
-        this.RaisePropertyChanged(nameof(EditIsExisting));
-        IsEditing = true;
-    }
-
-    private void BeginEdit()
-    {
-        if (Session?.Server is not { } s) return;
-
-        _editId = s.Id;
-        EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
-        EditAutoConnect = MumbleService.AutoConnectsHere(s.Id);
-        EditVoiceActivated = s.VoiceActivated;
-        EditWhisper = ChoiceFor(s.WhisperKey);
-        EditShout   = ChoiceFor(s.ShoutKey);
-        CancelKeyCapture();
-        this.RaisePropertyChanged(nameof(EditIsExisting));
-        IsEditing = true;
-    }
-
-    private async Task SaveAsync()
-    {
-        CancelKeyCapture();
-        if (EditHost.Trim().Length == 0 || EditUsername.Trim().Length == 0) { StatusText = MumbleText.HostAndNameRequired; return; }
-
-        var old = _editId != 0 ? _service.SessionOf(_editId)?.Server : null;
-        var server = new MumbleServer
-        {
-            Id = _editId, Name = EditName.Trim(), Host = EditHost.Trim(),
-            Port = EditPort is > 0 and < 65536 ? EditPort : 64738,
-            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), VoiceActivated = EditVoiceActivated,
-            WhisperKey = EditWhisper?.Key ?? 0, ShoutKey = EditShout?.Key ?? 0,
-            SelfMuted = old?.SelfMuted ?? false, SelfDeafened = old?.SelfDeafened ?? false, LastChannel = old?.LastChannel ?? "",
-            TrustedCertificate = old is not null && old.Host == EditHost.Trim() && old.Port == EditPort ? old.TrustedCertificate : "",
-        };
-
-        // ⚠️ Keys must be unique, or one press talks on two servers at once.
-        if (MumbleService.KeyClash(server, _service.Sessions.Select(s => s.Server)) is { } clash)
-        {
-            StatusText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeyClash, clash);
-            return;
-        }
-
-        var session = await _service.SaveServerAsync(server, EditPassword.Length > 0 ? EditPassword : null);
-        MumbleService.SetAutoConnectHere(session.Server.Id, EditAutoConnect);
-        EditPassword = "";
+        await _autoSave.FlushAsync();
+        var session = await _service.SaveServerAsync(new MumbleServer { Name = MumbleText.NewServer }, null);
         StatusText = "";
-        IsEditing = false;
-
         await RefreshAsync();
-        SelectedRow = Rows.FirstOrDefault(r => r is { IsServer: true } && r.ServerId == session.Server.Id);
+        if (ServerItems.FirstOrDefault(r => r.ServerId == session.Server.Id) is { } row) await ChooseServerAsync(row);
+    }
 
-        if (old is null) _service.Connect(session);
+    private void LoadEdited()
+    {
+        CancelKeyCapture();
+        using (_autoSave.Suspend())
+        {
+            Targets.Clear();
+            if (EditSession?.Server is not { } s)
+            {
+                EditName = EditHost = EditUsername = EditPassword = EditTokens = "";
+                return;
+            }
+
+            EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
+            EditAutoConnect = MumbleService.AutoConnectsHere(s.Id);
+            EditVoiceActivated = s.VoiceActivated;
+            foreach (var target in MumbleTargets.Read(s)) Targets.Add(new MumbleTargetVm(this, target));
+        }
+    }
+
+    /// <summary>Everything on the Servers tab, as it stands, for the server showing.</summary>
+    private MumbleServer? EditedServer()
+    {
+        if (EditSession?.Server is not { } old) return null;
+
+        var host = EditHost.Trim();
+        var port = EditPort is > 0 and < 65536 ? EditPort : 64738;
+        return new MumbleServer
+        {
+            Id = old.Id, Name = EditName.Trim(), Host = host, Port = port,
+            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), VoiceActivated = EditVoiceActivated,
+            WhisperKey = old.WhisperKey, ShoutKey = old.ShoutKey, AutoConnect = old.AutoConnect,
+            TalkTargets = MumbleTargets.Write(Targets.Select(x => x.ToModel())),
+            SelfMuted = old.SelfMuted, SelfDeafened = old.SelfDeafened, LastChannel = old.LastChannel,
+
+            // ⚠️ A certificate was trusted for one address.
+            TrustedCertificate = old.Host == host && old.Port == port ? old.TrustedCertificate : "",
+        };
+    }
+
+    private async Task SaveEditedAsync()
+    {
+        if (EditedServer() is not { } server) return;
+
+        var password = EditPassword.Length > 0 ? EditPassword : null;
+        var autoConnect = EditAutoConnect;
+        await _service.SaveServerAsync(server, password);
+        MumbleService.SetAutoConnectHere(server.Id, autoConnect);
+        QueueRefresh();
     }
 
     private async Task DeleteAsync()
     {
-        if (Session is not { } session) return;
+        if (EditSession is not { } session) return;
 
         var name = session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host;
         if (Confirm is not null && !await Confirm(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmDeleteServer, name))) return;
 
-        IsEditing = false;
+        await _autoSave.FlushAsync();
         SelectedRow = null;
         await _service.DeleteServerAsync(session.Server.Id);
         await RefreshAsync();
     }
+
+    // ── Channel targets ─────────────────────────────────────────────────
+
+    /// <summary>The targets of the server showing.</summary>
+    public ObservableCollection<MumbleTargetVm> Targets { get; } = [];
+
+    /// <summary>What a target's channel box offers: where this client is, the root, and every channel when connected.</summary>
+    public ObservableCollection<string> TargetChannelChoices { get; } = [];
+
+    private void FillChannelChoices(MumbleSession session)
+    {
+        var paths = session.Client is { } client && session.State == MumbleState.Connected
+            ? client.Channels.Select(c => MumbleService.PathOf(client, c.Id)).Where(p => p.Length > 0).Order(StringComparer.CurrentCultureIgnoreCase)
+            : Enumerable.Empty<string>();
+        ListSync.Sync(TargetChannelChoices, [MumbleText.TargetWhereIAm, MumbleText.RootChannel, .. paths], c => c);
+    }
+
+    internal void TargetTyped() => _autoSave.Typed();
+    internal void TargetChanged() => _autoSave.Changed();
+
+    private void AddTarget()
+    {
+        if (Targets.Count > MumbleTargets.MostSaved)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, MumbleText.TargetsFull, MumbleTargets.MostSaved);
+            return;
+        }
+
+        Targets.Add(new MumbleTargetVm(this, new MumbleTalkTarget { Name = MumbleText.TargetNew, Channels = [new MumbleTargetChannel()] }));
+        _autoSave.Changed();
+    }
+
+    internal void RemoveTarget(MumbleTargetVm target)
+    {
+        CancelKeyCapture();
+        Targets.Remove(target);
+        _autoSave.Changed();
+    }
+
+    private MumbleTargetVm? _capturingFor;
+
+    /// <summary>The next key or button pressed in this tool goes to a channel target.</summary>
+    public bool IsCapturingKey => _capturingFor is not null;
+
+    internal void CaptureKeyFor(MumbleTargetVm target)
+    {
+        CancelKeyCapture();
+        _capturingFor = target;
+        target.Capturing = true;
+    }
+
+    public void CancelKeyCapture()
+    {
+        if (_capturingFor is { } target) target.Capturing = false;
+        _capturingFor = null;
+    }
+
+    /// <summary>Takes what was pressed for the key being chosen. Zero is something that cannot be used: it keeps waiting.</summary>
+    public void TakeCapturedKey(int vk)
+    {
+        if (vk == 0 || _capturingFor is not { } target) return;
+
+        var before = target.Key;
+        target.Key = vk;
+        CancelKeyCapture();
+
+        // ⚠️ Keys must be unique, or one press talks on two servers at once.
+        if (EditedServer() is { } server && MumbleService.KeyClash(server, _service.Sessions.Select(s => s.Server)) is { } clash)
+        {
+            target.Key = before;
+            StatusText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeyClash, clash);
+            return;
+        }
+
+        StatusText = "";
+        _autoSave.Changed();
+    }
+
+    /// <summary>Which of the Mumble tab's tabs is showing. The microphone's level is only read while Sound can be seen.</summary>
+    public int SubTab
+    {
+        get => _subTab;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _subTab, value);
+            IsAudioOpen = value == SoundSubTab;
+            if (IsAudioOpen) LoadDevices();
+        }
+    }
+    private int _subTab;
+    private const int SoundSubTab = 1;
 
     // ── Sound ─────────────────────────────────────────────────────────────────
 

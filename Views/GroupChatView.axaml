@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
              x:Class="EveConsole.Views.GroupChatView"
              x:DataType="vm:GroupChatViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -39,7 +40,7 @@
       <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:GroupChatRowVm">
-            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}">
+            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
               <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" HorizontalAlignment="Left" />
               <StackPanel Grid.Column="1">
                 <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
@@ -195,7 +196,7 @@
                       <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
                     </StackPanel>
-                    <SelectableTextBlock Text="{Binding Body}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
@@ -214,7 +215,7 @@
         <ListBox Grid.Row="1" Grid.Column="1" IsVisible="{Binding ShowOccupants}" ItemsSource="{Binding Occupants}" Width="180" Background="{DynamicResource SurfacePanelBrush}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:JabberOccupantVm">
-              <StackPanel Orientation="Horizontal" Spacing="6">
+              <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent" ContextRequested="OnOccupantMenu">
                 <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" />
                 <TextBlock Text="{Binding Nick}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Role}" />
               </StackPanel>
@@ -225,12 +226,13 @@
         <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
           <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
           <TextBlock Text="{Binding CannotSend}" IsVisible="{Binding HasCannotSend}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource WarnBrush}" />
-          <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="10 6">
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto,Auto" Margin="10 6">
             <TextBox x:Name="DraftBox" Text="{Binding Draft}" IsEnabled="{Binding CanSend}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120" Watermark="{Binding DraftHint}" />
-            <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding ShowSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-            <Button Grid.Column="2" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
+            <views:EmoteButton x:Name="EmoteBox" Grid.Column="1" Emotes="{Binding DraftEmotes}" IsEnabled="{Binding CanSend}" Margin="4 0 0 0" VerticalAlignment="Bottom" />
+            <CheckBox Grid.Column="2" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding ShowSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="3" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
                     ToolTip.Tip="{x:Static loc:JabberText.AttachTip}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
-            <Button Grid.Column="3" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="4" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
           </Grid>
         </StackPanel>
       </Grid>

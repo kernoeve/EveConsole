@@ -25,6 +25,7 @@ public partial class MessagesView : UserControl
         InitializeComponent();
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
+        EmoteBox.Target = DraftBox;
         FindBox.AddHandler(KeyDownEvent, OnFindKey, RoutingStrategies.Tunnel);
 
         DataContextChanged += (_, _) => Adopt(DataContext as MessagesViewModel);
@@ -111,6 +112,8 @@ public partial class MessagesView : UserControl
     /// <summary>Enter sends and Shift+Enter is a new line, as in every chat client.</summary>
     private void OnDraftKey(object? sender, KeyEventArgs e)
     {
+        // Choosing from the emote list comes first: Enter there picks one.
+        if (EmoteBox.HandleKey(e)) return;
         if (e.Key != Key.Enter || e.KeyModifiers.HasFlag(KeyModifiers.Shift)) return;
 
         e.Handled = true;

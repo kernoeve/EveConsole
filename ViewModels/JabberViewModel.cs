@@ -10,7 +10,7 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-public enum JabberRowKind { Account, Heading, Contact, Request }
+public enum JabberRowKind { Account, Request }
 
 /// <summary>A server's own line reads heavier than the people and rooms under it.</summary>
 public static class JabberBold
@@ -21,7 +21,7 @@ public static class JabberBold
 }
 
 /// <summary>
-/// A line in the left-hand list: an account, a heading, a person.
+/// A line in the left-hand list: a server, or someone asking to be a contact on it. Contacts themselves are in Messages.
 ///
 /// <para>⚠️ Kept and updated in place. Rebuilt on each change, the list control dropped its selection
 /// with every message that arrived, and the pane on the right went stale behind it.</para>
@@ -38,18 +38,13 @@ public sealed class JabberRowVm : ReactiveObject
 
     /// <summary>Red, amber, green or grey: what state it is in at a glance.</summary>
     public string Dot         { get; init; } = "";
-    public int    Unread      { get; init; }
-    public bool   HasAlert    { get; init; }
 
     public bool IsAccount => Kind == JabberRowKind.Account;
-    public bool IsHeading => Kind == JabberRowKind.Heading;
 
     public string Identity => $"{Kind}:{AccountId}:{Key}";
 
     // What the screen binds to, so an update can reach it.
     private string _text = "", _detail = "", _dot = "";
-    private int _unread;
-    private bool _alert;
 
     public string ShownText   { get => _text;   private set => this.RaiseAndSetIfChanged(ref _text, value); }
     public string ShownDetail { get => _detail; private set { this.RaiseAndSetIfChanged(ref _detail, value); this.RaisePropertyChanged(nameof(HasDetail)); } }
@@ -69,31 +64,27 @@ public sealed class JabberRowVm : ReactiveObject
     public bool DotAmber => _dot == "amber";
     public bool DotRed   => _dot == "red";
 
-    public int ShownUnread
-    {
-        get => _unread;
-        private set
-        {
-            this.RaiseAndSetIfChanged(ref _unread, value);
-            this.RaisePropertyChanged(nameof(HasUnread));
-            this.RaisePropertyChanged(nameof(UnreadText));
-        }
-    }
-    public bool   HasUnread  => _unread > 0;
-    public string UnreadText => _unread.ToString("N0", CultureInfo.CurrentCulture);
-
-    public bool ShownAlert { get => _alert; private set => this.RaiseAndSetIfChanged(ref _alert, value); }
-
     /// <summary>Takes on what a freshly worked-out line says.</summary>
     public JabberRowVm Fill(JabberRowVm from)
     {
         ShownText = from.Text; ShownDetail = from.Detail; ShownDot = from.Dot;
-        ShownUnread = from.Unread; ShownAlert = from.HasAlert;
         return this;
     }
 }
 
 public sealed record JabberShowChoice(XmppShow Show, string Label);
+
+/// <summary>A pack on a server's page, in the order the server reads them.</summary>
+public sealed class JabberEmotePackVm(EmotePackInfo info, bool canUp, bool canDown)
+{
+    public EmotePackInfo Info => info;
+    public string Name => info.Name;
+    public string Detail => string.Format(CultureInfo.CurrentCulture, JabberText.EmotePackDetail, info.Codes, info.Pictures);
+    public string About => string.Join("\n", new[] { info.Description, info.Author }.Where(t => t.Length > 0));
+    public bool HasAbout => About.Length > 0;
+    public bool CanUp => canUp;
+    public bool CanDown => canDown;
+}
 /// <summary>
 /// The Jabber tool: every server down the left with its people, and how each is set up on the right. Conversations
 /// are elsewhere: with one person in Messages, in a room in Group Chat.
@@ -102,13 +93,14 @@ public sealed class JabberViewModel : ReactiveObject
 {
     private readonly JabberService _service;
     private readonly AppPreferencesService _prefs;
-    private List<JabberUnread> _unread = [];
+    private readonly EmoteService? _emotes;
     private int _refreshQueued;
 
-    public JabberViewModel(JabberService service, AppPreferencesService prefs)
+    public JabberViewModel(JabberService service, AppPreferencesService prefs, EmoteService? emotes = null)
     {
         _service = service;
         _prefs   = prefs;
+        _emotes  = emotes;
 
         AddAccountCommand      = ReactiveCommand.Create(BeginAddAccount);
         EditAccountCommand     = ReactiveCommand.Create(BeginEditAccount);
@@ -121,13 +113,14 @@ public sealed class JabberViewModel : ReactiveObject
         BeginAddContactCommand = ReactiveCommand.Create(() => { ContactAddress = ""; ContactName = ""; IsAddingContact = true; });
         AddContactCommand      = ReactiveCommand.CreateFromTask(AddContactAsync);
         CancelAddContactCommand = ReactiveCommand.Create(() => { IsAddingContact = false; });
-        RemoveContactCommand   = ReactiveCommand.CreateFromTask(RemoveContactAsync);
         AcceptRequestCommand   = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(true));
         DenyRequestCommand     = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(false));
+        AddPackCommand         = ReactiveCommand.CreateFromTask(AddPackAsync);
+        AddPackCommand.ThrownExceptions.Subscribe(e => EmoteStatus = e.Message);
         foreach (var command in new IHandleObservableErrors[]
                  {
                      SaveAccountCommand, DeleteAccountCommand, DisconnectCommand, TrustCertificateCommand,
-                     AddContactCommand, RemoveContactCommand, AcceptRequestCommand, DenyRequestCommand,
+                     AddContactCommand, AcceptRequestCommand, DenyRequestCommand,
                  })
             command.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
@@ -141,6 +134,7 @@ public sealed class JabberViewModel : ReactiveObject
 
         _service.SessionChanged += _ => QueueRefresh();
         _service.UnreadChanged  += QueueRefresh;
+        if (_emotes is not null) _emotes.PacksChanged += () => { if (ShowAccount) _ = LoadEmotePacksAsync(); };
         QueueRefresh();
     }
 
@@ -154,7 +148,6 @@ public sealed class JabberViewModel : ReactiveObject
         get => _selectedRow;
         set
         {
-            if (value is { IsHeading: true }) return;   // a heading is not something to open
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
             OpenSelected();
         }
@@ -202,13 +195,8 @@ public sealed class JabberViewModel : ReactiveObject
 
     private async Task RefreshOnceAsync()
     {
-        var conversations = new Dictionary<int, List<(string Conversation, bool IsRoom, long LastId)>>();
-        _unread = await Task.Run(() => _service.UnreadAsync());
-        foreach (var session in _service.Sessions)
-            conversations[session.Account.Id] = await Task.Run(() => _service.ConversationsAsync(session.Account.Id));
-
         var rows = new List<JabberRowVm>();
-        foreach (var session in _service.Sessions) AddRows(rows, session, conversations[session.Account.Id]);
+        foreach (var session in _service.Sessions) AddRows(rows, session);
 
         SyncRows(rows);
 
@@ -216,7 +204,7 @@ public sealed class JabberViewModel : ReactiveObject
         RefreshDetail();
     }
 
-    private void AddRows(List<JabberRowVm> rows, JabberSession session, List<(string Conversation, bool IsRoom, long LastId)> conversations)
+    private static void AddRows(List<JabberRowVm> rows, JabberSession session)
     {
         var id = session.Account.Id;
         rows.Add(new JabberRowVm
@@ -233,28 +221,7 @@ public sealed class JabberViewModel : ReactiveObject
             rows.Add(new JabberRowVm { Kind = JabberRowKind.Request, AccountId = id, Key = request, Text = saved is { Length: > 0 } ? saved : request, Detail = JabberText.RowWantsToAdd, Dot = "amber" });
         }
 
-        // Contacts. Anyone else who has written is in the Messages window, where every conversation is.
-        var contacts = session.Contacts;
-
-        if (contacts.Count > 0)
-            rows.Add(new JabberRowVm { Kind = JabberRowKind.Heading, AccountId = id, Key = "people", Text = JabberText.HeadingPeople });
-
-        var last = conversations.Where(c => !c.IsRoom).ToDictionary(c => c.Conversation, c => c.LastId, StringComparer.Ordinal);
-        foreach (var contact in contacts
-                     .OrderByDescending(c => Unread(id, c.Jid).Count > 0)
-                     .ThenBy(c => c.Show == XmppShow.Offline)
-                     .ThenByDescending(c => last.GetValueOrDefault(c.Jid))
-                     .ThenBy(c => c.Name.Length > 0 ? c.Name : c.Jid, StringComparer.CurrentCultureIgnoreCase))
-        {
-            var count = Unread(id, contact.Jid);
-            rows.Add(new JabberRowVm
-            {
-                Kind = JabberRowKind.Contact, AccountId = id, Key = contact.Jid,
-                Text = contact.Name.Length > 0 ? contact.Name : contact.Jid,
-                Detail = contact.Status, Dot = ShowDot(contact.Show),
-                Unread = count.Count, HasAlert = count.Alerts > 0,
-            });
-        }
+        // ⚠️ No contacts here (user, 2026-11-07): they are in Messages, which adds and removes them per conversation.
     }
 
     /// <summary>Makes the list say this, moving as little as it can. See <see cref="JabberRowVm"/>.</summary>
@@ -277,12 +244,6 @@ public sealed class JabberViewModel : ReactiveObject
             if (at >= 0) Rows.Move(at, i);
             else Rows.Insert(i, wanted[i]);
         }
-    }
-
-    private (int Count, int Alerts) Unread(int accountId, string conversation)
-    {
-        var u = _unread.FirstOrDefault(x => x.AccountId == accountId && x.Conversation == conversation);
-        return (u.Count, u.Alerts);
     }
 
     public static string DisplayRoom(JabberRoom room) => room.Name.Length > 0 ? room.Name : XmppAddress.Parse(room.RoomJid).Local;
@@ -346,16 +307,6 @@ public sealed class JabberViewModel : ReactiveObject
     public bool ShowAccount      => SelectedRow is { IsAccount: true } && !IsEditingAccount;
     public bool ShowRequest      => SelectedRow is { Kind: JabberRowKind.Request } && !IsEditingAccount;
     public bool ShowNothing      => HasAccounts && SelectedRow is null && !IsEditingAccount;
-    public bool ShowPerson       => SelectedRow is { Kind: JabberRowKind.Contact } && !IsEditingAccount;
-
-    /// <summary>Opens a conversation in the Messages tool: account, address and name.</summary>
-    public Action<int, string, string>? OpenDirect { get; set; }
-
-    /// <summary>Opens the conversation with the contact selected.</summary>
-    public void MessageSelectedPerson()
-    {
-        if (SelectedRow is { Kind: JabberRowKind.Contact } row) OpenDirect?.Invoke(row.AccountId, row.Key, row.ShownText);
-    }
 
     private JabberSession? Session => SelectedRow is { } row ? _service.SessionOf(row.AccountId) : null;
 
@@ -385,11 +336,14 @@ public sealed class JabberViewModel : ReactiveObject
 
     private void OpenSelected()
     {
-        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowPerson) })
+        foreach (var name in new[] { nameof(ShowAccount), nameof(ShowRequest), nameof(ShowNothing) })
             this.RaisePropertyChanged(name);
 
         StatusText = "";
         RefreshDetail();
+
+        if (EmoteAccount != _emoteAccountShown) EmoteStatus = "";
+        _ = LoadEmotePacksAsync();
     }
 
     private string _status = "";
@@ -511,12 +465,6 @@ public sealed class JabberViewModel : ReactiveObject
                     ArchiveText = AccountArchiveLine(session.HasArchive, keeping, joined);
                 }
             }
-
-            if (row.Kind == JabberRowKind.Contact)
-            {
-                var contact = session.Locked(s => s.ContactMap.GetValueOrDefault(row.Key));
-                Subtitle = contact is { Status.Length: > 0 } ? $"{row.Key} · {contact.Status}" : row.Key;
-            }
         }
         finally { _loadingDetail = false; }
     }
@@ -538,7 +486,6 @@ public sealed class JabberViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> BeginAddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> AddContactCommand { get; }
     public ReactiveCommand<Unit, Unit> CancelAddContactCommand { get; }
-    public ReactiveCommand<Unit, Unit> RemoveContactCommand { get; }
     public ReactiveCommand<Unit, Unit> AcceptRequestCommand { get; }
     public ReactiveCommand<Unit, Unit> DenyRequestCommand { get; }
 
@@ -551,6 +498,125 @@ public sealed class JabberViewModel : ReactiveObject
     /// <summary>Set by the view: asks before something that cannot be undone.</summary>
     public Func<string, Task<bool>>? Confirm { get; set; }
 
+    // ── Emote packs: each server's own ────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> AddPackCommand { get; }
+
+    public bool CanUseEmotes => _emotes is not null;
+
+    public ObservableCollection<JabberEmotePackVm> EmotePacks { get; } = [];
+    public bool HasEmotePacks => EmotePacks.Count > 0;
+
+    private IReadOnlyList<EmotePackInfo> _otherPacks = [];
+
+    /// <summary>Packs loaded for other servers that this one could have too, without loading them again.</summary>
+    public IReadOnlyList<EmotePackInfo> OtherPacks
+    {
+        get => _otherPacks;
+        private set { this.RaiseAndSetIfChanged(ref _otherPacks, value); this.RaisePropertyChanged(nameof(HasOtherPacks)); }
+    }
+    public bool HasOtherPacks => OtherPacks.Count > 0;
+
+    private EmotePackInfo? _packToAdd;
+    public EmotePackInfo? PackToAdd { get => _packToAdd; set => this.RaiseAndSetIfChanged(ref _packToAdd, value); }
+
+    private bool _isLoadingPack;
+    public bool IsLoadingPack { get => _isLoadingPack; private set => this.RaiseAndSetIfChanged(ref _isLoadingPack, value); }
+
+    private string _emoteStatus = "";
+    public string EmoteStatus { get => _emoteStatus; private set { this.RaiseAndSetIfChanged(ref _emoteStatus, value); this.RaisePropertyChanged(nameof(HasEmoteStatus)); } }
+    public bool HasEmoteStatus => EmoteStatus.Length > 0;
+
+    private int _emoteAccountShown;
+    private int EmoteAccount => SelectedRow is { IsAccount: true } row ? row.AccountId : 0;
+
+    private async Task LoadEmotePacksAsync()
+    {
+        var account = EmoteAccount;
+        _emoteAccountShown = account;
+        if (_emotes is null || account == 0) return;
+
+        var all = await Task.Run(() => _emotes.PacksAsync());
+        var mine = await Task.Run(() => _emotes.PackIdsOfAsync(account));
+        if (EmoteAccount != account) return;
+
+        var list = mine.Select(id => all.FirstOrDefault(p => p.Id == id)).OfType<EmotePackInfo>().ToList();
+        EmotePacks.Clear();
+        for (var i = 0; i < list.Count; i++) EmotePacks.Add(new JabberEmotePackVm(list[i], i > 0, i < list.Count - 1));
+        this.RaisePropertyChanged(nameof(HasEmotePacks));
+
+        OtherPacks = [.. all.Where(p => !mine.Contains(p.Id))];
+        PackToAdd = OtherPacks.FirstOrDefault();
+    }
+
+    /// <summary>Loads a pack from a zip or a theme file and gives it to the server whose page is open.</summary>
+    public async Task LoadPackAsync(string path)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        IsLoadingPack = true;
+        EmoteStatus = "";
+        try
+        {
+            var result = await Task.Run(() => _emotes.ImportAsync(path, account));
+            EmoteStatus = LoadedText(result);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            EmoteStatus = e.Message;
+        }
+        finally
+        {
+            IsLoadingPack = false;
+        }
+        await LoadEmotePacksAsync();
+    }
+
+    public static string LoadedText(EmoteImportResult r)
+    {
+        var text = string.Format(CultureInfo.CurrentCulture, r.Replaced ? JabberText.EmoteReplaced : JabberText.EmoteLoaded, r.Name, r.Codes, r.Pictures);
+        if (r.Missing > 0) text += " " + string.Format(CultureInfo.CurrentCulture, JabberText.EmoteMissing, r.Missing);
+        if (r.Unusable > 0) text += " " + string.Format(CultureInfo.CurrentCulture, JabberText.EmoteUnusable, r.Unusable);
+        return text;
+    }
+
+    private async Task AddPackAsync()
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account) || PackToAdd is not { } pack) return;
+
+        EmoteStatus = "";
+        await Task.Run(() => _emotes.AddToAsync(account, pack.Id));
+        await LoadEmotePacksAsync();
+    }
+
+    public async Task MovePackAsync(JabberEmotePackVm pack, int by)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        await Task.Run(() => _emotes.MoveAsync(account, pack.Info.Id, by));
+        await LoadEmotePacksAsync();
+    }
+
+    /// <summary>Takes a pack off this server. Asked first when no other server has it, as it is then deleted.</summary>
+    public async Task RemovePackAsync(JabberEmotePackVm pack)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        var last = pack.Info.AccountIds.All(a => a == account);
+        if (last && (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, JabberText.EmoteRemoveLast, pack.Name)))) return;
+
+        try
+        {
+            var deleted = await Task.Run(() => _emotes.RemoveFromAsync(account, pack.Info.Id));
+            EmoteStatus = string.Format(CultureInfo.CurrentCulture, deleted ? JabberText.EmoteDeleted : JabberText.EmoteRemoved, pack.Name);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            EmoteStatus = e.Message;
+        }
+        await LoadEmotePacksAsync();
+    }
+
     // ── The account editor ────────────────────────────────────────────────────
 
     private bool _isEditingAccount;
@@ -560,7 +626,7 @@ public sealed class JabberViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _isEditingAccount, value);
-            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowPerson), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome) })
+            foreach (var name in new[] { nameof(ShowAccount), nameof(ShowRequest), nameof(ShowNothing), nameof(ShowWelcome) })
                 this.RaisePropertyChanged(name);
         }
     }
@@ -668,13 +734,6 @@ public sealed class JabberViewModel : ReactiveObject
 
         await Task.Run(() => _service.AddContactAsync(session, address.Bare, ContactName.Trim()));
         IsAddingContact = false;
-    }
-
-    private async Task RemoveContactAsync()
-    {
-        if (SelectedRow is not { Kind: JabberRowKind.Contact } row || Session is not { } session) return;
-        if (Confirm is not null && !await Confirm(string.Format(CultureInfo.CurrentCulture, JabberText.ConfirmRemoveContact, row.ShownText))) return;
-        await Task.Run(() => _service.RemoveContactAsync(session, row.Key));
     }
 
     private async Task AnswerRequestAsync(bool accept)

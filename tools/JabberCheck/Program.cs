@@ -462,6 +462,196 @@ void Check(string name, bool ok, string detail = "")
     Check("files: a type from the name", EveConsole.ViewModels.JabberViewModel.ContentTypeOf("MAP.PNG") == "image/png" && EveConsole.ViewModels.JabberViewModel.ContentTypeOf("x.unknown") == "application/octet-stream");
 }
 
+// ── Emote packs: the theme file, what is typed, and what is found in a message ───
+{
+    var theme = EmotePackReader.ParseTheme(
+        "Name=Test pack\r\nDescription=For the check\r\nIcon=wave.png\r\nAuthor=Nobody\r\n\r\n# a comment\r\n" +
+        "[default]\r\nwave.png :wave: :hi:\r\n! hidden.gif :hidden:\r\n!tight.gif :tight:\r\nlonely.png\r\nother.png :wave:\r\n" +
+        "[AIM]\r\naim.png :aim:\r\n[XMPP]\r\nxmpp.png :xmpp:\r\n");
+    Check("emote theme: the header", theme is { Name: "Test pack", Description: "For the check", Icon: "wave.png", Author: "Nobody" }, theme.ToString());
+    var codes = theme.Lines.SelectMany(l => l.Codes.Select(c => $"{l.File}={c}")).ToList();
+    Check("emote theme: every code of a line, hidden ones too, other networks left out",
+          string.Join(",", codes) == "wave.png=:wave:,wave.png=:hi:,hidden.gif=:hidden:,tight.gif=:tight:,xmpp.png=:xmpp:", string.Join(",", codes));
+}
+{
+    Check("emote typing: from the start", EmoteSet.TypedCode(":si", 3) == (0, ":si"));
+    Check("emote typing: after a space", EmoteSet.TypedCode("hi :si", 6) == (3, ":si"));
+    Check("emote typing: right after another code", EmoteSet.TypedCode(":siren::sk", 10) == (7, ":sk"));
+    Check("emote typing: not inside a word", EmoteSet.TypedCode("hi:si", 5) is null);
+    Check("emote typing: not before two letters", EmoteSet.TypedCode("hi :s", 5) is null);
+    Check("emote typing: not once the code is closed", EmoteSet.TypedCode("a :siren:", 9) is null);
+    Check("emote typing: not in an address", EmoteSet.TypedCode("see http://x.example", 20) is null);
+    Check("emote typing: only up to the caret", EmoteSet.TypedCode(":siren and more", 4) == (0, ":sir"));
+
+    var set = new EmoteSet(1);
+    set.Fill([
+        new EmoteRef(":wave:", "a", 20, 20, false), new EmoteRef(":siren:", "b", 20, 20, true), new EmoteRef(":)", "c", 16, 16, false),
+        new EmoteRef(":wave:", "z", 20, 20, false), new EmoteRef(":sirenspin:", "d", 20, 20, true),
+    ], [new EmotePickItem(new EmoteRef(":wave:", "a", 20, 20, false), [":wave:"], "Test pack")]);
+
+    string Shown(string text) => string.Join("|", set.Split(text).Select(p => p.Emote is { } e ? $"[{e.Hash}]" : p.Text));
+    Check("emote split: a code between words", Shown("hi :wave: there") == "hi |[a]| there", Shown("hi :wave: there"));
+    Check("emote split: two against each other", Shown(":wave::siren:") == "[a]|[b]", Shown(":wave::siren:"));
+    Check("emote split: case does not matter for a colon code", Shown(":WAVE:") == "[a]", Shown(":WAVE:"));
+    Check("emote split: the first pack wins a code", set.Find(":wave:")?.Hash == "a");
+    Check("emote split: an unknown code stays text", Shown("a :nope: b") == "a :nope: b", Shown("a :nope: b"));
+    Check("emote split: never inside a web address", Shown("see https://x.example/:wave:/y ok") == "see https://x.example/:wave:/y ok", Shown("see https://x.example/:wave:/y ok"));
+    Check("emote split: after an address, found again", Shown("https://x.example :wave:") == "https://x.example |[a]", Shown("https://x.example :wave:"));
+    Check("emote split: a face on its own", Shown("ok :) then") == "ok |[c]| then" && Shown(":)") == "[c]", Shown("ok :) then"));
+    Check("emote split: a face inside a word is left", Shown("a:)b") == "a:)b" && Shown(":)x") == ":)x", Shown("a:)b"));
+    Check("emote split: a colon that opens nothing", Shown("time 12:30 and :") == "time 12:30 and :", Shown("time 12:30 and :"));
+    Check("emote split: no packs, no change", EmoteSet.None.Split("hi :wave:") is [{ Text: "hi :wave:", Emote: null }]);
+
+    var starting = set.StartingWith(":si", 8).Select(e => e.Code).ToList();
+    Check("emote list: codes starting with what is typed, in order", string.Join(",", starting) == ":siren:,:sirenspin:", string.Join(",", starting));
+    Check("emote list: as many as asked", set.StartingWith(":si", 1).Count == 1);
+    Check("emote list: faces are not offered", set.StartingWith(":)", 8).Count == 0);
+    Check("emote picker: search on any part of a code", set.Search("AV").Count == 1 && set.Search("nothing").Count == 0 && set.Search(" ").Count == 1);
+}
+
+// A real pack on disk: a picture, a moving one, one that is not a picture, one missing and one reaching outside.
+static byte[] Png()
+{
+    using var bitmap = new SkiaSharp.SKBitmap(4, 4);
+    bitmap.Erase(SkiaSharp.SKColors.Orange);
+    using var image = SkiaSharp.SKImage.FromBitmap(bitmap);
+    return image.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).ToArray();
+}
+
+// One pixel, two frames of 100 ms: red, then blue.
+static byte[] Gif() =>
+[
+    (byte)'G', (byte)'I', (byte)'F', (byte)'8', (byte)'9', (byte)'a', 1, 0, 1, 0, 0x80, 0, 0,
+    0xFF, 0, 0, 0, 0, 0xFF,
+    0x21, 0xFF, 0x0B, (byte)'N', (byte)'E', (byte)'T', (byte)'S', (byte)'C', (byte)'A', (byte)'P', (byte)'E', (byte)'2', (byte)'.', (byte)'0', 3, 1, 0, 0, 0,
+    0x21, 0xF9, 4, 0, 10, 0, 0, 0, 0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x44, 0x01, 0,
+    0x21, 0xF9, 4, 0, 10, 0, 0, 0, 0x2C, 0, 0, 0, 0, 1, 0, 1, 0, 0, 2, 2, 0x4C, 0x01, 0,
+    0x3B,
+];
+
+static string ZipPack(string folder, string name, string themeText, bool withPictures = true)
+{
+    var path = Path.Combine(folder, name);
+    using var zip = System.IO.Compression.ZipFile.Open(path, System.IO.Compression.ZipArchiveMode.Create);
+    void Put(string entry, byte[] bytes) { using var s = zip.CreateEntry(entry).Open(); s.Write(bytes); }
+    if (themeText.Length > 0) Put("pack/theme", Encoding.UTF8.GetBytes(themeText));
+    if (withPictures)
+    {
+        Put("pack/still.png", Png());
+        Put("pack/moving.gif", Gif());
+        Put("pack/broken.gif", Encoding.UTF8.GetBytes("not a picture"));
+        Put("evil.png", Png());
+    }
+    return path;
+}
+
+var emoteDir = Path.Combine(Path.GetTempPath(), $"jabbercheck-emotes-{Guid.NewGuid():N}");
+Directory.CreateDirectory(emoteDir);
+const string PackTheme = "Name=Check pack\nIcon=still.png\n[default]\nstill.png :still: :wave:\nmoving.gif :moving:\nbroken.gif :broken:\ngone.png :gone:\n../evil.png :evil:\n";
+const string OtherTheme = "Name=Check pack no menu\n[default]\n! moving.gif :wave:\n! still.png :still:\n";
+var packZip = ZipPack(emoteDir, "pack.zip", PackTheme);
+var otherZip = ZipPack(emoteDir, "other.zip", OtherTheme);
+{
+    var pack = EmotePackReader.Read(packZip);
+    Check("emote pack: the pictures that are pictures", pack.Pictures.Keys.Order().SequenceEqual(["moving.gif", "still.png"]), string.Join(",", pack.Pictures.Keys));
+    Check("emote pack: a file not there is missing", pack.Missing.SequenceEqual(["gone.png"]), string.Join(",", pack.Missing));
+    Check("emote pack: not a picture, or outside the pack, is not used", pack.Unusable.Order().SequenceEqual(["../evil.png", "broken.gif"]), string.Join(",", pack.Unusable));
+    Check("emote pack: a GIF's frames are counted", pack.Info["moving.gif"].Frames == 2 && pack.Info["still.png"] is { Width: 4, Height: 4, Frames: 1 });
+
+    var unpacked = Path.Combine(emoteDir, "unpacked");
+    System.IO.Compression.ZipFile.ExtractToDirectory(packZip, unpacked);
+    var fromFolder = EmotePackReader.Read(Path.Combine(unpacked, "pack"));
+    var fromTheme = EmotePackReader.Read(Path.Combine(unpacked, "pack", "theme"));
+    Check("emote pack: an unpacked folder reads the same", fromFolder.Pictures.Count == 2 && fromFolder.Missing.Count == 1 && fromFolder.Unusable.Count == 2);
+    Check("emote pack: and so does its theme file", fromTheme.Pictures.Count == 2 && fromTheme.Theme.Name == "Check pack");
+    Check("emote pack: the folder above is found from one level up", EmotePackReader.Read(unpacked).Pictures.Count == 2);
+
+    var notZip = Path.Combine(emoteDir, "not.zip");
+    File.WriteAllText(notZip, "this is not a zip");
+    Check("emote pack: not a zip says so", Throws(() => EmotePackReader.Read(notZip)) == JabberText.EmoteNotAPack);
+    Check("emote pack: a zip with no theme says so", Throws(() => EmotePackReader.Read(ZipPack(emoteDir, "bare.zip", ""))) == JabberText.EmoteNoTheme);
+    Check("emote pack: a picture too big for an emote is refused",
+          EmotePackReader.Probe(Png()) is not null && EmotePackReader.Probe(Encoding.UTF8.GetBytes("text")) is null);
+}
+
+static string? Throws(Action act)
+{
+    try { act(); return null; }
+    catch (InvalidDataException e) { return e.Message; }
+}
+
+// ── Running a room: who may do what, and what is sent for it ──────────────
+{
+    XmppOccupant P(string nick, string role, string affiliation, string jid = "", bool self = false) =>
+        new("r@rooms.example", nick, XmppShow.Online, role, affiliation, jid, self, false, "");
+
+    var owner = P("me", "moderator", "owner", "me@example", self: true);
+    var admin = P("me", "moderator", "admin", "me@example", self: true);
+    var mod = P("me", "moderator", "none", "me@example", self: true);
+    var plain = P("me", "participant", "member", "me@example", self: true);
+
+    var guest = P("guest", "participant", "none", "guest@example");
+    var hidden = P("hidden", "participant", "none");
+    var visitor = P("quiet", "visitor", "none", "quiet@example");
+    var member = P("member", "participant", "member", "member@example");
+    var otherAdmin = P("boss", "moderator", "admin", "boss@example");
+    var otherOwner = P("top", "moderator", "owner", "top@example");
+    var memberMod = P("helper", "moderator", "member", "helper@example");
+
+    Check("room rights: nothing over yourself", !JabberRoomRights.Over(owner, owner).Any && !JabberRoomRights.Over(owner, P("me", "moderator", "owner")).Any);
+    Check("room rights: nothing without a place in the room", !JabberRoomRights.Over(null, guest).Any);
+    Check("room rights: an ordinary member can do nothing to anyone", !JabberRoomRights.Over(plain, guest).Any && !JabberRoomRights.Over(plain, visitor).Any);
+
+    var m = JabberRoomRights.Over(mod, guest);
+    Check("room rights: a moderator kicks and takes voice, no more", m is { Kick: true, TakeVoice: true, GiveVoice: false, Ban: false, MakeMember: false, MakeModerator: false }, m.ToString());
+    Check("room rights: a moderator gives a visitor voice", JabberRoomRights.Over(mod, visitor) is { GiveVoice: true, TakeVoice: false });
+    Check("room rights: no moderator touches an admin or owner", !JabberRoomRights.Over(mod, otherAdmin).Kick && !JabberRoomRights.Over(admin, otherOwner).Kick && !JabberRoomRights.Over(owner, otherAdmin).Kick);
+
+    var a = JabberRoomRights.Over(admin, guest);
+    Check("room rights: an admin bans, gives membership and moderation", a is { Ban: true, MakeMember: true, MakeModerator: true, MakeAdmin: false }, a.ToString());
+    Check("room rights: an admin cannot ban another admin or an owner", !JabberRoomRights.Over(admin, otherAdmin).Ban && !JabberRoomRights.Over(admin, otherOwner).Ban);
+    Check("room rights: membership taken back, not given twice", JabberRoomRights.Over(admin, member) is { MakeMember: false, RemoveMember: true });
+    Check("room rights: a member made moderator can be put back", JabberRoomRights.Over(admin, memberMod) is { RemoveModerator: true, MakeModerator: false });
+    Check("room rights: an admin's moderation is theirs by right", !JabberRoomRights.Over(owner, otherAdmin).RemoveModerator);
+    Check("room rights: only an owner makes and unmakes admins",
+          JabberRoomRights.Over(owner, guest).MakeAdmin && JabberRoomRights.Over(owner, otherAdmin) is { RemoveAdmin: true, Ban: true } && !JabberRoomRights.Over(admin, guest).MakeAdmin);
+    Check("room rights: no address shown, nothing that needs one",
+          JabberRoomRights.Over(owner, hidden) is { Kick: true, Ban: false, MakeMember: false, MakeAdmin: false });
+
+    Check("room rights: the room's own lines",
+          JabberRoomRights.OfRoom(mod) is { ChangeTopic: true, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(plain) is { ChangeTopic: false, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(admin) is { LiftBan: true } && JabberRoomRights.OfRoom(null) is { Invite: false });
+
+    var kick = XmppClient.RoleQuery("guest", "none", "spam");
+    var item = kick.Element(XmppClient.MucAdmin + "item");
+    Check("room admin: a kick is role none by nickname, with the reason",
+          kick.Name == XmppClient.MucAdmin + "query" && (string?)item?.Attribute("nick") == "guest" && (string?)item?.Attribute("role") == "none"
+          && item?.Element(XmppClient.MucAdmin + "reason")?.Value == "spam", kick.ToString());
+    var ban = XmppClient.AffiliationQuery("Guest@Example/phone", "outcast", "");
+    Check("room admin: a ban is of the bare address, no empty reason sent",
+          (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("jid") == "guest@example"
+          && (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("affiliation") == "outcast"
+          && ban.Element(XmppClient.MucAdmin + "item")?.Element(XmppClient.MucAdmin + "reason") is null, ban.ToString());
+    var topic = XmppClient.SubjectMessage("r@rooms.example", "Ops at 20:00");
+    Check("room admin: a topic is a room message with a subject and no body",
+          (string?)topic.Attribute("type") == "groupchat" && topic.Element(XmppClient.Client + "subject")?.Value == "Ops at 20:00" && topic.Element(XmppClient.Client + "body") is null);
+    var invite = XmppClient.InviteMessage("r@rooms.example", "friend@example/pc", "come along");
+    var through = invite.Element(XmppClient.MucUser + "x")?.Element(XmppClient.MucUser + "invite");
+    Check("room admin: an invitation goes through the room, to the bare address",
+          (string?)invite.Attribute("to") == "r@rooms.example" && (string?)through?.Attribute("to") == "friend@example"
+          && through?.Element(XmppClient.MucUser + "reason")?.Value == "come along", invite.ToString());
+
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.MucAdmin + "query",
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "spammer@example"),
+            new XElement(XmppClient.MucAdmin + "reason", "spam")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "other@example")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"))));
+    var bans = XmppClient.ParseBans(answer);
+    Check("room admin: the ban list, with reasons, nothing without an address",
+          bans.Count == 2 && bans[0] == new XmppBan("spammer@example", "spam") && bans[1] == new XmppBan("other@example", ""), string.Join(";", bans));
+}
+
 var dbPath = Path.Combine(Path.GetTempPath(), $"jabbercheck-{Guid.NewGuid():N}.db");
 try
 {
@@ -809,14 +999,67 @@ try
         try { Directory.Delete(relayProfile, recursive: true); } catch (IOException) { /* a temp folder */ }
     }
 
+    // ── Emote packs in the database: each server its own ────────────────────
+    {
+        var emotes = new EmoteService(factory, new AppErrorLogger(null!));
+        async Task<int> Count<T>(Func<AppDbContext, IQueryable<T>> of) { await using var db = factory.CreateDbContext(); return await of(db).CountAsync(); }
+
+        var loaded = await emotes.ImportAsync(packZip, 1);
+        Check("emote db: a pack loaded for a server", loaded is { Name: "Check pack", Codes: 3, Pictures: 2, Missing: 1, Unusable: 2, Replaced: false }, loaded.ToString());
+        Check("emote db: that server reads with it", emotes.For(1).Find(":moving:") is { Animated: true } && emotes.For(1).Find(":wave:") is { Width: 4 });
+        Check("emote db: another server does not", emotes.For(2).IsEmpty);
+        Check("emote db: one picture for each, not for each code", emotes.For(1).Pictures.Count == 2 && emotes.For(1).Pictures.Any(p => p.Codes.SequenceEqual([":still:", ":wave:"])));
+
+        var again = await emotes.ImportAsync(packZip, 1);
+        Check("emote db: loading it again replaces it", again.Replaced && again.PackId == loaded.PackId && await Count(db => db.EmotePacks) == 1 && await Count(db => db.EmoteCodes) == 3);
+
+        var other = await emotes.ImportAsync(otherZip, 2);
+        Check("emote db: a second pack with the same pictures keeps one copy of each", await Count(db => db.EmoteImages) == 2 && other.PackId != loaded.PackId);
+        Check("emote db: and its hidden lines are read", emotes.For(2).Find(":wave:") is { Animated: true });
+
+        await emotes.AddToAsync(2, loaded.PackId);
+        Check("emote db: a loaded pack given to a second server, after its own", emotes.For(2).Find(":wave:") is { Animated: true } && emotes.For(2).Find(":moving:") is not null);
+        await emotes.MoveAsync(2, loaded.PackId, -1);
+        Check("emote db: moved up, its code wins", emotes.For(2).Find(":wave:") is { Animated: false });
+        Check("emote db: the loaded server is untouched", (await emotes.PackIdsOfAsync(1)).SequenceEqual([loaded.PackId]) && emotes.For(1).Find(":wave:") is { Animated: false });
+
+        var packs = await emotes.PacksAsync();
+        Check("emote db: the list says which servers have each", packs.First(p => p.Id == loaded.PackId).AccountIds.Order().SequenceEqual([1, 2]) && packs.First(p => p.Id == loaded.PackId).Pictures == 2);
+
+        Check("emote db: taken off one server, kept for the other", !await emotes.RemoveFromAsync(1, loaded.PackId) && emotes.For(1).IsEmpty && emotes.For(2).Find(":moving:") is not null);
+        Check("emote db: taken off the last, it is deleted", await emotes.RemoveFromAsync(2, loaded.PackId) && await Count(db => db.EmotePacks) == 1);
+        Check("emote db: and pictures another pack has are kept", await Count(db => db.EmoteImages) == 2);
+
+        // What deleting a server does to its packs. ⚠️ Not by DeleteAccountAsync itself: that also clears a saved password.
+        await using (var db = factory.CreateDbContext())
+        {
+            await db.JabberEmotePacks.Where(l => l.AccountId == 2).ExecuteDeleteAsync();
+            await EmoteService.DeleteUnusedAsync(db);
+        }
+        Check("emote db: a server deleted takes its packs and pictures with it",
+              await Count(db => db.EmotePacks) == 0 && await Count(db => db.EmoteCodes) == 0 && await Count(db => db.EmoteImages) == 0 && await Count(db => db.JabberEmotePacks) == 0);
+
+        var bad = Path.Combine(emoteDir, "nothing.zip");
+        ZipPack(emoteDir, "nothing.zip", "Name=Empty\n[default]\ngone.png :gone:\n", withPictures: false);
+        Check("emote db: a pack with no usable picture loads nothing", await FailsAsync(() => emotes.ImportAsync(bad, 1)) == JabberText.EmoteNoPictures && await Count(db => db.EmotePacks) == 0);
+    }
+
     var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
     Check("agent: Jabber's tables are kept from the in-app agent",
           !schema.TableNames.Any(t => t.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)) && schema.TableNames.Count > 0);
+    Check("agent: and so are the emote packs", !schema.TableNames.Any(t => t.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)));
 }
 finally
 {
     Microsoft.Data.Sqlite.SqliteConnection.ClearAllPools();
     try { File.Delete(dbPath); } catch (IOException) { /* a temp file, and the result is what matters */ }
+    try { Directory.Delete(emoteDir, recursive: true); } catch (IOException) { /* the same */ }
+}
+
+static async Task<string?> FailsAsync(Func<Task> act)
+{
+    try { await act(); return null; }
+    catch (InvalidDataException e) { return e.Message; }
 }
 
 Console.WriteLine($"Jabber check: {checks} check(s), {failures.Count} failure(s).");

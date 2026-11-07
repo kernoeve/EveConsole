@@ -2692,7 +2692,8 @@ public class App : Application
                         "SelfMuted"          INTEGER NOT NULL DEFAULT 0,
                         "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
                         "LastChannel"        TEXT    NOT NULL DEFAULT '',
-                        "VoiceActivated"     INTEGER NOT NULL DEFAULT 0
+                        "VoiceActivated"     INTEGER NOT NULL DEFAULT 0,
+                        "TalkTargets"        TEXT NOT NULL DEFAULT ''
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2706,6 +2707,7 @@ public class App : Application
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "VoiceActivated" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "TalkTargets" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "LocalMute" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "IgnoreText" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
@@ -2805,6 +2807,43 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmotePacks" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"        TEXT    NOT NULL DEFAULT '',
+                        "Description" TEXT    NOT NULL DEFAULT '',
+                        "Author"      TEXT    NOT NULL DEFAULT '',
+                        "IconCode"    TEXT    NOT NULL DEFAULT '',
+                        "AddedAt"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmoteImages" (
+                        "Hash"     TEXT    NOT NULL PRIMARY KEY,
+                        "Bytes"    BLOB    NOT NULL,
+                        "Width"    INTEGER NOT NULL DEFAULT 0,
+                        "Height"   INTEGER NOT NULL DEFAULT 0,
+                        "Animated" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmoteCodes" (
+                        "PackId"    INTEGER NOT NULL,
+                        "Code"      TEXT    NOT NULL,
+                        "ImageHash" TEXT    NOT NULL DEFAULT '',
+                        "Position"  INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY ("PackId", "Code")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EmoteCodes_Image" ON "EmoteCodes" ("ImageHash")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberEmotePacks" (
+                        "AccountId" INTEGER NOT NULL,
+                        "PackId"    INTEGER NOT NULL,
+                        "Position"  INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY ("AccountId", "PackId")
+                    )
+                    """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
                         "CharacterId"          INTEGER NOT NULL,
@@ -4385,6 +4424,7 @@ public class App : Application
         }
 
         p.Report((84, ShellText.SplashPreparingTools));
+        EveConsole.Views.EmoteView.Service = Services.GetRequiredService<EveConsole.Services.Jabber.EmoteService>();
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
 
         p.Report((88, ShellText.SplashStartingServices));
@@ -5089,6 +5129,7 @@ public class App : Application
             sp.GetRequiredService<SystemGraph>()));
         services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
+        services.AddSingleton<EveConsole.Services.Jabber.EmoteService>();
         services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.JabberDmSource>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.MumbleDmSource>();

@@ -243,6 +243,12 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberMessages.Where(m => m.AccountId == accountId).ExecuteDeleteAsync(ct);
         await db.JabberRooms.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            await db.JabberEmotePacks.Where(l => l.AccountId == accountId).ExecuteDeleteAsync(ct);
+            await EmoteService.DeleteUnusedAsync(db, ct);
+            await tx.CommitAsync(ct);
+        }
         await db.JabberAccounts.Where(a => a.Id == accountId).ExecuteDeleteAsync(ct);
 
         await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(accountId), null), ct);
@@ -421,12 +427,18 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             session.Locked(s => s.InviteMap[invite.Room] = invite);
             SessionChanged?.Invoke(session);
         };
-        client.RoomSubjectChanged += (room, subject) => session.Locked(s =>
+        client.RoomSubjectChanged += (room, subject) =>
         {
-            if (!s.RoomMap.TryGetValue(room, out var r)) return;
-            r.Subject = subject;
-            r.HistoryDone = true;
-        });
+            session.Locked(s =>
+            {
+                if (!s.RoomMap.TryGetValue(room, out var r)) return;
+                r.Subject = subject;
+                r.HistoryDone = true;
+            });
+
+            // ⚠️ Told, or a new topic only showed once the room was opened again, and other clients only saw it later.
+            SessionChanged?.Invoke(session);
+        };
 
         var reading = client.RunAsync(ct);
         var saving  = SaveInboxAsync(session, inbox.Reader, ct);

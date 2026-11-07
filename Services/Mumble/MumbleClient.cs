@@ -28,6 +28,9 @@ public enum MumblePermission : uint
 }
 
 /// <summary>Someone banned from a server. Kept as it came, as changing the list means sending all of it back.</summary>
+/// <summary>One part of a voice target: a channel, with what comes along with it, or some people by session.</summary>
+public readonly record struct MumbleTargetEntry(uint? Channel, string Group, bool Links, bool Subchannels, IReadOnlyList<uint> Sessions);
+
 public sealed record MumbleBan(byte[] Raw, string Name, string Reason, string Started, uint DurationSeconds, string Address)
 {
     public static MumbleBan Read(byte[] raw)
@@ -667,14 +670,30 @@ public sealed class MumbleClient : IAsyncDisposable
         SendAsync(MumbleMessage.TextMessage, new PbWriter().UInt(2, session).Text(5, message).ToArray(), ct);
 
     /// <summary>
-    /// Saves a voice target that reaches this one channel and nothing linked to it or under it. It is set again
-    /// whenever this client moves, because the target names a channel by id rather than "wherever I am".
+    /// A voice target that reaches this one channel and nothing linked to it or under it. It has to be set again whenever
+    /// this client moves, as a target names a channel by id rather than "wherever I am".
     /// </summary>
-    public Task SetChannelTargetAsync(int targetId, uint channel, CancellationToken ct) =>
-        SendAsync(MumbleMessage.VoiceTarget, ChannelTargetMessage(targetId, channel), ct);
-
     public static byte[] ChannelTargetMessage(int targetId, uint channel) =>
-        new PbWriter().UInt(1, (ulong)targetId).Bytes(2, new PbWriter().UInt(2, channel).ToArray()).ToArray();
+        VoiceTargetMessage(targetId, [new MumbleTargetEntry(channel, "", false, false, [])]);
+
+    /// <summary>Saves a voice target, under a number each packet of voice can name. It replaces what that number held.</summary>
+    public static byte[] VoiceTargetMessage(int targetId, IEnumerable<MumbleTargetEntry> entries)
+    {
+        var message = new PbWriter().UInt(1, (ulong)targetId);
+        foreach (var entry in entries)
+        {
+            var target = new PbWriter();
+            foreach (var session in entry.Sessions) target.UInt(1, session);
+            if (entry.Channel is { } channel) target.UInt(2, channel);
+            if (entry.Group.Length > 0) target.Text(3, entry.Group);
+            if (entry.Links) target.Bool(4, true);
+            if (entry.Subchannels) target.Bool(5, true);
+            message.Bytes(2, target.ToArray());
+        }
+        return message.ToArray();
+    }
+
+    public Task SendVoiceTargetAsync(byte[] message, CancellationToken ct) => SendAsync(MumbleMessage.VoiceTarget, message, ct);
 
     /// <summary>
     /// The other channels that plain talk from this one reaches. The server follows links onward, so a link of a

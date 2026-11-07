@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>Aucune conversation enregistrée pour l'instant. Sélectionnez une personne dans l'onglet Jabber ou Mumble des paramètres pour en commencer une.</value>
+    <value>Aucune conversation enregistrée pour l'instant. Cliquez sur Nouvelle conversation, ou faites un clic droit sur quelqu'un dans un salon ou sur un serveur Mumble.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">
