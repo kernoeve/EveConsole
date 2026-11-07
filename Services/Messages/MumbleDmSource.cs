@@ -17,6 +17,7 @@ public sealed class MumbleDmSource : IDmSource
     public event Action? UnreadChanged;
     public event Action<DmKey, DmLine, bool>? Arrived;
     public event Action<DmKey>? Edited { add { } remove { } }     // Mumble has no way to change what was said.
+    public event Action<DmKey>? ReactionsChanged { add { } remove { } }   // nor to react to it
     public event Action<DmKey, bool>? Typing { add { } remove { } }
 
     public MumbleDmSource(MumbleService service)

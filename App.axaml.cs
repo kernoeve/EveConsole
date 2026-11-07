@@ -2840,6 +2840,17 @@ public class App : Application
                     """);
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EmoteCodes_Image" ON "EmoteCodes" ("ImageHash")""");
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberReactions" (
+                        "AccountId"    INTEGER NOT NULL,
+                        "Conversation" TEXT    NOT NULL,
+                        "Target"       TEXT    NOT NULL,
+                        "Sender"       TEXT    NOT NULL,
+                        "Emojis"       TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("AccountId", "Conversation", "Target", "Sender")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ChatAvatars" (
                         "Hash"   TEXT    NOT NULL PRIMARY KEY,
                         "Bytes"  BLOB    NOT NULL,

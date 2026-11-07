@@ -7,6 +7,12 @@
              x:DataType="vm:MessagesViewModel">
 
   <UserControl.Styles>
+    <Style Selector="Button.reaction"><Setter Property="Padding" Value="6 1" /><Setter Property="Margin" Value="0 0 4 2" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
+    <Style Selector="Button.reaction.mine"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" /></Style>
+    <!-- Reacting is offered where the pointer is: a message's own button shows only while it is over that message. -->
+    <Style Selector="Button.addreaction"><Setter Property="Padding" Value="3 0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Opacity" Value="0" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector=":is(Panel).msgline:pointerover Button.addreaction, Border.line:pointerover Button.addreaction"><Setter Property="Opacity" Value="1" /></Style>
     <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
@@ -129,12 +135,22 @@
         <ListBox x:Name="LineList" Classes="lines" Grid.Row="2" ItemsSource="{Binding Lines}" Background="Transparent" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:MessagesLineVm">
-              <Grid ColumnDefinitions="Auto,*" Margin="14 4">
+              <Grid Classes="msgline" ColumnDefinitions="Auto,*" Margin="14 4" Background="Transparent">
               <views:AvatarView Of="{Binding Avatar}" Size="28" VerticalAlignment="Top" Margin="0 3 10 0" />
               <StackPanel Grid.Column="1">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                   <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                  <Button Classes="addreaction" IsVisible="{Binding CanReact}" Click="OnAddReaction" ToolTip.Tip="{x:Static loc:JabberText.AddReactionTip}">
+                        <Viewbox Width="14" Height="14">
+                          <Canvas Width="24" Height="24">
+                            <Ellipse Canvas.Left="2" Canvas.Top="3" Width="17" Height="17" StrokeThickness="1.8" Stroke="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="6.6" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="12" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Path Data="M6.4 14 Q10.5 17.6 14.6 14 M20 1 V7 M17 4 H23" StrokeThickness="1.8" StrokeLineCap="Round" Stroke="{DynamicResource TextMutedBrush}" />
+                          </Canvas>
+                        </Viewbox>
+                      </Button>
                 </StackPanel>
                 <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                 <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
@@ -144,6 +160,22 @@
                     </DataTemplate>
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
+                    <!-- Reactions: each emoji once, with how many chose it. A click adds this person's, or takes it back. -->
+                    <ItemsControl ItemsSource="{Binding Reactions}" Margin="0 3 0 0">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ReactionChipVm">
+                          <Button Classes="reaction" Classes.mine="{Binding Mine}" Click="OnReactionChip" ToolTip.Tip="{Binding Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Binding Emoji}" FontFamily="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Text="{Binding CountText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
               </StackPanel>
               </Grid>
             </DataTemplate>

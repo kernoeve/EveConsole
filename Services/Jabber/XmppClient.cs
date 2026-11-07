@@ -37,6 +37,12 @@ public sealed record XmppMessage(
     public bool RetractByModerator { get; init; }
 
     public string RetractReason { get; init; } = "";
+
+    /// <summary>Not a message but someone's reactions to one: its id. Blank for an ordinary message.</summary>
+    public string ReactionsTo { get; init; } = "";
+
+    /// <summary>Their whole set of reactions to it now. Empty takes them all back.</summary>
+    public IReadOnlyList<string> Reactions { get; init; } = [];
 }
 
 /// <summary>How far an archive query got.</summary>
@@ -325,7 +331,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         }
 
         // A delete usually carries words for clients that cannot do one, but need not.
-        if (message.Body.Length > 0 || message.RetractId.Length > 0) MessageReceived?.Invoke(message);
+        if (message.Body.Length > 0 || message.RetractId.Length > 0 || message.ReactionsTo.Length > 0) MessageReceived?.Invoke(message);
     }
 
     /// <summary>
@@ -347,10 +353,14 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         return null;
     }
 
-    private static XmppMessage WithRetraction(XmppMessage message, XElement inner) =>
-        RetractionIn(inner) is (string id, bool moderated, string reason)
-            ? message with { RetractId = id, RetractByModerator = moderated, RetractReason = reason }
-            : message;
+    private static XmppMessage WithRetraction(XmppMessage message, XElement inner)
+    {
+        if (RetractionIn(inner) is (string id, bool moderated, string reason))
+            message = message with { RetractId = id, RetractByModerator = moderated, RetractReason = reason };
+        if (ReactionsIn(inner) is (string target, List<string> emojis))
+            message = message with { ReactionsTo = target, Reactions = emojis };
+        return message;
+    }
 
     /// <summary>The id a room gave a message, only when the room itself says so: anyone in it could put one in.</summary>
     private static string RoomStanzaIdIn(XElement inner, string room) =>
@@ -763,7 +773,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (type is "groupchat" or "error") return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        if (body.Length == 0 && RetractionIn(inner) is null) return null;
+        if (body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null) return null;
 
         var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
 
@@ -820,7 +830,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (sender.Bare != room) return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        return body.Length == 0 && RetractionIn(inner) is null ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
+        return body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
     }
 
     /// <summary>Whether this account's server keeps an archive to ask.</summary>

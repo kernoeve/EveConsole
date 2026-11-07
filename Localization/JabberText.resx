@@ -442,4 +442,37 @@ Trust it only if this matches what the server's admin published. From then on, o
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>Removed by a moderator: {0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>React</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Search emojis (English names)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Smileys</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>People and gestures</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Hearts and marks</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Animals and nature</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Food and drink</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Activities</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Travel and places</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Objects</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Symbols</value>
+  </data>
 </root>

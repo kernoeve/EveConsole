@@ -366,4 +366,37 @@
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>운영자가 삭제했습니다: {0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>반응하기</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>이모지 검색(영어 이름)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>스마일리</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>사람과 제스처</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>하트와 기호</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>동물과 자연</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>음식과 음료</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>활동</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>여행과 장소</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>사물</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>기호</value>
+  </data>
 </root>

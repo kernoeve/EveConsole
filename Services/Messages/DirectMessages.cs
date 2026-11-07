@@ -45,7 +45,8 @@ public sealed record DmSummary(DmKey Key, string Name, string Server, string Ser
 }
 
 /// <param name="Deleted">See <see cref="EveConsole.Models.JabberDeleted"/>: deleted messages keep their place.</param>
-public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "");
+/// <param name="Target">What a reaction to it names: its own id. Blank where reactions are not a thing.</param>
+public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "", string Target = "");
 
 /// <summary>Someone who can be written to right now, to start a conversation with.</summary>
 public sealed record DmPerson(DmKey Key, string Name, string Server, string Service)
@@ -74,6 +75,16 @@ public interface IDmSource
 
     /// <summary>Existing lines changed, as when someone corrects a message.</summary>
     event Action<DmKey>? Edited;
+
+    /// <summary>Someone's reactions in a conversation changed.</summary>
+    event Action<DmKey>? ReactionsChanged;
+
+    /// <summary>The reactions to some of a conversation's messages, by what <see cref="DmLine.Target"/> each has.</summary>
+    Task<Dictionary<string, List<EveConsole.Services.Jabber.JabberReactionCount>>> ReactionsAsync(DmKey key, IReadOnlyCollection<string> targets, CancellationToken ct = default) =>
+        Task.FromResult(new Dictionary<string, List<EveConsole.Services.Jabber.JabberReactionCount>>());
+
+    /// <summary>Sends this person's whole set of reactions to one message.</summary>
+    Task ReactAsync(DmKey key, string target, IReadOnlyList<string> emojis, CancellationToken ct = default) => Task.CompletedTask;
 
     event Action<DmKey, bool>? Typing;
 
@@ -106,6 +117,7 @@ public sealed class DirectMessagesService
     public event Action? UnreadChanged;
     public event Action<DmKey, DmLine, bool>? Arrived;
     public event Action<DmKey>? Edited;
+    public event Action<DmKey>? ReactionsChanged;
     public event Action<DmKey, bool>? Typing;
 
     public DirectMessagesService(IEnumerable<IDmSource> sources)
@@ -117,6 +129,7 @@ public sealed class DirectMessagesService
             source.UnreadChanged += () => UnreadChanged?.Invoke();
             source.Arrived += (key, line, alert) => Arrived?.Invoke(key, line, alert);
             source.Edited += key => Edited?.Invoke(key);
+            source.ReactionsChanged += key => ReactionsChanged?.Invoke(key);
             source.Typing += (key, typing) => Typing?.Invoke(key, typing);
         }
     }

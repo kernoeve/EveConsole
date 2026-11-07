@@ -366,4 +366,37 @@
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>已被主持人删除：{0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>回应</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>搜索表情符号（英文名称）</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>笑脸</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>人物和手势</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>爱心和标记</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>动物和自然</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>食物和饮料</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>活动</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>旅行和地点</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>符号</value>
+  </data>
 </root>

@@ -366,4 +366,37 @@
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>モデレーターが削除しました：{0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>リアクション</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>絵文字を検索（英語名）</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>スマイリー</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>人とジェスチャー</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>ハートと記号</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>動物と自然</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>食べ物と飲み物</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>アクティビティ</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>旅行と場所</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>物</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>記号</value>
+  </data>
 </root>

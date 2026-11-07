@@ -366,4 +366,37 @@
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>Удалено модератором: {0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Отреагировать</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Поиск эмодзи (английские названия)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Смайлы</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Люди и жесты</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Сердца и знаки</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Животные и природа</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Еда и напитки</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Занятия</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Путешествия и места</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Символы</value>
+  </data>
 </root>

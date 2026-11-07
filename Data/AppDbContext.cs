@@ -104,6 +104,7 @@ public class AppDbContext : DbContext
     public DbSet<EmoteCode>             EmoteCodes               => Set<EmoteCode>();
     public DbSet<JabberEmotePack>       JabberEmotePacks         => Set<JabberEmotePack>();
     public DbSet<ChatAvatar>            ChatAvatars              => Set<ChatAvatar>();
+    public DbSet<JabberReaction>        JabberReactions          => Set<JabberReaction>();
     public DbSet<ChatAvatarOwner>       ChatAvatarOwners         => Set<ChatAvatarOwner>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
@@ -1255,6 +1256,11 @@ public class AppDbContext : DbContext
             e.Property(x => x.PackId).ValueGeneratedNever();
             e.HasIndex(x => x.ImageHash).HasDatabaseName("IX_EmoteCodes_Image");
             e.ToTable("EmoteCodes"); });
+
+        mb.Entity<JabberReaction>(e => {
+            e.HasKey(x => new { x.AccountId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.ToTable("JabberReactions"); });
 
         mb.Entity<ChatAvatar>(e => {
             e.HasKey(x => x.Hash);

@@ -366,4 +366,37 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>Von einem Moderator entfernt: {0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Reagieren</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Emojis suchen (englische Namen)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Smileys</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Personen und Gesten</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Herzen und Zeichen</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Tiere und Natur</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Essen und Trinken</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Aktivitäten</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Reisen und Orte</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Gegenstände</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Symbole</value>
+  </data>
 </root>

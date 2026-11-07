@@ -131,6 +131,19 @@ public sealed partial class GroupLineVm
     /// <summary>Whose picture goes beside it.</summary>
     public AvatarRef? Avatar { get; init; }
 
+    /// <summary>What a reaction to it names: the room's id for it. Blank where it cannot be reacted to.</summary>
+    public string ReactTarget { get; init; } = "";
+    public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
+
+    public ObservableCollection<ReactionChipVm> Reactions { get; } = [];
+
+    /// <summary>Takes on its reactions as they stand. ⚠️ In place: the chips are on screen.</summary>
+    public void SetReactions(IReadOnlyList<JabberReactionCount>? counts)
+    {
+        Reactions.Clear();
+        foreach (var c in counts ?? []) Reactions.Add(new ReactionChipVm(c));
+    }
+
     public static string DeletedText(int deleted, string reason) =>
         deleted != JabberDeleted.ByModerator ? JabberText.MessageDeleted
         : reason.Length > 0 ? string.Format(CultureInfo.CurrentCulture, JabberText.MessageRemovedReason, reason)
@@ -156,6 +169,15 @@ public sealed partial class GroupLineVm
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
     private static partial System.Text.RegularExpressions.Regex UrlPattern();
+}
+
+/// <summary>One emoji under a message, how many chose it, and who, for its tip.</summary>
+public sealed class ReactionChipVm(JabberReactionCount count)
+{
+    public string Emoji => count.Emoji;
+    public string CountText => count.Count.ToString("N0", CultureInfo.CurrentCulture);
+    public string Tip => string.Join(", ", count.Who);
+    public bool Mine => count.Mine;
 }
 
 public sealed record JabberAlertChoice(int Mode, string Label);
@@ -329,6 +351,10 @@ public sealed class GroupChatViewModel : ReactiveObject
         _jabber.ConversationEdited += (account, conversation) => Dispatcher.UIThread.Post(() =>
         {
             if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = OpenSelectedAsync();
+        });
+        _jabber.ReactionsChanged += (account, conversation) => Dispatcher.UIThread.Post(() =>
+        {
+            if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = LoadReactionsAsync();
         });
         _mumble.SessionChanged += _ => QueueRefresh();
         _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnMumbleChat(session, line));
@@ -658,6 +684,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
             foreach (var m in page) Lines.Add(ToLine(m));
             HasEarlier = page.Count == PageSize;
+            await LoadReactionsAsync();
         }
         else return;
 
@@ -671,6 +698,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         "", m.IsMention, EmotesOf(m.AccountId), m.Deleted, m.DeletedReason)
     {
         Avatar = new AvatarRef(JabberService.AvatarServiceName, m.AccountId, m.IsOutgoing ? "me" : $"{m.Conversation}/{m.Sender}", m.Sender),
+        ReactTarget = m.IsRoom ? m.StanzaId : "",
     };
 
     private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
@@ -745,6 +773,33 @@ public sealed class GroupChatViewModel : ReactiveObject
         var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, Lines[0].Id, PageSize));
         for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToLine(page[i]));
         HasEarlier = page.Count == PageSize;
+        await LoadReactionsAsync();
+    }
+
+    /// <summary>The reactions to every message showing, as they stand now.</summary>
+    private async Task LoadReactionsAsync()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
+        var me = session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)?.Nick) ?? "";
+        var counts = await Task.Run(() => _jabber.ReactionsAsync(row.ServerId, row.Key, [.. lines.Select(l => l.ReactTarget)], me));
+        if (!ReferenceEquals(SelectedRow, row)) return;
+
+        foreach (var line in lines) line.SetReactions(counts.GetValueOrDefault(line.ReactTarget));
+    }
+
+    /// <summary>Adds an emoji to this person's reactions to a message, or takes it back if it is theirs already.</summary>
+    public async Task ToggleReactionAsync(GroupLineVm line, string emoji)
+    {
+        if (!line.CanReact || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+
+        var mine = line.Reactions.Where(c => c.Mine).Select(c => c.Emoji).ToList();
+        if (!mine.Remove(emoji)) mine.Add(emoji);
+
+        StatusText = "";
+        try { await Task.Run(() => _jabber.SendReactionsAsync(session, row.Key, true, line.ReactTarget, mine)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
     }
 
     private async Task SendAsync()
