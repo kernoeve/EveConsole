@@ -960,6 +960,64 @@ static string RawFile(string path)
     Check("encoder: stays within what the server allows", MumbleEncoder.BitrateFor(40_000) <= 40_000 && MumbleEncoder.BitrateFor(0) > 0, $"{MumbleEncoder.BitrateFor(40_000)}");
 }
 
+// ── Channel targets ──────────────────────────────────────────────────
+{
+    var old = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x70, ShoutKey = 0x71 };
+    var firstRead = MumbleTargets.Read(old);
+    Check("targets: a server from before them has the two defaults", firstRead.Count == 2);
+    Check("targets: and keeps the keys it had", firstRead[0].Key == 0x70 && firstRead[1].Key == 0x71);
+    Check("targets: whisper is the channel I'm in, and nothing else", firstRead[0].Channels is [{ Path.Length: 0, Links: false, Subchannels: false }]);
+    Check("targets: shout is plain talk", MumbleTargets.IsPlainTalk(firstRead[1]));
+    Check("targets: whisper isn't", !MumbleTargets.IsPlainTalk(firstRead[0]));
+    Check("targets: numbered as the server expects", MumbleTargets.Slots(firstRead) is [1, 0]);
+
+    var saved = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x70, ShoutKey = 0x71, TalkTargets = MumbleTargets.Write(firstRead) };
+    var again = MumbleTargets.Read(saved);
+    Check("targets: survive being saved", again.Count == 2 && again[0].Key == 0x70 && again[0].Name == firstRead[0].Name && again[1].Channels[0].Links);
+
+    var none = new MumbleServer { TalkTargets = MumbleTargets.Write([]), WhisperKey = 0x70 };
+    Check("targets: all removed stay removed", MumbleTargets.Read(none).Count == 0);
+    Check("targets: nothing left on the old keys either", MumbleService.KeyClash(new MumbleServer { Id = 9, WhisperKey = 0x70 }, [none]) is null);
+
+    var broken = new MumbleServer { TalkTargets = "{not json", WhisperKey = 0x70 };
+    Check("targets: what can't be read becomes the defaults", MumbleTargets.Read(broken) is [{ Key: 0x70 }, _]);
+
+    MumbleTalkTarget Plain(params MumbleTargetChannel[] channels) => new() { Channels = [.. channels] };
+    Check("targets: a group stops it being plain talk", !MumbleTargets.IsPlainTalk(new MumbleTalkTarget { Group = "admin", Channels = [new MumbleTargetChannel { Links = true }] }));
+    Check("targets: people stop it being plain talk", !MumbleTargets.IsPlainTalk(new MumbleTalkTarget { People = "Ann", Channels = [new MumbleTargetChannel { Links = true }] }));
+    Check("targets: subchannels stop it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Links = true, Subchannels = true })));
+    Check("targets: a named channel stops it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Path = "Ops", Links = true })));
+    Check("targets: a second channel stops it being plain talk", !MumbleTargets.IsPlainTalk(Plain(new MumbleTargetChannel { Links = true }, new MumbleTargetChannel { Path = "Ops" })));
+
+    var many = Enumerable.Range(0, 33).Select(_ => Plain(new MumbleTargetChannel { Path = "Ops" })).ToList();
+    var manySlots = MumbleTargets.Slots(many);
+    Check("targets: a server has room for 30", manySlots[29] == 30 && manySlots[30] == -1 && manySlots[32] == -1);
+
+    // What goes to the server.
+    var written = MumbleClient.VoiceTargetMessage(5, [new MumbleTargetEntry(7, "admin", true, true, [])]);
+    var expected = new PbWriter().UInt(1, 5).Bytes(2, new PbWriter().UInt(2, 7).Text(3, "admin").Bool(4, true).Bool(5, true).ToArray()).ToArray();
+    Check("targets: a channel, with its group, links and subchannels", written.SequenceEqual(expected));
+
+    var people = MumbleClient.VoiceTargetMessage(6, [new MumbleTargetEntry(null, "", false, false, [11, 12])]);
+    var peopleExpected = new PbWriter().UInt(1, 6).Bytes(2, new PbWriter().UInt(1, 11).UInt(1, 12).ToArray()).ToArray();
+    Check("targets: people by session, with no channel", people.SequenceEqual(peopleExpected));
+
+    var both = MumbleClient.VoiceTargetMessage(6, [new MumbleTargetEntry(7, "", false, false, []), new MumbleTargetEntry(8, "", false, false, [])]);
+    Check("targets: several parts go as several", both.SequenceEqual(new PbWriter().UInt(1, 6).Bytes(2, new PbWriter().UInt(2, 7).ToArray()).Bytes(2, new PbWriter().UInt(2, 8).ToArray()).ToArray()));
+
+    // Keys across targets and servers.
+    MumbleServer WithKeys(int id, params int[] keys) => new()
+    {
+        Id = id, Name = $"S{id}",
+        TalkTargets = MumbleTargets.Write(keys.Select(k => new MumbleTalkTarget { Key = k, Channels = [new MumbleTargetChannel()] })),
+    };
+    Check("targets: two keys alike on one server clash", MumbleService.KeyClash(WithKeys(1, 5, 5), []) == "S1");
+    Check("targets: a third target's key clashes with another server's", MumbleService.KeyClash(WithKeys(1, 5, 6, 7), [WithKeys(2, 7)]) == "S2");
+    Check("targets: and with an old server's", MumbleService.KeyClash(WithKeys(1, 0x70), [new MumbleServer { Id = 2, Name = "Old", ShoutKey = 0x70 }]) == "Old");
+    Check("targets: no key is no clash", MumbleService.KeyClash(WithKeys(1, 0, 0), [WithKeys(2, 0)]) is null);
+    Check("targets: different keys are fine", MumbleService.KeyClash(WithKeys(1, 5, 6), [WithKeys(2, 7)]) is null);
+}
+
 // ── Each key belongs to one server ────────────────────────────────────────────
 {
     var a = new MumbleServer { Id = 1, Name = "One", WhisperKey = 0x7C, ShoutKey = 0x7D };

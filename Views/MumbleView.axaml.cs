@@ -80,41 +80,9 @@ public partial class MumbleView : UserControl
         vm.TakeCapturedKey(vk);
     }
 
-    /// <summary>Double-clicking a channel joins it, as in every Mumble client, and a person opens the conversation with them.</summary>
-    private async void OnRowDoubleTapped(object? sender, TappedEventArgs e)
-    {
-        if (DataContext is not MumbleViewModel vm) return;
-
-        // ⚠️ Not from the arrow: clicking it twice quickly is opening and closing, not joining whatever is selected.
-        if (e.Source is Avalonia.Visual from && Avalonia.VisualTree.VisualExtensions.FindAncestorOfType<Button>(from, true) is not null) return;
-
-        if (vm.SelectedRow is { IsChannel: true }) await vm.JoinSelectedAsync();
-        else vm.MessageSelectedPerson();
-    }
-
-    private async void OnUnban(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button { DataContext: EveConsole.Services.Mumble.MumbleBan ban } && DataContext is MumbleViewModel vm) await vm.UnbanAsync(ban);
-    }
-
-    private void OnToggleChannel(object? sender, RoutedEventArgs e)
-    {
-        if (sender is Button { DataContext: MumbleRowVm row }) (DataContext as MumbleViewModel)?.ToggleChannel(row);
-        e.Handled = true;
-    }
-
-    private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as MumbleViewModel)?.MessageSelectedPerson();
-
     private async Task<bool> AskAsync(string message)
     {
         if (TopLevel.GetTopLevel(this) is not Window owner) return false;
         return await new ConfirmDialog(message).ShowDialog<bool>(owner);
     }
-}
-
-/// <summary>A ban's second line, for the list.</summary>
-public static class MumbleBanText
-{
-    public static readonly Avalonia.Data.Converters.IValueConverter Convert =
-        new Avalonia.Data.Converters.FuncValueConverter<EveConsole.Services.Mumble.MumbleBan, string>(b => b is null ? "" : MumbleViewModel.BanText(b));
 }

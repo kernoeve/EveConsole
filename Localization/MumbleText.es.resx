@@ -52,9 +52,6 @@
 
 La mayoría de servidores Mumble usan su propio certificado. Confía en él solo si esperas este servidor. A partir de entonces solo se aceptará este certificado.</value>
   </data>
-  <data name="KeysSummary" xml:space="preserve">
-    <value>Tecla de susurro: {0}. Tecla de grito: {1}.</value>
-  </data>
   <data name="HostAndNameRequired" xml:space="preserve">
     <value>Introduce el host del servidor y tu nombre de usuario.</value>
   </data>
@@ -106,12 +103,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="LabelTokens" xml:space="preserve">
     <value>Tokens de acceso (opcional, separados por comas)</value>
   </data>
-  <data name="LabelWhisperKey" xml:space="preserve">
-    <value>Tecla de susurro (habla solo a tu canal actual)</value>
-  </data>
-  <data name="LabelShoutKey" xml:space="preserve">
-    <value>Tecla de grito (pulsar para hablar: tu canal y los canales enlazados)</value>
-  </data>
   <data name="KeysNote" xml:space="preserve">
     <value>Estas teclas son solo para este servidor y funcionan mientras esté conectado, aunque la aplicación esté en segundo plano.</value>
   </data>
@@ -124,9 +115,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="Save" xml:space="preserve">
     <value>Guardar</value>
   </data>
-  <data name="Cancel" xml:space="preserve">
-    <value>Cancelar</value>
-  </data>
   <data name="Delete" xml:space="preserve">
     <value>Eliminar</value>
   </data>
@@ -138,9 +126,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="Disconnect" xml:space="preserve">
     <value>Desconectar</value>
-  </data>
-  <data name="Edit" xml:space="preserve">
-    <value>Editar</value>
   </data>
   <data name="Mute" xml:space="preserve">
     <value>Silenciar</value>
@@ -204,9 +189,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="Refused" xml:space="preserve">
     <value>El servidor lo rechazó. Puede que no tengas permiso.</value>
-  </data>
-  <data name="HeadingAdmin" xml:space="preserve">
-    <value>Administración del servidor</value>
   </data>
   <data name="ServerMute" xml:space="preserve">
     <value>Silenciar en el servidor</value>
@@ -277,9 +259,6 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="ConfirmBan" xml:space="preserve">
     <value>¿Prohibir a {0} en este servidor? Solo un administrador puede deshacerlo, desde la lista de prohibiciones.</value>
   </data>
-  <data name="RegisterName" xml:space="preserve">
-    <value>Registrar este nombre</value>
-  </data>
   <data name="ConfirmRegister" xml:space="preserve">
     <value>¿Registrar a {0} en este servidor? El nombre queda ligado a su certificado y solo un administrador puede deshacerlo.</value>
   </data>
@@ -301,20 +280,8 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="UnlinkFromMine" xml:space="preserve">
     <value>Desenlazar de mi canal</value>
   </data>
-  <data name="RemoveChannel" xml:space="preserve">
-    <value>Eliminar canal</value>
-  </data>
   <data name="ConfirmRemoveChannel" xml:space="preserve">
     <value>¿Eliminar {0} y todos los canales que contiene, para todos en este servidor?</value>
-  </data>
-  <data name="LabelNewChannel" xml:space="preserve">
-    <value>Nuevo canal bajo este</value>
-  </data>
-  <data name="CreateChannel" xml:space="preserve">
-    <value>Crear</value>
-  </data>
-  <data name="NewChannelTemporary" xml:space="preserve">
-    <value>Temporal: desaparece cuando se vacía</value>
   </data>
   <data name="NoiseReduce" xml:space="preserve">
     <value>Reducir el ruido de fondo</value>
@@ -372,5 +339,107 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="StatusTip" xml:space="preserve">
     <value>{0}, {1}: {2} sin ensordecer en este canal</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>Servidores</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>Conexión</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>Destinos de canal</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>Servidor nuevo</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>Los cambios de host, puerto, usuario, contraseña y tokens se aplican la próxima vez que este servidor se conecte.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>Cada destino de canal indica a quién habla una tecla en este servidor. Cámbialos como quieras: cualquier canal, lo que va con él y personas estén donde estén.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>Tecla</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>Canales</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>Añadir destino de canal</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>Añadir canal</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>Canales enlazados</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>Subcanales</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>Personas, estén donde estén (nombres, separados por comas)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>Solo miembros de este grupo del servidor en esos canales (opcional)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>El canal en el que estoy</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>Destino nuevo</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>Susurrar: el canal en el que estoy</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>Gritar: mi canal y los enlazados a él</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>Un servidor admite {0} destinos, además de hablar normal.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>La contraseña se guarda en la base de datos compartida, cifrada con una clave obtenida de la contraseña de la base de datos.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>Detalles…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>Volumen y detalles…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>Información del servidor…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>Registrar este nombre…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>Mover a…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Expulsar…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Vetar…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>Nuevo canal…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>Nuevo canal temporal…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>Eliminar canal…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>Nuevo canal</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>Nuevo canal temporal</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>Su nombre, bajo {0}</value>
   </data>
 </root>

@@ -1155,6 +1155,7 @@ public static class PostgresSchema
             "SelfDeafened"       BOOLEAN NOT NULL DEFAULT FALSE,
             "LastChannel"        TEXT    NOT NULL DEFAULT '',
             "VoiceActivated"     BOOLEAN NOT NULL DEFAULT FALSE,
+            "TalkTargets"        TEXT NOT NULL DEFAULT '',
             CONSTRAINT "PK_MumbleServers" PRIMARY KEY ("Id")
         )
         """,
@@ -1746,6 +1747,9 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "VoiceActivated" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "TalkTargets" TEXT NOT NULL DEFAULT ''
         """,
         """
         ALTER TABLE "MumbleUserVolumes" ADD COLUMN IF NOT EXISTS "LocalMute" BOOLEAN NOT NULL DEFAULT FALSE
