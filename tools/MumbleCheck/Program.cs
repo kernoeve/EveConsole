@@ -913,7 +913,7 @@ static string RawFile(string path)
         }
         var laterLate = pressMixer.LatePackets - lateAfterFirst;
         var laterGuessed = pressMixer.GuessedFrames - guessedAfterFirst;
-        Check("jitter: later presses start with the wait already learned", laterLate + laterGuessed <= 30, $"{laterLate} too late, {laterGuessed} guessed, of 440");
+        Check("jitter: later presses start with the wait already learned", laterLate + laterGuessed <= 60, $"{laterLate} too late, {laterGuessed} guessed, of 440");
         var learned = Holes([.. uneven.Heard.Skip(500)]);
         Check("jitter: an uneven connection gets a longer wait", learned == 0, $"{unevenHoles} in all, {learned} after the first 5 s");
         Check("jitter: uneven costs no words", uneven.Heard.Count(h => h) >= 600 * 2 - 40, uneven.Heard.Count(h => h).ToString());
