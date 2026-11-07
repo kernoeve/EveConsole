@@ -305,8 +305,8 @@ public static class AppKnowledge
 
         ### Client Layouts
         Windows only. Shares monitors between game clients and panels, placing clients as they log
-        in. Profiles set each monitor's layout and who goes where; Apply switches. It only sizes,
-        places and raises clients.
+        in. Profiles set each monitor's layout and who goes where. It only sizes, places and raises
+        clients.
 
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,

@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ Personalizar diseño</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Diseño</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Diseño {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Diseño:</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Nombre:</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>Un diseño nuevo, que empieza como copia de este.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>Qué diseño guardado muestra este Resumen</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Resumen de actividad</value>
   </data>

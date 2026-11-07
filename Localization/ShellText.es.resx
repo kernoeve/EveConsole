@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>Guaridas de mercenarios</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Diseños de clientes</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Informes de muertes</value>
   </data>

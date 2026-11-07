@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ レイアウトをカスタマイズ</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>レイアウト{0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>レイアウト：</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>名前：</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>このレイアウトのコピーから新しいレイアウトを作成します。</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>この概要に表示する保存済みのレイアウト</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>活動の概要</value>
   </data>

@@ -3236,8 +3236,11 @@ public class WorklistViewModel : ReactiveObject
                 // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
                 // bound collections whenever this changes, so an item-by-item fill here was
                 // quadratic — see BulkObservableCollection.
-                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
+                // ⚠️ Built, before the rows change: what watches them asks whether the list has been
+                // built yet. The other way round, a Worklist control on a character with nothing
+                // ready stayed on "Loading the worklist…", its last change having said "not built".
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
+                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 RefreshedText   = string.Format(WorklistText.RefreshedAt, DateTime.Now);
 
                 RebuildFilterOptions();

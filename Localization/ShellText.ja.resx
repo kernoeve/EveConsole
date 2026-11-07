@@ -169,6 +169,9 @@
   <data name="NavChatLog" xml:space="preserve">
     <value>チャットログ</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>クライアントレイアウト</value>
+  </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>宇宙</value>
   </data>
