@@ -153,6 +153,11 @@ public sealed record GroupRoomSortChoice(int Sort, string Label);
 
 public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 {
+    /// <summary>All the room says about them: affiliation, real address, whether it is the person themselves.</summary>
+    public XmppOccupant? Person { get; init; }
+
+    public bool IsSelf => Person?.Self ?? false;
+
     public bool DotGreen => Dot == "green";
     public bool DotAmber => Dot == "amber";
     public bool DotRed => Dot == "red";
@@ -910,8 +915,85 @@ public sealed class GroupChatViewModel : ReactiveObject
 
         var people = session.Locked(_ => state.Occupants.Values.ToList());
         foreach (var o in people.OrderBy(o => RoleRank(o.Role)).ThenBy(o => o.Nick, StringComparer.CurrentCultureIgnoreCase))
-            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role));
+            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role) { Person = o });
     }
+
+    // ── Running the room: what the right-click menus do ───────────────────────
+
+    /// <summary>Opens a conversation in the Messages tool: account, address and name.</summary>
+    public Action<int, string, string>? OpenDirect { get; set; }
+
+    private (JabberSession Session, JabberRoomState State)? OpenRoom()
+    {
+        if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return null;
+        return session.Locked(s => s.RoomMap.GetValueOrDefault(row.Key)) is { } state ? (session, state) : null;
+    }
+
+    /// <summary>The person themselves in the room open, as the room sees them.</summary>
+    private XmppOccupant? Me() => OpenRoom() is (JabberSession session, JabberRoomState state)
+        ? session.Locked(_ => state.Occupants.Values.FirstOrDefault(o => o.Self) ?? state.Occupants.GetValueOrDefault(state.Nick))
+        : null;
+
+    public JabberPersonRights RightsOver(JabberOccupantVm person) =>
+        person.Person is { } them ? JabberRoomRights.Over(Me(), them) : JabberPersonRights.None;
+
+    public JabberRoomRightsSet RoomRights() => JabberRoomRights.OfRoom(Me());
+
+    /// <summary>The room open, as the menus and their questions name it.</summary>
+    public string RoomName => Title;
+
+    /// <summary>
+    /// Writes to someone in the room in the Messages tool: at their own address where the room shows it, so it is the
+    /// same conversation as anywhere else, or through the room where it hides it.
+    /// </summary>
+    public void MessageOccupant(JabberOccupantVm person)
+    {
+        if (SelectedRow is not { IsRoom: true } row || person.IsSelf) return;
+        var real = XmppAddress.Parse(person.Person?.RealJid).Bare;
+        OpenDirect?.Invoke(row.ServerId, real.Length > 0 ? real : $"{row.Key}/{person.Nick}", person.Nick);
+    }
+
+    /// <summary>The addresses of the people this server knows, to offer when inviting.</summary>
+    public IReadOnlyList<string> KnownAddresses() =>
+        OpenRoom() is (JabberSession session, _) ? [.. session.Contacts.Select(c => c.Jid).Order(StringComparer.OrdinalIgnoreCase)] : [];
+
+    private async Task AdminAsync(Func<JabberSession, string, Task> act)
+    {
+        StatusText = "";
+        if (OpenRoom() is not (JabberSession session, JabberRoomState state)) return;
+        try { await Task.Run(() => act(session, state.Room.RoomJid)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
+    }
+
+    public Task SetRoleAsync(JabberOccupantVm person, string role, string reason = "") =>
+        AdminAsync((session, room) => _jabber.SetRoomRoleAsync(session, room, person.Nick, role, reason));
+
+    public Task SetAffiliationAsync(JabberOccupantVm person, string affiliation, string reason = "") =>
+        AdminAsync((session, room) => _jabber.SetRoomAffiliationAsync(session, room, person.Person?.RealJid ?? "", affiliation, reason));
+
+    public Task SetSubjectAsync(string subject) =>
+        AdminAsync((session, room) => _jabber.SetRoomSubjectAsync(session, room, subject));
+
+    public Task InviteAsync(string address, string reason)
+    {
+        var jid = XmppAddress.Parse(address);
+        if (jid.Local.Length == 0 || jid.Domain.Length == 0) { StatusText = JabberText.AddressInvalid; return Task.CompletedTask; }
+        return AdminAsync((session, room) => _jabber.InviteToRoomAsync(session, room, jid.Bare, reason));
+    }
+
+    /// <summary>Who the room has banned. Empty, with what went wrong said, when it will not say.</summary>
+    public async Task<List<XmppBan>> BansAsync()
+    {
+        StatusText = "";
+        if (OpenRoom() is not (JabberSession session, JabberRoomState state)) return [];
+        try { return await Task.Run(() => _jabber.RoomBansAsync(session, state.Room.RoomJid)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; return []; }
+    }
+
+    public Task LiftBanAsync(string jid) =>
+        AdminAsync((session, room) => _jabber.SetRoomAffiliationAsync(session, room, jid, "none", ""));
+
+    public void SetStatus(string text) => StatusText = text;
 
     private static int RoleRank(string role) => role switch { "moderator" => 0, "participant" => 1, _ => 2 };
 

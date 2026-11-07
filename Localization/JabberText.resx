@@ -68,10 +68,6 @@
     <value>{0} invited you</value>
     <comment>Beside a room invitation. {0} = who.</comment>
   </data>
-  <data name="HeadingPeople" xml:space="preserve">
-    <value>People</value>
-    <comment>Section in the list.</comment>
-  </data>
   <data name="StateConnected" xml:space="preserve">
     <value>Connected</value>
     <comment>Account state.</comment>

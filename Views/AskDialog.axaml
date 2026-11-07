@@ -1,7 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:loc="using:EveConsole.Localization"
-        x:Class="EveConsole.Views.MumbleAskDialog"
+        x:Class="EveConsole.Views.AskDialog"
         Width="420" SizeToContent="Height"
         CanResize="False"
         WindowStartupLocation="CenterOwner"

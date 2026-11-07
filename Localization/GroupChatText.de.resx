@@ -82,4 +82,82 @@
   <data name="RoomSortPeople" xml:space="preserve">
     <value>Personen im Raum</value>
   </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>Direktnachricht</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>Sprechrecht geben</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>Sprechrecht entziehen</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>Zum Moderator machen</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>Moderator entfernen</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>Zum Mitglied machen</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>Mitgliedschaft entziehen</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>Zum Admin machen</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>Admin entfernen</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Hinauswerfen…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Sperren…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>{0} hinauswerfen</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>{0} sperren</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Grund (optional), wird angezeigt</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{0} ({1}) aus {2} sperren? Bis zur Aufhebung kann diese Person nicht zurückkommen.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>Thema ändern…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>Thema von {0}</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>Das neue Thema, für alle im Raum sichtbar</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>Jemanden einladen…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>Jemanden in {0} einladen</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>Ihre Adresse</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>Sperre aufheben…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>Sperre in {0} aufheben</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>Wen wieder hereinlassen</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>In {0} ist niemand gesperrt.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>Jemanden aus der Liste wählen.</value>
+  </data>
 </root>

@@ -580,6 +580,78 @@ static string? Throws(Action act)
     catch (InvalidDataException e) { return e.Message; }
 }
 
+// ── Running a room: who may do what, and what is sent for it ──────────────
+{
+    XmppOccupant P(string nick, string role, string affiliation, string jid = "", bool self = false) =>
+        new("r@rooms.example", nick, XmppShow.Online, role, affiliation, jid, self, false, "");
+
+    var owner = P("me", "moderator", "owner", "me@example", self: true);
+    var admin = P("me", "moderator", "admin", "me@example", self: true);
+    var mod = P("me", "moderator", "none", "me@example", self: true);
+    var plain = P("me", "participant", "member", "me@example", self: true);
+
+    var guest = P("guest", "participant", "none", "guest@example");
+    var hidden = P("hidden", "participant", "none");
+    var visitor = P("quiet", "visitor", "none", "quiet@example");
+    var member = P("member", "participant", "member", "member@example");
+    var otherAdmin = P("boss", "moderator", "admin", "boss@example");
+    var otherOwner = P("top", "moderator", "owner", "top@example");
+    var memberMod = P("helper", "moderator", "member", "helper@example");
+
+    Check("room rights: nothing over yourself", !JabberRoomRights.Over(owner, owner).Any && !JabberRoomRights.Over(owner, P("me", "moderator", "owner")).Any);
+    Check("room rights: nothing without a place in the room", !JabberRoomRights.Over(null, guest).Any);
+    Check("room rights: an ordinary member can do nothing to anyone", !JabberRoomRights.Over(plain, guest).Any && !JabberRoomRights.Over(plain, visitor).Any);
+
+    var m = JabberRoomRights.Over(mod, guest);
+    Check("room rights: a moderator kicks and takes voice, no more", m is { Kick: true, TakeVoice: true, GiveVoice: false, Ban: false, MakeMember: false, MakeModerator: false }, m.ToString());
+    Check("room rights: a moderator gives a visitor voice", JabberRoomRights.Over(mod, visitor) is { GiveVoice: true, TakeVoice: false });
+    Check("room rights: no moderator touches an admin or owner", !JabberRoomRights.Over(mod, otherAdmin).Kick && !JabberRoomRights.Over(admin, otherOwner).Kick && !JabberRoomRights.Over(owner, otherAdmin).Kick);
+
+    var a = JabberRoomRights.Over(admin, guest);
+    Check("room rights: an admin bans, gives membership and moderation", a is { Ban: true, MakeMember: true, MakeModerator: true, MakeAdmin: false }, a.ToString());
+    Check("room rights: an admin cannot ban another admin or an owner", !JabberRoomRights.Over(admin, otherAdmin).Ban && !JabberRoomRights.Over(admin, otherOwner).Ban);
+    Check("room rights: membership taken back, not given twice", JabberRoomRights.Over(admin, member) is { MakeMember: false, RemoveMember: true });
+    Check("room rights: a member made moderator can be put back", JabberRoomRights.Over(admin, memberMod) is { RemoveModerator: true, MakeModerator: false });
+    Check("room rights: an admin's moderation is theirs by right", !JabberRoomRights.Over(owner, otherAdmin).RemoveModerator);
+    Check("room rights: only an owner makes and unmakes admins",
+          JabberRoomRights.Over(owner, guest).MakeAdmin && JabberRoomRights.Over(owner, otherAdmin) is { RemoveAdmin: true, Ban: true } && !JabberRoomRights.Over(admin, guest).MakeAdmin);
+    Check("room rights: no address shown, nothing that needs one",
+          JabberRoomRights.Over(owner, hidden) is { Kick: true, Ban: false, MakeMember: false, MakeAdmin: false });
+
+    Check("room rights: the room's own lines",
+          JabberRoomRights.OfRoom(mod) is { ChangeTopic: true, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(plain) is { ChangeTopic: false, Invite: true, LiftBan: false }
+          && JabberRoomRights.OfRoom(admin) is { LiftBan: true } && JabberRoomRights.OfRoom(null) is { Invite: false });
+
+    var kick = XmppClient.RoleQuery("guest", "none", "spam");
+    var item = kick.Element(XmppClient.MucAdmin + "item");
+    Check("room admin: a kick is role none by nickname, with the reason",
+          kick.Name == XmppClient.MucAdmin + "query" && (string?)item?.Attribute("nick") == "guest" && (string?)item?.Attribute("role") == "none"
+          && item?.Element(XmppClient.MucAdmin + "reason")?.Value == "spam", kick.ToString());
+    var ban = XmppClient.AffiliationQuery("Guest@Example/phone", "outcast", "");
+    Check("room admin: a ban is of the bare address, no empty reason sent",
+          (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("jid") == "guest@example"
+          && (string?)ban.Element(XmppClient.MucAdmin + "item")?.Attribute("affiliation") == "outcast"
+          && ban.Element(XmppClient.MucAdmin + "item")?.Element(XmppClient.MucAdmin + "reason") is null, ban.ToString());
+    var topic = XmppClient.SubjectMessage("r@rooms.example", "Ops at 20:00");
+    Check("room admin: a topic is a room message with a subject and no body",
+          (string?)topic.Attribute("type") == "groupchat" && topic.Element(XmppClient.Client + "subject")?.Value == "Ops at 20:00" && topic.Element(XmppClient.Client + "body") is null);
+    var invite = XmppClient.InviteMessage("r@rooms.example", "friend@example/pc", "come along");
+    var through = invite.Element(XmppClient.MucUser + "x")?.Element(XmppClient.MucUser + "invite");
+    Check("room admin: an invitation goes through the room, to the bare address",
+          (string?)invite.Attribute("to") == "r@rooms.example" && (string?)through?.Attribute("to") == "friend@example"
+          && through?.Element(XmppClient.MucUser + "reason")?.Value == "come along", invite.ToString());
+
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.MucAdmin + "query",
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "spammer@example"),
+            new XElement(XmppClient.MucAdmin + "reason", "spam")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"), new XAttribute("jid", "other@example")),
+        new XElement(XmppClient.MucAdmin + "item", new XAttribute("affiliation", "outcast"))));
+    var bans = XmppClient.ParseBans(answer);
+    Check("room admin: the ban list, with reasons, nothing without an address",
+          bans.Count == 2 && bans[0] == new XmppBan("spammer@example", "spam") && bans[1] == new XmppBan("other@example", ""), string.Join(";", bans));
+}
+
 var dbPath = Path.Combine(Path.GetTempPath(), $"jabbercheck-{Guid.NewGuid():N}.db");
 try
 {

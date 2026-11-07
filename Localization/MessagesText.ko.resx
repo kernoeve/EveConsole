@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>저장된 대화가 아직 없습니다. 설정의 Jabber 또는 Mumble 탭에서 사람을 선택해 시작하세요.</value>
+    <value>저장된 대화가 아직 없습니다. 새 대화를 누르거나, 방이나 Mumble 서버에 있는 사람을 마우스 오른쪽 버튼으로 클릭하세요.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

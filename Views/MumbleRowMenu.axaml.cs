@@ -92,7 +92,7 @@ public partial class MumbleRowMenu : ContextMenu
         if (Host is not { } host) return null;
 
         HideTree?.Invoke();
-        var typed = await new MumbleAskDialog(title, message, label, hint, choices).ShowDialog<string?>(host);
+        var typed = await new AskDialog(title, message, label, hint, choices).ShowDialog<string?>(host);
         ShowTree?.Invoke();
         return typed;
     }

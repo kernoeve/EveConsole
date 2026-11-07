@@ -82,4 +82,82 @@
   <data name="RoomSortPeople" xml:space="preserve">
     <value>Людей в комнате</value>
   </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>Личное сообщение</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>Дать голос</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>Отнять голос</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>Сделать модератором</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>Снять модератора</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>Сделать участником</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>Снять членство</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>Сделать администратором</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>Снять администратора</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Выгнать…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Забанить…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>Выгнать {0}</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>Забанить {0}</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Причина (необязательно), её увидят</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Забанить {0} ({1}) в {2}? Вернуться можно будет только после снятия бана.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>Сменить тему…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>Тема {0}</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>Новая тема, её увидят все в комнате</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>Пригласить…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>Пригласить в {0}</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>Снять бан…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>Снять бан в {0}</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>Кого пустить обратно</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>В {0} никто не забанен.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>Выберите из списка.</value>
+  </data>
 </root>

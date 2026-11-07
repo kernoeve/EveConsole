@@ -52,9 +52,6 @@
   <data name="RowInvitedBy" xml:space="preserve">
     <value>{0} から招待されました</value>
   </data>
-  <data name="HeadingPeople" xml:space="preserve">
-    <value>連絡先</value>
-  </data>
   <data name="StateConnected" xml:space="preserve">
     <value>接続済み</value>
   </data>

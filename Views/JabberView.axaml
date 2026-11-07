@@ -25,28 +25,19 @@
     <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfacePanelBrush}">
       <Button Grid.Row="0" Content="{x:Static loc:JabberText.AddServer}" Command="{Binding AddAccountCommand}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
 
-      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" DoubleTapped="OnRowDoubleTapped">
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:JabberRowVm">
-            <Grid>
-              <TextBlock IsVisible="{Binding IsHeading}" Text="{Binding ShownText}" FontSize="10" FontWeight="SemiBold"
-                         Foreground="{DynamicResource TextFaintBrush}" Margin="2 6 0 0" />
-
-              <Grid IsVisible="{Binding !IsHeading}" ColumnDefinitions="14,*,Auto">
-                <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}"
-                         IsVisible="{Binding HasDot}" HorizontalAlignment="Left" />
-                <StackPanel Grid.Column="1" Orientation="Vertical">
-                  <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
-                             FontWeight="{Binding IsAccount, Converter={x:Static vm:JabberBold.Convert}}"
-                             Foreground="{DynamicResource TextPrimaryBrush}" />
-                  <TextBlock Text="{Binding ShownDetail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis"
-                             Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding ShownDetail}" />
-                </StackPanel>
-                <Border Grid.Column="2" IsVisible="{Binding HasUnread}" CornerRadius="8" Padding="6 0" Margin="6 0 0 0" VerticalAlignment="Center"
-                        Background="{DynamicResource SurfaceSelectedBrush}" Classes.alert="{Binding ShownAlert}">
-                  <TextBlock Text="{Binding UnreadText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-                </Border>
-              </Grid>
+            <Grid ColumnDefinitions="14,*">
+              <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}"
+                       IsVisible="{Binding HasDot}" HorizontalAlignment="Left" />
+              <StackPanel Grid.Column="1" Orientation="Vertical">
+                <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
+                           FontWeight="{Binding IsAccount, Converter={x:Static vm:JabberBold.Convert}}"
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding ShownDetail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding ShownDetail}" />
+              </StackPanel>
             </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>
@@ -202,16 +193,6 @@
         <StackPanel Orientation="Horizontal" Spacing="8">
           <Button Content="{x:Static loc:JabberText.Accept}" Command="{Binding AcceptRequestCommand}" />
           <Button Content="{x:Static loc:JabberText.Decline}" Command="{Binding DenyRequestCommand}" />
-        </StackPanel>
-      </StackPanel>
-
-      <!-- A contact. The conversation itself is in the Messages tool. -->
-      <StackPanel Grid.Row="0" IsVisible="{Binding ShowPerson}" Margin="20 14" Spacing="8">
-        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
-        <TextBlock Text="{Binding Subtitle}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
-        <StackPanel Orientation="Horizontal" Spacing="8">
-          <Button Content="{x:Static loc:MessagesText.SendMessage}" Click="OnMessagePerson" />
-          <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" />
         </StackPanel>
       </StackPanel>
 

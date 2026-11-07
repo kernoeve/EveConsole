@@ -5,11 +5,11 @@ using Avalonia.Interactivity;
 namespace EveConsole.Views;
 
 /// <summary>Asks for a line of text, saying what it is for, and offering what it may be if there is a list. Null if cancelled.</summary>
-public partial class MumbleAskDialog : Window
+public partial class AskDialog : Window
 {
-    public MumbleAskDialog() : this("", "", "", "", null) { }
+    public AskDialog() : this("", "", "", "", null) { }
 
-    public MumbleAskDialog(string title, string message, string label, string hint, IEnumerable<string>? choices)
+    public AskDialog(string title, string message, string label, string hint, IEnumerable<string>? choices)
     {
         InitializeComponent();
 

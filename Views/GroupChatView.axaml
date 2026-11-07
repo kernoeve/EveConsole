@@ -40,7 +40,7 @@
       <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:GroupChatRowVm">
-            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}">
+            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
               <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" HorizontalAlignment="Left" />
               <StackPanel Grid.Column="1">
                 <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
@@ -215,7 +215,7 @@
         <ListBox Grid.Row="1" Grid.Column="1" IsVisible="{Binding ShowOccupants}" ItemsSource="{Binding Occupants}" Width="180" Background="{DynamicResource SurfacePanelBrush}">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:JabberOccupantVm">
-              <StackPanel Orientation="Horizontal" Spacing="6">
+              <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent" ContextRequested="OnOccupantMenu">
                 <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" />
                 <TextBlock Text="{Binding Nick}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Role}" />
               </StackPanel>

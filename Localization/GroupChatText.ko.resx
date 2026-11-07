@@ -82,4 +82,82 @@
   <data name="RoomSortPeople" xml:space="preserve">
     <value>방 인원</value>
   </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>개인 메시지</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>발언권 주기</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>발언권 빼앗기</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>운영자로 지정</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>운영자 해제</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>멤버로 지정</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>멤버 해제</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>관리자로 지정</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>관리자 해제</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>추방…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>차단…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>{0} 추방</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>{0} 차단</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>사유(선택), 상대에게 표시됨</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{2}에서 {0}({1})을(를) 차단할까요? 차단을 풀 때까지 돌아올 수 없습니다.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>주제 변경…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>{0}의 주제</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>새 주제, 방의 모든 사람에게 보입니다</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>초대…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>{0}에 초대</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>상대의 주소</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>차단 해제…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>{0}의 차단 해제</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>다시 들어올 수 있게 할 사람</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>{0}에서 차단된 사람이 없습니다.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>목록에서 골라 주세요.</value>
+  </data>
 </root>

@@ -1303,7 +1303,7 @@ public class MainWindowViewModel : ReactiveObject
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
-        JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
+        GroupChatVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
         MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {

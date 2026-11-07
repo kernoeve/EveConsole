@@ -23,10 +23,6 @@ public partial class JabberView : UserControl
         StatusBox.KeyDown += (_, e) => { if (e.Key == Key.Enter) (DataContext as JabberViewModel)?.ApplyStatusMessage(); };
     }
 
-    private void OnMessagePerson(object? sender, RoutedEventArgs e) => (DataContext as JabberViewModel)?.MessageSelectedPerson();
-
-    private void OnRowDoubleTapped(object? sender, TappedEventArgs e) => (DataContext as JabberViewModel)?.MessageSelectedPerson();
-
     /// <summary>A Pidgin smiley theme: its zip, or the theme file of one already unpacked.</summary>
     private async void OnLoadPack(object? sender, RoutedEventArgs e)
     {

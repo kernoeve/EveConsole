@@ -82,4 +82,82 @@
   <data name="RoomSortPeople" xml:space="preserve">
     <value>People in room</value>
   </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>Direct Message</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>Give Voice</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>Take Voice</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>Make Moderator</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>Remove Moderator</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>Make Member</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>Remove Membership</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>Make Admin</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>Remove Admin</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Kick…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Ban…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>Kick {0}</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>Ban {0}</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Reason (optional), shown to them</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Ban {0} ({1}) from {2}? They cannot come back until the ban is lifted.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>Change Topic…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>Topic of {0}</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>The new topic, seen by everyone in the room</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>Invite Someone…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>Invite someone to {0}</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>Their address</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>Lift a Ban…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>Lift a ban in {0}</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>Who to let back in</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Nobody is banned from {0}.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>Pick someone from the list.</value>
+  </data>
 </root>
