@@ -122,7 +122,7 @@ public sealed class MumbleSession(MumbleServer server)
 /// <para>⚠️ Desktop only, for the same reason as Jabber: a worker logging in as the owner would fight
 /// their real client for the same seat, and has no one to listen.</para>
 /// </summary>
-public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
+public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, AvatarService? avatars = null)
 {
     public const int MaxChatLines = 5000;
     public const string InputDevicePref = "mumble.input_device";
@@ -373,6 +373,30 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public static int ListeningIn(IEnumerable<MumbleUser> users, uint channel) => users.Count(u => u.ChannelId == channel && !u.Deaf && !u.SelfDeaf);
 
     /// <summary>A person's lasting identity on a server: their certificate if they have one.</summary>
+    /// <summary>The name pictures are filed under for Mumble: the same as the Messages tool's.</summary>
+    public const string AvatarServiceName = "mumble";
+
+    /// <summary>
+    /// People's pictures, by their key, by "name:" and their name for the chat, which only has that, and as "me". One too
+    /// big to come with them is asked for. Nothing is fetched twice: the store keeps what it has seen.
+    /// </summary>
+    private void NoteTextures(MumbleSession session, MumbleClient client)
+    {
+        if (avatars is null) return;
+        var me = client.Session;
+        foreach (var user in client.Users)
+        {
+            if (user.Texture is { } bytes)
+            {
+                if (user.TextureHash.Length == 0) user.TextureHash = Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(bytes));
+                List<string> persons = [UserKey(user), "name:" + user.Name];
+                if (user.Session == me) persons.Add("me");
+                _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, user.TextureHash, () => Task.FromResult<byte[]?>(bytes));
+            }
+            else if (user.HasTextureToAsk) client.AskTexture(user);
+        }
+    }
+
     public static string UserKey(MumbleUser user) => user.Hash.Length > 0 ? user.Hash : $"name:{user.Name}";
 
     /// <summary>Loads the servers and connects the ones set to connect on their own.</summary>
@@ -846,6 +870,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             // Targets name channels and people by ids, so they follow this client moving, people coming and going, and
             // channels being made.
             _ = SendTargetsAsync(session, client, ct);
+            NoteTextures(session, client);
             SessionChanged?.Invoke(session);
         };
 

@@ -357,4 +357,13 @@
   <data name="EmoteFileType" xml:space="preserve">
     <value>Pidgin 表情主题</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>此消息已删除。</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>已被主持人删除。</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>已被主持人删除：{0}</value>
+  </data>
 </root>

@@ -580,6 +580,113 @@ static string? Throws(Action act)
     catch (InvalidDataException e) { return e.Message; }
 }
 
+// ── Rooms saved the newer way (XEP-0402) ───────────────────────────────────
+{
+    XElement Item(string id, XElement? room) => new(XmppClient.PubSub + "item", new XAttribute("id", id), room);
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", new XAttribute("node", XmppClient.Bookmarks2.NamespaceName),
+            Item("ops@rooms.example", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "Operations"), new XAttribute("autojoin", "true"),
+                new XElement(XmppClient.Bookmarks2 + "nick", "Pilot"), new XElement(XmppClient.Bookmarks2 + "password", "secret"))),
+            Item("quiet@rooms.example/ignored", new XElement(XmppClient.Bookmarks2 + "conference")),
+            Item("", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "no address"))),
+            Item("other@rooms.example", new XElement(XmppClient.Bookmarks + "conference", new XAttribute("name", "the old kind, misplaced"))))));
+    var saved = XmppClient.ParseNewBookmarks(answer);
+    Check("new bookmarks: name, joining, nickname and password",
+          saved.Count == 2 && saved[0] == new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret"), string.Join(";", saved));
+    Check("new bookmarks: a room by its bare address, not joining unless it says", saved[1] == new XmppBookmark("quiet@rooms.example", "", "", false, ""));
+    Check("new bookmarks: none kept at all", XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq")).Count == 0);
+
+    // Written back: what is read again is what was meant, and nothing else in the older list is lost.
+    var room = new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret");
+    var publish = XmppClient.NewBookmarkPublish(room, withOptions: true);
+    var asRead = XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", publish.Element(XmppClient.PubSub + "publish")!.Elements()))));
+    Check("bookmark write: reads back as it was meant", asRead.SequenceEqual([room]), string.Join(";", asRead));
+    var options = publish.Element(XmppClient.PubSub + "publish-options")?.Descendants(XmppClient.DataForm + "field")
+        .ToDictionary(f => (string?)f.Attribute("var") ?? "", f => f.Element(XmppClient.DataForm + "value")?.Value ?? "");
+    Check("bookmark write: kept, and readable only by this account", options is not null && options["pubsub#persist_items"] == "true" && options["pubsub#access_model"] == "whitelist");
+    Check("bookmark write: without options for a server that will not take them", XmppClient.NewBookmarkPublish(room, withOptions: false).Element(XmppClient.PubSub + "publish-options") is null);
+    Check("bookmark write: nothing written that is not known",
+          XmppClient.NewBookmarkItem(new XmppBookmark("q@rooms.example", "", "", false, "")).ToString(SaveOptions.DisableFormatting).Contains("<nick") is false);
+
+    var storage = new XElement(XmppClient.Bookmarks + "storage",
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "ops@rooms.example"), new XAttribute("autojoin", "true"), new XElement(XmppClient.Bookmarks + "nick", "Old")),
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "other@rooms.example"), new XAttribute("name", "Someone else's")),
+        new XElement(XmppClient.Bookmarks + "url", new XAttribute("url", "https://example.test"), new XAttribute("name", "a link")));
+    var left = XmppClient.WithOldBookmark(storage, room with { AutoJoin = false });
+    var rooms = left.Elements(XmppClient.Bookmarks + "conference").ToList();
+    Check("old bookmarks: the room changed in place, once",
+          rooms.Count(c => (string?)c.Attribute("jid") == "ops@rooms.example") == 1
+          && rooms.Single(c => (string?)c.Attribute("jid") == "ops@rooms.example") is var ops && (string?)ops.Attribute("autojoin") == "false" && ops.Element(XmppClient.Bookmarks + "nick")?.Value == "Pilot");
+    Check("old bookmarks: other rooms and links are kept", rooms.Any(c => (string?)c.Attribute("jid") == "other@rooms.example") && left.Element(XmppClient.Bookmarks + "url") is not null);
+    Check("old bookmarks: the list read is not changed itself", storage.Elements(XmppClient.Bookmarks + "conference").First().Element(XmppClient.Bookmarks + "nick")?.Value == "Old");
+    Check("old bookmarks: none yet, one now", XmppClient.WithOldBookmark(null, room).Elements(XmppClient.Bookmarks + "conference").Count() == 1);
+}
+
+// ── Pictures: what presence says, and what a vCard holds ──────────────────
+{
+    XElement Presence(params object[] inside) => new(XmppClient.Client + "presence", new XAttribute("from", "them@example/x"), inside);
+    XElement Update(XElement? photo) => new(XmppClient.VCardUpdate + "x", photo);
+
+    Check("picture: the hash a presence names", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", " ABCDEF0123 ")))) == "abcdef0123");
+    Check("picture: an empty one says there is none", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo")))) == "");
+    Check("picture: not said, unknown", XmppClient.PhotoHashIn(Presence(Update(null))) is null && XmppClient.PhotoHashIn(Presence()) is null);
+    Check("picture: not a hash, not used", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", "../../etc")))) is null);
+
+    var card = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "TYPE", "image/png"),
+            new XElement(XmppClient.VCard + "BINVAL", "AQID\nBAU="))));
+    Check("picture: from a vCard, its lines joined", XmppClient.ParseVCardPhoto(card) is [1, 2, 3, 4, 5]);
+    Check("picture: a vCard with none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard"))) is null);
+    Check("picture: one that is not base64 is none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "BINVAL", "not base64!"))))) is null);
+
+    Check("initials: the first letter, in capitals", AvatarService.Initial("  bob talkalot") == "B" && AvatarService.Initial("[TAG] carl") == "T" && AvatarService.Initial("--") == "?");
+    Check("initials: the same colour for the same name, whatever its case", AvatarService.ColorIndex("Bob", 8) == AvatarService.ColorIndex(" bob ", 8));
+    Check("pictures: filed under the Messages tool's names",
+          JabberService.AvatarServiceName == EveConsole.Services.Messages.JabberDmSource.Name
+          && EveConsole.Services.Mumble.MumbleService.AvatarServiceName == EveConsole.Services.Messages.MumbleDmSource.Name);
+}
+
+// ── Deletes: every form they come in ──────────────────────────────────────
+{
+    var self = XmppAddress.Parse("me@example/here");
+    XElement Stanza(string from, string type, params object[] inside) =>
+        new(XmppClient.Client + "message", new XAttribute("from", from), new XAttribute("to", "me@example/here"), new XAttribute("type", type),
+            new XAttribute("id", "r1"), inside);
+
+    var own = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m1")),
+        new XElement(XmppClient.Client + "body", "/me retracted a previous message, but it's unsupported by your client.")), self);
+    Check("delete: the sender's own, as sent now", own is { RetractId: "m1", RetractByModerator: false }, own?.ToString() ?? "null");
+
+    var bare = XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m2"))), self);
+    Check("delete: with no words for older clients still counts", bare is { RetractId: "m2", Body.Length: 0 });
+
+    var moderated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "s1"),
+            new XElement(XmppClient.Moderate + "moderated", new XAttribute("by", "ops@rooms.example/boss")),
+            new XElement(XmppClient.Retract + "reason", "off topic"))), self);
+    Check("delete: a moderator's, with the reason", moderated is { RetractId: "s1", RetractByModerator: true, RetractReason: "off topic" }, moderated?.ToString() ?? "null");
+
+    var older = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "m3"), new XElement(XmppClient.OldRetract + "retract"))), self);
+    Check("delete: the older form, the sender's", older is { RetractId: "m3", RetractByModerator: false });
+
+    var olderModerated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "s2"),
+            new XElement(XmppClient.OldModerate + "moderated", new XAttribute("by", "ops@rooms.example/boss"),
+                new XElement(XmppClient.OldRetract + "retract"), new XElement(XmppClient.OldModerate + "reason", "spam")))), self);
+    Check("delete: the older form, a moderator's", olderModerated is { RetractId: "s2", RetractByModerator: true, RetractReason: "spam" });
+
+    Check("delete: an ordinary message is none", XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Client + "body", "hi")), self) is { RetractId.Length: 0 });
+
+    var roomSaid = XmppClient.ParseMessage(Stanza("ops@rooms.example/someone", "groupchat", new XElement(XmppClient.Client + "body", "hi"),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "someone@example"), new XAttribute("id", "forged")),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "ops@rooms.example"), new XAttribute("id", "real"))), self);
+    Check("delete: a room message's id is the one the room gave, not one put in by its sender", roomSaid is { RoomStanzaId: "real" }, roomSaid?.RoomStanzaId ?? "null");
+}
+
 // ── Running a room: who may do what, and what is sent for it ──────────────
 {
     XmppOccupant P(string nick, string role, string affiliation, string jid = "", bool self = false) =>
@@ -767,6 +874,68 @@ try
 
         await using var cleanup = factory.CreateDbContext();
         await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
+
+    // Deletes: honoured only from whoever may, and the message keeps its place.
+    {
+        XmppMessage Said(string who, string id, string body) =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+        XmppMessage Deletes(string who, string id) => Said(who, "d" + id, "") with { RetractId = id };
+
+        await service.StoreAsync(session, Said("del@example", "k1", "keep this"));
+        await service.StoreAsync(session, Said("del@example", "k2", "regret this"));
+        var mine = new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("del@example"), "chat", "my words", "", "k3", null, "", true);
+        await service.StoreAsync(session, mine);
+        await service.StoreAsync(session, Deletes("del@example", "k3"));
+        var editedBefore = edited.Count;
+        Check("delete: is not a message of its own", await service.StoreAsync(session, Deletes("del@example", "k2")) is null);
+        await service.StoreAsync(session, Deletes("someone@example", "k1"));
+        await service.StoreAsync(session, Said("someone@example", "dk", "") with { RetractId = "k1", RetractByModerator = true });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == "del@example").OrderBy(m => m.Id).ToListAsync();
+            Check("delete: they cannot delete what this account said to them", rows.Count == 3 && rows[2] is { Body: "my words", Deleted: JabberDeleted.No, IsOutgoing: true });
+            await service.StoreAsync(session, mine with { Id = "dk3", Body = "", RetractId = "k3" });
+            await using (var again = factory.CreateDbContext())
+                Check("delete: but this account can, from its other client", await again.JabberMessages.AnyAsync(m => m.MessageId == "k3" && m.Deleted == JabberDeleted.BySender && m.Body == ""));
+            Check("delete: the sender's own goes, keeping its place", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender, IsRead: true, IsAlert: false }, string.Join(";", rows.Select(r => $"{r.Body}/{r.Deleted}")));
+            Check("delete: nobody else can delete theirs, nor claim to moderate a person", rows[0] is { Body: "keep this", Deleted: JabberDeleted.No });
+            Check("delete: the screen is told", edited.Count == editedBefore + 2, $"{edited.Count - editedBefore}");
+        }
+
+        const string Ops = "ops@rooms.example";
+        session.Locked(s => s.RoomMap[Ops] = new JabberRoomState(new JabberRoom { AccountId = 1, RoomJid = Ops }) { Nick = "me", HistoryDone = true });
+        XmppMessage InRoom(string nick, string id, string body, string stanza = "") =>
+            new XmppMessage(XmppAddress.Parse(nick.Length > 0 ? $"{Ops}/{nick}" : Ops), XmppAddress.Parse("me@example"), "groupchat", body, "", id, null, stanza, false) { RoomStanzaId = stanza };
+
+        await service.StoreAsync(session, InRoom("alice", "a1", "first", "S1"));
+        await service.StoreAsync(session, InRoom("alice", "a2", "second", "S2"));
+        await service.StoreAsync(session, InRoom("bob", "b1", "third", "S3"));
+
+        await service.StoreAsync(session, InRoom("bob", "x1", "") with { RetractId = "S1" });
+        await service.StoreAsync(session, InRoom("alice", "x2", "") with { RetractId = "S2" });
+        await service.StoreAsync(session, InRoom("mallory", "x3", "") with { RetractId = "S3", RetractByModerator = true });
+        await service.StoreAsync(session, InRoom("", "x4", "") with { RetractId = "S3", RetractByModerator = true, RetractReason = "off topic" });
+        await service.StoreAsync(session, InRoom("", "x5", "") with { RetractId = "S1" });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == Ops).OrderBy(m => m.Id).ToListAsync();
+            string Shown(JabberStoredMessage m) => $"{m.Sender}:{m.Body}:{m.Deleted}:{m.DeletedReason}";
+            Check("room delete: only their own, by the room's id for it", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender } && rows[0].Body == "first",
+                  string.Join(" | ", rows.Select(Shown)));
+            Check("room delete: a moderator's only from the room itself, with the reason",
+                  rows[2] is { Body: "", Deleted: JabberDeleted.ByModerator, DeletedReason: "off topic" }, Shown(rows[2]));
+            Check("room delete: the room deleting as if it were the sender changes nothing", rows[0] is { Deleted: JabberDeleted.No });
+            await db.JabberMessages.Where(m => m.Conversation == Ops || m.Conversation == "del@example").ExecuteDeleteAsync();
+        }
+        session.Locked(s => s.RoomMap.Remove(Ops));
+
+        Check("deleted line: says so, keeps nothing that was said",
+              new GroupLineVm(1, "a", "", "", "", true, null, JabberDeleted.ByModerator, "spam") is { IsDeleted: true, IsMention: false, Links.Count: 0 } line
+              && line.Body == string.Format(JabberText.MessageRemovedReason, "spam")
+              && new GroupLineVm(2, "a", "", "", "", false, null, JabberDeleted.BySender).Body == JabberText.MessageDeleted);
     }
 
     // Rules a hostile member or a strange clock could otherwise get round.
@@ -997,6 +1166,34 @@ try
         await view.StopAsync();
         await worker.StopAsync();
         try { Directory.Delete(relayProfile, recursive: true); } catch (IOException) { /* a temp folder */ }
+    }
+
+    // ── Pictures in the database: fetched only when new ──────────────────────
+    {
+        var pictures = new AvatarService(factory, new AppErrorLogger(null!));
+        var fetches = 0;
+        Func<Task<byte[]?>> Fetch(byte[]? bytes) => () => { fetches++; return Task.FromResult(bytes); };
+        async Task<List<(string Person, string Hash)>> Owners() { await using var db = factory.CreateDbContext(); return [.. (await db.ChatAvatarOwners.ToListAsync()).Select(o => (o.Person, o.Hash))]; }
+        async Task<int> Pictures() { await using var db = factory.CreateDbContext(); return await db.ChatAvatars.CountAsync(); }
+
+        var png = Png();
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        var owners = await Owners();
+        Check("pictures: fetched, kept once, under every name they go by",
+              fetches == 1 && await Pictures() == 1 && owners.Count == 2 && owners.All(o => o.Hash == owners[0].Hash), string.Join(";", owners));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        Check("pictures: the same hash again is not fetched again", fetches == 1);
+
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        Check("pictures: with no hash said, asked once", fetches == 2 && await Pictures() == 1 && (await Owners()).Count == 3);
+
+        await pictures.NoteAsync("jabber", 1, ["junk@example"], "h9", Fetch(System.Text.Encoding.UTF8.GetBytes("not a picture")));
+        Check("pictures: what is not a picture is not kept", (await Owners()).All(o => o.Person != "junk@example"));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example", "other@example"], "", Fetch(png));
+        Check("pictures: none any more, forgotten, and the picture with them", (await Owners()).Count == 0 && await Pictures() == 0);
     }
 
     // ── Emote packs in the database: each server its own ────────────────────

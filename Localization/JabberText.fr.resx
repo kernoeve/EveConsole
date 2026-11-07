@@ -357,4 +357,13 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="EmoteFileType" xml:space="preserve">
     <value>Thème de smileys Pidgin</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Ce message a été supprimé.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Supprimé par un modérateur.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Supprimé par un modérateur : {0}</value>
+  </data>
 </root>

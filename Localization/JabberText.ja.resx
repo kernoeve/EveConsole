@@ -357,4 +357,13 @@
   <data name="EmoteFileType" xml:space="preserve">
     <value>Pidgin スマイリーテーマ</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>このメッセージは削除されました。</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>モデレーターが削除しました。</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>モデレーターが削除しました：{0}</value>
+  </data>
 </root>

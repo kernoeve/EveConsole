@@ -87,6 +87,13 @@ public sealed class MumbleUser
     public string ClientRelease { get; set; } = "";
     public string ClientOs { get; set; } = "";
     public HashSet<uint> ListeningTo { get; } = [];
+
+    /// <summary>Their picture's hash as lower-case hex, blank until known, and the picture once it has come.</summary>
+    public string TextureHash { get; set; } = "";
+    public byte[]? Texture { get; set; }
+
+    /// <summary>A picture too big to have come with the person, until asked for.</summary>
+    public bool HasTextureToAsk { get; set; }
 }
 
 public sealed record MumbleLogin(
@@ -529,6 +536,19 @@ public sealed class MumbleClient : IAsyncDisposable
             foreach (var c in m.UInts(21)) user.ListeningTo.Add((uint)c);
             foreach (var c in m.UInts(22)) user.ListeningTo.Remove((uint)c);
             if (m.Text(15) is { } hash) user.Hash = hash;
+
+            // A picture comes with the person, or only as its hash until asked for.
+            if (m.Bytes(11) is { } texture)
+            {
+                user.Texture = texture.Length > 0 ? texture : null;
+                if (m.Bytes(17) is null) user.TextureHash = "";
+                user.HasTextureToAsk = false;
+            }
+            if (m.Bytes(17) is { } textureHash && Convert.ToHexStringLower(textureHash) is var hex && hex != user.TextureHash)
+            {
+                user.TextureHash = hex;
+                if (m.Bytes(11) is null) { user.Texture = null; user.HasTextureToAsk = hex.Length > 0; }
+            }
             if (m.Bool(19) is { } recording) user.Recording = recording;
         }
     }
@@ -574,6 +594,17 @@ public sealed class MumbleClient : IAsyncDisposable
             user.HasCommentToAsk = false;
         }
         Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(2, user.Session).ToArray(), CancellationToken.None));
+    }
+
+    /// <summary>The same for a picture. The answer arrives as <see cref="Changed"/>.</summary>
+    public void AskTexture(MumbleUser user)
+    {
+        lock (_gate)
+        {
+            if (!user.HasTextureToAsk) return;
+            user.HasTextureToAsk = false;
+        }
+        Quietly(SendAsync(MumbleMessage.RequestBlob, new PbWriter().UInt(1, user.Session).ToArray(), CancellationToken.None));
     }
 
     /// <summary>The same for a channel's description.</summary>

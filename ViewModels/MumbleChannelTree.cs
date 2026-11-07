@@ -54,6 +54,16 @@ public sealed class MumbleChannelTree
         }
     }
 
+    /// <summary>The channels given and every one above them: where a search's finds are, and the way down to them.</summary>
+    public HashSet<uint> Holding(IEnumerable<uint> channels)
+    {
+        var holding = new HashSet<uint>();
+        foreach (var channel in channels)
+            foreach (var up in UpFrom(channel))
+                if (!holding.Add(up)) break;
+        return holding;
+    }
+
     public bool IsOpen(uint channel) => _byHand.TryGetValue(channel, out var open) ? open : _occupied.Contains(channel);
 
     /// <summary>The person's own click. Back to what it would be anyway, nothing needs remembering.</summary>

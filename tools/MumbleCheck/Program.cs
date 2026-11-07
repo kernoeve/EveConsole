@@ -502,6 +502,16 @@ static string RawFile(string path)
     odd.Toggle(11);
     odd.Update(loop, [], null);
     Check("channels: a server's circular channels end", !odd.IsOpen(10));
+
+    // A search shows only the channels with someone found in them, and the way down to them.
+    var found = new MumbleChannelTree();
+    found.Update(tree, [Main, Lounge], null);
+    var holding = found.Holding([Dps, Bravo]);
+    Check("find: their channels and every one above", holding.SetEquals([Dps, Alpha, Bravo, Fleets, Root]), string.Join(",", holding.Order()));
+    Check("find: nothing else, people or not", !holding.Contains(Main) && !holding.Contains(Social) && !holding.Contains(Lounge));
+    Check("find: nobody found, nothing shown", found.Holding([]).Count == 0);
+    odd.Update(loop, [], null);
+    Check("find: circular channels end", odd.Holding([10]).SetEquals([10, 11]));
 }
 
 {

@@ -442,4 +442,16 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>Son nom, sous {0}</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Trouver quelqu'un</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Afficher les personnes de chaque canal</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Personne ici ne porte ce nom.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} ici, dont {1} entendent</value>
+  </data>
 </root>
