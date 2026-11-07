@@ -580,6 +580,23 @@ static string? Throws(Action act)
     catch (InvalidDataException e) { return e.Message; }
 }
 
+// ── Rooms saved the newer way (XEP-0402) ───────────────────────────────────
+{
+    XElement Item(string id, XElement? room) => new(XmppClient.PubSub + "item", new XAttribute("id", id), room);
+    var answer = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", new XAttribute("node", XmppClient.Bookmarks2.NamespaceName),
+            Item("ops@rooms.example", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "Operations"), new XAttribute("autojoin", "true"),
+                new XElement(XmppClient.Bookmarks2 + "nick", "Pilot"), new XElement(XmppClient.Bookmarks2 + "password", "secret"))),
+            Item("quiet@rooms.example/ignored", new XElement(XmppClient.Bookmarks2 + "conference")),
+            Item("", new XElement(XmppClient.Bookmarks2 + "conference", new XAttribute("name", "no address"))),
+            Item("other@rooms.example", new XElement(XmppClient.Bookmarks + "conference", new XAttribute("name", "the old kind, misplaced"))))));
+    var saved = XmppClient.ParseNewBookmarks(answer);
+    Check("new bookmarks: name, joining, nickname and password",
+          saved.Count == 2 && saved[0] == new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret"), string.Join(";", saved));
+    Check("new bookmarks: a room by its bare address, not joining unless it says", saved[1] == new XmppBookmark("quiet@rooms.example", "", "", false, ""));
+    Check("new bookmarks: none kept at all", XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq")).Count == 0);
+}
+
 // ── Deletes: every form they come in ──────────────────────────────────────
 {
     var self = XmppAddress.Parse("me@example/here");

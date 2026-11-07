@@ -107,6 +107,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     public static readonly XNamespace StanzaId  = "urn:xmpp:sid:0";
     public static readonly XNamespace Private   = "jabber:iq:private";
     public static readonly XNamespace Bookmarks = "storage:bookmarks";
+    public static readonly XNamespace Bookmarks2 = "urn:xmpp:bookmarks:1";
+    public static readonly XNamespace PubSub    = "http://jabber.org/protocol/pubsub";
     public static readonly XNamespace Version   = "jabber:iq:version";
     public static readonly XNamespace Stanzas   = "urn:ietf:params:xml:ns:xmpp-stanzas";
     public static readonly XNamespace Receipts  = "urn:xmpp:receipts";
@@ -947,6 +949,32 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         }
         catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
     }
+
+    /// <summary>
+    /// The rooms saved the newer way (XEP-0402): one item each in the account's own store, under the room's address.
+    /// Empty when the server keeps none this way. Newer clients save only here, older ones only in the private store.
+    /// </summary>
+    public async Task<IReadOnlyList<XmppBookmark>> GetNewBookmarksAsync(CancellationToken ct)
+    {
+        try
+        {
+            var answer = await QueryAsync("get", null,
+                new XElement(PubSub + "pubsub", new XElement(PubSub + "items", new XAttribute("node", Bookmarks2.NamespaceName))), ct);
+            return ParseNewBookmarks(answer);
+        }
+        catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
+    }
+
+    public static List<XmppBookmark> ParseNewBookmarks(XElement answer) =>
+        [.. (answer.Element(PubSub + "pubsub")?.Element(PubSub + "items")?.Elements(PubSub + "item") ?? [])
+            .Select(item => (Jid: XmppAddress.Parse((string?)item.Attribute("id")).Bare, Room: item.Element(Bookmarks2 + "conference")))
+            .Where(x => x.Jid.Length > 0 && x.Room is not null)
+            .Select(x => new XmppBookmark(
+                x.Jid,
+                (string?)x.Room!.Attribute("name") ?? "",
+                x.Room.Element(Bookmarks2 + "nick")?.Value ?? "",
+                (string?)x.Room.Attribute("autojoin") is "true" or "1",
+                x.Room.Element(Bookmarks2 + "password")?.Value ?? ""))];
 
     /// <summary>Removes what XML cannot carry. ⚠️ One stray control character would otherwise throw on send.</summary>
     public static string Clean(string text) =>

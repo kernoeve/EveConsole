@@ -649,9 +649,11 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
-        // Rooms saved on the server join the account's list the first time they are seen.
+        // Rooms saved on the server join the account's list the first time they are seen: the newer way first, which
+        // wins where a room is saved both ways, as it is the one a newer client keeps up to date.
         // ⚠️ By address, once each: a list saved with a room in it twice would otherwise break the login every time.
-        foreach (var bookmark in (await client.GetBookmarksAsync(ct)).DistinctBy(b => b.Jid))
+        var saved = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct));
+        foreach (var bookmark in saved.DistinctBy(b => b.Jid))
         {
             if (await db.JabberRooms.AnyAsync(r => r.AccountId == session.Account.Id && r.RoomJid == bookmark.Jid, ct)) continue;
             db.JabberRooms.Add(new JabberRoom
