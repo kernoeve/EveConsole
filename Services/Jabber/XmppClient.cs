@@ -72,7 +72,7 @@ public sealed record XmppBookmark(string Jid, string Name, string Nick, bool Aut
 /// <para>⚠️ Events fire on the reading thread, in the order the server sent things. Anything slow done
 /// inside one holds up everything behind it, including the keep-alive's answers.</para>
 /// </summary>
-public sealed class XmppClient(XmppConnection connection) : IAsyncDisposable
+public sealed partial class XmppClient(XmppConnection connection) : IAsyncDisposable
 {
     public static readonly XNamespace Client    = XmppConnection.Client;
     public static readonly XNamespace Roster    = "jabber:iq:roster";

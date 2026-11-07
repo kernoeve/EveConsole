@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>还没有保存的会话。在设置的 Jabber 或 Mumble 选项卡中选择一个人即可开始。</value>
+    <value>还没有保存的对话。点“新建会话”，或在房间或 Mumble 服务器中右键点击某人。</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

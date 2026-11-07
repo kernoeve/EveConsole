@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Runtime.InteropServices;
 using Concentus;
 using Concentus.Enums;
@@ -11,6 +12,11 @@ namespace EveConsole.Services.Mumble;
 ///
 /// <para>No sound hardware in here: it takes packets in and hands samples out, so the path from a voice
 /// packet to what would reach the speakers can be tested with none attached.</para>
+///
+/// <para>Each speaker has a jitter buffer. Packets wait in sequence order and are decoded only as they are needed, so
+/// one arriving out of order still plays in its place, and one that never comes is covered by the codec's own guess at
+/// what it held. How long they wait follows how uneven this speaker's packets have been arriving. ⚠️ A good connection
+/// can't show any of this: test it with made-up delay and loss.</para>
 /// </summary>
 public sealed class MumbleMixer
 {
@@ -25,29 +31,86 @@ public sealed class MumbleMixer
     /// <summary>The longest frame Opus can carry: 120 ms.</summary>
     private const int MaxFrame = SampleRate * 120 / 1000;
 
-    /// <summary>How much to hold before starting someone: enough to ride over the network's bumps.</summary>
-    private const int StartAfter = SamplesPer10Ms * 6;
+    /// <summary>The frame nearly everyone sends, in sequence numbers: 20 ms. Mumble counts them in tens of milliseconds.</summary>
+    private const int UsualUnits = 2;
+
+    private const int MsPerUnit = 10;
+
+    /// <summary>The wait before starting someone new, until there is enough to go on for how uneven they are.</summary>
+    private const int FirstWaitMs = 60;
+
+    /// <summary>The shortest and longest wait. Longer than this and talking over each other gets hard.</summary>
+    private const int LeastWaitMs = 40, MostWaitMs = 240;
 
     /// <summary>Past this behind, a speaker drops their oldest sound rather than falling further back.</summary>
-    private const int MaxBacklog = SamplesPer10Ms * 40;
+    private const int MaxBacklogMs = 400;
+
+    /// <summary>Frames in a row made up by the codec before stopping to wait. Past this its guess turns into a drone.</summary>
+    private const int MostGuessed = 3;
+
+    /// <summary>A missing stretch longer than this isn't worth guessing at: play on from what came next.</summary>
+    private const int MostGapUnits = 20;
+
+    /// <summary>A sequence number this far from where someone is playing means they started counting again.</summary>
+    private const int RestartUnits = 100;
+
+    /// <summary>Packets in a row that far behind before they count as a restart.</summary>
+    private const int FarBehindIsRestart = 3;
+
+    /// <summary>Frames in a row well ahead of the wait, before one is skipped to bring the delay back down.</summary>
+    private const int AheadBeforeSkip = 50;
+
+    /// <summary>How many recent arrivals say how uneven someone is: 2 seconds of 20 ms frames.</summary>
+    private const int ArrivalsKept = 100;
+
+    private const int ArrivalsEnough = 8;
 
     private static readonly TimeSpan HeardFor = TimeSpan.FromMilliseconds(350);
+
+    private readonly record struct Waiting(byte[] Opus, double Gain);
 
     private sealed class Speaker
     {
         public required IOpusDecoder Decoder { get; init; }
+        public readonly SortedList<long, Waiting> Packets = [];
         public readonly Queue<short> Samples = new();
+        public readonly double[] Arrivals = new double[ArrivalsKept];
+        public int ArrivalCount, ArrivalAt;
         public bool Playing;
         public DateTime LastHeard;
         public bool Ended;
-        public long LastSequence = -1;
         public int Target;
+
+        /// <summary>The sequence number due next, or -1 between one stretch of talking and the next.</summary>
+        public long Next = -1;
+
+        public int FrameSamples = MumbleEncoder.FrameSamples;
+        public double Gain = 1;
+        public int Guessed;
+        public int Ahead;
+        public int FarBehind;
+
+        /// <summary>How uneven they were last time, kept across the gap between one press and the next.</summary>
+        public double LastUnevenMs = -1;
+
+        /// <summary>Extra wait after running dry, because the last while was worse than the arrivals say.</summary>
+        public int ExtraMs;
     }
 
     private readonly object _gate = new();
     private readonly Dictionary<(int Server, uint Session), Speaker> _speakers = [];
     private readonly short[] _decoded = new short[MaxFrame];
+    private readonly double[] _sorting = new double[ArrivalsKept];
     private readonly Queue<short> _cue = new();
+
+    /// <summary>The time in milliseconds. A test sets this to run a made-up network faster than real time.</summary>
+    public Func<double> Clock { get; set; } = static () => Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
+
+    /// <summary>Packets that came too late to play, since this mixer started.</summary>
+    public long LatePackets { get; private set; }
+
+    /// <summary>Frames the codec had to make up, since this mixer started.</summary>
+    public long GuessedFrames { get; private set; }
 
     /// <summary>Plays a short tone to this listener alone: rising for starting to talk, falling for stopping.</summary>
     public void PlayCue(bool starting)
@@ -81,6 +144,7 @@ public sealed class MumbleMixer
             if (!_speakers.TryGetValue(key, out var speaker))
                 _speakers[key] = speaker = new Speaker { Decoder = OpusCodecFactory.CreateDecoder(SampleRate, 1) };
 
+            var hadEnded = speaker.Ended;
             speaker.LastHeard = DateTime.UtcNow;
             speaker.Ended = packet.Last;
             speaker.Target = packet.Target;
@@ -88,18 +152,150 @@ public sealed class MumbleMixer
             // A terminator carrying no sound only says they let go.
             if (packet.Opus.Length == 0) return;
 
-            int count;
-            try { count = speaker.Decoder.Decode(packet.Opus, _decoded, MaxFrame, false); }
-            catch (Exception e) when (e is ArgumentException or InvalidOperationException or IndexOutOfRangeException or Concentus.OpusException)
+            var sequence = packet.Sequence;
+            var farBehind = speaker.Next >= 0 && sequence < speaker.Next - RestartUnits;
+            speaker.FarBehind = farBehind ? speaker.FarBehind + 1 : 0;
+
+            // ⚠️ Far behind only counts when it keeps happening: one very late packet isn't someone starting again, and
+            // starting over for it would throw away everything waiting behind it.
+            if (speaker.Next >= 0 && (sequence > speaker.Next + RestartUnits || speaker.FarBehind >= FarBehindIsRestart || hadEnded && sequence < speaker.Next))
+                StartOver(speaker);
+
+            // ⚠️ Too late to use. Its place has already been played, as a guess or as what came after it.
+            if (speaker.Next >= 0 && sequence < speaker.Next)
             {
-                return;   // one damaged packet is a click at worst, not a reason to stop
+                LatePackets++;
+                return;
             }
 
-            for (var i = 0; i < count; i++)
-                speaker.Samples.Enqueue((short)Math.Clamp(_decoded[i] * gain, short.MinValue, short.MaxValue));
+            speaker.Packets.TryAdd(sequence, new Waiting(packet.Opus, gain));
 
-            while (speaker.Samples.Count > MaxBacklog) speaker.Samples.Dequeue();
+            speaker.Arrivals[speaker.ArrivalAt] = Clock() - sequence * MsPerUnit;
+            speaker.ArrivalAt = (speaker.ArrivalAt + 1) % ArrivalsKept;
+            speaker.ArrivalCount = Math.Min(speaker.ArrivalCount + 1, ArrivalsKept);
+
+            while (BufferedMs(speaker) > MaxBacklogMs && speaker.Packets.Count > 1)
+            {
+                speaker.Packets.RemoveAt(0);
+                speaker.Next = speaker.Packets.Keys[0];
+            }
         }
+    }
+
+    /// <summary>The sound waiting for someone: what's decoded and what isn't, gaps counted as they'll take that long too.</summary>
+    private static int BufferedMs(Speaker speaker)
+    {
+        var decoded = speaker.Samples.Count / (SamplesPer10Ms / MsPerUnit);
+        if (speaker.Packets.Count == 0) return decoded;
+        var from = speaker.Next >= 0 ? speaker.Next : speaker.Packets.Keys[0];
+        return decoded + (int)(speaker.Packets.Keys[^1] - from) * MsPerUnit + speaker.FrameSamples / (SamplesPer10Ms / MsPerUnit);
+    }
+
+    /// <summary>How far apart this speaker's arrivals have been, from most packets to the latest of them.</summary>
+    private double UnevenMs(Speaker speaker)
+    {
+        if (speaker.ArrivalCount < ArrivalsEnough) return speaker.LastUnevenMs;
+        Array.Copy(speaker.Arrivals, _sorting, speaker.ArrivalCount);
+        Array.Sort(_sorting, 0, speaker.ArrivalCount);
+        return _sorting[speaker.ArrivalCount * 98 / 100] - _sorting[0];
+    }
+
+    /// <summary>How much to have waiting before playing: enough to ride over the bumps seen so far, and one frame more.</summary>
+    private int WaitMs(Speaker speaker)
+    {
+        var uneven = UnevenMs(speaker);
+        var wait = uneven < 0 ? FirstWaitMs : (int)uneven + speaker.FrameSamples / (SamplesPer10Ms / MsPerUnit);
+        return Math.Clamp(wait + speaker.ExtraMs, LeastWaitMs, MostWaitMs);
+    }
+
+    /// <summary>Between one stretch of talking and the next: the sequence may restart, and what's unplayed won't be missed.</summary>
+    private void StartOver(Speaker speaker)
+    {
+        var uneven = UnevenMs(speaker);
+        if (uneven >= 0) speaker.LastUnevenMs = uneven;
+        speaker.ArrivalCount = speaker.ArrivalAt = 0;
+        speaker.Packets.Clear();
+        speaker.Next = -1;
+        speaker.Playing = false;
+        speaker.Guessed = speaker.Ahead = 0;
+        speaker.ExtraMs /= 2;
+        speaker.Decoder.ResetState();
+    }
+
+    /// <summary>Puts the next frame's sound in the queue. False when there's nothing to go on for now.</summary>
+    private bool NextFrame(Speaker speaker)
+    {
+        if (speaker.Packets.Count == 0)
+        {
+            // Stopped talking means stopped: a guess here would be a sound they never made.
+            if (speaker.Ended || speaker.Guessed >= MostGuessed) return false;
+            Guess(speaker);
+            return true;
+        }
+
+        var first = speaker.Packets.Keys[0];
+        if (first > speaker.Next)
+        {
+            // Lost on the way, as far as anyone can tell: the wait for it is over.
+            if (first - speaker.Next <= MostGapUnits && speaker.Guessed < MostGuessed && !speaker.Ended)
+            {
+                Guess(speaker);
+                return true;
+            }
+            speaker.Next = first;
+        }
+
+        var packet = speaker.Packets.Values[0];
+        speaker.Packets.RemoveAt(0);
+        speaker.Gain = packet.Gain;
+
+        int count;
+        try { count = speaker.Decoder.Decode(packet.Opus, _decoded, MaxFrame, false); }
+        catch (Exception e) when (e is ArgumentException or InvalidOperationException or IndexOutOfRangeException or Concentus.OpusException)
+        {
+            speaker.Next = first + UsualUnits;   // one damaged packet is a click at worst, not a reason to stop
+            return true;
+        }
+
+        speaker.Next = first + Math.Max(1, count / SamplesPer10Ms);
+        speaker.Guessed = 0;
+        if (count > 0) speaker.FrameSamples = count;
+
+        // Well ahead for a while, after a bump that has passed: a frame goes, or the delay would stay until they let go.
+        // ⚠️ Decoded all the same, as the next frame builds on it.
+        if (BufferedMs(speaker) > WaitMs(speaker) + 2 * UsualUnits * MsPerUnit)
+        {
+            if (++speaker.Ahead >= AheadBeforeSkip)
+            {
+                speaker.Ahead = 0;
+                return true;
+            }
+        }
+        else speaker.Ahead = 0;
+
+        Queue(speaker, count);
+        return true;
+    }
+
+    /// <summary>The codec's own guess at one missing frame.</summary>
+    private void Guess(Speaker speaker)
+    {
+        int count;
+        try { count = speaker.Decoder.Decode(ReadOnlySpan<byte>.Empty, _decoded, speaker.FrameSamples, false); }
+        catch (Exception e) when (e is ArgumentException or InvalidOperationException or IndexOutOfRangeException or Concentus.OpusException)
+        {
+            count = 0;
+        }
+        speaker.Guessed++;
+        GuessedFrames++;
+        speaker.Next += Math.Max(1, speaker.FrameSamples / SamplesPer10Ms);
+        Queue(speaker, count);
+    }
+
+    private void Queue(Speaker speaker, int count)
+    {
+        for (var i = 0; i < count; i++)
+            speaker.Samples.Enqueue((short)Math.Clamp(_decoded[i] * speaker.Gain, short.MinValue, short.MaxValue));
     }
 
     /// <summary>Forgets a speaker: they left, or the server's connection ended.</summary>
@@ -131,14 +327,26 @@ public sealed class MumbleMixer
             {
                 if (!speaker.Playing)
                 {
+                    if (speaker.Packets.Count == 0 && speaker.Samples.Count == 0) continue;
+
                     // Wait for a little to build up, unless that is all there is ever going to be.
-                    if (speaker.Samples.Count >= StartAfter || speaker.Ended && speaker.Samples.Count > 0) speaker.Playing = true;
-                    else continue;
+                    if (BufferedMs(speaker) < WaitMs(speaker) && !speaker.Ended) continue;
+                    speaker.Playing = true;
+                    if (speaker.Next < 0 && speaker.Packets.Count > 0) speaker.Next = speaker.Packets.Keys[0];
                 }
+
+                while (speaker.Samples.Count < into.Length && NextFrame(speaker)) { }
 
                 if (speaker.Samples.Count == 0)
                 {
                     speaker.Playing = false;
+                    if (speaker.Ended) StartOver(speaker);
+                    else
+                    {
+                        // Ran dry in the middle of talking: this connection needs a longer wait than it looked like.
+                        speaker.ExtraMs = Math.Min(speaker.ExtraMs + 2 * UsualUnits * MsPerUnit, MostWaitMs);
+                        speaker.Guessed = 0;
+                    }
                     continue;
                 }
 

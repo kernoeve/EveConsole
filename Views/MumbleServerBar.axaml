@@ -12,19 +12,20 @@
   </UserControl.Styles>
 
   <StackPanel Orientation="Horizontal" Spacing="2">
-    <Button Classes="icon tree" ToolTip.Tip="{x:Static loc:MumbleText.OverlayChannels}">
+    <Button x:Name="TreeButton" Classes="icon tree" ToolTip.Tip="{x:Static loc:MumbleText.OverlayChannels}">
       <Path Classes="menu" Data="M1 3h10M1 6h10M1 9h10" />
       <Button.Flyout>
         <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="mumblepopup" Opening="OnTreeOpening" Opened="OnTreeOpened" Closed="OnTreeClosed">
-          <ScrollViewer Width="280" MaxHeight="460" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <Grid RowDefinitions="*,Auto" Width="280">
+          <ScrollViewer MaxHeight="460" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <!-- Its rows start one step in, under the server they are not showing here. -->
-            <ItemsControl ItemsSource="{Binding Rows}" Margin="-14 0 0 0">
+            <ItemsControl x:Name="Tree" ItemsSource="{Binding Rows}" Margin="-14 0 0 0">
               <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:MumbleRowVm">
-                  <Grid Margin="{Binding Indent}">
+                  <Grid Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
                     <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*">
                       <Button Classes="chevron" IsVisible="{Binding HasChildren}" Click="OnToggleChannel">
                         <Panel>
@@ -33,7 +34,10 @@
                         </Panel>
                       </Button>
                       <Button Grid.Column="1" Classes="channel" Click="OnChannelClick">
-                        <TextBlock Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="5">
+                          <TextBlock Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                          <Path IsVisible="{Binding IsListening}" Data="M3 7a4 4 0 1 1 7 2.6c-.8.9-1.5 1.4-1.5 2.4a1.8 1.8 0 0 1-3.2 1" Stroke="{DynamicResource GoodBrush}" StrokeThickness="1.1" Width="12" Height="14" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MumbleText.StopListening}" />
+                        </StackPanel>
                       </Button>
                     </Grid>
                     <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto" Margin="4 2">
@@ -41,6 +45,7 @@
                       <TextBlock Grid.Column="1" Classes="person" Classes.me="{Binding IsMe}" Text="{Binding Text}" />
                       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" Margin="6 0 0 0">
                         <Path IsVisible="{Binding IsPriority}" Data="M1 4.2 V7.8 H3 L8.5 10.8 V1.2 L3 4.2 Z M3.2 8 L4.2 11 H5.8 L5 8.6 M9.8 4 A2.4 2.4 0 0 1 9.8 8" Fill="#44A3F2" Stroke="#44A3F2" StrokeThickness="0.8" Width="12" Height="12" ToolTip.Tip="{x:Static loc:MumbleText.PrioritySpeaker}" />
+                        <Path IsVisible="{Binding IsLocalMuted}" Data="M1.5 4.5h2l3-3v9l-3-3h-2zM8.5 4.5l3 3M11.5 4.5l-3 3" Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.1" Width="12" Height="12" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MumbleText.LocalMute}" />
                         <Path Classes="state" IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
                         <Path Classes="state" IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
                       </StackPanel>
@@ -50,6 +55,9 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </ScrollViewer>
+          <!-- What the server said no to: what is done from here has to be answered here. -->
+          <TextBlock Grid.Row="1" DataContext="{Binding Owner}" x:DataType="vm:MumbleViewModel" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="0 6 0 0" Foreground="{DynamicResource WarnBrush}" />
+          </Grid>
         </Flyout>
       </Button.Flyout>
     </Button>

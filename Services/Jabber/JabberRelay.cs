@@ -796,6 +796,11 @@ public sealed partial class JabberService
             case "addcontact":    await AddContactAsync(session, a.Conversation, a.Name, ct); break;
             case "removecontact": await RemoveContactAsync(session, a.Conversation, ct); break;
             case "request":       await AnswerRequestAsync(session, a.Conversation, a.Accept, ct); break;
+            case "role":          await SetRoomRoleAsync(session, a.Conversation, a.Name, a.Status, a.Text, ct); break;
+            case "affiliation":   await SetRoomAffiliationAsync(session, a.Conversation, a.Name, a.Status, a.Text, ct); break;
+            case "subject":       await SetRoomSubjectAsync(session, a.Conversation, a.Text, ct); break;
+            case "roominvite":    await InviteToRoomAsync(session, a.Conversation, a.Name, a.Text, ct); break;
+            case "bans":          return JsonSerializer.Serialize(await RoomBansAsync(session, a.Conversation, ct));
             case "details":       return JsonSerializer.Serialize(await RoomDetailsAsync(session, a.Conversation, ct));
             case "browse":        return JsonSerializer.Serialize(await BrowseRoomsAsync(session, a.Conversation, ct));
             case "slot":          return JsonSerializer.Serialize(await UploadSlotAsync(session, a.Name, a.Size, a.ContentType, ct));

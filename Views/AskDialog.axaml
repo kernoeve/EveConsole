@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        x:Class="EveConsole.Views.AskDialog"
+        Width="420" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+  <StackPanel Margin="20" Spacing="8">
+    <TextBlock x:Name="MessageText" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+    <TextBlock x:Name="LabelText" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+    <AutoCompleteBox x:Name="Entry" FilterMode="Contains" MinimumPrefixLength="0" />
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="10" Margin="0 6 0 0">
+      <Button Content="{x:Static loc:CommonText.Cancel}" Click="OnCancel" Padding="18 5" />
+      <Button Content="{x:Static loc:CommonText.Ok}" Click="OnOk" Padding="24 5" />
+    </StackPanel>
+  </StackPanel>
+</Window>

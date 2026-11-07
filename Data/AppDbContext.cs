@@ -104,6 +104,10 @@ public class AppDbContext : DbContext
     public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
     public DbSet<JabberLiveState>       JabberLiveStates         => Set<JabberLiveState>();
     public DbSet<JabberCommand>         JabberCommands           => Set<JabberCommand>();
+    public DbSet<EmotePack>             EmotePacks               => Set<EmotePack>();
+    public DbSet<EmoteImage>            EmoteImages              => Set<EmoteImage>();
+    public DbSet<EmoteCode>             EmoteCodes               => Set<EmoteCode>();
+    public DbSet<JabberEmotePack>       JabberEmotePacks         => Set<JabberEmotePack>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
@@ -1262,6 +1266,26 @@ public class AppDbContext : DbContext
         mb.Entity<JabberCommand>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("JabberCommands"); });
+
+        mb.Entity<EmotePack>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EmotePacks"); });
+
+        mb.Entity<EmoteImage>(e => {
+            e.HasKey(x => x.Hash);
+            e.ToTable("EmoteImages"); });
+
+        mb.Entity<EmoteCode>(e => {
+            e.HasKey(x => new { x.PackId, x.Code });
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.HasIndex(x => x.ImageHash).HasDatabaseName("IX_EmoteCodes_Image");
+            e.ToTable("EmoteCodes"); });
+
+        mb.Entity<JabberEmotePack>(e => {
+            e.HasKey(x => new { x.AccountId, x.PackId });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.ToTable("JabberEmotePacks"); });
 
         mb.Entity<CharMercenaryDen>(e => {
             e.HasKey(x => new { x.CharacterId, x.DenId });

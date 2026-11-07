@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>保存された会話はまだありません。設定の Jabber または Mumble タブで相手を選択すると開始できます。</value>
+    <value>保存された会話はまだありません。「新しい会話」を押すか、ルームや Mumble サーバーにいる人を右クリックしてください。</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

@@ -68,10 +68,6 @@
     <value>{0} invited you</value>
     <comment>Beside a room invitation. {0} = who.</comment>
   </data>
-  <data name="HeadingPeople" xml:space="preserve">
-    <value>People</value>
-    <comment>Section in the list.</comment>
-  </data>
   <data name="StateConnected" xml:space="preserve">
     <value>Connected</value>
     <comment>Account state.</comment>
@@ -349,5 +345,92 @@ Trust it only if this matches what the server's admin published. From then on, o
   </data>
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>Waiting for the background process</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>That is not a Pidgin smiley theme: there is no file called theme in it.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>The theme file is too big to be a smiley theme.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>That pack is too big. A pack can hold up to 5,000 pictures and 64 MB.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>That file could not be opened as a zip.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>None of the pictures the theme lists could be used, so nothing was loaded.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Search emotes</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>No emote has that in its name.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Emotes (or type : and the first letters)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>{0:N0} codes · {1:N0} pictures</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Emote packs</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Codes such as :wave: show as their pictures in this server's rooms and messages, and can be picked when writing. Packs are Pidgin smiley themes. Where two packs have the same code, the higher one wins.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>This server has no emote packs, so codes show as plain text.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Move up: wins over the packs below it</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Move down</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Load a pack…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>A Pidgin smiley theme: its zip, or the theme file in an unpacked folder. Loaded once, it is there on every PC using this database.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Give this server a pack already loaded for another</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Loading the pack…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>Loaded {0}: {1:N0} codes, {2:N0} pictures.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>Updated {0} with this copy, for every server that has it: {1:N0} codes, {2:N0} pictures.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>{0:N0} pictures the theme lists are not in the pack, and were left out.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} files were not pictures, or were too big for an emote, and were left out.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>Remove {0}? No other server has it, so it will be deleted. Load it again to get it back.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>Removed {0}, and deleted it, as no other server had it.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>Removed {0} from this server. Others that have it keep it.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Load an emote pack</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin smiley theme</value>
   </data>
 </root>
