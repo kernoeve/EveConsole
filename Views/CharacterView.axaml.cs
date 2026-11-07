@@ -195,13 +195,14 @@ public partial class CharacterView : UserControl
     private async void OnCustomizeClick(object? sender, RoutedEventArgs e)
     {
         if (_vm is null) return;
+        // Starts on the layout this Overview is showing; Apply saves every layout and shows the one being edited.
         var dlg = new OverviewCustomizeWindow
         {
-            DataContext = new OverviewCustomizeViewModel(_vm.Layout),
+            Session = new OverviewLayoutsEditVm(_vm.Layouts, _vm.LayoutKey, _vm.Layout),
         };
-        var result = await dlg.ShowDialog<OverviewLayout?>(GetWindow());
+        var result = await dlg.ShowDialog<EveConsole.Services.OverviewLayoutEdits?>(GetWindow());
         if (result is not null)
-            await _vm.ApplyLayoutAsync(result);
+            _vm.ApplyLayoutEdits(result);
     }
 
     /// <summary>

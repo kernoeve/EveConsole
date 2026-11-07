@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Linq;
 using EveConsole.Models;
+using EveConsole.Services;
 using ReactiveUI;
 
 namespace EveConsole.ViewModels;
@@ -99,6 +100,93 @@ public class OverviewCustomizeViewModel : ReactiveObject
             ColSpan = s.ColSpan,
         }).ToList(),
     };
+}
+
+/// <summary>One layout in the editor: its name, and its grid as it's being edited.</summary>
+public sealed class OverviewLayoutEntryVm : ReactiveObject
+{
+    public OverviewLayoutEntryVm(string? was, string name, OverviewLayout layout)
+    {
+        Was = was;
+        _name = name;
+        Editor = new OverviewCustomizeViewModel(layout);
+    }
+
+    /// <summary>The key it was saved under, or null for one made in this session.</summary>
+    public string? Was { get; }
+
+    /// <summary>Default keeps its name, can't be deleted, and is what older versions of the app show.</summary>
+    public bool IsDefault => Was is not null && EveConsole.Services.OverviewLayoutStore.IsDefault(Was);
+
+    private string _name;
+    public string Name
+    {
+        get => IsDefault ? EveConsole.Localization.OverviewText.LayoutDefault : _name;
+        set { if (!IsDefault) this.RaiseAndSetIfChanged(ref _name, value); }
+    }
+
+    public OverviewCustomizeViewModel Editor { get; }
+
+    public override string ToString() => Name;
+}
+
+/// <summary>
+/// The layout editor's layouts: the one being edited, picked from a dropdown, and Add and Delete.
+/// Nothing is saved until Apply, which saves them all together; Cancel leaves everything as it was.
+/// </summary>
+public sealed class OverviewLayoutsEditVm : ReactiveObject
+{
+    public ObservableCollection<OverviewLayoutEntryVm> Layouts { get; } = [];
+
+    /// <param name="showing">The key of the layout the Overview it was opened from is showing, which it starts on.</param>
+    /// <param name="current">That Overview's layout as it stands.</param>
+    public OverviewLayoutsEditVm(EveConsole.Services.OverviewLayoutStore store, string showing, OverviewLayout current)
+    {
+        foreach (var choice in store.Choices)
+        {
+            var mine = string.Equals(choice.Key, showing, StringComparison.OrdinalIgnoreCase);
+            Layouts.Add(new OverviewLayoutEntryVm(choice.Key, choice.Label, mine ? current : store.Get(choice.Key)));
+        }
+        _selected = Layouts.FirstOrDefault(l => string.Equals(l.Was, showing, StringComparison.OrdinalIgnoreCase)) ?? Layouts[0];
+        AddCommand = ReactiveCommand.Create(Add);
+        DeleteCommand = ReactiveCommand.Create(Delete, this.WhenAnyValue(x => x.Selected, s => s is { IsDefault: false }));
+    }
+
+    private OverviewLayoutEntryVm _selected;
+    public OverviewLayoutEntryVm Selected
+    {
+        get => _selected;
+        set { if (value is not null) this.RaiseAndSetIfChanged(ref _selected, value); }
+    }
+
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> AddCommand { get; }
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> DeleteCommand { get; }
+
+    /// <summary>A new layout, starting as a copy of the one being edited.</summary>
+    private void Add()
+    {
+        var taken = Layouts.Select(l => l.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var n = Layouts.Count;
+        string name;
+        do name = string.Format(System.Globalization.CultureInfo.CurrentCulture, EveConsole.Localization.OverviewText.LayoutNumbered, n++);
+        while (taken.Contains(name));
+        var entry = new OverviewLayoutEntryVm(null, name, _selected.Editor.Build());
+        Layouts.Add(entry);
+        Selected = entry;
+    }
+
+    private void Delete()
+    {
+        if (_selected.IsDefault) return;
+        var i = Layouts.IndexOf(_selected);
+        Layouts.Remove(_selected);
+        Selected = Layouts[Math.Clamp(i - 1, 0, Layouts.Count - 1)];
+    }
+
+    /// <summary>Everything as it now is, with the one being edited as the one to show.</summary>
+    public OverviewLayoutEdits Build() =>
+        new([.. Layouts.Select(l => (l.Was, l.IsDefault ? EveConsole.Services.OverviewLayoutStore.DefaultKey : l.Name, l.Editor.Build()))],
+            Layouts.IndexOf(_selected));
 }
 
 public class OverviewSectionEditVm : ReactiveObject

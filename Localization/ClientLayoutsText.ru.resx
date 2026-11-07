@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve">
+    <value>Мониторы</value>
+  </data>
+  <data name="TabLayouts" xml:space="preserve">
+    <value>Макеты</value>
+  </data>
+  <data name="LabelDesktop" xml:space="preserve">
+    <value>Этот компьютер</value>
+  </data>
+  <data name="TogglePlacement" xml:space="preserve">
+    <value>Размещать клиенты и показывать панели на этом компьютере</value>
+  </data>
+  <data name="TipPlacement" xml:space="preserve">
+    <value>Когда выключено, игровые клиенты не трогаются. EVE Console только задаёт размер и положение клиента и выводит его наверх, когда вы щёлкаете панель или другой клиент на его мониторе. Она никогда не передаёт клиенту ввод или фокус.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Применить</value>
+  </data>
+  <data name="TipApply" xml:space="preserve">
+    <value>Перемещает клиенты и панели так, как задано здесь, — только на этом компьютере. Также возвращает на место клиенты, сдвинутые вручную.</value>
+  </data>
+  <data name="PendingNone" xml:space="preserve">
+    <value>Всё применено.</value>
+  </data>
+  <data name="PendingSome" xml:space="preserve">
+    <value>Есть изменения для мониторов: {0}. Ничего не сдвинется, пока вы не нажмёте «Применить».</value>
+  </data>
+  <data name="StatusApplied" xml:space="preserve">
+    <value>Применено на мониторах: {0}.</value>
+  </data>
+  <data name="StatusLayoutInUse" xml:space="preserve">
+    <value>Этот макет используется на мониторе, поэтому его нельзя удалить.</value>
+  </data>
+  <data name="StatusFailed" xml:space="preserve">
+    <value>Не получилось: {0}</value>
+  </data>
+  <data name="MonitorLabel" xml:space="preserve">
+    <value>Монитор {0}: {1} × {2}</value>
+  </data>
+  <data name="MonitorPrimary" xml:space="preserve">
+    <value>{0} (основной)</value>
+  </data>
+  <data name="NoLayout" xml:space="preserve">
+    <value>Нет: не трогать этот монитор</value>
+  </data>
+  <data name="LabelLayout" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="LabelPanelStart" xml:space="preserve">
+    <value>Показ панелей</value>
+  </data>
+  <data name="PanelStartWithConsole" xml:space="preserve">
+    <value>Вместе с EVE Console</value>
+  </data>
+  <data name="PanelStartWithEve" xml:space="preserve">
+    <value>Когда на этом мониторе запускается EVE</value>
+  </data>
+  <data name="FullMonitor" xml:space="preserve">
+    <value>Использовать весь монитор, включая место панели задач</value>
+  </data>
+  <data name="LabelProfile" xml:space="preserve">
+    <value>Профиль</value>
+  </data>
+  <data name="LabelProfileName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="ProfileNewName" xml:space="preserve">
+    <value>Новый профиль</value>
+  </data>
+  <data name="ProfileInUse" xml:space="preserve">
+    <value>Используется: {0}</value>
+  </data>
+  <data name="TipProfile" xml:space="preserve">
+    <value>Какой набор макетов и персонажей показывает и изменяет эта вкладка. Нажмите «Применить», чтобы переключиться на него.</value>
+  </data>
+  <data name="StatusLastProfile" xml:space="preserve">
+    <value>У компьютера должен быть хотя бы один профиль, поэтому этот нельзя удалить.</value>
+  </data>
+  <data name="ItemMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
+  <data name="ItemWorklist" xml:space="preserve">
+    <value>Список задач</value>
+  </data>
+  <data name="LabelMumbleServer" xml:space="preserve">
+    <value>Сервер</value>
+  </data>
+  <data name="LabelMumbleMode" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="MumbleModeLine" xml:space="preserve">
+    <value>Одна строка, рядом — кто говорит</value>
+  </data>
+  <data name="MumbleModeList" xml:space="preserve">
+    <value>Список канала, говорящие сверху</value>
+  </data>
+  <data name="MumbleChooseServer" xml:space="preserve">
+    <value>Выберите сервер Mumble для этого элемента в разделе «Макеты клиентов».</value>
+  </data>
+  <data name="MumbleNoServer" xml:space="preserve">
+    <value>Этого сервера Mumble больше нет в настройках.</value>
+  </data>
+  <data name="MumbleServerState" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="WorklistNoClient" xml:space="preserve">
+    <value>На этом мониторе никто не вошёл в игру.</value>
+  </data>
+  <data name="WorklistNotInApp" xml:space="preserve">
+    <value>Персонаж {0} не добавлен в EVE Console.</value>
+  </data>
+  <data name="WorklistNothing" xml:space="preserve">
+    <value>Персонаж {0}: готовых задач нет.</value>
+  </data>
+  <data name="WorklistOpenTool" xml:space="preserve">
+    <value>Открыть список задач</value>
+  </data>
+  <data name="WorklistLoading" xml:space="preserve">
+    <value>Загрузка списка задач…</value>
+  </data>
+  <data name="WorklistNoClientShort" xml:space="preserve">
+    <value>Никто не в игре</value>
+  </data>
+  <data name="LabelWorklistMode" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="WorklistModeList" xml:space="preserve">
+    <value>Список готовых задач</value>
+  </data>
+  <data name="WorklistModeLine" xml:space="preserve">
+    <value>Одна строка с числами, список раскрывается по щелчку</value>
+  </data>
+  <data name="ItemMenu" xml:space="preserve">
+    <value>Меню</value>
+  </data>
+  <data name="ItemToolContainer" xml:space="preserve">
+    <value>Контейнер инструментов</value>
+  </data>
+  <data name="MenuTip" xml:space="preserve">
+    <value>Инструменты</value>
+  </data>
+  <data name="LabelMenuTarget" xml:space="preserve">
+    <value>Где открывать инструменты</value>
+  </data>
+  <data name="MenuTargetNewWindow" xml:space="preserve">
+    <value>Новое окно</value>
+  </data>
+  <data name="MenuTargetLastUsed" xml:space="preserve">
+    <value>Последнее использованное окно</value>
+  </data>
+  <data name="MenuTargetContainer" xml:space="preserve">
+    <value>{0} › {1}</value>
+  </data>
+  <data name="MenuTargetGone" xml:space="preserve">
+    <value>Контейнер инструментов, которого больше нет ни в одном макете</value>
+  </data>
+  <data name="LabelContainerName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="LabelContainerMode" xml:space="preserve">
+    <value>Содержит</value>
+  </data>
+  <data name="ContainerModeSingle" xml:space="preserve">
+    <value>Один инструмент</value>
+  </data>
+  <data name="ContainerModeTabs" xml:space="preserve">
+    <value>Вкладки</value>
+  </data>
+  <data name="ContainerSplit" xml:space="preserve">
+    <value>Можно разделить на две части</value>
+  </data>
+  <data name="LabelContainerTools" xml:space="preserve">
+    <value>Инструменты при открытии</value>
+  </data>
+  <data name="ContainerToolCanClose" xml:space="preserve">
+    <value>Можно закрыть</value>
+  </data>
+  <data name="ContainerToolRemove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="ContainerToolAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="LabelToolSettings" xml:space="preserve">
+    <value>{0}: при открытии</value>
+  </data>
+  <data name="LabelOverviewLayout" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="ToolNoSettings" xml:space="preserve">
+    <value>У этого инструмента нечего настраивать.</value>
+  </data>
+  <data name="ContainerNote" xml:space="preserve">
+    <value>Вкладка, которую нельзя закрыть, остаётся в этом контейнере. Инструмент, открытый в другом месте, переносится сюда, когда контейнер появляется. «Обзор» здесь — отдельный: «Обзор» главного окна остаётся на месте.</value>
+  </data>
+  <data name="LabelWidth" xml:space="preserve">
+    <value>Ширина в пикселях</value>
+  </data>
+  <data name="LabelHeight" xml:space="preserve">
+    <value>Высота в пикселях</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>Элемент</value>
+  </data>
+  <data name="LabelColor" xml:space="preserve">
+    <value>Цвет</value>
+  </data>
+  <data name="ResetColor" xml:space="preserve">
+    <value>Использовать цвет EVE</value>
+  </data>
+  <data name="LabelStyle" xml:space="preserve">
+    <value>Стиль</value>
+  </data>
+  <data name="StyleFlat" xml:space="preserve">
+    <value>Плоский</value>
+  </data>
+  <data name="StyleRaised" xml:space="preserve">
+    <value>Выпуклый</value>
+  </data>
+  <data name="StyleInset" xml:space="preserve">
+    <value>Вдавленный</value>
+  </data>
+  <data name="StyleRidge" xml:space="preserve">
+    <value>Рельефный</value>
+  </data>
+  <data name="MenuDockControl" xml:space="preserve">
+    <value>Пристыковать элемент</value>
+  </data>
+  <data name="MenuDockInside" xml:space="preserve">
+    <value>Пристыковать панель внутри</value>
+  </data>
+  <data name="MenuDockBeside" xml:space="preserve">
+    <value>Пристыковать панель рядом с этой</value>
+  </data>
+  <data name="MenuEdgeFull" xml:space="preserve">
+    <value>Целиком</value>
+  </data>
+  <data name="MenuRemoveControl" xml:space="preserve">
+    <value>Убрать элемент</value>
+  </data>
+  <data name="MenuParent" xml:space="preserve">
+    <value>Родитель: {0}</value>
+  </data>
+  <data name="MenuSelect" xml:space="preserve">
+    <value>Выбрать</value>
+  </data>
+  <data name="ParentMonitor" xml:space="preserve">
+    <value>Монитор</value>
+  </data>
+  <data name="ParentGrid" xml:space="preserve">
+    <value>Сетка</value>
+  </data>
+  <data name="ParentCell" xml:space="preserve">
+    <value>Ячейка</value>
+  </data>
+  <data name="ItemSettings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="ItemServerStatus" xml:space="preserve">
+    <value>Состояние сервера EVE</value>
+  </data>
+  <data name="ItemEveTime" xml:space="preserve">
+    <value>Время EVE</value>
+  </data>
+  <data name="ItemLocalTime" xml:space="preserve">
+    <value>Местное время</value>
+  </data>
+  <data name="ItemLocalTimeShort" xml:space="preserve">
+    <value>Мест.</value>
+  </data>
+  <data name="ItemUsersOnline" xml:space="preserve">
+    <value>Персонажи онлайн</value>
+  </data>
+  <data name="NoCells" xml:space="preserve">
+    <value>В этом макете нет мест для клиентов.</value>
+  </data>
+  <data name="AddCharacterHint" xml:space="preserve">
+    <value>Имя персонажа</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="TipRemoveCharacter" xml:space="preserve">
+    <value>Убрать из этой группы</value>
+  </data>
+  <data name="NoticesTitle" xml:space="preserve">
+    <value>Замечания при размещении</value>
+  </data>
+  <data name="NoticeAClient" xml:space="preserve">
+    <value>Клиент</value>
+  </data>
+  <data name="NoticeNotFixed" xml:space="preserve">
+    <value>{0}: окно не в режиме «Фиксированное окно», поэтому его не трогали. Смените режим окна в настройках игры.</value>
+  </data>
+  <data name="NoticeInUse" xml:space="preserve">
+    <value>{0}: это место занято другим персонажем в игре, поэтому окно осталось где было.</value>
+  </data>
+  <data name="NoticeNoPosition" xml:space="preserve">
+    <value>{0}: персонаж в игре, но не входит ни в одну группу. Добавьте его к месту клиента.</value>
+  </data>
+  <data name="NoticeMovedByHand" xml:space="preserve">
+    <value>{0}: окно сдвинуто вручную, поэтому его не трогают, пока вы не нажмёте «Применить».</value>
+  </data>
+  <data name="NoticeDidNotHold" xml:space="preserve">
+    <value>{0}: окно не осталось там, куда его поставили, поэтому его не трогают, пока вы не нажмёте «Применить».</value>
+  </data>
+  <data name="OtherDesktops" xml:space="preserve">
+    <value>Другие компьютеры</value>
+  </data>
+  <data name="OtherDesktopsNote" xml:space="preserve">
+    <value>После переустановки Windows этот компьютер выглядит как новый. Перенесите сюда его старую запись, чтобы сохранить мониторы и группы. Это заменит всё, что задано для этого компьютера.</value>
+  </data>
+  <data name="TakeOver" xml:space="preserve">
+    <value>Это тот самый компьютер</value>
+  </data>
+  <data name="TakeOverConfirm" xml:space="preserve">
+    <value>Нажмите ещё раз, чтобы заменить этот компьютер</value>
+  </data>
+  <data name="LayoutsTitle" xml:space="preserve">
+    <value>Макеты</value>
+  </data>
+  <data name="NewLayout" xml:space="preserve">
+    <value>Создать</value>
+  </data>
+  <data name="DuplicateLayout" xml:space="preserve">
+    <value>Дублировать</value>
+  </data>
+  <data name="DeleteLayout" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="NewLayoutName" xml:space="preserve">
+    <value>Новый макет</value>
+  </data>
+  <data name="CopyOfName" xml:space="preserve">
+    <value>{0} (копия)</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>Щёлкните правой кнопкой мыши что угодно, чтобы пристыковать к нему панель или элемент, разбить его на сетку или перейти к тому, что его содержит. Перетаскивайте линии между частями, чтобы менять их размер.</value>
+  </data>
+  <data name="LabelLayoutName" xml:space="preserve">
+    <value>Название макета</value>
+  </data>
+  <data name="LabelPreviewOn" xml:space="preserve">
+    <value>Предпросмотр</value>
+  </data>
+  <data name="LabelPanelName" xml:space="preserve">
+    <value>Название панели</value>
+  </data>
+  <data name="LabelPanelSize" xml:space="preserve">
+    <value>Размер в пикселях</value>
+  </data>
+  <data name="PanelDefaultName" xml:space="preserve">
+    <value>Панель</value>
+  </data>
+  <data name="CanvasClient" xml:space="preserve">
+    <value>Клиент {0}</value>
+  </data>
+  <data name="CanvasSize" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CanvasEmpty" xml:space="preserve">
+    <value>Пусто</value>
+  </data>
+  <data name="MenuDockHere" xml:space="preserve">
+    <value>Пристыковать панель сюда</value>
+  </data>
+  <data name="MenuEdgeTop" xml:space="preserve">
+    <value>Сверху</value>
+  </data>
+  <data name="MenuEdgeBottom" xml:space="preserve">
+    <value>Снизу</value>
+  </data>
+  <data name="MenuEdgeLeft" xml:space="preserve">
+    <value>Слева</value>
+  </data>
+  <data name="MenuEdgeRight" xml:space="preserve">
+    <value>Справа</value>
+  </data>
+  <data name="MenuSplit" xml:space="preserve">
+    <value>Разбить на сетку</value>
+  </data>
+  <data name="MenuRemoveGrid" xml:space="preserve">
+    <value>Убрать эту сетку</value>
+  </data>
+  <data name="MenuHoldsClient" xml:space="preserve">
+    <value>Содержит игровой клиент</value>
+  </data>
+  <data name="MenuHoldsPanel" xml:space="preserve">
+    <value>Содержит панель</value>
+  </data>
+  <data name="MenuHoldsNothing" xml:space="preserve">
+    <value>Ничего не содержит</value>
+  </data>
+  <data name="MenuSendToBack" xml:space="preserve">
+    <value>На задний план</value>
+  </data>
+  <data name="MenuBringToFront" xml:space="preserve">
+    <value>На передний план</value>
+  </data>
+  <data name="MenuRemovePanel" xml:space="preserve">
+    <value>Убрать панель</value>
+  </data>
+  <data name="WarnSmall" xml:space="preserve">
+    <value>{0}: клиент {1} всего {2} × {3} — маловато для игры.</value>
+  </data>
+  <data name="WarnNoFit" xml:space="preserve">
+    <value>{0}: панели здесь не помещаются, и чему-то не хватает места.</value>
+  </data>
+  <data name="WarnBroken" xml:space="preserve">
+    <value>{0}: часть этого макета нельзя использовать в сохранённом виде. Возможно, он создан более новой версией.</value>
+  </data>
+</root>

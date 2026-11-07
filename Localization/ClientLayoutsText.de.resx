@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve">
+    <value>Monitore</value>
+  </data>
+  <data name="TabLayouts" xml:space="preserve">
+    <value>Layouts</value>
+  </data>
+  <data name="LabelDesktop" xml:space="preserve">
+    <value>Dieser Desktop</value>
+  </data>
+  <data name="TogglePlacement" xml:space="preserve">
+    <value>Clients platzieren und Panels auf diesem Desktop anzeigen</value>
+  </data>
+  <data name="TipPlacement" xml:space="preserve">
+    <value>Aus: Ihre Spiel-Clients bleiben unberührt. EVE Console legt nur Größe und Position eines Clients fest und holt ihn nach vorn, wenn Sie auf ein Panel oder einen anderen Client auf seinem Monitor klicken. Eingaben oder den Fokus gibt sie einem Client nie.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Anwenden</value>
+  </data>
+  <data name="TipApply" xml:space="preserve">
+    <value>Verschiebt Clients und Panels so, wie es hier eingestellt ist – nur auf diesem Desktop. Dabei kommen auch von Hand verschobene Clients an ihren Platz zurück.</value>
+  </data>
+  <data name="PendingNone" xml:space="preserve">
+    <value>Alles ist angewendet.</value>
+  </data>
+  <data name="PendingSome" xml:space="preserve">
+    <value>Ausstehende Änderungen – Monitore: {0}. Nichts wird verschoben, bis Sie auf „Anwenden“ klicken.</value>
+  </data>
+  <data name="StatusApplied" xml:space="preserve">
+    <value>Angewendet – Monitore: {0}.</value>
+  </data>
+  <data name="StatusLayoutInUse" xml:space="preserve">
+    <value>Ein Monitor verwendet dieses Layout, daher kann es nicht gelöscht werden.</value>
+  </data>
+  <data name="StatusFailed" xml:space="preserve">
+    <value>Das hat nicht funktioniert: {0}</value>
+  </data>
+  <data name="MonitorLabel" xml:space="preserve">
+    <value>Monitor {0}: {1} × {2}</value>
+  </data>
+  <data name="MonitorPrimary" xml:space="preserve">
+    <value>{0} (Hauptanzeige)</value>
+  </data>
+  <data name="NoLayout" xml:space="preserve">
+    <value>Keines: diesen Monitor unverändert lassen</value>
+  </data>
+  <data name="LabelLayout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="LabelPanelStart" xml:space="preserve">
+    <value>Panels erscheinen</value>
+  </data>
+  <data name="PanelStartWithConsole" xml:space="preserve">
+    <value>Mit EVE Console</value>
+  </data>
+  <data name="PanelStartWithEve" xml:space="preserve">
+    <value>Wenn EVE auf diesem Monitor startet</value>
+  </data>
+  <data name="FullMonitor" xml:space="preserve">
+    <value>Den ganzen Monitor nutzen, auch den Bereich der Taskleiste</value>
+  </data>
+  <data name="LabelProfile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="LabelProfileName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="ProfileNewName" xml:space="preserve">
+    <value>Neues Profil</value>
+  </data>
+  <data name="ProfileInUse" xml:space="preserve">
+    <value>Aktiv: {0}</value>
+  </data>
+  <data name="TipProfile" xml:space="preserve">
+    <value>Die Zusammenstellung aus Layouts und Charakteren, die dieser Tab zeigt und bearbeitet. Mit „Anwenden“ wechseln Sie zu ihr.</value>
+  </data>
+  <data name="StatusLastProfile" xml:space="preserve">
+    <value>Ein Desktop braucht mindestens ein Profil, daher kann dieses nicht gelöscht werden.</value>
+  </data>
+  <data name="ItemMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
+  <data name="ItemWorklist" xml:space="preserve">
+    <value>Arbeitsliste</value>
+  </data>
+  <data name="LabelMumbleServer" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="LabelMumbleMode" xml:space="preserve">
+    <value>Anzeige als</value>
+  </data>
+  <data name="MumbleModeLine" xml:space="preserve">
+    <value>Eine Zeile, daneben wer spricht</value>
+  </data>
+  <data name="MumbleModeList" xml:space="preserve">
+    <value>Eine Liste des Kanals, Sprechende oben</value>
+  </data>
+  <data name="MumbleChooseServer" xml:space="preserve">
+    <value>Wählen Sie unter „Client-Layouts“ einen Mumble-Server für dieses Element.</value>
+  </data>
+  <data name="MumbleNoServer" xml:space="preserve">
+    <value>Dieser Mumble-Server ist nicht mehr eingerichtet.</value>
+  </data>
+  <data name="MumbleServerState" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="WorklistNoClient" xml:space="preserve">
+    <value>Auf diesem Monitor ist niemand eingeloggt.</value>
+  </data>
+  <data name="WorklistNotInApp" xml:space="preserve">
+    <value>{0} ist kein Charakter in EVE Console.</value>
+  </data>
+  <data name="WorklistNothing" xml:space="preserve">
+    <value>Nichts bereit für {0}.</value>
+  </data>
+  <data name="WorklistOpenTool" xml:space="preserve">
+    <value>Arbeitsliste öffnen</value>
+  </data>
+  <data name="WorklistLoading" xml:space="preserve">
+    <value>Arbeitsliste wird geladen…</value>
+  </data>
+  <data name="WorklistNoClientShort" xml:space="preserve">
+    <value>Niemand eingeloggt</value>
+  </data>
+  <data name="LabelWorklistMode" xml:space="preserve">
+    <value>Anzeige als</value>
+  </data>
+  <data name="WorklistModeList" xml:space="preserve">
+    <value>Die Liste der bereiten Aufgaben</value>
+  </data>
+  <data name="WorklistModeLine" xml:space="preserve">
+    <value>Eine Zeile mit Anzahlen; ein Klick klappt die Liste auf</value>
+  </data>
+  <data name="ItemMenu" xml:space="preserve">
+    <value>Menü</value>
+  </data>
+  <data name="ItemToolContainer" xml:space="preserve">
+    <value>Werkzeug-Container</value>
+  </data>
+  <data name="MenuTip" xml:space="preserve">
+    <value>Werkzeuge</value>
+  </data>
+  <data name="LabelMenuTarget" xml:space="preserve">
+    <value>Öffnet Werkzeuge in</value>
+  </data>
+  <data name="MenuTargetNewWindow" xml:space="preserve">
+    <value>Einem neuen Fenster</value>
+  </data>
+  <data name="MenuTargetLastUsed" xml:space="preserve">
+    <value>Dem zuletzt verwendeten Fenster</value>
+  </data>
+  <data name="MenuTargetContainer" xml:space="preserve">
+    <value>{0} › {1}</value>
+  </data>
+  <data name="MenuTargetGone" xml:space="preserve">
+    <value>Einem Werkzeug-Container, der in keinem Layout mehr ist</value>
+  </data>
+  <data name="LabelContainerName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="LabelContainerMode" xml:space="preserve">
+    <value>Enthält</value>
+  </data>
+  <data name="ContainerModeSingle" xml:space="preserve">
+    <value>Ein Werkzeug</value>
+  </data>
+  <data name="ContainerModeTabs" xml:space="preserve">
+    <value>Tabs</value>
+  </data>
+  <data name="ContainerSplit" xml:space="preserve">
+    <value>Lässt sich zweiteilen</value>
+  </data>
+  <data name="LabelContainerTools" xml:space="preserve">
+    <value>Startet mit</value>
+  </data>
+  <data name="ContainerToolCanClose" xml:space="preserve">
+    <value>Schließbar</value>
+  </data>
+  <data name="ContainerToolRemove" xml:space="preserve">
+    <value>Entfernen</value>
+  </data>
+  <data name="ContainerToolAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="LabelToolSettings" xml:space="preserve">
+    <value>{0} startet mit</value>
+  </data>
+  <data name="LabelOverviewLayout" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="ToolNoSettings" xml:space="preserve">
+    <value>Für dieses Werkzeug gibt es nichts einzustellen.</value>
+  </data>
+  <data name="ContainerNote" xml:space="preserve">
+    <value>Ein Tab, der sich nicht schließen lässt, bleibt in diesem Container. Ein anderswo geöffnetes Werkzeug wird hierher verschoben, sobald der Container erscheint. Eine Übersicht hier ist eine eigene: Die des Hauptfensters bleibt, wo sie ist.</value>
+  </data>
+  <data name="LabelWidth" xml:space="preserve">
+    <value>Breite in Pixeln</value>
+  </data>
+  <data name="LabelHeight" xml:space="preserve">
+    <value>Höhe in Pixeln</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>Element</value>
+  </data>
+  <data name="LabelColor" xml:space="preserve">
+    <value>Farbe</value>
+  </data>
+  <data name="ResetColor" xml:space="preserve">
+    <value>EVE-Farbe verwenden</value>
+  </data>
+  <data name="LabelStyle" xml:space="preserve">
+    <value>Stil</value>
+  </data>
+  <data name="StyleFlat" xml:space="preserve">
+    <value>Flach</value>
+  </data>
+  <data name="StyleRaised" xml:space="preserve">
+    <value>Erhaben</value>
+  </data>
+  <data name="StyleInset" xml:space="preserve">
+    <value>Vertieft</value>
+  </data>
+  <data name="StyleRidge" xml:space="preserve">
+    <value>Grat</value>
+  </data>
+  <data name="MenuDockControl" xml:space="preserve">
+    <value>Element andocken</value>
+  </data>
+  <data name="MenuDockInside" xml:space="preserve">
+    <value>Panel darin andocken</value>
+  </data>
+  <data name="MenuDockBeside" xml:space="preserve">
+    <value>Panel daneben andocken</value>
+  </data>
+  <data name="MenuEdgeFull" xml:space="preserve">
+    <value>Ausfüllen</value>
+  </data>
+  <data name="MenuRemoveControl" xml:space="preserve">
+    <value>Element entfernen</value>
+  </data>
+  <data name="MenuParent" xml:space="preserve">
+    <value>Übergeordnet: {0}</value>
+  </data>
+  <data name="MenuSelect" xml:space="preserve">
+    <value>Auswählen</value>
+  </data>
+  <data name="ParentMonitor" xml:space="preserve">
+    <value>Monitor</value>
+  </data>
+  <data name="ParentGrid" xml:space="preserve">
+    <value>Raster</value>
+  </data>
+  <data name="ParentCell" xml:space="preserve">
+    <value>Zelle</value>
+  </data>
+  <data name="ItemSettings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
+  <data name="ItemServerStatus" xml:space="preserve">
+    <value>EVE-Serverstatus</value>
+  </data>
+  <data name="ItemEveTime" xml:space="preserve">
+    <value>EVE-Zeit</value>
+  </data>
+  <data name="ItemLocalTime" xml:space="preserve">
+    <value>Ortszeit</value>
+  </data>
+  <data name="ItemLocalTimeShort" xml:space="preserve">
+    <value>Lokal</value>
+  </data>
+  <data name="ItemUsersOnline" xml:space="preserve">
+    <value>Charaktere online</value>
+  </data>
+  <data name="NoCells" xml:space="preserve">
+    <value>Dieses Layout hat keine Client-Positionen.</value>
+  </data>
+  <data name="AddCharacterHint" xml:space="preserve">
+    <value>Charaktername</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="TipRemoveCharacter" xml:space="preserve">
+    <value>Aus dieser Gruppe entfernen</value>
+  </data>
+  <data name="NoticesTitle" xml:space="preserve">
+    <value>Was bei der Platzierung auffiel</value>
+  </data>
+  <data name="NoticeAClient" xml:space="preserve">
+    <value>Ein Client</value>
+  </data>
+  <data name="NoticeNotFixed" xml:space="preserve">
+    <value>{0} ist nicht im Fenstermodus „Fixed Window“ und bleibt daher unverändert. Ändern Sie den Fenstermodus in den Einstellungen des Spiels.</value>
+  </data>
+  <data name="NoticeInUse" xml:space="preserve">
+    <value>{0}: Die Position ist von einem anderen eingeloggten Charakter belegt, daher bleibt der Client, wo er ist.</value>
+  </data>
+  <data name="NoticeNoPosition" xml:space="preserve">
+    <value>{0} ist eingeloggt, aber in keiner Gruppe. Fügen Sie den Charakter einer Client-Position hinzu.</value>
+  </data>
+  <data name="NoticeMovedByHand" xml:space="preserve">
+    <value>{0} wurde von Hand verschoben und bleibt daher unverändert, bis Sie auf „Anwenden“ klicken.</value>
+  </data>
+  <data name="NoticeDidNotHold" xml:space="preserve">
+    <value>{0} ist nicht an der zugewiesenen Stelle geblieben und bleibt daher unverändert, bis Sie auf „Anwenden“ klicken.</value>
+  </data>
+  <data name="OtherDesktops" xml:space="preserve">
+    <value>Andere Desktops</value>
+  </data>
+  <data name="OtherDesktopsNote" xml:space="preserve">
+    <value>Nach einer Neuinstallation von Windows sieht dieser Computer wie ein neuer Desktop aus. Übernehmen Sie seinen alten Eintrag, um seine Monitore und Gruppen zu behalten. Das ersetzt, was für diesen Desktop eingestellt ist.</value>
+  </data>
+  <data name="TakeOver" xml:space="preserve">
+    <value>Das ist dieser Desktop</value>
+  </data>
+  <data name="TakeOverConfirm" xml:space="preserve">
+    <value>Erneut klicken, um diesen Desktop zu ersetzen</value>
+  </data>
+  <data name="LayoutsTitle" xml:space="preserve">
+    <value>Layouts</value>
+  </data>
+  <data name="NewLayout" xml:space="preserve">
+    <value>Neu</value>
+  </data>
+  <data name="DuplicateLayout" xml:space="preserve">
+    <value>Duplizieren</value>
+  </data>
+  <data name="DeleteLayout" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="NewLayoutName" xml:space="preserve">
+    <value>Neues Layout</value>
+  </data>
+  <data name="CopyOfName" xml:space="preserve">
+    <value>{0} (Kopie)</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>Klicken Sie mit der rechten Maustaste auf eine beliebige Stelle, um dort ein Panel oder Element anzudocken, sie in ein Raster zu teilen oder zu erreichen, was sie enthält. Ziehen Sie die Trennlinien, um Größen zu ändern.</value>
+  </data>
+  <data name="LabelLayoutName" xml:space="preserve">
+    <value>Layout-Name</value>
+  </data>
+  <data name="LabelPreviewOn" xml:space="preserve">
+    <value>Anzeigen auf</value>
+  </data>
+  <data name="LabelPanelName" xml:space="preserve">
+    <value>Panel-Name</value>
+  </data>
+  <data name="LabelPanelSize" xml:space="preserve">
+    <value>Größe in Pixeln</value>
+  </data>
+  <data name="PanelDefaultName" xml:space="preserve">
+    <value>Panel</value>
+  </data>
+  <data name="CanvasClient" xml:space="preserve">
+    <value>Client {0}</value>
+  </data>
+  <data name="CanvasSize" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CanvasEmpty" xml:space="preserve">
+    <value>Leer</value>
+  </data>
+  <data name="MenuDockHere" xml:space="preserve">
+    <value>Panel hier andocken</value>
+  </data>
+  <data name="MenuEdgeTop" xml:space="preserve">
+    <value>Oben</value>
+  </data>
+  <data name="MenuEdgeBottom" xml:space="preserve">
+    <value>Unten</value>
+  </data>
+  <data name="MenuEdgeLeft" xml:space="preserve">
+    <value>Links</value>
+  </data>
+  <data name="MenuEdgeRight" xml:space="preserve">
+    <value>Rechts</value>
+  </data>
+  <data name="MenuSplit" xml:space="preserve">
+    <value>In ein Raster teilen</value>
+  </data>
+  <data name="MenuRemoveGrid" xml:space="preserve">
+    <value>Dieses Raster entfernen</value>
+  </data>
+  <data name="MenuHoldsClient" xml:space="preserve">
+    <value>Enthält einen Spiel-Client</value>
+  </data>
+  <data name="MenuHoldsPanel" xml:space="preserve">
+    <value>Enthält ein Panel</value>
+  </data>
+  <data name="MenuHoldsNothing" xml:space="preserve">
+    <value>Enthält nichts</value>
+  </data>
+  <data name="MenuSendToBack" xml:space="preserve">
+    <value>In den Hintergrund</value>
+  </data>
+  <data name="MenuBringToFront" xml:space="preserve">
+    <value>In den Vordergrund</value>
+  </data>
+  <data name="MenuRemovePanel" xml:space="preserve">
+    <value>Panel entfernen</value>
+  </data>
+  <data name="WarnSmall" xml:space="preserve">
+    <value>{0}: Client {1} ist nur {2} × {3} groß, klein zum Spielen.</value>
+  </data>
+  <data name="WarnNoFit" xml:space="preserve">
+    <value>{0}: Die Panels hier passen nicht, sodass für etwas kein Platz bleibt.</value>
+  </data>
+  <data name="WarnBroken" xml:space="preserve">
+    <value>{0}: Ein Teil dieses Layouts lässt sich so, wie gespeichert, nicht verwenden. Es stammt vielleicht aus einer neueren Version.</value>
+  </data>
+</root>

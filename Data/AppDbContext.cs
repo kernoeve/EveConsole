@@ -51,6 +51,11 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
     public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
     public DbSet<SavedBattle>                SavedBattles            => Set<SavedBattle>();
+    public DbSet<ClientLayout>               ClientLayouts           => Set<ClientLayout>();
+    public DbSet<ClientLayoutDevice>         ClientLayoutDevices     => Set<ClientLayoutDevice>();
+    public DbSet<ClientLayoutProfile>        ClientLayoutProfiles    => Set<ClientLayoutProfile>();
+    public DbSet<ClientLayoutMonitor>        ClientLayoutMonitors    => Set<ClientLayoutMonitor>();
+    public DbSet<ClientLayoutCharacter>      ClientLayoutCharacters  => Set<ClientLayoutCharacter>();
     public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
@@ -947,6 +952,28 @@ public class AppDbContext : DbContext
         mb.Entity<SavedBattle>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("SavedBattles"); });
+
+        // Client layouts: the shapes, the desktops, their monitors and who runs where. Mirrored by
+        // hand in App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds them only into a
+        // new database.
+        mb.Entity<ClientLayout>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayouts"); });
+        mb.Entity<ClientLayoutDevice>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("ClientLayoutDevices"); });
+        mb.Entity<ClientLayoutProfile>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayoutProfiles"); });
+        mb.Entity<ClientLayoutMonitor>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.DeviceId, x.ProfileId, x.HardwareKey }).IsUnique();
+            e.ToTable("ClientLayoutMonitors"); });
+        mb.Entity<ClientLayoutCharacter>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.MonitorId);
+            e.ToTable("ClientLayoutCharacters"); });
 
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
         // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.

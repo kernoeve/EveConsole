@@ -1,0 +1,421 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve">
+    <value>モニター</value>
+  </data>
+  <data name="TabLayouts" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="LabelDesktop" xml:space="preserve">
+    <value>このデスクトップ</value>
+  </data>
+  <data name="TogglePlacement" xml:space="preserve">
+    <value>このデスクトップでクライアントを配置し、パネルを表示する</value>
+  </data>
+  <data name="TipPlacement" xml:space="preserve">
+    <value>オフの場合、ゲームクライアントには何もしません。EVE Consoleが変更するのはクライアントのサイズと位置だけで、パネルや同じモニター上の別のクライアントをクリックしたときに、そのクライアントを前面に出します。クライアントに入力やフォーカスを与えることはありません。</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>適用</value>
+  </data>
+  <data name="TipApply" xml:space="preserve">
+    <value>ここでの設定に合わせて、このデスクトップでのみクライアントとパネルを移動します。手動で動かされたクライアントも元に戻します。</value>
+  </data>
+  <data name="PendingNone" xml:space="preserve">
+    <value>すべて適用済みです。</value>
+  </data>
+  <data name="PendingSome" xml:space="preserve">
+    <value>未適用の変更があるモニター：{0}。「適用」を押すまで何も移動しません。</value>
+  </data>
+  <data name="StatusApplied" xml:space="preserve">
+    <value>適用したモニター：{0}。</value>
+  </data>
+  <data name="StatusLayoutInUse" xml:space="preserve">
+    <value>このレイアウトはモニターで使用中のため、削除できません。</value>
+  </data>
+  <data name="StatusFailed" xml:space="preserve">
+    <value>失敗しました：{0}</value>
+  </data>
+  <data name="MonitorLabel" xml:space="preserve">
+    <value>モニター{0}：{1} × {2}</value>
+  </data>
+  <data name="MonitorPrimary" xml:space="preserve">
+    <value>{0}（メイン）</value>
+  </data>
+  <data name="NoLayout" xml:space="preserve">
+    <value>なし：このモニターには何もしない</value>
+  </data>
+  <data name="LabelLayout" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="LabelPanelStart" xml:space="preserve">
+    <value>パネルの表示開始</value>
+  </data>
+  <data name="PanelStartWithConsole" xml:space="preserve">
+    <value>EVE Consoleの起動時</value>
+  </data>
+  <data name="PanelStartWithEve" xml:space="preserve">
+    <value>このモニターでEVEが起動したとき</value>
+  </data>
+  <data name="FullMonitor" xml:space="preserve">
+    <value>タスクバーの部分も含めてモニター全体を使う</value>
+  </data>
+  <data name="LabelProfile" xml:space="preserve">
+    <value>プロファイル</value>
+  </data>
+  <data name="LabelProfileName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="ProfileNewName" xml:space="preserve">
+    <value>新しいプロファイル</value>
+  </data>
+  <data name="ProfileInUse" xml:space="preserve">
+    <value>使用中：{0}</value>
+  </data>
+  <data name="TipProfile" xml:space="preserve">
+    <value>このタブで表示・編集するレイアウトとキャラクターのセットです。切り替えるには「適用」を押してください。</value>
+  </data>
+  <data name="StatusLastProfile" xml:space="preserve">
+    <value>デスクトップには少なくとも1つのプロファイルが必要なため、このプロファイルは削除できません。</value>
+  </data>
+  <data name="ItemMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
+  <data name="ItemWorklist" xml:space="preserve">
+    <value>ワークリスト</value>
+  </data>
+  <data name="LabelMumbleServer" xml:space="preserve">
+    <value>サーバー</value>
+  </data>
+  <data name="LabelMumbleMode" xml:space="preserve">
+    <value>表示形式</value>
+  </data>
+  <data name="MumbleModeLine" xml:space="preserve">
+    <value>1行（横に話している人を表示）</value>
+  </data>
+  <data name="MumbleModeList" xml:space="preserve">
+    <value>チャンネルの一覧（話している人を上に表示）</value>
+  </data>
+  <data name="MumbleChooseServer" xml:space="preserve">
+    <value>「クライアントレイアウト」で、このコントロールのMumbleサーバーを選択してください。</value>
+  </data>
+  <data name="MumbleNoServer" xml:space="preserve">
+    <value>このMumbleサーバーはもう定義されていません。</value>
+  </data>
+  <data name="MumbleServerState" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="WorklistNoClient" xml:space="preserve">
+    <value>このモニターにはログイン中のキャラクターがいません。</value>
+  </data>
+  <data name="WorklistNotInApp" xml:space="preserve">
+    <value>{0}はEVE Consoleに登録されたキャラクターではありません。</value>
+  </data>
+  <data name="WorklistNothing" xml:space="preserve">
+    <value>{0}の実行可能なタスクはありません。</value>
+  </data>
+  <data name="WorklistOpenTool" xml:space="preserve">
+    <value>ワークリストを開く</value>
+  </data>
+  <data name="WorklistLoading" xml:space="preserve">
+    <value>ワークリストを読み込み中…</value>
+  </data>
+  <data name="WorklistNoClientShort" xml:space="preserve">
+    <value>ログインなし</value>
+  </data>
+  <data name="LabelWorklistMode" xml:space="preserve">
+    <value>表示形式</value>
+  </data>
+  <data name="WorklistModeList" xml:space="preserve">
+    <value>実行可能なタスクの一覧</value>
+  </data>
+  <data name="WorklistModeLine" xml:space="preserve">
+    <value>件数の1行（クリックで一覧を表示）</value>
+  </data>
+  <data name="ItemMenu" xml:space="preserve">
+    <value>メニュー</value>
+  </data>
+  <data name="ItemToolContainer" xml:space="preserve">
+    <value>ツールコンテナ</value>
+  </data>
+  <data name="MenuTip" xml:space="preserve">
+    <value>ツール</value>
+  </data>
+  <data name="LabelMenuTarget" xml:space="preserve">
+    <value>ツールを開く場所</value>
+  </data>
+  <data name="MenuTargetNewWindow" xml:space="preserve">
+    <value>新しいウィンドウ</value>
+  </data>
+  <data name="MenuTargetLastUsed" xml:space="preserve">
+    <value>最後に使ったウィンドウ</value>
+  </data>
+  <data name="MenuTargetContainer" xml:space="preserve">
+    <value>{0} › {1}</value>
+  </data>
+  <data name="MenuTargetGone" xml:space="preserve">
+    <value>どのレイアウトにもないツールコンテナ</value>
+  </data>
+  <data name="LabelContainerName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="LabelContainerMode" xml:space="preserve">
+    <value>内容</value>
+  </data>
+  <data name="ContainerModeSingle" xml:space="preserve">
+    <value>ツール1つ</value>
+  </data>
+  <data name="ContainerModeTabs" xml:space="preserve">
+    <value>タブ</value>
+  </data>
+  <data name="ContainerSplit" xml:space="preserve">
+    <value>2つに分割できる</value>
+  </data>
+  <data name="LabelContainerTools" xml:space="preserve">
+    <value>開始時のツール</value>
+  </data>
+  <data name="ContainerToolCanClose" xml:space="preserve">
+    <value>閉じられる</value>
+  </data>
+  <data name="ContainerToolRemove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="ContainerToolAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="LabelToolSettings" xml:space="preserve">
+    <value>{0}の開始時の設定</value>
+  </data>
+  <data name="LabelOverviewLayout" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="ToolNoSettings" xml:space="preserve">
+    <value>このツールには設定項目がありません。</value>
+  </data>
+  <data name="ContainerNote" xml:space="preserve">
+    <value>閉じられないタブはこのコンテナに留まります。別の場所で開いているツールは、このコンテナが表示されるとここに移動します。ここの概要はこのコンテナ専用で、メインウィンドウの概要はそのまま残ります。</value>
+  </data>
+  <data name="LabelWidth" xml:space="preserve">
+    <value>幅（ピクセル）</value>
+  </data>
+  <data name="LabelHeight" xml:space="preserve">
+    <value>高さ（ピクセル）</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>コントロール</value>
+  </data>
+  <data name="LabelColor" xml:space="preserve">
+    <value>色</value>
+  </data>
+  <data name="ResetColor" xml:space="preserve">
+    <value>EVEの色を使う</value>
+  </data>
+  <data name="LabelStyle" xml:space="preserve">
+    <value>スタイル</value>
+  </data>
+  <data name="StyleFlat" xml:space="preserve">
+    <value>フラット</value>
+  </data>
+  <data name="StyleRaised" xml:space="preserve">
+    <value>浮き出し</value>
+  </data>
+  <data name="StyleInset" xml:space="preserve">
+    <value>くぼみ</value>
+  </data>
+  <data name="StyleRidge" xml:space="preserve">
+    <value>浮き出し線</value>
+  </data>
+  <data name="MenuDockControl" xml:space="preserve">
+    <value>コントロールをドッキング</value>
+  </data>
+  <data name="MenuDockInside" xml:space="preserve">
+    <value>内側にパネルをドッキング</value>
+  </data>
+  <data name="MenuDockBeside" xml:space="preserve">
+    <value>このパネルの隣にパネルをドッキング</value>
+  </data>
+  <data name="MenuEdgeFull" xml:space="preserve">
+    <value>全体</value>
+  </data>
+  <data name="MenuRemoveControl" xml:space="preserve">
+    <value>コントロールを削除</value>
+  </data>
+  <data name="MenuParent" xml:space="preserve">
+    <value>親：{0}</value>
+  </data>
+  <data name="MenuSelect" xml:space="preserve">
+    <value>選択</value>
+  </data>
+  <data name="ParentMonitor" xml:space="preserve">
+    <value>モニター</value>
+  </data>
+  <data name="ParentGrid" xml:space="preserve">
+    <value>グリッド</value>
+  </data>
+  <data name="ParentCell" xml:space="preserve">
+    <value>セル</value>
+  </data>
+  <data name="ItemSettings" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="ItemServerStatus" xml:space="preserve">
+    <value>EVEサーバーの状態</value>
+  </data>
+  <data name="ItemEveTime" xml:space="preserve">
+    <value>EVE時間</value>
+  </data>
+  <data name="ItemLocalTime" xml:space="preserve">
+    <value>ローカル時間</value>
+  </data>
+  <data name="ItemLocalTimeShort" xml:space="preserve">
+    <value>ローカル</value>
+  </data>
+  <data name="ItemUsersOnline" xml:space="preserve">
+    <value>オンラインのキャラクター</value>
+  </data>
+  <data name="NoCells" xml:space="preserve">
+    <value>このレイアウトにはクライアントの位置がありません。</value>
+  </data>
+  <data name="AddCharacterHint" xml:space="preserve">
+    <value>キャラクター名</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="TipRemoveCharacter" xml:space="preserve">
+    <value>このグループから外す</value>
+  </data>
+  <data name="NoticesTitle" xml:space="preserve">
+    <value>配置時に気付いたこと</value>
+  </data>
+  <data name="NoticeAClient" xml:space="preserve">
+    <value>クライアント</value>
+  </data>
+  <data name="NoticeNotFixed" xml:space="preserve">
+    <value>{0}は「固定ウィンドウ」モードではないため、そのままにしました。ゲームの設定でウィンドウモードを変更してください。</value>
+  </data>
+  <data name="NoticeInUse" xml:space="preserve">
+    <value>{0}：その位置はログイン中の別のキャラクターが使用しているため、今の場所に留めました。</value>
+  </data>
+  <data name="NoticeNoPosition" xml:space="preserve">
+    <value>{0}はログイン中ですが、どのグループにも入っていません。クライアントの位置に追加してください。</value>
+  </data>
+  <data name="NoticeMovedByHand" xml:space="preserve">
+    <value>{0}は手動で移動されたため、「適用」を押すまでそのままにします。</value>
+  </data>
+  <data name="NoticeDidNotHold" xml:space="preserve">
+    <value>{0}は配置した位置に留まらなかったため、「適用」を押すまでそのままにします。</value>
+  </data>
+  <data name="OtherDesktops" xml:space="preserve">
+    <value>他のデスクトップ</value>
+  </data>
+  <data name="OtherDesktopsNote" xml:space="preserve">
+    <value>Windowsを再インストールすると、このコンピューターは新しいデスクトップとして扱われます。以前の項目を引き継ぐと、そのモニターとグループを保持できます。このデスクトップの設定は置き換えられます。</value>
+  </data>
+  <data name="TakeOver" xml:space="preserve">
+    <value>これがそのデスクトップ</value>
+  </data>
+  <data name="TakeOverConfirm" xml:space="preserve">
+    <value>もう一度クリックするとこのデスクトップを置き換えます</value>
+  </data>
+  <data name="LayoutsTitle" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="NewLayout" xml:space="preserve">
+    <value>新規</value>
+  </data>
+  <data name="DuplicateLayout" xml:space="preserve">
+    <value>複製</value>
+  </data>
+  <data name="DeleteLayout" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="NewLayoutName" xml:space="preserve">
+    <value>新しいレイアウト</value>
+  </data>
+  <data name="CopyOfName" xml:space="preserve">
+    <value>{0}のコピー</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>右クリックすると、パネルやコントロールのドッキング、グリッドへの分割、それを含む要素の選択ができます。間の線をドラッグするとサイズを変更できます。</value>
+  </data>
+  <data name="LabelLayoutName" xml:space="preserve">
+    <value>レイアウト名</value>
+  </data>
+  <data name="LabelPreviewOn" xml:space="preserve">
+    <value>表示するモニター</value>
+  </data>
+  <data name="LabelPanelName" xml:space="preserve">
+    <value>パネル名</value>
+  </data>
+  <data name="LabelPanelSize" xml:space="preserve">
+    <value>サイズ（ピクセル）</value>
+  </data>
+  <data name="PanelDefaultName" xml:space="preserve">
+    <value>パネル</value>
+  </data>
+  <data name="CanvasClient" xml:space="preserve">
+    <value>クライアント{0}</value>
+  </data>
+  <data name="CanvasSize" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CanvasEmpty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="MenuDockHere" xml:space="preserve">
+    <value>ここにパネルをドッキング</value>
+  </data>
+  <data name="MenuEdgeTop" xml:space="preserve">
+    <value>上</value>
+  </data>
+  <data name="MenuEdgeBottom" xml:space="preserve">
+    <value>下</value>
+  </data>
+  <data name="MenuEdgeLeft" xml:space="preserve">
+    <value>左</value>
+  </data>
+  <data name="MenuEdgeRight" xml:space="preserve">
+    <value>右</value>
+  </data>
+  <data name="MenuSplit" xml:space="preserve">
+    <value>グリッドに分割</value>
+  </data>
+  <data name="MenuRemoveGrid" xml:space="preserve">
+    <value>このグリッドを削除</value>
+  </data>
+  <data name="MenuHoldsClient" xml:space="preserve">
+    <value>ゲームクライアントを配置</value>
+  </data>
+  <data name="MenuHoldsPanel" xml:space="preserve">
+    <value>パネルを配置</value>
+  </data>
+  <data name="MenuHoldsNothing" xml:space="preserve">
+    <value>何も配置しない</value>
+  </data>
+  <data name="MenuSendToBack" xml:space="preserve">
+    <value>最背面へ移動</value>
+  </data>
+  <data name="MenuBringToFront" xml:space="preserve">
+    <value>最前面へ移動</value>
+  </data>
+  <data name="MenuRemovePanel" xml:space="preserve">
+    <value>パネルを削除</value>
+  </data>
+  <data name="WarnSmall" xml:space="preserve">
+    <value>{0}：クライアント{1}は{2} × {3}しかなく、プレイするには小さすぎます。</value>
+  </data>
+  <data name="WarnNoFit" xml:space="preserve">
+    <value>{0}：ここのパネルが収まらないため、場所のないものがあります。</value>
+  </data>
+  <data name="WarnBroken" xml:space="preserve">
+    <value>{0}：このレイアウトの一部は保存されたとおりには使えません。新しいバージョンで作成された可能性があります。</value>
+  </data>
+</root>

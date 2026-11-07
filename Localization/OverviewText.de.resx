@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ Layout anpassen</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Layout</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Layout {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Layout:</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Name:</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>Legt ein neues Layout an, zunächst als Kopie dieses Layouts.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>Das gespeicherte Layout, das diese Übersicht zeigt.</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Aktivitätsübersicht</value>
   </data>

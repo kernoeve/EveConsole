@@ -100,6 +100,11 @@ public class App : Application
         // the file is being replaced.
         SplashWindow? splash = null;
 
+        // First, so it sees the whole start. Writes only to its own file in the temp folder.
+        StartupTrace.Begin();
+        StartupTrace.Mark("startup begins");
+
+
         // The UI scale is this machine's own and lives in config.json, so it can be known before
         // the first window — the splash included — rather than applied to windows already open.
         UiScaleService.Load();
@@ -127,7 +132,8 @@ public class App : Application
         // Progress relay — IProgress<T> always posts back to the UI thread.
         var progress = new Progress<(double Pct, string Status)>(r =>
             splash?.ReportProgress(r.Pct, r.Status));
-        var p = (IProgress<(double, string)>)progress;
+        // Each step the splash names is also a mark in the startup trace, when that's on.
+        var p = StartupTrace.Marking(progress);
 
         // ⚠️ Relocation before shrink: asking for both should shrink the database at its new home,
         // not the copy being left behind. Like the shrink, it runs here because nothing has opened
@@ -583,7 +589,9 @@ public class App : Application
                 _mumbleOverlay?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().StopAsync());
                 await Task.WhenAll(tasks);
+                Services.GetRequiredService<Views.ClientPanelHost>().CloseAll();
 
                 // ⚠️ After the pollers, never before. Releasing first would invite another
                 // client to start polling while this one is still finishing a pass, which is
@@ -2107,6 +2115,62 @@ public class App : Application
                         "Definition" TEXT    NOT NULL DEFAULT '',
                         "UpdatedAt"  TEXT    NOT NULL
                     )
+                    """);
+
+                // ── Client layouts ──────────────────────────────────────────────────
+                // Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayouts" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "Definition" TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutDevices" (
+                        "Id"             TEXT    NOT NULL PRIMARY KEY,
+                        "Name"           TEXT    NOT NULL DEFAULT '',
+                        "PlacementOn"    INTEGER NOT NULL DEFAULT 0,
+                        "Applied"        TEXT    NOT NULL DEFAULT '',
+                        "SeenCharacters" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutProfiles" (
+                        "Id"       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId" TEXT    NOT NULL DEFAULT '',
+                        "Name"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId"    TEXT    NOT NULL DEFAULT '',
+                        "ProfileId"   INTEGER NOT NULL DEFAULT 0,
+                        "HardwareKey" TEXT    NOT NULL DEFAULT '',
+                        "LayoutId"    INTEGER NULL,
+                        "FullMonitor" INTEGER NOT NULL DEFAULT 0,
+                        "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "ClientLayoutMonitors" ADD COLUMN "ProfileId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_ProfileId_HardwareKey"
+                        ON "ClientLayoutMonitors" ("DeviceId", "ProfileId", "HardwareKey")
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
+                        "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "MonitorId"     INTEGER NOT NULL DEFAULT 0,
+                        "AreaId"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterName" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_ClientLayoutCharacters_MonitorId"
+                        ON "ClientLayoutCharacters" ("MonitorId")
                     """);
 
                 // ── Hauls ticked off at a loop's stops ──────────────────────────────
@@ -4420,6 +4484,7 @@ public class App : Application
         // window nobody is going to open.
         if (AppRuntime.IsHeadless)
         {
+            AppStartup.Settled();   // no window to wait for
             StartBackgroundServices();
             _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
 
@@ -4462,9 +4527,18 @@ public class App : Application
         }
 
         p.Report((84, ShellText.SplashPreparingTools));
+        StartupTrace.Step("emote and avatar services");
         EveConsole.Views.EmoteView.Service = Services.GetRequiredService<EveConsole.Services.Jabber.EmoteService>();
         AvatarService.Shared = Services.GetRequiredService<AvatarService>();
+        StartupTrace.Step("main view model: resolving the services it takes");
+        // Tracing only: each service it takes, made one at a time and timed, so the trace names the
+        // ones that are slow to make. They are singletons, so this makes nothing that wouldn't be.
+        foreach (var needed in typeof(MainWindowViewModel).GetConstructors().MaxBy(c => c.GetParameters().Length)!.GetParameters())
+            StartupTrace.TimeServices(Services, needed.ParameterType);
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
+        StartupTrace.Step("client panel host");
+        Services.GetRequiredService<Views.ClientPanelHost>().UseMainScreen(mainVm);
+        StartupTrace.Step("tools prepared");
 
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
@@ -4477,7 +4551,10 @@ public class App : Application
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
         // that is already usable — the old behaviour, but as a fallback rather than the norm.
         p.Report((94, ShellText.SplashLoadingOverview));
-        await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
+        var overviewLoad = mainVm.OverviewVm.EnsureLoadedAsync();
+        await Task.WhenAny(overviewLoad, Task.Delay(TimeSpan.FromSeconds(20)));
+        StartupTrace.Mark(overviewLoad.IsCompleted ? "Overview loaded" : "Overview still loading after 20 s: the window opens anyway");
+        _ = overviewLoad.ContinueWith(_ => StartupTrace.Mark("Overview first load finished"), TaskScheduler.Default);
 
         p.Report((99, ShellText.SplashOpening));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
@@ -4488,11 +4565,18 @@ public class App : Application
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
             p.Report((100, ShellText.SplashReady));
-            mainWindow.Show();
+            StartupTrace.Timed("main window shown", mainWindow.Show);
 
             await Task.Delay(250); // brief pause so the 100 % state is visible
             startupDone = true;
             splash?.Close();
+            StartupTrace.Mark("splash closed");
+
+            // Started; what could wait for that goes now. The sound library takes seconds to start,
+            // off the UI thread, and started any earlier it slowed the start itself: loading its
+            // native libraries held up the UI thread loading its own.
+            AppStartup.Settled();
+            VlcRuntime.WarmUp();
         }
 
         // ── Background services ────────────────────────────────────────────────
@@ -4591,6 +4675,15 @@ public class App : Application
             // is off it is not started at all, which also drops its half-second heartbeat.
             if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+
+            // Reads this machine's windows, so every client has its own. Does nothing until the
+            // user turns placement on for this desktop, and nothing at all where it can't work.
+            if (EveConsole.Services.ClientLayouts.ClientLayoutService.IsSupported)
+                Start("client layouts", () =>
+                {
+                    Services.GetRequiredService<Views.ClientPanelHost>();
+                    Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().Start();
+                });
         }
 
         // ── Only the client holding the lease runs these ───────────────────────
@@ -4745,7 +4838,7 @@ public class App : Application
 
         void Start(string name, Action start)
         {
-            try { start(); }
+            try { StartupTrace.Timed("start " + name, start); }
             catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
         }
 
@@ -4964,6 +5057,9 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutStore>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutService>();
+        services.AddSingleton<Views.ClientPanelHost>();
         // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
         // its alerts and its worklist tasks read colonies through.
         services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();

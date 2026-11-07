@@ -34,21 +34,8 @@ public sealed class OpenAiTtsService : IDisposable
         Timeout = TimeSpan.FromSeconds(90),
     };
 
-    // LibVLC instance — created once; null if native libs are unavailable.
-    private static readonly LibVLC? _vlc;
-
-    static OpenAiTtsService()
-    {
-        try
-        {
-            VlcRuntime.Initialize();
-            _vlc = new LibVLC(enableDebugLogs: false);
-        }
-        catch
-        {
-            _vlc = null;
-        }
-    }
+    // The app's one LibVLC (see VlcRuntime.Shared); null if native libs are unavailable.
+    private static LibVLC? _vlc => VlcRuntime.Shared;
 
     public static bool IsVlcAvailable => _vlc is not null;
 
