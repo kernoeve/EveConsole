@@ -595,6 +595,32 @@ static string? Throws(Action act)
           saved.Count == 2 && saved[0] == new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret"), string.Join(";", saved));
     Check("new bookmarks: a room by its bare address, not joining unless it says", saved[1] == new XmppBookmark("quiet@rooms.example", "", "", false, ""));
     Check("new bookmarks: none kept at all", XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq")).Count == 0);
+
+    // Written back: what is read again is what was meant, and nothing else in the older list is lost.
+    var room = new XmppBookmark("ops@rooms.example", "Operations", "Pilot", true, "secret");
+    var publish = XmppClient.NewBookmarkPublish(room, withOptions: true);
+    var asRead = XmppClient.ParseNewBookmarks(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.PubSub + "pubsub",
+        new XElement(XmppClient.PubSub + "items", publish.Element(XmppClient.PubSub + "publish")!.Elements()))));
+    Check("bookmark write: reads back as it was meant", asRead.SequenceEqual([room]), string.Join(";", asRead));
+    var options = publish.Element(XmppClient.PubSub + "publish-options")?.Descendants(XmppClient.DataForm + "field")
+        .ToDictionary(f => (string?)f.Attribute("var") ?? "", f => f.Element(XmppClient.DataForm + "value")?.Value ?? "");
+    Check("bookmark write: kept, and readable only by this account", options is not null && options["pubsub#persist_items"] == "true" && options["pubsub#access_model"] == "whitelist");
+    Check("bookmark write: without options for a server that will not take them", XmppClient.NewBookmarkPublish(room, withOptions: false).Element(XmppClient.PubSub + "publish-options") is null);
+    Check("bookmark write: nothing written that is not known",
+          XmppClient.NewBookmarkItem(new XmppBookmark("q@rooms.example", "", "", false, "")).ToString(SaveOptions.DisableFormatting).Contains("<nick") is false);
+
+    var storage = new XElement(XmppClient.Bookmarks + "storage",
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "ops@rooms.example"), new XAttribute("autojoin", "true"), new XElement(XmppClient.Bookmarks + "nick", "Old")),
+        new XElement(XmppClient.Bookmarks + "conference", new XAttribute("jid", "other@rooms.example"), new XAttribute("name", "Someone else's")),
+        new XElement(XmppClient.Bookmarks + "url", new XAttribute("url", "https://example.test"), new XAttribute("name", "a link")));
+    var left = XmppClient.WithOldBookmark(storage, room with { AutoJoin = false });
+    var rooms = left.Elements(XmppClient.Bookmarks + "conference").ToList();
+    Check("old bookmarks: the room changed in place, once",
+          rooms.Count(c => (string?)c.Attribute("jid") == "ops@rooms.example") == 1
+          && rooms.Single(c => (string?)c.Attribute("jid") == "ops@rooms.example") is var ops && (string?)ops.Attribute("autojoin") == "false" && ops.Element(XmppClient.Bookmarks + "nick")?.Value == "Pilot");
+    Check("old bookmarks: other rooms and links are kept", rooms.Any(c => (string?)c.Attribute("jid") == "other@rooms.example") && left.Element(XmppClient.Bookmarks + "url") is not null);
+    Check("old bookmarks: the list read is not changed itself", storage.Elements(XmppClient.Bookmarks + "conference").First().Element(XmppClient.Bookmarks + "nick")?.Value == "Old");
+    Check("old bookmarks: none yet, one now", XmppClient.WithOldBookmark(null, room).Elements(XmppClient.Bookmarks + "conference").Count() == 1);
 }
 
 // ── Deletes: every form they come in ──────────────────────────────────────

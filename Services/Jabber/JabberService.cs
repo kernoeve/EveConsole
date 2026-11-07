@@ -97,6 +97,9 @@ public sealed class JabberSession(JabberAccount account)
     /// <summary>The server says it keeps an archive of this account's direct messages. Null until asked.</summary>
     public bool? HasArchive { get; internal set; }
 
+    /// <summary>The server copies its two stores of saved rooms into each other, so writing the newer one is enough.</summary>
+    internal bool BookmarksInStep { get; set; }
+
     internal XmppClient? Client { get; set; }
 
     /// <summary>Where this connection's messages go to be saved.</summary>
@@ -652,7 +655,8 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         // Rooms saved on the server join the account's list the first time they are seen: the newer way first, which
         // wins where a room is saved both ways, as it is the one a newer client keeps up to date.
         // ⚠️ By address, once each: a list saved with a room in it twice would otherwise break the login every time.
-        var saved = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct));
+        session.BookmarksInStep = (await client.FeaturesOfAsync(client.Self.Bare, ct)).Contains(XmppClient.BookmarksInStepFeature);
+        var saved = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct)).ToList();
         foreach (var bookmark in saved.DistinctBy(b => b.Jid))
         {
             if (await db.JabberRooms.AnyAsync(r => r.AccountId == session.Account.Id && r.RoomJid == bookmark.Jid, ct)) continue;
@@ -673,6 +677,49 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         // Together: each first asks whether its room keeps an archive, and one slow room should not hold up the rest.
         await Task.WhenAll(rooms.Where(r => r.AutoJoin && !r.Left).Select(room => JoinCoreAsync(session, client, room, ct)));
+
+        // Both ways: a room joined here before the server was told is saved there too, as other clients do. ⚠️ Only what
+        // is missing. A saved room's own setting is left as it is: here cannot tell an old one from another client's choice.
+        var savedThere = saved.Select(b => b.Jid).ToHashSet(StringComparer.Ordinal);
+        foreach (var room in rooms.Where(r => r.AutoJoin && !r.Left && !savedThere.Contains(r.RoomJid)))
+            await SaveBookmarkAsync(session, client, room.RoomJid, autoJoin: true, ct);
+    }
+
+    /// <summary>
+    /// Saves a room in the server's bookmarks, so the person's other clients have it as well, as theirs do for this one.
+    /// Leaving turns its autojoin off rather than removing it, as the protocol asks. What the server already has for it
+    /// (its name, nickname, password) is kept unless this has its own.
+    ///
+    /// <para>The newer store always, and the older one too unless the server copies between them, so an older client such
+    /// as Pidgin sees it as well. A failure here is logged and changes nothing else: the room is joined or left either way.</para>
+    /// </summary>
+    private async Task SaveBookmarkAsync(JabberSession session, XmppClient client, string roomJid, bool autoJoin, CancellationToken ct)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var id = session.Account.Id;
+            var room = await db.JabberRooms.AsNoTracking().FirstOrDefaultAsync(r => r.AccountId == id && r.RoomJid == roomJid, ct);
+            var there = (await client.GetNewBookmarksAsync(ct)).Concat(await client.GetBookmarksAsync(ct)).FirstOrDefault(b => b.Jid == roomJid);
+            var password = room is null ? "" : await Task.Run(() => AppConfig.GetServicePassword(RoomPasswordReference(room.Id)) ?? "", ct);
+
+            var bookmark = new XmppBookmark(
+                roomJid,
+                room is { Name.Length: > 0 } ? room.Name : there?.Name ?? "",
+                room is { Nickname.Length: > 0 } ? room.Nickname : there?.Nick ?? "",
+                autoJoin,
+                password.Length > 0 ? password : there?.Password ?? "");
+
+            var newer = true;
+            try { await client.PublishNewBookmarkAsync(bookmark, ct); }
+            catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { newer = false; }
+
+            if (!newer || !session.BookmarksInStep) await client.SaveOldBookmarkAsync(bookmark, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            errors.Log(nameof(JabberService), "save a room in the server's bookmarks", e);
+        }
     }
 
     private async Task JoinCoreAsync(JabberSession session, XmppClient client, JabberRoom room, CancellationToken ct)
@@ -1321,7 +1368,11 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         if (room is null) return;
 
         session.Locked(s => s.RoomMap[roomJid] = new JabberRoomState(room));
-        if (session.Client is { } client) await JoinCoreAsync(session, client, room, ct);
+        if (session.Client is { } client)
+        {
+            await JoinCoreAsync(session, client, room, ct);
+            _ = SaveBookmarkAsync(session, client, roomJid, autoJoin: true, ct);
+        }
 
         RoomTypesChanged();
         SessionChanged?.Invoke(session);
@@ -1341,6 +1392,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         var state = session.Locked(s => { s.RoomMap.Remove(roomJid, out var r); return r; });
         if (state is not null && session.Client is { } client && state.Joined)
             await client.LeaveRoomAsync(roomJid, state.Nick, ct);
+        if (session.Client is { } connected) _ = SaveBookmarkAsync(session, connected, roomJid, autoJoin: false, ct);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 

@@ -965,6 +965,77 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         catch (Exception e) when (e is XmppException { Failure: XmppFailure.Protocol } or TimeoutException) { return []; }
     }
 
+    public const string BookmarksInStepFeature = "urn:xmpp:bookmarks:1#compat";
+
+    /// <summary>A room as the newer store keeps it: an item under the room's address. Only what is known is written.</summary>
+    public static XElement NewBookmarkItem(XmppBookmark b) =>
+        new(PubSub + "item", new XAttribute("id", b.Jid),
+            new XElement(Bookmarks2 + "conference",
+                b.Name.Length > 0 ? new XAttribute("name", b.Name) : null,
+                new XAttribute("autojoin", b.AutoJoin ? "true" : "false"),
+                b.Nick.Length > 0 ? new XElement(Bookmarks2 + "nick", b.Nick) : null,
+                b.Password.Length > 0 ? new XElement(Bookmarks2 + "password", b.Password) : null));
+
+    /// <summary>
+    /// The publish for one room. ⚠️ With the options the protocol asks for, so the list is kept and only this account
+    /// can read it: rooms' passwords are in it. A server that will not take options is asked without them.
+    /// </summary>
+    public static XElement NewBookmarkPublish(XmppBookmark b, bool withOptions)
+    {
+        var pubsub = new XElement(PubSub + "pubsub",
+            new XElement(PubSub + "publish", new XAttribute("node", Bookmarks2.NamespaceName), NewBookmarkItem(b)));
+        if (withOptions)
+            pubsub.Add(new XElement(PubSub + "publish-options", new XElement(DataForm + "x", new XAttribute("type", "submit"),
+                Field("FORM_TYPE", "http://jabber.org/protocol/pubsub#publish-options", hidden: true),
+                Field("pubsub#persist_items", "true"),
+                Field("pubsub#max_items", "max"),
+                Field("pubsub#send_last_published_item", "never"),
+                Field("pubsub#access_model", "whitelist"))));
+        return pubsub;
+
+        static XElement Field(string name, string value, bool hidden = false) =>
+            new(DataForm + "field", new XAttribute("var", name), hidden ? new XAttribute("type", "hidden") : null, new XElement(DataForm + "value", value));
+    }
+
+    /// <summary>A room as the older private store keeps it.</summary>
+    public static XElement OldBookmarkElement(XmppBookmark b) =>
+        new(Bookmarks + "conference", new XAttribute("jid", b.Jid),
+            b.Name.Length > 0 ? new XAttribute("name", b.Name) : null,
+            new XAttribute("autojoin", b.AutoJoin ? "true" : "false"),
+            b.Nick.Length > 0 ? new XElement(Bookmarks + "nick", b.Nick) : null,
+            b.Password.Length > 0 ? new XElement(Bookmarks + "password", b.Password) : null);
+
+    /// <summary>
+    /// The older store with one room put in or changed. ⚠️ The store is one list written whole, so everything else in it
+    /// (other rooms, saved links, what other clients added) is carried over as it was.
+    /// </summary>
+    public static XElement WithOldBookmark(XElement? storage, XmppBookmark b)
+    {
+        var copy = storage is null ? new XElement(Bookmarks + "storage") : new XElement(storage);
+        copy.Elements(Bookmarks + "conference").Where(c => XmppAddress.Parse((string?)c.Attribute("jid")).Bare == b.Jid).Remove();
+        copy.Add(OldBookmarkElement(b));
+        return copy;
+    }
+
+    public async Task PublishNewBookmarkAsync(XmppBookmark b, CancellationToken ct)
+    {
+        try { await QueryAsync("set", null, NewBookmarkPublish(b, withOptions: true), ct); }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { await QueryAsync("set", null, NewBookmarkPublish(b, withOptions: false), ct); }
+    }
+
+    public async Task SaveOldBookmarkAsync(XmppBookmark b, CancellationToken ct)
+    {
+        XElement? storage;
+        try
+        {
+            var answer = await QueryAsync("get", null, new XElement(Private + "query", new XElement(Bookmarks + "storage")), ct);
+            storage = answer.Element(Private + "query")?.Element(Bookmarks + "storage");
+        }
+        catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { storage = null; }
+
+        await QueryAsync("set", null, new XElement(Private + "query", WithOldBookmark(storage, b)), ct);
+    }
+
     public static List<XmppBookmark> ParseNewBookmarks(XElement answer) =>
         [.. (answer.Element(PubSub + "pubsub")?.Element(PubSub + "items")?.Elements(PubSub + "item") ?? [])
             .Select(item => (Jid: XmppAddress.Parse((string?)item.Attribute("id")).Bare, Room: item.Element(Bookmarks2 + "conference")))
