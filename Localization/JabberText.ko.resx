@@ -357,4 +357,13 @@
   <data name="EmoteFileType" xml:space="preserve">
     <value>Pidgin 스마일리 테마</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>삭제된 메시지입니다.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>운영자가 삭제했습니다.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>운영자가 삭제했습니다: {0}</value>
+  </data>
 </root>

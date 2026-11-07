@@ -1805,5 +1805,14 @@ public static class PostgresSchema
         """
         ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "IsMention" BOOLEAN NOT NULL DEFAULT FALSE
         """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "StanzaId" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "Deleted" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "DeletedReason" TEXT NOT NULL DEFAULT ''
+        """,
     ];
 }

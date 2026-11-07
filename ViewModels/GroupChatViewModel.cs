@@ -111,17 +111,27 @@ public sealed class GroupChatRowVm : ReactiveObject
 /// <summary>One message in a room or on a Mumble server. Both read the same on the screen.</summary>
 public sealed partial class GroupLineVm
 {
-    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention, EmoteSet? emotes = null)
+    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention, EmoteSet? emotes = null,
+        int deleted = JabberDeleted.No, string deletedReason = "")
     {
         Id = id;
-        Emotes = emotes ?? EmoteSet.None;
+        IsDeleted = deleted != JabberDeleted.No;
+        Emotes = IsDeleted ? EmoteSet.None : emotes ?? EmoteSet.None;
         Sender = sender;
-        Body = body;
+        Body = IsDeleted ? DeletedText(deleted, deletedReason) : body;
         When = when;
         Channel = channel;
-        IsMention = isMention;
-        Links = [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+        IsMention = isMention && !IsDeleted;
+        Links = IsDeleted ? [] : [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
     }
+
+    /// <summary>A deleted message keeps its place, and says so, as other clients show it.</summary>
+    public bool IsDeleted { get; }
+
+    public static string DeletedText(int deleted, string reason) =>
+        deleted != JabberDeleted.ByModerator ? JabberText.MessageDeleted
+        : reason.Length > 0 ? string.Format(CultureInfo.CurrentCulture, JabberText.MessageRemovedReason, reason)
+        : JabberText.MessageRemoved;
 
     public long Id { get; }
     public string Sender { get; }
@@ -653,7 +663,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private GroupLineVm ToLine(JabberStoredMessage m) => new(
         m.Id, m.Sender, m.Body,
         ChatTime.Of(m.SentAt),
-        "", m.IsMention, EmotesOf(m.AccountId));
+        "", m.IsMention, EmotesOf(m.AccountId), m.Deleted, m.DeletedReason);
 
     private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
 

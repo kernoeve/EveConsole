@@ -357,4 +357,13 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   <data name="EmoteFileType" xml:space="preserve">
     <value>Tema de emoticonos de Pidgin</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Este mensaje se eliminó.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Eliminado por un moderador.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Eliminado por un moderador: {0}</value>
+  </data>
 </root>

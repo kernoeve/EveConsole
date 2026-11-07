@@ -34,7 +34,7 @@ public sealed class JabberDmSource : IDmSource
 
     private static DmKey KeyOf(int account, string peer) => new(Name, account, peer);
 
-    private static DmLine ToLine(JabberStoredMessage m) => new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing);
+    private static DmLine ToLine(JabberStoredMessage m) => new(m.Id, m.Sender, m.Body, m.SentAt, m.IsOutgoing, m.Deleted, m.DeletedReason);
 
     public async Task<IReadOnlyList<DmSummary>> ConversationsAsync(CancellationToken ct = default)
     {

@@ -26,6 +26,17 @@ public sealed record XmppMessage(
 
     /// <summary>Its date has already been judged, on arrival: it was held back until a room's catch-up finished.</summary>
     public bool DateJudged { get; init; }
+
+    /// <summary>The room's own id for it, from the room itself. What a moderator's removal names.</summary>
+    public string RoomStanzaId { get; init; } = "";
+
+    /// <summary>Not a message but a delete of one: the id it names. Blank for an ordinary message.</summary>
+    public string RetractId { get; init; } = "";
+
+    /// <summary>The delete is a room moderator's, not the sender's own.</summary>
+    public bool RetractByModerator { get; init; }
+
+    public string RetractReason { get; init; } = "";
 }
 
 /// <summary>How far an archive query got.</summary>
@@ -101,6 +112,11 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     public static readonly XNamespace Receipts  = "urn:xmpp:receipts";
     public static readonly XNamespace Correct   = "urn:xmpp:message-correct:0";
     public static readonly XNamespace DirectInvite = "jabber:x:conference";
+    public static readonly XNamespace Retract   = "urn:xmpp:message-retract:1";
+    public static readonly XNamespace OldRetract = "urn:xmpp:message-retract:0";
+    public static readonly XNamespace Moderate  = "urn:xmpp:message-moderate:1";
+    public static readonly XNamespace OldModerate = "urn:xmpp:message-moderate:0";
+    public static readonly XNamespace Fasten    = "urn:xmpp:fasten:0";
 
     private static readonly TimeSpan IqTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(60);
@@ -296,8 +312,38 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             return;
         }
 
-        if (message.Body.Length > 0) MessageReceived?.Invoke(message);
+        // A delete usually carries words for clients that cannot do one, but need not.
+        if (message.Body.Length > 0 || message.RetractId.Length > 0) MessageReceived?.Invoke(message);
     }
+
+    /// <summary>
+    /// What a delete names, if this is one: the sender's own (XEP-0424), or a room moderator's (XEP-0425), in the current
+    /// form or the older one still in use, which wrapped it in apply-to. Who may delete what is decided where it is saved.
+    /// </summary>
+    public static (string Id, bool Moderated, string Reason)? RetractionIn(XElement inner)
+    {
+        if (inner.Element(Retract + "retract") is { } retract && (string?)retract.Attribute("id") is { Length: > 0 } id)
+            return (id, retract.Element(Moderate + "moderated") is not null,
+                    retract.Element(Retract + "reason")?.Value ?? retract.Element(Moderate + "reason")?.Value ?? "");
+
+        if (inner.Element(Fasten + "apply-to") is { } apply && (string?)apply.Attribute("id") is { Length: > 0 } old)
+        {
+            if (apply.Element(OldModerate + "moderated") is { } moderated && moderated.Element(OldRetract + "retract") is not null)
+                return (old, true, moderated.Element(OldModerate + "reason")?.Value ?? "");
+            if (apply.Element(OldRetract + "retract") is not null) return (old, false, "");
+        }
+        return null;
+    }
+
+    private static XmppMessage WithRetraction(XmppMessage message, XElement inner) =>
+        RetractionIn(inner) is (string id, bool moderated, string reason)
+            ? message with { RetractId = id, RetractByModerator = moderated, RetractReason = reason }
+            : message;
+
+    /// <summary>The id a room gave a message, only when the room itself says so: anyone in it could put one in.</summary>
+    private static string RoomStanzaIdIn(XElement inner, string room) =>
+        (string?)inner.Elements(StanzaId + "stanza-id")
+            .FirstOrDefault(e => XmppAddress.Parse((string?)e.Attribute("by")).Bare == room)?.Attribute("id") ?? "";
 
     /// <summary>An invitation, in either of the forms servers and clients send, or null.</summary>
     public static XmppInvite? ParseInvite(XElement stanza)
@@ -357,10 +403,13 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
                  && DateTimeOffset.TryParseExact((string?)old.Attribute("stamp"), "yyyyMMdd'T'HH:mm:ss", CultureInfo.InvariantCulture,
                      DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var oldStamp)) sent = oldStamp;
 
-        return new XmppMessage(
-            XmppAddress.Parse((string?)inner.Attribute("from")),
+        var from = XmppAddress.Parse((string?)inner.Attribute("from"));
+        var type = (string?)inner.Attribute("type") ?? "normal";
+
+        return WithRetraction(new XmppMessage(
+            from,
             XmppAddress.Parse((string?)inner.Attribute("to")),
-            (string?)inner.Attribute("type") ?? "normal",
+            type,
             inner.Element(Client + "body")?.Value ?? "",
             inner.Element(Client + "subject")?.Value ?? "",
             (string?)inner.Attribute("id") ?? "",
@@ -370,7 +419,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         {
             IsCorrection = inner.Element(Correct + "replace") is not null,
             ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
-        };
+            RoomStanzaId = type == "groupchat" ? RoomStanzaIdIn(inner, from.Bare) : "",
+        }, inner);
     }
 
     private void HandlePresence(XElement stanza)
@@ -673,7 +723,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (type is "groupchat" or "error") return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        if (body.Length == 0) return null;
+        if (body.Length == 0 && RetractionIn(inner) is null) return null;
 
         var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
 
@@ -686,7 +736,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (DateTimeOffset.TryParse((string?)forwarded.Element(Delay + "delay")?.Attribute("stamp"), CultureInfo.InvariantCulture,
                 DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var stamp)) sent = stamp;
 
-        return new XmppMessage(
+        return WithRetraction(new XmppMessage(
             sender,
             XmppAddress.Parse((string?)inner.Attribute("to")),
             type, body,
@@ -699,7 +749,10 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             ArchiveId = (string?)result.Attribute("id") ?? "",
             IsCorrection = inner.Element(Correct + "replace") is not null,
             ReplaceId = (string?)inner.Element(Correct + "replace")?.Attribute("id") ?? "",
-        };
+
+            // A room's archive is the room speaking, and its id for each message is the one its moderators name.
+            RoomStanzaId = type == "groupchat" ? (string?)result.Attribute("id") ?? "" : "",
+        }, inner);
     }
 
     /// <summary>
@@ -727,7 +780,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (sender.Bare != room) return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        return body.Length == 0 ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
+        return body.Length == 0 && RetractionIn(inner) is null ? null : ArchivedMessage(result, forwarded, inner, sender, "groupchat", body, mine: false);
     }
 
     /// <summary>Whether this account's server keeps an archive to ask.</summary>

@@ -8,6 +8,7 @@
              Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
+    <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
     <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
@@ -196,7 +197,7 @@
                       <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
                     </StackPanel>
-                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">

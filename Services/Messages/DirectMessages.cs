@@ -44,7 +44,8 @@ public sealed record DmSummary(DmKey Key, string Name, string Server, string Ser
     public bool IsContact { get; init; }
 }
 
-public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing);
+/// <param name="Deleted">See <see cref="EveConsole.Models.JabberDeleted"/>: deleted messages keep their place.</param>
+public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "");
 
 /// <summary>Someone who can be written to right now, to start a conversation with.</summary>
 public sealed record DmPerson(DmKey Key, string Name, string Server, string Service)

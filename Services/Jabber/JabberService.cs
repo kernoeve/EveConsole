@@ -889,6 +889,13 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // A delete is never a message of its own, whether or not it finds what it names.
+        if (message.RetractId.Length > 0)
+        {
+            await ApplyRetractionAsync(db, row, message, isRoom: room is not null, ct);
+            return null;
+        }
+
         if (message.IsCorrection)
         {
             if (await ApplyCorrectionAsync(db, row, message.ReplaceId, ct)) return null;
@@ -977,6 +984,58 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     private static readonly TimeSpan ArchiveSameMoment = TimeSpan.FromMinutes(2);
 
+    private const int LongestDeleteReason = 300;
+
+    /// <summary>
+    /// Deletes what a retraction names, keeping its place. ⚠️ Only from whoever may: in a room, someone's own message by
+    /// the room's id for it, or anyone's when the room itself says a moderator removed it; with a person, only their
+    /// own, or this account's from another of its clients. Anything else is left as it is, and nothing is said.
+    /// </summary>
+    private async Task ApplyRetractionAsync(AppDbContext db, JabberStoredMessage row, XmppMessage message, bool isRoom, CancellationToken ct)
+    {
+        var id = message.RetractId;
+        var recent = db.JabberMessages
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation)
+            .OrderByDescending(m => m.Id).Take(2000);
+
+        JabberStoredMessage? target;
+        if (isRoom)
+        {
+            var byRoom = message.From.Resource.Length == 0;
+            if (message.RetractByModerator != byRoom) return;
+
+            target = await recent.FirstOrDefaultAsync(m => m.StanzaId == id, ct)
+                  ?? (byRoom ? null : await recent.FirstOrDefaultAsync(m => m.MessageId == id && m.Sender == row.Sender, ct));
+            if (target is null || !byRoom && target.Sender != row.Sender) return;
+        }
+        else
+        {
+            if (message.RetractByModerator) return;
+            target = await recent.FirstOrDefaultAsync(m => m.MessageId == id && m.Sender == row.Sender, ct);
+            if (target is null) return;
+        }
+
+        var reason = message.RetractByModerator ? message.RetractReason.Trim() : "";
+        if (target.Deleted != JabberDeleted.No && target.Body.Length == 0) return;
+
+        target.Body = "";
+        target.Deleted = message.RetractByModerator ? JabberDeleted.ByModerator : JabberDeleted.BySender;
+        target.DeletedReason = reason.Length > LongestDeleteReason ? reason[..LongestDeleteReason] : reason;
+        var wasUnread = !target.IsRead;
+        target.IsRead = true;
+        target.IsAlert = false;
+        target.IsMention = false;
+        await db.SaveChangesAsync(ct);
+
+        ConversationEdited?.Invoke(row.AccountId, row.Conversation);
+        Tell($"edit|{row.AccountId}|{row.Conversation}");
+        if (wasUnread)
+        {
+            UnreadChanged?.Invoke();
+            Tell("unread");
+        }
+    }
+
     /// <summary>
     /// A correction changes that person's latest message in the conversation, which is the only one the
     /// protocol lets them correct. False when nothing of theirs is saved, and it stands as a new message.
@@ -1040,6 +1099,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             IsMention    = isRoom && !outgoing && NamesThem(account, roomNick, message.Body),
             DedupeKey    = DedupeKey(conversation, sender, message),
             MessageId    = message.Id,
+            StanzaId     = isRoom ? message.RoomStanzaId : "",
         };
     }
 

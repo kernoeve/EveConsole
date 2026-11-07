@@ -2804,6 +2804,9 @@ public class App : Application
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "IsMention" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "StanzaId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "DeletedReason" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""");

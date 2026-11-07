@@ -433,4 +433,13 @@ Trust it only if this matches what the server's admin published. From then on, o
   <data name="EmoteFileType" xml:space="preserve">
     <value>Pidgin smiley theme</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>This message was deleted.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Removed by a moderator.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Removed by a moderator: {0}</value>
+  </data>
 </root>

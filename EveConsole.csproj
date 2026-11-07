@@ -19,6 +19,11 @@
     <AssemblyMetadata Include="OfficialRelease" Value="true" />
   </ItemGroup>
 
+  <!-- The Jabber check sets up a session's rooms as a connection would, to test what a room may and may not do. -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="JabberCheck" />
+  </ItemGroup>
+
   <!--
     ⚠️ Are we BUILDING FOR Windows? Not the same question as $(OS), which describes the
     machine running MSBuild. Cross-compiling a Linux artifact from a Windows box leaves

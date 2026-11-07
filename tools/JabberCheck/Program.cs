@@ -580,6 +580,45 @@ static string? Throws(Action act)
     catch (InvalidDataException e) { return e.Message; }
 }
 
+// ── Deletes: every form they come in ──────────────────────────────────────
+{
+    var self = XmppAddress.Parse("me@example/here");
+    XElement Stanza(string from, string type, params object[] inside) =>
+        new(XmppClient.Client + "message", new XAttribute("from", from), new XAttribute("to", "me@example/here"), new XAttribute("type", type),
+            new XAttribute("id", "r1"), inside);
+
+    var own = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m1")),
+        new XElement(XmppClient.Client + "body", "/me retracted a previous message, but it's unsupported by your client.")), self);
+    Check("delete: the sender's own, as sent now", own is { RetractId: "m1", RetractByModerator: false }, own?.ToString() ?? "null");
+
+    var bare = XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Retract + "retract", new XAttribute("id", "m2"))), self);
+    Check("delete: with no words for older clients still counts", bare is { RetractId: "m2", Body.Length: 0 });
+
+    var moderated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Retract + "retract", new XAttribute("id", "s1"),
+            new XElement(XmppClient.Moderate + "moderated", new XAttribute("by", "ops@rooms.example/boss")),
+            new XElement(XmppClient.Retract + "reason", "off topic"))), self);
+    Check("delete: a moderator's, with the reason", moderated is { RetractId: "s1", RetractByModerator: true, RetractReason: "off topic" }, moderated?.ToString() ?? "null");
+
+    var older = XmppClient.ParseMessage(Stanza("them@example/x", "chat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "m3"), new XElement(XmppClient.OldRetract + "retract"))), self);
+    Check("delete: the older form, the sender's", older is { RetractId: "m3", RetractByModerator: false });
+
+    var olderModerated = XmppClient.ParseMessage(Stanza("ops@rooms.example", "groupchat",
+        new XElement(XmppClient.Fasten + "apply-to", new XAttribute("id", "s2"),
+            new XElement(XmppClient.OldModerate + "moderated", new XAttribute("by", "ops@rooms.example/boss"),
+                new XElement(XmppClient.OldRetract + "retract"), new XElement(XmppClient.OldModerate + "reason", "spam")))), self);
+    Check("delete: the older form, a moderator's", olderModerated is { RetractId: "s2", RetractByModerator: true, RetractReason: "spam" });
+
+    Check("delete: an ordinary message is none", XmppClient.ParseMessage(Stanza("them@example/x", "chat", new XElement(XmppClient.Client + "body", "hi")), self) is { RetractId.Length: 0 });
+
+    var roomSaid = XmppClient.ParseMessage(Stanza("ops@rooms.example/someone", "groupchat", new XElement(XmppClient.Client + "body", "hi"),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "someone@example"), new XAttribute("id", "forged")),
+        new XElement(XmppClient.StanzaId + "stanza-id", new XAttribute("by", "ops@rooms.example"), new XAttribute("id", "real"))), self);
+    Check("delete: a room message's id is the one the room gave, not one put in by its sender", roomSaid is { RoomStanzaId: "real" }, roomSaid?.RoomStanzaId ?? "null");
+}
+
 // ── Running a room: who may do what, and what is sent for it ──────────────
 {
     XmppOccupant P(string nick, string role, string affiliation, string jid = "", bool self = false) =>
@@ -767,6 +806,68 @@ try
 
         await using var cleanup = factory.CreateDbContext();
         await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
+
+    // Deletes: honoured only from whoever may, and the message keeps its place.
+    {
+        XmppMessage Said(string who, string id, string body) =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+        XmppMessage Deletes(string who, string id) => Said(who, "d" + id, "") with { RetractId = id };
+
+        await service.StoreAsync(session, Said("del@example", "k1", "keep this"));
+        await service.StoreAsync(session, Said("del@example", "k2", "regret this"));
+        var mine = new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("del@example"), "chat", "my words", "", "k3", null, "", true);
+        await service.StoreAsync(session, mine);
+        await service.StoreAsync(session, Deletes("del@example", "k3"));
+        var editedBefore = edited.Count;
+        Check("delete: is not a message of its own", await service.StoreAsync(session, Deletes("del@example", "k2")) is null);
+        await service.StoreAsync(session, Deletes("someone@example", "k1"));
+        await service.StoreAsync(session, Said("someone@example", "dk", "") with { RetractId = "k1", RetractByModerator = true });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == "del@example").OrderBy(m => m.Id).ToListAsync();
+            Check("delete: they cannot delete what this account said to them", rows.Count == 3 && rows[2] is { Body: "my words", Deleted: JabberDeleted.No, IsOutgoing: true });
+            await service.StoreAsync(session, mine with { Id = "dk3", Body = "", RetractId = "k3" });
+            await using (var again = factory.CreateDbContext())
+                Check("delete: but this account can, from its other client", await again.JabberMessages.AnyAsync(m => m.MessageId == "k3" && m.Deleted == JabberDeleted.BySender && m.Body == ""));
+            Check("delete: the sender's own goes, keeping its place", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender, IsRead: true, IsAlert: false }, string.Join(";", rows.Select(r => $"{r.Body}/{r.Deleted}")));
+            Check("delete: nobody else can delete theirs, nor claim to moderate a person", rows[0] is { Body: "keep this", Deleted: JabberDeleted.No });
+            Check("delete: the screen is told", edited.Count == editedBefore + 2, $"{edited.Count - editedBefore}");
+        }
+
+        const string Ops = "ops@rooms.example";
+        session.Locked(s => s.RoomMap[Ops] = new JabberRoomState(new JabberRoom { AccountId = 1, RoomJid = Ops }) { Nick = "me", HistoryDone = true });
+        XmppMessage InRoom(string nick, string id, string body, string stanza = "") =>
+            new XmppMessage(XmppAddress.Parse(nick.Length > 0 ? $"{Ops}/{nick}" : Ops), XmppAddress.Parse("me@example"), "groupchat", body, "", id, null, stanza, false) { RoomStanzaId = stanza };
+
+        await service.StoreAsync(session, InRoom("alice", "a1", "first", "S1"));
+        await service.StoreAsync(session, InRoom("alice", "a2", "second", "S2"));
+        await service.StoreAsync(session, InRoom("bob", "b1", "third", "S3"));
+
+        await service.StoreAsync(session, InRoom("bob", "x1", "") with { RetractId = "S1" });
+        await service.StoreAsync(session, InRoom("alice", "x2", "") with { RetractId = "S2" });
+        await service.StoreAsync(session, InRoom("mallory", "x3", "") with { RetractId = "S3", RetractByModerator = true });
+        await service.StoreAsync(session, InRoom("", "x4", "") with { RetractId = "S3", RetractByModerator = true, RetractReason = "off topic" });
+        await service.StoreAsync(session, InRoom("", "x5", "") with { RetractId = "S1" });
+
+        await using (var db = factory.CreateDbContext())
+        {
+            var rows = await db.JabberMessages.Where(m => m.Conversation == Ops).OrderBy(m => m.Id).ToListAsync();
+            string Shown(JabberStoredMessage m) => $"{m.Sender}:{m.Body}:{m.Deleted}:{m.DeletedReason}";
+            Check("room delete: only their own, by the room's id for it", rows.Count == 3 && rows[1] is { Body: "", Deleted: JabberDeleted.BySender } && rows[0].Body == "first",
+                  string.Join(" | ", rows.Select(Shown)));
+            Check("room delete: a moderator's only from the room itself, with the reason",
+                  rows[2] is { Body: "", Deleted: JabberDeleted.ByModerator, DeletedReason: "off topic" }, Shown(rows[2]));
+            Check("room delete: the room deleting as if it were the sender changes nothing", rows[0] is { Deleted: JabberDeleted.No });
+            await db.JabberMessages.Where(m => m.Conversation == Ops || m.Conversation == "del@example").ExecuteDeleteAsync();
+        }
+        session.Locked(s => s.RoomMap.Remove(Ops));
+
+        Check("deleted line: says so, keeps nothing that was said",
+              new GroupLineVm(1, "a", "", "", "", true, null, JabberDeleted.ByModerator, "spam") is { IsDeleted: true, IsMention: false, Links.Count: 0 } line
+              && line.Body == string.Format(JabberText.MessageRemovedReason, "spam")
+              && new GroupLineVm(2, "a", "", "", "", false, null, JabberDeleted.BySender).Body == JabberText.MessageDeleted);
     }
 
     // Rules a hostile member or a strange clock could otherwise get round.

@@ -41,15 +41,16 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender, Emot
     public DmLine Line       => line;
 
     /// <summary>The emotes of the server the conversation is on. None for one that is not on Jabber.</summary>
-    public EmoteSet Emotes   => emotes;
+    public EmoteSet Emotes   => IsDeleted ? EmoteSet.None : emotes;
     public long   Id         => line.Id;
     public string Sender     { get; } = shownSender;
-    public string Body       => line.Body;
+    public bool   IsDeleted  => line.Deleted != EveConsole.Models.JabberDeleted.No;
+    public string Body       => IsDeleted ? GroupLineVm.DeletedText(line.Deleted, line.DeletedReason) : line.Body;
     public bool   IsOutgoing => line.IsOutgoing;
     public string When       { get; } = ChatTime.Of(line.SentAt);
 
     /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
-    public IReadOnlyList<string> Links { get; } = [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+    public IReadOnlyList<string> Links { get; } = line.Deleted != EveConsole.Models.JabberDeleted.No ? [] : [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
     public bool HasLinks => Links.Count > 0;
 
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
