@@ -1,4 +1,4 @@
-﻿using EveConsole.Models;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Data;
@@ -97,6 +97,8 @@ public class AppDbContext : DbContext
     public DbSet<MumbleDirectMessage>     MumbleDirectMessages       => Set<MumbleDirectMessage>();
     public DbSet<JabberRoom>            JabberRooms              => Set<JabberRoom>();
     public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
+    public DbSet<JabberLiveState>       JabberLiveStates         => Set<JabberLiveState>();
+    public DbSet<JabberCommand>         JabberCommands           => Set<JabberCommand>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
@@ -1225,6 +1227,14 @@ public class AppDbContext : DbContext
             e.HasIndex(x => new { x.AccountId, x.Conversation, x.Id }).HasDatabaseName("IX_JabberMessages_Conversation");
             e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_JabberMessages_Unread");
             e.ToTable("JabberMessages"); });
+
+        mb.Entity<JabberLiveState>(e => {
+            e.HasKey(x => new { x.AccountId, x.Part });
+            e.ToTable("JabberLiveStates"); });
+
+        mb.Entity<JabberCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("JabberCommands"); });
 
         mb.Entity<CharMercenaryDen>(e => {
             e.HasKey(x => new { x.CharacterId, x.DenId });

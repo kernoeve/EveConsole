@@ -119,7 +119,7 @@
     <value>アプリ起動時に接続</value>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>それ以外は指示したときのみ接続します。どちらの場合も、切断するまでは接続が切れると自動で再接続します。</value>
+    <value>それ以外は指示したときのみ接続します。どちらの場合も、切断するまでは接続が切れると自動で再接続します。この設定はこのPCにのみ適用されます。</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>保存</value>
@@ -323,7 +323,7 @@
     <value>スピーカーのエコーを除去</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>スピーカーで聴くときに、相手の声がマイクから戻らないようにします。ヘッドセットでは不要です。</value>
+    <value>スピーカーで聴くときに、相手の声がマイクから戻らないようにします。ヘッドセットでは不要です。オンの間は、部屋の響きを学習するためマイクが開いたままになります。話しているとき以外は何も送信されません。</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>音声起動レベル</value>
@@ -363,5 +363,14 @@
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>説明</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>音声ライブラリを読み込めなかったため、このコンピューターではエコーキャンセルを実行できません。音声通話は引き続き使えます。</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>チャンネル</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}、{1}: このチャンネルで聴取オフでない人 {2} 名</value>
   </data>
 </root>

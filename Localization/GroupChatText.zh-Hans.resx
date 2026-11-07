@@ -11,7 +11,7 @@
     <value>在 {0} 上添加房间</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>房间和服务器聊天显示在此处。请先在 Jabber 或 Mumble 工具中设置服务器。</value>
+    <value>房间和服务器聊天显示在此处。请先在设置的 Jabber 或 Mumble 选项卡中设置服务器。</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>请在左侧选择房间或服务器。</value>

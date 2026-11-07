@@ -96,15 +96,11 @@ public sealed class MumbleRowVm : ReactiveObject
 
 public sealed record MumbleKeyChoice(int Key, string Label);
 
-/// <summary>Somebody on the always-on-top list.</summary>
-/// <summary>Someone in the talking list: talking now, or recently enough to still be there.</summary>
-public sealed class MumbleOverlayLine(int serverId, uint session, string name, string server, bool isSelf) : ReactiveObject
+/// <summary>Someone on the always-on-top list: this client, or someone talking now or recently enough to still be there.</summary>
+public sealed class MumbleOverlayLine(uint session, string name) : ReactiveObject
 {
-    public int ServerId => serverId;
     public uint Session => session;
     public string Name => name;
-    public string Server => server;
-    public bool IsSelf => isSelf;
 
     /// <summary>When they last had something to say, for how long they stay listed.</summary>
     public DateTime LastTalked { get; set; } = DateTime.UtcNow;
@@ -127,11 +123,54 @@ public sealed class MumbleOverlayLine(int serverId, uint session, string name, s
     public bool TalksShout => _mode == MumbleTalk.Shout;
     public bool TalksDirect => _mode == MumbleTalk.Direct;
 
-    /// <summary>This client's own line always says whether it is muted or deafened, either way. Anyone else's only when they are.</summary>
-    public bool ShowMute => isSelf || _isMuted;
-    public bool ShowDeaf => isSelf || _isDeaf;
-    public bool IsMuted { get => _isMuted; set { this.RaiseAndSetIfChanged(ref _isMuted, value); this.RaisePropertyChanged(nameof(ShowMute)); } }
-    public bool IsDeaf { get => _isDeaf; set { this.RaiseAndSetIfChanged(ref _isDeaf, value); this.RaisePropertyChanged(nameof(ShowDeaf)); } }
+    public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
+    public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+}
+
+/// <summary>One server on the always-on-top list: this client on it, and under that whoever is talking there.</summary>
+public sealed class MumbleOverlayColumn(MumbleViewModel owner, MumbleSession session, MumbleOverlayLine me) : ReactiveObject
+{
+    /// <summary>For the sound settings, which are the same whichever server's gear opened them.</summary>
+    public MumbleViewModel Owner => owner;
+    public MumbleSession Session => session;
+    public int ServerId => session.Server.Id;
+    public string Server => session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host;
+    public MumbleOverlayLine Me => me;
+
+    public ObservableCollection<MumbleOverlayLine> Talking { get; } = [];
+
+    /// <summary>This server's part of the channel tree, kept up only while its popup is open: a server can have hundreds on it.</summary>
+    public ObservableCollection<MumbleRowVm> Rows { get; } = [];
+    public bool IsTreeOpen => _treesOpen > 0;
+    private int _treesOpen;
+
+    /// <summary>⚠️ Counted: the toolbar's and the always-on-top window's can be open together, over these same rows.</summary>
+    public void TreeOpened() => _treesOpen++;
+
+    /// <summary>Whether that was the last one open.</summary>
+    public bool TreeClosed() => --_treesOpen <= 0;
+
+    private string _channel = "";
+    private int _listening;
+
+    /// <summary>The channel this client is in.</summary>
+    public string Channel
+    {
+        get => _channel;
+        set { this.RaiseAndSetIfChanged(ref _channel, value); this.RaisePropertyChanged(nameof(StatusTip)); }
+    }
+
+    /// <summary>How many in that channel are not deafened, this client among them if it is not.</summary>
+    public int Listening
+    {
+        get => _listening;
+        set { this.RaiseAndSetIfChanged(ref _listening, value); this.RaisePropertyChanged(nameof(StatusTip)); }
+    }
+
+    public string StatusTip => string.Format(CultureInfo.CurrentCulture, MumbleText.StatusTip, Server, Channel, Listening);
+
+    public required ReactiveCommand<Unit, Unit> ToggleMuteCommand { get; init; }
+    public required ReactiveCommand<Unit, Unit> ToggleDeafenCommand { get; init; }
 }
 
 /// <summary>
@@ -301,6 +340,8 @@ public sealed class MumbleViewModel : ReactiveObject
 
         var chosen = SelectedRow?.Identity;
         Sync(wanted);
+        foreach (var column in OverlayColumns)
+            if (column.IsTreeOpen) FillTree(column);
 
         // ⚠️ Someone moving gets a new row, at their new depth. Whoever was selected stays selected.
         if (chosen is not null && (SelectedRow is null || !Rows.Contains(SelectedRow)) && Rows.FirstOrDefault(r => r.Identity == chosen) is { } again)
@@ -513,7 +554,7 @@ public sealed class MumbleViewModel : ReactiveObject
             ServerDetail = session.State is MumbleState.Failed ? "" : session.Detail;
             IsConnected  = session.State == MumbleState.Connected;
             CanConnect   = session.State is MumbleState.Offline or MumbleState.Failed;
-            IsMuted      = server.SelfMuted;
+            IsMuted      = server.Silent;
             IsDeafened   = server.SelfDeafened;
 
             HasCertificateProblem = session.Problem == MumbleProblem.Certificate && session.CertificateFingerprint.Length > 0;
@@ -981,13 +1022,16 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private async Task ToggleMuteAsync()
     {
-        if (Session is { } session) await Task.Run(() => _service.SetMuteAsync(session, !session.Server.SelfMuted, false));
+        if (Session is { } session) await ToggleMuteOf(session);
     }
 
     private async Task ToggleDeafenAsync()
     {
-        if (Session is { } session) await Task.Run(() => _service.SetMuteAsync(session, !session.Server.SelfDeafened, !session.Server.SelfDeafened));
+        if (Session is { } session) await ToggleDeafenOf(session);
     }
+
+    private Task ToggleMuteOf(MumbleSession session) => Task.Run(() => _service.ToggleMuteAsync(session));
+    private Task ToggleDeafenOf(MumbleSession session) => Task.Run(() => _service.ToggleDeafenAsync(session));
 
     /// <summary>Set by the view: asks before something that cannot be undone.</summary>
     public Func<string, Task<bool>>? Confirm { get; set; }
@@ -1091,7 +1135,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
         _editId = s.Id;
         EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
-        EditAutoConnect = s.AutoConnect;
+        EditAutoConnect = MumbleService.AutoConnectsHere(s.Id);
         EditVoiceActivated = s.VoiceActivated;
         EditWhisper = ChoiceFor(s.WhisperKey);
         EditShout   = ChoiceFor(s.ShoutKey);
@@ -1110,7 +1154,7 @@ public sealed class MumbleViewModel : ReactiveObject
         {
             Id = _editId, Name = EditName.Trim(), Host = EditHost.Trim(),
             Port = EditPort is > 0 and < 65536 ? EditPort : 64738,
-            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), AutoConnect = EditAutoConnect, VoiceActivated = EditVoiceActivated,
+            Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), VoiceActivated = EditVoiceActivated,
             WhisperKey = EditWhisper?.Key ?? 0, ShoutKey = EditShout?.Key ?? 0,
             SelfMuted = old?.SelfMuted ?? false, SelfDeafened = old?.SelfDeafened ?? false, LastChannel = old?.LastChannel ?? "",
             TrustedCertificate = old is not null && old.Host == EditHost.Trim() && old.Port == EditPort ? old.TrustedCertificate : "",
@@ -1124,6 +1168,7 @@ public sealed class MumbleViewModel : ReactiveObject
         }
 
         var session = await _service.SaveServerAsync(server, EditPassword.Length > 0 ? EditPassword : null);
+        MumbleService.SetAutoConnectHere(session.Server.Id, EditAutoConnect);
         EditPassword = "";
         StatusText = "";
         IsEditing = false;
@@ -1184,17 +1229,14 @@ public sealed class MumbleViewModel : ReactiveObject
         }
     }
 
-    private void LoadDevices()
+    /// <summary>A fresh reading of the devices. ⚠️ In place: the settings and the overlay's popup can both be showing these lists.</summary>
+    public void LoadDevices()
     {
         _loadingDevices = true;
         try
         {
-            InputDevices.Clear();
-            OutputDevices.Clear();
-            InputDevices.Add(MumbleText.SystemDefault);
-            OutputDevices.Add(MumbleText.SystemDefault);
-            foreach (var d in MumbleAudioDevices.InputNames()) InputDevices.Add(d);
-            foreach (var d in MumbleAudioDevices.OutputNames()) OutputDevices.Add(d);
+            ListSync.Sync(InputDevices, [MumbleText.SystemDefault, .. MumbleAudioDevices.InputNames()], d => d);
+            ListSync.Sync(OutputDevices, [MumbleText.SystemDefault, .. MumbleAudioDevices.OutputNames()], d => d);
 
             InputChoice  = _service.InputDevice.Length > 0 && InputDevices.Contains(_service.InputDevice) ? _service.InputDevice : MumbleText.SystemDefault;
             OutputChoice = _service.OutputDevice.Length > 0 && OutputDevices.Contains(_service.OutputDevice) ? _service.OutputDevice : MumbleText.SystemDefault;
@@ -1229,6 +1271,9 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private bool _echoCancel, _noiseReduce;
     private double _voiceLevel;
+
+    /// <summary>Whether echo cancelling can run on this machine: its native library may not load.</summary>
+    public bool EchoCancelAvailable => MumbleEchoCanceller.Available;
 
     public bool EchoCancel
     {
@@ -1303,7 +1348,7 @@ public sealed class MumbleViewModel : ReactiveObject
         }
     }
 
-    public ObservableCollection<MumbleOverlayLine> Talkers { get; } = [];
+    public ObservableCollection<MumbleOverlayColumn> OverlayColumns { get; } = [];
 
     /// <summary>The standard client's own default for how long someone stays in its talking list.</summary>
     private static readonly TimeSpan KeptAfterTalking = TimeSpan.FromSeconds(10);
@@ -1323,57 +1368,96 @@ public sealed class MumbleViewModel : ReactiveObject
         var talking = _service.Talkers();
         var when = DateTime.UtcNow;
 
-        // This client itself, first, on every server it is connected to, whether talking or not.
+        // A column for each server this client is connected to. A reconnection is a new session, and so a new column.
         var mine = _service.Sessions
             .Where(s => s.State == MumbleState.Connected && s.Client?.Me is not null)
             .Select(s => (Session: s, Me: s.Client!.Me!))
             .ToList();
 
-        var first = 0;
+        for (var i = OverlayColumns.Count - 1; i >= 0; i--)
+            if (!mine.Any(m => m.Session == OverlayColumns[i].Session && m.Me.Session == OverlayColumns[i].Me.Session))
+                OverlayColumns.RemoveAt(i);
+
+        var next = 0;
         foreach (var (session, me) in mine)
         {
-            var line = Talkers.FirstOrDefault(l => l.ServerId == session.Server.Id && l.Session == me.Session);
-            if (line is null)
-                Talkers.Insert(first, new MumbleOverlayLine(session.Server.Id, me.Session, me.Name,
-                    session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host, isSelf: true));
-            first++;
+            if (!OverlayColumns.Any(c => c.Session == session))
+                OverlayColumns.Insert(next, NewColumn(session, new MumbleOverlayLine(me.Session, me.Name)));
+            next++;
         }
 
-        foreach (var t in talking)
+        foreach (var column in OverlayColumns)
         {
-            var line = Talkers.FirstOrDefault(l => l.ServerId == t.ServerId && l.Session == t.Session);
-            if (line is null) Talkers.Add(line = new MumbleOverlayLine(t.ServerId, t.Session, t.Name, t.Server, t.IsSelf));
-            line.LastTalked = when;
-            line.Mode = t.Mode;
-        }
+            var here = talking.Where(t => t.ServerId == column.ServerId).ToList();
 
-        for (var i = Talkers.Count - 1; i >= 0; i--)
-        {
-            var line = Talkers[i];
-            var state = _service.StateOf(line.ServerId, line.Session);
+            foreach (var t in here)
+            {
+                if (t.Session == column.Me.Session) continue;
+
+                var line = column.Talking.FirstOrDefault(l => l.Session == t.Session);
+                if (line is null) column.Talking.Add(line = new MumbleOverlayLine(t.Session, t.Name));
+                line.LastTalked = when;
+            }
+
+            ShowState(column, column.Me, here);
+
+            if (column.Session.Client is { Me: { } self } client)
+            {
+                var name = client.Channels.FirstOrDefault(c => c.Id == self.ChannelId)?.Name ?? "";
+                column.Channel = name.Length > 0 ? name : MumbleText.RootChannel;
+                column.Listening = MumbleService.ListeningIn(client.Users, self.ChannelId);
+            }
 
             // Gone from the server, or quiet for long enough. Until then they stay, as in the standard client's list.
-            // Except this client, which stays for as long as it is connected.
-            var stays = line.IsSelf
-                ? mine.Any(m => m.Session.Server.Id == line.ServerId && m.Me.Session == line.Session)
-                : when - line.LastTalked <= KeptAfterTalking;
-            if (state is null || !stays) { Talkers.RemoveAt(i); continue; }
-
-            line.IsMuted = state.Value.Muted;
-            line.IsDeaf = state.Value.Deaf;
-            if (talking.Any(t => t.ServerId == line.ServerId && t.Session == line.Session)) continue;
-
-            line.Mode = MumbleTalk.None;
+            for (var i = column.Talking.Count - 1; i >= 0; i--)
+            {
+                var line = column.Talking[i];
+                if (when - line.LastTalked > KeptAfterTalking || !ShowState(column, line, here)) column.Talking.RemoveAt(i);
+            }
         }
 
-        NobodyTalking = Talkers.Count == 0;
+        NobodyTalking = OverlayColumns.Count == 0;
 
-        var shape = string.Join('|', Talkers.Select(l => $"{l.ServerId}:{l.Session}:{l.ShowMute}:{l.ShowDeaf}"));
+        var shape = string.Join('|', OverlayColumns.Select(c =>
+            $"{c.ServerId}:{c.Me.Session}>" + string.Join(',', c.Talking.Select(l => $"{l.Session}:{l.IsMuted}:{l.IsDeaf}"))));
         if (shape != _overlayShape)
         {
             _overlayShape = shape;
             OverlayChanged?.Invoke();
         }
+    }
+
+    /// <summary>Whether they are still there, having brought their line up to date if so.</summary>
+    private bool ShowState(MumbleOverlayColumn column, MumbleOverlayLine line, List<MumbleTalker> talking)
+    {
+        if (_service.StateOf(column.ServerId, line.Session) is not { } state) return false;
+
+        line.IsMuted = state.Muted;
+        line.IsDeaf = state.Deaf;
+        line.Mode = talking.FirstOrDefault(t => t.Session == line.Session)?.Mode ?? MumbleTalk.None;
+        return true;
+    }
+
+    private MumbleOverlayColumn NewColumn(MumbleSession session, MumbleOverlayLine me)
+    {
+        var column = new MumbleOverlayColumn(this, session, me)
+        {
+            ToggleMuteCommand   = ReactiveCommand.CreateFromTask(() => ToggleMuteOf(session)),
+            ToggleDeafenCommand = ReactiveCommand.CreateFromTask(() => ToggleDeafenOf(session)),
+        };
+        column.ToggleMuteCommand.ThrownExceptions.Subscribe(e => StatusText = e.Message);
+        column.ToggleDeafenCommand.ThrownExceptions.Subscribe(e => StatusText = e.Message);
+        return column;
+    }
+
+    /// <summary>Brings a column's popup in line with the tree. Same rows as the tree itself, so opening a channel opens it in both.</summary>
+    public void FillTree(MumbleOverlayColumn column) =>
+        ListSync.Sync(column.Rows, [.. Rows.Where(r => r.ServerId == column.ServerId && !r.IsServer)], r => r);
+
+    public async Task JoinFromOverlayAsync(MumbleOverlayColumn column, uint channel)
+    {
+        try { await Task.Run(() => _service.JoinChannelAsync(column.Session, channel)); }
+        catch (Exception e) { StatusText = e.Message; }
     }
 
     public (double X, double Y)? OverlayPosition =>

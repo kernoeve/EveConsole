@@ -1,3 +1,5 @@
+using SoundFlow.Extensions.WebRtc.Apm;
+
 namespace EveConsole.Services.Mumble;
 
 /// <summary>A Fourier transform of a fixed size. Allocates nothing once made: this runs on the sound device's thread.</summary>
@@ -64,331 +66,86 @@ internal sealed class MumbleFft
 }
 
 /// <summary>
-/// Takes what came out of the speakers back out of what the microphone heard.
+/// Takes what came out of the speakers back out of what the microphone heard: WebRTC's echo canceller, the one browsers
+/// use. ⚠️ Not our own: a filter of ours, built the way Speex's is, was tried first and on a real room with the speakers
+/// loud it took 5 seconds to learn, let bursts through, and cost someone talking over it their words. This learned in a
+/// second, and the user could hear the difference on the same recordings.
 ///
-/// <para>A filter learns the way sound gets from the speakers to the microphone, and subtracts its guess. It is split
-/// into blocks and worked in frequency, the way Speex and the standard client's own do it, as a filter this long
-/// would otherwise be far too slow to run sample by sample.</para>
-///
-/// <para>⚠️ Someone talking over the echo looks to a learning filter like echo it got wrong, and left to itself it goes
-/// astray and starts adding echo. Two things stop that. How far it moves depends on how much of what it got wrong is
-/// really echo (see <see cref="Learn"/>), and of two copies, the one heard only takes on what the other has learned when
-/// that is far better (see <see cref="ChooseFilter"/>). The way Speex's echo canceller does it, on both counts.</para>
+/// <para>⚠️ What it ships as has a native library that may not load: the Linux one needs a recent glibc. So nothing
+/// is made until <see cref="Available"/> says so, and without it voice carries on with no echo cancelling.</para>
 /// </summary>
 public sealed class MumbleEchoCanceller
 {
-    public const int BlockSize = 512;
-    private const int Size = BlockSize * 2, Bins = BlockSize + 1;
+    /// <summary>What it works in: 10 ms, the only size it takes.</summary>
+    public const int FrameSamples = MumbleMixer.SamplesPer10Ms;
 
-    /// <summary>About 430 ms: from speakers to microphone by way of both sound devices' own buffering, which is most of it.</summary>
-    private const int Partitions = 40;
+    private const float Scale = 32768f;
 
-    /// <summary>How quickly the error's and the echo's spectra are followed: about the block's own length in seconds.</summary>
-    private const double SpectrumFollow = (double)BlockSize / MumbleMixer.SampleRate;
+    private static readonly Lazy<Exception?> LoadProblem = new(TryLoad);
 
-    private const double LeakFollow = 2.0 * BlockSize / MumbleMixer.SampleRate, LeakMost = 0.5 * BlockSize / MumbleMixer.SampleRate;
+    private readonly AudioProcessingModule _apm = new();
+    private readonly StreamConfig _stream = new(MumbleMixer.SampleRate, 1);
+    private readonly float[][] _far = [new float[FrameSamples]], _near = [new float[FrameSamples]], _clean = [new float[FrameSamples]];
 
-    /// <summary>However good the filter looks, some echo is always assumed left: real rooms never hold still.</summary>
-    private const double LeastLeak = 0.005;
+    /// <summary>Whether its native library loads on this machine.</summary>
+    public static bool Available => LoadProblem.Value is null;
 
-    /// <summary>How quickly it learns before it knows anything. A filter this long takes seconds to learn at Speex's quarter.</summary>
-    private const double FirstLearningRate = 0.4;
+    /// <summary>What stopped it loading, if anything did.</summary>
+    public static Exception? WhyNot => LoadProblem.Value;
 
-    private const double Tiny = 1e-12, FarFloor = 1e-4 * Size;
-
-    /// <summary>Below this nothing is playing, about -70 dBFS, and there is nothing to learn from.</summary>
-    private const double SilentPower = 1e-7;
-
-    private readonly MumbleFft _fft = new(Size);
-
-    // One spectrum per block of what was played, newest at _newest. Real and imaginary, by partition, by bin.
-    private readonly double[][] _farRe = NewPartitions(), _farIm = NewPartitions();
-    private readonly double[][] _learnRe = NewPartitions(), _learnIm = NewPartitions();
-    private readonly double[][] _heardRe = NewPartitions(), _heardIm = NewPartitions();
-    private readonly double[] _farPower = new double[Bins];
-    private readonly double[] _farOld = new double[BlockSize];
-    private readonly double[] _re = new double[Size], _im = new double[Size];
-    private readonly double[] _echoPower = new double[Bins];
-    private readonly double[] _echoNow = new double[Bins], _errorSlow = new double[Bins], _echoSlow = new double[Bins], _rate = new double[Bins];
-    private int _newest, _quietBlocks = Partitions + 1, _rotating;
-    private double _betterFast, _betterSlow, _spreadFast, _spreadSlow;
-    private double _leakTogether, _leakMoves, _leak = 1, _learned;
-    private bool _settled;
-
-    private static double[][] NewPartitions()
+    public MumbleEchoCanceller()
     {
-        var parts = new double[Partitions][];
-        for (var i = 0; i < Partitions; i++) parts[i] = new double[Bins];
-        return parts;
+        using var config = new ApmConfig();
+        config.SetEchoCanceller(true, false);
+        config.SetNoiseSuppression(false, NoiseSuppressionLevel.Moderate);
+        config.SetGainController2(false);
+        config.SetHighPassFilter(true);
+        _apm.ApplyConfig(config);
+        _apm.Initialize();
     }
 
-    /// <summary>How strong the echo was thought to be just now, bin by bin, for what follows to take out what this could not.</summary>
-    public ReadOnlySpan<double> EchoPower => _echoPower;
-
-    /// <summary>Takes one block of what was played, in step with the block of microphone that goes with it.</summary>
-    public void Far(ReadOnlySpan<double> block)
+    private static Exception? TryLoad()
     {
-        double energy = 0;
-        foreach (var s in block) energy += s * s;
-        var silent = energy / BlockSize < SilentPower;
-        _quietBlocks = silent ? Math.Min(_quietBlocks + 1, Partitions + 1) : 0;
-
-        // Taking the oldest out of the running total of how much there is to learn from, and the newest in.
-        _newest = (_newest + Partitions - 1) % Partitions;
-        double[] re = _farRe[_newest], im = _farIm[_newest];
-        for (var b = 0; b < Bins; b++) _farPower[b] = Math.Max(0, _farPower[b] - (re[b] * re[b] + im[b] * im[b]));
-
-        if (_quietBlocks > Partitions)
+        try
         {
-            Array.Clear(re);
-            Array.Clear(im);
-            block.CopyTo(_farOld);
-            return;
+            using var apm = new AudioProcessingModule();
+            return null;
         }
-
-        _farOld.AsSpan().CopyTo(_re);
-        block.CopyTo(_re.AsSpan(BlockSize));
-        Array.Clear(_im);
-        block.CopyTo(_farOld);
-        _fft.Forward(_re, _im);
-
-        for (var b = 0; b < Bins; b++)
+        catch (Exception e) when (e is DllNotFoundException or BadImageFormatException or EntryPointNotFoundException
+                                     or TypeInitializationException or PlatformNotSupportedException or FileNotFoundException or FileLoadException)
         {
-            re[b] = _re[b];
-            im[b] = _im[b];
-            _farPower[b] += re[b] * re[b] + im[b] * im[b];
+            return e;
         }
     }
 
-    /// <summary>Takes the echo out of one block of microphone, in place.</summary>
-    public void Near(Span<double> block)
+    /// <summary>One frame of what was played and the frame of microphone that goes with it, which is changed in place.</summary>
+    public void Process(ReadOnlySpan<short> played, Span<short> mic)
     {
-        // Nothing has been played for as long as an echo could last: there is nothing to take out.
-        if (_quietBlocks > Partitions)
+        for (var i = 0; i < FrameSamples; i++)
         {
-            Array.Clear(_echoPower);
-            return;
+            _far[0][i] = played[i] / Scale;
+            _near[0][i] = mic[i] / Scale;
         }
 
-        Span<double> heardEcho = stackalloc double[BlockSize];
-        Span<double> learnEcho = stackalloc double[BlockSize];
+        // ⚠️ What was played first, and the delay every frame, as it forgets. Nought because it finds the real one itself.
+        _apm.AnalyzeReverseStream(_far, _stream);
+        _apm.SetStreamDelayMs(0);
 
-        Estimate(_heardRe, _heardIm, heardEcho, keepPower: true);
-        Estimate(_learnRe, _learnIm, learnEcho, keepPower: false);
+        // What it could not work on goes out as it came in.
+        if (_apm.ProcessStream(_near, _stream, _stream, _clean) != ApmError.NoError) return;
 
-        double heardError = 0, learnError = 0, between = 0, echoEnergy = 0, errorWithEcho = 0, farEnergy = 0;
-        for (var i = 0; i < BlockSize; i++)
-        {
-            var a = block[i] - heardEcho[i];
-            var b = block[i] - learnEcho[i];
-            heardError += a * a;
-            learnError += b * b;
-            between += (a - b) * (a - b);
-            echoEnergy += learnEcho[i] * learnEcho[i];
-            errorWithEcho += b * learnEcho[i];
-            farEnergy += _farOld[i] * _farOld[i];
-        }
-
-        if (_quietBlocks == 0) Learn(block, learnEcho, learnError, echoEnergy, errorWithEcho, farEnergy);
-
-        for (var i = 0; i < BlockSize; i++) block[i] -= heardEcho[i];
-
-        // What is heard now would be what a little less of the voice is, so what the leak says is left goes to the next stage.
-        var left = Math.Min(2 * _leak, 0.5);
-        for (var b = 0; b < Bins; b++) _echoPower[b] *= left;
-
-        ChooseFilter(heardError, learnError, between);
-    }
-
-    /// <summary>
-    /// ⚠️ Whether the learning copy really is better. Not simply which has less error: with someone talking the error is
-    /// mostly them, and a filter bent out of shape can fit a little of a voice and come out ahead, then be heard adding
-    /// echo. The difference has to be large against how far apart the two are, over a short time or a longer one.
-    /// </summary>
-    private void ChooseFilter(double heardError, double learnError, double between)
-    {
-        var better = heardError - learnError;
-        var spread = heardError * between;
-
-        _betterFast = 0.6 * _betterFast + 0.4 * better;
-        _betterSlow = 0.85 * _betterSlow + 0.15 * better;
-        _spreadFast = 0.36 * _spreadFast + 0.16 * spread;
-        _spreadSlow = 0.7225 * _spreadSlow + 0.0225 * spread;
-
-        if (better * Math.Abs(better) > spread
-            || _betterFast * Math.Abs(_betterFast) > 0.5 * _spreadFast
-            || _betterSlow * Math.Abs(_betterSlow) > 0.25 * _spreadSlow)
-        {
-            Copy(_learnRe, _learnIm, _heardRe, _heardIm);
-            _betterFast = _betterSlow = _spreadFast = _spreadSlow = 0;
-        }
-        else if (-better * Math.Abs(better) > 4 * spread
-                 || -_betterFast * Math.Abs(_betterFast) > 4 * _spreadFast
-                 || -_betterSlow * Math.Abs(_betterSlow) > 4 * _spreadSlow)
-        {
-            // Gone astray: back to what is working.
-            Copy(_heardRe, _heardIm, _learnRe, _learnIm);
-            _betterFast = _betterSlow = _spreadFast = _spreadSlow = 0;
-        }
-    }
-
-    private void Estimate(double[][] filterRe, double[][] filterIm, Span<double> echo, bool keepPower)
-    {
-        Array.Clear(_re);
-        Array.Clear(_im);
-
-        for (var p = 0; p < Partitions; p++)
-        {
-            var at = (_newest + p) % Partitions;
-            double[] xr = _farRe[at], xi = _farIm[at], wr = filterRe[p], wi = filterIm[p];
-            for (var b = 0; b < Bins; b++)
-            {
-                _re[b] += wr[b] * xr[b] - wi[b] * xi[b];
-                _im[b] += wr[b] * xi[b] + wi[b] * xr[b];
-            }
-        }
-
-        if (keepPower)
-            for (var b = 0; b < Bins; b++) _echoPower[b] = _re[b] * _re[b] + _im[b] * _im[b];
-
-        // Only half is worked out above: the rest of a real signal's spectrum mirrors it.
-        for (var b = 1; b < BlockSize; b++)
-        {
-            _re[Size - b] = _re[b];
-            _im[Size - b] = -_im[b];
-        }
-
-        _fft.Inverse(_re, _im);
-        _re.AsSpan(BlockSize, BlockSize).CopyTo(echo);
-    }
-
-    /// <summary>
-    /// ⚠️ How far to move is the whole of it. What is left after the filter is echo it got wrong plus anyone talking, and
-    /// only the first says anything about the filter. So first: how much of the error rises and falls with the echo, which
-    /// a voice does not. From that, each frequency moves by the share of its error that is really left-over echo, and
-    /// hardly at all while someone talks, which is the way Speex's echo canceller goes about it. Before that, it is only
-    /// held back by how much was played against how much was heard.
-    /// </summary>
-    private void Learn(ReadOnlySpan<double> block, ReadOnlySpan<double> echo, double errorEnergy, double echoEnergy, double errorWithEcho, double farEnergy)
-    {
-        // The echo's own spectrum, then the error's, each from just this block.
-        _re.AsSpan(0, BlockSize).Clear();
-        echo.CopyTo(_re.AsSpan(BlockSize));
-        Array.Clear(_im);
-        _fft.Forward(_re, _im);
-        for (var b = 0; b < Bins; b++) _echoNow[b] = _re[b] * _re[b] + _im[b] * _im[b];
-
-        _re.AsSpan(0, BlockSize).Clear();
-        for (var i = 0; i < BlockSize; i++) _re[BlockSize + i] = block[i] - echo[i];
-        Array.Clear(_im);
-        _fft.Forward(_re, _im);
-
-        var errorRe = new Span<double>(_re, 0, Bins);
-        var errorIm = new Span<double>(_im, 0, Bins);
-
-        // How the error moves with the echo, from block to block.
-        double together = 0, echoMoves = 0;
-        for (var b = 0; b < Bins; b++)
-        {
-            var error = errorRe[b] * errorRe[b] + errorIm[b] * errorIm[b];
-            _errorSlow[b] += SpectrumFollow * (error - _errorSlow[b]);
-            _echoSlow[b] += SpectrumFollow * (_echoNow[b] - _echoSlow[b]);
-            var e = error - _errorSlow[b];
-            var y = _echoNow[b] - _echoSlow[b];
-            together += e * y;
-            echoMoves += y * y;
-        }
-        echoMoves = Math.Sqrt(echoMoves);
-        if (echoMoves > 0) together /= echoMoves;
-
-        var follow = Math.Min(LeakFollow * echoEnergy, LeakMost * errorEnergy) / (errorEnergy + Tiny);
-        _leakTogether += follow * (together - _leakTogether);
-        _leakMoves += follow * (echoMoves - _leakMoves);
-
-        var leak = _leakMoves > Tiny ? Math.Clamp(_leakTogether / _leakMoves, LeastLeak, 1) : LeastLeak;
-        _leak = leak;
-
-        // The share of the whole error thought to be echo. At least as much as lines up with it right now.
-        var share = (0.0001 * farEnergy + 3 * leak * echoEnergy) / (errorEnergy + Tiny);
-        share = Math.Min(Math.Max(share, errorWithEcho * errorWithEcho / (Tiny + errorEnergy * echoEnergy)), 0.5);
-
-        // Getting started, with nothing yet to judge by. Held back only by how much was played against how much was heard.
-        var starting = 0.0;
-        if (!_settled)
-        {
-            starting = Math.Min(FirstLearningRate, FirstLearningRate * farEnergy / (errorEnergy + Tiny));
-            _learned += starting;
-            if (_learned > Partitions && leak > 0.03) _settled = true;
-        }
-
-        for (var b = 0; b < Bins; b++)
-        {
-            double rate;
-            if (_settled)
-            {
-                var error = errorRe[b] * errorRe[b] + errorIm[b] * errorIm[b] + Tiny;
-                var left = Math.Min(leak * _echoNow[b], 0.5 * error);
-                rate = (0.7 * left + 0.3 * share * error) / error;
-            }
-            else rate = starting;
-
-            _rate[b] = rate / (_farPower[b] + FarFloor);
-        }
-
-        for (var p = 0; p < Partitions; p++)
-        {
-            var at = (_newest + p) % Partitions;
-            double[] xr = _farRe[at], xi = _farIm[at], wr = _learnRe[p], wi = _learnIm[p];
-            for (var b = 0; b < Bins; b++)
-            {
-                wr[b] += _rate[b] * (xr[b] * errorRe[b] + xi[b] * errorIm[b]);
-                wi[b] += _rate[b] * (xr[b] * errorIm[b] - xi[b] * errorRe[b]);
-            }
-        }
-
-        KeepLength(_learnRe[_rotating], _learnIm[_rotating]);
-        _rotating = (_rotating + 1) % Partitions;
-    }
-
-    /// <summary>
-    /// A block's filter can only be half as long as the transform it is worked in, and learning drifts away from that.
-    /// One partition per block is enough to hold it to that, which is what makes a filter this long affordable.
-    /// </summary>
-    private void KeepLength(double[] wr, double[] wi)
-    {
-        wr.AsSpan().CopyTo(_re);
-        wi.AsSpan().CopyTo(_im);
-        for (var b = 1; b < BlockSize; b++)
-        {
-            _re[Size - b] = _re[b];
-            _im[Size - b] = -_im[b];
-        }
-        _fft.Inverse(_re, _im);
-        _re.AsSpan(BlockSize, BlockSize).Clear();
-        Array.Clear(_im);
-        _fft.Forward(_re, _im);
-        _re.AsSpan(0, Bins).CopyTo(wr);
-        _im.AsSpan(0, Bins).CopyTo(wi);
-    }
-
-    private static void Copy(double[][] fromRe, double[][] fromIm, double[][] toRe, double[][] toIm)
-    {
-        for (var p = 0; p < Partitions; p++)
-        {
-            fromRe[p].AsSpan().CopyTo(toRe[p]);
-            fromIm[p].AsSpan().CopyTo(toIm[p]);
-        }
+        for (var i = 0; i < FrameSamples; i++)
+            mic[i] = (short)Math.Clamp(_clean[0][i] * Scale, short.MinValue, short.MaxValue);
     }
 }
 
 /// <summary>
-/// Quietens what is left, frequency by frequency, leaving through what stands well above it: steady background noise,
-/// and with echo cancelling on, what the filter could not remove, as speakers distort in ways no filter can follow.
-/// A Wiener filter over overlapping windows.
+/// Quietens steady background noise, frequency by frequency, leaving through what stands well above it. A Wiener filter
+/// over overlapping windows.
 /// </summary>
 public sealed class MumbleNoiseSuppressor
 {
-    public const int BlockSize = MumbleEchoCanceller.BlockSize;
+    public const int BlockSize = 512;
     private const int Size = BlockSize * 2, Bins = BlockSize + 1;
 
     /// <summary>How far anything is turned down at most. Further than this and what is left starts to warble.</summary>
@@ -405,23 +162,13 @@ public sealed class MumbleNoiseSuppressor
     /// <summary>The lowest points of a noise sit well under its average.</summary>
     private const double MinimumToAverage = 1.8;
 
-    /// <summary>How far what is only echo is turned down. Further than noise, as nobody wants to hear any of it.</summary>
-    private const double EchoFloorDb = -40;
-
-    /// <summary>How quickly what is thought to be left of an echo fades: echoes tail off rather than stop.</summary>
-    private const double EchoFade = 0.6;
-
     private readonly MumbleFft _fft = new(Size);
     private readonly double[] _window = new double[Size];
     private readonly double[] _before = new double[BlockSize], _tail = new double[BlockSize];
     private readonly double[] _re = new double[Size], _im = new double[Size];
     private readonly double[] _smoothed = new double[Bins], _least = new double[Bins];
     private readonly double[] _gain = new double[Bins], _lastRatio = new double[Bins];
-    private readonly double[] _echoLeft = new double[Bins];
     private bool _started;
-
-    /// <summary>Whether steady background noise is taken out. Without it only what is left of an echo is.</summary>
-    public bool ReduceNoise { get; set; } = true;
 
     public MumbleNoiseSuppressor()
     {
@@ -430,8 +177,7 @@ public sealed class MumbleNoiseSuppressor
     }
 
     /// <summary>One block, in place. What comes out is one block behind what went in.</summary>
-    /// <param name="echoPower">What echo cancelling thought it removed, bin by bin. Empty when it is off.</param>
-    public void Process(Span<double> block, ReadOnlySpan<double> echoPower)
+    public void Process(Span<double> block)
     {
         _before.AsSpan().CopyTo(_re);
         block.CopyTo(_re.AsSpan(BlockSize));
@@ -440,7 +186,7 @@ public sealed class MumbleNoiseSuppressor
         Array.Clear(_im);
         _fft.Forward(_re, _im);
 
-        double noiseFloor = Math.Pow(10, FloorDb / 20), echoFloor = Math.Pow(10, EchoFloorDb / 20);
+        var floor = Math.Pow(10, FloorDb / 20);
         for (var b = 0; b < Bins; b++)
         {
             var power = _re[b] * _re[b] + _im[b] * _im[b];
@@ -448,21 +194,17 @@ public sealed class MumbleNoiseSuppressor
             _smoothed[b] = _started ? _smoothed[b] * NoiseSmoothing + power * (1 - NoiseSmoothing) : power;
             _least[b] = !_started || _smoothed[b] < _least[b] ? _smoothed[b] : _least[b] * NoiseRise;
 
-            _echoLeft[b] = Math.Max(_echoLeft[b] * EchoFade, b < echoPower.Length ? echoPower[b] : 0);
+            var noise = _least[b] * MinimumToAverage;
 
-            var noise = ReduceNoise ? _least[b] * MinimumToAverage : 0;
-            var unwanted = noise + _echoLeft[b];
-
-            if (unwanted <= 0)
+            if (noise <= 0)
             {
                 _gain[b] = 1;
                 _lastRatio[b] = 0;
             }
             else
             {
-                var ratio = power / unwanted;
+                var ratio = power / noise;
                 var clean = Carry * _gain[b] * _gain[b] * _lastRatio[b] + (1 - Carry) * Math.Max(ratio - 1, 0);
-                var floor = (noise * noiseFloor + _echoLeft[b] * echoFloor) / unwanted;
                 _gain[b] = Math.Max(clean / (1 + clean), floor);
                 _lastRatio[b] = ratio;
             }
@@ -493,7 +235,6 @@ public sealed class MumbleNoiseSuppressor
         Array.Clear(_tail);
         Array.Fill(_gain, 1.0);
         Array.Clear(_lastRatio);
-        Array.Clear(_echoLeft);
     }
 }
 
@@ -528,61 +269,89 @@ public sealed class MumbleVoiceGate
 }
 
 /// <summary>
-/// What runs on the microphone before anything else does: echo cancelling and noise suppression, as asked for, 20 ms in
-/// and 20 ms out. About 20 ms later than if neither were on, which is why it is not in the way at all when neither is.
+/// What runs on the microphone before anything else does: echo cancelling and noise suppression, as asked for. Noise
+/// suppression puts it about 20 ms later than otherwise, which is why it is not in the way at all when off.
 /// </summary>
 public sealed class MumbleVoiceCleanup
 {
-    private const int Block = MumbleEchoCanceller.BlockSize;
+    private const int Block = MumbleNoiseSuppressor.BlockSize, Frame = MumbleEchoCanceller.FrameSamples;
 
-    /// <summary>A second and a bit of what was played: far longer than the filter can use, and a margin for a device's hiccups.</summary>
+    /// <summary>A second and a bit of what was played: far more than is ever waiting, and a margin for a device's hiccups.</summary>
     private const int FarCapacity = 1 << 16;
 
-    /// <summary>How far behind the newest played sound the filter reads, so it is rarely ahead of a sound device delivering in bursts.</summary>
-    private const int FarLag = Block * 2;
+    /// <summary>Where reading starts when the microphone opens, until there has been time to see how the devices deliver.</summary>
+    private const int FarLag = Frame * 2;
 
-    /// <summary>How many blocks of history a press starts with: an echo of what was playing just before is still on its way.</summary>
-    private const int HistoryBlocks = 41;
+    /// <summary>
+    /// How much has been played beyond where reading is, at the tightest moment, before a frame is taken. A frame, and what
+    /// a real microphone's tightest second was seen to vary by, handing over 50 ms at a time. ⚠️ Not much more: what is heard
+    /// has to be compared with what came out before it, and reading further back than the devices' own delay puts an echo
+    /// ahead of the sound that made it, where nothing can reach it.
+    /// </summary>
+    private const int FarAhead = Frame + 1024;
 
-    private readonly MumbleEchoCanceller _echo = new();
+    /// <summary>The first look at that, about a second: enough to start from, and soon.</summary>
+    private const int FirstLookFrames = 100;
+
+    /// <summary>
+    /// Later looks, about 16 seconds. ⚠️ Short ones vary by far more than clocks part: on a real microphone, 1000 samples
+    /// from one second to the next with nothing wrong. Moving for that would disturb it over nothing.
+    /// </summary>
+    private const int LaterLookFrames = 1600;
+
+    /// <summary>Moved from where the looks began by more than this, in two looks running, and it is real: two clocks parting, or samples lost.</summary>
+    private const int FarMoved = 480;
+
     private readonly MumbleNoiseSuppressor _noise = new();
+    private MumbleEchoCanceller? _echo;
+    private bool _cancelEcho;
 
     private readonly object _farGate = new();
-    private readonly double[] _farRing = new double[FarCapacity];
-    private long _farWritten, _farRead;
+    private readonly short[] _farRing = new short[FarCapacity];
+    private readonly short[] _farFrame = new short[Frame];
+    private long _farWritten, _farRead, _leastAhead = long.MaxValue, _settledAhead = long.MinValue, _lastMoved;
+    private int _framesLooked;
+    private bool _inStep;
 
     private readonly double[] _in = new double[Block + 4096];
     private readonly double[] _out = new double[Block * 8 + 4096];
     private readonly double[] _block = new double[Block];
-    private readonly double[] _farBlock = new double[Block];
     private int _inCount, _outCount;
 
-    public bool CancelEcho { get; set; }
+    /// <summary>Whether what was played is taken out of the microphone. Stays off where <see cref="MumbleEchoCanceller.Available"/> says it must.</summary>
+    public bool CancelEcho
+    {
+        get => _cancelEcho;
+        set
+        {
+            _cancelEcho = value && MumbleEchoCanceller.Available;
+            if (_cancelEcho) _echo ??= new MumbleEchoCanceller();
+        }
+    }
+
     public bool ReduceNoise { get; set; }
 
     public bool IsOn => CancelEcho || ReduceNoise;
 
-    /// <summary>Whether the frame just handed back was mostly echo that was taken out, with no one talking under it.</summary>
-    public bool LastFrameWasEcho { get; private set; }
+    /// <summary>
+    /// How much has to have gone from a frame for what is left not to be anyone talking: 20 dB. ⚠️ Well clear of a voice,
+    /// which it leaves, even one quieter than the echo over it: a looser test of ours, on a filter of our own, took a real
+    /// voice for echo and chopped it.
+    /// </summary>
+    private const double MostlyEchoRatio = 0.01;
 
     /// <summary>
-    /// How much has to have been taken out for what is left not to be anyone talking. Someone talking over an echo keeps
-    /// their own voice, so far less goes, even with an echo a little louder than they are.
+    /// Frames an echo is taken to linger after, 200 ms: the room's tail is too quiet to show as much taken out, and on its
+    /// own would look like someone talking. Ended at once if what is left gets louder, which an echo's tail does not.
     /// </summary>
-    private const double EchoRemovedRatio = 0.126;   // 9 dB
-
-    /// <summary>
-    /// Blocks an echo is taken to linger after, about 200 ms: the room's tail is too quiet to show as much taken out, and
-    /// on its own would look like someone talking. Ended at once if what is left gets louder, which an echo's tail does not.
-    /// </summary>
-    private const int EchoHoldBlocks = 20;
+    private const int EchoHoldFrames = 10;
     private const double VoiceRise = 4;   // 6 dB
 
-    /// <summary>What is followed from block to block, about 40 ms: a block on its own says little, and output runs a block behind.</summary>
-    private const double RemovedFollow = 0.4;
-
-    private double _beforeSmooth, _afterSmooth, _leftByEcho;
+    private double _leftByEcho;
     private int _echoHold;
+
+    /// <summary>Whether the frame just handed back had most of it taken out as echo, or was the tail of that, with no one talking under it.</summary>
+    public bool LastFrameWasEcho { get; private set; }
 
     /// <summary>What has just gone to the speakers. On the sound device's thread, whether anyone is talking or not.</summary>
     public void Played(ReadOnlySpan<short> samples)
@@ -593,17 +362,25 @@ public sealed class MumbleVoiceCleanup
         {
             foreach (var s in samples)
             {
-                _farRing[(int)(_farWritten & (FarCapacity - 1))] = s / 32768.0;
+                _farRing[(int)(_farWritten & (FarCapacity - 1))] = s;
                 _farWritten++;
             }
         }
     }
 
-    /// <summary>A fresh press. Starts from what has been playing, so echo of it is caught from the first word.</summary>
+    /// <summary>
+    /// A press of a talk key. ⚠️ With echo cancelling on, nothing starts over: the microphone has been running all along,
+    /// sample for sample in step with what was played, and what was learned depends on that staying exactly as it is.
+    /// </summary>
+    public void NewPress()
+    {
+        if (!CancelEcho) StartTalk();
+    }
+
+    /// <summary>The microphone starting.</summary>
     public void StartTalk()
     {
         _inCount = 0;
-        _beforeSmooth = _afterSmooth = _leftByEcho = 0;
         _echoHold = 0;
         LastFrameWasEcho = false;
         _noise.StartTalk();
@@ -616,17 +393,49 @@ public sealed class MumbleVoiceCleanup
 
         lock (_farGate)
         {
-            _farRead = Math.Max(0, _farWritten - FarLag - Block * HistoryBlocks);
-            while (_farWritten - _farRead - FarLag >= Block)
-            {
-                ReadFar();
-                _echo.Far(_farBlock);
-            }
+            _farRead = Math.Max(0, _farWritten - FarLag);
+            _leastAhead = long.MaxValue;
+            _settledAhead = long.MinValue;
+            _lastMoved = 0;
+            _framesLooked = 0;
+            _inStep = false;
         }
     }
 
-    /// <summary>One frame of microphone, in place. Fast, as it runs on the sound device's thread.</summary>
+    /// <summary>One frame of microphone, in place, a whole number of 10 ms. Fast, as it runs on the sound device's thread.</summary>
     public void Process(Span<short> frame)
+    {
+        LastFrameWasEcho = false;
+        if (CancelEcho && _echo is { } echo)
+        {
+            double before = 0, after = 0;
+            for (var at = 0; at + Frame <= frame.Length; at += Frame)
+            {
+                var part = frame.Slice(at, Frame);
+                foreach (var s in part) before += (double)s * s;
+                lock (_farGate) ReadFar();
+                echo.Process(_farFrame, part);
+                foreach (var s in part) after += (double)s * s;
+            }
+
+            if (after < before * MostlyEchoRatio)
+            {
+                _echoHold = EchoHoldFrames;
+                _leftByEcho = Math.Max(after, 1);
+                LastFrameWasEcho = true;
+            }
+            else if (_echoHold > 0 && after < _leftByEcho * VoiceRise)
+            {
+                _echoHold--;
+                LastFrameWasEcho = true;
+            }
+            else _echoHold = 0;
+        }
+
+        if (ReduceNoise) ReduceNoiseIn(frame);
+    }
+
+    private void ReduceNoiseIn(Span<short> frame)
     {
         foreach (var s in frame) _in[_inCount++] = s / 32768.0;
 
@@ -636,42 +445,7 @@ public sealed class MumbleVoiceCleanup
             _in.AsSpan(taken, Block).CopyTo(_block);
             taken += Block;
 
-            double before = 0;
-            foreach (var s in _block) before += s * s;
-
-            var echoPower = ReadOnlySpan<double>.Empty;
-            if (CancelEcho)
-            {
-                lock (_farGate) ReadFar();
-                _echo.Far(_farBlock);
-                _echo.Near(_block);
-                echoPower = _echo.EchoPower;
-            }
-
-            _noise.ReduceNoise = ReduceNoise;
-            _noise.Process(_block, echoPower);
-
-            double after = 0;
-            foreach (var s in _block) after += s * s;
-            _beforeSmooth += RemovedFollow * (before - _beforeSmooth);
-            _afterSmooth += RemovedFollow * (after - _afterSmooth);
-
-            if (CancelEcho && !echoPower.IsEmpty && _afterSmooth < _beforeSmooth * EchoRemovedRatio)
-            {
-                _echoHold = EchoHoldBlocks;
-                _leftByEcho = Math.Max(_afterSmooth, 1e-9);
-                LastFrameWasEcho = true;
-            }
-            else if (_echoHold > 0 && _afterSmooth < _leftByEcho * VoiceRise)
-            {
-                _echoHold--;
-                LastFrameWasEcho = true;
-            }
-            else
-            {
-                _echoHold = 0;
-                LastFrameWasEcho = false;
-            }
+            _noise.Process(_block);
 
             _block.AsSpan().CopyTo(_out.AsSpan(_outCount));
             _outCount += Block;
@@ -688,19 +462,55 @@ public sealed class MumbleVoiceCleanup
         _outCount -= count;
     }
 
-    /// <summary>The next block of what was played. Silence for what has not been played yet, and a jump forward if far behind. Under the lock.</summary>
+    /// <summary>
+    /// The next frame of what was played, under the lock. ⚠️ One for each of microphone, always, even if some of it has not
+    /// been played yet, which is silence: holding back would move every later frame for good.
+    /// </summary>
     private void ReadFar()
     {
-        var waiting = _farWritten - _farRead;
-        if (waiting > FarCapacity - Block) _farRead = _farWritten - FarLag - Block;
+        if (_farWritten - _farRead > FarCapacity - Frame) _farRead = _farWritten - FarAhead;
 
-        if (_farWritten - _farRead < Block)
+        _leastAhead = Math.Min(_leastAhead, _farWritten - _farRead);
+        if (++_framesLooked >= (_inStep ? LaterLookFrames : FirstLookFrames)) KeepInStep();
+
+        for (var i = 0; i < Frame; i++)
         {
-            Array.Clear(_farBlock);
+            var at = _farRead + i;
+            _farFrame[i] = at >= 0 && at < _farWritten ? _farRing[(int)(at & (FarCapacity - 1))] : (short)0;
+        }
+        _farRead += Frame;
+    }
+
+    /// <summary>
+    /// Speakers and microphone are two streams, each at its own pace and in its own bursts, on clocks that are never quite
+    /// the same. So every so often: how far ahead was what was played, at the tightest moment? ⚠️ Moving disturbs what was
+    /// learned, so it is done first, then only for what has really changed.
+    /// </summary>
+    private void KeepInStep()
+    {
+        var least = _leastAhead;
+        _leastAhead = long.MaxValue;
+        _framesLooked = 0;
+
+        if (!_inStep)
+        {
+            _farRead += least - FarAhead;
+            _inStep = true;
             return;
         }
 
-        for (var i = 0; i < Block; i++) _farBlock[i] = _farRing[(int)((_farRead + i) & (FarCapacity - 1))];
-        _farRead += Block;
+        if (_settledAhead == long.MinValue)
+        {
+            _settledAhead = least;
+            return;
+        }
+
+        var moved = least - _settledAhead;
+        if (Math.Abs(moved) > FarMoved && Math.Abs(_lastMoved) > FarMoved && Math.Sign(moved) == Math.Sign(_lastMoved))
+        {
+            _farRead += moved;
+            moved = 0;
+        }
+        _lastMoved = moved;
     }
 }

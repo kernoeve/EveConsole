@@ -119,7 +119,7 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Beim App-Start verbinden</value>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>Sonst verbindet es sich nur auf Wunsch. In beiden Fällen verbindet es sich nach einem Verbindungsverlust selbst neu, bis du trennst.</value>
+    <value>Sonst verbindet es sich nur auf Wunsch. In beiden Fällen verbindet es sich nach einem Verbindungsverlust selbst neu, bis du trennst. Diese Einstellung gilt nur für diesen PC.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Speichern</value>
@@ -323,7 +323,7 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Echo meiner Lautsprecher unterdrücken</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>Für Lautsprecher, damit andere sich nicht über dein Mikrofon hören. Bei einem Headset gibt es nichts zu unterdrücken.</value>
+    <value>Für Lautsprecher, damit andere sich nicht über dein Mikrofon hören. Bei einem Headset gibt es nichts zu unterdrücken. Solange dies aktiv ist, bleibt das Mikrofon geöffnet, um deinen Raum zu lernen. Gesendet wird nur, wenn du sprichst.</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>Pegel der Sprachaktivierung</value>
@@ -363,5 +363,14 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>Beschreibung</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>Die Echounterdrückung kann auf diesem Computer nicht laufen, da ihre Audiobibliothek nicht geladen werden konnte. Sprache funktioniert weiterhin.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Kanäle</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: {2} in diesem Kanal nicht taub geschaltet</value>
   </data>
 </root>

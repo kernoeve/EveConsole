@@ -270,4 +270,7 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
     <value>Qué estás haciendo, visible para tus contactos (opcional). Intro lo establece.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>Esperando al proceso en segundo plano</value>
+  </data>
 </root>

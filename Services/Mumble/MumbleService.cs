@@ -162,7 +162,14 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public string InputDevice
     {
         get => _inputDevice;
-        set { _inputDevice = value; if (Devices is { } d) { d.InputDevice = value; d.StopInput(); } }
+        set
+        {
+            _inputDevice = value;
+            if (Devices is not { } d) return;
+            d.InputDevice = value;
+            d.StopInput();
+            UpdateOpenMic();
+        }
     }
 
     /// <summary>The speakers by name, blank for the system's. Switches at once if anything is connected.</summary>
@@ -190,7 +197,11 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Levels this person's voice before it is sent, as the standard client does.</summary>
     public bool AutoLevel { get; set; } = true;
 
-    /// <summary>Takes what the speakers played back out of the microphone. For speakers: a headset has nothing to cancel.</summary>
+    /// <summary>
+    /// Takes what the speakers played back out of the microphone. For speakers: a headset has nothing to cancel. ⚠️ Keeps the
+    /// microphone open while connected and not muted, as the standard client does, with nothing sent until someone talks:
+    /// opened only for a press, it lands at a different place against the speakers each time, and has learned nothing yet.
+    /// </summary>
     public bool EchoCancel
     {
         get => _cleanup.CancelEcho;
@@ -202,6 +213,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 HookCleanup();
                 _cleanup.StartTalk();
             }
+
+            if (value && MumbleEchoCanceller.WhyNot is { } why) errors.Log(nameof(MumbleService), "start echo cancelling", why);
+            UpdateOpenMic();
         }
     }
 
@@ -240,22 +254,31 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public bool WantsOpenMic => Sessions.Any(ListensForVoice);
 
     private static bool ListensForVoice(MumbleSession s) =>
-        s is { State: MumbleState.Connected, Server: { VoiceActivated: true, SelfMuted: false } };
+        s is { State: MumbleState.Connected, Server: { VoiceActivated: true, Silent: false } };
 
-    /// <summary>Opens the microphone for voice activation, or lets it go when nothing wants it any more.</summary>
+    private bool LearnsTheRoom(MumbleSession s) => _cleanup.CancelEcho && s is { State: MumbleState.Connected, Server.Silent: false };
+
+    /// <summary>Whether the microphone stays open whether anyone is talking or not.</summary>
+    private bool MicStaysOpen => Sessions.Any(s => ListensForVoice(s) || LearnsTheRoom(s));
+
+    /// <summary>Opens the microphone for what wants it all the time, or lets it go when nothing does any more.</summary>
     private void UpdateOpenMic()
     {
         if (!WantsOpenMic)
         {
             lock (_micBuffer) _voiceGate.Close();
             foreach (var s in Sessions.Where(s => s.TalkingByVoice)) StopByVoice(s);
+        }
+
+        if (!MicStaysOpen)
+        {
             ReleaseMicIfIdle();
             return;
         }
 
         _micClose?.Cancel();
         if (Devices is { } devices && !devices.StartInput())
-            foreach (var s in Sessions.Where(ListensForVoice))
+            foreach (var s in Sessions.Where(s => ListensForVoice(s) || LearnsTheRoom(s)))
             {
                 s.MicFailed = true;
                 s.Detail = devices.LastError ?? "";
@@ -319,6 +342,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public static string PasswordReference(int id) => $"mumble-{id}";
     public static string CertificateReference(int id) => $"mumble-cert-{id}";
 
+    /// <summary>How many of these, in this channel, can hear it.</summary>
+    public static int ListeningIn(IEnumerable<MumbleUser> users, uint channel) => users.Count(u => u.ChannelId == channel && !u.Deaf && !u.SelfDeaf);
+
     /// <summary>A person's lasting identity on a server: their certificate if they have one.</summary>
     public static string UserKey(MumbleUser user) => user.Hash.Length > 0 ? user.Hash : $"name:{user.Name}";
 
@@ -329,22 +355,55 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
         Devices = new MumbleAudioDevices(Mixer) { InputDevice = _inputDevice, OutputDevice = _outputDevice, MicrophoneGain = _micGain };
         Devices.Captured += OnCaptured;
+        Devices.InputOpening += OnMicOpening;
         _sender = Task.Run(SendFramesAsync, CancellationToken.None);
         _keyWorker = Task.Run(HandleKeysAsync, CancellationToken.None);
         _chatSaver ??= Task.Run(SaveChatAsync, CancellationToken.None);
         StartTalkerWatch();
 
         await PurgeOldChatAsync(ct);
+        await LoadServersAsync(ct);
+    }
 
+    /// <summary>Lists the saved servers, and connects the ones this PC is set to.</summary>
+    public async Task LoadServersAsync(CancellationToken ct = default)
+    {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         foreach (var server in await db.MumbleServers.AsNoTracking().OrderBy(s => s.Id).ToListAsync(ct))
         {
+            await TakeSharedAutoConnectAsync(db, server, ct);
+
             var session = Track(server);
-            if (server.AutoConnect) Connect(session);
+            if (AutoConnectsHere(server.Id)) Connect(session);
 
             // ⚠️ Said even when it stays offline: what lists the servers looked before this read them.
             SessionChanged?.Invoke(session);
         }
+    }
+
+    /// <summary>
+    /// Whether this PC connects to a server by itself on starting. ⚠️ This PC's own, in its config file: the login and
+    /// certificate are shared and a server takes one connection per identity, so if this were shared too, starting a client
+    /// on a second PC would throw the first off mid-conversation.
+    /// </summary>
+    public static bool AutoConnectsHere(int serverId) => UiState.GetBool(UiState.MumbleAutoConnectPrefix + serverId, false);
+
+    public static void SetAutoConnectHere(int serverId, bool on) => UiState.Set(UiState.MumbleAutoConnectPrefix + serverId, on ? "1" : null);
+
+    /// <summary>
+    /// A tick from when this was shared goes to the first PC to see it, and leaves the database, so the next PC starts
+    /// unticked rather than connecting once and throwing the first off. Claimed in one statement in case two start together.
+    /// </summary>
+    private static async Task TakeSharedAutoConnectAsync(AppDbContext db, MumbleServer server, CancellationToken ct)
+    {
+        if (!server.AutoConnect) return;
+
+        var claimed = await db.MumbleServers.Where(s => s.Id == server.Id && s.AutoConnect)
+                              .ExecuteUpdateAsync(u => u.SetProperty(s => s.AutoConnect, false), ct);
+
+        // ⚠️ Cleared here too: this object is saved whole later on, which would put it back.
+        server.AutoConnect = false;
+        if (claimed > 0) SetAutoConnectHere(server.Id, true);
     }
 
     // ── Private messages, which outlast the app ───────────────────────────────
@@ -546,6 +605,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             AppConfig.SetServicePassword(PasswordReference(id), null);
             AppConfig.SetServicePassword(CertificateReference(id), null);
+            SetAutoConnectHere(id, false);
         }, ct);
     }
 
@@ -566,10 +626,10 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         var reference = CertificateReference(server.Id);
         var saved = AppConfig.GetServicePassword(reference);
 
-        // ⚠️ Saved but not readable right now, as with a locked keychain, is not the same as never saved. Making a
-        // new one would throw away the registered name for good, so this waits and tries again.
+        // ⚠️ Saved but not readable right now, as with a locked keychain or a changed database password, is not the same
+        // as never saved. Making a new one would throw away the registered name for good, so this waits and tries again.
         if (saved is null && AppConfig.HasServicePassword(reference))
-            throw new MumbleException(MumbleFailure.Network, "This server's saved identity cannot be opened right now.");
+            throw new MumbleException(MumbleFailure.Network, "This server's saved identity cannot be opened. If the database password changed, put the old one back, or remove this server and add it again to start with a new identity.");
 
         if (saved is not null)
         {
@@ -762,8 +822,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             await client.JoinChannelAsync(channel, ct);
         Volatile.Write(ref settled, true);
 
-        if (server.SelfMuted || server.SelfDeafened)
-            await client.SetSelfMuteAsync(server.SelfMuted, server.SelfDeafened, ct);
+        if (server.Silent)
+            await client.SetSelfMuteAsync(server.Silent, server.SelfDeafened, ct);
 
         Devices?.StartOutput();
         BindKeys(session);
@@ -987,9 +1047,17 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     public Task JoinChannelAsync(MumbleSession session, uint channel, CancellationToken ct = default) =>
         session.Client?.JoinChannelAsync(channel, ct) ?? Task.CompletedTask;
 
+    /// <summary>Mute at the person's word. While deafened that means "let me talk", which takes the deafening off with it, as in the standard client.</summary>
+    public Task ToggleMuteAsync(MumbleSession session, CancellationToken ct = default) =>
+        SetMuteAsync(session, !session.Server.Silent, false, ct);
+
+    /// <summary>Deafen at the person's word, leaving their own mute as it was to come back to.</summary>
+    public Task ToggleDeafenAsync(MumbleSession session, CancellationToken ct = default) =>
+        SetMuteAsync(session, session.Server.SelfMuted, !session.Server.SelfDeafened, ct);
+
     public async Task SetMuteAsync(MumbleSession session, bool mute, bool deaf, CancellationToken ct = default)
     {
-        session.Server.SelfMuted    = mute || deaf;
+        session.Server.SelfMuted    = mute;
         session.Server.SelfDeafened = deaf;
 
         if (mute || deaf) StopTalking(session);
@@ -999,7 +1067,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             var id = session.Server.Id;
             await db.MumbleServers.Where(s => s.Id == id).ExecuteUpdateAsync(u => u
-                .SetProperty(s => s.SelfMuted, mute || deaf).SetProperty(s => s.SelfDeafened, deaf), ct);
+                .SetProperty(s => s.SelfMuted, mute).SetProperty(s => s.SelfDeafened, deaf), ct);
         }
 
         if (session.Client is { } client && session.State == MumbleState.Connected)
@@ -1046,15 +1114,16 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Starts sending the microphone to this server, on this key's terms.</summary>
     public void StartTalking(MumbleSession session, MumbleTalk mode)
     {
-        if (session.Client is null || session.Encoder is null || session.Server.SelfMuted) return;
+        if (session.Client is null || session.Encoder is null || session.Server.Silent) return;
 
-        // A new press starts clean: a few samples left from the last one are not part of what is being said now.
+        // A new press starts clean: a few samples left from the last one are not part of what is being said now. ⚠️ Unless
+        // echo cancelling is on, which needs every sample of the microphone, in order, to stay in step with the speakers.
         if (Sessions.All(s => s.TalkingNow == MumbleTalk.None))
             lock (_micBuffer)
             {
-                _micBuffer.Clear();
+                if (!_cleanup.CancelEcho) _micBuffer.Clear();
                 _leveler.StartTalk();
-                if (_cleanup.IsOn) _cleanup.StartTalk();
+                if (_cleanup.IsOn) _cleanup.NewPress();
             }
 
         // A key takes over from the voice: letting go of it, not a pause, is what ends this now.
@@ -1125,13 +1194,13 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private void ReleaseMicIfIdle()
     {
-        if (Devices is null || WantsOpenMic || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
+        if (Devices is null || MicStaysOpen || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
 
         _micClose?.Cancel();
         var closing = _micClose = new CancellationTokenSource();
         _ = Task.Delay(MicLinger, closing.Token).ContinueWith(t =>
         {
-            if (t.IsCanceled || WantsOpenMic || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
+            if (t.IsCanceled || MicStaysOpen || Sessions.Any(s => s.TalkingNow != MumbleTalk.None)) return;
 
             Devices?.StopInput();
             MicLevelDb = -96;   // nothing is being heard now, rather than whatever was last
@@ -1139,6 +1208,15 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     }
 
     private void OnCaptured(short[] samples) => SubmitMicrophone(samples);
+
+    private void OnMicOpening()
+    {
+        lock (_micBuffer)
+        {
+            _micBuffer.Clear();
+            if (_cleanup.IsOn) _cleanup.StartTalk();
+        }
+    }
 
     /// <summary>Takes microphone samples in 20 ms frames. Fast, as it runs on the sound device's thread.</summary>
     public void SubmitMicrophone(ReadOnlySpan<short> samples)
@@ -1157,7 +1235,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 var level = MumbleVoiceGate.LevelOf(frame);
                 MicLevelDb = level;
 
-                if (AutoLevel) _leveler.Process(frame, _cleanup.IsOn && _cleanup.LastFrameWasEcho);
+                if (AutoLevel) _leveler.Process(frame, _cleanup.LastFrameWasEcho);
                 if (WantsOpenMic) GateByVoice(frame, level);
 
                 // Only once someone is talking: with the microphone open all the time, this would otherwise be most of it.

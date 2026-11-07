@@ -119,7 +119,7 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Se connecter au démarrage de l'application</value>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>Sinon, il ne se connecte que sur demande. Dans les deux cas, il se reconnecte seul en cas de perte, jusqu'à ce que vous vous déconnectiez.</value>
+    <value>Sinon, il ne se connecte que sur demande. Dans les deux cas, il se reconnecte seul en cas de perte, jusqu'à ce que vous vous déconnectiez. Ce réglage ne s'applique qu'à ce PC.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Enregistrer</value>
@@ -323,7 +323,7 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Supprimer l'écho de mes haut-parleurs</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>Pour l'écoute sur haut-parleurs, afin que les autres ne s'entendent pas dans votre micro. Avec un casque, il n'y a rien à supprimer.</value>
+    <value>Pour l'écoute sur haut-parleurs, afin que les autres ne s'entendent pas dans votre micro. Avec un casque, il n'y a rien à supprimer. Tant que cette option est active, le micro reste ouvert pour apprendre votre pièce. Rien n'est envoyé tant que vous ne parlez pas.</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>Niveau d'activation vocale</value>
@@ -363,5 +363,14 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>Description</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>La suppression d'écho ne peut pas fonctionner sur cet ordinateur, car sa bibliothèque audio n'a pas pu être chargée. La voix fonctionne toujours.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Salons</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1} : {2} non assourdis dans ce canal</value>
   </data>
 </root>

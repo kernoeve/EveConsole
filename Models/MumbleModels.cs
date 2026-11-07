@@ -21,8 +21,12 @@ public class MumbleServer
     /// <summary>Fingerprint of a certificate the person accepted, as most Mumble servers' are self-signed.</summary>
     public string TrustedCertificate { get; set; } = "";
 
-    /// <summary>Connects when the app starts. Otherwise only when asked. Either way, a connection someone
-    /// wanted is kept up through a server going away, until they say disconnect.</summary>
+    /// <summary>
+    /// ⚠️ Only the old shared answer to "connect when the app starts", waiting to be taken once by the first PC on this
+    /// build: see <see cref="Services.Mumble.MumbleService.AutoConnectsHere"/>, which is the answer now. A server takes one
+    /// connection per identity, and the login and certificate are shared, so a shared answer had every PC that started
+    /// connect as the same person and throw the last one off.
+    /// </summary>
     public bool   AutoConnect { get; set; }
 
     /// <summary>The key that talks only to the current channel, and nothing linked to it. Zero for none.</summary>
@@ -31,8 +35,12 @@ public class MumbleServer
     /// <summary>The key that shouts, the standard client's Push to Talk: the current channel and those linked to it. Zero for none.</summary>
     public int    ShoutKey   { get; set; }
 
+    /// <summary>Whether the person chose to be muted. ⚠️ Not changed by deafening, so that undeafening puts back what they had: see <see cref="Silent"/>.</summary>
     public bool   SelfMuted    { get; set; }
     public bool   SelfDeafened { get; set; }
+
+    /// <summary>Whether nothing is to go out: being deafened mutes as well, for as long as it lasts.</summary>
+    public bool   Silent => SelfMuted || SelfDeafened;
 
     /// <summary>The channel to return to on connecting, by its names from the root, as ids can change.</summary>
     public string LastChannel  { get; set; } = "";

@@ -119,7 +119,7 @@
     <value>Подключаться при запуске приложения</value>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>Иначе подключается только по запросу. В обоих случаях при потере связи переподключается сам, пока вы не отключитесь.</value>
+    <value>Иначе подключается только по запросу. В обоих случаях при потере связи переподключается сам, пока вы не отключитесь. Эта настройка действует только на этом ПК.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Сохранить</value>
@@ -323,7 +323,7 @@
     <value>Подавлять эхо от динамиков</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>Для динамиков: чтобы другие не слышали себя через ваш микрофон. С гарнитурой подавлять нечего.</value>
+    <value>Для динамиков: чтобы другие не слышали себя через ваш микрофон. С гарнитурой подавлять нечего. Пока параметр включён, микрофон остаётся открытым, чтобы изучить звучание комнаты. Ничего не передаётся, пока вы не говорите.</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>Порог голосовой активации</value>
@@ -363,5 +363,14 @@
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>Описание</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>Подавление эха не может работать на этом компьютере: не удалось загрузить его звуковую библиотеку. Голосовая связь по-прежнему работает.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: в этом канале без отключённого звука: {2}</value>
   </data>
 </root>

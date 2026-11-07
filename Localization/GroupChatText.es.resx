@@ -11,7 +11,7 @@
     <value>Añadir salas en {0}</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Aquí aparecen las salas y el chat de los servidores. Configura primero un servidor en la herramienta de Jabber o Mumble.</value>
+    <value>Aquí aparecen las salas y el chat de los servidores. Configura primero un servidor en la pestaña Jabber o Mumble de Ajustes.</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>Elige una sala o un servidor a la izquierda.</value>

@@ -11,7 +11,7 @@
     <value>Добавить комнаты на {0}</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Здесь показываются комнаты и чат серверов. Сначала настройте сервер в инструменте Jabber или Mumble.</value>
+    <value>Здесь показываются комнаты и чат серверов. Сначала настройте сервер на вкладке Jabber или Mumble в настройках.</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>Выберите комнату или сервер слева.</value>

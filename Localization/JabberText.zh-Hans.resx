@@ -270,4 +270,7 @@
     <value>你的联系人可以看到的状态消息（可选）。按 Enter 设置。</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>正在等待后台进程</value>
+  </data>
 </root>

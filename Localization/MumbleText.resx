@@ -156,7 +156,7 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <comment>Field.</comment>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>Otherwise it connects only when you ask. Either way, it reconnects by itself if the connection is lost, until you disconnect.</value>
+    <value>Otherwise it connects only when you ask. Either way, it reconnects by itself if the connection is lost, until you disconnect. This setting is for this PC only.</value>
     <comment>Hint.</comment>
   </data>
   <data name="Save" xml:space="preserve">
@@ -376,7 +376,7 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Cancel echo from my speakers</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>For listening on speakers, so others don't hear themselves through your microphone. A headset has nothing to cancel.</value>
+    <value>For listening on speakers, so others don't hear themselves through your microphone. A headset has nothing to cancel. While this is on, the microphone stays open so it can learn your room. Nothing is sent unless you talk.</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>Voice activation level</value>
@@ -416,5 +416,14 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>Description</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>Echo cancelling can't run on this computer, as its sound library would not load. Voice still works.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: {2} not deafened in this channel</value>
   </data>
 </root>

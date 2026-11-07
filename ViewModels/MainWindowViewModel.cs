@@ -926,6 +926,9 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ToggleNavCommand => _toggleNav ??= ReactiveCommand.Create(() => { IsNavVisible = !IsNavVisible; });
     private ReactiveCommand<Unit, Unit>? _toggleNav;
 
+    /// <summary>Opens Settings at the tab with this header. The window's to do.</summary>
+    public Action<string>? OpenSettingsTab { get; set; }
+
     public void OpenTool(string toolId)
     {
         // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
@@ -935,6 +938,13 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("universe");
             if (toolId == "jump_planner") MapVm.ShowJumpPlannerTab();
             else                          MapVm.ShowRouteTab();
+            return;
+        }
+
+        // Tools once, tabs of Settings now, for anything that still names them.
+        if (toolId is "jabber" or "mumble")
+        {
+            OpenSettingsTab?.Invoke(toolId == "jabber" ? ShellText.NavJabber : ShellText.NavMumble);
             return;
         }
 
@@ -999,8 +1009,6 @@ public class MainWindowViewModel : ReactiveObject
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
             "messages"       => (ShellText.NavMessages,      MessagesVm,        true),
             "group_chat"     => (ShellText.NavGroupChat,     GroupChatVm,       true),
-            "jabber"         => (ShellText.NavJabber,        JabberVm,          true),
-            "mumble"         => (ShellText.NavMumble,        MumbleVm,          true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
             "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
             "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
@@ -1672,8 +1680,6 @@ public class MainWindowViewModel : ReactiveObject
                 // Group Chat is reached from its icon at the top of the window, which carries its counts.
                 new NavItem("messages", ShellText.NavMessages),
                 new NavItem("eve_mail", ShellText.NavEveMail),
-                new NavItem("jabber", ShellText.NavJabber),
-                new NavItem("mumble", ShellText.NavMumble),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),
             new("data", ShellText.NavGroupData,

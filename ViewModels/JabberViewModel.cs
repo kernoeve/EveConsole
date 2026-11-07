@@ -318,6 +318,7 @@ public sealed class JabberViewModel : ReactiveObject
             JabberProblem.Replaced     => JabberText.ProblemReplaced,
             _                          => JabberText.StateOffline,
         },
+        JabberState.WaitingForWorker => JabberText.StateWaitingForWorker,
         _                        => JabberText.StateOffline,
     };
 

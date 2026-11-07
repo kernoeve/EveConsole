@@ -17,7 +17,7 @@
     <comment>Messages window.</comment>
   </data>
   <data name="NoConversations" xml:space="preserve">
-    <value>Сохранённых бесед пока нет. Выберите человека в инструменте Jabber или Mumble, чтобы начать.</value>
+    <value>Сохранённых бесед пока нет. Выберите человека на вкладке Jabber или Mumble в настройках, чтобы начать.</value>
     <comment>Messages window.</comment>
   </data>
   <data name="NothingOpen" xml:space="preserve">

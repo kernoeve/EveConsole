@@ -11,7 +11,7 @@
     <value>{0}에 대화방 추가</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>대화방과 서버 채팅이 여기에 표시됩니다. 먼저 Jabber 또는 Mumble 도구에서 서버를 설정하세요.</value>
+    <value>대화방과 서버 채팅이 여기에 표시됩니다. 먼저 설정의 Jabber 또는 Mumble 탭에서 서버를 설정하세요.</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>왼쪽에서 대화방이나 서버를 선택하세요.</value>

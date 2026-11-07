@@ -84,6 +84,9 @@ public static class UiState
     /// <summary>The results sort as "PropertyPath:asc" or "PropertyPath:desc".</summary>
     public const string IndustryOppsSort        = "industryopps.sort";
 
+    /// <summary>"1" when this PC connects to that Mumble server by itself on starting; the server's id follows.</summary>
+    public const string MumbleAutoConnectPrefix = "mumble.auto_connect.";
+
     /// <summary>The corporation Corp Activity and Corp Structures were last left on (ids).</summary>
     public const string CorpActivityCorp        = "corpactivity.corp";
     public const string CorpStructuresCorp      = "corpstructures.corp";

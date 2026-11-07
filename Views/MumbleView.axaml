@@ -88,7 +88,8 @@
           <CheckBox IsChecked="{Binding AutoLevelVoice}" FontSize="11" Content="{x:Static loc:MumbleText.AutoLevel}" />
           <CheckBox IsChecked="{Binding TalkTone}" FontSize="11" Content="{x:Static loc:MumbleText.TalkTone}" />
           <CheckBox IsChecked="{Binding NoiseReduce}" FontSize="11" Content="{x:Static loc:MumbleText.NoiseReduce}" />
-          <CheckBox IsChecked="{Binding EchoCancel}" FontSize="11" Content="{x:Static loc:MumbleText.EchoCancel}" ToolTip.Tip="{x:Static loc:MumbleText.EchoCancelNote}" />
+          <CheckBox IsChecked="{Binding EchoCancel}" IsEnabled="{Binding EchoCancelAvailable}" FontSize="11" Content="{x:Static loc:MumbleText.EchoCancel}" ToolTip.Tip="{x:Static loc:MumbleText.EchoCancelNote}" />
+          <TextBlock Classes="note" IsVisible="{Binding !EchoCancelAvailable}" Text="{x:Static loc:MumbleText.EchoCancelUnavailable}" />
           <TextBlock Classes="label" Text="{x:Static loc:MumbleText.VoiceLevel}" />
           <Slider Minimum="-70" Maximum="-10" Value="{Binding VoiceLevel}" />
           <TextBlock Classes="note" Text="{Binding VoiceLevelText}" />

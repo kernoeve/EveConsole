@@ -11,7 +11,7 @@
     <value>{0} のルームを追加</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>ルームとサーバーのチャットはここに表示されます。先に Jabber または Mumble ツールでサーバーを設定してください。</value>
+    <value>ルームとサーバーのチャットはここに表示されます。先に設定の Jabber または Mumble タブでサーバーを設定してください。</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>左からルームまたはサーバーを選んでください。</value>

@@ -270,4 +270,7 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
     <value>Ce que vous faites, visible par vos contacts (facultatif). Entrée le définit.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>En attente du processus en arrière-plan</value>
+  </data>
 </root>

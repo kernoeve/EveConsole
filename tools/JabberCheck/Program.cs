@@ -160,7 +160,7 @@ void Check(string name, bool ok, string detail = "")
     Check("dedupe: then the words and time", JabberService.DedupeKey("c", "s", bare) == JabberService.DedupeKey("c", "s", bare));
     var unstamped = id1 with { ServerId = "", Id = "" };
     Check("dedupe: two with nothing to go on are not one", JabberService.DedupeKey("c", "s", unstamped) != JabberService.DedupeKey("c", "s", unstamped));
-    Check("resource: this machine's own, stable", JabberService.MachineResource() == JabberService.MachineResource() && JabberService.MachineResource().StartsWith("EVEConsole-", StringComparison.Ordinal));
+    Check("resource: the same on every PC, so a new worker replaces a dead one's session", JabberService.WorkerResource == "EVEConsole");
 }
 
 // ── Where to connect ──────────────────────────────────────────────────────────
@@ -604,6 +604,211 @@ try
         Check("rooms: a private word I send stays with that person", pm.Conversation == "r@c.example/Nick" && pm.IsOutgoing, pm.Conversation);
     }
 
+    // ── One connection for every client ───────────────────────────────────────
+    // Two services over one file, as a worker and a client over one server. ⚠️ The real thing runs on PostgreSQL, whose
+    // notifications this has in place of: what it proves is what each side does with them, not that they arrive.
+    {
+        var relayProfile = Path.Combine(Path.GetTempPath(), "jabbercheck-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(relayProfile);
+        AppConfig.UseProfile(relayProfile);
+        DbEngine.Pin(DbBackend.Sqlite);
+
+        await using (var db = factory.CreateDbContext())
+        {
+            await db.JabberAccounts.ExecuteUpdateAsync(u => u.SetProperty(a => a.AutoConnect, false));
+            await db.JabberMessages.ExecuteDeleteAsync();
+        }
+
+        // What the Background Processes tab shows: from what is saved, so the same on any client.
+        {
+            await using (var seed = factory.CreateDbContext())
+            {
+                var hour = DateTimeOffset.UtcNow.AddHours(-1).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'");
+                seed.JabberMessages.AddRange(
+                    new JabberStoredMessage { AccountId = 77, Conversation = "busy@rooms.example", IsRoom = true, SentAt = "2000-01-01T00:00:00Z", Sender = "a", DedupeKey = "activity-1" },
+                    new JabberStoredMessage { AccountId = 77, Conversation = "busy@rooms.example", IsRoom = true, SentAt = hour, Sender = "a", DedupeKey = "activity-2" },
+                    new JabberStoredMessage { AccountId = 77, Conversation = "busy@rooms.example", IsRoom = true, SentAt = hour, Sender = "b", DedupeKey = "activity-3" },
+                    new JabberStoredMessage { AccountId = 77, Conversation = "quiet@rooms.example", IsRoom = true, SentAt = "2000-01-02T00:00:00Z", Sender = "a", DedupeKey = "activity-4" },
+                    new JabberStoredMessage { AccountId = 77, Conversation = "bob@example", SentAt = hour, Sender = "bob@example", DedupeKey = "activity-5" });
+                await seed.SaveChangesAsync();
+            }
+
+            var activity = await new JabberService(factory, new AppErrorLogger(null!)).ActivityAsync();
+            var busy = activity.Single(a => a.AccountId == 77 && a.Conversation == "busy@rooms.example");
+            var quiet = activity.Single(a => a.AccountId == 77 && a.Conversation == "quiet@rooms.example");
+            Check("activity: the last message of a room, and the last day's only", busy is { IsRoom: true, LastDay: 2 } && busy.LastAt.CompareTo("2001") > 0);
+            Check("activity: a quiet room still says when it last spoke", quiet is { LastDay: 0, LastAt: "2000-01-02T00:00:00Z" });
+            Check("activity: direct messages apart from rooms", activity.Single(a => a.AccountId == 77 && a.Conversation == "bob@example") is { IsRoom: false, LastDay: 1 });
+
+            await using var clean = factory.CreateDbContext();
+            await clean.JabberMessages.Where(m => m.AccountId == 77).ExecuteDeleteAsync();
+        }
+
+        var logger = new AppErrorLogger(null!);
+        var signals = new ClientSignals(logger);
+
+        // Everything either side writes to the tables between them, as it is written.
+        var spy = new RelaySpy();
+        var relayFactory = new Factory(new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={dbPath}").AddInterceptors(spy).Options);
+
+        var worker = new JabberService(relayFactory, logger, signals) { RelayOnSqlite = true, PickupWait = TimeSpan.FromSeconds(1) };
+        var view   = new JabberService(relayFactory, logger, signals) { RelayOnSqlite = true, PickupWait = TimeSpan.FromSeconds(1) };
+
+        var unreadableSignals = 0;
+        signals.Received += p =>
+        {
+            // An older build's alarm path parses whatever it does not know, and logs an error if that fails.
+            try { using var _ = System.Text.Json.JsonDocument.Parse(p); } catch (System.Text.Json.JsonException) { Interlocked.Increment(ref unreadableSignals); }
+            worker.TryApplySignal(p);
+            view.TryApplySignal(p);
+        };
+
+        static async Task<bool> Soon(Func<bool> what)
+        {
+            for (var i = 0; i < 100; i++)
+            {
+                if (what()) return true;
+                await Task.Delay(100);
+            }
+            return what();
+        }
+
+        static async Task<string?> FailureOf(Func<Task> act)
+        {
+            try { await act(); return null; }
+            catch (XmppException e) { return e.Message; }
+        }
+
+        await view.StartAsync();
+        var closed = new TcpListener(IPAddress.Loopback, 0);
+        closed.Start();
+        var closedPort = ((IPEndPoint)closed.LocalEndpoint).Port;
+        closed.Stop();
+
+        // Saved by a client that is not connected, with nobody holding the lease yet.
+        var seen = await view.SaveAccountAsync(new JabberAccount { Address = "relay@127.0.0.1", Host = "127.0.0.1", Port = closedPort, AutoConnect = false, Nickname = "Relay" }, "login-secret");
+        var relayId = seen.Account.Id;
+        Check("relay: a login saved by a client is there for the worker", AppConfig.GetServicePassword(JabberService.PasswordReference(relayId)) == "login-secret");
+
+        var refused = await FailureOf(() => view.SendAsync(seen, "them@example", false, "into the void"));
+        Check("relay: nobody to ask, and it says so rather than wait for ever", refused?.Contains("not done", StringComparison.Ordinal) == true, refused ?? "none");
+        await using (var db = factory.CreateDbContext())
+            Check("relay: and takes it back, so it is not sent minutes later", !await db.JabberCommands.AnyAsync(c => c.Kind == "send"));
+
+        await worker.BecomeWorkerAsync();
+        var held = worker.SessionOf(relayId);
+        Check("relay: the worker has the account", held is not null);
+
+        var notConnected = await FailureOf(() => view.SendAsync(seen, "them@example", false, "hello"));
+        Check("relay: an answer that fails there fails here, in the same words", notConnected == "Not connected.", notConnected ?? "none");
+
+        view.Connect(seen);
+        Check("relay: a client asks, and the worker connects", await Soon(() => held!.State is JabberState.Connecting or JabberState.Reconnecting), held!.State.ToString());
+        Check("relay: and the client shows how that went", await Soon(() => seen.State is JabberState.Connecting or JabberState.Reconnecting), seen.State.ToString());
+
+        await view.DisconnectAsync(seen);
+        Check("relay: and it can ask it to stop", await Soon(() => held!.State == JabberState.Offline && seen.State == JabberState.Offline), $"{held!.State} {seen.State}");
+
+        // What is saved reaches the client, once each, with the sound the worker decided on.
+        var shown = new List<JabberStoredMessage>();
+        var sounds = new List<long>();
+        var unreads = 0;
+        view.MessageStored += m => { lock (shown) shown.Add(m); };
+        view.AlertArrived += m => { lock (sounds) sounds.Add(m.Id); };
+        view.UnreadChanged += () => Interlocked.Increment(ref unreads);
+
+        XmppMessage ToRelay(string who, string id, string body = "hi") =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("relay@127.0.0.1"), "chat", body, "", id, null, "", false);
+
+        var dm = await worker.StoreAsync(held!, ToRelay("bot@example", "r1", "a broadcast"));
+        Check("relay: a saved message reaches the client", await Soon(() => { lock (shown) return shown.Any(m => m.Id == dm!.Id); }));
+        Check("relay: with its sound", await Soon(() => { lock (sounds) return sounds.SequenceEqual([dm!.Id]); }), string.Join(",", sounds));
+        Check("relay: and its count", await Soon(() => Volatile.Read(ref unreads) > 0));
+
+        await using (var db = factory.CreateDbContext())
+            await db.JabberAccounts.Where(a => a.Id == relayId).ExecuteUpdateAsync(u => u.SetProperty(a => a.AutoConnect, false));
+
+        var burst = new List<long>();
+        for (var i = 0; i < 120; i++)
+            burst.Add((await worker.StoreAsync(held!, ToRelay($"p{i % 7}@example", $"b{i}", $"line {i}")))!.Id);
+        Check("relay: a burst, all of it", await Soon(() => { lock (shown) return burst.All(id => shown.Any(m => m.Id == id)); }));
+        List<long> order;
+        lock (shown) order = [.. shown.Select(m => m.Id)];
+        Check("relay: each once, in order", order.Distinct().Count() == order.Count && order.SequenceEqual(order.Order()));
+
+        var corrections = 0;
+        view.ConversationEdited += (_, _) => Interlocked.Increment(ref corrections);
+        await worker.StoreAsync(held!, ToRelay("bot@example", "r2", "first words"));
+        await worker.StoreAsync(held!, ToRelay("bot@example", "r3", "better words") with { IsCorrection = true, ReplaceId = "r2" });
+        Check("relay: a correction reaches the client", await Soon(() => Volatile.Read(ref corrections) == 1));
+
+        var workerUnreads = 0;
+        worker.UnreadChanged += () => Interlocked.Increment(ref workerUnreads);
+        await view.MarkReadAsync(relayId, "bot@example");
+        Check("relay: reading on one client is seen by the others", await Soon(() => Volatile.Read(ref workerUnreads) > 0));
+
+        // Rooms: the room and its password are saved first, so the password is never in what is asked.
+        var room = await view.JoinRoomAsync(seen, "room@c.example", "A Room", "Nick", "room-secret");
+        Check("relay: a room's password is there for the worker", AppConfig.GetServicePassword(JabberService.RoomPasswordReference(room.Id)) == "room-secret");
+        Check("relay: the worker has the room", await Soon(() => held!.Rooms.Any(r => r.Room.RoomJid == "room@c.example")));
+        await Task.Delay(1500);
+        Check("relay: and it is still shown once the worker has had its say", seen.Rooms.Any(r => r.Room.Name == "A Room"));
+
+        var intelChanges = 0;
+        view.IntelRoomsChanged += () => Interlocked.Increment(ref intelChanges);
+        await view.SetRoomTypeAsync(seen, "room@c.example", JabberRoomType.Intel);
+        Check("relay: a room's type reaches the connection", await Soon(() => held!.Rooms.Any(r => r.Room.RoomJid == "room@c.example" && r.Room.RoomType == JabberRoomType.Intel)));
+        Check("relay: and tells the clients", await Soon(() => Volatile.Read(ref intelChanges) > 0));
+        await view.SetRoomAlertAsync(seen, "room@c.example", JabberRoomAlert.All);
+        Check("relay: and its alert setting", await Soon(() => held!.Rooms.Any(r => r.Room.RoomJid == "room@c.example" && r.Room.AlertMode == JabberRoomAlert.All)));
+
+        await view.SetPresenceAsync(seen, XmppShow.Away, "back soon");
+        Check("relay: a status chosen on a client reaches the connection", await Soon(() => held!.Show == XmppShow.Away && held.Status == "back soon"));
+
+        // Accounts.
+        var added = await view.SaveAccountAsync(new JabberAccount { Address = "more@127.0.0.1", Host = "127.0.0.1", Port = closedPort, AutoConnect = false }, "more-secret");
+        Check("relay: a new account reaches the worker", await Soon(() => worker.SessionOf(added.Account.Id) is not null));
+        added.Account.Name = "Renamed";
+        await view.SaveAccountAsync(added.Account, null);
+        Check("relay: a change to one does", await Soon(() => worker.SessionOf(added.Account.Id)?.Account.Name == "Renamed"));
+        await view.DeleteAccountAsync(added.Account.Id);
+        Check("relay: and removing one does", await Soon(() => worker.SessionOf(added.Account.Id) is null));
+
+        // ⚠️ As written, not what is left in the file: a request is deleted once answered, and its place soon reused.
+        await Task.Delay(1500);
+        Check("relay: something did go through the tables between them", spy.Written.Any(w => w.Contains("room@c.example", StringComparison.Ordinal)));
+        Check("relay: no login or room password went through them",
+              !spy.Written.Any(w => w.Contains("room-secret", StringComparison.Ordinal) || w.Contains("login-secret", StringComparison.Ordinal)));
+        Check("relay: every signal is something an older build can read", Volatile.Read(ref unreadableSignals) == 0);
+
+        // The lease moves.
+        await worker.StandDownAsync();
+        await using (var db = factory.CreateDbContext())
+            Check("relay: standing down leaves nothing saying it is connected", !await db.JabberLiveStates.AnyAsync());
+        Check("relay: and the client shows it", await Soon(() => seen.State == JabberState.Offline && seen.Rooms.Count == 0), $"{seen.State} {seen.Rooms.Count}");
+
+        var shownBefore = shown.Count;
+        await view.BecomeWorkerAsync();
+        var nowHere = await FailureOf(() => view.SendAsync(view.SessionOf(relayId)!, "them@example", false, "hello"));
+        Check("relay: the next holder does it itself", nowHere == "Not connected.", nowHere ?? "none");
+        await view.SetPresenceAsync(view.SessionOf(relayId)!, XmppShow.DoNotDisturb, "");
+        Check("relay: and the old one now asks it", await Soon(() => worker.SessionOf(relayId)?.Show == XmppShow.DoNotDisturb), worker.SessionOf(relayId)?.Show.ToString() ?? "none");
+        var askedNow = await FailureOf(() => worker.SendAsync(worker.SessionOf(relayId)!, "them@example", false, "hello"));
+        Check("relay: and its requests go to the new one", askedNow == "Not connected.", askedNow ?? "none");
+
+        var newRow = await view.StoreAsync(view.SessionOf(relayId)!, ToRelay("bot@example", "n1", "under new management"));
+        var oldSaw = new List<long>();
+        worker.MessageStored += m => { lock (oldSaw) oldSaw.Add(m.Id); };
+        var more = await view.StoreAsync(view.SessionOf(relayId)!, ToRelay("bot@example", "n2", "and more"));
+        Check("relay: the old one is told of what the new one saves", await Soon(() => { lock (oldSaw) return oldSaw.Contains(more!.Id); }));
+        Check("relay: and the new one does not tell itself twice", shown.Count == shownBefore + 2, $"{shown.Count} from {shownBefore}");
+        _ = newRow;
+
+        await view.StopAsync();
+        await worker.StopAsync();
+        try { Directory.Delete(relayProfile, recursive: true); } catch (IOException) { /* a temp folder */ }
+    }
+
     var schema = EveConsole.Agent.AgentSchema.Build(factory.CreateDbContext());
     Check("agent: Jabber's tables are kept from the in-app agent",
           !schema.TableNames.Any(t => t.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)) && schema.TableNames.Count > 0);
@@ -621,4 +826,20 @@ return failures.Count == 0 ? 0 : 1;
 sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext() => new(o);
+}
+
+sealed class RelaySpy : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor
+{
+    private readonly System.Collections.Concurrent.ConcurrentQueue<string> _written = new();
+
+    public IEnumerable<string> Written => _written;
+
+    public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>> SavingChangesAsync(
+        Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData eventData,
+        Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    {
+        foreach (var command in eventData.Context!.ChangeTracker.Entries<JabberCommand>()) _written.Enqueue(command.Entity.Args);
+        foreach (var live in eventData.Context.ChangeTracker.Entries<JabberLiveState>()) _written.Enqueue(live.Entity.Json);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
 }

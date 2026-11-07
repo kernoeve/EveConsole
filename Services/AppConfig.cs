@@ -414,24 +414,50 @@ public static class AppConfig
 
     // ── Chat and voice logins ─────────────────────────────────────────────────
     //
-    // ⚠️ Per machine and protected, like the database password. A DPAPI blob can only be opened on the
-    // machine that wrote it, so these could not live in a database several machines read. Each machine
-    // asks once. The reference becomes a keyring key and an argument to macOS's security tool, so it
-    // must stay free of spaces: "jabber-3", "mumble-1".
+    // On PostgreSQL they are in the database, for any PC that takes the worker lease: see SharedLogins.
+    //
+    // On SQLite, one process on one PC, they are in a file of their own and protected like the database
+    // password: see ServiceSecretsFile for why not in the settings. The reference becomes a keyring key
+    // and an argument to macOS's security tool, so it must stay free of spaces: "jabber-3", "mumble-1".
 
-    /// <summary>The password saved under a reference, or null if none or it cannot be opened here.</summary>
+    /// <summary>The password saved under a reference, or null if none or it cannot be opened here. Throws if the saved logins cannot be read at all.</summary>
     public static string? GetServicePassword(string reference)
     {
-        var stored = Load().ServicePasswords?.GetValueOrDefault(reference);
-        var plain  = SecretStore.Unprotect(stored);
+        if (DbEngine.IsPostgres)
+        {
+            MoveServicePasswordsToDatabase();
+            return SharedLogins.Get(reference);
+        }
+
+        var plain = SecretStore.Unprotect(StoredServicePassword(reference));
         return string.IsNullOrEmpty(plain) ? null : plain;
     }
 
-    /// <summary>Whether something is saved under a reference, whether or not it can be opened right now.</summary>
-    public static bool HasServicePassword(string reference) =>
-        !string.IsNullOrEmpty(Load().ServicePasswords?.GetValueOrDefault(reference));
+    /// <summary>Whether something is saved under a reference, whether or not it can be opened right now. Throws if the saved logins cannot be read at all.</summary>
+    public static bool HasServicePassword(string reference)
+    {
+        if (DbEngine.IsPostgres)
+        {
+            MoveServicePasswordsToDatabase();
+            return SharedLogins.Has(reference);
+        }
+
+        return !string.IsNullOrEmpty(StoredServicePassword(reference));
+    }
 
     private static readonly object ServicePasswordGate = new();
+
+    /// <summary>Set once this process has found nothing left on this PC to move to the database.</summary>
+    private static volatile bool _servicePasswordsMoved;
+
+    private static string? StoredServicePassword(string reference)
+    {
+        lock (ServicePasswordGate)
+        {
+            MoveServicePasswordsOutOfConfig();
+            return ServiceSecretsFile.Read().GetValueOrDefault(reference);
+        }
+    }
 
     /// <summary>
     /// Saves a password under a reference, or removes it when given nothing. ⚠️ One at a time: servers connecting at
@@ -439,13 +465,71 @@ public static class AppConfig
     /// </summary>
     public static void SetServicePassword(string reference, string? password)
     {
+        if (DbEngine.IsPostgres)
+        {
+            MoveServicePasswordsToDatabase();
+            if (string.IsNullOrEmpty(password)) SharedLogins.Remove(reference);
+            else SharedLogins.Save(reference, password);
+            return;
+        }
+
         lock (ServicePasswordGate)
         {
-            var c = Load();
-            c.ServicePasswords ??= [];
-            if (string.IsNullOrEmpty(password)) c.ServicePasswords.Remove(reference);
-            else c.ServicePasswords[reference] = SecretStore.Protect(password, reference);
-            Save(c);
+            MoveServicePasswordsOutOfConfig();
+
+            var saved = ServiceSecretsFile.Read();
+            if (string.IsNullOrEmpty(password)) saved.Remove(reference);
+            else saved[reference] = SecretStore.Protect(password, reference);
+            ServiceSecretsFile.Write(saved);
+        }
+    }
+
+    /// <summary>
+    /// Anything still in the settings, from before they had a file of their own. Saved there first and only then taken
+    /// out, so that a failure part way leaves it in one place or both, and never neither. What the file already has wins.
+    /// </summary>
+    private static void MoveServicePasswordsOutOfConfig()
+    {
+        var c = Load();
+        if (c.ServicePasswords is not { Count: > 0 } old) return;
+
+        var saved = ServiceSecretsFile.Read();
+        foreach (var (reference, value) in old) saved.TryAdd(reference, value);
+        ServiceSecretsFile.Write(saved);
+
+        c.ServicePasswords = null;
+        Save(c);
+    }
+
+    /// <summary>
+    /// What this PC saved before its logins were kept in the database, moved there the first time one is asked for. In
+    /// the database first and only then gone from here, so a failure part way leaves it in one place or both. ⚠️ What
+    /// the database already has wins: another PC may have saved a newer one. One this PC cannot open right now, as with
+    /// a locked keychain, stays and is tried on the next start.
+    /// </summary>
+    private static void MoveServicePasswordsToDatabase()
+    {
+        if (_servicePasswordsMoved) return;
+
+        lock (ServicePasswordGate)
+        {
+            // ⚠️ With no key they stay where they are, safe, rather than being lost or written out unprotected.
+            if (_servicePasswordsMoved || !SharedLogins.CanSave) return;
+
+            MoveServicePasswordsOutOfConfig();
+
+            var kept = new Dictionary<string, string>();
+            foreach (var (reference, value) in ServiceSecretsFile.Read())
+            {
+                var plain = SecretStore.Unprotect(value);
+                if (string.IsNullOrEmpty(plain)) kept[reference] = value;
+                else SharedLogins.AddIfAbsent(reference, plain);
+            }
+
+            if (kept.Count > 0) ServiceSecretsFile.Write(kept);
+            else ServiceSecretsFile.Delete();
+
+            _servicePasswordsMoved = true;
         }
     }
 
@@ -999,6 +1083,7 @@ public static class AppConfig
         // The Cloudflare API token, protected the same way and for the same reason.
         [JsonPropertyName("cloudflareToken")]    public string? CloudflareToken    { get; set; }
         // Jabber and Mumble logins, each protected the same way, by a reference like "jabber-3".
+        /// <summary>Only ever read, to move what is here to <see cref="ServiceSecretsFile"/>.</summary>
         [JsonPropertyName("servicePasswords")]   public Dictionary<string, string>? ServicePasswords { get; set; }
 
         [JsonPropertyName("windowX")] public int?    WindowX { get; set; }

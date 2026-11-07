@@ -347,4 +347,7 @@ Trust it only if this matches what the server's admin published. From then on, o
     <value>What you are up to, seen by your contacts (optional). Enter sets it.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>Waiting for the background process</value>
+  </data>
 </root>

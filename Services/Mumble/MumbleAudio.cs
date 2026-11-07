@@ -351,6 +351,9 @@ public sealed class MumbleAudioDevices : IDisposable
     /// <summary>Samples from the microphone, 10 ms at a time, on the sound device's thread. Nothing slow here.</summary>
     public event Action<short[]>? Captured;
 
+    /// <summary>The microphone is about to start, after being closed: nothing of what came before lines up with what comes next.</summary>
+    public event Action? InputOpening;
+
     /// <summary>What went wrong the last time a device was opened, for the screen to say.</summary>
     public string? LastError { get; private set; }
 
@@ -515,6 +518,7 @@ public sealed class MumbleAudioDevices : IDisposable
 
                 _inputCallback = OnInput;
                 var stream = new PaStream(parameters, null, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, StreamFlags.ClipOff, _inputCallback, null);
+                InputOpening?.Invoke();
                 stream.Start();
                 _input = stream;
                 LastError = null;

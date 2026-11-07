@@ -321,7 +321,7 @@ jobs:
             plutil -p "$app/Contents/Info.plist"
             plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist" > /dev/null
             [ "$(plutil -extract CFBundleExecutable raw "$app/Contents/Info.plist")" = EveConsole ]
-            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib; do
+            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib libwebrtc-apm.dylib; do
               found=$(find "$app/Contents/MacOS" -path "*$lib" | head -1)
               [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
             done

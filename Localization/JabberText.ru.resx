@@ -270,4 +270,7 @@
     <value>Чем вы заняты, это видят ваши контакты (необязательно). Enter — применить.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>Ожидание фонового процесса</value>
+  </data>
 </root>

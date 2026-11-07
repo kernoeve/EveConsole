@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using System.Threading.Channels;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -9,7 +10,10 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Jabber;
 
-public enum JabberState { Offline, Connecting, Connected, Reconnecting, Failed }
+public enum JabberState { Offline, Connecting, Connected, Reconnecting, Failed, WaitingForWorker }
+
+/// <summary>How much has come through one conversation: its last message, as saved, and how many in the last day.</summary>
+public sealed record JabberConversationActivity(int AccountId, string Conversation, bool IsRoom, string LastAt, int LastDay);
 
 /// <summary>What a stopped connection needs from the person, if anything.</summary>
 public enum JabberProblem { None, Password, Certificate, NoEncryption, Replaced, Other }
@@ -126,10 +130,10 @@ public readonly record struct JabberUnread(int AccountId, string Conversation, i
 /// <summary>
 /// The Jabber accounts: keeping each connected as asked, and saving what they say.
 ///
-/// <para>⚠️ Desktop only. Started after the headless branch has returned, and it checks again: a worker
-/// connecting as the owner would fight their real client for the same login.</para>
+/// <para>⚠️ One process connects, and that is whichever holds the worker lease, with or without a window: two would fight
+/// for the same login. Every other client shows what it saves, and asks it for the rest. See JabberRelay.cs.</para>
 /// </summary>
-public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
+public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
 {
     /// <summary>How long to wait between attempts: quick for a blip, then settling once a server is down.</summary>
     private static readonly int[] BackoffSeconds = [5, 10, 30, 60, 120, 300];
@@ -164,29 +168,23 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
 
     public static string PasswordReference(int accountId) => $"jabber-{accountId}";
 
-    /// <summary>Loads the accounts and connects the ones set to connect on their own.</summary>
+    /// <summary>Loads the accounts, and starts showing how they stand. Connecting is for whoever holds the lease: <see cref="BecomeWorkerAsync"/>.</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
-        if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
+        if (AppRuntime.IsTray) return;
 
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        foreach (var account in await db.JabberAccounts.AsNoTracking().OrderBy(a => a.Id).ToListAsync(ct))
-        {
-            var session = Track(account);
-            if (account.AutoConnect) Connect(session);
-
-            // ⚠️ Said even when it stays offline: what lists the servers looked before this read them.
-            SessionChanged?.Invoke(session);
-        }
-
-        await PurgeOldAsync(ct);
+        await LoadAccountsAsync(ct);
+        await StartShowingAsync(ct);
     }
 
+    /// <summary>The process is closing: the connections, closed properly, and what said they were up.</summary>
     public async Task StopAsync()
     {
-        JabberSession[] all;
-        lock (_gate) all = [.. _sessions.Values];
-        await Task.WhenAll(all.Select(DisconnectAsync));
+        _stopping = true;
+        _watchRun?.Cancel();
+
+        if (_isWorker) await StandDownAsync();
+        else await Task.WhenAll(Sessions.Select(DisconnectHereAsync));
     }
 
     public IReadOnlyList<JabberSession> Sessions
@@ -230,6 +228,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         }
 
         var session = Track(account);
+        Tell("accounts");
         SessionChanged?.Invoke(session);
         return session;
     }
@@ -239,7 +238,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         JabberSession? session;
         lock (_gate) _sessions.Remove(accountId, out session);
-        if (session is not null) await DisconnectAsync(session);
+        if (session is not null && ActsHere) await DisconnectHereAsync(session);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberMessages.Where(m => m.AccountId == accountId).ExecuteDeleteAsync(ct);
@@ -247,6 +246,8 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         await db.JabberAccounts.Where(a => a.Id == accountId).ExecuteDeleteAsync(ct);
 
         await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(accountId), null), ct);
+        Tell("accounts");
+        Tell("unread");
         UnreadChanged?.Invoke();
     }
 
@@ -263,7 +264,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Asks for this account to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(JabberSession session)
     {
-        if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
+        if (AppRuntime.IsTray) return;
+
+        if (!ActsHere)
+        {
+            PostToWorker(session.Account.Id, "connect", new CommandArgs());
+            return;
+        }
 
         lock (_gate)
         {
@@ -274,7 +281,10 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         }
     }
 
-    public async Task DisconnectAsync(JabberSession session)
+    public Task DisconnectAsync(JabberSession session) =>
+        ActsHere ? DisconnectHereAsync(session) : PostToWorkerAsync(session.Account.Id, "disconnect", new CommandArgs());
+
+    private async Task DisconnectHereAsync(JabberSession session)
     {
         CancellationTokenSource? run;
         Task? loop;
@@ -377,11 +387,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var account  = session.Account;
         var password = await Task.Run(() => AppConfig.GetServicePassword(PasswordReference(account.Id)), ct);
         if (password is null)
-            throw new XmppException(XmppFailure.Login, "No password is saved on this machine.");
+            throw new XmppException(XmppFailure.Login, await Task.Run(() => AppConfig.HasServicePassword(PasswordReference(account.Id)), ct)
+                ? "The saved password cannot be opened, which is what happens after the database password changes. Type it again."
+                : "No password is saved.");
 
         var connection = new XmppConnection(new XmppLogin(
             account.Address, password, account.Host, account.Port,
-            account.Resource.Length > 0 ? account.Resource : MachineResource(),
+            account.Resource.Length > 0 ? account.Resource : WorkerResource,
             account.TrustedCertificate, account.DirectTls));
 
         await connection.ConnectAsync(ct);
@@ -397,6 +409,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         {
             session.Locked(s => s.SendsTyping.Add(from.Bare));
             TypingChanged?.Invoke(account.Id, from.Bare, typing);
+            Tell($"typing|{account.Id}|{(typing ? 1 : 0)}|{from.Bare}");
         };
         client.PresenceChanged += p => OnPresence(session, p);
         client.OccupantChanged += o => OnOccupant(session, client, o, ct);
@@ -468,6 +481,19 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     private static readonly TimeSpan ArchiveOverlap = TimeSpan.FromMinutes(5);
 
     private const string StoredDate = "yyyy-MM-dd'T'HH:mm:ss'Z'";
+
+    /// <summary>From what is saved, so it reads the same on any client, whichever of them holds the connection. Reads every message: for now and then, not for each tick.</summary>
+    public async Task<IReadOnlyList<JabberConversationActivity>> ActivityAsync(CancellationToken ct = default)
+    {
+        var since = DateTimeOffset.UtcNow.AddDays(-1).UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture);
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        return await db.JabberMessages.AsNoTracking()
+            .GroupBy(m => new { m.AccountId, m.Conversation, m.IsRoom })
+            .Select(g => new JabberConversationActivity(g.Key.AccountId, g.Key.Conversation, g.Key.IsRoom,
+                                                        g.Max(m => m.SentAt)!, g.Sum(m => m.SentAt.CompareTo(since) >= 0 ? 1 : 0)))
+            .ToListAsync(ct);
+    }
 
     /// <summary>
     /// A message as it comes off the connection: what to save now, or null if a room's catch-up is keeping it back.
@@ -679,11 +705,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     }
 
     /// <summary>
-    /// A resource of this machine's own. ⚠️ Fixed for the machine, so a reconnect takes the session's place,
-    /// but different across machines: the same one on two would have the owner's clients replacing each other.
+    /// The resource this app connects as. ⚠️ The same on every PC, as only the lease holder connects. A holder that died
+    /// leaves its session open on the server for a while, holding its nickname in every room, and a new connection under
+    /// the same resource replaces it rather than joining as Name_ alongside.
     /// </summary>
-    public static string MachineResource() =>
-        "EVEConsole-" + Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(Environment.MachineName)))[..8];
+    public const string WorkerResource = "EVEConsole";
 
     private void MarkDisconnected(JabberSession session)
     {
@@ -886,7 +912,9 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         if (room is { Room.RoomType: JabberRoomType.Intel }) await FeedIntelAsync(db, room.Room, row, ct);
 
         // ⚠️ Not one sound per mention for a whole absence: a room's catch-up shows as unread, and that is enough.
-        if (row.IsAlert && !row.IsRead && !(row.IsRoom && message.ArchiveId.Length > 0)) AlertArrived?.Invoke(row);
+        var sound = row.IsAlert && !row.IsRead && !(row.IsRoom && message.ArchiveId.Length > 0);
+        if (sound) AlertArrived?.Invoke(row);
+        TellMessageSaved(row.Id, sound);
         return row;
     }
 
@@ -955,6 +983,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         last.Body = row.Body;
         await db.SaveChangesAsync(ct);
         ConversationEdited?.Invoke(row.AccountId, row.Conversation);
+        Tell($"edit|{row.AccountId}|{row.Conversation}");
         return true;
     }
 
@@ -1061,6 +1090,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Sends a message. Rooms echo a message back, so only a direct one is saved here.</summary>
     public async Task SendAsync(JabberSession session, string conversation, bool isRoom, string body, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Account.Id, "send", new CommandArgs(conversation, isRoom, body), ct);
+            return;
+        }
+
         var client = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
         var text   = XmppClient.Clean(body);
         var id     = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", text, ct);
@@ -1083,10 +1118,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Puts a file on the server, and sends its address to the conversation.</summary>
     public async Task SendFileAsync(JabberSession session, string conversation, bool isRoom, Stream content, string fileName, long size, string contentType, CancellationToken ct = default)
     {
-        var client  = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
-        var service = session.UploadService ?? throw new XmppException(XmppFailure.Protocol, "This server does not take files.");
+        // ⚠️ The worker asks the server for where to put it and sends its address, but the file goes up from here: it
+        // is on this PC, and the worker may be on another.
+        var slot = ActsHere
+            ? await UploadSlotAsync(session, fileName, size, contentType, ct)
+            : JsonSerializer.Deserialize<XmppUploadSlot>(await AskWorkerAsync(session.Account.Id, "slot", new CommandArgs(Name: fileName, Size: size, ContentType: contentType), ct))
+              ?? throw new XmppException(XmppFailure.Protocol, "The server did not say where to put the file.");
 
-        var slot = await client.RequestUploadSlotAsync(service.Jid, XmppClient.Clean(Path.GetFileName(fileName)), size, contentType, ct);
         if (!IsSafeUploadUrl(slot.PutUrl) || !IsSafeUploadUrl(slot.GetUrl))
             throw new XmppException(XmppFailure.Protocol, "The server offered an unencrypted address for the file.");
 
@@ -1100,14 +1138,36 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         using var response = await Uploads.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
         response.EnsureSuccessStatusCode();
 
-        var id = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", slot.GetUrl, ct, slot.GetUrl);
+        if (ActsHere) await SendUrlAsync(session, conversation, isRoom, slot.GetUrl, ct);
+        else await AskWorkerAsync(session.Account.Id, "sendurl", new CommandArgs(conversation, isRoom, slot.GetUrl), ct);
+    }
+
+    private static async Task<XmppUploadSlot> UploadSlotAsync(JabberSession session, string fileName, long size, string contentType, CancellationToken ct)
+    {
+        var client  = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        var service = session.UploadService ?? throw new XmppException(XmppFailure.Protocol, "This server does not take files.");
+        return await client.RequestUploadSlotAsync(service.Jid, XmppClient.Clean(Path.GetFileName(fileName)), size, contentType, ct);
+    }
+
+    /// <summary>Sends the address of a file now on the server.</summary>
+    private async Task SendUrlAsync(JabberSession session, string conversation, bool isRoom, string url, CancellationToken ct)
+    {
+        var client = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        var id = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", url, ct, url);
         if (!isRoom)
-            await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", slot.GetUrl, "", id, null, "", true), ct);
+            await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", url, "", id, null, "", true), ct);
     }
 
     /// <summary>Tells someone this account is typing to them, if their client has shown it can use that.</summary>
     public async Task SendTypingAsync(JabberSession session, string conversation, bool typing, CancellationToken ct = default)
     {
+        // A signal alone, as nothing depends on it and a row each key press would be silly.
+        if (!ActsHere)
+        {
+            Tell($"typeout|{session.Account.Id}|{(typing ? 1 : 0)}|{conversation}");
+            return;
+        }
+
         if (session.Client is { } client && session.Locked(s => s.SendsTyping.Contains(conversation)))
             await client.SendTypingAsync(conversation, typing, ct);
     }
@@ -1125,6 +1185,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
             await db.JabberAccounts.Where(a => a.Id == id)
                     .ExecuteUpdateAsync(u => u.SetProperty(a => a.SavedShow, (int)show).SetProperty(a => a.SavedStatus, status), ct);
 
+        if (!ActsHere)
+        {
+            await PostToWorkerAsync(id, "presence", new CommandArgs(Show: show, Status: status), ct);
+            SessionChanged?.Invoke(session);
+            return;
+        }
+
         if (session.Client is { } client)
         {
             await client.SetPresenceAsync(show, status, ct);
@@ -1135,7 +1202,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         SessionChanged?.Invoke(session);
     }
 
-    /// <summary>Adds a room to the account, and joins it. A password, if any, is held per machine.</summary>
+    /// <summary>Adds a room to the account, and joins it.</summary>
     public async Task<JabberRoom> JoinRoomAsync(JabberSession session, string roomJid, string name, string nickname, string password, CancellationToken ct = default, int? roomType = null)
     {
         var bare = XmppAddress.Parse(roomJid).Bare;
@@ -1163,16 +1230,40 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         }
 
         session.Locked(s => s.RoomMap[bare] = new JabberRoomState(room));
-        if (session.Client is { } client) await JoinCoreAsync(session, client, room, ct);
 
-        IntelRoomsChanged?.Invoke();
+        // ⚠️ The room and its password are already saved, so its password is never part of what is asked.
+        if (ActsHere) await JoinSavedRoomAsync(session, bare, ct);
+        else await AskWorkerAsync(session.Account.Id, "join", new CommandArgs(bare), ct);
+
         SessionChanged?.Invoke(session);
         return room;
+    }
+
+    private async Task JoinSavedRoomAsync(JabberSession session, string roomJid, CancellationToken ct)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var id = session.Account.Id;
+        var room = await db.JabberRooms.AsNoTracking().FirstOrDefaultAsync(r => r.AccountId == id && r.RoomJid == roomJid, ct);
+        if (room is null) return;
+
+        session.Locked(s => s.RoomMap[roomJid] = new JabberRoomState(room));
+        if (session.Client is { } client) await JoinCoreAsync(session, client, room, ct);
+
+        RoomTypesChanged();
+        SessionChanged?.Invoke(session);
     }
 
     /// <summary>Leaves a room and stops rejoining it. Its saved messages stay until they age out.</summary>
     public async Task LeaveRoomAsync(JabberSession session, string roomJid, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Account.Id, "leave", new CommandArgs(roomJid), ct);
+            session.Locked(s => s.RoomMap.Remove(roomJid));
+            SessionChanged?.Invoke(session);
+            return;
+        }
+
         var state = session.Locked(s => { s.RoomMap.Remove(roomJid, out var r); return r; });
         if (state is not null && session.Client is { } client && state.Joined)
             await client.LeaveRoomAsync(roomJid, state.Nick, ct);
@@ -1187,15 +1278,25 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         // Nothing is left to open them with, and an alert nobody can clear would stay for ever.
         var cleared = await db.JabberMessages.Where(m => m.AccountId == id && m.Conversation == roomJid && !m.IsRead)
                               .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
-        if (cleared > 0) UnreadChanged?.Invoke();
+        if (cleared > 0)
+        {
+            UnreadChanged?.Invoke();
+            Tell("unread");
+        }
 
-        IntelRoomsChanged?.Invoke();
+        RoomTypesChanged();
         SessionChanged?.Invoke(session);
     }
 
     /// <summary>Answers an invitation. A yes joins the room with whatever password came with it.</summary>
     public async Task AnswerInviteAsync(JabberSession session, string room, bool accept, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Account.Id, "invite", new CommandArgs(room, Accept: accept), ct);
+            return;
+        }
+
         var invite = session.Locked(s => { s.InviteMap.Remove(room, out var i); return i; });
         if (accept && invite is not null) await JoinRoomAsync(session, invite.Room, "", "", invite.Password, ct);
         SessionChanged?.Invoke(session);
@@ -1207,6 +1308,7 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid)
                 .ExecuteUpdateAsync(u => u.SetProperty(r => r.AlertMode, mode), ct);
         session.Locked(s => { if (s.RoomMap.TryGetValue(roomJid, out var r)) r.Room.AlertMode = mode; });
+        if (!ActsHere) await PostToWorkerAsync(session.Account.Id, "room", new CommandArgs(roomJid), ct);
         SessionChanged?.Invoke(session);
     }
 
@@ -1217,20 +1319,33 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         await db.JabberRooms.Where(r => r.AccountId == session.Account.Id && r.RoomJid == roomJid)
                 .ExecuteUpdateAsync(u => u.SetProperty(r => r.RoomType, roomType), ct);
         session.Locked(s => { if (s.RoomMap.TryGetValue(roomJid, out var r)) r.Room.RoomType = roomType; });
-        IntelRoomsChanged?.Invoke();
+        if (ActsHere) RoomTypesChanged();
+        else
+        {
+            IntelRoomsChanged?.Invoke();
+            await PostToWorkerAsync(session.Account.Id, "room", new CommandArgs(roomJid), ct);
+        }
         SessionChanged?.Invoke(session);
     }
 
     public Task AddContactAsync(JabberSession session, string jid, string name, CancellationToken ct = default) =>
-        session.Client?.AddContactAsync(XmppAddress.Parse(jid).Bare, name, ct)
-        ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        !ActsHere ? AskWorkerAsync(session.Account.Id, "addcontact", new CommandArgs(jid, Name: name), ct)
+        : session.Client?.AddContactAsync(XmppAddress.Parse(jid).Bare, name, ct)
+          ?? throw new XmppException(XmppFailure.Network, "Not connected.");
 
     public Task RemoveContactAsync(JabberSession session, string jid, CancellationToken ct = default) =>
-        session.Client?.RemoveContactAsync(jid, ct)
-        ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        !ActsHere ? AskWorkerAsync(session.Account.Id, "removecontact", new CommandArgs(jid), ct)
+        : session.Client?.RemoveContactAsync(jid, ct)
+          ?? throw new XmppException(XmppFailure.Network, "Not connected.");
 
     public async Task AnswerRequestAsync(JabberSession session, string jid, bool accept, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Account.Id, "request", new CommandArgs(jid, Accept: accept), ct);
+            return;
+        }
+
         if (session.Client is { } client) await client.AnswerSubscriptionAsync(jid, accept, ct);
         session.Locked(s => s.Requests.Remove(jid));
         SessionChanged?.Invoke(session);
@@ -1246,6 +1361,12 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>What a room says about itself. Null when it will not say in reasonable time, so one silent room holds up nothing.</summary>
     public async Task<XmppRoomDetails?> RoomDetailsAsync(JabberSession session, string roomJid, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            try { return JsonSerializer.Deserialize<XmppRoomDetails>(await AskWorkerAsync(session.Account.Id, "details", new CommandArgs(roomJid), ct)); }
+            catch (XmppException) { return null; }
+        }
+
         if (session.Client is not { } client) return null;
 
         try { return await client.RoomDetailsAsync(roomJid, ct).WaitAsync(TimeSpan.FromSeconds(6), ct); }
@@ -1253,8 +1374,13 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
     }
 
     /// <summary>The rooms a conference service lists, for browsing.</summary>
-    public Task<IReadOnlyList<XmppRoomInfo>> BrowseRoomsAsync(JabberSession session, string service, CancellationToken ct = default) =>
-        session.Client?.ItemsOfAsync(service, ct) ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+    public async Task<IReadOnlyList<XmppRoomInfo>> BrowseRoomsAsync(JabberSession session, string service, CancellationToken ct = default)
+    {
+        if (!ActsHere)
+            return JsonSerializer.Deserialize<List<XmppRoomInfo>>(await AskWorkerAsync(session.Account.Id, "browse", new CommandArgs(service), ct)) ?? [];
+
+        return await (session.Client?.ItemsOfAsync(service, ct) ?? throw new XmppException(XmppFailure.Network, "Not connected."));
+    }
 
     // ── History ───────────────────────────────────────────────────────────────
 
@@ -1322,7 +1448,11 @@ public sealed class JabberService(IDbContextFactory<AppDbContext> dbFactory, App
         var changed = await db.JabberMessages
             .Where(m => m.AccountId == accountId && m.Conversation == conversation && !m.IsRead)
             .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
-        if (changed > 0) UnreadChanged?.Invoke();
+        if (changed > 0)
+        {
+            UnreadChanged?.Invoke();
+            Tell("unread");
+        }
     }
 
     /// <summary>Deletes messages past the kept days. ⚠️ Never an unread one: age is no reason to lose what was not seen.</summary>

@@ -45,6 +45,38 @@ public class JabberAccount
     public string SavedStatus { get; set; } = "";
 }
 
+/// <summary>
+/// One piece of how a connection stands, written by whichever process holds the worker lease for the other clients to
+/// show: the account's own state under a blank <see cref="Part"/>, and each room under its address. Nothing here outlives
+/// the worker that wrote it.
+/// </summary>
+public class JabberLiveState
+{
+    public int    AccountId { get; set; }
+    public string Part      { get; set; } = "";
+
+    /// <summary>Rises with every write, so a client reads only what it has not seen.</summary>
+    public long   Version   { get; set; }
+
+    public string Json      { get; set; } = "";
+}
+
+/// <summary>Something a client asks the worker to do, as only the worker has the connection. ⚠️ Never holds a password.</summary>
+public class JabberCommand
+{
+    public long   Id          { get; set; }
+    public int    AccountId   { get; set; }
+    public string Kind        { get; set; } = "";
+    public string Args        { get; set; } = "";
+    public long   CreatedUnix { get; set; }
+
+    /// <summary>Waiting, running or done.</summary>
+    public int    State       { get; set; }
+
+    public string Result      { get; set; } = "";
+    public string Error       { get; set; } = "";
+}
+
 /// <summary>A room an account keeps. One saved on the server as a bookmark is added here when it is seen.</summary>
 public class JabberRoom
 {

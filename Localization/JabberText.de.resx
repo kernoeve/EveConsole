@@ -270,4 +270,7 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
     <value>Was du gerade machst, sichtbar für deine Kontakte (optional). Enter setzt es.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>Warte auf den Hintergrundprozess</value>
+  </data>
 </root>

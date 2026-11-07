@@ -119,7 +119,7 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Conectar al iniciar la aplicación</value>
   </data>
   <data name="AutoConnectNote" xml:space="preserve">
-    <value>Si no, solo se conecta cuando lo pidas. En ambos casos se reconecta solo si se pierde la conexión, hasta que desconectes.</value>
+    <value>Si no, solo se conecta cuando lo pidas. En ambos casos se reconecta solo si se pierde la conexión, hasta que desconectes. Este ajuste solo se aplica a este PC.</value>
   </data>
   <data name="Save" xml:space="preserve">
     <value>Guardar</value>
@@ -323,7 +323,7 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Cancelar el eco de mis altavoces</value>
   </data>
   <data name="EchoCancelNote" xml:space="preserve">
-    <value>Para escuchar por altavoces, para que los demás no se oigan por tu micrófono. Con auriculares no hay nada que cancelar.</value>
+    <value>Para escuchar por altavoces, para que los demás no se oigan por tu micrófono. Con auriculares no hay nada que cancelar. Mientras esté activo, el micrófono permanece abierto para aprender cómo suena tu habitación. No se envía nada a menos que hables.</value>
   </data>
   <data name="VoiceLevel" xml:space="preserve">
     <value>Nivel de activación por voz</value>
@@ -363,5 +363,14 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   </data>
   <data name="LabelDescription" xml:space="preserve">
     <value>Descripción</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>La cancelación de eco no puede ejecutarse en este equipo porque no se pudo cargar su biblioteca de sonido. La voz sigue funcionando.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Canales</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: {2} sin ensordecer en este canal</value>
   </data>
 </root>

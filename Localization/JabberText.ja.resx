@@ -270,4 +270,7 @@
     <value>連絡先に表示されるひとこと (任意)。Enter で設定します。</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>バックグラウンドプロセスを待っています</value>
+  </data>
 </root>

@@ -625,6 +625,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             });
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
+        vm.OpenSettingsTab = header => _ = OpenSettingsAsync(vm, header);
         // The PI tool's Characters tab points at the PI switch, which is on Settings → Characters.
         vm.PlanetaryIndustryVm.OpenPiSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabCharacters);
 
@@ -775,13 +776,20 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                // Over the shared preferences, which are already in memory.
                                                new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
+                                               vm.JabberVm, vm.MumbleVm,
                                                vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
         // Not awaited: it asks the web, and the window should not wait for that to open.
         _ = vm.OnlineServicesSettingsVm.RefreshAsync();
         var settingsWin = new SettingsWindow { DataContext = settingsVm };
         settingsWin.WireDatabase(dbVm, this);
         if (initialTab is not null) settingsWin.SelectTab(initialTab);
-        await settingsWin.ShowDialog(this);
+
+        // ⚠️ Messaging someone from the Jabber or Mumble tab shows the conversation in this window, which a dialog would leave it behind.
+        void ToConversation() => Avalonia.Threading.Dispatcher.UIThread.Post(settingsWin.Close);
+        vm.MessagesVm.ShowRequested += ToConversation;
+        try { await settingsWin.ShowDialog(this); }
+        finally { vm.MessagesVm.ShowRequested -= ToConversation; }
+
         // The tabs save as they are changed; what was still waiting on a typing pause is saved as
         // the window closes. Awaited before anything here reads what was changed.
         await settingsWin.PendingSaves;

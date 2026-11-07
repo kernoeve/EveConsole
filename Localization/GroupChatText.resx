@@ -11,7 +11,7 @@
     <value>Add rooms on {0}</value>
   </data>
   <data name="Welcome" xml:space="preserve">
-    <value>Rooms and server chat show here. Set up a server in the Jabber or Mumble tool first.</value>
+    <value>Rooms and server chat show here. Set up a server on the Jabber or Mumble tab in Settings first.</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
     <value>Pick a room or a server on the left.</value>

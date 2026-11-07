@@ -270,4 +270,7 @@
     <value>연락처에 표시되는 상태 메시지 (선택). Enter로 설정합니다.</value>
     <comment>Under the status choice.</comment>
   </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>백그라운드 프로세스를 기다리는 중</value>
+  </data>
 </root>

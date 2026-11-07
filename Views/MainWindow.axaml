@@ -20,7 +20,8 @@
     <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceHeaderBrush}" Padding="16 8">
       <Grid ColumnDefinitions="*,Auto,Auto">
 
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <!-- ⚠️ Cut off where it runs out of room, rather than running under what is on the right when the window is narrow. -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" ClipToBounds="True">
           <!-- Shows or hides the navigation on the left, for the width. -->
           <Button Command="{Binding ToggleNavCommand}" Content="☰" FontSize="16"
                   Background="Transparent" BorderThickness="0" Padding="4 0 4 2" Margin="-6 0 0 0"
@@ -172,6 +173,19 @@
         <!-- Eve Time clock -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
+
+          <!-- Each Mumble server this client is connected to: where it is, who there can hear, and its controls. -->
+          <ItemsControl ItemsSource="{Binding MumbleVm.OverlayColumns}" IsVisible="{Binding !MumbleVm.NobodyTalking}"
+                        VerticalAlignment="Center" Margin="0 0 10 0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="12" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:MumbleOverlayColumn">
+                <views:MumbleServerBar ShowsWhere="True" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
 
           <!-- Direct messages: dim with nothing new, lit with a count when something is waiting. -->
           <Button Command="{Binding OpenMessagesCommand}" Background="Transparent" BorderThickness="0" Padding="4 1" Margin="0 0 10 0"
