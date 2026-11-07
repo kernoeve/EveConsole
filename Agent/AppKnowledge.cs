@@ -303,6 +303,11 @@ public static class AppKnowledge
         saved fit; a red info icon shows modules missing or wrong, ammo or fighters low. Alerts →
         Structures, for corporations ticked on Settings → Corporations.
 
+        ### Client Layouts
+        Windows only. Shares each monitor between game clients and panels, keeping clients in place
+        as they log in. A monitor picks a layout and the characters for each client position. Nothing
+        moves until Apply. It only sets a client's size and place.
+
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,
         development and anarchy (level 0–4 · amount of 100), open operations. Only a den's owner
@@ -483,6 +488,7 @@ public static class AppKnowledge
         ("corp_activity",       "Corp Activity",          "Corp Activity"),
         ("corp_structures",     "Corp Structures",        "Corp Structures"),
         ("mercenary_dens",      "Mercenary Dens",         "Mercenary Dens"),
+        ("client_layouts",      "Client Layouts",         "Client Layouts"),
         ("killmails",           "Killmails",              "Killmails"),
         ("battle_report",       "Battle Report",          "Battle Report"),
         ("player_entities",     "Player Entities",        "Player Entities"),

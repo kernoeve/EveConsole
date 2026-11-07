@@ -311,6 +311,7 @@ public class MainWindowViewModel : ReactiveObject
     public CorpActivityViewModel          CorpActivityVm         { get; }
     public CorpStructuresViewModel        CorpStructuresVm       { get; }
     public MercenaryDensViewModel         MercenaryDensVm        { get; }
+    public ClientLayoutsViewModel         ClientLayoutsVm        { get; }
     public KillmailBrowserViewModel       KillmailBrowserVm      { get; }
     public BattleReportViewModel          BattleReportVm         { get; }
     public EveMailViewModel               EveMailVm              { get; }
@@ -950,6 +951,7 @@ public class MainWindowViewModel : ReactiveObject
             "corp_activity"  => (ShellText.NavCorpActivity,  CorpActivityVm,    true),
             "corp_structures" => (ShellText.NavCorpStructures, CorpStructuresVm, true),
             "mercenary_dens" => (ShellText.NavMercenaryDens,  MercenaryDensVm,   true),
+            "client_layouts" => (ShellText.NavClientLayouts,  ClientLayoutsVm,   true),
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "battle_report"  => (ShellText.NavBattleReport,   BattleReportVm,    true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
@@ -1073,6 +1075,8 @@ public class MainWindowViewModel : ReactiveObject
         HoboImportService               hoboService,
         EsiPollingService               pollingService,
         WorkerLease                     workerLease,
+        Services.ClientLayouts.ClientLayoutStore clientLayoutStore,
+        Services.ClientLayouts.ClientLayoutService clientLayoutService,
         WorkerActivityService           workerActivity,
         ApiActivityViewModel            activityVm,
         AlarmMuteState                  alarmMute,
@@ -1231,6 +1235,7 @@ public class MainWindowViewModel : ReactiveObject
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
+        ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         BattleReportVm    = new BattleReportViewModel(battleReportService,
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
@@ -1548,6 +1553,10 @@ public class MainWindowViewModel : ReactiveObject
                 new NavItem("overview",    ShellText.NavOverview),
                 new NavItem("worklist",    ShellText.NavWorklist),
                 new NavItem("characters",  ShellText.NavCharacters),
+                // Only Windows gives us the game's windows, so nowhere else is it offered.
+                .. (Services.ClientLayouts.ClientLayoutService.IsSupported
+                    ? new[] { new NavItem("client_layouts", ShellText.NavClientLayouts) }
+                    : []),
             ]),
             new("assets", ShellText.NavGroupAssets,
             [

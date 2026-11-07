@@ -1256,6 +1256,43 @@ public static class PostgresSchema
             "UpdatedAt"  TIMESTAMPTZ NOT NULL
         )
         """,
+        // Client layouts: the shapes, the desktops, their monitors and who runs where. Mirrored for
+        // SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "ClientLayouts" (
+            "Id"         SERIAL      PRIMARY KEY,
+            "Name"       TEXT        NOT NULL DEFAULT '',
+            "Definition" TEXT        NOT NULL DEFAULT '',
+            "UpdatedAt"  TIMESTAMPTZ NOT NULL
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ClientLayoutDevices" (
+            "Id"             TEXT    PRIMARY KEY,
+            "Name"           TEXT    NOT NULL DEFAULT '',
+            "PlacementOn"    BOOLEAN NOT NULL DEFAULT FALSE,
+            "Applied"        TEXT    NOT NULL DEFAULT '',
+            "SeenCharacters" TEXT    NOT NULL DEFAULT ''
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
+            "Id"          SERIAL  PRIMARY KEY,
+            "DeviceId"    TEXT    NOT NULL DEFAULT '',
+            "HardwareKey" TEXT    NOT NULL DEFAULT '',
+            "LayoutId"    INTEGER NULL,
+            "FullMonitor" BOOLEAN NOT NULL DEFAULT FALSE,
+            "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
+            "Id"            SERIAL  PRIMARY KEY,
+            "MonitorId"     INTEGER NOT NULL DEFAULT 0,
+            "AreaId"        TEXT    NOT NULL DEFAULT '',
+            "CharacterName" TEXT    NOT NULL DEFAULT ''
+        )
+        """,
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored for SQLite
         // in App.axaml.cs.
         """
@@ -1460,6 +1497,8 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")""",
         """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Type" ON "EsiLpStoreOffers" ("TypeId")""",
         """CREATE INDEX IF NOT EXISTS "IX_CourierCargo_ContractId" ON "CourierCargo" ("ContractId")""",
+        """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" ON "ClientLayoutMonitors" ("DeviceId", "HardwareKey")""",
+        """CREATE INDEX IF NOT EXISTS "IX_ClientLayoutCharacters_MonitorId" ON "ClientLayoutCharacters" ("MonitorId")""",
         """CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_EsiCorpMemberSessions_Key" ON "EsiCorpMemberSessions" ("CorporationId", "CharacterId", "LogonDate")""",
         """CREATE INDEX IF NOT EXISTS "IX_SdeCelestials_System" ON "SdeCelestials" ("SolarSystemId")""",

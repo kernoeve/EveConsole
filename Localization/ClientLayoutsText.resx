@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve"><value>Monitors</value></data>
+  <data name="TabLayouts" xml:space="preserve"><value>Layouts</value></data>
+  <data name="LabelDesktop" xml:space="preserve"><value>This desktop</value><comment>The computer EVE Console is running on. Its name can be edited beside this label.</comment></data>
+  <data name="TogglePlacement" xml:space="preserve"><value>Place clients and show panels on this desktop</value></data>
+  <data name="TipPlacement" xml:space="preserve"><value>Off, your game clients are left alone. EVE Console only ever sets a client's size and position.</value></data>
+  <data name="Apply" xml:space="preserve"><value>Apply</value></data>
+  <data name="TipApply" xml:space="preserve"><value>Moves clients and panels to match what is set here, on this desktop only. This also puts back clients that were moved by hand.</value></data>
+  <data name="PendingNone" xml:space="preserve"><value>Everything is applied.</value></data>
+  <data name="PendingSome" xml:space="preserve"><value>Changes to apply on monitors: {0}. Nothing moves until you press Apply.</value><comment>{0} is a list of monitor numbers.</comment></data>
+  <data name="StatusApplied" xml:space="preserve"><value>Applied on monitors: {0}.</value><comment>{0} is a list of monitor numbers.</comment></data>
+  <data name="StatusLayoutInUse" xml:space="preserve"><value>A monitor is using this layout, so it can't be deleted.</value></data>
+  <data name="StatusFailed" xml:space="preserve"><value>That didn't work: {0}</value><comment>{0} is the error message.</comment></data>
+  <data name="MonitorLabel" xml:space="preserve"><value>Monitor {0}: {1} × {2}</value><comment>{0} is the monitor's number, {1} and {2} its width and height in pixels.</comment></data>
+  <data name="MonitorPrimary" xml:space="preserve"><value>{0} (primary)</value><comment>{0} is the monitor's label. Primary is Windows' main display.</comment></data>
+  <data name="NoLayout" xml:space="preserve"><value>None: leave this monitor alone</value></data>
+  <data name="LabelLayout" xml:space="preserve"><value>Layout</value></data>
+  <data name="LabelPanelStart" xml:space="preserve"><value>Panels start</value></data>
+  <data name="PanelStartWithConsole" xml:space="preserve"><value>With EVE Console</value></data>
+  <data name="PanelStartWithEve" xml:space="preserve"><value>When EVE starts on this monitor</value></data>
+  <data name="FullMonitor" xml:space="preserve"><value>Use the full monitor, including where the taskbar is</value></data>
+  <data name="NoCells" xml:space="preserve"><value>This layout has no client positions.</value></data>
+  <data name="AddCharacterHint" xml:space="preserve"><value>Character name</value></data>
+  <data name="Add" xml:space="preserve"><value>Add</value></data>
+  <data name="TipRemoveCharacter" xml:space="preserve"><value>Remove from this group</value></data>
+  <data name="NoticesTitle" xml:space="preserve"><value>What placement noticed</value></data>
+  <data name="NoticeAClient" xml:space="preserve"><value>A client</value><comment>Used in place of a character's name while a game client is at the login screen.</comment></data>
+  <data name="NoticeNotFixed" xml:space="preserve"><value>{0} isn't in Fixed Window mode, so it was left alone. Change its window mode in the game's settings.</value><comment>{0} is a character's name or "A client".</comment></data>
+  <data name="NoticeInUse" xml:space="preserve"><value>{0}: its position is in use by another logged-in character, so it stayed where it is.</value><comment>{0} is a character's name.</comment></data>
+  <data name="NoticeNoPosition" xml:space="preserve"><value>{0} is logged in but isn't in any group. Add it to a client position.</value><comment>{0} is a character's name.</comment></data>
+  <data name="NoticeMovedByHand" xml:space="preserve"><value>{0} was moved by hand, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
+  <data name="NoticeDidNotHold" xml:space="preserve"><value>{0} didn't stay where it was placed, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
+  <data name="OtherDesktops" xml:space="preserve"><value>Other desktops</value></data>
+  <data name="OtherDesktopsNote" xml:space="preserve"><value>After reinstalling Windows, this computer looks like a new desktop. Take over its old entry to keep its monitors and groups. This replaces what is set for this desktop.</value></data>
+  <data name="TakeOver" xml:space="preserve"><value>This is that desktop</value></data>
+  <data name="TakeOverConfirm" xml:space="preserve"><value>Click again to replace this desktop</value></data>
+  <data name="LayoutsTitle" xml:space="preserve"><value>Layouts</value></data>
+  <data name="NewLayout" xml:space="preserve"><value>New</value></data>
+  <data name="DuplicateLayout" xml:space="preserve"><value>Duplicate</value></data>
+  <data name="DeleteLayout" xml:space="preserve"><value>Delete</value></data>
+  <data name="NewLayoutName" xml:space="preserve"><value>New layout</value></data>
+  <data name="CopyOfName" xml:space="preserve"><value>{0} copy</value><comment>{0} is the name of the layout that was duplicated.</comment></data>
+  <data name="LayoutHint" xml:space="preserve"><value>Right click an area to dock a panel, split it into a grid, or set what it holds. Drag the lines between areas to resize them.</value></data>
+  <data name="LabelLayoutName" xml:space="preserve"><value>Layout name</value></data>
+  <data name="LabelPreviewOn" xml:space="preserve"><value>Show on</value><comment>Which monitor's size the layout is drawn at while editing.</comment></data>
+  <data name="LabelPanelName" xml:space="preserve"><value>Panel name</value></data>
+  <data name="LabelPanelSize" xml:space="preserve"><value>Size in pixels</value></data>
+  <data name="PanelDefaultName" xml:space="preserve"><value>Panel</value></data>
+  <data name="CanvasClient" xml:space="preserve"><value>Client {0}</value><comment>{0} is the number of a game client position on a monitor.</comment></data>
+  <data name="CanvasSize" xml:space="preserve"><value>{0} × {1}</value><comment>A width and height, or columns and rows of a grid.</comment></data>
+  <data name="CanvasEmpty" xml:space="preserve"><value>Empty</value></data>
+  <data name="MenuDockHere" xml:space="preserve"><value>Dock a panel here</value></data>
+  <data name="MenuDockAroundGrid" xml:space="preserve"><value>Dock a panel around this grid</value></data>
+  <data name="MenuDockMonitor" xml:space="preserve"><value>Dock a panel on the monitor</value></data>
+  <data name="MenuEdgeTop" xml:space="preserve"><value>Top</value></data>
+  <data name="MenuEdgeBottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="MenuEdgeLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="MenuEdgeRight" xml:space="preserve"><value>Right</value></data>
+  <data name="MenuSplit" xml:space="preserve"><value>Split into a grid</value></data>
+  <data name="MenuRemoveGrid" xml:space="preserve"><value>Remove this grid</value></data>
+  <data name="MenuHoldsClient" xml:space="preserve"><value>Holds a game client</value></data>
+  <data name="MenuHoldsPanel" xml:space="preserve"><value>Holds a panel</value></data>
+  <data name="MenuHoldsNothing" xml:space="preserve"><value>Holds nothing</value></data>
+  <data name="MenuSendToBack" xml:space="preserve"><value>Send to Back</value><comment>Makes this panel first in dock order, so it takes its full edge.</comment></data>
+  <data name="MenuBringToFront" xml:space="preserve"><value>Bring to Front</value><comment>Makes this panel last in dock order, so it fits in what the others leave.</comment></data>
+  <data name="MenuRemovePanel" xml:space="preserve"><value>Remove panel</value></data>
+  <data name="WarnSmall" xml:space="preserve"><value>{0}: client {1} is only {2} × {3}, small for playing.</value><comment>{0} is a monitor's label, {1} a client position's number, {2} and {3} its width and height.</comment></data>
+  <data name="WarnNoFit" xml:space="preserve"><value>{0}: the panels here don't fit, so something has no room.</value><comment>{0} is a monitor's label.</comment></data>
+  <data name="WarnBroken" xml:space="preserve"><value>{0}: part of this layout can't be used as saved. It may have come from a newer version.</value><comment>{0} is a monitor's label.</comment></data>
+</root>

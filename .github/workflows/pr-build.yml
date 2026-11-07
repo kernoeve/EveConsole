@@ -120,6 +120,13 @@ jobs:
       - name: Slack rich format check
         run: dotnet run --project tools/SlackRichCheck/SlackRichCheck.csproj -c Release
 
+      # ⚠️ Do the client layout rules still leave a client alone when they must? A rule gone wrong
+      # moves a client someone is flying, or puts a panel over one, and either looks like a working
+      # feature in a quick try. This checks the layouts' arithmetic and the placement rules with
+      # constructed windows: no game, no real window and no database.
+      - name: Client layout check
+        run: dotnet run --project tools/ClientLayoutCheck/ClientLayoutCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

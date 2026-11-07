@@ -556,7 +556,9 @@ public class App : Application
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().StopAsync());
                 await Task.WhenAll(tasks);
+                Services.GetRequiredService<Views.ClientPanelHost>().CloseAll();
 
                 // ⚠️ After the pollers, never before. Releasing first would invite another
                 // client to start polling while this one is still finishing a pass, which is
@@ -2079,6 +2081,52 @@ public class App : Application
                         "Definition" TEXT    NOT NULL DEFAULT '',
                         "UpdatedAt"  TEXT    NOT NULL
                     )
+                    """);
+
+                // ── Client layouts ──────────────────────────────────────────────────
+                // Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayouts" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "Definition" TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutDevices" (
+                        "Id"             TEXT    NOT NULL PRIMARY KEY,
+                        "Name"           TEXT    NOT NULL DEFAULT '',
+                        "PlacementOn"    INTEGER NOT NULL DEFAULT 0,
+                        "Applied"        TEXT    NOT NULL DEFAULT '',
+                        "SeenCharacters" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId"    TEXT    NOT NULL DEFAULT '',
+                        "HardwareKey" TEXT    NOT NULL DEFAULT '',
+                        "LayoutId"    INTEGER NULL,
+                        "FullMonitor" INTEGER NOT NULL DEFAULT 0,
+                        "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey"
+                        ON "ClientLayoutMonitors" ("DeviceId", "HardwareKey")
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
+                        "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "MonitorId"     INTEGER NOT NULL DEFAULT 0,
+                        "AreaId"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterName" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_ClientLayoutCharacters_MonitorId"
+                        ON "ClientLayoutCharacters" ("MonitorId")
                     """);
 
                 // ── Hauls ticked off at a loop's stops ──────────────────────────────
@@ -4350,6 +4398,15 @@ public class App : Application
             // is off it is not started at all, which also drops its half-second heartbeat.
             if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+
+            // Reads this machine's windows, so every client has its own. Does nothing until the
+            // user turns placement on for this desktop, and nothing at all where it can't work.
+            if (EveConsole.Services.ClientLayouts.ClientLayoutService.IsSupported)
+                Start("client layouts", () =>
+                {
+                    Services.GetRequiredService<Views.ClientPanelHost>();
+                    Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().Start();
+                });
         }
 
         // ── Only the client holding the lease runs these ───────────────────────
@@ -4721,6 +4778,9 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutStore>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutService>();
+        services.AddSingleton<Views.ClientPanelHost>();
         // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
         // its alerts and its worklist tasks read colonies through.
         services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
