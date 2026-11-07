@@ -92,6 +92,9 @@ public interface IDmSource
     Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default);
     Task AddContactAsync(DmKey key, CancellationToken ct = default);
     Task RemoveContactAsync(DmKey key, CancellationToken ct = default);
+
+    /// <summary>What this person goes by on that server, for their own picture's initial where they have none.</summary>
+    string MyName(int serverId) => "";
 }
 
 /// <summary>Every service's direct messages as one list.</summary>

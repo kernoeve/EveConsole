@@ -128,6 +128,9 @@ public sealed partial class GroupLineVm
     /// <summary>A deleted message keeps its place, and says so, as other clients show it.</summary>
     public bool IsDeleted { get; }
 
+    /// <summary>Whose picture goes beside it.</summary>
+    public AvatarRef? Avatar { get; init; }
+
     public static string DeletedText(int deleted, string reason) =>
         deleted != JabberDeleted.ByModerator ? JabberText.MessageDeleted
         : reason.Length > 0 ? string.Format(CultureInfo.CurrentCulture, JabberText.MessageRemovedReason, reason)
@@ -167,6 +170,8 @@ public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
     public XmppOccupant? Person { get; init; }
 
     public bool IsSelf => Person?.Self ?? false;
+
+    public AvatarRef? Avatar { get; init; }
 
     public bool DotGreen => Dot == "green";
     public bool DotAmber => Dot == "amber";
@@ -663,7 +668,10 @@ public sealed class GroupChatViewModel : ReactiveObject
     private GroupLineVm ToLine(JabberStoredMessage m) => new(
         m.Id, m.Sender, m.Body,
         ChatTime.Of(m.SentAt),
-        "", m.IsMention, EmotesOf(m.AccountId), m.Deleted, m.DeletedReason);
+        "", m.IsMention, EmotesOf(m.AccountId), m.Deleted, m.DeletedReason)
+    {
+        Avatar = new AvatarRef(JabberService.AvatarServiceName, m.AccountId, m.IsOutgoing ? "me" : $"{m.Conversation}/{m.Sender}", m.Sender),
+    };
 
     private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
 
@@ -675,7 +683,10 @@ public sealed class GroupChatViewModel : ReactiveObject
     private static GroupLineVm ToLine(MumbleSession session, MumbleChatLine line) => new(
         0, line.Sender, line.Text, ChatTime.Of(line.When),
         line.IsTree ? string.Format(CultureInfo.CurrentCulture, MumbleText.ChatTreeLabel, line.Channel) : line.Channel,
-        NamesMe(session, line));
+        NamesMe(session, line))
+    {
+        Avatar = new AvatarRef(MumbleService.AvatarServiceName, session.Server.Id, line.IsOutgoing ? "me" : "name:" + line.Sender, line.Sender),
+    };
 
     /// <summary>Their name said on this server. Their own messages do not count, whatever is in them.</summary>
     private static bool NamesMe(MumbleSession session, MumbleChatLine line) =>
@@ -925,7 +936,11 @@ public sealed class GroupChatViewModel : ReactiveObject
 
         var people = session.Locked(_ => state.Occupants.Values.ToList());
         foreach (var o in people.OrderBy(o => RoleRank(o.Role)).ThenBy(o => o.Nick, StringComparer.CurrentCultureIgnoreCase))
-            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role) { Person = o });
+            Occupants.Add(new JabberOccupantVm(o.Nick, JabberViewModel.ShowDot(o.Show), o.Role)
+            {
+                Person = o,
+                Avatar = new AvatarRef(JabberService.AvatarServiceName, session.Account.Id, o.Self ? "me" : $"{row.Key}/{o.Nick}", o.Nick),
+            });
     }
 
     // ── Running the room: what the right-click menus do ───────────────────────

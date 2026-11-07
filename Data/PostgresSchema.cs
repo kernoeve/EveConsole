@@ -1287,6 +1287,25 @@ public static class PostgresSchema
         )
         """,
         """
+        CREATE TABLE IF NOT EXISTS "ChatAvatars" (
+            "Hash"   TEXT    NOT NULL,
+            "Bytes"  BYTEA   NOT NULL,
+            "Width"  INTEGER NOT NULL DEFAULT 0,
+            "Height" INTEGER NOT NULL DEFAULT 0,
+            CONSTRAINT "PK_ChatAvatars" PRIMARY KEY ("Hash")
+        )
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS "ChatAvatarOwners" (
+            "Service"   TEXT    NOT NULL,
+            "ServerId"  INTEGER NOT NULL,
+            "Person"    TEXT    NOT NULL,
+            "Hash"      TEXT    NOT NULL DEFAULT '',
+            "UpdatedAt" TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_ChatAvatarOwners" PRIMARY KEY ("Service", "ServerId", "Person")
+        )
+        """,
+        """
         CREATE TABLE IF NOT EXISTS "JabberEmotePacks" (
             "AccountId" INTEGER NOT NULL,
             "PackId"    INTEGER NOT NULL,

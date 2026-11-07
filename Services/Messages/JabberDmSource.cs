@@ -165,4 +165,7 @@ public sealed class JabberDmSource : IDmSource
     public Task AddContactAsync(DmKey key, CancellationToken ct = default) => _service.AddContactAsync(SessionOf(key), key.Peer, "", ct);
 
     public Task RemoveContactAsync(DmKey key, CancellationToken ct = default) => _service.RemoveContactAsync(SessionOf(key), key.Peer, ct);
+
+    public string MyName(int serverId) =>
+        _service.SessionOf(serverId)?.Account is { } a ? a.Nickname.Length > 0 ? a.Nickname : XmppAddress.Parse(a.Address).Local : "";
 }

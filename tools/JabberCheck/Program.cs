@@ -623,6 +623,31 @@ static string? Throws(Action act)
     Check("old bookmarks: none yet, one now", XmppClient.WithOldBookmark(null, room).Elements(XmppClient.Bookmarks + "conference").Count() == 1);
 }
 
+// ── Pictures: what presence says, and what a vCard holds ──────────────────
+{
+    XElement Presence(params object[] inside) => new(XmppClient.Client + "presence", new XAttribute("from", "them@example/x"), inside);
+    XElement Update(XElement? photo) => new(XmppClient.VCardUpdate + "x", photo);
+
+    Check("picture: the hash a presence names", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", " ABCDEF0123 ")))) == "abcdef0123");
+    Check("picture: an empty one says there is none", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo")))) == "");
+    Check("picture: not said, unknown", XmppClient.PhotoHashIn(Presence(Update(null))) is null && XmppClient.PhotoHashIn(Presence()) is null);
+    Check("picture: not a hash, not used", XmppClient.PhotoHashIn(Presence(Update(new XElement(XmppClient.VCardUpdate + "photo", "../../etc")))) is null);
+
+    var card = new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "TYPE", "image/png"),
+            new XElement(XmppClient.VCard + "BINVAL", "AQID\nBAU="))));
+    Check("picture: from a vCard, its lines joined", XmppClient.ParseVCardPhoto(card) is [1, 2, 3, 4, 5]);
+    Check("picture: a vCard with none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard"))) is null);
+    Check("picture: one that is not base64 is none", XmppClient.ParseVCardPhoto(new XElement(XmppClient.Client + "iq", new XElement(XmppClient.VCard + "vCard",
+        new XElement(XmppClient.VCard + "PHOTO", new XElement(XmppClient.VCard + "BINVAL", "not base64!"))))) is null);
+
+    Check("initials: the first letter, in capitals", AvatarService.Initial("  bob talkalot") == "B" && AvatarService.Initial("[TAG] carl") == "T" && AvatarService.Initial("--") == "?");
+    Check("initials: the same colour for the same name, whatever its case", AvatarService.ColorIndex("Bob", 8) == AvatarService.ColorIndex(" bob ", 8));
+    Check("pictures: filed under the Messages tool's names",
+          JabberService.AvatarServiceName == EveConsole.Services.Messages.JabberDmSource.Name
+          && EveConsole.Services.Mumble.MumbleService.AvatarServiceName == EveConsole.Services.Messages.MumbleDmSource.Name);
+}
+
 // ── Deletes: every form they come in ──────────────────────────────────────
 {
     var self = XmppAddress.Parse("me@example/here");
@@ -1141,6 +1166,34 @@ try
         await view.StopAsync();
         await worker.StopAsync();
         try { Directory.Delete(relayProfile, recursive: true); } catch (IOException) { /* a temp folder */ }
+    }
+
+    // ── Pictures in the database: fetched only when new ──────────────────────
+    {
+        var pictures = new AvatarService(factory, new AppErrorLogger(null!));
+        var fetches = 0;
+        Func<Task<byte[]?>> Fetch(byte[]? bytes) => () => { fetches++; return Task.FromResult(bytes); };
+        async Task<List<(string Person, string Hash)>> Owners() { await using var db = factory.CreateDbContext(); return [.. (await db.ChatAvatarOwners.ToListAsync()).Select(o => (o.Person, o.Hash))]; }
+        async Task<int> Pictures() { await using var db = factory.CreateDbContext(); return await db.ChatAvatars.CountAsync(); }
+
+        var png = Png();
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        var owners = await Owners();
+        Check("pictures: fetched, kept once, under every name they go by",
+              fetches == 1 && await Pictures() == 1 && owners.Count == 2 && owners.All(o => o.Hash == owners[0].Hash), string.Join(";", owners));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example"], "h1", Fetch(png));
+        Check("pictures: the same hash again is not fetched again", fetches == 1);
+
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        await pictures.NoteAsync("jabber", 1, ["other@example"], null, Fetch(png));
+        Check("pictures: with no hash said, asked once", fetches == 2 && await Pictures() == 1 && (await Owners()).Count == 3);
+
+        await pictures.NoteAsync("jabber", 1, ["junk@example"], "h9", Fetch(System.Text.Encoding.UTF8.GetBytes("not a picture")));
+        Check("pictures: what is not a picture is not kept", (await Owners()).All(o => o.Person != "junk@example"));
+
+        await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example", "other@example"], "", Fetch(png));
+        Check("pictures: none any more, forgotten, and the picture with them", (await Owners()).Count == 0 && await Pictures() == 0);
     }
 
     // ── Emote packs in the database: each server its own ────────────────────

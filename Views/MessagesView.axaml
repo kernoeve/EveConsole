@@ -47,9 +47,10 @@
       <ListBox x:Name="PeopleList" Grid.Row="1" IsVisible="{Binding IsFinding}" ItemsSource="{Binding People}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
         <ListBox.ItemTemplate>
           <DataTemplate x:DataType="vm:MessagesPersonVm">
-            <Grid ColumnDefinitions="14,*" Background="Transparent" Tapped="OnPersonTapped">
+            <Grid ColumnDefinitions="14,Auto,*" Background="Transparent" Tapped="OnPersonTapped">
               <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" HorizontalAlignment="Left" />
-              <StackPanel Grid.Column="1">
+              <views:AvatarView Grid.Column="1" Of="{Binding Avatar}" Size="24" VerticalAlignment="Center" Margin="0 0 8 0" />
+              <StackPanel Grid.Column="2">
                 <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Text="{Binding Where}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{Binding Where}" />
               </StackPanel>
@@ -128,7 +129,9 @@
         <ListBox x:Name="LineList" Classes="lines" Grid.Row="2" ItemsSource="{Binding Lines}" Background="Transparent" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
           <ListBox.ItemTemplate>
             <DataTemplate x:DataType="vm:MessagesLineVm">
-              <StackPanel Margin="14 4">
+              <Grid ColumnDefinitions="Auto,*" Margin="14 4">
+              <views:AvatarView Of="{Binding Avatar}" Size="28" VerticalAlignment="Top" Margin="0 3 10 0" />
+              <StackPanel Grid.Column="1">
                 <StackPanel Orientation="Horizontal" Spacing="8">
                   <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                   <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
@@ -142,6 +145,7 @@
                   </ItemsControl.ItemTemplate>
                 </ItemsControl>
               </StackPanel>
+              </Grid>
             </DataTemplate>
           </ListBox.ItemTemplate>
         </ListBox>

@@ -136,7 +136,7 @@ public readonly record struct JabberUnread(int AccountId, string Conversation, i
 /// <para>⚠️ One process connects, and that is whichever holds the worker lease, with or without a window: two would fight
 /// for the same login. Every other client shows what it saves, and asks it for the rest. See JabberRelay.cs.</para>
 /// </summary>
-public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
+public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null, AvatarService? avatars = null)
 {
     /// <summary>How long to wait between attempts: quick for a blip, then settling once a server is down.</summary>
     private static readonly int[] BackoffSeconds = [5, 10, 30, 60, 120, 300];
@@ -643,6 +643,9 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         await client.EnableCarbonsAsync(ct);
         await client.SetPresenceAsync(session.Show, session.Status, ct);
 
+        // This account's own picture, read again on each connect: no presence of its own says when it changes.
+        NoteAvatar(session, client, [client.Self.Bare, "me"], null, null, refresh: true);
+
         try { session.ConferenceServices = await client.ConferenceServicesAsync(ct); }
         catch (XmppException e) when (e.Failure == XmppFailure.Protocol) { session.ConferenceServices = []; }
 
@@ -808,8 +811,27 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         contact.Subscription = item.Subscription;
     }
 
+    /// <summary>The name pictures are filed under for Jabber: the same as the Messages tool's.</summary>
+    public const string AvatarServiceName = "jabber";
+
+    /// <summary>
+    /// What a presence said of someone's picture, for <see cref="EveConsole.Services.AvatarService"/> to fetch from their vCard if it is
+    /// new. Only where the connection is: that is the only place it can be asked.
+    /// </summary>
+    private void NoteAvatar(JabberSession session, XmppClient? client, IReadOnlyList<string> persons, string? askAt, string? hash, bool refresh = false)
+    {
+        if (avatars is null || client is null) return;
+        _ = avatars.NoteAsync(AvatarServiceName, session.Account.Id, persons, hash, () => client.VCardPhotoAsync(askAt, CancellationToken.None), refresh);
+    }
+
     private void OnPresence(JabberSession session, XmppPresence presence)
     {
+        if (presence.PhotoHash is { } photo)
+        {
+            var bare = presence.From.Bare;
+            NoteAvatar(session, session.Client, bare == XmppAddress.Parse(session.Account.Address).Bare ? [bare, "me"] : [bare], bare, photo);
+        }
+
         session.Locked(s =>
         {
             if (!s.ContactMap.TryGetValue(presence.From.Bare, out var contact)) return;
@@ -828,6 +850,17 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     private void OnOccupant(JabberSession session, XmppClient client, XmppOccupant occupant, CancellationToken ct)
     {
+        // Someone in a room by room/nickname, and at their own address too where the room shows it.
+        if (occupant is { PhotoHash: { } photo, Left: false })
+        {
+            var inRoom = $"{occupant.Room}/{occupant.Nick}";
+            var real = XmppAddress.Parse(occupant.RealJid).Bare;
+            List<string> persons = [inRoom];
+            if (real.Length > 0) persons.Add(real);
+            if (occupant.Self) persons.Add("me");
+            NoteAvatar(session, client, persons, real.Length > 0 ? real : inRoom, photo);
+        }
+
         JabberRoomState? entered = null;
         session.Locked(s =>
         {

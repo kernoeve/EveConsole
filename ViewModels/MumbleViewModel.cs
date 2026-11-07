@@ -101,12 +101,15 @@ public sealed class MumbleRowVm : ReactiveObject
     public bool HasPeople => _people > 0;
     public string PeopleTip => string.Format(CultureInfo.CurrentCulture, MumbleText.ChannelCountsTip, _people, _hearing);
 
+    /// <summary>Whose picture goes beside a person.</summary>
+    public AvatarRef? Avatar { get; set; }
+
     /// <summary>The channel this client is in, shown as such now that the people in it are not.</summary>
     public bool IsHere { get => _isHere; set => this.RaiseAndSetIfChanged(ref _isHere, value); }
 
     public void Fill(MumbleRowVm from)
     {
-        People = from.People; Hearing = from.Hearing; IsHere = from.IsHere;
+        People = from.People; Hearing = from.Hearing; IsHere = from.IsHere; Avatar = from.Avatar;
         Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking; TalkMode = from.TalkMode;
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
@@ -471,6 +474,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 {
                     Kind = MumbleRowKind.User, ServerId = id, Id = u.Session, Depth = depth + 1,
                     Text = u.Name, IsMe = u.Session == me,
+                    Avatar = new AvatarRef(MumbleService.AvatarServiceName, id, MumbleService.UserKey(u), u.Name),
                     Talking = talking.ContainsKey((id, u.Session)),
                     TalkMode = talking.GetValueOrDefault((id, u.Session)),
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",

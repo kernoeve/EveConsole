@@ -52,7 +52,11 @@ public sealed record XmppUploadSlot(string PutUrl, string GetUrl, IReadOnlyList<
 
 public sealed record XmppRosterItem(string Jid, string Name, string Subscription, bool AskedByUs, IReadOnlyList<string> Groups);
 
-public sealed record XmppPresence(XmppAddress From, XmppShow Show, string Status);
+public sealed record XmppPresence(XmppAddress From, XmppShow Show, string Status)
+{
+    /// <summary>The picture they say they have (XEP-0153): its hash, "" for none, or null when they say nothing.</summary>
+    public string? PhotoHash { get; init; }
+}
 
 /// <summary>An invitation into a room.</summary>
 public sealed record XmppInvite(string Room, string From, string Reason, string Password);
@@ -60,7 +64,11 @@ public sealed record XmppInvite(string Room, string From, string Reason, string 
 /// <summary>Someone in a room, as of their latest presence there.</summary>
 /// <param name="Self">The server says this presence is about this client's own nickname.</param>
 public sealed record XmppOccupant(
-    string Room, string Nick, XmppShow Show, string Role, string Affiliation, string RealJid, bool Self, bool Left, string Status);
+    string Room, string Nick, XmppShow Show, string Role, string Affiliation, string RealJid, bool Self, bool Left, string Status)
+{
+    /// <summary>See <see cref="XmppPresence.PhotoHash"/>.</summary>
+    public string? PhotoHash { get; init; }
+}
 
 public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, NotFound, Other }
 
@@ -119,6 +127,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     public static readonly XNamespace Moderate  = "urn:xmpp:message-moderate:1";
     public static readonly XNamespace OldModerate = "urn:xmpp:message-moderate:0";
     public static readonly XNamespace Fasten    = "urn:xmpp:fasten:0";
+    public static readonly XNamespace VCard     = "vcard-temp";
+    public static readonly XNamespace VCardUpdate = "vcard-temp:x:update";
 
     private static readonly TimeSpan IqTimeout = TimeSpan.FromSeconds(30);
     private static readonly TimeSpan PingEvery = TimeSpan.FromSeconds(60);
@@ -448,6 +458,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
 
         var show   = type == "unavailable" ? XmppShow.Offline : ParseShow(stanza.Element(Client + "show")?.Value);
         var status = stanza.Element(Client + "status")?.Value ?? "";
+        var photo  = PhotoHashIn(stanza);
 
         if (user is not null)
         {
@@ -465,11 +476,38 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
                 from.Bare, from.Resource, show,
                 (string?)item?.Attribute("role") ?? "", (string?)item?.Attribute("affiliation") ?? "",
                 XmppAddress.Parse((string?)item?.Attribute("jid")).Bare,
-                codes.Contains("110"), type == "unavailable", status));
+                codes.Contains("110"), type == "unavailable", status) { PhotoHash = photo });
             return;
         }
 
-        PresenceChanged?.Invoke(new XmppPresence(from, show, status));
+        PresenceChanged?.Invoke(new XmppPresence(from, show, status) { PhotoHash = photo });
+    }
+
+    /// <summary>
+    /// The picture a presence names (XEP-0153): its hash, "" when it says there is none, or null when it does not say,
+    /// as a client that has not read its own vCard yet is to do. ⚠️ Only a hash's own characters: it is used as a key.
+    /// </summary>
+    public static string? PhotoHashIn(XElement presence)
+    {
+        if (presence.Element(VCardUpdate + "x") is not { } update || update.Element(VCardUpdate + "photo") is not { } photo) return null;
+        var hash = photo.Value.Trim().ToLowerInvariant();
+        return hash.Length <= 64 && hash.All(Uri.IsHexDigit) ? hash : null;
+    }
+
+    /// <summary>The picture in a vCard, or null for none.</summary>
+    public static byte[]? ParseVCardPhoto(XElement answer)
+    {
+        var data = answer.Element(VCard + "vCard")?.Element(VCard + "PHOTO")?.Element(VCard + "BINVAL")?.Value;
+        if (string.IsNullOrWhiteSpace(data)) return null;
+        try { return Convert.FromBase64String(string.Concat(data.Where(c => !char.IsWhiteSpace(c)))); }
+        catch (FormatException) { return null; }
+    }
+
+    /// <summary>Someone's picture from their vCard: at an address, or this account's own with none. Null for none or no answer.</summary>
+    public async Task<byte[]?> VCardPhotoAsync(string? at, CancellationToken ct)
+    {
+        try { return ParseVCardPhoto(await QueryAsync("get", at, new XElement(VCard + "vCard"), ct)); }
+        catch (Exception e) when (e is XmppException or TimeoutException) { return null; }
     }
 
     public static XmppShow ParseShow(string? show) => show?.Trim() switch

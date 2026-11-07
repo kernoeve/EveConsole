@@ -82,4 +82,6 @@ public sealed class MumbleDmSource : IDmSource
     public Task AddContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;
 
     public Task RemoveContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;
+
+    public string MyName(int serverId) => _service.SessionOf(serverId)?.Server.Username ?? "";
 }
