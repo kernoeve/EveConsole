@@ -44,7 +44,8 @@ public sealed record DmSummary(DmKey Key, string Name, string Server, string Ser
     public bool IsContact { get; init; }
 }
 
-public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing);
+/// <param name="Deleted">See <see cref="EveConsole.Models.JabberDeleted"/>: deleted messages keep their place.</param>
+public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "");
 
 /// <summary>Someone who can be written to right now, to start a conversation with.</summary>
 public sealed record DmPerson(DmKey Key, string Name, string Server, string Service)
@@ -91,6 +92,9 @@ public interface IDmSource
     Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default);
     Task AddContactAsync(DmKey key, CancellationToken ct = default);
     Task RemoveContactAsync(DmKey key, CancellationToken ct = default);
+
+    /// <summary>What this person goes by on that server, for their own picture's initial where they have none.</summary>
+    string MyName(int serverId) => "";
 }
 
 /// <summary>Every service's direct messages as one list.</summary>

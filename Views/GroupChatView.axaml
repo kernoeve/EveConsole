@@ -8,6 +8,7 @@
              Background="{DynamicResource SurfaceBaseBrush}">
 
   <UserControl.Styles>
+    <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
     <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
     <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
@@ -190,13 +191,15 @@
             <ListBox.ItemTemplate>
               <DataTemplate x:DataType="vm:GroupLineVm">
                 <Border Classes="line" Classes.mention="{Binding IsMention}" Padding="14 4">
-                  <StackPanel>
+                  <Grid ColumnDefinitions="Auto,*">
+                  <views:AvatarView Of="{Binding Avatar}" Size="28" VerticalAlignment="Top" Margin="0 3 10 0" />
+                  <StackPanel Grid.Column="1">
                     <StackPanel Orientation="Horizontal" Spacing="8">
                       <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
                       <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
                       <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
                     </StackPanel>
-                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">
@@ -205,6 +208,7 @@
                       </ItemsControl.ItemTemplate>
                     </ItemsControl>
                   </StackPanel>
+                  </Grid>
                 </Border>
               </DataTemplate>
             </ListBox.ItemTemplate>
@@ -217,6 +221,7 @@
             <DataTemplate x:DataType="vm:JabberOccupantVm">
               <StackPanel Orientation="Horizontal" Spacing="6" Background="Transparent" ContextRequested="OnOccupantMenu">
                 <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" />
+                <views:AvatarView Of="{Binding Avatar}" Size="20" VerticalAlignment="Center" />
                 <TextBlock Text="{Binding Nick}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Role}" />
               </StackPanel>
             </DataTemplate>

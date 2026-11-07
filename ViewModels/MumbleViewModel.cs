@@ -84,8 +84,32 @@ public sealed class MumbleRowVm : ReactiveObject
     public bool IsLocalMuted { get => _isLocalMuted; set => this.RaiseAndSetIfChanged(ref _isLocalMuted, value); }
     public bool IsOpen { get => _isOpen; set => this.RaiseAndSetIfChanged(ref _isOpen, value); }
 
+    private int _people, _hearing;
+    private bool _isHere;
+
+    /// <summary>A channel's own people, not its subchannels': how many, and how many of them are not deafened.</summary>
+    public int People
+    {
+        get => _people;
+        set { this.RaiseAndSetIfChanged(ref _people, value); this.RaisePropertyChanged(nameof(HasPeople)); this.RaisePropertyChanged(nameof(PeopleTip)); }
+    }
+    public int Hearing
+    {
+        get => _hearing;
+        set { this.RaiseAndSetIfChanged(ref _hearing, value); this.RaisePropertyChanged(nameof(PeopleTip)); }
+    }
+    public bool HasPeople => _people > 0;
+    public string PeopleTip => string.Format(CultureInfo.CurrentCulture, MumbleText.ChannelCountsTip, _people, _hearing);
+
+    /// <summary>Whose picture goes beside a person.</summary>
+    public AvatarRef? Avatar { get; set; }
+
+    /// <summary>The channel this client is in, shown as such now that the people in it are not.</summary>
+    public bool IsHere { get => _isHere; set => this.RaiseAndSetIfChanged(ref _isHere, value); }
+
     public void Fill(MumbleRowVm from)
     {
+        People = from.People; Hearing = from.Hearing; IsHere = from.IsHere; Avatar = from.Avatar;
         Text = from.Text; Detail = from.Detail; Flags = from.Flags; Talking = from.Talking; TalkMode = from.TalkMode;
         Good = from.Good; Warn = from.Warn; Bad = from.Bad; IsMe = from.IsMe;
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
@@ -143,6 +167,11 @@ public sealed class MumbleOverlayColumn(MumbleViewModel owner, MumbleSession ses
     public bool IsTreeOpen => _treesOpen > 0;
     private int _treesOpen;
 
+    private bool _noneFound;
+
+    /// <summary>A name is being looked for, and nobody on this server has it.</summary>
+    public bool NoneFound { get => _noneFound; set => this.RaiseAndSetIfChanged(ref _noneFound, value); }
+
     /// <summary>⚠️ Counted: the toolbar's and the always-on-top window's can be open together, over these same rows.</summary>
     public void TreeOpened() => _treesOpen++;
 
@@ -181,6 +210,7 @@ public sealed class MumbleOverlayColumn(MumbleViewModel owner, MumbleSession ses
 public sealed class MumbleViewModel : ReactiveObject
 {
     public const string OverlayPref = "mumble.overlay";
+    public const string ShowPeoplePref = "mumble.tree.people";
     public const string OverlayXPref = "mumble.overlay.x";
     public const string OverlayYPref = "mumble.overlay.y";
 
@@ -249,6 +279,7 @@ public sealed class MumbleViewModel : ReactiveObject
         _voiceLevel    = _prefs.GetLong(MumbleService.VoiceLevelPref, (long)MumbleService.DefaultVoiceLevelDb);
         _service.VoiceLevelDb = _voiceLevel;
         _showOverlay   = _prefs.GetBool(OverlayPref);
+        _showPeople    = _prefs.GetBool(ShowPeoplePref);
 
         _service.InputDevice   = _prefs.Get(MumbleService.InputDevicePref) ?? "";
         _service.OutputDevice  = _prefs.Get(MumbleService.OutputDevicePref) ?? "";
@@ -335,6 +366,38 @@ public sealed class MumbleViewModel : ReactiveObject
         ShowDetail();
     }
 
+    private bool _showPeople;
+
+    /// <summary>
+    /// The people under each channel in the tree. Off by default (user, 2026-11-07): with them, the channels are hard to
+    /// find. Channels still open where there are people, and say how many.
+    /// </summary>
+    public bool ShowPeople
+    {
+        get => _showPeople;
+        set
+        {
+            if (_showPeople == value) return;
+            this.RaiseAndSetIfChanged(ref _showPeople, value);
+            _ = _prefs.SetBoolAsync(ShowPeoplePref, value);
+            _ = RefreshAsync();
+        }
+    }
+
+    private string _findPerson = "";
+
+    /// <summary>A name, or part of one, to find people by: the tree then shows only them, and the channels down to them.</summary>
+    public string FindPerson
+    {
+        get => _findPerson;
+        set
+        {
+            if (_findPerson == value) return;
+            this.RaiseAndSetIfChanged(ref _findPerson, value);
+            _ = RefreshAsync();
+        }
+    }
+
     /// <summary>Opens or closes a channel in the list, at the person's own click.</summary>
     public void ToggleChannel(MumbleRowVm row)
     {
@@ -375,13 +438,21 @@ public sealed class MumbleViewModel : ReactiveObject
         if (!_trees.TryGetValue(id, out var tree)) _trees[id] = tree = new MumbleChannelTree();
         tree.Update(client.Channels.Select(c => (c.Id, c.Parent)), client.Users.Select(u => u.ChannelId), client.Me?.ChannelId);
 
+        // Finding someone shows them wherever they are, whether people are shown or not, and only the way to them.
+        var find = FindPerson.Trim();
+        HashSet<uint>? found = find.Length == 0 ? null
+            : [.. client.Users.Where(u => u.Name.Contains(find, StringComparison.CurrentCultureIgnoreCase)).Select(u => u.Session)];
+        var foundIn = found is null ? null : tree.Holding(client.Users.Where(u => found.Contains(u.Session)).Select(u => u.ChannelId));
+
         void Add(uint channel, int depth)
         {
             // However a server describes its channels, this cannot go round in circles or too deep for the stack.
             if (depth > MostDepth || !shown.Add(channel) || !channels.TryGetValue(channel, out var c)) return;
+            if (foundIn is not null && !foundIn.Contains(channel)) return;
 
             var hasChildren = children[channel].Any();
-            var open = tree.IsOpen(channel);
+            var open = foundIn is not null || tree.IsOpen(channel);
+            var here = users[channel].ToList();
 
             rows.Add(new MumbleRowVm
             {
@@ -389,16 +460,21 @@ public sealed class MumbleViewModel : ReactiveObject
                 Text = c.Name.Length > 0 ? c.Name : MumbleText.RootChannel,
                 HasChildren = hasChildren, IsOpen = open,
                 IsListening = client.Me?.ListeningTo.Contains(c.Id) == true,
+                People = here.Count,
+                Hearing = here.Count(u => !(u.Deaf || u.SelfDeaf)),
+                IsHere = client.Me?.ChannelId == c.Id,
             });
 
-            // With nothing under it there is nothing to close it with, so whoever is in it always shows.
+            // With nothing under it there is nothing to close it with, so whoever is in it shows when people do.
             if (hasChildren && !open) return;
 
-            foreach (var u in users[channel].OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase))
+            var listed = found is not null ? here.Where(u => found.Contains(u.Session)) : ShowPeople ? here : [];
+            foreach (var u in listed.OrderBy(u => u.Name, StringComparer.CurrentCultureIgnoreCase))
                 rows.Add(new MumbleRowVm
                 {
                     Kind = MumbleRowKind.User, ServerId = id, Id = u.Session, Depth = depth + 1,
                     Text = u.Name, IsMe = u.Session == me,
+                    Avatar = new AvatarRef(MumbleService.AvatarServiceName, id, MumbleService.UserKey(u), u.Name),
                     Talking = talking.ContainsKey((id, u.Session)),
                     TalkMode = talking.GetValueOrDefault((id, u.Session)),
                     Flags = u.Deaf || u.SelfDeaf ? MumbleText.FlagDeaf : u.Mute || u.SelfMute || u.Suppress ? MumbleText.FlagMuted : "",
@@ -1503,8 +1579,11 @@ public sealed class MumbleViewModel : ReactiveObject
     }
 
     /// <summary>Brings a column's popup in line with the tree. Same rows as the tree itself, so opening a channel opens it in both.</summary>
-    public void FillTree(MumbleOverlayColumn column) =>
+    public void FillTree(MumbleOverlayColumn column)
+    {
         ListSync.Sync(column.Rows, [.. Rows.Where(r => r.ServerId == column.ServerId && !r.IsServer)], r => r);
+        column.NoneFound = FindPerson.Trim().Length > 0 && !column.Rows.Any(r => r.IsUser);
+    }
 
     public async Task JoinFromOverlayAsync(MumbleOverlayColumn column, uint channel)
     {

@@ -442,4 +442,16 @@
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>名称，位于 {0} 下</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>查找某人</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>显示每个频道里的人</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>这里没有叫这个名字的人。</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} 人在此，其中 {1} 人能听到</value>
+  </data>
 </root>

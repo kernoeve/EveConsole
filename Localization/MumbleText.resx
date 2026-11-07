@@ -490,4 +490,16 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>Its name, under {0}</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Find someone</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Show the people in each channel</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Nobody here by that name.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} here, {1} of them can hear</value>
+  </data>
 </root>

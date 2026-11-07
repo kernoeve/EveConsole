@@ -442,4 +442,16 @@
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>Его имя, внутри {0}</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Найти человека</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Показывать людей в каналах</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Здесь нет никого с таким именем.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>Здесь {0}, слышат {1}</value>
+  </data>
 </root>

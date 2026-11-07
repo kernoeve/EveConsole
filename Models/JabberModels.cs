@@ -162,4 +162,21 @@ public class JabberStoredMessage
 
     /// <summary>A room message with the person's name in it, whatever the room is set to alert on.</summary>
     public bool   IsMention    { get; set; }
+
+    /// <summary>The room's own id for a room message, which is what a moderator's removal names. Blank otherwise.</summary>
+    public string StanzaId     { get; set; } = "";
+
+    /// <summary>See <see cref="JabberDeleted"/>. A deleted message keeps its place, with its words gone.</summary>
+    public int    Deleted      { get; set; }
+
+    /// <summary>Why a moderator removed it, if they said.</summary>
+    public string DeletedReason { get; set; } = "";
+}
+
+/// <summary>Whether a message was deleted, and by whom. Stored as the number, so never renumber these.</summary>
+public static class JabberDeleted
+{
+    public const int No          = 0;
+    public const int BySender    = 1;
+    public const int ByModerator = 2;
 }

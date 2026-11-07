@@ -442,4 +442,16 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>Sein Name, unter {0}</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Jemanden finden</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Die Personen in jedem Kanal anzeigen</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Hier hat niemand diesen Namen.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} hier, {1} davon hören</value>
+  </data>
 </root>

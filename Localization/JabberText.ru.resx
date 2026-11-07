@@ -357,4 +357,13 @@
   <data name="EmoteFileType" xml:space="preserve">
     <value>Тема смайликов Pidgin</value>
   </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Это сообщение удалено.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Удалено модератором.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Удалено модератором: {0}</value>
+  </data>
 </root>
