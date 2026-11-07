@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ Personnaliser la disposition</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Disposition</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Disposition {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Disposition :</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Nom :</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>Une nouvelle disposition, qui part d'une copie de celle-ci.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>La disposition enregistrée qu'affiche cette vue d'ensemble</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Résumé d'activité</value>
   </data>

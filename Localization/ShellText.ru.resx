@@ -124,6 +124,9 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Активность корпорации</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Макеты клиентов</value>
+  </data>
   <data name="NavCorpStructures" xml:space="preserve">
     <value>Структуры корпорации</value>
   </data>

@@ -2342,7 +2342,10 @@ public class WorklistViewModel : ReactiveObject
         });
 
         BuildToggles();
-        _ = RefreshAsync();
+        // Built once the app has started, not now: this runs while the app builds its tools, and a
+        // first build started here ran the whole time the main window waited for the Overview,
+        // slowing every query it made. Never built, the list is stale, so this does build it.
+        _ = RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
     }
 
     /// <summary>
@@ -2482,10 +2485,41 @@ public class WorklistViewModel : ReactiveObject
     /// every generator. Refreshing it on that cadence would put the tool's whole cost on a panel
     /// the user may not be looking at, so the sections accept data that is a few minutes old.</para>
     /// </summary>
+    /// <summary>
+    /// Rebuilds if the list is older than <paramref name="maxAge"/>, or joins the rebuild already
+    /// running, which is as fresh as it gets.
+    /// <para>⚠️ Joins rather than starts. At startup the list has never been built, so every caller
+    /// found it stale — the Overview and each Overview in a Tool Container, and every Worklist
+    /// control on a panel — and each started a whole build of its own, all at once. Every build
+    /// plans each item with copies of the price tables, so a desktop with panels on five monitors
+    /// ran a dozen of them side by side: gigabytes a second for two minutes, the UI frozen in garbage
+    /// collection.</para>
+    /// <para>⚠️ And not before the app has started (<see cref="AppStartup"/>). A first build is the
+    /// longest thing the app does against the database, and run while the main window waits for the
+    /// Overview, it made that wait seconds longer. Asked for by someone — Refresh, a setting — it
+    /// doesn't wait.</para>
+    /// </summary>
     public Task RefreshIfStaleAsync(TimeSpan maxAge)
-        => _lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge)
-            ? Task.CompletedTask
-            : RefreshAsync();
+    {
+        lock (_refreshGate)
+            if (_refreshRunning is { IsCompleted: false } running) return running;
+        if (_lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge))
+            return Task.CompletedTask;
+        return AppStartup.IsSettled ? StartRefresh(again: false) : AfterStartupAsync();
+
+        async Task AfterStartupAsync()
+        {
+            await AppStartup.WhenSettledAsync();
+            await RefreshIfStaleAsync(maxAge);
+        }
+    }
+
+    /// <summary>Whether the list has been built at all yet, so an empty one can say it's still coming.</summary>
+    public bool HasBuilt => _lastRefreshUtc is not null;
+
+    private readonly object _refreshGate = new();
+    private Task? _refreshRunning;
+    private bool _refreshAgain;
 
     private bool _autoRefresh = UiState.GetBool(UiState.WorklistAutoRefresh, true);
 
@@ -3063,7 +3097,54 @@ public class WorklistViewModel : ReactiveObject
     public string Errors { get => _errors; private set => this.RaiseAndSetIfChanged(ref _errors, value); }
     public bool HasErrors => Errors.Length > 0;
 
-    public Task RefreshAsync() => RefreshCoreAsync(sameRun: false);
+    /// <summary>
+    /// Rebuilds the list. Asked while a rebuild is running, it doesn't start a second beside it: one
+    /// more runs once that one ends, as what was asked for may have changed since it began (a
+    /// setting, a snooze), and however many ask meanwhile, that one run answers them all.
+    /// </summary>
+    public Task RefreshAsync() => StartRefresh(again: true);
+
+    /// <param name="again">Asked for while one runs: run once more after it. Not for a staleness check,
+    /// which the one running answers.</param>
+    private Task StartRefresh(bool again)
+    {
+        TaskCompletionSource done;
+        lock (_refreshGate)
+        {
+            if (_refreshRunning is { IsCompleted: false } running)
+            {
+                if (again) _refreshAgain = true;
+                return running;
+            }
+            // Marked running before it starts, outside the lock: starting runs code that raises
+            // property changes, and anything that asks again from there has to find this one.
+            done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _refreshRunning = done.Task;
+        }
+        _ = RefreshRunsAsync(done);
+        return done.Task;
+    }
+
+    private async Task RefreshRunsAsync(TaskCompletionSource done)
+    {
+        try
+        {
+            while (true)
+            {
+                lock (_refreshGate) _refreshAgain = false;
+                var started = System.Diagnostics.Stopwatch.StartNew();
+                await RefreshCoreAsync(sameRun: false);
+                StartupTrace.Mark($"Worklist built: {started.ElapsedMilliseconds:N0} ms");
+                lock (_refreshGate)
+                    if (!_refreshAgain) break;
+            }
+            done.TrySetResult();
+        }
+        catch (Exception e)
+        {
+            done.TrySetException(e);
+        }
+    }
 
     /// <param name="sameRun">⚠️ Show the last run differently rather than plan a new one. The two
     /// checkboxes and the summary's figures only change what is on screen, and a rebuild for those
@@ -3155,8 +3236,11 @@ public class WorklistViewModel : ReactiveObject
                 // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
                 // bound collections whenever this changes, so an item-by-item fill here was
                 // quadratic — see BulkObservableCollection.
-                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
+                // ⚠️ Built, before the rows change: what watches them asks whether the list has been
+                // built yet. The other way round, a Worklist control on a character with nothing
+                // ready stayed on "Loading the worklist…", its last change having said "not built".
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
+                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 RefreshedText   = string.Format(WorklistText.RefreshedAt, DateTime.Now);
 
                 RebuildFilterOptions();

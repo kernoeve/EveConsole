@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>雇佣兵巢穴</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>客户端布局</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>击毁报告</value>
   </data>

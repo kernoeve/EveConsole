@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>용병 은신처</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>클라이언트 레이아웃</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>킬 메일</value>
   </data>

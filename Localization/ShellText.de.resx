@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>Söldnerunterschlüpfe</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Client-Layouts</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Abschussberichte</value>
   </data>

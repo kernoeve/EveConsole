@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ 自定义布局</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>布局 {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>布局：</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>名称：</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>新建一个布局，初始为此布局的副本。</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>此概览显示哪个已保存的布局</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>活动摘要</value>
   </data>

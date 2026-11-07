@@ -401,6 +401,36 @@ public class OverviewViewModel : ReactiveObject
     public PiService?       Pi                                      { get; set; }
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
 
+    /// <summary>
+    /// An Overview that isn't the main window's goes where the main one goes and embeds the same
+    /// tools, so it takes all of that from the main one rather than being wired up a second time.
+    /// <para>⚠️ Anything wired onto the Overview after construction belongs here too.</para>
+    /// </summary>
+    public void WireLike(OverviewViewModel main)
+    {
+        NavigateToCharacterSkills   = main.NavigateToCharacterSkills;
+        NavigateToStandingProjects  = main.NavigateToStandingProjects;
+        NavigateToStandingBuyOrders = main.NavigateToStandingBuyOrders;
+        NavigateToIndustryJobs      = main.NavigateToIndustryJobs;
+        NavigateToActiveContracts   = main.NavigateToActiveContracts;
+        NavigateToEveMail           = main.NavigateToEveMail;
+        NavigateToGroupChat         = main.NavigateToGroupChat;
+        NavigateToMessages          = main.NavigateToMessages;
+        NavigateToOrderTracker      = main.NavigateToOrderTracker;
+        RequestOpenKillmail         = main.RequestOpenKillmail;
+        OpenToolRequested           = main.OpenToolRequested;
+        NavigateToPi                = main.NavigateToPi;
+        NavigateToPiCharacters      = main.NavigateToPiCharacters;
+        NavigateToCorpStructures    = main.NavigateToCorpStructures;
+        NavigateToMercenaryDens     = main.NavigateToMercenaryDens;
+        Pi                          = main.Pi;
+        OpenAlertSettingsRequested  = main.OpenAlertSettingsRequested;
+        SaleListingBuild            = main.SaleListingBuild;
+        SaleListingMarket           = main.SaleListingMarket;
+        IncomeExpense               = main.IncomeExpense;
+        Worklist                    = main.Worklist;
+    }
+
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
     // those grids as sections without loading the data a second time.
     private SaleListingViewModel? _saleListingBuild;
@@ -470,7 +500,7 @@ public class OverviewViewModel : ReactiveObject
     ///
     /// <para>Sections not placed by the user are disabled, and the default layout leaves four of
     /// the eleven off — so the load was querying for panels nobody could see. Every section below
-    /// is gated on this. Safe because <see cref="ApplyLayoutAsync"/> reloads when the layout
+    /// is gated on this. Safe because <see cref="ShowLayout"/> reloads when the layout
     /// changes, so enabling a section fills it immediately rather than showing blanks until the
     /// next refresh.</para>
     /// </summary>
@@ -479,23 +509,90 @@ public class OverviewViewModel : ReactiveObject
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
-    public Task ApplyLayoutAsync(OverviewLayout layout)
+    // ── Which of the saved layouts this Overview shows ──────────────────────────
+    //
+    // ⚠️ Several Overviews can be open, each showing a layout of its own: the main window's, and
+    // one in each Tool Container that lists it. The main window's choice is kept across restarts;
+    // a container's starts from what the container sets each time.
+
+    private readonly OverviewLayoutStore _layouts;
+    private readonly bool _isMain;
+    private string _layoutKey = OverviewLayoutStore.DefaultKey;
+
+    /// <summary>Where the layouts are kept, for the layout editor.</summary>
+    public OverviewLayoutStore Layouts => _layouts;
+
+    /// <summary>The layout this Overview shows, by key; <see cref="OverviewLayoutStore.DefaultKey"/> for Default.</summary>
+    public string LayoutKey => _layoutKey;
+
+    /// <summary>The layouts to switch between, for the dropdown beside Customize.</summary>
+    public ObservableCollection<OverviewLayoutChoice> LayoutChoices { get; } = [];
+
+    private OverviewLayoutChoice? _selectedLayoutChoice;
+    public OverviewLayoutChoice? SelectedLayoutChoice
     {
-        _layout = layout;
-
-        // ⚠️ Local only. Writing the shared row as well would keep imposing this machine's
-        // arrangement on every other client, which is exactly what moving it here was for.
-        AppConfig.SetOverviewLayout(layout.ToJson());
-
-        LayoutChanged?.Invoke();
-        // A newly-added section (e.g. Personal Killmails) needs its data loaded now rather
-        // than waiting for the next refresh tick.
-        _ = LoadAsync();
-
-        // Nothing left to await: the write is to a file, not the database. Still a Task, because
-        // the callers await it and the signature is not worth churning for that.
-        return Task.CompletedTask;
+        get => _selectedLayoutChoice;
+        set
+        {
+            // A ComboBox reports null while its list is being refilled; that isn't a choice.
+            if (value is null || value == _selectedLayoutChoice) return;
+            this.RaiseAndSetIfChanged(ref _selectedLayoutChoice, value);
+            ShowLayout(value.Key);
+        }
     }
+
+    /// <summary>Switches to another saved layout.</summary>
+    public void ShowLayout(string? key)
+    {
+        _layoutKey = _layouts.KeyOf(key);
+        if (_isMain) _layouts.MainLayout = _layoutKey;
+        _layout = _layouts.Get(_layoutKey);
+        FillLayoutChoices();
+        LayoutChanged?.Invoke();
+        // A section this layout shows and the last didn't needs its data now, not at the next refresh.
+        _ = LoadAsync();
+    }
+
+    private void FillLayoutChoices()
+    {
+        var choices = _layouts.Choices;
+        foreach (var gone in LayoutChoices.Where(c => !choices.Contains(c)).ToList()) LayoutChoices.Remove(gone);
+        for (var i = 0; i < choices.Count; i++)
+        {
+            var at = LayoutChoices.IndexOf(choices[i]);
+            if (at < 0) LayoutChoices.Insert(i, choices[i]);
+            else if (at != i) LayoutChoices.Move(at, i);
+        }
+        _selectedLayoutChoice = LayoutChoices.FirstOrDefault(c => c.Key == _layoutKey);
+        this.RaisePropertyChanged(nameof(SelectedLayoutChoice));
+    }
+
+    /// <summary>
+    /// The layouts changed, here or in another Overview's editor: follow a rename, fall back to
+    /// Default if this one went, and show this one's arrangement as it now is.
+    /// </summary>
+    private void OnLayoutsChanged(IReadOnlyDictionary<string, string> renames)
+    {
+        if (renames.TryGetValue(_layoutKey, out var renamed)) _layoutKey = renamed;
+        var key = _layouts.KeyOf(_layoutKey);
+        var layout = _layouts.Get(key);
+        var moved = key != _layoutKey || layout.ToJson() != _layout.ToJson();
+        _layoutKey = key;
+        if (_isMain && moved) _layouts.MainLayout = key;
+        FillLayoutChoices();
+        if (!moved) return;
+        _layout = layout;
+        LayoutChanged?.Invoke();
+        _ = LoadAsync();
+    }
+
+    /// <summary>
+    /// What the layout editor did, opened from this Overview: the layouts are saved, and this
+    /// Overview shows the one that was being edited.
+    /// <para>⚠️ Local only. Writing the shared row as well would keep imposing this machine's
+    /// arrangement on every other client, which is exactly what moving it to config.json was for.</para>
+    /// </summary>
+    public void ApplyLayoutEdits(OverviewLayoutEdits edits) => ShowLayout(_layouts.Apply(edits));
 
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
                              AppErrorLogger errorLogger, NewsService newsService,
@@ -504,8 +601,13 @@ public class OverviewViewModel : ReactiveObject
                              IDbContextFactory<AppDbContext>? dbFactory = null,
                              EsiClient? esi = null,
                              StandingBuyOrderService? standingBuyOrders = null,
-                             IndyFacilityCheckService? indyFacilityCheck = null)
+                             IndyFacilityCheckService? indyFacilityCheck = null,
+                             OverviewLayoutStore? layouts = null,
+                             bool isMain = true,
+                             string? layoutKey = null)
     {
+        _layouts = layouts ?? OverviewLayoutStore.Shared;
+        _isMain = isMain;
         _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
@@ -514,7 +616,13 @@ public class OverviewViewModel : ReactiveObject
         _corpActivity   = corpActivity;
         _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
-        _layout         = LoadLayout(prefs);
+        // Default is the layout there always was, seeded from the old shared row if need be; every
+        // layout, Default included, is then read through the store.
+        LoadLayout(prefs);
+        _layoutKey      = _layouts.KeyOf(isMain ? _layouts.MainLayout : layoutKey);
+        _layout         = _layouts.Get(_layoutKey);
+        FillLayoutChoices();
+        _layouts.Changed += OnLayoutsChanged;
         if (dbFactory is not null && esi is not null)
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
@@ -534,7 +642,7 @@ public class OverviewViewModel : ReactiveObject
             });
 
         // Auto-refresh every 60 seconds — overview only reads local DB so this is fast.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _refreshTimer = Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
 
@@ -542,12 +650,36 @@ public class OverviewViewModel : ReactiveObject
         // slower than the wait for it, an SDE import — reach them on the next refresh: forgetting
         // the signature makes that refresh build the cards again rather than keep them, and
         // forgetting the personal kills' ids does the same for their rows.
-        SdeNames.Changed += () =>
-        {
-            _notificationSignature = "";
-            _lastPersonalKillIds   = [];
-        };
+        SdeNames.Changed += OnSdeNamesChanged;
     }
+
+    private readonly IDisposable _refreshTimer;
+
+    private void OnSdeNamesChanged()
+    {
+        _notificationSignature = "";
+        _lastPersonalKillIds   = [];
+    }
+
+    /// <summary>
+    /// For an Overview that isn't the main window's, when its tab closes: nothing keeps refreshing
+    /// it, and nothing it listened to keeps it alive. The main window's lives as long as the app.
+    /// </summary>
+    public void Dispose()
+    {
+        _refreshTimer.Dispose();
+        SdeNames.Changed -= OnSdeNamesChanged;
+        _layouts.Changed -= OnLayoutsChanged;
+        if (_worklist is not null)
+        {
+            _worklist.PoolRows.CollectionChanged -= OnWorklistPoolChanged;
+            _worklist.Needs.CollectionChanged -= OnWorklistNeedsChanged;
+        }
+        _db.Dispose();
+    }
+
+    private void OnWorklistPoolChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => RebuildWorklistSections();
+    private void OnWorklistNeedsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
 
 
     /// <summary>
@@ -586,8 +718,8 @@ public class OverviewViewModel : ReactiveObject
             // is a BulkObservableCollection and is replaced in one Reset. Filled item by item it
             // ran this handler once per row, and each run refilled four bound collections the
             // same way — ten seconds of frozen UI on every worklist refresh.
-            value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
-            value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+            value.PoolRows.CollectionChanged += OnWorklistPoolChanged;
+            value.Needs.CollectionChanged    += OnWorklistNeedsChanged;
 
             RebuildWorklistSections();
             BuildGroupedViews();
@@ -781,6 +913,7 @@ public class OverviewViewModel : ReactiveObject
             if (PerfDiagnostics.OverviewSections && took >= SlowSectionMs)
                 _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
                     $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
+            if (took >= 100) StartupTrace.Mark($"Overview section \"{sectionName}\": {took:N0} ms");
 
             sectionAt   = now;
             sectionName = next;
@@ -854,9 +987,14 @@ public class OverviewViewModel : ReactiveObject
             // actually reckoned — the Sales Tracker's own totals and the Sale Posting tool.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
-            foreach (var (ot, oid) in activityOwners)
+            // ⚠️ One query for every owner, not one each. Run one after another, thirty-odd owners
+            // took seconds on a database busy with everything else the app reads as it starts, and
+            // this section was the longest part of the Overview's first load. The owners are ids we
+            // hold, written in as numbers, the same way the kills query below does.
+            if (activityOwners.Count > 0)
             {
-                var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
+#pragma warning disable EF1002, EF1003
+                var s = await Off(() => _db.Database.SqlQueryRaw<TxnSummary>(
                     $"""
                     SELECT
                         COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "SellTotal",
@@ -864,16 +1002,17 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "BuyTotal",
                         COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    """
+                    WHERE ({OwnersSql(activityOwners)}) AND "Date" >= {"{0}"}
+                    """, cutoff
                 ).FirstOrDefaultAsync());
+#pragma warning restore EF1002, EF1003
 
                 if (s != null)
                 {
-                    mktSellTotal += (decimal)s.SellTotal;
-                    mktSellCnt   += s.SellCount;
-                    mktBuyTotal  += (decimal)s.BuyTotal;
-                    mktBuyCnt    += s.BuyCount;
+                    mktSellTotal = (decimal)s.SellTotal;
+                    mktSellCnt   = s.SellCount;
+                    mktBuyTotal  = (decimal)s.BuyTotal;
+                    mktBuyCnt    = s.BuyCount;
                 }
             }
             MktSellCount = mktSellCnt.ToString("N0");
@@ -883,13 +1022,15 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Active market orders ───────────────────────────────────────────
             Step(OverviewText.StepMarketOrders);
-            var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
-            foreach (var (ot, oid) in activityOwners)
-                orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
-                    .Where(o => !o.IsHistory && o.OwnerType == ot && o.OwnerId == oid)
+            // One query for every owner, as the transactions above.
+            var (orderChars, orderCorps) = OwnerIds(activityOwners);
+            var orders = activityOwners.Count == 0 ? [] : (await Off(() => _db.EsiMarketOrders.AsNoTracking()
+                    .Where(o => !o.IsHistory
+                             && (o.OwnerType == "character" && orderChars.Contains(o.OwnerId)
+                              || o.OwnerType == "corporation" && orderCorps.Contains(o.OwnerId)))
                     .Select(o => new { o.IsBuyOrder, o.VolumeRemain, o.Price })
                     .ToListAsync()))
-                    .Select(o => (o.IsBuyOrder, o.VolumeRemain, o.Price)));
+                .Select(o => (IsBuy: o.IsBuyOrder, VolRemain: o.VolumeRemain, o.Price)).ToList();
 
             decimal sellOrderIsk = 0m, buyOrderIsk = 0m;
             int     sellOrderCnt = 0,  buyOrderCnt  = 0;
@@ -931,13 +1072,13 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Industry jobs ──────────────────────────────────────────────────
             Step(OverviewText.StepIndustryJobs);
-            var jobs = new List<(string Status, DateTimeOffset? Completed)>();
-            foreach (var (ot, oid) in activityOwners)
-                jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
-                    .Where(j => j.OwnerType == ot && j.OwnerId == oid)
+            // One query for every owner, as the transactions above.
+            var jobs = activityOwners.Count == 0 ? [] : (await Off(() => _db.EsiIndustryJobs.AsNoTracking()
+                    .Where(j => j.OwnerType == "character" && orderChars.Contains(j.OwnerId)
+                             || j.OwnerType == "corporation" && orderCorps.Contains(j.OwnerId))
                     .Select(j => new { j.Status, j.CompletedDate })
                     .ToListAsync()))
-                    .Select(j => (j.Status, j.CompletedDate)));
+                .Select(j => (j.Status, Completed: j.CompletedDate)).ToList();
 
             ActiveJobCount    = jobs.Count(j => j.Status == "active").ToString("N0");
             CompletedJobCount = jobs.Count(j => j.Status == "delivered" &&
@@ -1000,11 +1141,25 @@ public class OverviewViewModel : ReactiveObject
                  Shown("WorklistJobs") || Shown("WorklistNeeds")))
             {
                 Step(OverviewText.StepWorklist);
-                await Worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+                // ⚠️ Started, not waited for. The sections fill themselves as the list's rows
+                // change (RebuildWorklistSections), so nothing here needs the build finished — and
+                // waiting held the whole Overview, and so the main window at startup, for the
+                // longest thing the app does: a full worklist build, every generator.
+                var worklist = Worklist;
+                var needs = Shown("WorklistNeeds");
+                _ = WorklistInBackgroundAsync();
 
-                // The needs report is loaded lazily by the tool when its tab is opened, which the
-                // Overview never does — without this the section stays empty forever.
-                if (Shown("WorklistNeeds")) await Worklist.EnsureNeedsLoadedAsync();
+                async Task WorklistInBackgroundAsync()
+                {
+                    try
+                    {
+                        await worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+                        // The needs report is loaded lazily by the tool when its tab is opened, which
+                        // the Overview never does — without this the section stays empty forever.
+                        if (needs) await worklist.EnsureNeedsLoadedAsync();
+                    }
+                    catch (Exception ex) { PanelFailed(OverviewText.StepWorklist, ex); }
+                }
             }
 
             Step(OverviewText.StepStandingBuyOrders);
@@ -1373,6 +1528,24 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
+
+    /// <summary>The character and corporation ids among <paramref name="owners"/>, for one query over them all.</summary>
+    private static (List<long> Characters, List<long> Corporations) OwnerIds(List<(string Type, long Id)> owners) =>
+        ([.. owners.Where(o => o.Type == "character").Select(o => o.Id)],
+         [.. owners.Where(o => o.Type == "corporation").Select(o => o.Id)]);
+
+    /// <summary>
+    /// A WHERE condition matching any of <paramref name="owners"/>, for raw SQL. Only ever our own
+    /// owner ids, written in as numbers; the two owner types are this class's own constants.
+    /// </summary>
+    private static string OwnersSql(List<(string Type, long Id)> owners)
+    {
+        var (characters, corporations) = OwnerIds(owners);
+        var parts = new List<string>();
+        if (characters.Count > 0)   parts.Add($"(\"OwnerType\" = 'character' AND \"OwnerId\" IN ({string.Join(",", characters)}))");
+        if (corporations.Count > 0) parts.Add($"(\"OwnerType\" = 'corporation' AND \"OwnerId\" IN ({string.Join(",", corporations)}))");
+        return parts.Count == 0 ? "FALSE" : string.Join(" OR ", parts);
+    }
 
     private sealed class TxnSummary
     {

@@ -154,6 +154,10 @@
     <value>Mercenary Dens</value>
     <comment>Navigation: the Mercenary Dens tool.</comment>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Client Layouts</value>
+    <comment>Navigation: the tool that arranges game client windows and panels on the user's monitors.</comment>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Killmails</value>
   </data>
