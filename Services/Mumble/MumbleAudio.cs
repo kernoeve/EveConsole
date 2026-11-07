@@ -197,7 +197,7 @@ public sealed class MumbleMixer
         if (speaker.ArrivalCount < ArrivalsEnough) return speaker.LastUnevenMs;
         Array.Copy(speaker.Arrivals, _sorting, speaker.ArrivalCount);
         Array.Sort(_sorting, 0, speaker.ArrivalCount);
-        return _sorting[speaker.ArrivalCount * 95 / 100] - _sorting[0];
+        return _sorting[speaker.ArrivalCount * 98 / 100] - _sorting[0];
     }
 
     /// <summary>How much to have waiting before playing: enough to ride over the bumps seen so far, and one frame more.</summary>

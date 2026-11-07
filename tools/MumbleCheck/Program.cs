@@ -883,6 +883,37 @@ static string RawFile(string path)
         Check("jitter: a longer wait means packets stop coming too late", unevenMixer.LatePackets <= 20, $"{unevenMixer.LatePackets} of 600 too late");
         Check("jitter: and few have to be guessed", unevenMixer.GuessedFrames <= 25, $"{unevenMixer.GuessedFrames} guessed");
         var unevenHoles = Holes(uneven.Heard);
+
+        // The wait is learned once. Each press after the first has it from its first frame, and loses nothing to learning.
+        var pressesRandom = new Random(9);
+        var presses = new List<(double, MumbleVoicePacket)>();
+        var pressAt = 0.0;
+        var pressStart = new List<double>();
+        for (var press = 0; press < 12; press++)
+        {
+            pressStart.Add(pressAt);
+            var length = press == 0 ? 300 : 40;
+            for (var f = 0; f < length; f++)
+                presses.Add((pressAt + 20.0 * f + pressesRandom.NextDouble() * 120, jitterEncoder.Encode(Frame(), 0, last: f == length - 1) with { Session = 3 }));
+            pressAt += 20.0 * length + 1000;
+        }
+        var pressMixer = new MumbleMixer();
+        var firstPress = presses.Where(p => p.Item1 < pressStart[1]).ToList();
+        Run(firstPress, pressStart[1], pressMixer);
+        var lateAfterFirst = pressMixer.LatePackets;
+        var guessedAfterFirst = pressMixer.GuessedFrames;
+        var pressClock = pressStart[1];
+        pressMixer.Clock = () => pressClock;
+        var pressChunk = new short[MumbleMixer.SamplesPer10Ms];
+        var pressPending = new Queue<(double, MumbleVoicePacket)>(presses.Where(p => p.Item1 >= pressStart[1]).OrderBy(p => p.Item1));
+        for (; pressClock < pressAt; pressClock += 10)
+        {
+            while (pressPending.Count > 0 && pressPending.Peek().Item1 <= pressClock) pressMixer.Receive(1, pressPending.Dequeue().Item2);
+            pressMixer.ReadMix(pressChunk);
+        }
+        var laterLate = pressMixer.LatePackets - lateAfterFirst;
+        var laterGuessed = pressMixer.GuessedFrames - guessedAfterFirst;
+        Check("jitter: later presses start with the wait already learned", laterLate + laterGuessed <= 30, $"{laterLate} too late, {laterGuessed} guessed, of 440");
         var learned = Holes([.. uneven.Heard.Skip(500)]);
         Check("jitter: an uneven connection gets a longer wait", learned == 0, $"{unevenHoles} in all, {learned} after the first 5 s");
         Check("jitter: uneven costs no words", uneven.Heard.Count(h => h) >= 600 * 2 - 40, uneven.Heard.Count(h => h).ToString());
