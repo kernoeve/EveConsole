@@ -173,6 +173,27 @@ public class JabberStoredMessage
     public string DeletedReason { get; set; } = "";
 }
 
+/// <summary>
+/// One person's reactions (XEP-0444) to one message: their whole set, as each new one replaces the last.
+/// </summary>
+public class JabberReaction
+{
+    public int    AccountId    { get; set; }
+    public string Conversation { get; set; } = "";
+
+    /// <summary>The message reacted to: the room's id for it in a room, its own id with a person.</summary>
+    public string Target       { get; set; } = "";
+
+    /// <summary>Who: a nickname in a room, an address with a person.</summary>
+    public string Sender       { get; set; } = "";
+
+    /// <summary>Their emojis, in the order they chose them, separated by spaces.</summary>
+    public string Emojis       { get; set; } = "";
+
+    /// <summary>UTC, as yyyy-MM-ddTHH:mm:ssZ: emojis are shown in the order first chosen.</summary>
+    public string UpdatedAt    { get; set; } = "";
+}
+
 /// <summary>Whether a message was deleted, and by whom. Stored as the number, so never renumber these.</summary>
 public static class JabberDeleted
 {

@@ -39,6 +39,18 @@ public sealed class MessagesConversationVm(DmSummary summary)
 
 public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null)
 {
+    /// <summary>What a reaction to it names. Blank where it cannot be reacted to.</summary>
+    public string ReactTarget => line.Target;
+    public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
+
+    public ObservableCollection<ReactionChipVm> Reactions { get; } = [];
+
+    public void SetReactions(IReadOnlyList<JabberReactionCount>? counts)
+    {
+        Reactions.Clear();
+        foreach (var c in counts ?? []) Reactions.Add(new ReactionChipVm(c));
+    }
+
     /// <summary>Whose picture goes beside it.</summary>
     public AvatarRef? Avatar => avatar;
 
@@ -211,6 +223,30 @@ public sealed class MessagesTabVm : ReactiveObject
         foreach (var line in page) Lines.Add(ToVm(line));
         HasEarlier = page.Count == PageSize;
         ScrollToEndRequested?.Invoke();
+        await LoadReactionsAsync();
+    }
+
+    /// <summary>The reactions to every message showing, as they stand now.</summary>
+    public async Task LoadReactionsAsync()
+    {
+        var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
+        if (lines.Count == 0) return;
+
+        var counts = await Task.Run(() => _source.ReactionsAsync(Key, [.. lines.Select(l => l.ReactTarget)]));
+        foreach (var line in lines) line.SetReactions(counts.GetValueOrDefault(line.ReactTarget));
+    }
+
+    /// <summary>Adds an emoji to this person's reactions to a message, or takes it back if it is theirs already.</summary>
+    public async Task ToggleReactionAsync(MessagesLineVm line, string emoji)
+    {
+        if (!line.CanReact) return;
+
+        var mine = line.Reactions.Where(c => c.Mine).Select(c => c.Emoji).ToList();
+        if (!mine.Remove(emoji)) mine.Add(emoji);
+
+        StatusText = "";
+        try { await Task.Run(() => _source.ReactAsync(Key, line.ReactTarget, mine)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
     }
 
     private async Task LoadEarlierAsync()
@@ -220,6 +256,7 @@ public sealed class MessagesTabVm : ReactiveObject
         var page = await Task.Run(() => _source.LoadAsync(Key, Lines[0].Id, PageSize));
         for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToVm(page[i]));
         HasEarlier = page.Count == PageSize;
+        await LoadReactionsAsync();
     }
 
     public void Add(DmLine line)
@@ -352,6 +389,7 @@ public sealed class MessagesViewModel : ReactiveObject
         _service.UnreadChanged += QueueRefresh;
         _service.Arrived += (key, line, alert) => Dispatcher.UIThread.Post(() => OnArrived(key, line, alert));
         _service.Edited += key => Dispatcher.UIThread.Post(() => { if (TabOf(key) is { } tab) _ = tab.LoadAsync(); });
+        _service.ReactionsChanged += key => Dispatcher.UIThread.Post(() => { if (TabOf(key) is { } tab) _ = tab.LoadReactionsAsync(); });
         _service.Typing += (key, typing) => Dispatcher.UIThread.Post(() => TabOf(key)?.TheyAreTyping(typing));
 
         QueueRefresh();

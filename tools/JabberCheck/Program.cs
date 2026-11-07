@@ -648,6 +648,29 @@ static string? Throws(Action act)
           && EveConsole.Services.Mumble.MumbleService.AvatarServiceName == EveConsole.Services.Messages.MumbleDmSource.Name);
 }
 
+// ── Reactions: what is read and what is sent ──────────────────────────────
+{
+    XElement With(string? id, params string[] emojis) =>
+        new(XmppClient.Client + "message", new XElement(XmppClient.Reactions + "reactions", id is null ? null : new XAttribute("id", id),
+            emojis.Select(e => new XElement(XmppClient.Reactions + "reaction", e))));
+
+    var read = XmppClient.ReactionsIn(With("m1", "👍", "🔥", "👍"));
+    Check("reactions: the set, each once, in order", read is ("m1", ["👍", "🔥"]), read is { } r ? string.Join(",", r.Emojis) : "null");
+    Check("reactions: an empty set takes them back", XmppClient.ReactionsIn(With("m1")) is ("m1", []));
+    Check("reactions: none without what they react to", XmppClient.ReactionsIn(With(null, "👍")) is null && XmppClient.ReactionsIn(new XElement(XmppClient.Client + "message")) is null);
+    Check("reactions: words, spaces and long strings are not emojis",
+          XmppClient.ReactionsIn(With("m1", "hello", "👍 👍", string.Concat(Enumerable.Repeat("😀", 20)), "", "❤️")) is ("m1", ["❤️"]));
+    Check("reactions: only so many", XmppClient.ReactionsIn(With("m1", [.. Enumerable.Range(0, 40).Select(i => char.ConvertFromUtf32(0x1F600 + i))]))?.Emojis.Count == XmppClient.MostReactions);
+
+    var sent = XmppClient.ReactionsMessage("ops@rooms.example", "groupchat", "S1", ["👍", "🔥"]);
+    Check("reactions: sent as the whole set, kept by the server",
+          (string?)sent.Attribute("type") == "groupchat" && XmppClient.ReactionsIn(sent) is ("S1", ["👍", "🔥"]) && sent.Element(XmppClient.Hints + "store") is not null);
+    var echoed = new XElement(sent);
+    echoed.SetAttributeValue("from", "ops@rooms.example/alice");
+    Check("reactions: what is sent is read back as a reaction, not a message",
+          XmppClient.ParseMessage(echoed, XmppAddress.Parse("me@example/here")) is { ReactionsTo: "S1", Body.Length: 0 });
+}
+
 // ── Deletes: every form they come in ──────────────────────────────────────
 {
     var self = XmppAddress.Parse("me@example/here");
@@ -874,6 +897,55 @@ try
 
         await using var cleanup = factory.CreateDbContext();
         await cleanup.JabberMessages.Where(m => m.Conversation == "arc@example").ExecuteDeleteAsync();
+    }
+
+    // Reactions: kept per person per message, counted, and only for messages kept here.
+    {
+        var changed = new List<string>();
+        service.ReactionsChanged += (_, c) => changed.Add(c);
+        XmppMessage To(string who, string id, string body) =>
+            new(XmppAddress.Parse($"{who}/x"), XmppAddress.Parse("me@example"), "chat", body, "", id, null, "", false);
+        XmppMessage Reacting(string who, string target, params string[] emojis) =>
+            To(who, "re" + Guid.NewGuid().ToString("N")[..6], "") with { ReactionsTo = target, Reactions = emojis };
+
+        await service.StoreAsync(session, To("fan@example", "r1", "react to this"));
+        Check("reactions: not a message of their own", await service.StoreAsync(session, Reacting("fan@example", "r1", "👍", "🔥")) is null);
+        var mine = new XmppMessage(XmppAddress.Parse("me@example/other"), XmppAddress.Parse("fan@example"), "chat", "", "", "mr1", null, "", true)
+            { ReactionsTo = "r1", Reactions = ["👍"] };
+        await service.StoreAsync(session, mine);
+        await service.StoreAsync(session, Reacting("fan@example", "nothing-here", "😂"));
+
+        var counts = await service.ReactionsAsync(1, "fan@example", ["r1", "nothing-here"], "me@example");
+        string Shown(Dictionary<string, List<JabberReactionCount>> c, string t) =>
+            string.Join(" ", c.GetValueOrDefault(t, []).Select(x => $"{x.Emoji}{x.Count}{(x.Mine ? "*" : "")}").Order(StringComparer.Ordinal));
+        Check("reactions: counted, this account's own marked", Shown(counts, "r1") == string.Join(" ", new[] { "👍2*", "🔥1" }.Order(StringComparer.Ordinal)), Shown(counts, "r1"));
+        Check("reactions: to a message not kept here, not kept", !counts.ContainsKey("nothing-here"));
+        Check("reactions: the screens are told", changed.Count(c => c == "fan@example") == 2, string.Join(",", changed));
+
+        await service.StoreAsync(session, Reacting("fan@example", "r1", "😮"));
+        Check("reactions: a new set replaces the old", Shown(await service.ReactionsAsync(1, "fan@example", ["r1"], "me@example"), "r1") == string.Join(" ", new[] { "👍1*", "😮1" }.Order(StringComparer.Ordinal)));
+        await service.StoreAsync(session, Reacting("fan@example", "r1"));
+        await service.StoreAsync(session, mine with { Reactions = [] });
+        Check("reactions: an empty set takes them back", (await service.ReactionsAsync(1, "fan@example", ["r1"], "me@example")).Count == 0);
+
+        const string Hall = "hall@rooms.example";
+        session.Locked(s => s.RoomMap[Hall] = new JabberRoomState(new JabberRoom { AccountId = 1, RoomJid = Hall }) { Nick = "me", HistoryDone = true });
+        XmppMessage Said(string nick, string id, string body, string stanza = "") =>
+            new XmppMessage(XmppAddress.Parse($"{Hall}/{nick}"), XmppAddress.Parse("me@example"), "groupchat", body, "", id, null, stanza, false) { RoomStanzaId = stanza };
+        await service.StoreAsync(session, Said("alice", "a9", "room words", "S9"));
+        await service.StoreAsync(session, Said("bob", "b9", "") with { ReactionsTo = "S9", Reactions = ["🎉"] });
+        await service.StoreAsync(session, Said("me", "m9", "") with { ReactionsTo = "S9", Reactions = ["🎉"] });
+        await service.StoreAsync(session, Said("carl", "c9", "") with { ReactionsTo = "a9", Reactions = ["😂"] });
+        var room = await service.ReactionsAsync(1, Hall, ["S9", "a9"], "me");
+        Check("room reactions: by the room's id for the message, this account's own by its nickname", Shown(room, "S9") == "🎉2*", Shown(room, "S9"));
+        Check("room reactions: not by the sender's own id", !room.ContainsKey("a9"));
+
+        await using (var db = factory.CreateDbContext())
+            await db.JabberMessages.Where(m => m.Conversation == Hall || m.Conversation == "fan@example").ExecuteDeleteAsync();
+        await service.PurgeOldAsync();
+        await using (var db = factory.CreateDbContext())
+            Check("reactions: go with the messages they react to", !await db.JabberReactions.AnyAsync(r => r.Conversation == Hall));
+        session.Locked(s => s.RoomMap.Remove(Hall));
     }
 
     // Deletes: honoured only from whoever may, and the message keeps its place.

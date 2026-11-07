@@ -1287,6 +1287,17 @@ public static class PostgresSchema
         )
         """,
         """
+        CREATE TABLE IF NOT EXISTS "JabberReactions" (
+            "AccountId"    INTEGER NOT NULL,
+            "Conversation" TEXT    NOT NULL,
+            "Target"       TEXT    NOT NULL,
+            "Sender"       TEXT    NOT NULL,
+            "Emojis"       TEXT    NOT NULL DEFAULT '',
+            "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+            CONSTRAINT "PK_JabberReactions" PRIMARY KEY ("AccountId", "Conversation", "Target", "Sender")
+        )
+        """,
+        """
         CREATE TABLE IF NOT EXISTS "ChatAvatars" (
             "Hash"   TEXT    NOT NULL,
             "Bytes"  BYTEA   NOT NULL,

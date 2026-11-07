@@ -366,4 +366,37 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="MessageRemovedReason" xml:space="preserve">
     <value>Supprimé par un modérateur : {0}</value>
   </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Réagir</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Rechercher des emojis (noms anglais)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Smileys</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Personnes et gestes</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Cœurs et signes</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Animaux et nature</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Nourriture et boissons</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Activités</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Voyages et lieux</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Objets</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Symboles</value>
+  </data>
 </root>
