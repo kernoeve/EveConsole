@@ -164,7 +164,10 @@ public partial class ClientPanelWindow : Window
 
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Worklist:
                 if (_around?.MainScreen is not { } main) return null;
-                var worklist = new PanelWorklistVm(main.WorklistVm, main.CharacterVm.Characters, _around.Focus, _around.MonitorKey);
+                var worklist = new PanelWorklistVm(main.WorklistVm, main.CharacterVm.Characters, _around.Focus, _around.MonitorKey)
+                {
+                    OpenWorklist = () => main.ShowTool("worklist"),
+                };
                 return PanelControls.WorklistModeOf(part.Options) == WorklistControlMode.SingleLine
                     ? new PanelWorklistLine(worklist)
                     : new PanelWorklistControl { DataContext = worklist };

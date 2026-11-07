@@ -108,6 +108,9 @@ public sealed class ContainerTool
 
     /// <summary>Whether its tab can be closed. One that can't also stays in its container.</summary>
     public bool CanClose { get; set; } = true;
+
+    /// <summary>For the Overview: which of its saved layouts it opens with, by key. Null or empty is Default.</summary>
+    public string? Layout { get; set; }
 }
 
 /// <summary>How a panel looks. Null values mean the defaults, which match the game's own UI.</summary>

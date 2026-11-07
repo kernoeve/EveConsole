@@ -94,13 +94,32 @@ public partial class PanelMumbleControl : UserControl
     {
         if (_main == null) return;
         UseColumn(_main.MumbleVm.OverlayColumns.FirstOrDefault(c => c.ServerId == _serverId));
-        if (_column != null) return;
 
         var session = _serverId is { } id ? _main.MumbleService.SessionOf(id) : null;
+        ShowPower(session);
+        if (_column != null) return;
+
         LineState.Text = session == null
             ? ClientLayoutsText.MumbleNoServer
             : string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.MumbleServerState,
                 session.Server.Name.Length > 0 ? session.Server.Name : session.Server.Host, MumbleViewModel.StateText(session));
+    }
+
+    /// <summary>Green while connected or trying to, so the button says it will disconnect; grey when it will connect.</summary>
+    private void ShowPower(MumbleSession? session)
+    {
+        Power.IsVisible = session != null;
+        var on = session is { State: not (MumbleState.Offline or MumbleState.Failed) };
+        PowerIcon[!Avalonia.Controls.Shapes.Shape.StrokeProperty] =
+            new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension(on ? "GoodBrush" : "TextMutedBrush");
+        ToolTip.SetTip(Power, on ? MumbleText.Disconnect : MumbleText.Connect);
+    }
+
+    private void OnPower(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (_main == null || _serverId is not { } id || _main.MumbleService.SessionOf(id) is not { } session) return;
+        if (session.State is MumbleState.Offline or MumbleState.Failed) _main.MumbleService.Connect(session);
+        else _ = _main.MumbleService.DisconnectAsync(session);
     }
 
     private void UseColumn(MumbleOverlayColumn? column)

@@ -539,7 +539,11 @@ public class MainWindowViewModel : ReactiveObject
             _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
             {
                 Interlocked.Exchange(ref queued, 0);
-                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OverviewVm.LoadAsync());
+                Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+                {
+                    foreach (var overview in AllTabs.Select(t => t.ViewModel).OfType<OverviewViewModel>().Append(OverviewVm).Distinct())
+                        _ = overview.LoadAsync();
+                });
             }, TaskScheduler.Default);
         }
     }
@@ -914,8 +918,7 @@ public class MainWindowViewModel : ReactiveObject
         foreach (var tab in ws.OpenTabs.ToList())
         {
             ws.Remove(tab);
-            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
-            if (navItem is not null) navItem.IsOpen = false;
+            Forget(tab);
         }
         Hosts.Remove(ws);
     }
@@ -940,10 +943,31 @@ public class MainWindowViewModel : ReactiveObject
 
     private static string ContainerKey(string monitorKey, string controlId) => monitorKey + "|" + controlId;
 
-    /// <summary>Tools that open as a tab, and so can go in a container: not the Overview, nor those
-    /// that open somewhere else now (the Map's own tabs, Settings).</summary>
+    /// <summary>Tools that open as a tab, and so can go in a container: not those that open
+    /// somewhere else now (the Map's own tabs, Settings). The Overview in a container is one of
+    /// its own (<see cref="ContainerOverviewId"/>), not the main window's.</summary>
     public IReadOnlyList<NavItem> ContainerToolChoices =>
-        [.. _allNavItems.Where(i => i.ToolId is not ("overview" or "jump_planner" or "route_planner" or "jabber" or "mumble"))];
+        [.. _allNavItems.Where(i => i.ToolId is not ("jump_planner" or "route_planner" or "jabber" or "mumble"))];
+
+    private readonly Func<string?, OverviewViewModel> _newOverview;
+    private int _containerOverviews;
+
+    /// <summary>
+    /// The tab id of an Overview made for a container. Never "overview", which is the main window's:
+    /// opening the Overview from the navigation still finds that one.
+    /// </summary>
+    private string ContainerOverviewId() => "overview#" + Interlocked.Increment(ref _containerOverviews);
+
+    /// <summary>
+    /// A tab closed for good: the navigation no longer marks it open, and an Overview made for a
+    /// container stops refreshing.
+    /// </summary>
+    private void Forget(ToolTab tab)
+    {
+        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+        if (navItem is not null) navItem.IsOpen = false;
+        if (tab.ViewModel is OverviewViewModel overview && overview != OverviewVm) overview.Dispose();
+    }
 
     /// <summary>
     /// The tabs of the Tool Container that control <paramref name="controlId"/> shows on a monitor,
@@ -955,7 +979,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         var key = ContainerKey(monitorKey, controlId);
         var tools = Services.ClientLayouts.PanelControls.ToolsOf(options);
-        var spec = string.Join(";", tools.Select(t => t.ToolId + (t.CanClose ? "" : "!")))
+        var spec = string.Join(";", tools.Select(t => t.ToolId + (t.CanClose ? "" : "!") + (t.Layout is { Length: > 0 } l ? "@" + l : "")))
                    + "|" + Services.ClientLayouts.PanelControls.HoldsTabs(options) + Services.ClientLayouts.PanelControls.Splits(options);
         if (_containers.TryGetValue(key, out var entry))
         {
@@ -975,6 +999,17 @@ public class MainWindowViewModel : ReactiveObject
         ToolTab? first = null;
         foreach (var tool in tools.Where(t => choices.Contains(t.ToolId)))
         {
+            // The Overview here is one of the container's own, showing the layout it sets; the
+            // main window's is left where it is.
+            if (tool.ToolId == "overview")
+            {
+                var overview = new ToolTab(ContainerOverviewId(), ShellText.NavOverview, _newOverview(tool.Layout));
+                ws.Add(overview);
+                if (!tool.CanClose) overview.PinnedIn = ws;
+                first ??= overview;
+                continue;
+            }
+
             var tab = AllTabs.FirstOrDefault(t => t.Id == tool.ToolId);
             if (tab is null)
             {
@@ -1021,8 +1056,7 @@ public class MainWindowViewModel : ReactiveObject
         {
             tab.PinnedIn = null;
             entry.Workspace.Remove(tab);
-            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
-            if (navItem is not null) navItem.IsOpen = false;
+            Forget(tab);
         }
         if (_lastUsed == entry.Workspace) _lastUsed = null;
         this.RaisePropertyChanged(nameof(SelectedTab));
@@ -1106,7 +1140,22 @@ public class MainWindowViewModel : ReactiveObject
                 MoveTab(existing, into.ActivePane);
             Show(existing);
         }
-        // Asked for from a panel, so whichever window shows it comes forward, the main one too.
+        BringForwardWindowOf(toolId);
+    }
+
+    /// <summary>
+    /// Opens a tool from a panel the usual way, shown where it is if it's open already, and brings
+    /// whichever window shows it forward, the main one too.
+    /// </summary>
+    public void ShowTool(string toolId)
+    {
+        OpenTool(toolId);
+        BringForwardWindowOf(toolId);
+    }
+
+    /// <summary>Asked for from a panel, so whichever window shows the tool comes forward, the main one too.</summary>
+    private void BringForwardWindowOf(string toolId)
+    {
         if (AllTabs.FirstOrDefault(t => t.Id == toolId) is { } shown && WorkspaceOf(shown) is { IsMain: true } main)
             ShowWorkspaceRequested?.Invoke(main);
     }
@@ -1316,8 +1365,7 @@ public class MainWindowViewModel : ReactiveObject
         if (!tab.CanClose || WorkspaceOf(tab) is not { } ws) return;
         ws.Remove(tab);
 
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
-        if (navItem is not null) navItem.IsOpen = false;
+        Forget(tab);
         DropIfEmpty(ws);
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
@@ -1457,6 +1505,15 @@ public class MainWindowViewModel : ReactiveObject
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
+        // Another Overview, for a Tool Container: its own layout, everything else as the main one (WireLike).
+        _newOverview = layoutKey =>
+        {
+            var overview = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService,
+                dbFactory, esi, standingBuyOrderService, indyFacilityCheck, isMain: false, layoutKey: layoutKey);
+            overview.WireLike(OverviewVm);
+            _ = overview.LoadAsync();
+            return overview;
+        };
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
 

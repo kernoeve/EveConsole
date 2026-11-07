@@ -61,9 +61,18 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
         {
             // A ComboBox reports null while its list is being changed; that isn't a choice.
             if (value == null || _selectedName == value) return;
-            _focus.Choose(_monitor, value);
+            // ⚠️ Acted on once the dropdown has finished choosing: choosing can reorder its names,
+            // and changing its list while it was still committing the pick threw "index out of range".
+            Dispatcher.UIThread.Post(() => _focus.Choose(_monitor, value));
         }
     }
+
+    /// <summary>Opens the full Worklist tool, where any tool opens. Set by the panel.</summary>
+    public Action? OpenWorklist { get; set; }
+
+    public ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit> OpenWorklistCommand =>
+        _openWorklist ??= ReactiveCommand.Create(() => OpenWorklist?.Invoke());
+    private ReactiveCommand<System.Reactive.Unit, System.Reactive.Unit>? _openWorklist;
 
     private string _note = "";
     /// <summary>Why the list is empty, when it is.</summary>

@@ -401,6 +401,36 @@ public class OverviewViewModel : ReactiveObject
     public PiService?       Pi                                      { get; set; }
     public Action?          OpenAlertSettingsRequested              { get; set; }  // Settings ▸ Alerts
 
+    /// <summary>
+    /// An Overview that isn't the main window's goes where the main one goes and embeds the same
+    /// tools, so it takes all of that from the main one rather than being wired up a second time.
+    /// <para>⚠️ Anything wired onto the Overview after construction belongs here too.</para>
+    /// </summary>
+    public void WireLike(OverviewViewModel main)
+    {
+        NavigateToCharacterSkills   = main.NavigateToCharacterSkills;
+        NavigateToStandingProjects  = main.NavigateToStandingProjects;
+        NavigateToStandingBuyOrders = main.NavigateToStandingBuyOrders;
+        NavigateToIndustryJobs      = main.NavigateToIndustryJobs;
+        NavigateToActiveContracts   = main.NavigateToActiveContracts;
+        NavigateToEveMail           = main.NavigateToEveMail;
+        NavigateToGroupChat         = main.NavigateToGroupChat;
+        NavigateToMessages          = main.NavigateToMessages;
+        NavigateToOrderTracker      = main.NavigateToOrderTracker;
+        RequestOpenKillmail         = main.RequestOpenKillmail;
+        OpenToolRequested           = main.OpenToolRequested;
+        NavigateToPi                = main.NavigateToPi;
+        NavigateToPiCharacters      = main.NavigateToPiCharacters;
+        NavigateToCorpStructures    = main.NavigateToCorpStructures;
+        NavigateToMercenaryDens     = main.NavigateToMercenaryDens;
+        Pi                          = main.Pi;
+        OpenAlertSettingsRequested  = main.OpenAlertSettingsRequested;
+        SaleListingBuild            = main.SaleListingBuild;
+        SaleListingMarket           = main.SaleListingMarket;
+        IncomeExpense               = main.IncomeExpense;
+        Worklist                    = main.Worklist;
+    }
+
     // Shared Sale Listing tool VMs, injected by MainWindowViewModel, so the Overview can embed
     // those grids as sections without loading the data a second time.
     private SaleListingViewModel? _saleListingBuild;

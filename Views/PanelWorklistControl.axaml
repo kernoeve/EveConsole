@@ -28,8 +28,15 @@
   <!-- One character's tasks, read only, in the same compact form as the Overview's list. Items and
        stations open as they do in the Worklist tool. -->
   <Grid RowDefinitions="Auto,*" Margin="6 4" RowSpacing="4">
-    <ComboBox Grid.Row="0" HorizontalAlignment="Stretch" FontSize="11" MinHeight="0" Padding="6 2"
-              ItemsSource="{Binding Names}" SelectedItem="{Binding SelectedName}" />
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" ColumnSpacing="4">
+      <ComboBox HorizontalAlignment="Stretch" FontSize="11" MinHeight="0" Padding="6 2"
+                ItemsSource="{Binding Names}" SelectedItem="{Binding SelectedName}" />
+      <!-- The full tool, for everything this leaves out. -->
+      <Button Grid.Column="1" Classes="link" Command="{Binding OpenWorklistCommand}" Padding="4 2"
+              ToolTip.Tip="{x:Static loc:ClientLayoutsText.WorklistOpenTool}">
+        <Path Data="M7 1h4v4M11 1L5.5 6.5M9 7v4H1V3h4" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.2" Width="12" Height="12" />
+      </Button>
+    </Grid>
     <TextBlock Grid.Row="1" Text="{Binding Note}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
       <ItemsControl ItemsSource="{Binding Rows}">

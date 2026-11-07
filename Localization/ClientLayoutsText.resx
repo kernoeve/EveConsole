@@ -43,6 +43,7 @@
   <data name="WorklistNoClient" xml:space="preserve"><value>No one is logged in on this monitor.</value></data>
   <data name="WorklistNotInApp" xml:space="preserve"><value>{0} isn't a character in EVE Console.</value></data>
   <data name="WorklistNothing" xml:space="preserve"><value>Nothing ready for {0}.</value></data>
+  <data name="WorklistOpenTool" xml:space="preserve"><value>Open the Worklist</value></data>
   <data name="WorklistNoClientShort" xml:space="preserve"><value>No one logged in</value><comment>A Worklist control's single line when no game client is logged in on its monitor.</comment></data>
   <data name="LabelWorklistMode" xml:space="preserve"><value>Shows as</value></data>
   <data name="WorklistModeList" xml:space="preserve"><value>The list of ready tasks</value></data>
@@ -64,7 +65,10 @@
   <data name="ContainerToolCanClose" xml:space="preserve"><value>Can close</value><comment>A tab that can't be closed also stays in its container, as the Overview stays in the main window.</comment></data>
   <data name="ContainerToolRemove" xml:space="preserve"><value>Remove</value></data>
   <data name="ContainerToolAdd" xml:space="preserve"><value>Add</value></data>
-  <data name="ContainerNote" xml:space="preserve"><value>A tab that can't be closed stays in this container. A tool open somewhere else moves here when the container shows.</value></data>
+  <data name="LabelToolSettings" xml:space="preserve"><value>{0} opens with</value><comment>{0} is a tool's name, picked in a Tool Container's list of starting tools.</comment></data>
+  <data name="LabelOverviewLayout" xml:space="preserve"><value>Layout</value><comment>Which of the Overview's saved layouts an Overview in this container opens with.</comment></data>
+  <data name="ToolNoSettings" xml:space="preserve"><value>Nothing to set for this tool.</value></data>
+  <data name="ContainerNote" xml:space="preserve"><value>A tab that can't be closed stays in this container. A tool open somewhere else moves here when the container shows. An Overview here is one of its own: the main window's stays where it is.</value></data>
   <data name="LabelWidth" xml:space="preserve"><value>Width in pixels</value></data>
   <data name="LabelHeight" xml:space="preserve"><value>Height in pixels</value></data>
   <data name="LabelControl" xml:space="preserve"><value>Control</value></data>

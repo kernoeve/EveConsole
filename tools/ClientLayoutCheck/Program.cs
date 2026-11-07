@@ -509,6 +509,14 @@ LayoutArea TwoClients(out string first, out string second)
     picked.Update([new(1, M1, false, "Main", account)]);
     Same(picked.SelectedOn(M1), "Main", "the one picked gone, it's someone logged in, not the first name listed");
 
+    var unused = new MonitorFocus();
+    unused.Update([new(1, M1, false, "Main", account)]);
+    unused.Choose(M1, "Alt Two");
+    Same(unused.SelectedOn(M1), "Alt Two", "before any client is used, another on the account can be picked");
+    Same(string.Join(",", unused.NamesOn(M1)), "Alt One,Alt Two,Main", "and the account's characters stay listed, the one picked among them");
+    unused.Update([new(1, M1, false, "Main", account)]);
+    Same(unused.SelectedOn(M1), "Alt Two", "and stays picked");
+
     var later = new MonitorFocus();
     later.Update([new(1, M1, false, "Main", null)]);
     later.Foreground(1);
@@ -628,6 +636,65 @@ LayoutArea TwoClients(out string first, out string second)
     var placed = ClientLayoutCalculator.Calculate(read, monitor4K).Panels.SelectMany(p => p.Parts ?? []).Single(p => p.Id == cell.Id);
     Same(placed.Name, "Market", "the name reaches the screen");
     Check(PanelControls.Splits(placed.Options), "and so does what it can do");
+}
+
+// ---- The Overview's saved layouts ----
+{
+    var dir = Path.Combine(Path.GetTempPath(), "evc-overview-layouts-" + Guid.NewGuid().ToString("N"));
+    var file = Path.Combine(dir, "overview-layouts.json");
+    string? config = null;   // config.json's single layout, as older builds read and write it
+    var store = new EveConsole.Services.OverviewLayoutStore(file, () => config, json => config = json);
+    var told = new List<IReadOnlyDictionary<string, string>>();
+    store.Changed += told.Add;
+    string Names() => string.Join(",", store.Choices.Select(c => c.Key.Length == 0 ? "[Default]" : c.Key));
+    EveConsole.Models.OverviewLayout Grid(int rows) => new() { Rows = rows, Cols = 2 };
+    try
+    {
+        Same(Names(), "[Default]", "with nothing saved there is just Default");
+        Same(store.Get("").Rows, EveConsole.Models.OverviewLayout.Default().Rows, "and it's the built-in layout");
+        config = Grid(4).ToJson();
+        Same(store.Get(null).Rows, 4, "Default is the layout older builds keep in config.json");
+        Check(!File.Exists(file), "and reading makes no file");
+
+        var shown = store.Apply(new([("", "", Grid(5)), (null, "Compact", Grid(1)), (null, "Wide", Grid(2))], 1));
+        Same(Names(), "[Default],Compact,Wide", "layouts added are kept, in order");
+        Same(shown, "Compact", "and the one being edited is shown");
+        Same(store.Get("Compact").Rows, 1, "each with its own grid");
+        Same(store.Get("compact").Rows, 1, "found whatever the case");
+        Same(EveConsole.Models.OverviewLayout.FromJsonOrDefault(config).Rows, 5, "Default's edits go to config.json, where older builds see them");
+        Check(!File.ReadAllText(file).Contains("\"Rows\": 5"), "and only there");
+        Check(store.Get("Compact").Sections.Count == EveConsole.Models.OverviewLayout.KnownSections.Length, "a layout read back has every section, placed or not");
+
+        store.MainLayout = "Wide";
+        Same(store.MainLayout, "Wide", "the main window's choice is kept");
+        told.Clear();
+        store.Apply(new([("", "", Grid(5)), ("Compact", "Small", Grid(1)), ("Wide", "Wide", Grid(3))], 2));
+        Same(Names(), "[Default],Small,Wide", "a renamed layout keeps its place");
+        Same(told.Single().GetValueOrDefault("Compact"), "Small", "and Overviews are told what it's called now");
+        Same(store.Get("Wide").Rows, 3, "an edited one is saved");
+
+        store.Apply(new([("", "", Grid(5)), ("Small", "Small", Grid(1))], 0));
+        Same(Names(), "[Default],Small", "a layout left out is deleted");
+        Same(store.MainLayout, "", "the main window showing it goes back to Default");
+        Same(store.Get("Wide").Rows, 5, "and asking for it gets Default");
+        Same(store.KeyOf("Wide"), "", "which is what its key now means");
+        Check(!store.Exists("Wide") && store.Exists("Small") && store.Exists(""), "it no longer exists");
+
+        shown = store.Apply(new([("", "", Grid(5)), ("Small", "Small", Grid(1)), (null, "small", Grid(2)), (null, "", Grid(2)), (null, "Default", Grid(2))], 4));
+        Same(Names(), "[Default],Small,small (2),Layout,Default (2)", "names are made unique, blank ones named, and none can pass for Default");
+        Same(shown, "Default (2)", "and the one shown follows its new name");
+
+        store.MainLayout = "Small";
+        File.WriteAllText(file, "{ not json");
+        Same(Names(), "[Default],Small,small (2),Layout,Default (2)", "a damaged file reads its backup, the save before, instead");
+        File.WriteAllText(file + ".bak", "{ not json");
+        Same(Names(), "[Default]", "and with both damaged, only Default remains to show");
+        Same(store.Get("").Rows, 5, "which is still there");
+    }
+    finally
+    {
+        try { Directory.Delete(dir, true); } catch { }
+    }
 }
 
 // ---- Where a tab can go ----

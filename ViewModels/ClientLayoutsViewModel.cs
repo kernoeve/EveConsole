@@ -62,15 +62,16 @@ public sealed class ContainerToolRowVm : ReactiveObject
         _tool = tool;
         _changed = changed;
         Label = label;
-        HoldsTabs = holdsTabs;
+        _holdsTabs = holdsTabs;
         RemoveCommand = ReactiveCommand.Create(() => remove(this));
     }
 
     public ContainerTool Tool => _tool;
     public string Label { get; }
 
+    private bool _holdsTabs;
     /// <summary>Only a tab can be closed: a container holding one tool always keeps it.</summary>
-    public bool HoldsTabs { get; }
+    public bool HoldsTabs { get => _holdsTabs; set => this.RaiseAndSetIfChanged(ref _holdsTabs, value); }
 
     public bool CanClose
     {
@@ -85,6 +86,9 @@ public sealed class ContainerToolRowVm : ReactiveObject
     }
 
     public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+
+    /// <summary>The tool's settings were changed from outside the row, as switching to tabs makes every tab closable.</summary>
+    public void Refresh() => this.RaisePropertyChanged(nameof(CanClose));
 }
 
 /// <summary>An edge style a panel can have.</summary>
@@ -598,6 +602,48 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     public ReactiveCommand<Unit, Unit> AddToolCommand { get; }
 
+    // ---- The settings of a container's starting tool, picked from its list ----
+
+    private ContainerToolRowVm? _selectedContainerTool;
+    /// <summary>Picked to set what it opens with. Most tools have nothing to set; the Overview has its layout.</summary>
+    public ContainerToolRowVm? SelectedContainerTool
+    {
+        get => _selectedContainerTool;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedContainerTool, value);
+            this.RaisePropertyChanged(nameof(SelectedToolIsOverview));
+            this.RaisePropertyChanged(nameof(SelectedToolHasNoSettings));
+            this.RaisePropertyChanged(nameof(SelectedToolTitle));
+            OverviewLayouts.Clear();
+            if (value?.Tool.ToolId != "overview") return;
+            foreach (var choice in OverviewLayoutStore.Shared.Choices) OverviewLayouts.Add(choice);
+            _selectedOverviewLayout = OverviewLayouts.FirstOrDefault(c => c.Key == OverviewLayoutStore.Shared.KeyOf(value.Tool.Layout));
+            this.RaisePropertyChanged(nameof(SelectedOverviewLayout));
+        }
+    }
+
+    public bool SelectedToolIsOverview => _selectedContainerTool?.Tool.ToolId == "overview";
+    public bool SelectedToolHasNoSettings => _selectedContainerTool is not null && !SelectedToolIsOverview;
+    public string SelectedToolTitle => _selectedContainerTool is { } row
+        ? string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.LabelToolSettings, row.Label) : "";
+
+    /// <summary>The Overview's saved layouts, for the one an Overview in this container opens with.</summary>
+    public ObservableCollection<OverviewLayoutChoice> OverviewLayouts { get; } = [];
+
+    private OverviewLayoutChoice? _selectedOverviewLayout;
+    public OverviewLayoutChoice? SelectedOverviewLayout
+    {
+        get => _selectedOverviewLayout;
+        set
+        {
+            if (value is null || value == _selectedOverviewLayout || _selectedContainerTool is not { } row) return;
+            this.RaiseAndSetIfChanged(ref _selectedOverviewLayout, value);
+            row.Tool.Layout = OverviewLayoutStore.IsDefault(value.Key) ? null : value.Key;
+            OptionsOfSelection(_ => { });
+        }
+    }
+
     private void ShowContainer(ControlOptions? options)
     {
         var tabs = PanelControls.HoldsTabs(options);
@@ -608,17 +654,38 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         ContainerHoldsTabs = tabs;
 
         var all = _tools?.Invoke() ?? [];
-        ContainerTools.Clear();
-        foreach (var tool in options?.ContainerTools ?? [])
-            ContainerTools.Add(new ContainerToolRowVm(tool, all.FirstOrDefault(t => t.Id == tool.ToolId)?.Label ?? tool.ToolId, tabs,
-                () => OptionsOfSelection(_ => { }), RemoveTool));
+        // ⚠️ Kept rather than made again: the list's selection is cleared by its rows being replaced,
+        // which lost the tool picked every time anything was saved.
+        var tools = options?.ContainerTools ?? [];
+        foreach (var gone in ContainerTools.Where(r => !tools.Any(t => ReferenceEquals(t, r.Tool))).ToList()) ContainerTools.Remove(gone);
+        for (var i = 0; i < tools.Count; i++)
+        {
+            var tool = tools[i];
+            var row = ContainerTools.FirstOrDefault(r => ReferenceEquals(r.Tool, tool));
+            if (row == null)
+                ContainerTools.Insert(i, new ContainerToolRowVm(tool, all.FirstOrDefault(t => t.Id == tool.ToolId)?.Label ?? tool.ToolId, tabs,
+                    () => OptionsOfSelection(_ => { }), RemoveTool));
+            else
+            {
+                row.HoldsTabs = tabs;
+                row.Refresh();
+                if (ContainerTools.IndexOf(row) != i) ContainerTools.Move(ContainerTools.IndexOf(row), i);
+            }
+        }
 
         // Each tool once: a tool is only ever open in one place.
         ToolChoices.Clear();
         foreach (var choice in all.Where(t => ContainerTools.All(r => r.Tool.ToolId != t.Id))) ToolChoices.Add(choice);
         ToolToAdd = ToolChoices.FirstOrDefault();
         CanAddTool = ToolChoices.Count > 0 && (tabs || ContainerTools.Count == 0);
+        // A new tool is picked as it's added; one picked that's gone leaves nothing picked.
+        if (_addedTool is { } added) SelectedContainerTool = ContainerTools.FirstOrDefault(r => ReferenceEquals(r.Tool, added));
+        else if (_selectedContainerTool is { } picked && !ContainerTools.Contains(picked)) SelectedContainerTool = null;
+        else SelectedContainerTool = _selectedContainerTool;   // shown again: its settings brought up to date
+        _addedTool = null;
     }
+
+    private ContainerTool? _addedTool;
 
     private void AddTool()
     {
@@ -626,7 +693,8 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         OptionsOfSelection(o =>
         {
             // A tab can be closed unless set otherwise; a single tool never can.
-            (o.ContainerTools ??= []).Add(new ContainerTool { ToolId = choice.Id, CanClose = PanelControls.HoldsTabs(o) });
+            _addedTool = new ContainerTool { ToolId = choice.Id, CanClose = PanelControls.HoldsTabs(o) };
+            (o.ContainerTools ??= []).Add(_addedTool);
         });
         ShowSelection();
     }

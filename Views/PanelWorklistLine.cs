@@ -74,13 +74,34 @@ public sealed class PanelWorklistLine : Border
             Width = 8, Height = 5, VerticalAlignment = VerticalAlignment.Center,
             [!Avalonia.Controls.Shapes.Shape.FillProperty] = new DynamicResourceExtension("TextMutedBrush"),
         };
-        var line = new DockPanel { LastChildFill = true, VerticalAlignment = VerticalAlignment.Center };
+        // Stretched, so a click anywhere on the control lands on it; its parts are centred themselves.
+        var line = new DockPanel { LastChildFill = true };
         DockPanel.SetDock(name, Dock.Left);
         DockPanel.SetDock(chevron, Dock.Right);
         name.Margin = new Thickness(0, 0, 10, 0);
         chevron.Margin = new Thickness(8, 0, 0, 0);
+        // The full tool, for everything this leaves out. A button, so its click doesn't drop the list down.
+        var open = new Button
+        {
+            Background = Brushes.Transparent,
+            BorderThickness = new Thickness(0),
+            Padding = new Thickness(4, 2),
+            MinHeight = 0,
+            VerticalAlignment = VerticalAlignment.Center,
+            Cursor = new Cursor(StandardCursorType.Hand),
+            Command = vm.OpenWorklistCommand,
+            Content = new Avalonia.Controls.Shapes.Path
+            {
+                Data = Geometry.Parse("M7 1h4v4M11 1L5.5 6.5M9 7v4H1V3h4"),
+                StrokeThickness = 1.2, Width = 12, Height = 12,
+                [!Avalonia.Controls.Shapes.Shape.StrokeProperty] = new DynamicResourceExtension("TextMutedBrush"),
+            },
+        };
+        ToolTip.SetTip(open, EveConsole.Localization.ClientLayoutsText.WorklistOpenTool);
+        DockPanel.SetDock(open, Dock.Right);
         line.Children.Add(name);
         line.Children.Add(chevron);
+        line.Children.Add(open);
         line.Children.Add(counts);
 
         _drop = new Popup
@@ -98,10 +119,16 @@ public sealed class PanelWorklistLine : Border
                 Child = new PanelWorklistControl { DataContext = vm, ManagesLifetime = false },
             },
         };
+        _drop.Opened += OnDropOpened;
+        _drop.Closed += OnDropClosed;
+
         // The popup takes no room on the line itself.
         Child = new Panel { Children = { line, _drop } };
 
-        PointerPressed += (_, e) =>
+        // ⚠️ On the line, not on this control: a press inside the dropped list is routed up through
+        // the popup to here, so a click on its character dropdown, or a row, closed the list.
+        line.Background = Brushes.Transparent;
+        line.PointerPressed += (_, e) =>
         {
             if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed) return;
             // Its dropdown of characters needs the keyboard and to know when it's clicked away from.
@@ -127,8 +154,59 @@ public sealed class PanelWorklistLine : Border
         if (_window != null) _window.Deactivated -= OnWindowDeactivated;
         _window = null;
         _drop.IsOpen = false;
+        _watch?.Stop();
         _vm.Dispose();
     }
 
-    private void OnWindowDeactivated(object? sender, EventArgs e) => _drop.IsOpen = false;
+    /// <summary>
+    /// Put away when another program comes to the front, such as a game client: looked at a few
+    /// times a second while the list is down, and when the panel stops being active.
+    /// <para>⚠️ Not just because the panel stopped being active: the character dropdown in the list
+    /// opens a window of its own, which takes that, and the list closed under the click that opened
+    /// it. Nor only then: after that dropdown, the panel may not be the active window any more, so a
+    /// click on the game wouldn't say so.</para>
+    /// </summary>
+    private void OnWindowDeactivated(object? sender, EventArgs e) =>
+        Avalonia.Threading.Dispatcher.UIThread.Post(PutAwayIfElsewhere, Avalonia.Threading.DispatcherPriority.Background);
+
+    private Avalonia.Threading.DispatcherTimer? _watch;
+
+    private bool _oursSeen;
+
+    private void OnDropOpened(object? sender, EventArgs e)
+    {
+        _oursSeen = false;
+        _watch ??= new Avalonia.Threading.DispatcherTimer(TimeSpan.FromMilliseconds(250), Avalonia.Threading.DispatcherPriority.Background,
+            (_, _) => Watch());
+        _watch.Start();
+    }
+
+    private void OnDropClosed(object? sender, EventArgs e) => _watch?.Stop();
+
+    /// <summary>
+    /// Only once the app has been in front with the list down: if Windows didn't let the panel come
+    /// forward, nothing says the user went elsewhere, and a click elsewhere in the app still puts it away.
+    /// </summary>
+    private void Watch()
+    {
+        if (OursInFront()) _oursSeen = true;
+        else if (_oursSeen) _drop.IsOpen = false;
+    }
+
+    private void PutAwayIfElsewhere()
+    {
+        if (_drop.IsOpen && !OursInFront()) _drop.IsOpen = false;
+    }
+
+    private static bool OursInFront()
+    {
+        if (!OperatingSystem.IsWindows()) return false;
+        var front = GetForegroundWindow();
+        if (front == IntPtr.Zero) return false;
+        GetWindowThreadProcessId(front, out var pid);
+        return pid == (uint)Environment.ProcessId;
+    }
+
+    [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern IntPtr GetForegroundWindow();
+    [System.Runtime.InteropServices.DllImport("user32.dll")] private static extern uint GetWindowThreadProcessId(IntPtr window, out uint processId);
 }

@@ -328,10 +328,12 @@
                   <CheckBox IsChecked="{Binding ContainerSplit}" IsVisible="{Binding ContainerHoldsTabs}"
                             Content="{x:Static loc:ClientLayoutsText.ContainerSplit}" />
                   <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelContainerTools}" />
-                  <ItemsControl ItemsSource="{Binding ContainerTools}">
-                    <ItemsControl.ItemTemplate>
+                  <!-- Pick a tool to set what it opens with, below. -->
+                  <ListBox ItemsSource="{Binding ContainerTools}" SelectedItem="{Binding SelectedContainerTool}"
+                           Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                    <ListBox.ItemTemplate>
                       <DataTemplate x:DataType="vm:ContainerToolRowVm">
-                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6" Margin="0 0 0 4">
+                        <Grid ColumnDefinitions="*,Auto,Auto" ColumnSpacing="6">
                           <TextBlock Grid.Column="0" Text="{Binding Label}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
                           <CheckBox Grid.Column="1" IsChecked="{Binding CanClose}" IsVisible="{Binding HoldsTabs}"
                                     Content="{x:Static loc:ClientLayoutsText.ContainerToolCanClose}" />
@@ -339,8 +341,19 @@
                                   ToolTip.Tip="{x:Static loc:ClientLayoutsText.ContainerToolRemove}" />
                         </Grid>
                       </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                  </ItemsControl>
+                    </ListBox.ItemTemplate>
+                  </ListBox>
+                  <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="3" Padding="8"
+                          IsVisible="{Binding SelectedContainerTool, Converter={x:Static ObjectConverters.IsNotNull}}">
+                    <StackPanel Spacing="6">
+                      <TextBlock Classes="label" Text="{Binding SelectedToolTitle}" />
+                      <StackPanel Spacing="6" IsVisible="{Binding SelectedToolIsOverview}">
+                        <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelOverviewLayout}" />
+                        <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding OverviewLayouts}" SelectedItem="{Binding SelectedOverviewLayout}" />
+                      </StackPanel>
+                      <TextBlock Classes="note" Text="{x:Static loc:ClientLayoutsText.ToolNoSettings}" IsVisible="{Binding SelectedToolHasNoSettings}" />
+                    </StackPanel>
+                  </Border>
                   <Grid ColumnDefinitions="*,Auto" ColumnSpacing="6" IsVisible="{Binding CanAddTool}">
                     <ComboBox Grid.Column="0" HorizontalAlignment="Stretch" ItemsSource="{Binding ToolChoices}" SelectedItem="{Binding ToolToAdd}">
                       <ComboBox.ItemTemplate>

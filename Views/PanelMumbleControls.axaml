@@ -15,11 +15,18 @@
          In the single line mode, who is talking shows in a window of its own next to this one
          (PanelTalkPopup). -->
     <!-- ⚠️ Left, not centred: the talk window opens from the control's left edge and must line up with it. -->
-    <Panel x:Name="Line" Grid.Row="0" VerticalAlignment="Center" HorizontalAlignment="Left">
-      <views:MumbleServerBar x:Name="Bar" ShowsWhere="True" IsVisible="False" VerticalAlignment="Center" />
-      <TextBlock x:Name="LineState" FontSize="10" VerticalAlignment="Center" Margin="6 0"
-                 TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
-    </Panel>
+    <StackPanel x:Name="Line" Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center" HorizontalAlignment="Left">
+      <!-- Connect, or disconnect (also stops trying to reconnect): the server's power, from here. -->
+      <Button x:Name="Power" Classes="icon" IsVisible="False" Click="OnPower">
+        <Path x:Name="PowerIcon" Data="M6 1v5M3.3 3a4 4 0 1 0 5.4 0" StrokeThickness="1.3" Width="12" Height="12"
+              Stroke="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+      </Button>
+      <Panel VerticalAlignment="Center">
+        <views:MumbleServerBar x:Name="Bar" ShowsWhere="True" ShowsConnected="True" IsVisible="False" VerticalAlignment="Center" />
+        <TextBlock x:Name="LineState" FontSize="11" VerticalAlignment="Center" Margin="4 0"
+                   TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextDimBrush}" />
+      </Panel>
+    </StackPanel>
 
     <!-- List: everyone in the channel, the current and recent talkers floating to the top. -->
     <ScrollViewer x:Name="ListMode" Grid.Row="1" IsVisible="False" Margin="6 4" HorizontalScrollBarVisibility="Disabled">

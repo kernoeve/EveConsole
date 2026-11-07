@@ -31,9 +31,15 @@ public sealed class MonitorFocus
     public IReadOnlyList<string> NamesOn(string monitor)
     {
         var here = _clients.Values.Where(c => c.MonitorKey == monitor).ToList();
+        // ⚠️ Before any client has been used, the one the selection belongs to, by its place's
+        // characters too: by its logged-in name alone, picking someone not logged in lost the place,
+        // its characters left the list, and the dropdown went blank on the name just picked.
+        var selected = _selected.GetValueOrDefault(monitor);
         var last = _lastClient.TryGetValue(monitor, out var handle) && _clients.TryGetValue(handle, out var known) && known.MonitorKey == monitor
             ? known
-            : here.FirstOrDefault(c => SameName(c.Character, _selected.GetValueOrDefault(monitor)));
+            : here.FirstOrDefault(c => SameName(c.Character, selected))
+              is { Handle: not 0 } own ? own
+            : here.FirstOrDefault(c => c.GroupNames.Contains(selected ?? "", StringComparer.OrdinalIgnoreCase));
         // At its login screen a client has no name, and so no place's characters: those it had last.
         var group = last.GroupNames.Count > 0 ? last.GroupNames
             : last.Character == null && last.Handle != 0 && _lastGroup.TryGetValue(monitor, out var kept) ? kept : [];

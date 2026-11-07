@@ -67,10 +67,10 @@ public static class PanelControls
         var tools = (options?.ContainerTools ?? [])
             .Where(t => t.ToolId.Length > 0)
             .DistinctBy(t => t.ToolId)
-            .Select(t => new ContainerTool { ToolId = t.ToolId, CanClose = t.CanClose })
+            .Select(t => new ContainerTool { ToolId = t.ToolId, CanClose = t.CanClose, Layout = t.Layout })
             .ToList();
         if (HoldsTabs(options)) return tools;
-        return [.. tools.Take(1).Select(t => new ContainerTool { ToolId = t.ToolId, CanClose = false })];
+        return [.. tools.Take(1).Select(t => new ContainerTool { ToolId = t.ToolId, CanClose = false, Layout = t.Layout })];
     }
 }
 
