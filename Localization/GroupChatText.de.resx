@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Räume hinzufügen</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Räume auf {0} hinzufügen</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Räume und Server-Chat erscheinen hier. Richte zuerst einen Server im Tab Jabber oder Mumble der Einstellungen ein.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Wähle links einen Raum oder Server.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>Neue Nachrichten: {0}</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Ungesehene Erwähnungen deines Namens: {0}</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Alles seit dem Verbinden Gesagte, in dem Kanal, in dem du warst. Es bleibt, bis die App geschlossen wird, denn ein Mumble-Server speichert nichts davon.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Nach Name oder Beschreibung filtern</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Die Räume werden abgefragt...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} im Raum</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Thema: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Passwort nötig</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Nur für Mitglieder</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Moderiert</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Vorübergehend</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Beigetreten</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Raum (oben wählen oder Namen eingeben)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Erneut beitreten</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Typ</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Allgemein</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>„Allgemein“ ist zum Reden da. Ein Intel-Raum wird zusätzlich auf Meldungen ausgewertet, wie ein Intel-Kanal in den Chat-Logs, und diese erscheinen auf der Karte und in den Intel-Alarmen. Eine Meldung, die bereits aus einer anderen Quelle vorliegt, wird nicht doppelt gezählt.</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Fertig</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Sortieren nach</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Personen im Raum</value>
+  </data>
+</root>

@@ -1732,4 +1732,40 @@
   <data name="EsiSpentElsewhereWatching" xml:space="preserve">
     <value>mesure en cours…</value>
   </data>
+  <data name="ColJabberName" xml:space="preserve">
+    <value>Compte ou salon</value>
+  </data>
+  <data name="ColLastMessage" xml:space="preserve">
+    <value>Dernier message</value>
+  </data>
+  <data name="ColLastDay" xml:space="preserve">
+    <value>Dernières 24 h</value>
+  </data>
+  <data name="JabberRunsHere" xml:space="preserve">
+    <value>Connecté par ce client.</value>
+  </data>
+  <data name="JabberRunsOn" xml:space="preserve">
+    <value>Connecté par le client qui effectue le travail en arrière-plan, sur {0}.</value>
+  </data>
+  <data name="JabberRunsNowhere" xml:space="preserve">
+    <value>Rien n'effectue le travail en arrière-plan : Jabber n'est donc pas connecté.</value>
+  </data>
+  <data name="JabberNoAccounts" xml:space="preserve">
+    <value>Aucun serveur Jabber configuré. Ajoutez-en un dans l'onglet Jabber des paramètres.</value>
+  </data>
+  <data name="JabberOpenTheApp" xml:space="preserve">
+    <value>Ouvrez l'application pour voir Jabber : il ne fonctionne pas depuis l'icône de la barre d'état.</value>
+  </data>
+  <data name="JabberDirectMessages" xml:space="preserve">
+    <value>Messages directs</value>
+  </data>
+  <data name="JabberJoined" xml:space="preserve">
+    <value>Rejoint</value>
+  </data>
+  <data name="JabberNotJoined" xml:space="preserve">
+    <value>Non rejoint</value>
+  </data>
+  <data name="JabberPresent" xml:space="preserve">
+    <value>{0} présents</value>
+  </data>
 </root>

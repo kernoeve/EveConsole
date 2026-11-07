@@ -20,7 +20,8 @@
     <Border DockPanel.Dock="Top" Background="{DynamicResource SurfaceHeaderBrush}" Padding="16 8">
       <Grid ColumnDefinitions="*,Auto,Auto">
 
-        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center">
+        <!-- ⚠️ Cut off where it runs out of room, rather than running under what is on the right when the window is narrow. -->
+        <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10" VerticalAlignment="Center" ClipToBounds="True">
           <!-- Shows or hides the navigation on the left, for the width. -->
           <Button Command="{Binding ToggleNavCommand}" Content="☰" FontSize="16"
                   Background="Transparent" BorderThickness="0" Padding="4 0 4 2" Margin="-6 0 0 0"
@@ -172,6 +173,56 @@
         <!-- Eve Time clock -->
         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
                     VerticalAlignment="Center" Margin="0 0 16 0">
+
+          <!-- Each Mumble server this client is connected to: where it is, who there can hear, and its controls. -->
+          <ItemsControl ItemsSource="{Binding MumbleVm.OverlayColumns}" IsVisible="{Binding !MumbleVm.NobodyTalking}"
+                        VerticalAlignment="Center" Margin="0 0 10 0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="12" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:MumbleOverlayColumn">
+                <views:MumbleServerBar ShowsWhere="True" />
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+
+          <!-- Direct messages: dim with nothing new, lit with a count when something is waiting. -->
+          <Button Command="{Binding OpenMessagesCommand}" Background="Transparent" BorderThickness="0" Padding="4 1" Margin="0 0 10 0"
+                  VerticalAlignment="Center" ToolTip.Tip="{Binding MessagesVm.WindowTitle}" ToolTip.Placement="Bottom">
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Grid>
+                <Path IsVisible="{Binding !MessagesVm.HasUnread}" Data="M2 2.5 h12 a1 1 0 0 1 1 1 v7 a1 1 0 0 1 -1 1 H7 l-3.2 3 v-3 H2 a1 1 0 0 1 -1 -1 v-7 a1 1 0 0 1 1 -1 z"
+                      Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.2" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding MessagesVm.HasUnread}" Data="M2 2.5 h12 a1 1 0 0 1 1 1 v7 a1 1 0 0 1 -1 1 H7 l-3.2 3 v-3 H2 a1 1 0 0 1 -1 -1 v-7 a1 1 0 0 1 1 -1 z"
+                      Fill="{DynamicResource WarnBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+              </Grid>
+              <TextBlock IsVisible="{Binding MessagesVm.HasUnread}" Text="{Binding MessagesVm.UnreadText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            </StackPanel>
+          </Button>
+
+          <!-- Group chat: dim with nothing new; lit with a count for new messages; in warning colours only when named. -->
+          <Button Command="{Binding OpenGroupChatCommand}" Background="Transparent" BorderThickness="0" Padding="4 1" Margin="0 0 10 0"
+                  VerticalAlignment="Center" ToolTip.Tip="{Binding GroupChatVm.IconTip}" ToolTip.Placement="Bottom">
+            <Button.Resources>
+              <StreamGeometry x:Key="GroupChatIcon">M3 5 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0 z M0.8 13.8 v-1.3 a3.5 3.5 0 0 1 3.5 -3.5 h2.4 a3.5 3.5 0 0 1 3.5 3.5 v1.3 z M10.2 2.6 a2.5 2.5 0 0 1 0 4.8 M11.8 9.1 a3.4 3.4 0 0 1 3.4 3.4 v1.3 h-2.6</StreamGeometry>
+            </Button.Resources>
+            <StackPanel Orientation="Horizontal" Spacing="4">
+              <Grid>
+                <Path IsVisible="{Binding !GroupChatVm.HasUnread}" Data="{StaticResource GroupChatIcon}"
+                      Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.2" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding GroupChatVm.HasOnlyUnread}" Data="{StaticResource GroupChatIcon}"
+                      Fill="{DynamicResource TextPrimaryBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+                <Path IsVisible="{Binding GroupChatVm.HasMentions}" Data="{StaticResource GroupChatIcon}"
+                      Fill="{DynamicResource WarnBrush}" Width="16" Height="16" VerticalAlignment="Center" />
+              </Grid>
+              <TextBlock IsVisible="{Binding GroupChatVm.HasUnread}" Text="{Binding GroupChatVm.UnreadText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock IsVisible="{Binding GroupChatVm.HasMentions}" Text="{Binding GroupChatVm.MentionsText}" FontSize="11" FontWeight="SemiBold"
+                         VerticalAlignment="Center" Foreground="{DynamicResource WarnBrush}" />
+            </StackPanel>
+          </Button>
 
           <!-- My characters online. Hover lists who, where, and in what — three columns that
                line up without a grid's chrome, green when docked, orange when in space. -->

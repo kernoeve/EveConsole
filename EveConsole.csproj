@@ -135,6 +135,15 @@
     <!-- Cross-platform microphone recording (includes win-x64, linux-x64, osx runtimes) -->
     <PackageReference Include="PortAudioSharp2" Version="1.0.6" />
 
+    <!-- Opus for Mumble voice, and the SRV lookups that find a Jabber server. -->
+    <PackageReference Include="Concentus" Version="2.2.2" />
+    <PackageReference Include="DnsClient" Version="1.8.0" />
+
+    <!-- WebRTC's echo canceller for Mumble voice, with its native libraries. The wrapper is all that is called: the audio
+         framework it lists as a dependency, and that framework's own native libraries, are left out of what ships. -->
+    <PackageReference Include="SoundFlow.Extensions.WebRtc.Apm" Version="1.4.2" />
+    <PackageReference Include="SoundFlow" Version="1.4.2" ExcludeAssets="all" />
+
     <!-- Markdown parsing for the agent's document tabs. Parser only — the rendering into themed
          Avalonia controls is ours, in Views/MarkdownRenderer.cs, so reports follow the palette
          rather than arriving with a stylesheet of their own. Pure managed, no natives. -->

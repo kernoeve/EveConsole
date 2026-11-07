@@ -146,6 +146,12 @@
         <DataTemplate DataType="vm:IndyParksViewModel">
           <views:IndyParksView />
         </DataTemplate>
+        <DataTemplate DataType="vm:GroupChatViewModel">
+          <views:GroupChatView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MessagesViewModel">
+          <views:MessagesView />
+        </DataTemplate>
         <DataTemplate DataType="vm:SystemIndexViewModel">
           <views:SystemIndexView />
         </DataTemplate>

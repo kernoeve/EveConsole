@@ -127,6 +127,18 @@ jobs:
       - name: Client layout check
         run: dotnet run --project tools/ClientLayoutCheck/ClientLayoutCheck.csproj -c Release
 
+      # ⚠️ Does the Jabber client still refuse what it must? A server offering no encryption gets no
+      # password, a forged carbon puts no words in anyone's mouth, a reconnect's replayed history sets off
+      # no alerts, and private conversations stay out of the agent's reach. None of it shows from outside.
+      - name: Jabber check
+        run: dotnet run --project tools/JabberCheck/JabberCheck.csproj -c Release
+
+      # ⚠️ Does the Mumble client still read what servers send, and refuse what it must? No password to a
+      # server whose certificate was not accepted, each key on one server only, and voice that comes out as
+      # it went in. None of it shows from outside until a fleet can't hear each other.
+      - name: Mumble check
+        run: dotnet run --project tools/MumbleCheck/MumbleCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no
@@ -316,7 +328,7 @@ jobs:
             plutil -p "$app/Contents/Info.plist"
             plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist" > /dev/null
             [ "$(plutil -extract CFBundleExecutable raw "$app/Contents/Info.plist")" = EveConsole ]
-            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib; do
+            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib libwebrtc-apm.dylib; do
               found=$(find "$app/Contents/MacOS" -path "*$lib" | head -1)
               [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
             done

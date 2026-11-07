@@ -7,7 +7,7 @@ namespace EveConsole.Agent.Tools.Data;
 /// The rules every agent-written SQL statement passes before the database sees it. Shared by
 /// query_database and show_query, so a statement the one refuses the other refuses too.
 /// </summary>
-internal static class ReadOnlySql
+public static class ReadOnlySql
 {
     /// <summary>
     /// Why the statement may not run, or null when it may.
@@ -22,6 +22,11 @@ internal static class ReadOnlySql
         if (!firstWord.Equals("SELECT", StringComparison.OrdinalIgnoreCase)
             && !firstWord.Equals("WITH", StringComparison.OrdinalIgnoreCase))
             return "Only SELECT (or CTEs starting with WITH...SELECT) are permitted.";
+
+        // ⚠️ By name, wherever it appears: ValidateTables only looks after FROM and JOIN, and a subquery written
+        // (TABLE x) has neither. What it holds is encrypted, and still has no business going to a model provider.
+        if (sql.Contains(Services.SharedLogins.Table, StringComparison.OrdinalIgnoreCase))
+            return "Query not run — no such table.";
 
         return ValidateTables(sql, schema);
     }

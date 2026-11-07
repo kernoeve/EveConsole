@@ -275,6 +275,14 @@ public class MainWindowViewModel : ReactiveObject
     public IndustryOpportunitiesViewModel IndustryOpportunitiesVm { get; }
     public IndyParksViewModel             IndyParksVm            { get; }
     public SystemIndexViewModel           SystemIndexVm          { get; }
+    public JabberViewModel                JabberVm               { get; }
+    public MumbleViewModel                MumbleVm               { get; }
+    public MessagesViewModel              MessagesVm             { get; }
+    public GroupChatViewModel             GroupChatVm            { get; }
+
+    /// <summary>The top bar's icon: the Messages tool, on what most needs reading if anything does.</summary>
+    public ReactiveCommand<Unit, Unit> OpenMessagesCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenGroupChatCommand { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -496,6 +504,42 @@ public class MainWindowViewModel : ReactiveObject
     /// timer rather than the clock's, because it costs a query — and off the UI thread, since
     /// SQLite has no real async I/O and awaiting it here would freeze the window.
     /// </summary>
+    /// <summary>
+    /// Keeps the Overview's alert in step with unread Jabber messages. It re-reads a lot, so a burst of
+    /// messages gets one refresh, and it never waits for its minute: a ping should show when it lands,
+    /// and reading one should clear it.
+    /// </summary>
+    private void WatchJabberAlerts(EveConsole.Services.Jabber.JabberService jabber, EveConsole.Services.Messages.DirectMessagesService messages)
+    {
+        var queued = 0;
+        jabber.UnreadChanged += Reload;
+        messages.UnreadChanged += Reload;
+
+        void Reload()
+        {
+            if (Interlocked.Exchange(ref queued, 1) == 1) return;
+            _ = Task.Delay(TimeSpan.FromSeconds(1)).ContinueWith(_ =>
+            {
+                Interlocked.Exchange(ref queued, 0);
+                Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = OverviewVm.LoadAsync());
+            }, TaskScheduler.Default);
+        }
+    }
+
+    private Task OpenMessagesAsync()
+    {
+        if (MessagesVm.HasUnread) return MessagesVm.ShowUnreadAsync();
+
+        MessagesVm.Show();
+        return Task.CompletedTask;
+    }
+
+    private Task OpenGroupChatAsync()
+    {
+        OpenTool("group_chat");
+        return GroupChatVm.HasUnread ? GroupChatVm.ShowUnreadAsync() : Task.CompletedTask;
+    }
+
     private void StartOnlineCharactersWatch(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
     {
         _ = RefreshOnlineCharactersAsync(dbFactory, errorLogger);
@@ -883,6 +927,9 @@ public class MainWindowViewModel : ReactiveObject
     public ReactiveCommand<Unit, Unit> ToggleNavCommand => _toggleNav ??= ReactiveCommand.Create(() => { IsNavVisible = !IsNavVisible; });
     private ReactiveCommand<Unit, Unit>? _toggleNav;
 
+    /// <summary>Opens Settings at the tab with this header. The window's to do.</summary>
+    public Action<string>? OpenSettingsTab { get; set; }
+
     public void OpenTool(string toolId)
     {
         // Tools of their own once, tabs of the map tool now: a saved tab, the agent and old links
@@ -892,6 +939,13 @@ public class MainWindowViewModel : ReactiveObject
             OpenTool("universe");
             if (toolId == "jump_planner") MapVm.ShowJumpPlannerTab();
             else                          MapVm.ShowRouteTab();
+            return;
+        }
+
+        // Tools once, tabs of Settings now, for anything that still names them.
+        if (toolId is "jabber" or "mumble")
+        {
+            OpenSettingsTab?.Invoke(toolId == "jabber" ? ShellText.NavJabber : ShellText.NavMumble);
             return;
         }
 
@@ -955,6 +1009,8 @@ public class MainWindowViewModel : ReactiveObject
             "killmails"      => (ShellText.NavKillmails,      KillmailBrowserVm, true),
             "battle_report"  => (ShellText.NavBattleReport,   BattleReportVm,    true),
             "eve_mail"       => (ShellText.NavEveMail,       EveMailVm,         true),
+            "messages"       => (ShellText.NavMessages,      MessagesVm,        true),
+            "group_chat"     => (ShellText.NavGroupChat,     GroupChatVm,       true),
             "notifications"  => (ShellText.NavNotifications,  NotificationsVm,   true),
             "background"     => (ShellText.NavBackgroundProcesses, ActivityVm,  true),
             "data"           => (ShellText.NavEsiExplorer,   ExplorerVm,        true),
@@ -1107,6 +1163,9 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Battle.BattleReportService battleReportService,
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
+        EveConsole.Services.Jabber.JabberService jabberService,
+        EveConsole.Services.Mumble.MumbleService mumbleService,
+        EveConsole.Services.Messages.DirectMessagesService directMessages,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
         TimerForceService               timerForce,
@@ -1241,6 +1300,15 @@ public class MainWindowViewModel : ReactiveObject
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
+        JabberVm          = new JabberViewModel(jabberService, appPrefs);
+        MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
+        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
+        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute);
+        OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
+        OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
+        MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
+        JabberVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
+        MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1263,6 +1331,9 @@ public class MainWindowViewModel : ReactiveObject
         OverviewVm.NavigateToActiveContracts   = () => { OpenTool("contracts"); ContractsVm!.ShowActivePersonal(); };
         OverviewVm.NavigateToOrderTracker      = () => OpenTool("order_tracker");
         OverviewVm.NavigateToEveMail           = () => { OpenTool("eve_mail"); EveMailVm.ShowUnread(); };
+        OverviewVm.NavigateToGroupChat         = () => { OpenTool("group_chat"); _ = GroupChatVm.ShowUnreadAsync(); };
+        OverviewVm.NavigateToMessages          = () => _ = MessagesVm.ShowUnreadAsync();
+        WatchJabberAlerts(jabberService, directMessages);
         OverviewVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");
@@ -1615,6 +1686,8 @@ public class MainWindowViewModel : ReactiveObject
             ]),
             new("communication", ShellText.NavGroupCommunication,
             [
+                // Group Chat is reached from its icon at the top of the window, which carries its counts.
+                new NavItem("messages", ShellText.NavMessages),
                 new NavItem("eve_mail", ShellText.NavEveMail),
                 new NavItem("notifications", ShellText.NavNotifications),
             ]),

@@ -2308,4 +2308,40 @@
     <value>measuring…</value>
     <comment>ESI limits tab, Spent elsewhere column, until the app has watched the bucket for a whole window.</comment>
   </data>
+  <data name="ColJabberName" xml:space="preserve">
+    <value>Account or room</value>
+  </data>
+  <data name="ColLastMessage" xml:space="preserve">
+    <value>Last message</value>
+  </data>
+  <data name="ColLastDay" xml:space="preserve">
+    <value>Last 24 h</value>
+  </data>
+  <data name="JabberRunsHere" xml:space="preserve">
+    <value>Connected through this client.</value>
+  </data>
+  <data name="JabberRunsOn" xml:space="preserve">
+    <value>Connected through the client doing the background work, on {0}.</value>
+  </data>
+  <data name="JabberRunsNowhere" xml:space="preserve">
+    <value>Nothing is doing the background work, so Jabber is not connected.</value>
+  </data>
+  <data name="JabberNoAccounts" xml:space="preserve">
+    <value>No Jabber servers set up. Add one on the Jabber tab in Settings.</value>
+  </data>
+  <data name="JabberOpenTheApp" xml:space="preserve">
+    <value>Open the app to see Jabber: it does not run from the tray icon.</value>
+  </data>
+  <data name="JabberDirectMessages" xml:space="preserve">
+    <value>Direct messages</value>
+  </data>
+  <data name="JabberJoined" xml:space="preserve">
+    <value>Joined</value>
+  </data>
+  <data name="JabberNotJoined" xml:space="preserve">
+    <value>Not joined</value>
+  </data>
+  <data name="JabberPresent" xml:space="preserve">
+    <value>{0} present</value>
+  </data>
 </root>

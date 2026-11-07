@@ -142,6 +142,12 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>EVE 邮件</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>通知</value>
   </data>
@@ -686,6 +692,13 @@ PID：{2}
     <value>{0}
 {1}
 点击查看 ESI 限制。</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>消息</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>群聊</value>
   </data>
   <data name="NavBattleReport" xml:space="preserve">
     <value>战斗报告</value>

@@ -1,0 +1,241 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.GroupChatView"
+             x:DataType="vm:GroupChatViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Ellipse.dot.red"><Setter Property="Fill" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
+    <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ListBox#Rows ListBoxItem"><Setter Property="Padding" Value="8 3" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="TextBlock.detail"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="ListBox#Rows ListBoxItem:selected TextBlock.detail"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+    <Style Selector="ListBox#ChoiceList ListBoxItem"><Setter Property="Padding" Value="10 6" /><Setter Property="MinHeight" Value="0" /></Style>
+    <!-- Plain lists: a chat is not a stack of selectable cards. -->
+    <Style Selector="ListBox#LineList ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox#LineList ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox#LineList ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="Border.line.mention"><Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" /></Style>
+    <Style Selector="Border.count"><Setter Property="CornerRadius" Value="8" /><Setter Property="Padding" Value="6 0" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
+    <Style Selector="Border.count TextBlock"><Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+    <Style Selector="Border.mentions"><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Border.mentions TextBlock"><Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" /></Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="270,4,*">
+
+    <!-- ── Servers and their rooms ───────────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfacePanelBrush}">
+      <Button Grid.Row="0" Content="{x:Static loc:GroupChatText.AddRooms}" Command="{Binding AddRoomsCommand}" IsEnabled="{Binding CanAddRooms}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:GroupChatRowVm">
+            <Grid ColumnDefinitions="14,*,Auto" Margin="{Binding Indent}">
+              <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" HorizontalAlignment="Left" />
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
+                           FontWeight="{Binding IsServer, Converter={x:Static vm:JabberBold.Convert}}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Classes="detail" Text="{Binding ShownDetail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ShownDetail}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" Margin="6 0 0 0" VerticalAlignment="Center">
+                <Border Classes="count mentions" IsVisible="{Binding HasMentions}" ToolTip.Tip="{Binding MentionsTip}"><TextBlock Text="{Binding MentionsText}" /></Border>
+                <Border Classes="count" IsVisible="{Binding HasUnread}" ToolTip.Tip="{Binding UnreadTip}"><TextBlock Text="{Binding UnreadText}" /></Border>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <CheckBox Grid.Row="2" Margin="8" IsChecked="{Binding SoundOn}" FontSize="11" Content="{x:Static loc:JabberText.SoundOption}" />
+    </Grid>
+
+    <GridSplitter Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}" />
+
+    <!-- ── The pane on the right ─────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="*,Auto">
+
+      <TextBlock Grid.Row="0" IsVisible="{Binding ShowWelcome}" Text="{x:Static loc:GroupChatText.Welcome}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                 TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+
+      <TextBlock Grid.Row="0" IsVisible="{Binding ShowNothing}" Text="{x:Static loc:GroupChatText.PickSomething}" VerticalAlignment="Center" HorizontalAlignment="Center"
+                 TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+
+      <!-- A Jabber server -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowJabberServer}" Margin="20 14" Spacing="6">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+        <TextBlock Text="{Binding ServerState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0 6 0 0" />
+        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 6">
+          <Button Content="{x:Static loc:JabberText.Connect}" Command="{Binding ConnectCommand}" IsVisible="{Binding CanConnect}" />
+          <Button Content="{x:Static loc:GroupChatText.AddRooms}" Command="{Binding AddRoomsCommand}" IsVisible="{Binding !CanConnect}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- An invitation to a room -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowInvite}" Margin="20 14" Spacing="8">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:JabberText.Accept}" Command="{Binding AcceptInviteCommand}" />
+          <Button Content="{x:Static loc:JabberText.Decline}" Command="{Binding DeclineInviteCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Adding rooms -->
+      <Grid Grid.Row="0" IsVisible="{Binding ShowAddRooms}" RowDefinitions="Auto,*,Auto">
+        <StackPanel Grid.Row="0" Margin="14 10" Spacing="6">
+          <TextBlock Text="{Binding AddingTo}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <Grid ColumnDefinitions="*,Auto,Auto">
+            <TextBox Text="{Binding RoomFilter}" Watermark="{x:Static loc:GroupChatText.RoomFilterHint}" />
+            <TextBlock Grid.Column="1" Text="{x:Static loc:GroupChatText.LabelRoomSort}" FontSize="11" Margin="12 0 6 0" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+            <ComboBox Grid.Column="2" ItemsSource="{Binding RoomSortChoices}" SelectedItem="{Binding RoomSort}" MinWidth="150" VerticalAlignment="Center">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:GroupRoomSortChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+          </Grid>
+          <TextBlock Classes="note" Text="{x:Static loc:GroupChatText.ReadingRooms}" IsVisible="{Binding IsLoadingRooms}" />
+        </StackPanel>
+
+        <ListBox x:Name="ChoiceList" Grid.Row="1" ItemsSource="{Binding RoomChoices}" SelectedItem="{Binding RoomChoice}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:GroupRoomChoiceVm">
+              <Grid ColumnDefinitions="*,Auto">
+                <StackPanel Spacing="1">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{x:Static loc:GroupChatText.AlreadyJoined}" IsVisible="{Binding IsJoined}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource GoodBrush}" />
+                  </StackPanel>
+                  <TextBlock Text="{Binding Jid}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" />
+                  <TextBlock Text="{Binding Description}" IsVisible="{Binding HasDescription}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Topic}" IsVisible="{Binding HasTopic}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+                  <TextBlock Text="{Binding Flags}" IsVisible="{Binding HasFlags}" FontSize="10" Foreground="{DynamicResource WarnBrush}" />
+                </StackPanel>
+                <TextBlock Grid.Column="1" Text="{Binding People}" IsVisible="{Binding HasPeople}" FontSize="11" Margin="12 0 0 0" Foreground="{DynamicResource TextMutedBrush}" />
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <Grid Grid.Row="2" ColumnDefinitions="2*,8,*,8,*,8,Auto" RowDefinitions="Auto,Auto,Auto" Margin="14 8">
+          <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{x:Static loc:GroupChatText.LabelRoomToJoin}" />
+          <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding JoinRoom}" />
+          <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="{x:Static loc:JabberText.LabelNickname}" />
+          <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding JoinNick}" />
+          <TextBlock Grid.Row="0" Grid.Column="4" Classes="label" Text="{x:Static loc:JabberText.LabelPassword}" />
+          <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding JoinPassword}" PasswordChar="●" />
+          <TextBlock Grid.Row="0" Grid.Column="6" Classes="label" Text="{x:Static loc:GroupChatText.LabelRoomType}" />
+          <ComboBox Grid.Row="1" Grid.Column="6" ItemsSource="{Binding RoomTypeChoices}" SelectedItem="{Binding JoinRoomType}" MinWidth="120" ToolTip.Tip="{x:Static loc:GroupChatText.RoomTypeTip}">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:JabberRoomTypeChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <StackPanel Grid.Row="2" Grid.ColumnSpan="7" Orientation="Horizontal" Spacing="8" Margin="0 10 0 0">
+            <Button Content="{x:Static loc:JabberText.Join}" Command="{Binding JoinRoomCommand}" />
+            <Button Content="{x:Static loc:GroupChatText.DoneAdding}" Command="{Binding CancelAddRoomsCommand}" />
+          </StackPanel>
+        </Grid>
+      </Grid>
+
+      <!-- A room, or a Mumble server's chat -->
+      <Grid Grid.Row="0" IsVisible="{Binding ShowConversation}" RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,Auto">
+        <Border Grid.Row="0" Grid.ColumnSpan="2" Padding="14 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Subtitle}" />
+              <TextBlock Text="{Binding ArchiveText}" IsVisible="{Binding HasArchiveText}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ArchiveText}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Button Content="{x:Static loc:JabberText.Connect}" Command="{Binding ConnectCommand}" IsVisible="{Binding CanConnect}" />
+              <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowRoomControls}">
+                <TextBlock Text="{x:Static loc:GroupChatText.LabelRoomType}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                <ComboBox ItemsSource="{Binding RoomTypeChoices}" SelectedItem="{Binding ChosenRoomType}" FontSize="11" MinWidth="100" ToolTip.Tip="{x:Static loc:GroupChatText.RoomTypeTip}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:JabberRoomTypeChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <TextBlock Text="{x:Static loc:JabberText.LabelRoomAlert}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                <ComboBox ItemsSource="{Binding AlertChoices}" SelectedItem="{Binding ChosenAlert}" FontSize="11" Width="230">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:JabberAlertChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="{x:Static loc:JabberText.LeaveRoom}" Command="{Binding LeaveRoomCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Grid Grid.Row="1" Grid.Column="0" RowDefinitions="Auto,Auto,*">
+          <Border Grid.Row="0" IsVisible="{Binding HasRoomProblem}" Background="{DynamicResource WarnSurfaceBrush}" Padding="14 6">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding RoomProblem}" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <Button Grid.Column="1" Content="{x:Static loc:GroupChatText.JoinAgain}" Command="{Binding JoinAgainCommand}" Margin="10 0 0 0" />
+            </Grid>
+          </Border>
+          <Button Grid.Row="1" Content="{x:Static loc:JabberText.LoadEarlier}" Command="{Binding LoadEarlierCommand}" IsVisible="{Binding HasEarlier}" HorizontalAlignment="Center" Margin="0 6" FontSize="11" />
+          <!-- A ListBox, not an ItemsControl in a scroller: long histories must stay virtualized. -->
+          <ListBox x:Name="LineList" Grid.Row="2" ItemsSource="{Binding Lines}" Background="Transparent" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:GroupLineVm">
+                <Border Classes="line" Classes.mention="{Binding IsMention}" Padding="14 4">
+                  <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                      <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+                      <TextBlock Text="{Binding Channel}" IsVisible="{Binding HasChannel}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                      <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                    </StackPanel>
+                    <SelectableTextBlock Text="{Binding Body}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="x:String">
+                          <Button Content="{Binding}" Click="OnOpenLink" Padding="0" FontSize="11" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource InfoBrush}" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ListBox.ItemTemplate>
+          </ListBox>
+        </Grid>
+
+        <!-- Who is in the room -->
+        <ListBox Grid.Row="1" Grid.Column="1" IsVisible="{Binding ShowOccupants}" ItemsSource="{Binding Occupants}" Width="180" Background="{DynamicResource SurfacePanelBrush}">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:JabberOccupantVm">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}" />
+                <TextBlock Text="{Binding Nick}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Role}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="2" Grid.ColumnSpan="2">
+          <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
+          <TextBlock Text="{Binding CannotSend}" IsVisible="{Binding HasCannotSend}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource WarnBrush}" />
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="10 6">
+            <TextBox x:Name="DraftBox" Text="{Binding Draft}" IsEnabled="{Binding CanSend}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120" Watermark="{Binding DraftHint}" />
+            <CheckBox Grid.Column="1" IsChecked="{Binding IncludeSubchannels}" IsVisible="{Binding ShowSubchannels}" Content="{x:Static loc:MumbleText.ChatSubchannels}" FontSize="11" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="2" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}"
+                    ToolTip.Tip="{x:Static loc:JabberText.AttachTip}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="3" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          </Grid>
+        </StackPanel>
+      </Grid>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4" Foreground="{DynamicResource BadBrush}" />
+    </Grid>
+  </Grid>
+</UserControl>

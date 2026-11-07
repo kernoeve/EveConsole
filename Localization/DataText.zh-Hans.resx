@@ -1702,4 +1702,40 @@
   <data name="EsiSpentElsewhereWatching" xml:space="preserve">
     <value>测量中…</value>
   </data>
+  <data name="ColJabberName" xml:space="preserve">
+    <value>账户或房间</value>
+  </data>
+  <data name="ColLastMessage" xml:space="preserve">
+    <value>最后一条消息</value>
+  </data>
+  <data name="ColLastDay" xml:space="preserve">
+    <value>过去 24 小时</value>
+  </data>
+  <data name="JabberRunsHere" xml:space="preserve">
+    <value>通过此客户端连接。</value>
+  </data>
+  <data name="JabberRunsOn" xml:space="preserve">
+    <value>通过执行后台工作的客户端（{0}）连接。</value>
+  </data>
+  <data name="JabberRunsNowhere" xml:space="preserve">
+    <value>没有进程在执行后台工作，因此 Jabber 未连接。</value>
+  </data>
+  <data name="JabberNoAccounts" xml:space="preserve">
+    <value>未设置 Jabber 服务器。请在设置的 Jabber 选项卡中添加。</value>
+  </data>
+  <data name="JabberOpenTheApp" xml:space="preserve">
+    <value>请打开应用以查看 Jabber：它不会从托盘图标运行。</value>
+  </data>
+  <data name="JabberDirectMessages" xml:space="preserve">
+    <value>私信</value>
+  </data>
+  <data name="JabberJoined" xml:space="preserve">
+    <value>已加入</value>
+  </data>
+  <data name="JabberNotJoined" xml:space="preserve">
+    <value>未加入</value>
+  </data>
+  <data name="JabberPresent" xml:space="preserve">
+    <value>{0} 人在场</value>
+  </data>
 </root>

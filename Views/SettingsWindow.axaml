@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:models="clr-namespace:EveConsole.Models"
@@ -3015,6 +3015,14 @@
   </TabItem>
 
   <!-- ── Online Services ───────────────────────────────────────────────── -->
+  <TabItem Header="{x:Static loc:ShellText.NavJabber}">
+    <views:JabberView DataContext="{Binding JabberVm}" />
+  </TabItem>
+
+  <TabItem Header="{x:Static loc:ShellText.NavMumble}">
+    <views:MumbleView DataContext="{Binding MumbleVm}" />
+  </TabItem>
+
   <TabItem Header="{x:Static loc:SettingsText.TabOnlineServices}">
     <ScrollViewer>
       <StackPanel Spacing="16" Margin="24 16">
