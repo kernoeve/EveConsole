@@ -288,6 +288,8 @@ LayoutArea TwoClients(out string first, out string second)
     Same(plan.Placement.Monitors[1].Cells[0].Rect, new LayoutRect(3840, -230, 2560, 1340), "full monitor when set, and one layout fits both");
     Same(plan.Panels[0].Start, PanelStart.WithEve, "panel start comes from the monitor");
     Same(plan.Panels[1].Start, PanelStart.WithConsole, "per monitor");
+    Check(!plan.Panels[0].CoverTaskbar, "the taskbar stays in front by default");
+    Check(plan.Panels[1].CoverTaskbar, "and moves behind on a monitor using all of itself");
     Same(plan.Placement.Positions["Bravo"].MonitorKey, Big, "a character's position");
     Same(plan.Placement.Positions["bravo"].MonitorKey, Big, "names match whatever the case");
     Same(plan.Placement.Positions["Alpha"].MonitorKey, Big, "one position per desktop, the first wins");
@@ -301,8 +303,372 @@ LayoutArea TwoClients(out string first, out string second)
     Check(ClientLayoutPlanner.PanelsShow(PanelStart.WithEve, 4), "and more");
 }
 
+// ---- What panels hold ----
+{
+    // A panel holding docked controls, a docked panel with a grid, and a control docked full in a cell.
+    var root = new LayoutArea { Content = AreaContent.Client };
+    var bar = ClientLayoutEditing.Dock(root, DockEdge.Top, 25, "bar");
+    var inBar = ClientLayoutEditing.InsideOf(bar);
+    var gear = ClientLayoutEditing.DockControl(inBar, PanelControlKind.Settings, DockEdge.Left);
+    Same(gear.Size, PanelControls.DefaultSize(PanelControlKind.Settings, DockEdge.Left), "a control starts at a size that suits it");
+    gear.Size = 40;
+    var clock = ClientLayoutEditing.DockControl(inBar, PanelControlKind.EveTime, DockEdge.Right);
+    clock.Size = 120;
+    var side = ClientLayoutEditing.Dock(root, DockEdge.Right, 300, "side");
+    var inSide = ClientLayoutEditing.InsideOf(side);
+    var sub = ClientLayoutEditing.Dock(inSide, DockEdge.Top, 100, "sub");
+    Check(ClientLayoutEditing.Split(root, inSide, 1, 2), "a panel can hold a grid");
+    var filled = inSide.Grid!.Cells[1];
+    ClientLayoutEditing.FillWithControl(filled, PanelControlKind.LocalTime);
+    var emptyCell = inSide.Grid.Cells[0];
+
+    var result = ClientLayoutCalculator.Calculate(root, monitor4K);
+    Same(result.Panels.Count, 2, "panels at the top are the windows, and what's in them isn't");
+    var barPlaced = result.Panels.Single(p => p.Id == bar.Id);
+    var sidePlaced = result.Panels.Single(p => p.Id == side.Id);
+    Same(barPlaced.Rect, new LayoutRect(0, 0, 3840, 25), "the bar takes its edge");
+    Same(barPlaced.Parts!.Single(p => p.Id == gear.Id).Rect, new LayoutRect(0, 0, 40, 25), "a control docked left has its width and the bar's height");
+    Same(barPlaced.Parts!.Single(p => p.Id == clock.Id).Rect, new LayoutRect(3720, 0, 120, 25), "docked right, from the other end");
+    Same(barPlaced.Parts!.Single(p => p.Id == clock.Id).Control, "EveTime", "knowing which control it is");
+    var subPlaced = sidePlaced.Parts!.Single(p => p.Id == sub.Id);
+    Check(subPlaced.Kind == PlacedPartKind.Panel && subPlaced.Bare, "a panel in a panel, with nothing in it yet");
+    Same(subPlaced.Rect, new LayoutRect(3540, 25, 300, 100), "fitted inside its parent");
+    Same(sidePlaced.Parts!.Single(p => p.Id == filled.Id).Rect, new LayoutRect(3540, 1119, 300, 993), "a control docked full takes its whole cell");
+    Check(sidePlaced.Parts!.Single(p => p.Id == emptyCell.Id).Kind == PlacedPartKind.EmptyCell, "an empty cell stays a thing to click");
+    Same(result.Clients.Count, 1, "one client so far");
+    Same(result.Clients[0].Rect, new LayoutRect(0, 25, 3540, 2087), "which has what's left");
+    Check(result.Grids.Any(g => g.AreaId == inSide.Id), "a grid in a panel can have its lines dragged");
+
+    // Parents, as someone working on the layout sees them.
+    Same(ClientLayoutEditing.ParentOf(root, gear.Id), bar.Id, "a control's parent is its panel");
+    Same(ClientLayoutEditing.ParentOf(root, bar.Id), root.Id, "a panel's is what it's docked on");
+    Same(ClientLayoutEditing.ParentOf(root, filled.Id), side.Id, "a cell in a panel's grid has the panel");
+    Same(ClientLayoutEditing.ParentOf(root, root.Id), null, "the monitor has none");
+    var full = new LayoutArea { Content = AreaContent.Panel };
+    var fullInside = ClientLayoutEditing.InsideOf(full);
+    ClientLayoutEditing.FillWithControl(fullInside, PanelControlKind.EveTime);
+    Same(ClientLayoutEditing.ParentOf(full, fullInside.Id), full.Id, "a control docked full has its panel as parent");
+    Check(ClientLayoutEditing.FindDocked(root, gear.Id) != null, "something docked deep inside can be found");
+
+    // A client can go in any cell, including inside a panel.
+    emptyCell.Content = AreaContent.Client;
+    var bottom = ClientLayoutEditing.Dock(root, DockEdge.Bottom, 500, "holds a client");
+    var inBottom = ClientLayoutEditing.InsideOf(bottom);
+    inBottom.Content = AreaContent.Client;
+    var withClients = ClientLayoutCalculator.Calculate(root, monitor4K);
+    Same(withClients.Clients.Count, 3, "clients inside panels are clients like any other");
+    Check(withClients.Clients.Any(c => c.AreaId == emptyCell.Id), "one in a cell of a panel's grid");
+    Same(withClients.Clients.Single(c => c.AreaId == inBottom.Id).Rect, new LayoutRect(0, 1612, 3540, 500), "and one filling a docked panel");
+    var holes = withClients.Panels.Single(p => p.Id == bottom.Id).Parts!.Where(p => p.Kind == PlacedPartKind.Client).ToList();
+    Same(holes.Single().Rect, new LayoutRect(0, 1612, 3540, 500), "its panel knows where to leave a hole for it");
+    Same(withClients.Panels.Single(p => p.Id == side.Id).Parts!.Count(p => p.Kind == PlacedPartKind.Client), 1, "as does the panel with one in a cell");
+    Same(ClientLayoutCalculator.ClientAreaIds(root).Count(), 3, "and they can all have characters assigned");
+    Same(ClientLayoutEditing.ParentOf(root, inBottom.Id), bottom.Id, "a client filling a panel has that panel as parent");
+    Same(ClientLayoutEditing.ParentOf(root, emptyCell.Id), side.Id, "one in a cell has the panel with the grid");
+    root.Docked.Remove(bottom);
+    emptyCell.Content = AreaContent.Empty;
+
+    // The depth cap counts through panels.
+    var deep = new LayoutArea();
+    var walk = deep;
+    for (var i = 0; i < ClientLayoutCalculator.MaxGridDepth; i++)
+    {
+        Check(ClientLayoutEditing.Split(deep, walk, 2, 1), "a level of grid " + (i + 1));
+        var cell = walk.Grid!.Cells[0];
+        var panel = ClientLayoutEditing.Dock(cell, DockEdge.Top, 10, "p");
+        walk = ClientLayoutEditing.InsideOf(panel);
+    }
+    Check(!ClientLayoutEditing.CanSplit(deep, walk), "the cap holds through panels");
+
+    // And through panels that fill a cell.
+    var deepFull = new LayoutArea();
+    var walkFull = deepFull;
+    for (var i = 0; i < ClientLayoutCalculator.MaxGridDepth; i++)
+    {
+        Check(ClientLayoutEditing.Split(deepFull, walkFull, 2, 1), "a level of grid in a filled panel " + (i + 1));
+        var cell = walkFull.Grid!.Cells[0];
+        cell.Content = AreaContent.Panel;
+        walkFull = ClientLayoutEditing.InsideOf(cell);
+    }
+    Check(!ClientLayoutEditing.CanSplit(deepFull, walkFull), "the cap holds through panels filling cells");
+    Same(ClientLayoutCalculator.GridDepth(deep), ClientLayoutCalculator.MaxGridDepth, "and depth is counted through them");
+
+    // Read back, including what a newer copy of the app might have saved.
+    gear.Control = "SomethingFromANewerVersion";
+    var read = ClientLayoutJson.Read(ClientLayoutJson.Write(root));
+    Same(read.Docked[0].Inside!.Docked[0].Control, "SomethingFromANewerVersion", "a control this copy doesn't know isn't lost");
+    Check(PanelControls.Parse("SomethingFromANewerVersion") == null, "and is skipped when showing");
+    Same(ClientLayoutJson.Read("{\"Docked\":[{\"Edge\":\"Top\",\"Size\":25,\"Name\":\"old\",\"Items\":[\"EveTime\"]}]}").Docked[0].Name, "old", "a layout saved before controls could dock still reads");
+
+    // How a panel looks.
+    Same(PanelLooks.ColorOf(null), PanelLooks.DefaultColor, "panels default to the game's UI color");
+    Same(PanelLooks.StyleOf(null), PanelStyle.Flat, "and flat");
+    Same(PanelLooks.StyleOf(new PanelLook { Style = "Inset" }), PanelStyle.Inset, "a style is read back by name");
+    Same(PanelLooks.StyleOf(new PanelLook { Style = "FromANewerVersion" }), PanelStyle.Flat, "one this copy doesn't know is flat");
+
+    // Splitting carries everything across, so nothing set on a panel is lost.
+    var whole = new LayoutArea { Content = AreaContent.Panel, Name = "whole", Look = new PanelLook { Style = "Raised" } };
+    var wholeInside = ClientLayoutEditing.InsideOf(whole);
+    var wholeId = whole.Id;
+    Check(ClientLayoutEditing.Split(whole, whole, 2, 1), "splitting a panel");
+    var first = whole.Grid!.Cells[0];
+    Check(first.Id == wholeId && first.Inside == wholeInside && first.Look?.Style == "Raised" && first.Name == "whole", "keeps it whole in the first cell");
+    Check(whole.Inside == null && whole.Look == null, "and leaves none of it on the grid");
+}
+
+// ---- Which character a monitor's controls follow ----
+{
+    const string M1 = "monitor-1", M2 = "monitor-2";
+    ClientOnMonitor Client(long handle, string monitor, string? who) => new(handle, monitor, false, who);
+    var focus = new MonitorFocus();
+    var changes = new List<string>();
+    focus.Changed += changes.Add;
+
+    focus.Update([Client(1, M1, "Alpha"), Client(2, M1, "Bravo"), Client(3, M2, "Charlie")]);
+    Same(string.Join(",", focus.NamesOn(M1)), "Alpha,Bravo", "the names are only those on that monitor");
+    Same(string.Join(",", focus.NamesOn(M2)), "Charlie", "each monitor has its own");
+    Same(focus.SelectedOn(M1), "Alpha", "before any client has been used, the first name");
+    Check(changes.Contains(M1), "and those watching are told");
+
+    changes.Clear();
+    focus.Foreground(2);
+    Same(focus.SelectedOn(M1), "Bravo", "bringing another client on the monitor forward changes it");
+    Same(focus.SelectedOn(M2), "Charlie", "and not on another monitor");
+    Same(string.Join(",", changes), M1, "only that monitor is told");
+
+    focus.Foreground(3);
+    Same(focus.SelectedOn(M1), "Bravo", "using a client on another monitor leaves this one's selection");
+    focus.Foreground(999);
+    Same(focus.SelectedOn(M1), "Bravo", "and so does some other program");
+
+    focus.Choose(M1, "Alpha");
+    Same(focus.SelectedOn(M1), "Alpha", "picking from the dropdown changes it");
+    focus.Choose(M1, "Charlie");
+    Same(focus.SelectedOn(M1), "Alpha", "but not to someone who isn't on that monitor");
+    focus.Update([Client(1, M1, "Alpha"), Client(2, M1, "Bravo"), Client(3, M2, "Charlie")]);
+    Same(focus.SelectedOn(M1), "Alpha", "and a pick holds while nothing changes");
+    focus.Foreground(2);
+    Same(focus.SelectedOn(M1), "Bravo", "until a client is brought forward");
+
+    focus.Update([Client(1, M1, "Alpha"), Client(2, M1, null), Client(3, M2, "Charlie")]);
+    Same(focus.SelectedOn(M1), "Alpha", "logged out, the name is gone from the list, so another is used");
+    focus.Update([Client(1, M1, "Alpha"), Client(2, M1, "Delta"), Client(3, M2, "Charlie")]);
+    Same(focus.SelectedOn(M1), "Delta", "and logging back in as someone else follows the client last used");
+
+    focus.Update([Client(1, M1, "Alpha"), Client(3, M2, "Charlie")]);
+    Same(focus.SelectedOn(M1), "Alpha", "the client last used closed, so someone still there");
+    focus.Update([Client(3, M2, "Charlie")]);
+    Same(focus.SelectedOn(M1), null, "and no one when no one is left");
+    Same(focus.NamesOn(M1).Count, 0, "with no names to pick");
+
+    focus.Update([Client(4, M1, null)]);
+    focus.Foreground(4);
+    Same(focus.SelectedOn(M1), null, "a client at its login screen has no name");
+    focus.Update([Client(4, M1, "Echo")]);
+    Same(focus.SelectedOn(M1), "Echo", "until it logs in");
+
+    focus.Update([Client(5, M1, "echo"), Client(4, M1, "Echo")]);
+    Same(focus.NamesOn(M1).Count, 1, "names match whatever the case");
+}
+{
+    // Everyone set for a client's place, not just who is logged in on it.
+    const string M1 = "monitor-1";
+    var account = ClientOnMonitor.GroupOf(["Main", "Alt One", "Alt Two"]);
+    var other = ClientOnMonitor.GroupOf(["Hauler", "Scout"]);
+    var focus = new MonitorFocus();
+    var changes = new List<string>();
+    focus.Changed += changes.Add;
+    focus.Update([new(1, M1, false, "Main", account), new(2, M1, false, "Hauler", other)]);
+    focus.Foreground(1);
+    Same(string.Join(",", focus.NamesOn(M1)), "Alt One,Alt Two,Main,Hauler", "the client's place's characters first, logged in or not, then who else is logged in");
+    Same(focus.SelectedOn(M1), "Main", "the one logged in is the one selected");
+    focus.Choose(M1, "Alt Two");
+    Same(focus.SelectedOn(M1), "Alt Two", "another on that account can be picked, to see their tasks");
+    focus.Update([new(1, M1, false, "Main", account), new(2, M1, false, "Hauler", other)]);
+    Same(focus.SelectedOn(M1), "Alt Two", "and stays picked while nothing changes");
+    changes.Clear();
+    focus.Foreground(2);
+    Same(string.Join(",", focus.NamesOn(M1)), "Hauler,Scout,Main", "using the other client offers its place's characters");
+    Same(focus.SelectedOn(M1), "Hauler", "and selects who is logged in there");
+    Check(changes.Contains(M1), "and those watching are told");
+    focus.Foreground(1);
+    focus.Update([new(1, M1, false, "Alt One", account), new(2, M1, false, "Hauler", other)]);
+    Same(focus.SelectedOn(M1), "Alt One", "logging in as another on the account follows it");
+    focus.Update([new(1, M1, false, null), new(2, M1, false, "Hauler", other)]);
+    Same(string.Join(",", focus.NamesOn(M1)), "Alt One,Alt Two,Main,Hauler", "at the login screen, its place's characters are still offered");
+    Same(focus.SelectedOn(M1), "Alt One", "and the last name stays until a new one appears");
+    focus.Update([new(1, M1, false, "Alt Two", account), new(2, M1, false, "Hauler", other)]);
+    Same(focus.SelectedOn(M1), "Alt Two", "which it then follows");
+    focus.Update([new(2, M1, false, "Hauler", other)]);
+    Same(focus.SelectedOn(M1), "Hauler", "the client closed, someone logged in is used");
+    Same(string.Join(",", focus.NamesOn(M1)), "Hauler,Scout", "and its place's characters are offered instead");
+    var picked = new MonitorFocus();
+    picked.Update([new(1, M1, false, "Main", account), new(2, M1, false, "Hauler", other)]);
+    picked.Foreground(1);
+    picked.Choose(M1, "Hauler");
+    picked.Update([new(1, M1, false, "Main", account)]);
+    Same(picked.SelectedOn(M1), "Main", "the one picked gone, it's someone logged in, not the first name listed");
+
+    var later = new MonitorFocus();
+    later.Update([new(1, M1, false, "Main", null)]);
+    later.Foreground(1);
+    later.Update([new(1, M1, false, "Main", account)]);
+    later.Update([new(1, M1, false, null)]);
+    Same(string.Join(",", later.NamesOn(M1)), "Alt One,Alt Two,Main", "a place's characters arriving after the client was used are kept through a relog too");
+
+    var told = new MonitorFocus();
+    told.Update([new(1, M1, false, "Main", account), new(2, M1, false, null)]);
+    told.Foreground(1);
+    var tellings = new List<string>();
+    told.Changed += tellings.Add;
+    told.Foreground(2);
+    Same(told.SelectedOn(M1), "Main", "a client at its login screen used leaves the name");
+    Check(tellings.Contains(M1) && !told.NamesOn(M1).Contains("Alt One"), "but its choices change, and those watching are told");
+
+    var lone = new MonitorFocus();
+    lone.Update([new(1, M1, false, "Main", null)]);
+    lone.Foreground(1);
+    Same(string.Join(",", lone.NamesOn(M1)), "Main", "a character the layout doesn't place has only itself");
+    Same(string.Join(",", ClientOnMonitor.GroupOf(["b", "A"]).Split('\n')), "A,b", "a place's characters are kept in name order");
+}
+
+// ---- The order of a Mumble channel list ----
+{
+    var at = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+    var people = new (uint Session, string Name)[] { (1, "Zed"), (2, "Amy"), (3, "Bob"), (4, "Cat") };
+    string Order(MumbleTalkOrder o) => string.Join(",", o.Order(people, p => p.Session, p => p.Name).Select(p => p.Name));
+
+    var order = new MumbleTalkOrder();
+    Same(Order(order), "Amy,Bob,Cat,Zed", "nobody has talked: by name");
+    order.Heard([3u], at);
+    Same(Order(order), "Bob,Amy,Cat,Zed", "someone talking goes to the top");
+    order.Heard([3u, 1u], at.AddSeconds(1));
+    Same(Order(order), "Zed,Bob,Amy,Cat", "the latest to start is first, whatever the names");
+    order.Heard([3u, 1u], at.AddSeconds(2));
+    Same(Order(order), "Zed,Bob,Amy,Cat", "and two talking at once don't swap places as they go on");
+    order.Heard([3u], at.AddSeconds(3));
+    Same(Order(order), "Bob,Zed,Amy,Cat", "stopped, they stay above those who haven't talked, under who's talking");
+    order.Heard([], at.AddSeconds(4));
+    Same(Order(order), "Bob,Zed,Amy,Cat", "the most recent talker first once everyone has stopped");
+    order.Heard([2u], at.AddSeconds(5));
+    order.Heard([], at.AddSeconds(6));
+    Same(Order(order), "Amy,Bob,Zed,Cat", "and they float up again when they next talk");
+    order.Heard([1u], at.AddSeconds(7));
+    Same(Order(order), "Zed,Amy,Bob,Cat", "starting again counts as starting");
+    order.Heard([], at.AddSeconds(8));
+
+    order.KeepOnly([2u, 3u, 4u]);
+    Same(Order(order), "Amy,Bob,Cat,Zed", "someone who left is forgotten, as their number can be reused");
+}
+
+// ---- What's chosen for a control ----
+{
+    var root = new LayoutArea { Content = AreaContent.Panel };
+    var inside = ClientLayoutEditing.InsideOf(root);
+    var mumble = ClientLayoutEditing.DockControl(inside, PanelControlKind.Mumble, DockEdge.Left);
+    Same(PanelControls.MumbleModeOf(mumble.Options), MumbleControlMode.SingleLine, "a Mumble control starts as one line");
+    mumble.Options = new ControlOptions { MumbleServerId = 7, MumbleMode = "List" };
+    var read = ClientLayoutJson.Read(ClientLayoutJson.Write(root));
+    var again = read.Inside!.Docked[0];
+    Same(again.Options?.MumbleServerId, 7, "the one server it's for is kept");
+    Same(PanelControls.MumbleModeOf(again.Options), MumbleControlMode.List, "and its mode");
+    Same(PanelControls.MumbleModeOf(new ControlOptions { MumbleMode = "FromANewerVersion" }), MumbleControlMode.SingleLine, "a mode this copy doesn't know is one line");
+    var placed = ClientLayoutCalculator.Calculate(root, monitor4K).Panels.Single().Parts!.Single(p => p.Id == mumble.Id);
+    Same(placed.Options?.MumbleServerId, 7, "and what's chosen reaches the screen");
+
+    var cell = new LayoutArea();
+    var cellRoot = new LayoutArea { Content = AreaContent.Panel, Inside = cell };
+    ClientLayoutEditing.FillWithControl(cell, PanelControlKind.Worklist);
+    Check(PanelControls.Parse(cell.Control) == PanelControlKind.Worklist, "the worklist can be docked full");
+    cell.Options = new ControlOptions { MumbleServerId = 1 };
+    ClientLayoutEditing.FillWithControl(cell, PanelControlKind.Mumble);
+    Check(cell.Options == null, "another control in that place doesn't inherit what was chosen");
+    Same(ClientLayoutCalculator.Calculate(cellRoot, monitor4K).Panels.Single().Parts!.Single().Control, "Mumble", "it's what shows");
+}
+
+// ---- The Worklist's modes, the menu and Tool Containers ----
+{
+    Same(PanelControls.WorklistModeOf(null), WorklistControlMode.List, "a Worklist control saved before the choice is the list");
+    Same(PanelControls.WorklistModeOf(new ControlOptions { WorklistMode = "SingleLine" }), WorklistControlMode.SingleLine, "and can be one line");
+    Same(PanelControls.WorklistModeOf(new ControlOptions { WorklistMode = "FromANewerVersion" }), WorklistControlMode.List, "a mode this copy doesn't know is the list");
+
+    Same(ToolTargets.Of(null), ToolTargets.LastUsed, "a menu opens tools in the window used last unless told otherwise");
+    Same(ToolTargets.Of(new ControlOptions { MenuTarget = "abc" }), "abc", "or in the container chosen");
+    Same(PanelControls.DefaultSize(PanelControlKind.Menu, DockEdge.Left), 40, "a menu docks as narrow as the settings gear");
+    Same(PanelControls.DefaultSize(PanelControlKind.ToolContainer, DockEdge.Top), 400, "a container docks big enough for a tool");
+
+    ContainerTool T(string id, bool close = true) => new() { ToolId = id, CanClose = close };
+    string Tools(ControlOptions o) => string.Join(",", PanelControls.ToolsOf(o).Select(t => t.ToolId + (t.CanClose ? "" : "!")));
+    Same(Tools(new ControlOptions { ContainerTools = [T("a"), T("b")] }), "a!", "holding one tool, only the first tool, and it can't close");
+    Same(Tools(new ControlOptions { ContainerTabs = true, ContainerTools = [T("a"), T("b", false), T(""), T("a", false)] }), "a,b!",
+        "holding tabs, each tool once, as chosen, skipping blanks");
+    Check(!PanelControls.Splits(new ControlOptions { ContainerSplit = true }), "one tool never splits");
+    Check(PanelControls.Splits(new ControlOptions { ContainerTabs = true, ContainerSplit = true }), "tabs split when allowed");
+    Check(!PanelControls.Splits(new ControlOptions { ContainerTabs = true }), "and only then");
+
+    // Saved and read back, and found however deep it is.
+    var root = new LayoutArea { Content = AreaContent.Client };
+    var side = ClientLayoutEditing.Dock(root, DockEdge.Right, 800, "Side");
+    var inside = ClientLayoutEditing.InsideOf(side);
+    ClientLayoutEditing.Split(root, inside, 1, 2);
+    var cell = inside.Grid!.Cells[1];
+    ClientLayoutEditing.FillWithControl(cell, PanelControlKind.ToolContainer);
+    cell.Name = "Market";
+    cell.Options = new ControlOptions { ContainerTabs = true, ContainerSplit = true, ContainerTools = [T("worklist"), T("assets", false)] };
+    var menu = ClientLayoutEditing.DockControl(ClientLayoutEditing.InsideOf(ClientLayoutEditing.Dock(root, DockEdge.Top, 28, "Top")), PanelControlKind.Menu, DockEdge.Left);
+    menu.Options = new ControlOptions { MenuTarget = cell.Id };
+
+    var read = ClientLayoutJson.Read(ClientLayoutJson.Write(root));
+    var controls = ClientLayoutEditing.Controls(read).ToList();
+    Same(controls.Count, 2, "both controls are found, through panels and grids");
+    var container = controls.Single(c => c.Control == "ToolContainer");
+    Same(container.Name, "Market", "the container keeps its name");
+    Same(Tools(container.Options!), "worklist,assets!", "and its tools");
+    Same(controls.Single(c => c.Control == "Menu").Options?.MenuTarget, cell.Id, "the menu keeps where it opens tools");
+    var placed = ClientLayoutCalculator.Calculate(read, monitor4K).Panels.SelectMany(p => p.Parts ?? []).Single(p => p.Id == cell.Id);
+    Same(placed.Name, "Market", "the name reaches the screen");
+    Check(PanelControls.Splits(placed.Options), "and so does what it can do");
+}
+
+// ---- Where a tab can go ----
+{
+    var main = new EveConsole.ViewModels.TabWorkspace(isMain: true);
+    var other = new EveConsole.ViewModels.TabWorkspace(isMain: false);
+    var tabs = EveConsole.ViewModels.TabWorkspace.Container(showsTabs: true, canSplit: false);
+    var single = EveConsole.ViewModels.TabWorkspace.Container(showsTabs: false, canSplit: true);
+    EveConsole.ViewModels.ToolTab Tab(string id) => new(id, id, new object());
+    var plain = Tab("assets");
+    var overview = Tab("overview");
+
+    Check(tabs.IsContainer && !tabs.IsFloating && other.IsFloating && !main.IsFloating, "a container is neither the main window nor one of its own");
+    Check(!single.CanSplit, "a container of one tool never splits");
+    Check(EveConsole.ViewModels.TabWorkspace.CanMove(plain, main, tabs), "a tab can go into a container of tabs");
+    Check(EveConsole.ViewModels.TabWorkspace.CanMove(plain, tabs, other), "and out again");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanMove(plain, main, single), "but not into one holding one tool");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanMove(plain, single, main), "nor out of one");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanDetach(plain, single), "nor to a window of its own from one");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanMove(overview, main, tabs), "the Overview stays in the main window");
+
+    tabs.Add(plain);
+    plain.PinnedIn = tabs;
+    Check(!plain.CanClose, "a pinned tab can't close");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanMove(plain, tabs, main), "nor leave its container");
+    Check(!EveConsole.ViewModels.TabWorkspace.CanDetach(plain, tabs), "even to a window of its own");
+    Check(EveConsole.ViewModels.TabWorkspace.CanMove(plain, tabs, tabs), "but moves about inside it");
+    plain.PinnedIn = null;
+    Check(plain.CanClose, "unpinned, it closes again");
+
+    tabs.Add(Tab("wallet"));
+    tabs.IsDraggingTab = true;
+    Check(!tabs.ShowSplitDropZone, "a container that can't split offers no right half");
+    var splits = EveConsole.ViewModels.TabWorkspace.Container(showsTabs: true, canSplit: true);
+    splits.Add(Tab("items"));
+    splits.IsDraggingTab = true;
+    Check(splits.ShowSplitDropZone, "one that can does");
+}
+
 // ---- The placement rules ----
-var now = new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
+var now =new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 var opening = new LayoutRect(10, 10, 1000, 800);
 var openingAway = new LayoutRect(3900, 10, 1000, 800);
 
@@ -589,11 +955,15 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     Same(e.ClientsOn(bigBounds), 0, "nobody yet");
     e.Step([At(1, "EVE", opening)], now);
     Same(e.ClientsOn(bigBounds), 1, "the first client");
+    Same(e.ClientHandlesOn(bigBounds).Single(), 1L, "which is this one");
     e.Step([At(1, "EVE", far)], now.AddSeconds(1));
     Same(e.ClientsOn(bigBounds), 0, "moved away, none left there");
     Same(e.ClientsOn(smallBounds), 1, "it's over here now");
+    Check(!e.ClientHandlesOn(bigBounds).Any(), "so it no longer covers the first monitor's taskbar");
+    Same(e.ClientHandlesOn(smallBounds).Single(), 1L, "but this one's");
     e.Step([], now.AddSeconds(2));
     Same(e.ClientsOn(smallBounds), 0, "closed, none left");
+    Check(!e.ClientHandlesOn(smallBounds).Any(), "and nothing to cover with");
 }
 
 Console.WriteLine(failures == 0

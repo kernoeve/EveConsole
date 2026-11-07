@@ -138,7 +138,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="14 10"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <Grid ColumnDefinitions="Auto,Auto,*,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,*,Auto,Auto">
 
         <TextBlock Grid.Column="0" Text="{x:Static loc:OverviewText.PeriodLabel}" FontSize="12"
                    Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
@@ -161,7 +161,12 @@
                      FontSize="11" Foreground="{DynamicResource BadBrush}" />
         </StackPanel>
 
-        <Button Grid.Column="3" Content="{x:Static loc:OverviewText.CustomizeLayout}"
+        <!-- Which saved layout this Overview shows, to switch quickly. -->
+        <ComboBox Grid.Column="3" ItemsSource="{Binding LayoutChoices}" SelectedItem="{Binding SelectedLayoutChoice}"
+                  MinWidth="140" FontSize="12" VerticalAlignment="Center" Margin="0 0 8 0"
+                  ToolTip.Tip="{x:Static loc:OverviewText.TipLayoutPick}" />
+
+        <Button Grid.Column="4" Content="{x:Static loc:OverviewText.CustomizeLayout}"
                 Click="OnCustomizeClick"
                 FontSize="11" Padding="10 4" VerticalAlignment="Center"
                 Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource AccentBrush}"

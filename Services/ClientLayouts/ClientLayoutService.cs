@@ -1,7 +1,20 @@
 namespace EveConsole.Services.ClientLayouts;
 
-/// <summary>A panel on screen and whether it should be showing.</summary>
-public readonly record struct PanelState(string MonitorKey, PlacedPanel Panel, bool Show);
+/// <summary>A panel on screen, whether it should be showing, and whether its monitor's taskbar should move behind it.</summary>
+public readonly record struct PanelState(string MonitorKey, PlacedPanel Panel, bool Show, bool CoverTaskbar);
+
+/// <summary>
+/// A client, the monitor it's on, whether that monitor's layout covers the taskbar, who is logged in
+/// on it, and the characters the layout gives that client's place (<see cref="GroupNames"/>).
+/// </summary>
+/// <param name="Group">Those characters, one per line: a string rather than a list, so two of these are equal when they say the same.</param>
+public readonly record struct ClientOnMonitor(long Handle, string MonitorKey, bool CoverTaskbar, string? Character = null, string? Group = null)
+{
+    public IReadOnlyList<string> GroupNames => Group is { Length: > 0 } g ? g.Split('\n') : [];
+
+    /// <summary>For <see cref="Group"/>.</summary>
+    public static string GroupOf(IEnumerable<string> names) => string.Join('\n', names.Order(StringComparer.CurrentCultureIgnoreCase));
+}
 
 /// <summary>Something the user should know about what placement did or didn't do.</summary>
 public sealed record ClientLayoutNotice(DateTimeOffset At, PlacementNoticeKind Kind, string? Character);
@@ -23,6 +36,7 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
     private readonly object _gate = new();
     private readonly List<ClientLayoutNotice> _notices = [];
     private IReadOnlyList<PanelState> _panels = [];
+    private HashSet<ClientOnMonitor> _clients = [];
     private IReadOnlyList<string> _seen = [];
     private CancellationTokenSource? _cts;
     private Task? _loop;
@@ -35,6 +49,9 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
 
     /// <summary>Raised off the UI thread whenever which panels should show has changed.</summary>
     public event Action<IReadOnlyList<PanelState>>? PanelsChanged;
+
+    /// <summary>Raised off the UI thread when which clients are on which monitors with a layout has changed.</summary>
+    public event Action<IReadOnlyCollection<ClientOnMonitor>>? ClientsChanged;
 
     /// <summary>Raised off the UI thread when a notice is added, or the list is cleared.</summary>
     public event Action? NoticesChanged;
@@ -70,6 +87,7 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
         cts.Dispose();
         DeviceIdentity.ReleasePlacement();
         PanelsChanged?.Invoke([]);
+        ClientsChanged?.Invoke([]);
     }
 
     /// <summary>Saved state changed in a way that takes effect at once, such as the on/off switch.</summary>
@@ -94,6 +112,7 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
     {
         ClientPlacementEngine? engine = null;
         DesktopPlan? plan = null;
+        var groups = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         AppliedDesktop applied = new();
         IReadOnlyList<DesktopMonitor> monitors = [];
         var monitorsRead = DateTime.MinValue;
@@ -135,6 +154,7 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
                 if (engine == null)
                 {
                     Publish([]);
+                    PublishClients([]);
                     await Task.Delay(LookAtMonitors, ct).ConfigureAwait(false);
                     continue;
                 }
@@ -153,6 +173,11 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
                 {
                     plan = ClientLayoutPlanner.Build(applied, monitors);
                     engine.UsePlan(plan.Placement);
+                    // Everyone set for the same place, by each of them.
+                    groups = plan.Placement.Positions
+                        .GroupBy(p => p.Value)
+                        .SelectMany(g => g.Select(p => (p.Key, Group: ClientOnMonitor.GroupOf(g.Select(x => x.Key)))))
+                        .ToDictionary(x => x.Key, x => x.Group, StringComparer.OrdinalIgnoreCase);
                 }
 
                 var windows = ClientWindows.FindClients();
@@ -165,8 +190,14 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
                     Publish([.. plan.Panels.SelectMany(m =>
                     {
                         var show = ClientLayoutPlanner.PanelsShow(m.Start, engine.ClientsOn(m.Bounds));
-                        return m.Panels.Select(p => new PanelState(m.Key, p, show && !p.Rect.IsEmpty));
+                        return m.Panels.Select(p => new PanelState(m.Key, p, show && !p.Rect.IsEmpty, m.CoverTaskbar));
                     })]);
+                    PublishClients([.. plan.Panels.SelectMany(m => engine.ClientHandlesOn(m.Bounds).Select(h =>
+                    {
+                        var character = engine.CharacterOn(h);
+                        return new ClientOnMonitor(h, m.Key, m.CoverTaskbar, character,
+                            character != null && groups.TryGetValue(character, out var group) ? group : null);
+                    }))]);
                 }
 
                 if (engine.SeenCharacters.Any(n => !seenSaved.Contains(n)))
@@ -201,6 +232,13 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
         if (_panels.SequenceEqual(panels)) return;
         _panels = panels;
         PanelsChanged?.Invoke(panels);
+    }
+
+    private void PublishClients(HashSet<ClientOnMonitor> clients)
+    {
+        if (_clients.SetEquals(clients)) return;
+        _clients = clients;
+        ClientsChanged?.Invoke(clients);
     }
 
     private void AddNotices(List<PlacementNotice> notices)

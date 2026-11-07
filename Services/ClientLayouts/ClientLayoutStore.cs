@@ -112,7 +112,7 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
         DeviceIdentity.TakeOver(oldDeviceId);
     }
 
-    /// <summary>Forgets a desktop, with its monitors and who ran where. Layouts are shared, so they stay.</summary>
+    /// <summary>Forgets a desktop, with its profiles, monitors and who ran where. Layouts are shared, so they stay.</summary>
     public async Task DeleteDeviceRowsAsync(string deviceId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
@@ -120,24 +120,107 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
             .Select(m => m.Id).ToListAsync(ct).ConfigureAwait(false);
         await db.ClientLayoutCharacters.Where(c => monitorIds.Contains(c.MonitorId)).ExecuteDeleteAsync(ct).ConfigureAwait(false);
         await db.ClientLayoutMonitors.Where(m => m.DeviceId == deviceId).ExecuteDeleteAsync(ct).ConfigureAwait(false);
+        await db.ClientLayoutProfiles.Where(p => p.DeviceId == deviceId).ExecuteDeleteAsync(ct).ConfigureAwait(false);
         await db.ClientLayoutDevices.Where(d => d.Id == deviceId).ExecuteDeleteAsync(ct).ConfigureAwait(false);
+    }
+
+    // ---- Profiles ----
+
+    /// <summary>
+    /// A desktop's profiles by name. A desktop always has at least one: the first look makes it,
+    /// and it takes over any monitors saved before there were profiles.
+    /// </summary>
+    public async Task<List<ClientLayoutProfile>> ListProfilesAsync(string deviceId, string firstName, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var rows = await db.ClientLayoutProfiles.AsNoTracking().Where(p => p.DeviceId == deviceId).ToListAsync(ct).ConfigureAwait(false);
+        if (rows.Count == 0)
+        {
+            var first = new ClientLayoutProfile { DeviceId = deviceId, Name = firstName };
+            db.ClientLayoutProfiles.Add(first);
+            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            await db.ClientLayoutMonitors.Where(m => m.DeviceId == deviceId && m.ProfileId == 0)
+                .ExecuteUpdateAsync(s => s.SetProperty(m => m.ProfileId, first.Id), ct).ConfigureAwait(false);
+            rows.Add(first);
+        }
+        return [.. rows.OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase).ThenBy(r => r.Id)];
+    }
+
+    public async Task<int> AddProfileAsync(string deviceId, string name, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var row = new ClientLayoutProfile { DeviceId = deviceId, Name = name };
+        db.ClientLayoutProfiles.Add(row);
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        return row.Id;
+    }
+
+    public async Task RenameProfileAsync(int profileId, string name, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        await db.ClientLayoutProfiles.Where(p => p.Id == profileId)
+            .ExecuteUpdateAsync(s => s.SetProperty(p => p.Name, name), ct).ConfigureAwait(false);
+    }
+
+    /// <summary>A new profile with the same monitors and the same people in the same places.</summary>
+    public async Task<int> DuplicateProfileAsync(string deviceId, int fromProfileId, string name, CancellationToken ct = default)
+    {
+        var newId = await AddProfileAsync(deviceId, name, ct).ConfigureAwait(false);
+        var monitors = await ListMonitorsAsync(deviceId, fromProfileId, ct).ConfigureAwait(false);
+        var characters = await ListCharactersAsync(deviceId, fromProfileId, ct).ConfigureAwait(false);
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        foreach (var monitor in monitors)
+        {
+            var copy = new ClientLayoutMonitor
+            {
+                DeviceId = deviceId,
+                ProfileId = newId,
+                HardwareKey = monitor.HardwareKey,
+                LayoutId = monitor.LayoutId,
+                FullMonitor = monitor.FullMonitor,
+                PanelStart = monitor.PanelStart,
+            };
+            db.ClientLayoutMonitors.Add(copy);
+            await db.SaveChangesAsync(ct).ConfigureAwait(false);
+            foreach (var c in characters.Where(c => c.MonitorId == monitor.Id))
+                db.ClientLayoutCharacters.Add(new ClientLayoutCharacter { MonitorId = copy.Id, AreaId = c.AreaId, CharacterName = c.CharacterName });
+        }
+        await db.SaveChangesAsync(ct).ConfigureAwait(false);
+        return newId;
+    }
+
+    /// <summary>
+    /// Deletes a profile and what it holds. False, and nothing done, for a desktop's last one. If it
+    /// was the one applied, the desktop keeps running what was applied until another is.
+    /// </summary>
+    public async Task<bool> DeleteProfileAsync(string deviceId, int profileId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        if (await db.ClientLayoutProfiles.CountAsync(p => p.DeviceId == deviceId, ct).ConfigureAwait(false) <= 1) return false;
+        var monitorIds = await db.ClientLayoutMonitors.Where(m => m.ProfileId == profileId)
+            .Select(m => m.Id).ToListAsync(ct).ConfigureAwait(false);
+        await db.ClientLayoutCharacters.Where(c => monitorIds.Contains(c.MonitorId)).ExecuteDeleteAsync(ct).ConfigureAwait(false);
+        await db.ClientLayoutMonitors.Where(m => m.ProfileId == profileId).ExecuteDeleteAsync(ct).ConfigureAwait(false);
+        await db.ClientLayoutProfiles.Where(p => p.Id == profileId).ExecuteDeleteAsync(ct).ConfigureAwait(false);
+        return true;
     }
 
     // ---- Monitors ----
 
-    public async Task<List<ClientLayoutMonitor>> ListMonitorsAsync(string deviceId, CancellationToken ct = default)
+    public async Task<List<ClientLayoutMonitor>> ListMonitorsAsync(string deviceId, int profileId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
-        return await db.ClientLayoutMonitors.AsNoTracking().Where(m => m.DeviceId == deviceId).ToListAsync(ct).ConfigureAwait(false);
+        return await db.ClientLayoutMonitors.AsNoTracking()
+            .Where(m => m.DeviceId == deviceId && m.ProfileId == profileId).ToListAsync(ct).ConfigureAwait(false);
     }
 
-    /// <summary>Saves a monitor's settings, making its row the first time. Returns the row's id.</summary>
-    public async Task<int> SaveMonitorAsync(string deviceId, string hardwareKey, int? layoutId, bool fullMonitor, PanelStart panelStart, CancellationToken ct = default)
+    /// <summary>Saves a monitor's settings in a profile, making its row the first time. Returns the row's id.</summary>
+    public async Task<int> SaveMonitorAsync(string deviceId, int profileId, string hardwareKey, int? layoutId, bool fullMonitor, PanelStart panelStart, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
         var row = await db.ClientLayoutMonitors
-            .FirstOrDefaultAsync(m => m.DeviceId == deviceId && m.HardwareKey == hardwareKey, ct).ConfigureAwait(false);
-        if (row is null) db.ClientLayoutMonitors.Add(row = new ClientLayoutMonitor { DeviceId = deviceId, HardwareKey = hardwareKey });
+            .FirstOrDefaultAsync(m => m.DeviceId == deviceId && m.ProfileId == profileId && m.HardwareKey == hardwareKey, ct).ConfigureAwait(false);
+        if (row is null) db.ClientLayoutMonitors.Add(row = new ClientLayoutMonitor { DeviceId = deviceId, ProfileId = profileId, HardwareKey = hardwareKey });
         row.LayoutId = layoutId;
         row.FullMonitor = fullMonitor;
         row.PanelStart = panelStart.ToString();
@@ -147,30 +230,30 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
 
     // ---- Who runs where ----
 
-    public async Task<List<ClientLayoutCharacter>> ListCharactersAsync(string deviceId, CancellationToken ct = default)
+    public async Task<List<ClientLayoutCharacter>> ListCharactersAsync(string deviceId, int profileId, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
-        var monitorIds = await db.ClientLayoutMonitors.Where(m => m.DeviceId == deviceId)
+        var monitorIds = await db.ClientLayoutMonitors.Where(m => m.DeviceId == deviceId && m.ProfileId == profileId)
             .Select(m => m.Id).ToListAsync(ct).ConfigureAwait(false);
         return await db.ClientLayoutCharacters.AsNoTracking().Where(c => monitorIds.Contains(c.MonitorId))
             .ToListAsync(ct).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Puts a character in a client position's group. A character has one position per desktop, so
-    /// it leaves any other group it was in here. Matching ignores case, as window titles are matched.
+    /// Puts a character in a client position's group. A character has one position per profile, so
+    /// it leaves any other group it was in there. Matching ignores case, as window titles are matched.
     /// </summary>
-    public async Task AssignCharacterAsync(string deviceId, int monitorId, string areaId, string name, CancellationToken ct = default)
+    public async Task AssignCharacterAsync(string deviceId, int profileId, int monitorId, string areaId, string name, CancellationToken ct = default)
     {
-        await UnassignCharacterAsync(deviceId, name, ct).ConfigureAwait(false);
+        await UnassignCharacterAsync(deviceId, profileId, name, ct).ConfigureAwait(false);
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
         db.ClientLayoutCharacters.Add(new ClientLayoutCharacter { MonitorId = monitorId, AreaId = areaId, CharacterName = name });
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task UnassignCharacterAsync(string deviceId, string name, CancellationToken ct = default)
+    public async Task UnassignCharacterAsync(string deviceId, int profileId, string name, CancellationToken ct = default)
     {
-        var rows = await ListCharactersAsync(deviceId, ct).ConfigureAwait(false);
+        var rows = await ListCharactersAsync(deviceId, profileId, ct).ConfigureAwait(false);
         var ids = rows.Where(r => string.Equals(r.CharacterName, name, StringComparison.OrdinalIgnoreCase)).Select(r => r.Id).ToList();
         if (ids.Count == 0) return;
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
@@ -179,11 +262,11 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
 
     // ---- Applying ----
 
-    /// <summary>What this desktop would be using if Apply were pressed now.</summary>
-    public async Task<AppliedDesktop> BuildAppliedAsync(string deviceId, CancellationToken ct = default)
+    /// <summary>What this desktop would be using if this profile were applied now.</summary>
+    public async Task<AppliedDesktop> BuildAppliedAsync(string deviceId, int profileId, CancellationToken ct = default)
     {
-        var monitors = await ListMonitorsAsync(deviceId, ct).ConfigureAwait(false);
-        var characters = await ListCharactersAsync(deviceId, ct).ConfigureAwait(false);
+        var monitors = await ListMonitorsAsync(deviceId, profileId, ct).ConfigureAwait(false);
+        var characters = await ListCharactersAsync(deviceId, profileId, ct).ConfigureAwait(false);
         var layouts = (await ListLayoutsAsync(ct).ConfigureAwait(false)).ToDictionary(l => l.Id);
         return Combine(monitors, characters, layouts);
     }
@@ -221,12 +304,15 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
         return applied;
     }
 
-    /// <summary>Makes what would be applied the desktop's current state.</summary>
-    public async Task<AppliedDesktop> ApplyAsync(string deviceId, CancellationToken ct = default)
+    /// <summary>Makes this profile the desktop's current state.</summary>
+    public async Task<AppliedDesktop> ApplyAsync(string deviceId, int profileId, CancellationToken ct = default)
     {
-        var applied = await BuildAppliedAsync(deviceId, ct).ConfigureAwait(false);
-        var json = applied.Write();
+        var applied = await BuildAppliedAsync(deviceId, profileId, ct).ConfigureAwait(false);
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        applied.ProfileId = profileId;
+        applied.ProfileName = await db.ClientLayoutProfiles.Where(p => p.Id == profileId)
+            .Select(p => p.Name).FirstOrDefaultAsync(ct).ConfigureAwait(false);
+        var json = applied.Write();
         await db.ClientLayoutDevices.Where(d => d.Id == deviceId)
             .ExecuteUpdateAsync(s => s.SetProperty(d => d.Applied, json), ct).ConfigureAwait(false);
         return applied;

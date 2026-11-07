@@ -2131,18 +2131,28 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutProfiles" (
+                        "Id"       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId" TEXT    NOT NULL DEFAULT '',
+                        "Name"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
                         "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "DeviceId"    TEXT    NOT NULL DEFAULT '',
+                        "ProfileId"   INTEGER NOT NULL DEFAULT 0,
                         "HardwareKey" TEXT    NOT NULL DEFAULT '',
                         "LayoutId"    INTEGER NULL,
                         "FullMonitor" INTEGER NOT NULL DEFAULT 0,
                         "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "ClientLayoutMonitors" ADD COLUMN "ProfileId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" """);
                 db.Database.ExecuteSqlRaw("""
-                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey"
-                        ON "ClientLayoutMonitors" ("DeviceId", "HardwareKey")
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_ProfileId_HardwareKey"
+                        ON "ClientLayoutMonitors" ("DeviceId", "ProfileId", "HardwareKey")
                     """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
@@ -4434,6 +4444,7 @@ public class App : Application
 
         p.Report((84, ShellText.SplashPreparingTools));
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
+        Services.GetRequiredService<Views.ClientPanelHost>().UseMainScreen(mainVm);
 
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();

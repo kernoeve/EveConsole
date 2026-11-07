@@ -199,6 +199,13 @@ public sealed class ClientPlacementEngine
     public int ClientsOn(LayoutRect monitorBounds) =>
         _clients.Values.Count(c => Contains(monitorBounds, c.Last));
 
+    /// <summary>Which clients are on a monitor right now, which decides whose windows cover its taskbar.</summary>
+    public IEnumerable<long> ClientHandlesOn(LayoutRect monitorBounds) =>
+        _clients.Where(c => Contains(monitorBounds, c.Value.Last)).Select(c => c.Key);
+
+    /// <summary>Who is logged in on a tracked client, or null at its login screen.</summary>
+    public string? CharacterOn(long handle) => _clients.TryGetValue(handle, out var c) ? CharacterIn(c.Title) : null;
+
     /// <summary>Is this window where it should be, and if not, whose doing was that?</summary>
     private static void Check(ClientWindowInfo w, Tracked c, PlacementStep step, DateTime now)
     {

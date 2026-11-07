@@ -304,9 +304,9 @@ public static class AppKnowledge
         Structures, for corporations ticked on Settings → Corporations.
 
         ### Client Layouts
-        Windows only. Shares each monitor between game clients and panels, keeping clients in place
-        as they log in. A monitor picks a layout and the characters for each client position. Nothing
-        moves until Apply. It only sets a client's size and place.
+        Windows only. Shares monitors between game clients and panels, placing clients as they log
+        in. Profiles set each monitor's layout and who goes where; Apply switches. It only sizes,
+        places and raises clients.
 
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,

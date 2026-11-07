@@ -34,11 +34,25 @@ public class ClientLayoutDevice
     public string SeenCharacters { get; set; } = "";
 }
 
-/// <summary>A monitor on a desktop, known by its hardware identity rather than its Windows number.</summary>
+/// <summary>
+/// A named set of what's on the Monitors tab for one desktop: each monitor's layout and settings,
+/// and who runs where. One is applied at a time, so switching is picking another and pressing Apply.
+/// </summary>
+public class ClientLayoutProfile
+{
+    public int Id { get; set; }
+    public string DeviceId { get; set; } = "";
+    public string Name { get; set; } = "";
+}
+
+/// <summary>A monitor on a desktop in one profile, known by its hardware identity rather than its Windows number.</summary>
 public class ClientLayoutMonitor
 {
     public int Id { get; set; }
     public string DeviceId { get; set; } = "";
+
+    /// <summary>0 only on a row from before profiles, until <c>ClientLayoutStore.ListProfilesAsync</c> claims it.</summary>
+    public int ProfileId { get; set; }
     public string HardwareKey { get; set; } = "";
 
     /// <summary>The layout assigned to this monitor. None means its clients are left alone.</summary>

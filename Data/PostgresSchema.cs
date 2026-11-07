@@ -1399,14 +1399,25 @@ public static class PostgresSchema
         )
         """,
         """
+        CREATE TABLE IF NOT EXISTS "ClientLayoutProfiles" (
+            "Id"       SERIAL PRIMARY KEY,
+            "DeviceId" TEXT   NOT NULL DEFAULT '',
+            "Name"     TEXT   NOT NULL DEFAULT ''
+        )
+        """,
+        """
         CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
             "Id"          SERIAL  PRIMARY KEY,
             "DeviceId"    TEXT    NOT NULL DEFAULT '',
+            "ProfileId"   INTEGER NOT NULL DEFAULT 0,
             "HardwareKey" TEXT    NOT NULL DEFAULT '',
             "LayoutId"    INTEGER NULL,
             "FullMonitor" BOOLEAN NOT NULL DEFAULT FALSE,
             "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
         )
+        """,
+        """
+        ALTER TABLE "ClientLayoutMonitors" ADD COLUMN IF NOT EXISTS "ProfileId" INTEGER NOT NULL DEFAULT 0
         """,
         """
         CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
@@ -1625,7 +1636,8 @@ public static class PostgresSchema
         """CREATE INDEX IF NOT EXISTS "IX_StoreMails_Store_At" ON "StoreMails" ("StoreId", "At")""",
         """CREATE INDEX IF NOT EXISTS "IX_EsiLpStoreOffers_Type" ON "EsiLpStoreOffers" ("TypeId")""",
         """CREATE INDEX IF NOT EXISTS "IX_CourierCargo_ContractId" ON "CourierCargo" ("ContractId")""",
-        """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" ON "ClientLayoutMonitors" ("DeviceId", "HardwareKey")""",
+        """DROP INDEX IF EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" """,
+        """CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_ProfileId_HardwareKey" ON "ClientLayoutMonitors" ("DeviceId", "ProfileId", "HardwareKey")""",
         """CREATE INDEX IF NOT EXISTS "IX_ClientLayoutCharacters_MonitorId" ON "ClientLayoutCharacters" ("MonitorId")""",
         """CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")""",
         """CREATE UNIQUE INDEX IF NOT EXISTS "IX_EsiCorpMemberSessions_Key" ON "EsiCorpMemberSessions" ("CorporationId", "CharacterId", "LogonDate")""",

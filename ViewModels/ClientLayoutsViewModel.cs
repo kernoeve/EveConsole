@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Localization;
@@ -22,6 +23,72 @@ public sealed class LayoutRowVm(int? id, string name, LayoutArea root) : Reactiv
     public string Name { get => _name; set => this.RaiseAndSetIfChanged(ref _name, value); }
     public override string ToString() => Name;
 }
+
+/// <summary>A desktop profile, in the Monitors tab's dropdown.</summary>
+public sealed class ProfileRowVm(int id, string name) : ReactiveObject
+{
+    public int Id { get; } = id;
+    private string _name = name;
+    public string Name { get => _name; set => this.RaiseAndSetIfChanged(ref _name, value); }
+    public override string ToString() => Name;
+}
+
+/// <summary>A defined Mumble server a Mumble control can be for.</summary>
+public sealed record MumbleServerChoice(int Id, string Name);
+
+/// <summary>How a Mumble control can show.</summary>
+public sealed record MumbleModeChoice(MumbleControlMode Mode, string Label);
+
+/// <summary>How a Worklist control can show.</summary>
+public sealed record WorklistModeChoice(WorklistControlMode Mode, string Label);
+
+/// <summary>Where a menu control can open tools: a window of its own, the last used, or a Tool Container.</summary>
+public sealed record MenuTargetChoice(string Value, string Label);
+
+/// <summary>Whether a Tool Container holds one tool or tabs.</summary>
+public sealed record ContainerModeChoice(bool Tabs, string Label);
+
+/// <summary>A tool that can go in a Tool Container.</summary>
+public sealed record ToolChoice(string Id, string Label);
+
+/// <summary>A tool a Tool Container starts with, in the editor.</summary>
+public sealed class ContainerToolRowVm : ReactiveObject
+{
+    private readonly ContainerTool _tool;
+    private readonly Action _changed;
+
+    public ContainerToolRowVm(ContainerTool tool, string label, bool holdsTabs, Action changed, Action<ContainerToolRowVm> remove)
+    {
+        _tool = tool;
+        _changed = changed;
+        Label = label;
+        HoldsTabs = holdsTabs;
+        RemoveCommand = ReactiveCommand.Create(() => remove(this));
+    }
+
+    public ContainerTool Tool => _tool;
+    public string Label { get; }
+
+    /// <summary>Only a tab can be closed: a container holding one tool always keeps it.</summary>
+    public bool HoldsTabs { get; }
+
+    public bool CanClose
+    {
+        get => _tool.CanClose;
+        set
+        {
+            if (_tool.CanClose == value) return;
+            _tool.CanClose = value;
+            this.RaisePropertyChanged();
+            _changed();
+        }
+    }
+
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
+}
+
+/// <summary>An edge style a panel can have.</summary>
+public sealed record PanelStyleChoice(PanelStyle Style, string Label);
 
 /// <summary>A choice of when a monitor's panels start.</summary>
 public sealed record PanelStartChoice(PanelStart Value, string Label);
@@ -123,6 +190,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private readonly AppErrorLogger _errorLogger;
 
     private string _deviceId = "";
+    private int _profileId;
     private string _appliedJson = "";
     private List<DesktopMonitor> _monitors = [];
     private List<ClientLayoutMonitor> _monitorRows = [];
@@ -132,8 +200,15 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private bool _loading;
     private string? _selectedMonitorKey;
 
-    public ClientLayoutsViewModel(ClientLayoutStore store, ClientLayoutService service, IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger)
+    private readonly Func<IReadOnlyList<MumbleServerChoice>>? _mumbleServers;
+    private readonly Func<IReadOnlyList<ToolChoice>>? _tools;
+
+    public ClientLayoutsViewModel(ClientLayoutStore store, ClientLayoutService service, IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
+        Func<IReadOnlyList<MumbleServerChoice>>? mumbleServers = null, Func<IReadOnlyList<ToolChoice>>? tools = null)
     {
+        _mumbleServers = mumbleServers;
+        _tools = tools;
+        AddToolCommand = ReactiveCommand.Create(AddTool);
         _store = store;
         _service = service;
         _dbFactory = dbFactory;
@@ -148,10 +223,14 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
         PickMonitor = new ActionCommand(key => { _selectedMonitorKey = key; ShowMonitor(); });
         LayoutEdited = new ActionCommand(edited => _ = Run(SaveEditedLayoutAsync));
+        ResetColorCommand = ReactiveCommand.Create(ResetColor);
         ApplyCommand = ReactiveCommand.CreateFromTask(() => Run(ApplyAsync));
         NewLayoutCommand = ReactiveCommand.CreateFromTask(() => Run(NewLayoutAsync));
         DuplicateLayoutCommand = ReactiveCommand.CreateFromTask(() => Run(DuplicateLayoutAsync));
         DeleteLayoutCommand = ReactiveCommand.CreateFromTask(() => Run(DeleteLayoutAsync));
+        NewProfileCommand = ReactiveCommand.CreateFromTask(() => Run(NewProfileAsync));
+        DuplicateProfileCommand = ReactiveCommand.CreateFromTask(() => Run(DuplicateProfileAsync));
+        DeleteProfileCommand = ReactiveCommand.CreateFromTask(() => Run(DeleteProfileAsync));
 
         service.NoticesChanged += () => Dispatcher.UIThread.Post(ShowNotices);
         service.SeenCharactersChanged += () => Dispatcher.UIThread.Post(ShowCandidates);
@@ -179,14 +258,32 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<string> Notices { get; } = [];
     public ObservableCollection<OtherDeviceVm> OtherDevices { get; } = [];
     public ObservableCollection<PanelPreviewChoice> PreviewChoices { get; } = [];
+    public ObservableCollection<ProfileRowVm> Profiles { get; } = [];
+    public ObservableCollection<MumbleServerChoice> MumbleServers { get; } = [];
+    public IReadOnlyList<MumbleModeChoice> MumbleModes { get; } =
+    [
+        new(MumbleControlMode.SingleLine, ClientLayoutsText.MumbleModeLine),
+        new(MumbleControlMode.List, ClientLayoutsText.MumbleModeList),
+    ];
+    public IReadOnlyList<PanelStyleChoice> StyleChoices { get; } =
+    [
+        new(PanelStyle.Flat, ClientLayoutsText.StyleFlat),
+        new(PanelStyle.Raised, ClientLayoutsText.StyleRaised),
+        new(PanelStyle.Inset, ClientLayoutsText.StyleInset),
+        new(PanelStyle.Ridge, ClientLayoutsText.StyleRidge),
+    ];
     public IReadOnlyList<PanelStartChoice> PanelStarts { get; }
 
     public ICommandLike PickMonitor { get; }
     public ICommandLike LayoutEdited { get; }
     public ReactiveCommand<Unit, Unit> ApplyCommand { get; }
+    public ReactiveCommand<Unit, Unit> NewProfileCommand { get; }
+    public ReactiveCommand<Unit, Unit> DuplicateProfileCommand { get; }
+    public ReactiveCommand<Unit, Unit> DeleteProfileCommand { get; }
     public ReactiveCommand<Unit, Unit> NewLayoutCommand { get; }
     public ReactiveCommand<Unit, Unit> DuplicateLayoutCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteLayoutCommand { get; }
+    public ReactiveCommand<Unit, Unit> ResetColorCommand { get; }
 
     private IReadOnlyList<MonitorMapItem> _mapItems = [];
     public IReadOnlyList<MonitorMapItem> MapItems { get => _mapItems; private set => this.RaiseAndSetIfChanged(ref _mapItems, value); }
@@ -238,6 +335,30 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private string _monitorTitle = "";
     public string MonitorTitle { get => _monitorTitle; private set => this.RaiseAndSetIfChanged(ref _monitorTitle, value); }
 
+    // ---- The profile being edited ----
+
+    private ProfileRowVm? _selectedProfile;
+
+    /// <summary>
+    /// Which profile the Monitors tab shows and edits. Choosing one moves nothing: as with any other
+    /// change, that waits for Apply, which is also how to switch to it.
+    /// </summary>
+    public ProfileRowVm? SelectedProfile
+    {
+        get => _selectedProfile;
+        set
+        {
+            // A ComboBox reports null while its list is being changed; that isn't a choice.
+            if (value == null || ReferenceEquals(_selectedProfile, value)) return;
+            this.RaiseAndSetIfChanged(ref _selectedProfile, value);
+            _profileId = value.Id;
+            if (!_loading) _ = Run(ShowProfileAsync);
+        }
+    }
+
+    private string _profileInUse = "";
+    public string ProfileInUse { get => _profileInUse; private set => this.RaiseAndSetIfChanged(ref _profileInUse, value); }
+
     // ---- The chosen monitor's settings ----
 
     private LayoutRowVm? _monitorLayout;
@@ -285,6 +406,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         get => _selectedLayout;
         set
         {
+            _ = SaveTypedNowAsync();
             this.RaiseAndSetIfChanged(ref _selectedLayout, value);
             SelectedId = null;
             this.RaisePropertyChanged(nameof(EditingRoot));
@@ -323,6 +445,234 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         }
     }
 
+    private bool _hasControl;
+    public bool HasControl { get => _hasControl; private set => this.RaiseAndSetIfChanged(ref _hasControl, value); }
+
+    private bool _isMumbleControl;
+    public bool IsMumbleControl { get => _isMumbleControl; private set => this.RaiseAndSetIfChanged(ref _isMumbleControl, value); }
+
+    private MumbleServerChoice? _selectedMumbleServer;
+    public MumbleServerChoice? SelectedMumbleServer
+    {
+        get => _selectedMumbleServer;
+        set
+        {
+            if (value == null || _selectedMumbleServer == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedMumbleServer, value);
+            OptionsOfSelection(o => o.MumbleServerId = value.Id);
+        }
+    }
+
+    private MumbleModeChoice? _selectedMumbleMode;
+    public MumbleModeChoice? SelectedMumbleMode
+    {
+        get => _selectedMumbleMode;
+        set
+        {
+            if (value == null || _selectedMumbleMode == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedMumbleMode, value);
+            OptionsOfSelection(o => o.MumbleMode = value.Mode.ToString());
+        }
+    }
+
+    // ---- A Worklist control's mode ----
+
+    private bool _isWorklistControl;
+    public bool IsWorklistControl { get => _isWorklistControl; private set => this.RaiseAndSetIfChanged(ref _isWorklistControl, value); }
+
+    public IReadOnlyList<WorklistModeChoice> WorklistModes { get; } =
+    [
+        new(WorklistControlMode.List, ClientLayoutsText.WorklistModeList),
+        new(WorklistControlMode.SingleLine, ClientLayoutsText.WorklistModeLine),
+    ];
+
+    private WorklistModeChoice? _selectedWorklistMode;
+    public WorklistModeChoice? SelectedWorklistMode
+    {
+        get => _selectedWorklistMode;
+        set
+        {
+            if (value == null || _selectedWorklistMode == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedWorklistMode, value);
+            OptionsOfSelection(o => o.WorklistMode = value.Mode.ToString());
+        }
+    }
+
+    // ---- A menu control's target ----
+
+    private bool _isMenuControl;
+    public bool IsMenuControl { get => _isMenuControl; private set => this.RaiseAndSetIfChanged(ref _isMenuControl, value); }
+
+    public ObservableCollection<MenuTargetChoice> MenuTargets { get; } = [];
+
+    private MenuTargetChoice? _selectedMenuTarget;
+    public MenuTargetChoice? SelectedMenuTarget
+    {
+        get => _selectedMenuTarget;
+        set
+        {
+            if (value == null || _selectedMenuTarget == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedMenuTarget, value);
+            OptionsOfSelection(o => o.MenuTarget = value.Value);
+        }
+    }
+
+    /// <summary>The two fixed places, then every Tool Container of tabs in this desktop's layouts.</summary>
+    private void ShowMenuTargets(ControlOptions? options)
+    {
+        var choices = new List<MenuTargetChoice>
+        {
+            new(ToolTargets.NewWindow, ClientLayoutsText.MenuTargetNewWindow),
+            new(ToolTargets.LastUsed, ClientLayoutsText.MenuTargetLastUsed),
+        };
+        foreach (var layout in Layouts)
+            foreach (var c in ClientLayoutEditing.Controls(layout.Root)
+                         .Where(c => PanelControls.Parse(c.Control) == PanelControlKind.ToolContainer && PanelControls.HoldsTabs(c.Options)))
+                choices.Add(new MenuTargetChoice(c.Id, string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.MenuTargetContainer,
+                    layout.Name, c.Name.Length > 0 ? c.Name : ClientLayoutsText.ItemToolContainer)));
+        var target = ToolTargets.Of(options);
+        if (choices.All(c => c.Value != target)) choices.Add(new MenuTargetChoice(target, ClientLayoutsText.MenuTargetGone));
+
+        MenuTargets.Clear();
+        foreach (var choice in choices) MenuTargets.Add(choice);
+        _selectedMenuTarget = MenuTargets.First(c => c.Value == target);
+        this.RaisePropertyChanged(nameof(SelectedMenuTarget));
+    }
+
+    // ---- A Tool Container's settings ----
+
+    private bool _isToolContainer;
+    public bool IsToolContainer { get => _isToolContainer; private set => this.RaiseAndSetIfChanged(ref _isToolContainer, value); }
+
+    public IReadOnlyList<ContainerModeChoice> ContainerModes { get; } =
+    [
+        new(false, ClientLayoutsText.ContainerModeSingle),
+        new(true, ClientLayoutsText.ContainerModeTabs),
+    ];
+
+    private ContainerModeChoice? _selectedContainerMode;
+    public ContainerModeChoice? SelectedContainerMode
+    {
+        get => _selectedContainerMode;
+        set
+        {
+            if (value == null || _selectedContainerMode == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedContainerMode, value);
+            OptionsOfSelection(o =>
+            {
+                o.ContainerTabs = value.Tabs;
+                // One tool: only the first stays, and it can't be closed.
+                if (!value.Tabs && o.ContainerTools is { Count: > 1 } tools) tools.RemoveRange(1, tools.Count - 1);
+                if (!value.Tabs && o.ContainerTools is { Count: 1 } one) one[0].CanClose = false;
+                // Tabs: closable, as a new tab would be.
+                if (value.Tabs) foreach (var tool in o.ContainerTools ?? []) tool.CanClose = true;
+            });
+            ShowSelection();
+        }
+    }
+
+    private bool _containerSplit;
+    public bool ContainerSplit
+    {
+        get => _containerSplit;
+        set
+        {
+            if (_containerSplit == value) return;
+            this.RaiseAndSetIfChanged(ref _containerSplit, value);
+            OptionsOfSelection(o => o.ContainerSplit = value);
+        }
+    }
+
+    private bool _containerHoldsTabs;
+    public bool ContainerHoldsTabs { get => _containerHoldsTabs; private set => this.RaiseAndSetIfChanged(ref _containerHoldsTabs, value); }
+
+    public ObservableCollection<ContainerToolRowVm> ContainerTools { get; } = [];
+    public ObservableCollection<ToolChoice> ToolChoices { get; } = [];
+
+    private ToolChoice? _toolToAdd;
+    public ToolChoice? ToolToAdd { get => _toolToAdd; set => this.RaiseAndSetIfChanged(ref _toolToAdd, value); }
+
+    private bool _canAddTool;
+    /// <summary>A container of tabs takes any number of tools; one holding a single tool, one.</summary>
+    public bool CanAddTool { get => _canAddTool; private set => this.RaiseAndSetIfChanged(ref _canAddTool, value); }
+
+    public ReactiveCommand<Unit, Unit> AddToolCommand { get; }
+
+    private void ShowContainer(ControlOptions? options)
+    {
+        var tabs = PanelControls.HoldsTabs(options);
+        _selectedContainerMode = ContainerModes.First(m => m.Tabs == tabs);
+        this.RaisePropertyChanged(nameof(SelectedContainerMode));
+        _containerSplit = options?.ContainerSplit == true;
+        this.RaisePropertyChanged(nameof(ContainerSplit));
+        ContainerHoldsTabs = tabs;
+
+        var all = _tools?.Invoke() ?? [];
+        ContainerTools.Clear();
+        foreach (var tool in options?.ContainerTools ?? [])
+            ContainerTools.Add(new ContainerToolRowVm(tool, all.FirstOrDefault(t => t.Id == tool.ToolId)?.Label ?? tool.ToolId, tabs,
+                () => OptionsOfSelection(_ => { }), RemoveTool));
+
+        // Each tool once: a tool is only ever open in one place.
+        ToolChoices.Clear();
+        foreach (var choice in all.Where(t => ContainerTools.All(r => r.Tool.ToolId != t.Id))) ToolChoices.Add(choice);
+        ToolToAdd = ToolChoices.FirstOrDefault();
+        CanAddTool = ToolChoices.Count > 0 && (tabs || ContainerTools.Count == 0);
+    }
+
+    private void AddTool()
+    {
+        if (ToolToAdd is not { } choice || !CanAddTool) return;
+        OptionsOfSelection(o =>
+        {
+            // A tab can be closed unless set otherwise; a single tool never can.
+            (o.ContainerTools ??= []).Add(new ContainerTool { ToolId = choice.Id, CanClose = PanelControls.HoldsTabs(o) });
+        });
+        ShowSelection();
+    }
+
+    private void RemoveTool(ContainerToolRowVm row)
+    {
+        OptionsOfSelection(o => o.ContainerTools?.Remove(row.Tool));
+        ShowSelection();
+    }
+
+    private string _selectedControlName = "";
+    public string SelectedControlName { get => _selectedControlName; private set => this.RaiseAndSetIfChanged(ref _selectedControlName, value); }
+
+    private string _sizeLabel = "";
+    public string SizeLabel { get => _sizeLabel; private set => this.RaiseAndSetIfChanged(ref _sizeLabel, value); }
+
+    private Color _selectedColor;
+    public Color SelectedColor
+    {
+        get => _selectedColor;
+        set
+        {
+            if (_selectedColor == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedColor, value);
+            LookOfSelection(look => look.Color = value.ToString().Length == 9 ? "#" + value.ToString()[3..] : value.ToString());
+        }
+    }
+
+    private PanelStyleChoice? _selectedStyle;
+    public PanelStyleChoice? SelectedStyle
+    {
+        get => _selectedStyle;
+        set
+        {
+            // A ComboBox reports null while it's being refilled; that isn't a choice.
+            if (value == null || _selectedStyle == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedStyle, value);
+            LookOfSelection(look => look.Style = value.Style.ToString());
+        }
+    }
+
+    private LayoutRowVm? _typedInto;
+    private bool _deviceNameTyped;
+    private ProfileRowVm? _profileTyped;
+    private DispatcherTimer? _typedSave;
+
     private bool _hasNamed;
     public bool HasNamed { get => _hasNamed; private set => this.RaiseAndSetIfChanged(ref _hasNamed, value); }
 
@@ -330,15 +680,34 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     public bool HasSize { get => _hasSize; private set => this.RaiseAndSetIfChanged(ref _hasSize, value); }
 
     private string _selectedName = "";
-    public string SelectedName { get => _selectedName; set => this.RaiseAndSetIfChanged(ref _selectedName, value); }
+    public string SelectedName
+    {
+        get => _selectedName;
+        set
+        {
+            if (_selectedName == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedName, value);
+            TypedIntoSelection();
+        }
+    }
 
     private decimal? _selectedSize;
-    public decimal? SelectedSize { get => _selectedSize; set => this.RaiseAndSetIfChanged(ref _selectedSize, value); }
+    public decimal? SelectedSize
+    {
+        get => _selectedSize;
+        set
+        {
+            if (_selectedSize == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedSize, value);
+            TypedIntoSelection();
+        }
+    }
 
     // ---- Loading ----
 
     private async Task LoadAsync()
     {
+        await SaveTypedNowAsync();
         _loading = true;
         try
         {
@@ -349,8 +718,10 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
             PlacementOn = device.PlacementOn;
 
             _monitors = ClientWindows.FindMonitors();
-            _monitorRows = await _store.ListMonitorsAsync(_deviceId);
-            _characters = await _store.ListCharactersAsync(_deviceId);
+            await LoadProfilesAsync(_selectedProfile?.Id ?? AppliedDesktop.Read(device.Applied).ProfileId);
+            ShowProfileInUse();
+            _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
+            _characters = await _store.ListCharactersAsync(_deviceId, _profileId);
 
             var held = SelectedLayout?.Id;
             var layouts = await _store.ListLayoutsAsync();
@@ -383,6 +754,89 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         ShowMonitor();
         ShowLayoutWarnings();
         await ShowPendingAsync();
+    }
+
+    /// <summary>The profile list afresh, with this one selected if it's still there.</summary>
+    private async Task LoadProfilesAsync(int? select)
+    {
+        var rows = await _store.ListProfilesAsync(_deviceId, ClientLayoutsText.ProfileFirstName);
+        var chosen = rows.FirstOrDefault(r => r.Id == select) ?? rows[0];
+        foreach (var gone in Profiles.Where(p => rows.All(r => r.Id != p.Id)).ToList()) Profiles.Remove(gone);
+        foreach (var row in rows)
+        {
+            var existing = Profiles.FirstOrDefault(p => p.Id == row.Id);
+            if (existing == null) Profiles.Add(new ProfileRowVm(row.Id, row.Name));
+            else existing.Name = row.Name;
+        }
+        var wasLoading = _loading;
+        _loading = true;
+        SelectedProfile = Profiles.First(p => p.Id == chosen.Id);
+        _loading = wasLoading;
+    }
+
+    private void ShowProfileInUse()
+    {
+        var name = AppliedDesktop.Read(_appliedJson).ProfileName;
+        ProfileInUse = string.IsNullOrEmpty(name) ? "" : string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.ProfileInUse, name);
+    }
+
+    private async Task ShowProfileAsync()
+    {
+        _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
+        _characters = await _store.ListCharactersAsync(_deviceId, _profileId);
+        ShowMonitor();
+        ShowLayoutWarnings();
+        ShowCandidates();
+        await ShowPendingAsync();
+    }
+
+    private async Task NewProfileAsync()
+    {
+        var id = await _store.AddProfileAsync(_deviceId, ClientLayoutsText.ProfileNewName);
+        await LoadProfilesAsync(id);
+        await ShowProfileAsync();
+    }
+
+    private async Task DuplicateProfileAsync()
+    {
+        if (SelectedProfile is not { } from) return;
+        await SaveTypedNowAsync();
+        var name = string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CopyOfName, from.Name);
+        var id = await _store.DuplicateProfileAsync(_deviceId, from.Id, name);
+        await LoadProfilesAsync(id);
+        await ShowProfileAsync();
+    }
+
+    private async Task DeleteProfileAsync()
+    {
+        if (SelectedProfile is not { } row) return;
+        await SaveTypedNowAsync();
+        if (!await _store.DeleteProfileAsync(_deviceId, row.Id))
+        {
+            Status = ClientLayoutsText.StatusLastProfile;
+            return;
+        }
+        Status = "";
+        _selectedProfile = null;
+        await LoadProfilesAsync(null);
+        await ShowProfileAsync();
+    }
+
+    /// <summary>A key pressed in the profile's name box. A blank name waits for the box to be left.</summary>
+    public void TypedProfileName()
+    {
+        if (SelectedProfile is not { } row || row.Name.Trim().Length == 0) return;
+        _profileTyped = row;
+        RestartTypedSave();
+    }
+
+    /// <summary>Finished typing a profile's name, so a blank one can get its default.</summary>
+    public void SaveProfileName()
+    {
+        if (SelectedProfile is not { } row) return;
+        if (row.Name.Trim().Length == 0) row.Name = ClientLayoutsText.ProfileNewName;
+        _profileTyped = row;
+        _ = SaveTypedNowAsync();
     }
 
     /// <summary>The layout choices in place, so a ComboBox showing one of them doesn't go blank.</summary>
@@ -531,7 +985,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task ShowPendingAsync()
     {
-        var built = await _store.BuildAppliedAsync(_deviceId);
+        var built = await _store.BuildAppliedAsync(_deviceId, _profileId);
         var applied = AppliedDesktop.Read(_appliedJson);
         var differing = NumberedMonitors()
             .Where(m => MonitorJson(built, m.Monitor.Key) != MonitorJson(applied, m.Monitor.Key))
@@ -544,7 +998,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private static string MonitorJson(AppliedDesktop desktop, string key)
     {
         var monitor = desktop.Monitors.FirstOrDefault(m => m.HardwareKey == key);
-        return monitor == null ? "" : new AppliedDesktop { Monitors = [monitor] }.Write();
+        return monitor == null ? "" : new AppliedDesktop { Monitors = [monitor] }.Write();    // without the profile: two can match
     }
 
     // ---- Changes on the Monitors tab ----
@@ -565,9 +1019,9 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private async Task SaveMonitorAsync()
     {
         if (_selectedMonitorKey == null) return;
-        await _store.SaveMonitorAsync(_deviceId, _selectedMonitorKey, _monitorLayout?.Id, _monitorFull,
+        await _store.SaveMonitorAsync(_deviceId, _profileId, _selectedMonitorKey, _monitorLayout?.Id, _monitorFull,
             _monitorPanelStart?.Value ?? PanelStart.WithConsole);
-        _monitorRows = await _store.ListMonitorsAsync(_deviceId);
+        _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
         ShowMonitor();
         ShowLayoutWarnings();
         await ShowPendingAsync();
@@ -578,30 +1032,31 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         var key = _selectedMonitorKey;
         if (key == null) return;
         var row = _monitorRows.FirstOrDefault(r => r.HardwareKey == key);
-        var monitorId = row?.Id ?? await _store.SaveMonitorAsync(_deviceId, key, _monitorLayout?.Id, _monitorFull,
+        var monitorId = row?.Id ?? await _store.SaveMonitorAsync(_deviceId, _profileId, key, _monitorLayout?.Id, _monitorFull,
             _monitorPanelStart?.Value ?? PanelStart.WithConsole);
-        await _store.AssignCharacterAsync(_deviceId, monitorId, cell.AreaId, name);
+        await _store.AssignCharacterAsync(_deviceId, _profileId, monitorId, cell.AreaId, name);
         await ReloadAssignmentsAsync();
     }
 
     private async Task RemoveCharacterAsync(string name)
     {
-        await _store.UnassignCharacterAsync(_deviceId, name);
+        await _store.UnassignCharacterAsync(_deviceId, _profileId, name);
         await ReloadAssignmentsAsync();
     }
 
     private async Task ReloadAssignmentsAsync()
     {
-        _monitorRows = await _store.ListMonitorsAsync(_deviceId);
-        _characters = await _store.ListCharactersAsync(_deviceId);
+        _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
+        _characters = await _store.ListCharactersAsync(_deviceId, _profileId);
         ShowMonitor();
         await ShowPendingAsync();
     }
 
     private async Task ApplyAsync()
     {
-        var built = await _store.ApplyAsync(_deviceId);
+        var built = await _store.ApplyAsync(_deviceId, _profileId);
         _appliedJson = built.Write();
+        ShowProfileInUse();
         _service.RequestApply();
         var numbers = NumberedMonitors().Where(m => built.Monitors.Any(b => b.HardwareKey == m.Monitor.Key))
             .Select(m => m.Number.ToString(CultureInfo.CurrentCulture));
@@ -648,6 +1103,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private async Task DeleteLayoutAsync()
     {
         if (SelectedLayout is not { Id: { } id } row) return;
+        await SaveTypedNowAsync();
         if (!await _store.DeleteLayoutAsync(id))
         {
             Status = ClientLayoutsText.StatusLayoutInUse;
@@ -659,11 +1115,18 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         Status = "";
     }
 
+    /// <summary>Finished typing a layout's name, so a blank one can get its default.</summary>
     public void SaveLayoutName()
     {
         if (SelectedLayout is not { } row) return;
         if (row.Name.Trim().Length == 0) row.Name = ClientLayoutsText.NewLayoutName;
         _ = Run(SaveEditedLayoutAsync);
+    }
+
+    /// <summary>A key pressed in the layout's name box. A blank name waits for the box to be left.</summary>
+    public void TypedLayoutName()
+    {
+        if (SelectedLayout is { } row && row.Name.Trim().Length > 0) SaveTypedSoon(row);
     }
 
     /// <summary>A change on the canvas or in the boxes beside it has finished.</summary>
@@ -683,30 +1146,158 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         var root = EditingRoot;
         var docked = root == null || SelectedId == null ? null : ClientLayoutEditing.FindDocked(root, SelectedId);
         var area = root == null || SelectedId == null ? null : ClientLayoutEditing.FindArea(root, SelectedId);
+        var control = docked?.Panel.Control ?? (area?.Content == AreaContent.Control ? area.Control : null);
+        var isPanel = docked is { Panel.Control: null } || area?.Content == AreaContent.Panel;
+
         HasSize = docked != null;
-        HasNamed = docked != null || area?.Content == AreaContent.Panel;
+        SizeLabel = docked?.Panel.Edge is DockEdge.Top or DockEdge.Bottom ? ClientLayoutsText.LabelHeight : ClientLayoutsText.LabelWidth;
+        HasNamed = isPanel;
+        HasControl = control != null;
+        SelectedControlName = ClientLayoutPainter.ControlName(control);
         _selectedName = docked?.Panel.Name ?? area?.Name ?? "";
         this.RaisePropertyChanged(nameof(SelectedName));
         _selectedSize = docked?.Panel.Size;
         this.RaisePropertyChanged(nameof(SelectedSize));
+
+        // Directly, so that showing what's there doesn't count as choosing it.
+        var look = docked?.Panel.Look ?? area?.Look;
+        _selectedColor = Color.TryParse(PanelLooks.ColorOf(look), out var color) ? color : Color.Parse(PanelLooks.DefaultColor);
+        this.RaisePropertyChanged(nameof(SelectedColor));
+        _selectedStyle = StyleChoices.First(s => s.Style == PanelLooks.StyleOf(look));
+        this.RaisePropertyChanged(nameof(SelectedStyle));
+
+        var options = docked?.Panel.Options ?? area?.Options;
+        IsWorklistControl = PanelControls.Parse(control) == PanelControlKind.Worklist;
+        if (IsWorklistControl)
+        {
+            _selectedWorklistMode = WorklistModes.First(m => m.Mode == PanelControls.WorklistModeOf(options));
+            this.RaisePropertyChanged(nameof(SelectedWorklistMode));
+        }
+        IsMenuControl = PanelControls.Parse(control) == PanelControlKind.Menu;
+        if (IsMenuControl) ShowMenuTargets(options);
+        IsToolContainer = PanelControls.Parse(control) == PanelControlKind.ToolContainer;
+        if (IsToolContainer) ShowContainer(options);
+
+        IsMumbleControl = PanelControls.Parse(control) == PanelControlKind.Mumble;
+        if (IsMumbleControl)
+        {
+            var servers = _mumbleServers?.Invoke() ?? [];
+            foreach (var gone in MumbleServers.Where(s => !servers.Contains(s)).ToList()) MumbleServers.Remove(gone);
+            foreach (var server in servers.Where(s => !MumbleServers.Contains(s))) MumbleServers.Add(server);
+            _selectedMumbleServer = MumbleServers.FirstOrDefault(s => s.Id == options?.MumbleServerId);
+            this.RaisePropertyChanged(nameof(SelectedMumbleServer));
+            _selectedMumbleMode = MumbleModes.First(m => m.Mode == PanelControls.MumbleModeOf(options));
+            this.RaisePropertyChanged(nameof(SelectedMumbleMode));
+        }
     }
 
-    /// <summary>The name and size boxes have finished being typed in.</summary>
-    public void SaveSelection()
+    /// <summary>Changes what's chosen for the selected control, and saves shortly after.</summary>
+    private void OptionsOfSelection(Action<ControlOptions> change)
     {
-        var root = EditingRoot;
-        if (root == null || SelectedId == null) return;
-        if (ClientLayoutEditing.FindDocked(root, SelectedId) is { } docked)
+        var row = SelectedLayout;
+        if (row == null || SelectedId == null) return;
+        if (ClientLayoutEditing.FindDocked(row.Root, SelectedId) is { Panel.Control: not null } docked)
+            change(docked.Panel.Options ??= new ControlOptions());
+        else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { Content: AreaContent.Control } area)
+            change(area.Options ??= new ControlOptions());
+        else return;
+        SaveTypedSoon(row);
+    }
+
+    /// <summary>Changes how the selected panel looks, and saves once the changes stop, as a color drag makes many.</summary>
+    private void LookOfSelection(Action<PanelLook> change)
+    {
+        var row = SelectedLayout;
+        if (row == null || SelectedId == null) return;
+        if (ClientLayoutEditing.FindDocked(row.Root, SelectedId) is { Panel.Control: null } docked)
+            change(docked.Panel.Look ??= new PanelLook());
+        else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { Content: AreaContent.Panel } area)
+            change(area.Look ??= new PanelLook());
+        else return;
+        Revision++;
+        SaveTypedSoon(row);
+    }
+
+    private void ResetColor()
+    {
+        LookOfSelection(look => look.Color = null);
+        ShowSelection();
+    }
+
+    /// <summary>
+    /// A key pressed in the name or size box goes straight into the panel. Waiting for the box to
+    /// lose focus lost edits: clicking the drawing doesn't take focus, and coming back to the tab
+    /// reads the layouts again.
+    /// </summary>
+    private void TypedIntoSelection()
+    {
+        var row = SelectedLayout;
+        if (row == null || SelectedId == null) return;
+        // Panels have names, and so do Tool Containers, so a menu can say which one it opens tools in.
+        static bool Named(string? control) => control == null || PanelControls.Parse(control) == PanelControlKind.ToolContainer;
+        if (ClientLayoutEditing.FindDocked(row.Root, SelectedId) is { } docked)
         {
-            docked.Panel.Name = SelectedName;
+            if (Named(docked.Panel.Control)) docked.Panel.Name = SelectedName;
             if (SelectedSize is { } size) docked.Panel.Size = Math.Max((int)size, 1);
         }
-        else if (ClientLayoutEditing.FindArea(root, SelectedId) is { } area)
+        else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { } area
+                 && (area.Content == AreaContent.Panel || (area.Content == AreaContent.Control && Named(area.Control) && area.Control != null)))
         {
             area.Name = SelectedName;
         }
         else return;
-        _ = Run(SaveEditedLayoutAsync);
+        Revision++;
+        SaveTypedSoon(row);
+    }
+
+    /// <summary>Saves once the typing stops, not for every key.</summary>
+    private void SaveTypedSoon(LayoutRowVm row)
+    {
+        _typedInto = row;
+        RestartTypedSave();
+    }
+
+    /// <summary>A key pressed in this desktop's name box.</summary>
+    public void TypedDeviceName()
+    {
+        _deviceNameTyped = true;
+        RestartTypedSave();
+    }
+
+    private void RestartTypedSave()
+    {
+        _typedSave ??= new DispatcherTimer(TimeSpan.FromMilliseconds(400), DispatcherPriority.Background, (_, _) => _ = SaveTypedNowAsync());
+        _typedSave.Stop();
+        _typedSave.Start();
+    }
+
+    /// <summary>
+    /// Takes the row rather than the current selection, as this also runs when the selection is
+    /// about to change. It leaves the boxes alone: putting the panel's size back into a size box
+    /// someone has just cleared to retype would undo what they're doing.
+    /// </summary>
+    private Task SaveTypedNowAsync()
+    {
+        _typedSave?.Stop();
+        if (_deviceNameTyped)
+        {
+            _deviceNameTyped = false;
+            SaveDeviceName();
+        }
+        if (_profileTyped is { } profile)
+        {
+            _profileTyped = null;
+            _ = Run(() => _store.RenameProfileAsync(profile.Id, profile.Name.Trim()));
+        }
+        if (_typedInto is not { } row) return Task.CompletedTask;
+        _typedInto = null;
+        return Run(async () =>
+        {
+            await _store.SaveLayoutAsync(row.Id, row.Name, row.Root);
+            ShowMonitor();
+            ShowLayoutWarnings();
+            await ShowPendingAsync();
+        });
     }
 
     /// <summary>What this layout means on each monitor of this desktop that uses it.</summary>

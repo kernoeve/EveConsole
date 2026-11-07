@@ -201,7 +201,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Mercenary Dens - Each character's dens: planet, skyhook owner, state, infomorphs an hour, development and anarchy, reinforcement and open tactical operations, with alerts for them
 
 ### Other
-- Client Layouts (Windows) - Share each monitor between game clients and panels: docked panels, grids within grids, and which characters run where.  Keeps clients in place as they start and log in.  It only ever sets a client's size and position
+- Client Layouts (Windows) - Share each monitor between game clients and panels: docked panels and controls, grids within grids, and which characters run where, saved as profiles you can switch between.  Controls include the clocks, server status, Mumble for one server, a Worklist that follows the client in use, a menu of the tools, and Tool Containers that hold tools as tabs, like a window of their own that stays put.  Keeps clients in place as they start and log in.  It only ever sets a client's size and position, and raises it when you click a panel or another client on its monitor
 - Character Viewer - Similar to the one in game in case you are abstaining from logging your character in for some reason
 - Item Browser - Full items browser, and description/attributes/etc. of every item in the game.  Also includes current market orders and price history for defined markets, and a Quickbar of items kept to hand.
 - Asset Viewer - Search across all personal and corp assets

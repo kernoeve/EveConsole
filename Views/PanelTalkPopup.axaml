@@ -1,0 +1,32 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        x:Class="EveConsole.Views.PanelTalkPopup"
+        Title="EVE Console"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        CanResize="False"
+        ShowActivated="False"
+        Topmost="True"
+        SizeToContent="WidthAndHeight"
+        WindowStartupLocation="Manual"
+        Background="{DynamicResource SurfaceRaisedBrush}">
+  <Window.Styles>
+    <StyleInclude Source="avares://EveConsole/Views/MumbleStyles.axaml" />
+  </Window.Styles>
+  <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 4">
+    <ItemsControl x:Name="Talkers">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:MumbleOverlayLine">
+          <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 1">
+            <Ellipse Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Width="8" Height="8" VerticalAlignment="Center" />
+            <TextBlock Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Text="{Binding Name}" FontSize="13" />
+            <Path Classes="state" IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" />
+            <Path Classes="state" IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+  </Border>
+</Window>

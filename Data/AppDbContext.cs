@@ -53,6 +53,7 @@ public class AppDbContext : DbContext
     public DbSet<SavedBattle>                SavedBattles            => Set<SavedBattle>();
     public DbSet<ClientLayout>               ClientLayouts           => Set<ClientLayout>();
     public DbSet<ClientLayoutDevice>         ClientLayoutDevices     => Set<ClientLayoutDevice>();
+    public DbSet<ClientLayoutProfile>        ClientLayoutProfiles    => Set<ClientLayoutProfile>();
     public DbSet<ClientLayoutMonitor>        ClientLayoutMonitors    => Set<ClientLayoutMonitor>();
     public DbSet<ClientLayoutCharacter>      ClientLayoutCharacters  => Set<ClientLayoutCharacter>();
     public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
@@ -955,9 +956,12 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             e.Property(x => x.Id).ValueGeneratedNever();
             e.ToTable("ClientLayoutDevices"); });
+        mb.Entity<ClientLayoutProfile>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayoutProfiles"); });
         mb.Entity<ClientLayoutMonitor>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => new { x.DeviceId, x.HardwareKey }).IsUnique();
+            e.HasIndex(x => new { x.DeviceId, x.ProfileId, x.HardwareKey }).IsUnique();
             e.ToTable("ClientLayoutMonitors"); });
         mb.Entity<ClientLayoutCharacter>(e => {
             e.HasKey(x => x.Id);

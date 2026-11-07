@@ -1,0 +1,132 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.PanelWorklistControl"
+             x:DataType="vm:PanelWorklistVm">
+  <UserControl.Styles>
+    <!-- A name that opens something, as in the Worklist tool: the cursor and the hover underline
+         carry it, not the colour. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- One character's tasks, read only, in the same compact form as the Overview's list. Items and
+       stations open as they do in the Worklist tool. -->
+  <Grid RowDefinitions="Auto,*" Margin="6 4" RowSpacing="4">
+    <ComboBox Grid.Row="0" HorizontalAlignment="Stretch" FontSize="11" MinHeight="0" Padding="6 2"
+              ItemsSource="{Binding Names}" SelectedItem="{Binding SelectedName}" />
+    <TextBlock Grid.Row="1" Text="{Binding Note}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+    <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:WorklistRowVm">
+            <Grid ColumnDefinitions="18,20,*" MinHeight="20">
+
+              <Button Grid.Column="0" IsVisible="{Binding CanExpand}" Content="{Binding ExpandGlyph}" Click="OnToggle"
+                      Background="Transparent" BorderThickness="0" Padding="0" MinWidth="0" MinHeight="0" FontSize="12"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Foreground="{DynamicResource TextMutedBrush}" />
+              <Image Grid.Column="1" Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" IsVisible="{Binding !IsChild}" />
+
+              <Panel Grid.Column="2" VerticalAlignment="Center" Margin="4 0 0 0">
+                <!-- A loop's stop, a line of text, or an item handled at a stop. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsChildStop}">
+                  <TextBlock Text="{Binding ChildLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
+                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding ChildTotals}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+                <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding IsChildText}" FontSize="9"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
+                           TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildLabel}" />
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsChildLine}" Margin="8 0 0 0">
+                  <TextBlock Text="{Binding ChildAction}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenChildItem" IsVisible="{Binding ChildHasLink}"
+                            ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
+                      <TextBlock Text="{Binding ChildLabel}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding ShowsPlainChild}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                  </Panel>
+                  <TextBlock Text="{Binding ChildQty}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding ChildOther}" FontSize="9" Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Haul: where from, where to, and how much of it. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                  <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}" />
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9" VerticalAlignment="Center" />
+                </StackPanel>
+
+                <!-- Job, buy, reprocess or decompress: what, and where. -->
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
+                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                  </Panel>
+                  <Panel VerticalAlignment="Center">
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}" ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStationOrStructure}">
+                      <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsBuy}">
+                  <Panel>
+                    <Button Classes="link" Click="OnOpenRowItem" IsVisible="{Binding HasItemLink}" ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisItem}">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding Title}" IsVisible="{Binding !HasItemLink}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
+                               TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                  </Panel>
+                  <Panel VerticalAlignment="Center">
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}" ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStationOrStructure}">
+                      <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsRefining}">
+                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
+                             TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+                  <Panel VerticalAlignment="Center">
+                    <Button Classes="link" Click="OnOpenLocation" IsVisible="{Binding HasLocationLink}" ToolTip.Tip="{x:Static loc:WorklistText.TipOpenThisStationOrStructure}">
+                      <TextBlock Text="{Binding LocationName}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <TextBlock Text="{Binding LocationName}" IsVisible="{Binding !HasLocationLink}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Panel>
+                </StackPanel>
+
+                <!-- Everything else: the plain title. -->
+                <TextBlock Text="{Binding Title}" IsVisible="{Binding IsOther}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
+                           TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding Title}" />
+              </Panel>
+            </Grid>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

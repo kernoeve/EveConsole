@@ -352,13 +352,31 @@ public class MainWindowViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _eveTimeText, value);
     }
 
+    private string _localTimeText = "";
+    /// <summary>Shown only by the panel item of that name; the main screen has just the EVE clock.</summary>
+    public string LocalTimeText
+    {
+        get => _localTimeText;
+        private set => this.RaiseAndSetIfChanged(ref _localTimeText, value);
+    }
+
+    /// <summary>For Mumble controls on panels, which can be for a server that isn't connected.</summary>
+    public EveConsole.Services.Mumble.MumbleService MumbleService { get; }
+
+    /// <summary>Opens Settings without blocking anything, centered on the monitor given.</summary>
+    public Action<Avalonia.PixelRect>? OpenSettingsOnMonitor { get; set; }
+
     private void StartEveTimeClock()
     {
-        EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss");
+        void Tick()
+        {
+            EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss");
+            LocalTimeText = DateTimeOffset.Now.ToString("HH:mm:ss");
+        }
+
+        Tick();
         var timer = new System.Timers.Timer(1000) { AutoReset = true };
-        timer.Elapsed += (_, _) =>
-            Avalonia.Threading.Dispatcher.UIThread.Post(
-                () => EveTimeText = DateTimeOffset.UtcNow.ToString("HH:mm:ss"));
+        timer.Elapsed += (_, _) => Avalonia.Threading.Dispatcher.UIThread.Post(Tick);
         timer.Start();
     }
 
@@ -820,7 +838,11 @@ public class MainWindowViewModel : ReactiveObject
     /// window opens a window for each one added and closes it when it is removed.</summary>
     public ObservableCollection<TabWorkspace> Hosts { get; } = [];
 
-    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main);
+    /// <summary>The Tool Containers on the panels of client layouts, while they're on screen.</summary>
+    public IReadOnlyList<TabWorkspace> Containers => _containerList;
+    private readonly List<TabWorkspace> _containerList = [];
+
+    public IEnumerable<TabWorkspace> Workspaces => Hosts.Prepend(Main).Concat(_containerList);
 
     // The main window's own, as it and the agent read them.
     public ToolPane LeftPane  => Main.LeftPane;
@@ -865,20 +887,17 @@ public class MainWindowViewModel : ReactiveObject
     {
         if (WorkspaceOf(tab) is not { } from || to.Workspace is not { } dest) return;
         if (from == dest) { from.Move(tab, to, index); return; }
-        if (!CanLeaveMain(tab) && !dest.IsMain) return;
+        if (!TabWorkspace.CanMove(tab, from, dest)) return;
         from.Remove(tab);
         dest.Add(tab, to, index);
         DropIfEmpty(from);
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
-    /// <summary>Any tool but the Overview can go to a window of its own.</summary>
-    public static bool CanLeaveMain(ToolTab tab) => tab.Id != "overview";
-
     /// <summary>Takes <paramref name="tab"/> out into a window of its own; the view opens the window.</summary>
     public TabWorkspace? DetachTab(ToolTab tab)
     {
-        if (!CanLeaveMain(tab) || WorkspaceOf(tab) is not { } from) return null;
+        if (WorkspaceOf(tab) is not { } from || !TabWorkspace.CanDetach(tab, from)) return null;
         from.Remove(tab);
         var ws = new TabWorkspace(isMain: false);
         ws.Add(tab);
@@ -891,7 +910,7 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>A window of tabs was closed: its tools close with it, as closing a tab does.</summary>
     public void CloseWorkspace(TabWorkspace ws)
     {
-        if (ws.IsMain) return;
+        if (!ws.IsFloating) return;
         foreach (var tab in ws.OpenTabs.ToList())
         {
             ws.Remove(tab);
@@ -903,7 +922,202 @@ public class MainWindowViewModel : ReactiveObject
 
     private void DropIfEmpty(TabWorkspace ws)
     {
-        if (!ws.IsMain && ws.IsEmpty) Hosts.Remove(ws);
+        if (ws.IsFloating && ws.IsEmpty) Hosts.Remove(ws);
+    }
+
+    // ── Tool Containers, and where a menu opens tools ─────────────────────────
+
+    private sealed class ContainerEntry(string key, TabWorkspace workspace, string spec)
+    {
+        public string Key { get; } = key;
+        public TabWorkspace Workspace { get; } = workspace;
+        public string Spec { get; } = spec;
+        public int Claims { get; set; } = 1;
+    }
+
+    /// <summary>By monitor and control id: a layout used on two monitors has a container on each.</summary>
+    private readonly Dictionary<string, ContainerEntry> _containers = [];
+
+    private static string ContainerKey(string monitorKey, string controlId) => monitorKey + "|" + controlId;
+
+    /// <summary>Tools that open as a tab, and so can go in a container: not the Overview, nor those
+    /// that open somewhere else now (the Map's own tabs, Settings).</summary>
+    public IReadOnlyList<NavItem> ContainerToolChoices =>
+        [.. _allNavItems.Where(i => i.ToolId is not ("overview" or "jump_planner" or "route_planner" or "jabber" or "mumble"))];
+
+    /// <summary>
+    /// The tabs of the Tool Container that control <paramref name="controlId"/> shows on a monitor,
+    /// made with its starting tools when it first shows. A panel built again keeps the one it had,
+    /// unless what the container is set to hold has changed. Each claim is given back with
+    /// <see cref="ReleaseContainer"/>.
+    /// </summary>
+    public TabWorkspace ClaimContainer(string monitorKey, string controlId, Services.ClientLayouts.ControlOptions? options)
+    {
+        var key = ContainerKey(monitorKey, controlId);
+        var tools = Services.ClientLayouts.PanelControls.ToolsOf(options);
+        var spec = string.Join(";", tools.Select(t => t.ToolId + (t.CanClose ? "" : "!")))
+                   + "|" + Services.ClientLayouts.PanelControls.HoldsTabs(options) + Services.ClientLayouts.PanelControls.Splits(options);
+        if (_containers.TryGetValue(key, out var entry))
+        {
+            if (entry.Spec == spec)
+            {
+                entry.Claims++;
+                return entry.Workspace;
+            }
+            CloseContainer(entry);
+        }
+
+        var ws = TabWorkspace.Container(Services.ClientLayouts.PanelControls.HoldsTabs(options), Services.ClientLayouts.PanelControls.Splits(options));
+        _containers[key] = new ContainerEntry(key, ws, spec);
+        _containerList.Add(ws);
+
+        var choices = ContainerToolChoices.Select(i => i.ToolId).ToHashSet();
+        ToolTab? first = null;
+        foreach (var tool in tools.Where(t => choices.Contains(t.ToolId)))
+        {
+            var tab = AllTabs.FirstOrDefault(t => t.Id == tool.ToolId);
+            if (tab is null)
+            {
+                OpenToolIn(tool.ToolId, ws);
+                tab = ws.OpenTabs.FirstOrDefault(t => t.Id == tool.ToolId);
+            }
+            // Already open elsewhere, it comes here, unless it's kept where it is.
+            else if (tab.PinnedIn is null && WorkspaceOf(tab) is { } from && from != ws)
+            {
+                from.Remove(tab);
+                ws.Add(tab);
+                DropIfEmpty(from);
+            }
+            else continue;
+            if (tab is null || !ws.Contains(tab)) continue;
+            if (!tool.CanClose) tab.PinnedIn = ws;
+            first ??= tab;
+        }
+        if (first is not null) ws.SelectedTab = first;
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        return ws;
+    }
+
+    /// <summary>
+    /// A container's control has gone. Its tools close with it, as a window's do, unless the panel
+    /// was only built again and claimed it back in the meantime.
+    /// </summary>
+    public void ReleaseContainer(TabWorkspace ws)
+    {
+        if (_containers.Values.FirstOrDefault(e => e.Workspace == ws) is not { } entry) return;
+        entry.Claims--;
+        if (entry.Claims > 0) return;
+        Avalonia.Threading.Dispatcher.UIThread.Post(() =>
+        {
+            if (entry.Claims <= 0 && _containers.TryGetValue(entry.Key, out var now) && now == entry) CloseContainer(entry);
+        }, Avalonia.Threading.DispatcherPriority.Background);
+    }
+
+    private void CloseContainer(ContainerEntry entry)
+    {
+        _containers.Remove(entry.Key);
+        _containerList.Remove(entry.Workspace);
+        foreach (var tab in entry.Workspace.OpenTabs.ToList())
+        {
+            tab.PinnedIn = null;
+            entry.Workspace.Remove(tab);
+            var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
+            if (navItem is not null) navItem.IsOpen = false;
+        }
+        if (_lastUsed == entry.Workspace) _lastUsed = null;
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    private TabWorkspace? _lastUsed;
+
+    /// <summary>
+    /// Where a tool opens when nothing says where: the window of tabs worked in last (the main
+    /// window, a window of its own, or a container of tabs), or failing that any window of tabs.
+    /// Null when there is none, and a tool then opens in a window of its own.
+    /// <para>⚠️ Not simply the main window: the main window is to become optional.</para>
+    /// </summary>
+    public TabWorkspace? LastUsedWorkspace
+    {
+        get => _lastUsed is { ShowsTabs: true } ws && Workspaces.Contains(ws) ? ws : Workspaces.FirstOrDefault(w => w.ShowsTabs);
+        set { if (value is { ShowsTabs: true }) _lastUsed = value; }
+    }
+
+    private TabWorkspace? _openInto;
+    private bool _openInNewWindow;
+
+    /// <summary>Opens a tool that isn't open yet in <paramref name="into"/> rather than the main window.</summary>
+    private void OpenToolIn(string toolId, TabWorkspace into)
+    {
+        var was = _openInto;
+        _openInto = into;
+        try { OpenTool(toolId); }
+        finally { _openInto = was; }
+    }
+
+    /// <summary>
+    /// Where a tool opened just now goes: where it was asked for, else the window of tabs used
+    /// last, else any, else a window of its own.
+    /// </summary>
+    private void PlaceNewTab(ToolTab tab)
+    {
+        var into = _openInNewWindow ? null : _openInto is { } target && Workspaces.Contains(target) ? target : LastUsedWorkspace;
+        if (into is null)
+        {
+            var ws = new TabWorkspace(isMain: false);
+            ws.Add(tab);
+            Hosts.Add(ws);
+            return;
+        }
+        into.Add(tab);
+    }
+
+    /// <summary>
+    /// What a panel's menu does: opens a tool in a window of its own, in the window worked in last,
+    /// or in a Tool Container, preferring the one on the menu's own monitor. A tool already open
+    /// moves there, unless it's kept where it is (the Overview, a pinned tab), when it's just shown.
+    /// A container that isn't on screen falls back to the window worked in last.
+    /// </summary>
+    public void OpenToolAt(string toolId, string target, string? monitorKey)
+    {
+        var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
+        if (target == Services.ClientLayouts.ToolTargets.NewWindow)
+        {
+            if (existing is null)
+            {
+                _openInNewWindow = true;
+                try { OpenTool(toolId); }
+                finally { _openInNewWindow = false; }
+            }
+            else if (WorkspaceOf(existing) is { } from && !(from.IsFloating && from.OpenTabs.Count() == 1) && TabWorkspace.CanDetach(existing, from))
+                DetachTab(existing);
+            else Show(existing);
+            return;
+        }
+
+        var into = target == Services.ClientLayouts.ToolTargets.LastUsed ? LastUsedWorkspace : ContainerById(target, monitorKey) ?? LastUsedWorkspace;
+        if (existing is null)
+        {
+            if (into is null) OpenTool(toolId);   // nowhere to go: a window of its own
+            else OpenToolIn(toolId, into);
+        }
+        else
+        {
+            if (into is not null && WorkspaceOf(existing) is { } from && from != into && TabWorkspace.CanMove(existing, from, into))
+                MoveTab(existing, into.ActivePane);
+            Show(existing);
+        }
+        // Asked for from a panel, so whichever window shows it comes forward, the main one too.
+        if (AllTabs.FirstOrDefault(t => t.Id == toolId) is { } shown && WorkspaceOf(shown) is { IsMain: true } main)
+            ShowWorkspaceRequested?.Invoke(main);
+    }
+
+    /// <summary>A container of tabs: one holding a single tool never takes another.</summary>
+    private TabWorkspace? ContainerById(string controlId, string? monitorKey)
+    {
+        if (monitorKey is not null && _containers.TryGetValue(ContainerKey(monitorKey, controlId), out var here) && here.Workspace.ShowsTabs)
+            return here.Workspace;
+        return _containers.Values.Where(e => e.Key.EndsWith("|" + controlId, StringComparison.Ordinal) && e.Workspace.ShowsTabs)
+            .Select(e => e.Workspace).FirstOrDefault();
     }
 
     public ReactiveCommand<string,  Unit> OpenToolCommand { get; }
@@ -1026,7 +1240,7 @@ public class MainWindowViewModel : ReactiveObject
         // not a visibility check — see IPeriodicRefresh.
         if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
         var tab = new ToolTab(toolId, title, vm, canClose);
-        Main.Add(tab);
+        PlaceNewTab(tab);
         this.RaisePropertyChanged(nameof(SelectedTab));
 
         // Loaded on open rather than at construction — nothing else needs the alarm list, and
@@ -1053,7 +1267,7 @@ public class MainWindowViewModel : ReactiveObject
     public void OpenToolInBackground(string toolId)
     {
         if (AllTabs.Any(t => t.Id == toolId)) return;
-        var showing = Main.SelectedTab;
+        var showing = LastUsedWorkspace?.SelectedTab;
         OpenTool(toolId);
         if (showing is not null) Show(showing);
     }
@@ -1092,7 +1306,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         var id  = AgentTabPrefix + Interlocked.Increment(ref _agentTabCounter);
         var tab = new ToolTab(id, title, viewModel, canClose: true);
-        Main.Add(tab);
+        PlaceNewTab(tab);
         this.RaisePropertyChanged(nameof(SelectedTab));
         return id;
     }
@@ -1294,7 +1508,10 @@ public class MainWindowViewModel : ReactiveObject
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
-        ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger);
+        MumbleService     = mumbleService;
+        ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger,
+            () => [.. mumbleService.Sessions.Select(s => new MumbleServerChoice(s.Server.Id, s.Server.Name.Length > 0 ? s.Server.Name : s.Server.Host))],
+            () => [.. ContainerToolChoices.Select(i => new ToolChoice(i.ToolId, i.Title))]);
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         BattleReportVm    = new BattleReportViewModel(battleReportService,
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);

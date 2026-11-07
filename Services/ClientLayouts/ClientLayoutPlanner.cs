@@ -32,6 +32,10 @@ public sealed class AppliedDesktop
 
     public List<AppliedMonitor> Monitors { get; set; } = [];
 
+    /// <summary>The profile this came from, as it was when applied.</summary>
+    public int? ProfileId { get; set; }
+    public string? ProfileName { get; set; }
+
     public string Write() => JsonSerializer.Serialize(this, Options);
 
     public static AppliedDesktop Read(string? json)
@@ -48,8 +52,8 @@ public sealed class AppliedDesktop
     }
 }
 
-/// <summary>A monitor's panels and when they show.</summary>
-public sealed record MonitorPanels(string Key, LayoutRect Bounds, PanelStart Start, IReadOnlyList<PlacedPanel> Panels);
+/// <summary>A monitor's panels and when they show. <see cref="CoverTaskbar"/>: the layout uses the whole monitor.</summary>
+public sealed record MonitorPanels(string Key, LayoutRect Bounds, PanelStart Start, IReadOnlyList<PlacedPanel> Panels, bool CoverTaskbar);
 
 public sealed record DesktopPlan(PlacementPlan Placement, IReadOnlyList<MonitorPanels> Panels);
 
@@ -74,7 +78,7 @@ public static class ClientLayoutPlanner
             var space = saved.FullMonitor ? monitor.Bounds : monitor.Work;
             var result = ClientLayoutCalculator.Calculate(ClientLayoutJson.Read(saved.Definition), space);
             placement.Add(new PlacementMonitor(monitor.Key, monitor.Bounds, result.Clients));
-            panels.Add(new MonitorPanels(monitor.Key, monitor.Bounds, saved.PanelStart, result.Panels));
+            panels.Add(new MonitorPanels(monitor.Key, monitor.Bounds, saved.PanelStart, result.Panels, saved.FullMonitor));
 
             foreach (var cell in result.Clients)
             {

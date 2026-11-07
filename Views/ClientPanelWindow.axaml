@@ -1,19 +1,18 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:EveConsole.Views"
         x:Class="EveConsole.Views.ClientPanelWindow"
         Title="EVE Console"
         SystemDecorations="None"
         ShowInTaskbar="False"
         CanResize="False"
         ShowActivated="False"
-        WindowStartupLocation="Manual"
-        Background="{DynamicResource SurfacePanelBrush}">
-  <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1">
-    <StackPanel x:Name="Label" HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="2">
-      <TextBlock x:Name="NameText" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="12"
-                 Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
-      <TextBlock x:Name="SizeText" HorizontalAlignment="Center" VerticalAlignment="Center" FontSize="10"
-                 Foreground="{DynamicResource TextFaintBrush}" />
-    </StackPanel>
-  </Border>
+        WindowStartupLocation="Manual">
+  <Panel>
+    <views:ClientPanelSurface x:Name="Surface" />
+    <!-- An empty panel says what it is, so a layout can be checked before it holds anything. -->
+    <StackPanel x:Name="Label" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <!-- What's inside, at exact positions worked out by the layout, parents before children. -->
+    <Canvas x:Name="Parts" />
+  </Panel>
 </Window>

@@ -64,10 +64,74 @@ internal sealed class ClientLayoutPainter(Control owner)
         {
             if (panel.Rect.IsEmpty) continue;
             var rect = view.ToControl(panel.Rect);
-            context.DrawRectangle(Brush("SurfaceRaisedBrush"), selected == panel.Id ? accent : line, rect);
-            Label(context, rect, panel.Name.Length > 0 ? panel.Name : ClientLayoutsText.PanelDefaultName, Size(panel.Rect), "TextSecondaryBrush");
+            ClientPanelSurface.Draw(context, rect, panel.Look, EdgeIn(view));
+            context.DrawRectangle(null, line, rect);
+            if ((panel.Parts?.Count ?? 0) == 0)
+                Label(context, rect, NameOf(panel.Name), Size(panel.Rect), "TextSecondaryBrush");
+            foreach (var part in panel.Parts ?? []) DrawPart(context, part, view, line, result);
+        }
+
+        // Last, so nothing inside or beside it covers the outline of what's selected.
+        if (selected == null) return;
+        foreach (var panel in result.Panels)
+        {
+            if (panel.Id == selected) context.DrawRectangle(null, accent, view.ToControl(panel.Rect));
+            foreach (var part in panel.Parts ?? [])
+                if (part.Id == selected) context.DrawRectangle(null, accent, view.ToControl(part.Rect));
         }
     }
+
+    private void DrawPart(DrawingContext context, PlacedPart part, View view, Pen line, ClientLayoutResult result)
+    {
+        if (part.Rect.IsEmpty) return;
+        var rect = view.ToControl(part.Rect);
+        switch (part.Kind)
+        {
+            case PlacedPartKind.Panel:
+                ClientPanelSurface.Draw(context, rect, part.Look, EdgeIn(view));
+                context.DrawRectangle(null, line, rect);
+                if (part.Bare) Label(context, rect, NameOf(part.Name), Size(part.Rect), "TextSecondaryBrush");
+                break;
+            case PlacedPartKind.Control:
+                context.DrawRectangle(Brush("AccentSurfaceBrush"), line, rect);
+                // A Tool Container is named, so a menu can say which one it opens tools in.
+                var named = PanelControls.Parse(part.Control) == PanelControlKind.ToolContainer && part.Name.Length > 0;
+                Label(context, rect, named ? part.Name : null, ControlName(part.Control), "TextPrimaryBrush");
+                break;
+            case PlacedPartKind.Client:
+                context.DrawRectangle(Brush("AccentSurfaceBrush"), line, rect);
+                Label(context, rect,
+                    string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasClient, result.Clients.FindIndex(c => c.AreaId == part.Id) + 1),
+                    Size(part.Rect), "TextPrimaryBrush");
+                break;
+            default:
+                context.DrawRectangle(null, line, rect);
+                Label(context, rect, null, ClientLayoutsText.CanvasEmpty, "TextFaintBrush");
+                break;
+        }
+    }
+
+    /// <summary>A panel's edge at its real size, but never so thin that a preview can't show it.</summary>
+    private static double EdgeIn(View view) => Math.Max(2 * view.Scale, 1);
+
+    private static string NameOf(string name) => name.Length > 0 ? name : ClientLayoutsText.PanelDefaultName;
+
+    /// <summary>A control's name for people. One this copy doesn't know shows its saved name.</summary>
+    public static string ControlName(string? control) => PanelControls.Parse(control) is { } kind ? ControlName(kind) : control ?? "";
+
+    public static string ControlName(PanelControlKind kind) => kind switch
+    {
+        PanelControlKind.Settings => ClientLayoutsText.ItemSettings,
+        PanelControlKind.ServerStatus => ClientLayoutsText.ItemServerStatus,
+        PanelControlKind.EveTime => ClientLayoutsText.ItemEveTime,
+        PanelControlKind.LocalTime => ClientLayoutsText.ItemLocalTime,
+        PanelControlKind.UsersOnline => ClientLayoutsText.ItemUsersOnline,
+        PanelControlKind.Mumble => ClientLayoutsText.ItemMumble,
+        PanelControlKind.Worklist => ClientLayoutsText.ItemWorklist,
+        PanelControlKind.Menu => ClientLayoutsText.ItemMenu,
+        PanelControlKind.ToolContainer => ClientLayoutsText.ItemToolContainer,
+        _ => kind.ToString(),
+    };
 
     private static string Size(LayoutRect r) =>
         string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasSize, r.Width, r.Height);

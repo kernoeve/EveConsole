@@ -470,7 +470,7 @@ public class OverviewViewModel : ReactiveObject
     ///
     /// <para>Sections not placed by the user are disabled, and the default layout leaves four of
     /// the eleven off — so the load was querying for panels nobody could see. Every section below
-    /// is gated on this. Safe because <see cref="ApplyLayoutAsync"/> reloads when the layout
+    /// is gated on this. Safe because <see cref="ShowLayout"/> reloads when the layout
     /// changes, so enabling a section fills it immediately rather than showing blanks until the
     /// next refresh.</para>
     /// </summary>
@@ -479,23 +479,90 @@ public class OverviewViewModel : ReactiveObject
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
-    public Task ApplyLayoutAsync(OverviewLayout layout)
+    // ── Which of the saved layouts this Overview shows ──────────────────────────
+    //
+    // ⚠️ Several Overviews can be open, each showing a layout of its own: the main window's, and
+    // one in each Tool Container that lists it. The main window's choice is kept across restarts;
+    // a container's starts from what the container sets each time.
+
+    private readonly OverviewLayoutStore _layouts;
+    private readonly bool _isMain;
+    private string _layoutKey = OverviewLayoutStore.DefaultKey;
+
+    /// <summary>Where the layouts are kept, for the layout editor.</summary>
+    public OverviewLayoutStore Layouts => _layouts;
+
+    /// <summary>The layout this Overview shows, by key; <see cref="OverviewLayoutStore.DefaultKey"/> for Default.</summary>
+    public string LayoutKey => _layoutKey;
+
+    /// <summary>The layouts to switch between, for the dropdown beside Customize.</summary>
+    public ObservableCollection<OverviewLayoutChoice> LayoutChoices { get; } = [];
+
+    private OverviewLayoutChoice? _selectedLayoutChoice;
+    public OverviewLayoutChoice? SelectedLayoutChoice
     {
-        _layout = layout;
-
-        // ⚠️ Local only. Writing the shared row as well would keep imposing this machine's
-        // arrangement on every other client, which is exactly what moving it here was for.
-        AppConfig.SetOverviewLayout(layout.ToJson());
-
-        LayoutChanged?.Invoke();
-        // A newly-added section (e.g. Personal Killmails) needs its data loaded now rather
-        // than waiting for the next refresh tick.
-        _ = LoadAsync();
-
-        // Nothing left to await: the write is to a file, not the database. Still a Task, because
-        // the callers await it and the signature is not worth churning for that.
-        return Task.CompletedTask;
+        get => _selectedLayoutChoice;
+        set
+        {
+            // A ComboBox reports null while its list is being refilled; that isn't a choice.
+            if (value is null || value == _selectedLayoutChoice) return;
+            this.RaiseAndSetIfChanged(ref _selectedLayoutChoice, value);
+            ShowLayout(value.Key);
+        }
     }
+
+    /// <summary>Switches to another saved layout.</summary>
+    public void ShowLayout(string? key)
+    {
+        _layoutKey = _layouts.KeyOf(key);
+        if (_isMain) _layouts.MainLayout = _layoutKey;
+        _layout = _layouts.Get(_layoutKey);
+        FillLayoutChoices();
+        LayoutChanged?.Invoke();
+        // A section this layout shows and the last didn't needs its data now, not at the next refresh.
+        _ = LoadAsync();
+    }
+
+    private void FillLayoutChoices()
+    {
+        var choices = _layouts.Choices;
+        foreach (var gone in LayoutChoices.Where(c => !choices.Contains(c)).ToList()) LayoutChoices.Remove(gone);
+        for (var i = 0; i < choices.Count; i++)
+        {
+            var at = LayoutChoices.IndexOf(choices[i]);
+            if (at < 0) LayoutChoices.Insert(i, choices[i]);
+            else if (at != i) LayoutChoices.Move(at, i);
+        }
+        _selectedLayoutChoice = LayoutChoices.FirstOrDefault(c => c.Key == _layoutKey);
+        this.RaisePropertyChanged(nameof(SelectedLayoutChoice));
+    }
+
+    /// <summary>
+    /// The layouts changed, here or in another Overview's editor: follow a rename, fall back to
+    /// Default if this one went, and show this one's arrangement as it now is.
+    /// </summary>
+    private void OnLayoutsChanged(IReadOnlyDictionary<string, string> renames)
+    {
+        if (renames.TryGetValue(_layoutKey, out var renamed)) _layoutKey = renamed;
+        var key = _layouts.KeyOf(_layoutKey);
+        var layout = _layouts.Get(key);
+        var moved = key != _layoutKey || layout.ToJson() != _layout.ToJson();
+        _layoutKey = key;
+        if (_isMain && moved) _layouts.MainLayout = key;
+        FillLayoutChoices();
+        if (!moved) return;
+        _layout = layout;
+        LayoutChanged?.Invoke();
+        _ = LoadAsync();
+    }
+
+    /// <summary>
+    /// What the layout editor did, opened from this Overview: the layouts are saved, and this
+    /// Overview shows the one that was being edited.
+    /// <para>⚠️ Local only. Writing the shared row as well would keep imposing this machine's
+    /// arrangement on every other client, which is exactly what moving it to config.json was for.</para>
+    /// </summary>
+    public void ApplyLayoutEdits(OverviewLayoutEdits edits) => ShowLayout(_layouts.Apply(edits));
 
     public OverviewViewModel(AppDbContext db, AlertSettingsViewModel alertSettings,
                              AppErrorLogger errorLogger, NewsService newsService,
@@ -504,8 +571,13 @@ public class OverviewViewModel : ReactiveObject
                              IDbContextFactory<AppDbContext>? dbFactory = null,
                              EsiClient? esi = null,
                              StandingBuyOrderService? standingBuyOrders = null,
-                             IndyFacilityCheckService? indyFacilityCheck = null)
+                             IndyFacilityCheckService? indyFacilityCheck = null,
+                             OverviewLayoutStore? layouts = null,
+                             bool isMain = true,
+                             string? layoutKey = null)
     {
+        _layouts = layouts ?? OverviewLayoutStore.Shared;
+        _isMain = isMain;
         _indyFacilityCheck = indyFacilityCheck;
         _db             = db;
         _alertSettings  = alertSettings;
@@ -514,7 +586,12 @@ public class OverviewViewModel : ReactiveObject
         _corpActivity   = corpActivity;
         _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
+        // Default is the layout there always was, seeded from the old shared row if need be.
         _layout         = LoadLayout(prefs);
+        _layoutKey      = _layouts.KeyOf(isMain ? _layouts.MainLayout : layoutKey);
+        if (!OverviewLayoutStore.IsDefault(_layoutKey)) _layout = _layouts.Get(_layoutKey);
+        FillLayoutChoices();
+        _layouts.Changed += OnLayoutsChanged;
         if (dbFactory is not null && esi is not null)
             _names = new ContractNameResolver(dbFactory, esi, errorLogger);
 
@@ -534,7 +611,7 @@ public class OverviewViewModel : ReactiveObject
             });
 
         // Auto-refresh every 60 seconds — overview only reads local DB so this is fast.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _refreshTimer = Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("Overview.AutoRefresh")
             .Subscribe(n => _ = LoadAsync());
 
@@ -542,12 +619,36 @@ public class OverviewViewModel : ReactiveObject
         // slower than the wait for it, an SDE import — reach them on the next refresh: forgetting
         // the signature makes that refresh build the cards again rather than keep them, and
         // forgetting the personal kills' ids does the same for their rows.
-        SdeNames.Changed += () =>
-        {
-            _notificationSignature = "";
-            _lastPersonalKillIds   = [];
-        };
+        SdeNames.Changed += OnSdeNamesChanged;
     }
+
+    private readonly IDisposable _refreshTimer;
+
+    private void OnSdeNamesChanged()
+    {
+        _notificationSignature = "";
+        _lastPersonalKillIds   = [];
+    }
+
+    /// <summary>
+    /// For an Overview that isn't the main window's, when its tab closes: nothing keeps refreshing
+    /// it, and nothing it listened to keeps it alive. The main window's lives as long as the app.
+    /// </summary>
+    public void Dispose()
+    {
+        _refreshTimer.Dispose();
+        SdeNames.Changed -= OnSdeNamesChanged;
+        _layouts.Changed -= OnLayoutsChanged;
+        if (_worklist is not null)
+        {
+            _worklist.PoolRows.CollectionChanged -= OnWorklistPoolChanged;
+            _worklist.Needs.CollectionChanged -= OnWorklistNeedsChanged;
+        }
+        _db.Dispose();
+    }
+
+    private void OnWorklistPoolChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => RebuildWorklistSections();
+    private void OnWorklistNeedsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
 
 
     /// <summary>
@@ -586,8 +687,8 @@ public class OverviewViewModel : ReactiveObject
             // is a BulkObservableCollection and is replaced in one Reset. Filled item by item it
             // ran this handler once per row, and each run refilled four bound collections the
             // same way — ten seconds of frozen UI on every worklist refresh.
-            value.PoolRows.CollectionChanged += (_, _) => RebuildWorklistSections();
-            value.Needs.CollectionChanged    += (_, _) => this.RaisePropertyChanged(nameof(HasWorklistNeeds));
+            value.PoolRows.CollectionChanged += OnWorklistPoolChanged;
+            value.Needs.CollectionChanged    += OnWorklistNeedsChanged;
 
             RebuildWorklistSections();
             BuildGroupedViews();

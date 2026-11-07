@@ -8,7 +8,7 @@
   <data name="TabLayouts" xml:space="preserve"><value>Layouts</value></data>
   <data name="LabelDesktop" xml:space="preserve"><value>This desktop</value><comment>The computer EVE Console is running on. Its name can be edited beside this label.</comment></data>
   <data name="TogglePlacement" xml:space="preserve"><value>Place clients and show panels on this desktop</value></data>
-  <data name="TipPlacement" xml:space="preserve"><value>Off, your game clients are left alone. EVE Console only ever sets a client's size and position.</value></data>
+  <data name="TipPlacement" xml:space="preserve"><value>Off, your game clients are left alone. EVE Console only ever sets a client's size and position, and raises it when you click a panel or another client on its monitor. It never gives a client input or focus.</value></data>
   <data name="Apply" xml:space="preserve"><value>Apply</value></data>
   <data name="TipApply" xml:space="preserve"><value>Moves clients and panels to match what is set here, on this desktop only. This also puts back clients that were moved by hand.</value></data>
   <data name="PendingNone" xml:space="preserve"><value>Everything is applied.</value></data>
@@ -24,6 +24,73 @@
   <data name="PanelStartWithConsole" xml:space="preserve"><value>With EVE Console</value></data>
   <data name="PanelStartWithEve" xml:space="preserve"><value>When EVE starts on this monitor</value></data>
   <data name="FullMonitor" xml:space="preserve"><value>Use the full monitor, including where the taskbar is</value></data>
+  <data name="LabelProfile" xml:space="preserve"><value>Profile</value></data>
+  <data name="LabelProfileName" xml:space="preserve"><value>Name</value></data>
+  <data name="ProfileFirstName" xml:space="preserve"><value>Default</value><comment>The name of a desktop's first profile.</comment></data>
+  <data name="ProfileNewName" xml:space="preserve"><value>New profile</value></data>
+  <data name="ProfileInUse" xml:space="preserve"><value>In use: {0}</value><comment>{0} is the name of the desktop profile last applied.</comment></data>
+  <data name="TipProfile" xml:space="preserve"><value>Which set of layouts and characters this tab shows and edits. Press Apply to switch to it.</value></data>
+  <data name="StatusLastProfile" xml:space="preserve"><value>A desktop needs at least one profile, so this one can't be deleted.</value></data>
+  <data name="ItemMumble" xml:space="preserve"><value>Mumble</value></data>
+  <data name="ItemWorklist" xml:space="preserve"><value>Worklist</value></data>
+  <data name="LabelMumbleServer" xml:space="preserve"><value>Server</value></data>
+  <data name="LabelMumbleMode" xml:space="preserve"><value>Shows as</value></data>
+  <data name="MumbleModeLine" xml:space="preserve"><value>One line, listing who talks beside it</value></data>
+  <data name="MumbleModeList" xml:space="preserve"><value>A list of the channel, talkers at the top</value></data>
+  <data name="MumbleChooseServer" xml:space="preserve"><value>Choose a Mumble server for this control in Client Layouts.</value></data>
+  <data name="MumbleNoServer" xml:space="preserve"><value>This Mumble server is no longer defined.</value></data>
+  <data name="MumbleServerState" xml:space="preserve"><value>{0}: {1}</value><comment>{0} is a Mumble server's name, {1} its state, such as connecting.</comment></data>
+  <data name="WorklistNoClient" xml:space="preserve"><value>No one is logged in on this monitor.</value></data>
+  <data name="WorklistNotInApp" xml:space="preserve"><value>{0} isn't a character in EVE Console.</value></data>
+  <data name="WorklistNothing" xml:space="preserve"><value>Nothing ready for {0}.</value></data>
+  <data name="WorklistNoClientShort" xml:space="preserve"><value>No one logged in</value><comment>A Worklist control's single line when no game client is logged in on its monitor.</comment></data>
+  <data name="LabelWorklistMode" xml:space="preserve"><value>Shows as</value></data>
+  <data name="WorklistModeList" xml:space="preserve"><value>The list of ready tasks</value></data>
+  <data name="WorklistModeLine" xml:space="preserve"><value>One line of counts, the list dropping down when clicked</value></data>
+  <data name="ItemMenu" xml:space="preserve"><value>Menu</value><comment>A control on a panel: three lines that open a menu of the app's tools.</comment></data>
+  <data name="ItemToolContainer" xml:space="preserve"><value>Tool Container</value><comment>A control on a panel that holds one of the app's tools, or tabs of them.</comment></data>
+  <data name="MenuTip" xml:space="preserve"><value>Tools</value></data>
+  <data name="LabelMenuTarget" xml:space="preserve"><value>Opens tools in</value></data>
+  <data name="MenuTargetNewWindow" xml:space="preserve"><value>A new window</value></data>
+  <data name="MenuTargetLastUsed" xml:space="preserve"><value>The window used last</value></data>
+  <data name="MenuTargetContainer" xml:space="preserve"><value>{0} › {1}</value><comment>{0} is a layout's name, {1} a Tool Container's name in it.</comment></data>
+  <data name="MenuTargetGone" xml:space="preserve"><value>A Tool Container no longer in any layout</value></data>
+  <data name="LabelContainerName" xml:space="preserve"><value>Name</value><comment>A Tool Container's name, which menus show when choosing where tools open.</comment></data>
+  <data name="LabelContainerMode" xml:space="preserve"><value>Holds</value></data>
+  <data name="ContainerModeSingle" xml:space="preserve"><value>One tool</value></data>
+  <data name="ContainerModeTabs" xml:space="preserve"><value>Tabs</value></data>
+  <data name="ContainerSplit" xml:space="preserve"><value>Can split in two</value></data>
+  <data name="LabelContainerTools" xml:space="preserve"><value>Opens with</value></data>
+  <data name="ContainerToolCanClose" xml:space="preserve"><value>Can close</value><comment>A tab that can't be closed also stays in its container, as the Overview stays in the main window.</comment></data>
+  <data name="ContainerToolRemove" xml:space="preserve"><value>Remove</value></data>
+  <data name="ContainerToolAdd" xml:space="preserve"><value>Add</value></data>
+  <data name="ContainerNote" xml:space="preserve"><value>A tab that can't be closed stays in this container. A tool open somewhere else moves here when the container shows.</value></data>
+  <data name="LabelWidth" xml:space="preserve"><value>Width in pixels</value></data>
+  <data name="LabelHeight" xml:space="preserve"><value>Height in pixels</value></data>
+  <data name="LabelControl" xml:space="preserve"><value>Control</value></data>
+  <data name="LabelColor" xml:space="preserve"><value>Color</value></data>
+  <data name="ResetColor" xml:space="preserve"><value>Use the EVE color</value><comment>Sets a panel's color back to the default, which matches the game's UI.</comment></data>
+  <data name="LabelStyle" xml:space="preserve"><value>Style</value></data>
+  <data name="StyleFlat" xml:space="preserve"><value>Flat</value><comment>A panel's edge: no depth.</comment></data>
+  <data name="StyleRaised" xml:space="preserve"><value>Raised</value><comment>A panel's edge: stands out from the screen.</comment></data>
+  <data name="StyleInset" xml:space="preserve"><value>Inset</value><comment>A panel's edge: sits into the screen.</comment></data>
+  <data name="StyleRidge" xml:space="preserve"><value>Ridge</value><comment>A panel's edge: a raised line around the panel.</comment></data>
+  <data name="MenuDockControl" xml:space="preserve"><value>Dock a control</value></data>
+  <data name="MenuDockInside" xml:space="preserve"><value>Dock a panel inside</value></data>
+  <data name="MenuDockBeside" xml:space="preserve"><value>Dock a panel beside this one</value></data>
+  <data name="MenuEdgeFull" xml:space="preserve"><value>Full</value><comment>Docked to fill all the space, so it has no size of its own.</comment></data>
+  <data name="MenuRemoveControl" xml:space="preserve"><value>Remove control</value></data>
+  <data name="MenuParent" xml:space="preserve"><value>Parent: {0}</value><comment>Right-click submenu for what holds the thing clicked. {0} is a panel's name, or one of the words below.</comment></data>
+  <data name="MenuSelect" xml:space="preserve"><value>Select</value></data>
+  <data name="ParentMonitor" xml:space="preserve"><value>Monitor</value></data>
+  <data name="ParentGrid" xml:space="preserve"><value>Grid</value></data>
+  <data name="ParentCell" xml:space="preserve"><value>Cell</value></data>
+  <data name="ItemSettings" xml:space="preserve"><value>Settings</value></data>
+  <data name="ItemServerStatus" xml:space="preserve"><value>EVE server status</value></data>
+  <data name="ItemEveTime" xml:space="preserve"><value>EVE time</value></data>
+  <data name="ItemLocalTime" xml:space="preserve"><value>Local time</value></data>
+  <data name="ItemLocalTimeShort" xml:space="preserve"><value>Local</value><comment>Label right beside the local time on a panel, like "EVE" beside the EVE clock. Keep it very short.</comment></data>
+  <data name="ItemUsersOnline" xml:space="preserve"><value>Users online</value></data>
   <data name="NoCells" xml:space="preserve"><value>This layout has no client positions.</value></data>
   <data name="AddCharacterHint" xml:space="preserve"><value>Character name</value></data>
   <data name="Add" xml:space="preserve"><value>Add</value></data>
@@ -45,7 +112,7 @@
   <data name="DeleteLayout" xml:space="preserve"><value>Delete</value></data>
   <data name="NewLayoutName" xml:space="preserve"><value>New layout</value></data>
   <data name="CopyOfName" xml:space="preserve"><value>{0} copy</value><comment>{0} is the name of the layout that was duplicated.</comment></data>
-  <data name="LayoutHint" xml:space="preserve"><value>Right click an area to dock a panel, split it into a grid, or set what it holds. Drag the lines between areas to resize them.</value></data>
+  <data name="LayoutHint" xml:space="preserve"><value>Right click anything to dock a panel or control in it, split it into a grid, or reach what holds it. Drag the lines between things to resize them.</value></data>
   <data name="LabelLayoutName" xml:space="preserve"><value>Layout name</value></data>
   <data name="LabelPreviewOn" xml:space="preserve"><value>Show on</value><comment>Which monitor's size the layout is drawn at while editing.</comment></data>
   <data name="LabelPanelName" xml:space="preserve"><value>Panel name</value></data>
@@ -55,8 +122,6 @@
   <data name="CanvasSize" xml:space="preserve"><value>{0} × {1}</value><comment>A width and height, or columns and rows of a grid.</comment></data>
   <data name="CanvasEmpty" xml:space="preserve"><value>Empty</value></data>
   <data name="MenuDockHere" xml:space="preserve"><value>Dock a panel here</value></data>
-  <data name="MenuDockAroundGrid" xml:space="preserve"><value>Dock a panel around this grid</value></data>
-  <data name="MenuDockMonitor" xml:space="preserve"><value>Dock a panel on the monitor</value></data>
   <data name="MenuEdgeTop" xml:space="preserve"><value>Top</value></data>
   <data name="MenuEdgeBottom" xml:space="preserve"><value>Bottom</value></data>
   <data name="MenuEdgeLeft" xml:space="preserve"><value>Left</value></data>

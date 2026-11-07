@@ -10,11 +10,14 @@ public sealed record DesktopMonitor(string Key, LayoutRect Bounds, LayoutRect Wo
 
 /// <summary>
 /// The app's only contact with game clients: reading their window titles and positions, and
-/// setting their size and position. Windows only; everywhere else it finds nothing.
+/// setting their size, position and place among other windows. Windows only; everywhere else it
+/// finds nothing.
 ///
 /// <para>⚠️ This is a limit the owner set with the game's rules in mind. Never add input, focus
 /// changes, window styles, memory access or screen capture for a client here or anywhere else.
-/// That includes bringing a client to the front.</para>
+/// That includes giving a client focus: <see cref="PutBeneath"/> may raise one, and only when the
+/// user clicks a panel or brings another client forward on its monitor. (<see cref="TaskbarHint"/> names a client's window to the
+/// taskbar, but sends the client nothing.)</para>
 /// </summary>
 public static class ClientWindows
 {
@@ -28,6 +31,12 @@ public static class ClientWindows
         EnumWindows((h, _) =>
         {
             if (!IsWindowVisible(h)) return true;
+
+            // ⚠️ Before the title: reading the title of a window in this process waits for the UI
+            // thread, and that would stall this loop behind our own panels.
+            GetWindowThreadProcessId(h, out var pid);
+            if (pid == Environment.ProcessId) return true;
+
             var title = Title(h);
             if (!ClientPlacementEngine.IsClientTitle(title) || !IsClientProcess(h)) return true;
             if (!GetWindowRect(h, out var r)) return true;
@@ -54,6 +63,34 @@ public static class ClientWindows
         var r = move.Rect;
         if (!SetWindowPos(new IntPtr(move.Handle), IntPtr.Zero, r.X, r.Y, r.Width, r.Height, flags))
             throw new Win32Exception(Marshal.GetLastWin32Error());
+    }
+
+    /// <summary>
+    /// Puts clients directly beneath another window, one of our panels or the client just brought
+    /// forward, in the order they already had among themselves. It sets no always-on-top flag and
+    /// doesn't touch focus.
+    /// ⚠️ Waits on each client, so never call this on the UI thread: one that is busy loading would
+    /// freeze the app.
+    /// </summary>
+    public static void PutBeneath(long window, IReadOnlyCollection<long> clients)
+    {
+        if (!OperatingSystem.IsWindows()) return;
+
+        var wanted = clients.Select(c => new IntPtr(c)).ToHashSet();
+        var topFirst = new List<IntPtr>();
+        EnumWindows((h, _) =>
+        {
+            if (wanted.Contains(h)) topFirst.Add(h);
+            return true;
+        }, IntPtr.Zero);
+
+        const uint flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER;
+        var above = new IntPtr(window);
+        foreach (var client in topFirst)
+        {
+            SetWindowPos(client, above, 0, 0, 0, 0, flags);
+            above = client;
+        }
     }
 
     public static List<DesktopMonitor> FindMonitors()
@@ -116,7 +153,7 @@ public static class ClientWindows
 
     private const int GWL_STYLE = -16;
     private const long WS_CAPTION = 0x00C00000;
-    private const uint SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOOWNERZORDER = 0x0200, SWP_ASYNCWINDOWPOS = 0x4000;
+    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOOWNERZORDER = 0x0200, SWP_ASYNCWINDOWPOS = 0x4000;
     private const uint EDD_GET_DEVICE_INTERFACE_NAME = 1;
     private const int DISPLAY_DEVICE_ACTIVE = 1;
 

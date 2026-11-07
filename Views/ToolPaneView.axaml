@@ -9,8 +9,8 @@
   <!-- One side of the main window: its tab strip, and the tool showing. -->
   <Grid RowDefinitions="Auto,1,*">
 
-    <!-- Tab strip -->
-    <Panel Grid.Row="0">
+    <!-- Tab strip. A Tool Container holding one tool has none. -->
+    <Panel Grid.Row="0" IsVisible="{Binding Workspace.ShowsTabs, FallbackValue=True}">
       <Border x:Name="Strip" Background="{DynamicResource SurfaceBaseBrush}" Classes.dimmed="{Binding IsDimmed}">
         <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
              work rather than merely permitting it: a WrapPanel inside a scroller that offers
@@ -118,7 +118,7 @@
     </Panel>
 
     <!-- Tab strip / content divider -->
-    <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
+    <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" IsVisible="{Binding Workspace.ShowsTabs, FallbackValue=True}" />
 
     <!-- The tool on this side -->
     <ContentControl x:Name="PaneContent"
