@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Add Rooms</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Add rooms on {0}</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Rooms and server chat show here. Set up a server on the Jabber or Mumble tab in Settings first.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Pick a room or a server on the left.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>New messages: {0}</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Unseen mentions of your name: {0}</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Everything said since connecting, in whichever channel you were in. It lasts until the app closes, as a Mumble server keeps none of it.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Filter by name or description</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Asking the rooms about themselves...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} in the room</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Topic: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Password needed</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Members only</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Moderated</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Temporary</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Joined</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Room (pick above, or type a name)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Join Again</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>General is for talking. An Intel room is also read for reports, like an intel channel in the chat logs, and they reach the map and the intel alarms. A report already held from another source is not counted twice.</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Done</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Sort by</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>People in room</value>
+  </data>
+</root>

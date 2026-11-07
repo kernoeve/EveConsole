@@ -261,7 +261,7 @@ public sealed class SpeechInputService : IDisposable
         internal static extern IntPtr GetHostApiInfo(int hostApi);
     }
 
-    private static string HostApiName(int hostApi)
+    internal static string HostApiName(int hostApi)
     {
         try
         {

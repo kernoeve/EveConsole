@@ -1,0 +1,429 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Add Server</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Add a Mumble server to talk here, without a separate client.</value>
+    <comment>Empty tool.</comment>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>None</value>
+    <comment>No key chosen.</comment>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Deaf</value>
+    <comment>Mark beside someone.</comment>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Muted</value>
+    <comment>Mark beside someone.</comment>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Root</value>
+    <comment>The top channel when it has no name.</comment>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Connected, in {0}</value>
+    <comment>Server state. {0} = channel.</comment>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Connected</value>
+    <comment>Server state.</comment>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Connecting…</value>
+    <comment>Server state.</comment>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Connection lost, trying again at {0}</value>
+    <comment>Server state. {0} = time.</comment>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Not connected</value>
+    <comment>Server state.</comment>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>The server's certificate is not trusted.</value>
+    <comment>Server stopped.</comment>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>The server refused the password.</value>
+    <comment>Server stopped.</comment>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>The server refused this username.</value>
+    <comment>Server stopped.</comment>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Certificate for {0}, fingerprint:
+{1}
+
+Most Mumble servers use their own certificate. Trust it only if you expect this server. From then on, only this certificate is accepted.</value>
+    <comment>{0} = subject, {1} = SHA-256 fingerprint.</comment>
+  </data>
+  <data name="KeysSummary" xml:space="preserve">
+    <value>Whisper key: {0}. Shout key: {1}.</value>
+    <comment>{0}, {1} = key names.</comment>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Enter the server's host and your username.</value>
+    <comment>Validation.</comment>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>That key is already used on {0}. Each key can only talk on one server.</value>
+    <comment>Validation. {0} = server.</comment>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>Delete "{0}" and its saved settings? Its certificate is deleted too, so a registered name on that server would be lost. This cannot be undone.</value>
+    <comment>{0} = server.</comment>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>System default</value>
+    <comment>Device choice.</comment>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Show who is talking, always on top</value>
+    <comment>Setting.</comment>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Sound Settings</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Microphone</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Microphone volume</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Speakers</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Speaker volume</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Server host</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Port</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Username</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Password (if the server has one)</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Leave blank to keep the saved password.</value>
+    <comment>Hint.</comment>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Access tokens (optional, separated by commas)</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelWhisperKey" xml:space="preserve">
+    <value>Whisper key (talks only to your current channel)</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="LabelShoutKey" xml:space="preserve">
+    <value>Shout key (Push to Talk: your channel and channels linked to it)</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>These keys are for this server alone, and work while it is connected, even with the app in the background.</value>
+    <comment>Hint.</comment>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Connect when the app starts</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Otherwise it connects only when you ask. Either way, it reconnects by itself if the connection is lost, until you disconnect. This setting is for this PC only.</value>
+    <comment>Hint.</comment>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Save</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Cancel</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Trust This Certificate</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Connect</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Edit</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Mute</value>
+    <comment>Toggle.</comment>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Deafen</value>
+    <comment>Toggle.</comment>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Join Channel</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Their volume, for you only</value>
+    <comment>Field.</comment>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Message {0}. Enter sends, Shift+Enter starts a new line.</value>
+    <comment>Input hint. {0} = a channel's name.</comment>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Send</value>
+    <comment>Button.</comment>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: who is talking</value>
+    <comment>Window title.</comment>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Nobody talking</value>
+    <comment>Overlay, when quiet.</comment>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>From {0}, Whisper reaches only that channel. Shout also reaches: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} has no linked channels, so Whisper and Shout both reach only that channel.</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Press a key or mouse button (Esc cancels)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Click a key's button, then press the key or mouse button to use. It also still does its normal job, so a key you type with will talk as you type.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Level my voice automatically</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Disconnected by the server: {0}. It stays off until you connect again.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Include subchannels</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} and subchannels</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>The server refused that. You may not have permission.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Server admin</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Server Mute</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Server Deafen</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Priority Speaker</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Mute for Me</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignore Their Messages</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Registered</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Muted by an admin</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Deafened by an admin</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Muted themselves</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Deafened themselves</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Not allowed to speak here</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Priority speaker</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Recording</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Move to channel</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Type part of a channel's name</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Move</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Move to My Channel</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Pick a channel from the list.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Reason (optional)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Kick</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Ban</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Kick {0} from this server?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Ban {0} from this server? Only an admin can undo this, from the server's ban list.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Register This Name</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Register {0} on this server? That ties the name to their certificate, and only an admin can undo it.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>What others see about you</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Listen to This Channel</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Stop Listening</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Link With My Channel</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Unlink From My Channel</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Remove Channel</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Remove {0} and every channel under it, for everyone on this server?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>New channel under this one</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Create</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Temporary: goes away when it empties</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Reduce background noise</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Cancel echo from my speakers</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>For listening on speakers, so others don't hear themselves through your microphone. A headset has nothing to cancel. While this is on, the microphone stays open so it can learn your room. Nothing is sent unless you talk.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Voice activation level</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Microphone just now: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Talk by voice, without holding a key</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Your microphone stays open while connected to this server, and whatever is louder than the level in Sound Settings goes out. The keys above still work.</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Play a tone when I start and stop talking</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Ban List</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Nobody is banned.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Lift the ban on {0}?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Server version {0}, up to {1} kbit/s each. People here: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>Online for {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>idle for {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>Echo cancelling can't run on this computer, as its sound library would not load. Voice still works.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: {2} not deafened in this channel</value>
+  </data>
+</root>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>添加房间</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>在 {0} 上添加房间</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>房间和服务器聊天显示在此处。请先在设置的 Jabber 或 Mumble 选项卡中设置服务器。</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>请在左侧选择房间或服务器。</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>{0} 条新消息</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>尚未查看的提及您名字的消息: {0} 次</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>连接以来您所在频道中的所有发言。由于 Mumble 服务器不保存任何内容，这些内容仅保留到应用关闭。</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>按名称或描述筛选</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>正在查询房间信息...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>房间内 {0} 人</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>主题: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>需要密码</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>仅限成员</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>受管理</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>临时</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>已加入</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>房间（从上方选择或输入名称）</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>重新加入</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>常规</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>“常规”用于聊天。情报房间还会像聊天日志中的情报频道一样读取报告，并显示在地图和情报警报中。已从其他来源获得的报告不会重复计算。</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>完成</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>排序方式</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>房间人数</value>
+  </data>
+</root>

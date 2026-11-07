@@ -103,14 +103,16 @@ public sealed class IntelService(
     /// overlays — which only look at the last 15 minutes to 24 hours — stay empty the whole
     /// time. Idle cost is unchanged: one indexed query that returns nothing.
     /// </summary>
-    public async Task<int> ProcessNewAsync(CancellationToken ct = default)
+    public async Task<int> ProcessNewAsync(CancellationToken ct = default, bool waitForTurn = false)
     {
-        var channels = settings.ChatIntelChannels;
+        var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
         // A pass already running (a re-parse from Settings) is doing this work: skip rather than
-        // queue, so the chat import this is hooked to is not held up behind it.
-        if (!await _pass.WaitAsync(0, ct)) return 0;
+        // queue, so the chat import this is hooked to is not held up behind it. Unless asked to
+        // wait: with the chat logs off, nothing would come along later to pick up what is left.
+        if (waitForTurn) await _pass.WaitAsync(ct);
+        else if (!await _pass.WaitAsync(0, ct)) return 0;
         try
         {
             return await ProcessNewCoreAsync(channels, ct);
@@ -119,6 +121,33 @@ public sealed class IntelService(
         {
             _pass.Release();
         }
+    }
+
+    /// <summary>The Jabber rooms marked Intel, by the name their reports go under, as last read.</summary>
+    public IReadOnlyList<string> RoomChannels { get; private set; } = [];
+
+    /// <summary>Reads again which Jabber rooms are marked Intel.</summary>
+    public async Task RefreshRoomChannelsAsync(CancellationToken ct = default)
+    {
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            RoomChannels = (await db.JabberRooms.AsNoTracking()
+                    .Where(r => r.RoomType == JabberRoomType.Intel && !r.Left)
+                    .ToListAsync(ct))
+                .Select(IntelRooms.ChannelOf).Distinct().ToList();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            errorLogger.Log(nameof(IntelService), "reading the intel rooms", ex);
+        }
+    }
+
+    /// <summary>What is parsed: the chat channels ticked in Settings and the Jabber rooms marked Intel.</summary>
+    private async Task<IReadOnlyList<string>> ChannelsAsync(CancellationToken ct)
+    {
+        await RefreshRoomChannelsAsync(ct);
+        return [.. settings.ChatIntelChannels, .. RoomChannels];
     }
 
     /// <summary>
@@ -242,7 +271,7 @@ public sealed class IntelService(
     public async Task<int> BackfillAsync(
         IProgress<string>? progress = null, CancellationToken ct = default)
     {
-        var channels = settings.ChatIntelChannels;
+        var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
         // Waits for a live pass to finish (see _pass); the live passes then skip until this is done.
@@ -381,6 +410,9 @@ public sealed class IntelService(
                 .ToListAsync(ct))
                 .ToHashSet(StringComparer.Ordinal);
 
+            // The same report from another source: someone relaying a chat channel into a Jabber room.
+            var held = await HeldAroundAsync(db, batch.Select(m => m.OccurredAt), ct);
+
             var pending = new List<(IntelReport Report, List<IntelReportCharacter> Pilots)>();
 
             // A clear obsoletes everything in its system older than itself, so only the newest
@@ -413,6 +445,10 @@ public sealed class IntelService(
                 var built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName,
                                         systemId, m.Message, parsed);
                 if (built is null) continue;
+
+                var named = built.Value.Pilots.Select(p => p.CharacterId).ToList();
+                if (held.IsCopy(built.Value.Report, named)) continue;
+                held.Add(built.Value.Report, named);
 
                 pending.Add(built.Value);
                 seenCharacters.AddRange(built.Value.Pilots.Select(p => p.CharacterId));
@@ -469,6 +505,32 @@ public sealed class IntelService(
             if (written > 0 || _statusUntouched)
                 StatusText = await SummaryAsync(ct);
         }
+    }
+
+    /// <summary>Every report close enough in time to these messages that one of them could be a copy of it.</summary>
+    private static async Task<IntelDuplicates> HeldAroundAsync(AppDbContext db, IEnumerable<string> times, CancellationToken ct)
+    {
+        var held = new IntelDuplicates();
+
+        var known = times.Where(t => t.Length > 0).ToList();
+        if (known.Count == 0 || IntelRooms.Parse(known.Min(StringComparer.Ordinal)!) is not { } first
+                             || IntelRooms.Parse(known.Max(StringComparer.Ordinal)!) is not { } last) return held;
+
+        // ⚠️ Compared in the column's own text form: see the note on ReportedAt.
+        var since = ChatLogRules.FormatTimestamp(first - IntelDuplicates.Window);
+        var until = ChatLogRules.FormatTimestamp(last + IntelDuplicates.Window);
+
+        var reports = await db.IntelReports.AsNoTracking()
+            .Where(r => string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0)
+            .ToListAsync(ct);
+        var pilots = (await (from c in db.IntelReportCharacters.AsNoTracking()
+                             join r in db.IntelReports.AsNoTracking() on c.IntelReportId equals r.Id
+                             where string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
+                             select new { c.IntelReportId, c.CharacterId }).ToListAsync(ct))
+            .ToLookup(c => c.IntelReportId, c => c.CharacterId);
+
+        foreach (var report in reports) held.Add(report, pilots[report.Id]);
+        return held;
     }
 
     /// <summary>What the status line says when nothing is running.</summary>

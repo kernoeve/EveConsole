@@ -142,6 +142,12 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>Correo de EVE</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notificaciones</value>
   </data>
@@ -692,6 +698,13 @@ Base de datos: {2}
     <value>{0}
 {1}
 Haz clic para ver los límites de ESI.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Mensajes</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Chat de grupo</value>
   </data>
   <data name="NavBattleReport" xml:space="preserve">
     <value>Informe de batalla</value>

@@ -91,6 +91,9 @@ public partial class BackgroundProcessesView : UserControl
                 await vm.RefreshAlarmsAsync();
             }
             else vm.SyncHistorySweep();
+
+            // At once on being opened, then with the rest. Only while it shows: it reads every message saved.
+            if (JabberTab.IsSelected && (_tick % 5 == 0 || !vm.JabberActivityRead)) await vm.RefreshJabberActivityAsync();
         }
         catch { /* best-effort monitor */ }
     }

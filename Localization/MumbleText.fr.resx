@@ -1,0 +1,376 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Ajouter un serveur</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Ajoutez un serveur Mumble pour parler ici, sans client séparé.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Sourd</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Muet</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Racine</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Connecté, dans {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Connexion…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Connexion perdue, nouvel essai à {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Le certificat du serveur n'est pas approuvé.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Le serveur a refusé le mot de passe.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>Le serveur a refusé ce nom d'utilisateur.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Certificat de {0}, empreinte :
+{1}
+
+La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui confiance seulement si vous attendez ce serveur. Ensuite, seul ce certificat sera accepté.</value>
+  </data>
+  <data name="KeysSummary" xml:space="preserve">
+    <value>Touche de chuchotement : {0}. Touche de cri : {1}.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Saisissez l'hôte du serveur et votre nom d'utilisateur.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>Cette touche est déjà utilisée sur {0}. Chaque touche ne peut parler que sur un serveur.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>Supprimer « {0} » et ses réglages ? Son certificat est aussi supprimé : un nom enregistré sur ce serveur serait perdu. Cette action est irréversible.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>Par défaut du système</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Afficher qui parle, toujours au premier plan</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Réglages du son</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Microphone</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Volume du microphone</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Haut-parleurs</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Volume des haut-parleurs</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Hôte du serveur</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Nom d'utilisateur</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Mot de passe (si le serveur en a un)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Laissez vide pour conserver le mot de passe enregistré.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Jetons d'accès (facultatif, séparés par des virgules)</value>
+  </data>
+  <data name="LabelWhisperKey" xml:space="preserve">
+    <value>Touche de chuchotement (parle uniquement à votre canal actuel)</value>
+  </data>
+  <data name="LabelShoutKey" xml:space="preserve">
+    <value>Touche de cri (appuyer pour parler : votre canal et les canaux liés)</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>Ces touches sont propres à ce serveur et fonctionnent tant qu'il est connecté, même avec l'application en arrière-plan.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Se connecter au démarrage de l'application</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Sinon, il ne se connecte que sur demande. Dans les deux cas, il se reconnecte seul en cas de perte, jusqu'à ce que vous vous déconnectiez. Ce réglage ne s'applique qu'à ce PC.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Faire confiance à ce certificat</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Muet</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Sourdine</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Rejoindre le canal</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Son volume, pour vous seul</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Message à {0}. Entrée envoie, Maj+Entrée commence une nouvelle ligne.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble : qui parle</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Personne ne parle</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Depuis {0}, le chuchotement n'atteint que ce canal. Le cri atteint aussi : {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} n'a aucun canal lié : le chuchotement et le cri n'atteignent donc que ce canal.</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Appuyez sur une touche ou un bouton de souris (Échap annule)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Effacer</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Cliquez sur le bouton, puis appuyez sur la touche ou le bouton de souris à utiliser. Il garde sa fonction normale : une touche de frappe parlera donc pendant que vous tapez.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Niveler ma voix automatiquement</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Déconnecté par le serveur : {0}. La connexion reste coupée jusqu'à ce que vous vous reconnectiez.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Inclure les sous-canaux</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} et sous-canaux</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>Le serveur a refusé. Vous n'avez peut-être pas l'autorisation.</value>
+  </data>
+  <data name="HeadingAdmin" xml:space="preserve">
+    <value>Administration du serveur</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Couper le micro (serveur)</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Couper le son (serveur)</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Orateur prioritaire</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Couper pour moi</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignorer ses messages</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Enregistré</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Micro coupé par un administrateur</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Son coupé par un administrateur</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>A coupé son micro</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>A coupé son son</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Ne peut pas parler ici</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Orateur prioritaire</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Enregistre</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Déplacer vers le canal</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Saisissez une partie du nom du canal</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Déplacer</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Déplacer vers mon canal</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Choisissez un canal dans la liste.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Raison (facultatif)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Expulser</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Bannir</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Expulser {0} de ce serveur ?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Bannir {0} de ce serveur ? Seul un administrateur peut annuler cela, depuis la liste des bannissements.</value>
+  </data>
+  <data name="RegisterName" xml:space="preserve">
+    <value>Enregistrer ce nom</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Enregistrer {0} sur ce serveur ? Le nom sera lié à son certificat, et seul un administrateur pourra annuler cela.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Ce que les autres voient de vous</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Écouter ce canal</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Arrêter d'écouter</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Lier à mon canal</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Délier de mon canal</value>
+  </data>
+  <data name="RemoveChannel" xml:space="preserve">
+    <value>Supprimer le canal</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Supprimer {0} et tous les canaux en dessous, pour tout le monde sur ce serveur ?</value>
+  </data>
+  <data name="LabelNewChannel" xml:space="preserve">
+    <value>Nouveau canal sous celui-ci</value>
+  </data>
+  <data name="CreateChannel" xml:space="preserve">
+    <value>Créer</value>
+  </data>
+  <data name="NewChannelTemporary" xml:space="preserve">
+    <value>Temporaire : disparaît quand il se vide</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Réduire le bruit de fond</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Supprimer l'écho de mes haut-parleurs</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Pour l'écoute sur haut-parleurs, afin que les autres ne s'entendent pas dans votre micro. Avec un casque, il n'y a rien à supprimer. Tant que cette option est active, le micro reste ouvert pour apprendre votre pièce. Rien n'est envoyé tant que vous ne parlez pas.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Niveau d'activation vocale</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Micro à l'instant : {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Parler à la voix, sans maintenir de touche</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Votre micro reste ouvert tant que vous êtes connecté à ce serveur, et tout ce qui dépasse le niveau des réglages audio est transmis. Les touches ci-dessus fonctionnent toujours.</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Jouer un son au début et à la fin de la parole</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Liste des bannissements</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Personne n'est banni.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Lever le bannissement de {0} ?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Version du serveur {0}, jusqu'à {1} kbit/s par personne. Personnes ici : {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>En ligne depuis {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>inactif depuis {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Description</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>La suppression d'écho ne peut pas fonctionner sur cet ordinateur, car sa bibliothèque audio n'a pas pu être chargée. La voix fonctionne toujours.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Salons</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1} : {2} non assourdis dans ce canal</value>
+  </data>
+</root>

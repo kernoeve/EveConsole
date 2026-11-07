@@ -568,6 +568,18 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>У вас {0} непрочитанного письма EVE.</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщений Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное сообщение Jabber.</value>
+  </data>
   <data name="AlertUnreadMailFew" xml:space="preserve">
     <value>У вас {0} непрочитанных письма EVE.</value>
   </data>
@@ -1153,5 +1165,21 @@
   </data>
   <data name="AlertPiFreeSlotsCharsMany" xml:space="preserve">
     <value>У {0} персонажей с PI есть свободные слоты для колоний.</value>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного личного сообщения.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных личных сообщений.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных личных сообщения.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное личное сообщение.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

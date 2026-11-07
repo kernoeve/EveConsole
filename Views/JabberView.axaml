@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.JabberView"
+             x:DataType="vm:JabberViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Ellipse.dot.red"><Setter Property="Fill" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ListBox#Rows ListBoxItem"><Setter Property="Padding" Value="8 3" /><Setter Property="MinHeight" Value="0" /></Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="270,4,*">
+
+    <!-- ── Servers and people ──────────────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*,Auto" Background="{DynamicResource SurfacePanelBrush}">
+      <Button Grid.Row="0" Content="{x:Static loc:JabberText.AddServer}" Command="{Binding AddAccountCommand}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent" DoubleTapped="OnRowDoubleTapped">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:JabberRowVm">
+            <Grid>
+              <TextBlock IsVisible="{Binding IsHeading}" Text="{Binding ShownText}" FontSize="10" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextFaintBrush}" Margin="2 6 0 0" />
+
+              <Grid IsVisible="{Binding !IsHeading}" ColumnDefinitions="14,*,Auto">
+                <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}"
+                         IsVisible="{Binding HasDot}" HorizontalAlignment="Left" />
+                <StackPanel Grid.Column="1" Orientation="Vertical">
+                  <TextBlock Text="{Binding ShownText}" FontSize="12" TextTrimming="CharacterEllipsis"
+                             FontWeight="{Binding IsAccount, Converter={x:Static vm:JabberBold.Convert}}"
+                             Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding ShownDetail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis"
+                             Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding ShownDetail}" />
+                </StackPanel>
+                <Border Grid.Column="2" IsVisible="{Binding HasUnread}" CornerRadius="8" Padding="6 0" Margin="6 0 0 0" VerticalAlignment="Center"
+                        Background="{DynamicResource SurfaceSelectedBrush}" Classes.alert="{Binding ShownAlert}">
+                  <TextBlock Text="{Binding UnreadText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                </Border>
+              </Grid>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <StackPanel Grid.Row="2" Margin="8" Spacing="4">
+        <TextBlock Classes="label" Text="{x:Static loc:JabberText.HistoryDays}" TextWrapping="Wrap" />
+        <NumericUpDown Value="{Binding HistoryDays}" Minimum="0" Maximum="36500" Increment="1" FormatString="0" FontSize="11" HorizontalAlignment="Left" Width="120" />
+      </StackPanel>
+    </Grid>
+
+    <GridSplitter Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}" />
+
+    <!-- ── The pane on the right ─────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="*,Auto">
+
+      <!-- Nothing set up yet -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowWelcome}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="420">
+        <TextBlock Text="{x:Static loc:JabberText.Welcome}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        <Button Content="{x:Static loc:JabberText.AddServer}" Command="{Binding AddAccountCommand}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="0" IsVisible="{Binding ShowNothing}" Text="{x:Static loc:JabberText.PickSomething}"
+                 VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+
+      <!-- The account editor -->
+      <ScrollViewer Grid.Row="0" IsVisible="{Binding IsEditingAccount}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20 14" MaxWidth="520" HorizontalAlignment="Left" Width="520">
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelName}" />
+          <TextBox Text="{Binding EditName}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelAddress}" />
+          <TextBox Text="{Binding EditAddress}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelPassword}" />
+          <TextBox Text="{Binding EditPassword}" PasswordChar="●" />
+          <TextBlock Classes="note" Text="{x:Static loc:JabberText.PasswordKeep}" IsVisible="{Binding EditIsExisting}" />
+          <TextBlock Classes="note" Text="{Binding PasswordNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelHost}" />
+          <TextBox Text="{Binding EditHost}" />
+          <TextBlock Classes="note" Text="{x:Static loc:JabberText.HostNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelPort}" />
+          <NumericUpDown Value="{Binding EditPort}" Minimum="1" Maximum="65535" Increment="1" FormatString="0" Width="130" HorizontalAlignment="Left" />
+          <CheckBox IsChecked="{Binding EditDirectTls}" Content="{x:Static loc:JabberText.LabelDirectTls}" Margin="0 8 0 0" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelNickname}" />
+          <TextBox Text="{Binding EditNickname}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelResource}" />
+          <TextBox Text="{Binding EditResource}" />
+          <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:JabberText.LabelAutoConnect}" Margin="0 10 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:JabberText.AutoConnectNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelAlertWords}" />
+          <TextBox Text="{Binding EditAlertWords}" />
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 14 0 0">
+            <Button Content="{x:Static loc:JabberText.Save}" Command="{Binding SaveAccountCommand}" />
+            <Button Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelEditCommand}" />
+            <Button Content="{x:Static loc:JabberText.Delete}" Command="{Binding DeleteAccountCommand}" IsVisible="{Binding EditIsExisting}" Margin="24 0 0 0" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- A server -->
+      <ScrollViewer Grid.Row="0" IsVisible="{Binding ShowAccount}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20 14" Spacing="6" MaxWidth="620" HorizontalAlignment="Left">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+          <TextBlock Text="{Binding AccountState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0 6 0 0" />
+          <TextBlock Classes="note" Text="{Binding AccountDetail}" />
+          <TextBlock Classes="note" Text="{Binding ArchiveText}" IsVisible="{Binding ArchiveText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+          <Border IsVisible="{Binding HasCertificateProblem}" Background="{DynamicResource WarnSurfaceBrush}" CornerRadius="4" Padding="10" Margin="0 6">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding CertificateText}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <Button Content="{x:Static loc:JabberText.TrustCertificate}" Command="{Binding TrustCertificateCommand}" />
+            </StackPanel>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 6">
+            <Button Content="{x:Static loc:JabberText.Connect}" Command="{Binding ConnectCommand}" IsVisible="{Binding CanConnect}" />
+            <Button Content="{x:Static loc:JabberText.Disconnect}" Command="{Binding DisconnectCommand}" IsVisible="{Binding !CanConnect}" />
+            <Button Content="{x:Static loc:JabberText.Edit}" Command="{Binding EditAccountCommand}" />
+          </StackPanel>
+
+          <StackPanel IsVisible="{Binding IsConnected}" Spacing="6">
+            <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelStatus}" />
+            <ComboBox ItemsSource="{Binding ShowChoices}" SelectedItem="{Binding ChosenShow}" Width="240">
+              <ComboBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:JabberShowChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+              </ComboBox.ItemTemplate>
+            </ComboBox>
+            <TextBox x:Name="StatusBox" Text="{Binding StatusMessage}" Watermark="{x:Static loc:JabberText.StatusHint}" MaxLength="200" Width="420" HorizontalAlignment="Left" />
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 8 0 0">
+              <Button Content="{x:Static loc:JabberText.AddContact}" Command="{Binding BeginAddContactCommand}" />
+            </StackPanel>
+
+            <StackPanel IsVisible="{Binding IsAddingContact}" Margin="0 8 0 0">
+              <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelAddressOnly}" />
+              <TextBox Text="{Binding ContactAddress}" />
+              <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelName}" />
+              <TextBox Text="{Binding ContactName}" />
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 10 0 0">
+                <Button Content="{x:Static loc:JabberText.Add}" Command="{Binding AddContactCommand}" />
+                <Button Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelAddContactCommand}" />
+              </StackPanel>
+            </StackPanel>
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- Someone asking to be a contact -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowRequest}" Margin="20 14" Spacing="8">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock Text="{Binding RequestHelp}" IsVisible="{Binding RequestHelp, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" TextWrapping="Wrap" MaxWidth="620" HorizontalAlignment="Left" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:JabberText.Accept}" Command="{Binding AcceptRequestCommand}" />
+          <Button Content="{x:Static loc:JabberText.Decline}" Command="{Binding DenyRequestCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- A contact. The conversation itself is in the Messages tool. -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowPerson}" Margin="20 14" Spacing="8">
+        <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+        <TextBlock Text="{Binding Subtitle}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        <StackPanel Orientation="Horizontal" Spacing="8">
+          <Button Content="{x:Static loc:MessagesText.SendMessage}" Click="OnMessagePerson" />
+          <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" />
+        </StackPanel>
+      </StackPanel>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4"
+                 Foreground="{DynamicResource BadBrush}" />
+    </Grid>
+  </Grid>
+</UserControl>

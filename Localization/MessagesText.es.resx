@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Mensajes</value>
+    <comment>The window, and the main menu.</comment>
+  </data>
+  <data name="AllConversations" xml:space="preserve">
+    <value>Todas las conversaciones</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Buscar por nombre o servidor</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NoConversations" xml:space="preserve">
+    <value>Aún no hay conversaciones guardadas. Selecciona a una persona en la pestaña Jabber o Mumble de Ajustes para iniciar una.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NothingOpen" xml:space="preserve">
+    <value>Elige una conversación o pulsa Nueva conversación para escribir a alguien conectado.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="ToggleList" xml:space="preserve">
+    <value>Conversaciones</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Cerrar esta pestaña. La conversación sigue guardada.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Reproducir un sonido con los mensajes directos nuevos</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>Enviar mensaje</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CannotSendNotConnected" xml:space="preserve">
+    <value>Sin conexión con {0}, así que ahora no se puede enviar nada.</value>
+    <comment>{0} = a server's name.</comment>
+  </data>
+  <data name="CannotSendOffline" xml:space="preserve">
+    <value>{0} no está conectado. Mumble solo puede entregar a alguien conectado.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="CannotSendLeftRoom" xml:space="preserve">
+    <value>{0} ha salido de la sala, así que esta conversación privada no puede continuar.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="NoteOfflineHeld" xml:space="preserve">
+    <value>{0} no está conectado. El servidor debería guardar tu mensaje hasta su próxima conexión.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="PresenceOnline" xml:space="preserve">
+    <value>Conectado</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceAway" xml:space="preserve">
+    <value>Ausente</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceOffline" xml:space="preserve">
+    <value>Desconectado</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Nueva conversación</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Nombre de alguien conectado</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Nadie conectado coincide.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>No hay nadie más conectado en los servidores a los que estás conectado.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0} más. Escribe más del nombre para acotar.</value>
+  </data>
+</root>

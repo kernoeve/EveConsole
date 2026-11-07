@@ -230,6 +230,8 @@ class Program
     {
         try
         {
+            // ⚠️ Before the lease: the next holder connects as soon as it has it, under the same resource.
+            (App.Services?.GetService(typeof(Services.Jabber.JabberService)) as Services.Jabber.JabberService)?.StopAsync().Wait(TimeSpan.FromSeconds(6));
             (App.Services?.GetService(typeof(WorkerLease))   as WorkerLease)?.Stop();
             (App.Services?.GetService(typeof(ClientSignals)) as ClientSignals)?.Stop();
         }

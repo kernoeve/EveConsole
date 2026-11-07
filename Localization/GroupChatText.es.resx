@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Añadir salas</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Añadir salas en {0}</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Aquí aparecen las salas y el chat de los servidores. Configura primero un servidor en la pestaña Jabber o Mumble de Ajustes.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Elige una sala o un servidor a la izquierda.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>Mensajes nuevos: {0}</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Menciones de tu nombre sin ver: {0}</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Todo lo dicho desde la conexión, en el canal en el que estuvieras. Dura hasta cerrar la aplicación, ya que un servidor de Mumble no guarda nada.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Filtrar por nombre o descripción</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Consultando las salas...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} en la sala</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Tema: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Requiere contraseña</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Solo miembros</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Moderada</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Temporal</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Unido</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Sala (elige arriba o escribe un nombre)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Volver a unirse</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Tipo</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>General</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>General es para hablar. Una sala de inteligencia también se analiza en busca de informes, como un canal de inteligencia en los registros de chat, y estos llegan al mapa y a las alarmas de inteligencia. Un informe que ya se tiene de otra fuente no se cuenta dos veces.</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Listo</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Ordenar por</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Personas en la sala</value>
+  </data>
+</root>

@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Добавить комнаты</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Добавить комнаты на {0}</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Здесь показываются комнаты и чат серверов. Сначала настройте сервер на вкладке Jabber или Mumble в настройках.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Выберите комнату или сервер слева.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>Новых сообщений: {0}</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Непросмотренных упоминаний вашего имени: {0}</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Всё сказанное с момента подключения, в том канале, где вы были. Хранится до закрытия приложения, так как сервер Mumble ничего не сохраняет.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Фильтр по имени или описанию</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Запрос сведений о комнатах...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>В комнате: {0}</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Тема: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Нужен пароль</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Только для участников</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Модерируемая</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Временная</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Вы в комнате</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Комната (выберите выше или введите имя)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Войти снова</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Общая</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>«Общая» — для разговоров. Комната разведки также читается на предмет донесений, как канал разведки в журналах чата, и они попадают на карту и в оповещения разведки. Донесение, уже полученное из другого источника, не учитывается дважды.</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Готово</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Сортировка</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Людей в комнате</value>
+  </data>
+</root>

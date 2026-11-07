@@ -167,6 +167,14 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>Eve Mail</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+    <comment>Navigation: the Jabber chat tool.</comment>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+    <comment>Navigation: the Mumble voice tool.</comment>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notifications</value>
   </data>
@@ -876,6 +884,13 @@ Upgrade it and start? No closes EVE Console and leaves the database as it is.</v
 {1}
 Click for the ESI limits.</value>
     <comment>Tooltip on the header's ESI slowed. {0} is the governor's state, {1} the error budget line.</comment>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
   </data>
   <data name="NavBattleReport" xml:space="preserve">
     <value>Battle Report</value>

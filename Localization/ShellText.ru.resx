@@ -142,6 +142,12 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>Почта EVE</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Уведомления</value>
   </data>
@@ -704,6 +710,13 @@ PID: {2}
     <value>{0}
 {1}
 Нажмите, чтобы открыть лимиты ESI.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Сообщения</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
   </data>
   <data name="NavBattleReport" xml:space="preserve">
     <value>Боевой отчёт</value>

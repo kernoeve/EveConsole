@@ -440,6 +440,29 @@
     </TabItem>
 
     <!-- ══ Tab 6: Alarms ═════════════════════════════════════════════════════ -->
+    <!-- Whether Jabber is connected and anything is coming through, on any client: it runs under the worker lease. -->
+    <TabItem x:Name="JabberTab" Header="{x:Static loc:ShellText.NavJabber}">
+      <Grid RowDefinitions="Auto,*" Margin="10 12 10 0">
+        <TextBlock Grid.Row="0" Text="{Binding JabberWhere}" FontSize="12"
+                   FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="0 0 0 10" />
+        <DataGrid Grid.Row="1" ItemsSource="{Binding JabberRows}" Classes="monitor">
+          <DataGrid.Columns>
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColJabberName}" Binding="{Binding Stage}" Width="280" />
+            <DataGridTemplateColumn Header="{x:Static loc:DataText.ColState}" Width="130" ClipboardContentBinding="{Binding State}" SortMemberPath="State">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:StageRowVm">
+                  <TextBlock Text="{Binding State}" Foreground="{Binding StateColor}" VerticalAlignment="Center" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColLastMessage}" Binding="{Binding LastRun}" Width="150" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColLastDay}" Binding="{Binding NextRun}" Width="90" />
+            <DataGridTextColumn Header="{x:Static loc:DataText.ColDetail}" Binding="{Binding Detail}" Width="*" />
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <TabItem Header="{x:Static loc:DataText.TabAlarms}">
       <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="10 12 10 0">
 
