@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using Avalonia.Platform.Storage;
@@ -222,6 +223,52 @@ public partial class GroupChatView : UserControl
     private async Task<bool> ConfirmAsync(string message) =>
         // ⚠️ No window means nobody to ask, so nothing that cannot be undone goes ahead.
         TopLevel.GetTopLevel(this) is Window owner && await new ConfirmDialog(message).ShowDialog<bool>(owner);
+
+
+    // ── Reactions ─────────────────────────────────────────────────────────────
+
+    private Flyout? _reactFlyout;
+    private ReactionPicker? _reactPicker;
+    private Func<string, Task>? _reacting;
+
+    /// <summary>The message a control under it belongs to.</summary>
+    private static T? LineOf<T>(object? sender) where T : class =>
+        (sender as Visual)?.GetSelfAndVisualAncestors().OfType<Control>().Select(c => c.DataContext).OfType<T>().FirstOrDefault();
+
+    /// <summary>
+    /// The picker, at the message's own button. ⚠️ Put away when the window stops being the one in use: a flyout is a
+    /// topmost window of its own and would otherwise sit over the next program.
+    /// </summary>
+    private void OpenReactionPicker(Control at, Func<string, Task> react)
+    {
+        if (_reactFlyout is null)
+        {
+            _reactPicker = new ReactionPicker();
+            _reactFlyout = new Flyout { Content = _reactPicker, Placement = PlacementMode.TopEdgeAlignedRight };
+            _reactPicker.Picked += emoji =>
+            {
+                _reactFlyout.Hide();
+                if (_reacting is { } chosen) _ = chosen(emoji);
+            };
+            if (TopLevel.GetTopLevel(this) is Window window) window.Deactivated += (_, _) => _reactFlyout.Hide();
+        }
+
+        _reacting = react;
+        _reactPicker!.Reset();
+        _reactFlyout.ShowAt(at);
+    }
+
+    private void OnAddReaction(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control at && LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm)
+            OpenReactionPicker(at, emoji => vm.ToggleReactionAsync(line, emoji));
+    }
+
+    private void OnReactionChip(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ReactionChipVm chip } && LineOf<GroupLineVm>(sender) is { } line && _vm is { } vm)
+            _ = vm.ToggleReactionAsync(line, chip.Emoji);
+    }
 
     /// <summary>Opens a link from a message in the browser. Only web addresses ever become links.</summary>
     private void OnOpenLink(object? sender, RoutedEventArgs e)

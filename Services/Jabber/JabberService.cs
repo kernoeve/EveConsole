@@ -245,6 +245,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberMessages.Where(m => m.AccountId == accountId).ExecuteDeleteAsync(ct);
+        await db.JabberReactions.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
         await db.JabberRooms.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
         await using (var tx = await db.Database.BeginTransactionAsync(ct))
         {
@@ -971,6 +972,13 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // Reactions are not a message of their own either, whatever words come with them for older clients.
+        if (message.ReactionsTo.Length > 0)
+        {
+            await ApplyReactionsAsync(db, row.AccountId, row.Conversation, room is not null, row.Sender, message.ReactionsTo, message.Reactions, ct);
+            return null;
+        }
+
         // A delete is never a message of its own, whether or not it finds what it names.
         if (message.RetractId.Length > 0)
         {
@@ -1622,10 +1630,12 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
             var days  = int.TryParse(saved, out var d) ? d : DefaultHistoryDays;
-            if (days <= 0) return;   // keep it all
-
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
-            await db.JabberMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+            if (days > 0)   // none keeps it all
+            {
+                var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
+                await db.JabberMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+            }
+            await DeleteOrphanReactionsAsync(db, ct);
         }
         catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
         {
