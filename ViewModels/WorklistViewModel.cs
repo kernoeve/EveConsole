@@ -2342,7 +2342,10 @@ public class WorklistViewModel : ReactiveObject
         });
 
         BuildToggles();
-        _ = RefreshAsync();
+        // Built once the app has started, not now: this runs while the app builds its tools, and a
+        // first build started here ran the whole time the main window waited for the Overview,
+        // slowing every query it made. Never built, the list is stale, so this does build it.
+        _ = RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
     }
 
     /// <summary>
