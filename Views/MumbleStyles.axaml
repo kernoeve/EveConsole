@@ -23,6 +23,11 @@
 
   <Style Selector="FlyoutPresenter.mumblepopup"><Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="5" /><Setter Property="Padding" Value="8" /><Setter Property="MinWidth" Value="0" /><Setter Property="MaxWidth" Value="420" /></Style>
 
+  <!-- Channels in a colour of their own, apart from people and from the talking colours. The one this client is in, bolder. -->
+  <Style Selector="TextBlock.channelname"><Setter Property="Foreground" Value="#4DB6A4" /></Style>
+  <Style Selector="TextBlock.channelname.here"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="#6FD3C1" /></Style>
+  <Style Selector="TextBlock.count"><Setter Property="FontSize" Value="10" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
+  <Style Selector="ToggleButton.people:checked /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
   <!-- A channel: the whole of its name is what moves you there. -->
   <Style Selector="Button.channel"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="4 2" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="3" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Left" /><Setter Property="Focusable" Value="False" /></Style>
   <Style Selector="Button.channel:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /></Style>

@@ -16,8 +16,16 @@
       <Path Classes="menu" Data="M1 3h10M1 6h10M1 9h10" />
       <Button.Flyout>
         <Flyout Placement="BottomEdgeAlignedLeft" FlyoutPresenterClasses="mumblepopup" Opening="OnTreeOpening" Opened="OnTreeOpened" Closed="OnTreeClosed">
-          <Grid RowDefinitions="*,Auto" Width="280">
-          <ScrollViewer MaxHeight="460" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
+          <Grid RowDefinitions="Auto,*,Auto,Auto" Width="280">
+          <!-- Finding someone, and whether the people under each channel show at all. -->
+          <Grid ColumnDefinitions="*,Auto" Margin="0 0 0 6">
+            <TextBox Classes="clearButton" Text="{Binding Owner.FindPerson}" Watermark="{x:Static loc:MumbleText.FindPersonHint}" FontSize="11" MinHeight="26" Padding="6 3" />
+            <ToggleButton Grid.Column="1" Classes="icon people" IsChecked="{Binding Owner.ShowPeople}" Margin="4 0 0 0" ToolTip.Tip="{x:Static loc:MumbleText.ShowPeopleTip}">
+              <Path Data="M4 3.5 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0 z M1.5 12 v-1 a3.5 3.5 0 0 1 3.5 -3.5 h3 a3.5 3.5 0 0 1 3.5 3.5 v1 z"
+                    Fill="{DynamicResource TextMutedBrush}" Width="12" Height="12" Stretch="Uniform" />
+            </ToggleButton>
+          </Grid>
+          <ScrollViewer Grid.Row="1" MaxHeight="460" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
             <!-- Its rows start one step in, under the server they are not showing here. -->
             <ItemsControl x:Name="Tree" ItemsSource="{Binding Rows}" Margin="-14 0 0 0">
               <ItemsControl.ItemsPanel>
@@ -26,7 +34,7 @@
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:MumbleRowVm">
                   <Grid Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
-                    <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*">
+                    <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*,Auto">
                       <Button Classes="chevron" IsVisible="{Binding HasChildren}" Click="OnToggleChannel">
                         <Panel>
                           <Path IsVisible="{Binding !IsOpen}" Data="M1 0 L6 4.5 L1 9 Z" Fill="{DynamicResource TextMutedBrush}" />
@@ -35,10 +43,20 @@
                       </Button>
                       <Button Grid.Column="1" Classes="channel" Click="OnChannelClick">
                         <StackPanel Orientation="Horizontal" Spacing="5">
-                          <TextBlock Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                          <TextBlock Classes="channelname" Classes.here="{Binding IsHere}" Text="{Binding Text}" FontSize="12" TextTrimming="CharacterEllipsis" />
                           <Path IsVisible="{Binding IsListening}" Data="M3 7a4 4 0 1 1 7 2.6c-.8.9-1.5 1.4-1.5 2.4a1.8 1.8 0 0 1-3.2 1" Stroke="{DynamicResource GoodBrush}" StrokeThickness="1.1" Width="12" Height="14" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MumbleText.StopListening}" />
                         </StackPanel>
                       </Button>
+                      <!-- Who is in it, and how many of them can hear. -->
+                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="3" IsVisible="{Binding HasPeople}" Margin="6 0 2 0" VerticalAlignment="Center"
+                                  Background="Transparent" ToolTip.Tip="{Binding PeopleTip}">
+                        <Path Data="M4 3.5 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0 z M1.5 12 v-1 a3.5 3.5 0 0 1 3.5 -3.5 h3 a3.5 3.5 0 0 1 3.5 3.5 v1 z"
+                              Fill="{DynamicResource TextDimBrush}" Width="10" Height="10" Stretch="Uniform" VerticalAlignment="Center" />
+                        <TextBlock Classes="count" Text="{Binding People}" />
+                        <Path Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0z"
+                              Stroke="{DynamicResource TextDimBrush}" StrokeThickness="1.1" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" Margin="3 0 0 0" />
+                        <TextBlock Classes="count" Text="{Binding Hearing}" />
+                      </StackPanel>
                     </Grid>
                     <Grid IsVisible="{Binding IsUser}" ColumnDefinitions="14,*,Auto" Margin="4 2">
                       <Ellipse Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Width="8" Height="8" HorizontalAlignment="Left" VerticalAlignment="Center" />
@@ -55,8 +73,9 @@
               </ItemsControl.ItemTemplate>
             </ItemsControl>
           </ScrollViewer>
+          <TextBlock Grid.Row="2" IsVisible="{Binding NoneFound}" Text="{x:Static loc:MumbleText.NobodyFound}" FontSize="11" Margin="4 4" Foreground="{DynamicResource TextFaintBrush}" />
           <!-- What the server said no to: what is done from here has to be answered here. -->
-          <TextBlock Grid.Row="1" DataContext="{Binding Owner}" x:DataType="vm:MumbleViewModel" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="0 6 0 0" Foreground="{DynamicResource WarnBrush}" />
+          <TextBlock Grid.Row="3" DataContext="{Binding Owner}" x:DataType="vm:MumbleViewModel" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="0 6 0 0" Foreground="{DynamicResource WarnBrush}" />
           </Grid>
         </Flyout>
       </Button.Flyout>

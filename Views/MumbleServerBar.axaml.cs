@@ -38,7 +38,7 @@ public partial class MumbleServerBar : UserControl
     private void OnTreeOpened(object? sender, EventArgs e)
     {
         if (Column is { } column)
-            Tree.ScrollIntoView(column.Rows.Select((row, at) => (row, at)).FirstOrDefault(r => r.row.IsMe).at);
+            Tree.ScrollIntoView(column.Rows.Select((row, at) => (row, at)).FirstOrDefault(r => r.row.IsHere || r.row.IsMe).at);
     }
 
     private void OnTreeClosed(object? sender, EventArgs e)

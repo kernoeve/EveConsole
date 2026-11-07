@@ -442,4 +442,16 @@
   <data name="LabelNewChannelUnder" xml:space="preserve">
     <value>{0} 아래에 만들 채널 이름</value>
   </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>사람 찾기</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>채널마다 사람 표시</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>그 이름을 가진 사람이 없습니다.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0}명, 그중 {1}명이 듣고 있음</value>
+  </data>
 </root>
