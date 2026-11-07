@@ -1194,6 +1194,20 @@ try
 
         await pictures.NoteAsync("jabber", 1, ["r@rooms.example/Bob", "bob@example", "other@example"], "", Fetch(png));
         Check("pictures: none any more, forgotten, and the picture with them", (await Owners()).Count == 0 && await Pictures() == 0);
+
+        // ⚠️ What a restart looks like: a picture saved before, announced again by the presences that
+        // arrive as the app connects. It once cost each presence three queries and a save, hundreds a
+        // second, because who has which picture was only read once one was drawn.
+        var real = Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(png));
+        string[] people = ["carol@example", "dave@example", "erin@example", "fred@example", "gina@example"];
+        foreach (var person in people) await pictures.NoteAsync("jabber", 1, [person], real, Fetch(png));
+        var fetchesBefore = fetches;
+        var restarted = new AvatarService(factory, new AppErrorLogger(null!));
+        using var counting = new CommandCounter();
+        foreach (var person in people) await restarted.NoteAsync("jabber", 1, [person], real, Fetch(png));
+        Check("pictures: after a restart, people whose pictures are saved cost only the one read of who has which",
+              fetches == fetchesBefore && counting.Count <= 3, $"{counting.Count} commands for {people.Length} people, {fetches - fetchesBefore} fetches");
+        await pictures.NoteAsync("jabber", 1, people, "", Fetch(png));
     }
 
     // ── Emote packs in the database: each server its own ────────────────────
@@ -1266,6 +1280,34 @@ return failures.Count == 0 ? 0 : 1;
 sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext() => new(o);
+}
+
+/// <summary>How many database commands Entity Framework runs while this is alive, from its diagnostic events.</summary>
+sealed class CommandCounter : IObserver<System.Diagnostics.DiagnosticListener>, IObserver<KeyValuePair<string, object?>>, IDisposable
+{
+    private readonly IDisposable _all;
+    private readonly List<IDisposable> _subscriptions = [];
+    private int _count;
+
+    public CommandCounter() => _all = System.Diagnostics.DiagnosticListener.AllListeners.Subscribe(this);
+
+    public int Count => Volatile.Read(ref _count);
+
+    public void OnNext(System.Diagnostics.DiagnosticListener listener)
+    {
+        if (listener.Name == "Microsoft.EntityFrameworkCore")
+            lock (_subscriptions) _subscriptions.Add(listener.Subscribe(this, name => name.EndsWith("CommandExecuted", StringComparison.Ordinal)));
+    }
+
+    public void OnNext(KeyValuePair<string, object?> e) => Interlocked.Increment(ref _count);
+    public void OnCompleted() { }
+    public void OnError(Exception error) { }
+
+    public void Dispose()
+    {
+        _all.Dispose();
+        lock (_subscriptions) foreach (var s in _subscriptions) s.Dispose();
+    }
 }
 
 sealed class RelaySpy : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor

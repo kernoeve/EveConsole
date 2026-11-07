@@ -70,16 +70,31 @@ public sealed class AvatarService
 
     private void Start()
     {
+        _ = OwnersReadAsync();
+        // The timer is the UI thread's, so made the first time this is reached there — not only the
+        // first time at all, which could be a connection noting someone on another thread.
         lock (_gate)
         {
-            if (_started) return;
+            if (_started || Avalonia.Application.Current is null || !Dispatcher.UIThread.CheckAccess()) return;
             _started = true;
         }
-        _ = ReadOwnersAsync(force: true);
-        if (Avalonia.Application.Current is null || !Dispatcher.UIThread.CheckAccess()) return;
         _timer = new DispatcherTimer { Interval = LookAgain };
         _timer.Tick += (_, _) => _ = ReadOwnersAsync(force: false);
         _timer.Start();
+    }
+
+    private Task? _firstRead;
+
+    /// <summary>
+    /// Who has which picture, read once; later reads come from the timer.
+    /// <para>⚠️ Waited for before a presence is checked against it. It was read only when a picture
+    /// was first drawn, so at startup every presence from every room and server found the list empty
+    /// and went to the database to confirm a picture it already had: three queries and a save each,
+    /// hundreds of them a second, in the middle of everything else the app reads as it starts.</para>
+    /// </summary>
+    private Task OwnersReadAsync()
+    {
+        lock (_gate) return _firstRead ??= ReadOwnersAsync(force: true);
     }
 
     private async Task ReadOwnersAsync(bool force)
@@ -167,6 +182,9 @@ public sealed class AvatarService
 
         try
         {
+            // What's saved already, so a picture already known costs nothing.
+            await OwnersReadAsync();
+
             if (hash is { Length: 0 })
             {
                 bool had;

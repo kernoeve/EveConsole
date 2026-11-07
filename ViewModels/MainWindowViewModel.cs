@@ -950,6 +950,18 @@ public class MainWindowViewModel : ReactiveObject
         [.. _allNavItems.Where(i => i.ToolId is not ("jump_planner" or "route_planner" or "jabber" or "mumble"))];
 
     private readonly Func<string?, OverviewViewModel> _newOverview;
+
+    /// <summary>
+    /// A container's Overview loads once the main one has. At startup all of them load together,
+    /// each reading the same things, and the main window waits for its own: the others only made
+    /// that wait longer.
+    /// </summary>
+    private async Task LoadAfterMainAsync(OverviewViewModel overview)
+    {
+        try { await OverviewVm.EnsureLoadedAsync(); }
+        catch (Exception) { /* the main one's failure is its own; this one still loads */ }
+        await overview.LoadAsync();
+    }
     private int _containerOverviews;
 
     /// <summary>
@@ -1484,26 +1496,38 @@ public class MainWindowViewModel : ReactiveObject
         ParkComparisonService           parkCompare,
         CostIndexHistoryService         costIndexHistory)
     {
+        StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
         Main.WhenAnyValue(w => w.SelectedTab).Subscribe(_ => this.RaisePropertyChanged(nameof(SelectedTab)));
 
         AlarmActions = alarmActions;
         _uiLinks        = uiLinks;
+        StartupTrace.Step("new OtherSettingsVm");
         OtherSettingsVm = new OtherSettingsViewModel(uiLinks);
+        StartupTrace.Step("new DataRetentionVm");
         DataRetentionVm = new DataRetentionSettingsViewModel(dataRetention);
         BindServerStatus(serverStatus);
         ThemeService.Changed   += OnThemeChanged;
         UiScaleService.Changed += OnUiScaleChanged;
 
         Slack             = slackService;
+        StartupTrace.Step("new SlackSettingsVm");
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
+        StartupTrace.Step("new OnlineServicesSettingsVm");
         OnlineServicesSettingsVm = new OnlineServicesSettingsViewModel(onlineServices);
+        StartupTrace.Step("new DiscordSettingsVm");
         DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
+        StartupTrace.Step("new GameLogSettingsVm");
         GameLogSettingsVm = new GameLogSettingsViewModel(monitoringSettings, gameLogImport);
+        StartupTrace.Step("new ChatLogSettingsVm");
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
+        StartupTrace.Step("new ZkbSettingsVm");
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
+        StartupTrace.Step("new MapStatsSettingsVm");
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
+        StartupTrace.Step("new AlertSettingsVm");
         AlertSettingsVm   = new AlertSettingsViewModel(dbFactory);
+        StartupTrace.Step("new OverviewVm");
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         // Another Overview, for a Tool Container: its own layout, everything else as the main one (WireLike).
         _newOverview = layoutKey =>
@@ -1511,10 +1535,12 @@ public class MainWindowViewModel : ReactiveObject
             var overview = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService,
                 dbFactory, esi, standingBuyOrderService, indyFacilityCheck, isMain: false, layoutKey: layoutKey);
             overview.WireLike(OverviewVm);
-            _ = overview.LoadAsync();
+            _ = LoadAfterMainAsync(overview);
             return overview;
         };
+        StartupTrace.Step("new CharacterVm");
         CharacterVm       = new CharacterViewModel(auth, esi, dbFactory.CreateDbContext(), errorLogger);
+        StartupTrace.Step("new SdeVm");
         SdeVm             = new SdeViewModel(sdeService, hoboService, dbFactory.CreateDbContext());
 
         // Not awaited: the engine name is right immediately, and only the hover detail is late.
@@ -1541,43 +1567,64 @@ public class MainWindowViewModel : ReactiveObject
         _workerTimer.Tick += (_, _) => _ = RefreshWorkerAsync();
         _workerTimer.Start();
         ActivityVm        = activityVm;
+        StartupTrace.Step("new CharacterViewerVm");
         CharacterViewerVm = new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters,
             characterSummaryService);
+        StartupTrace.Step("new NetWorthVm");
         NetWorthVm        = new NetWorthViewModel(dbFactory);
+        StartupTrace.Step("new IncomeExpenseVm");
         IncomeExpenseVm   = new IncomeExpenseViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new IncomeExpenseToolVm");
         IncomeExpenseToolVm = new IncomeExpenseToolViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new MarketVm");
         MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
         var fittingsService = new FittingsService(esi);
+        StartupTrace.Step("new FittingVm");
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
         // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
         // fitting tool reads the new game data; one that loaded during the import gets its second try.
         SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
             .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
+        StartupTrace.Step("new MarketLevelVm");
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, batchAddService, prodCalcService);
         // appPrefs is the constructor parameter, not the AppPrefs property — that is not assigned
         // until far below this line, and passing it here handed the view model a null.
+        StartupTrace.Step("new InvLevelVm");
         InvLevelVm        = new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters);
+        StartupTrace.Step("new SalePostingVm");
         SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi);
+        StartupTrace.Step("new StoresVm");
         StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
 
+        StartupTrace.Step("new CorpActivityVm");
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
+        StartupTrace.Step("new CorpStructuresVm");
         CorpStructuresVm  = new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger);
+        StartupTrace.Step("new MercenaryDensVm");
         MercenaryDensVm   = new MercenaryDensViewModel(dbFactory, errorLogger);
         MumbleService     = mumbleService;
+        StartupTrace.Step("new ClientLayoutsVm");
         ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger,
             () => [.. mumbleService.Sessions.Select(s => new MumbleServerChoice(s.Server.Id, s.Server.Name.Length > 0 ? s.Server.Name : s.Server.Host))],
             () => [.. ContainerToolChoices.Select(i => new ToolChoice(i.ToolId, i.Title))]);
+        StartupTrace.Step("new KillmailBrowserVm");
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
+        StartupTrace.Step("new BattleReportVm");
         BattleReportVm    = new BattleReportViewModel(battleReportService,
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
         MailSvc           = eveMailService;
+        StartupTrace.Step("new EveMailVm");
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
+        StartupTrace.Step("new JabberVm");
         JabberVm          = new JabberViewModel(jabberService, appPrefs, emoteService);
+        StartupTrace.Step("new MumbleVm");
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
+        StartupTrace.Step("new MessagesVm");
         MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute, emoteService);
+        StartupTrace.Step("new GroupChatVm");
         GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
@@ -1615,26 +1662,40 @@ public class MainWindowViewModel : ReactiveObject
             KillmailBrowserVm.SelectById(killMailId);
         };
         OverviewVm.OpenToolRequested = OpenTool;
+        StartupTrace.Step("new TimerVm");
         TimerVm           = new TimerSettingsViewModel(pollingService, timerSettings, timerForce);
         _pollingService   = pollingService;
         _buildCostService = buildCostService;
 
+        StartupTrace.Step("new PriceHistorySettingsVm");
         PriceHistorySettingsVm = new PriceHistorySettingsViewModel(dbFactory.CreateDbContext());
+        StartupTrace.Step("new PollingSettingsVm");
         PollingSettingsVm      = new PollingSettingsViewModel(appPrefs);
+        StartupTrace.Step("new CorpTop10SettingsVm");
         CorpTop10SettingsVm    = new CorpTop10SettingsViewModel(corpTop10Exclude, corpReportTitles);
+        StartupTrace.Step("new ItemBrowserVm");
         ItemBrowserVm          = new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs);
+        StartupTrace.Step("new IndyParksVm");
         IndyParksVm            = new IndyParksViewModel(dbFactory, corpActivityService, errorLogger,
                                                         indyStructureLink, indyBulkAdd, pollingService);
         // Indy Parks, Compare, and the System Index tool: one record of cost indices for both.
         IndyParksVm.Compare = new ParkComparisonViewModel(parkCompare, costIndexHistory, dbFactory);
         IndyParksVm.ParksChanged += () => _ = IndyParksVm.Compare.LoadParksAsync();
+        StartupTrace.Step("new SystemIndexVm");
         SystemIndexVm       = new SystemIndexViewModel(dbFactory, costIndexHistory);
+        StartupTrace.Step("new WalletVm");
         WalletVm               = new WalletViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new ContractsVm");
         ContractsVm            = new ContractsViewModel(dbFactory, esi, errorLogger, contractsService);
+        StartupTrace.Step("new NotificationsVm");
         NotificationsVm        = new NotificationsViewModel(dbFactory, esi, errorLogger);
+        StartupTrace.Step("new MarketViewerVm");
         MarketViewerVm         = new MarketViewerViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new SalesTrackerVm");
         SalesTrackerVm         = new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels);
+        StartupTrace.Step("new SaleListingBuildVm");
         SaleListingBuildVm     = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost);
+        StartupTrace.Step("new SaleListingMarketVm");
         SaleListingMarketVm    = new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue);
         OverviewVm.SaleListingBuild  = SaleListingBuildVm;   // let the Overview embed them as sections
         OverviewVm.SaleListingMarket = SaleListingMarketVm;
@@ -1646,8 +1707,11 @@ public class MainWindowViewModel : ReactiveObject
         // typed into.
         var entityBrowser      = new EntityBrowserService(dbFactory, esi);
 
+        StartupTrace.Step("new OrderTrackerVm");
         OrderTrackerVm         = new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment);
+        StartupTrace.Step("new StandingBuyOrdersVm");
         StandingBuyOrdersVm    = new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService);
+        StartupTrace.Step("new WorklistVm");
         WorklistVm             = new WorklistViewModel(worklistService,
                                      new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
                                      new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
@@ -1678,17 +1742,25 @@ public class MainWindowViewModel : ReactiveObject
             await WorklistVm.StationLevelsVm.LoadAsync();
         };
 
+        StartupTrace.Step("new LpMarketValuesVm");
         LpMarketValuesVm       = new LpMarketValuesViewModel(dbFactory, lpValueService);
+        StartupTrace.Step("new ItemValuationVm");
         ItemValuationVm        = new ItemValuationViewModel(dbFactory);
+        StartupTrace.Step("new PlayerEntitiesVm");
         PlayerEntitiesVm       = new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
                                      new PlayerActivityService(dbFactory, corpActivityService));
+        StartupTrace.Step("new NpcEntitiesVm");
         NpcEntitiesVm          = new NpcEntitiesViewModel(entityBrowser, killmailBrowserService);
+        StartupTrace.Step("new ProductionCalcVm");
         ProductionCalcVm       = new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs);
+        StartupTrace.Step("new PriceOverrideVm");
         PriceOverrideVm        = new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService);
+        StartupTrace.Step("new StructureBrowserVm");
         StructureBrowserVm     = new StructureBrowserViewModel(
                                      dbFactory, pollingService, esi, new FittingOptionService(dbFactory),
                                      appPrefs, indyStructureLink);
         Pi                     = piService;
+        StartupTrace.Step("new PlanetaryIndustryVm");
         PlanetaryIndustryVm    = new PlanetaryIndustryViewModel(piService, errorLogger);
         // Refresh in the PI tool reads the colonies from ESI on the poll's next pass, and the
         // tool shows what that brings as soon as the layouts are in.
@@ -1719,14 +1791,18 @@ public class MainWindowViewModel : ReactiveObject
             },
         };
         // The jump planner and the route planner are tabs of the map tool.
+        StartupTrace.Step("new JumpPlannerVm");
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
+        StartupTrace.Step("new MapVm");
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
+        StartupTrace.Step("new AlarmsVm");
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
+        StartupTrace.Step("new SchedulerVm");
         SchedulerVm            = new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
                                                         corpActivityService, salePostingService, errorLogger, batchAddService,
                                                         parkCompare, onlineServices,
@@ -1832,18 +1908,27 @@ public class MainWindowViewModel : ReactiveObject
 
         using var tmpDb      = dbFactory.CreateDbContext();
         var connString       = tmpDb.Database.GetConnectionString()!;
+        StartupTrace.Step("new ExplorerVm");
         ExplorerVm           = new EsiExplorerViewModel(connString);
+        StartupTrace.Step("new ErrorLogVm");
         ErrorLogVm           = new ErrorLogViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new AgentUsageVm");
         AgentUsageVm         = new AgentUsageViewModel(dbFactory, errorLogger);
         // A model a paid service has added gets a rate row of its own when the tool is opened.
         AgentUsageVm.SyncListedRates = ct => agentService.Telemetry is { } telemetry
             ? EveConsole.Agent.ListedRates.SyncAsync(agentService.Settings, telemetry, ct)
             : Task.FromResult(0);
+        StartupTrace.Step("new GameLogViewerVm");
         GameLogViewerVm      = new GameLogViewerViewModel(dbFactory, errorLogger);
+        StartupTrace.Step("new ChatLogViewerVm");
         ChatLogViewerVm      = new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings);
+        StartupTrace.Step("new AssetBrowserVm");
         AssetBrowserVm       = new AssetBrowserViewModel(connString);
+        StartupTrace.Step("new IndustryBrowserVm");
         IndustryBrowserVm    = new IndustryBrowserViewModel(connString, indyFacilityCheck, new Services.Worklist.InventionService(dbFactory));
+        StartupTrace.Step("new TradeOpportunitiesVm");
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
+        StartupTrace.Step("new IndustryOpportunitiesVm");
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
 
         agentService.AlarmToolFactory =
@@ -1862,6 +1947,7 @@ public class MainWindowViewModel : ReactiveObject
         SpeechInputService = speechInputService;
         HotkeyService      = hotkeyService;
         AppPrefs           = appPrefs;
+        StartupTrace.Step("new UpdateVm");
         UpdateVm           = new UpdateViewModel(appPrefs, errorLogger);
         DbBackup           = dbBackup;
 
@@ -1871,6 +1957,7 @@ public class MainWindowViewModel : ReactiveObject
                                      s.WhisperLocalModel, s.MicrophoneDeviceName, s.WhisperLanguage,
                                      s.OpenAiTranscriptionModel ?? "");
 
+        StartupTrace.Step("new AgentVm");
         AgentVm = new AgentPanelViewModel(agentService, ttsService, speechInputService, hotkeyService);
 
         StartEveTimeClock();

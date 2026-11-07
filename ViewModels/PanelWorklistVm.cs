@@ -146,6 +146,7 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
 
         Note = name == null ? ClientLayoutsText.WorklistNoClient
             : id == null ? string.Format(System.Globalization.CultureInfo.CurrentCulture, ClientLayoutsText.WorklistNotInApp, name)
+            : fresh.Count == 0 && !_worklist.HasBuilt ? ClientLayoutsText.WorklistLoading
             : fresh.Count == 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, ClientLayoutsText.WorklistNothing, name)
             : "";
     }

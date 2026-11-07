@@ -31,4 +31,13 @@ public static class PerfDiagnostics
     /// report says what is needed.</para>
     /// </summary>
     public static bool OverviewSections { get; set; }
+
+    /// <summary>
+    /// <see cref="EveConsole.Services.StartupTrace"/>: the first minutes of a run, step by step, with
+    /// what was allocated by type and thread, in a file of its own in the temp folder.
+    ///
+    /// <para><b>On</b> while a slow start is being chased (2026-11-07): a start that froze for
+    /// minutes in garbage collection, with nothing to say what was allocating.</para>
+    /// </summary>
+    public static bool StartupTrace { get; set; } = true;
 }

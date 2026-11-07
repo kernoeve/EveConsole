@@ -616,10 +616,11 @@ public class OverviewViewModel : ReactiveObject
         _corpActivity   = corpActivity;
         _standingBuyOrders = standingBuyOrders;
         _dbFactory      = dbFactory;
-        // Default is the layout there always was, seeded from the old shared row if need be.
-        _layout         = LoadLayout(prefs);
+        // Default is the layout there always was, seeded from the old shared row if need be; every
+        // layout, Default included, is then read through the store.
+        LoadLayout(prefs);
         _layoutKey      = _layouts.KeyOf(isMain ? _layouts.MainLayout : layoutKey);
-        if (!OverviewLayoutStore.IsDefault(_layoutKey)) _layout = _layouts.Get(_layoutKey);
+        _layout         = _layouts.Get(_layoutKey);
         FillLayoutChoices();
         _layouts.Changed += OnLayoutsChanged;
         if (dbFactory is not null && esi is not null)
@@ -912,6 +913,7 @@ public class OverviewViewModel : ReactiveObject
             if (PerfDiagnostics.OverviewSections && took >= SlowSectionMs)
                 _errorLogger.Log(nameof(OverviewViewModel), "Slow Overview section",
                     $"\"{sectionName}\" took {took:N0} ms (wall clock, background queries included).");
+            if (took >= 100) StartupTrace.Mark($"Overview section \"{sectionName}\": {took:N0} ms");
 
             sectionAt   = now;
             sectionName = next;
@@ -985,9 +987,14 @@ public class OverviewViewModel : ReactiveObject
             // actually reckoned — the Sales Tracker's own totals and the Sale Posting tool.
             decimal mktSellTotal = 0m, mktBuyTotal = 0m;
             int     mktSellCnt   = 0,  mktBuyCnt   = 0;
-            foreach (var (ot, oid) in activityOwners)
+            // ⚠️ One query for every owner, not one each. Run one after another, thirty-odd owners
+            // took seconds on a database busy with everything else the app reads as it starts, and
+            // this section was the longest part of the Overview's first load. The owners are ids we
+            // hold, written in as numbers, the same way the kills query below does.
+            if (activityOwners.Count > 0)
             {
-                var s = await Off(() => _db.Database.SqlQuery<TxnSummary>(
+#pragma warning disable EF1002, EF1003
+                var s = await Off(() => _db.Database.SqlQueryRaw<TxnSummary>(
                     $"""
                     SELECT
                         COALESCE(SUM(CASE WHEN "IsBuy" = FALSE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "SellTotal",
@@ -995,16 +1002,17 @@ public class OverviewViewModel : ReactiveObject
                         COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN "Quantity" * CAST("UnitPrice" AS DOUBLE PRECISION) ELSE 0.0 END), 0.0) AS "BuyTotal",
                         COALESCE(SUM(CASE WHEN "IsBuy" = TRUE THEN 1 ELSE 0 END), 0)                                          AS "BuyCount"
                     FROM "EsiWalletTransactions"
-                    WHERE "OwnerType" = {ot} AND "OwnerId" = {oid} AND "Date" >= {cutoff}
-                    """
+                    WHERE ({OwnersSql(activityOwners)}) AND "Date" >= {"{0}"}
+                    """, cutoff
                 ).FirstOrDefaultAsync());
+#pragma warning restore EF1002, EF1003
 
                 if (s != null)
                 {
-                    mktSellTotal += (decimal)s.SellTotal;
-                    mktSellCnt   += s.SellCount;
-                    mktBuyTotal  += (decimal)s.BuyTotal;
-                    mktBuyCnt    += s.BuyCount;
+                    mktSellTotal = (decimal)s.SellTotal;
+                    mktSellCnt   = s.SellCount;
+                    mktBuyTotal  = (decimal)s.BuyTotal;
+                    mktBuyCnt    = s.BuyCount;
                 }
             }
             MktSellCount = mktSellCnt.ToString("N0");
@@ -1014,13 +1022,15 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Active market orders ───────────────────────────────────────────
             Step(OverviewText.StepMarketOrders);
-            var orders = new List<(bool IsBuy, int VolRemain, decimal Price)>();
-            foreach (var (ot, oid) in activityOwners)
-                orders.AddRange((await Off(() => _db.EsiMarketOrders.AsNoTracking()
-                    .Where(o => !o.IsHistory && o.OwnerType == ot && o.OwnerId == oid)
+            // One query for every owner, as the transactions above.
+            var (orderChars, orderCorps) = OwnerIds(activityOwners);
+            var orders = activityOwners.Count == 0 ? [] : (await Off(() => _db.EsiMarketOrders.AsNoTracking()
+                    .Where(o => !o.IsHistory
+                             && (o.OwnerType == "character" && orderChars.Contains(o.OwnerId)
+                              || o.OwnerType == "corporation" && orderCorps.Contains(o.OwnerId)))
                     .Select(o => new { o.IsBuyOrder, o.VolumeRemain, o.Price })
                     .ToListAsync()))
-                    .Select(o => (o.IsBuyOrder, o.VolumeRemain, o.Price)));
+                .Select(o => (IsBuy: o.IsBuyOrder, VolRemain: o.VolumeRemain, o.Price)).ToList();
 
             decimal sellOrderIsk = 0m, buyOrderIsk = 0m;
             int     sellOrderCnt = 0,  buyOrderCnt  = 0;
@@ -1062,13 +1072,13 @@ public class OverviewViewModel : ReactiveObject
 
             // ── Industry jobs ──────────────────────────────────────────────────
             Step(OverviewText.StepIndustryJobs);
-            var jobs = new List<(string Status, DateTimeOffset? Completed)>();
-            foreach (var (ot, oid) in activityOwners)
-                jobs.AddRange((await Off(() => _db.EsiIndustryJobs.AsNoTracking()
-                    .Where(j => j.OwnerType == ot && j.OwnerId == oid)
+            // One query for every owner, as the transactions above.
+            var jobs = activityOwners.Count == 0 ? [] : (await Off(() => _db.EsiIndustryJobs.AsNoTracking()
+                    .Where(j => j.OwnerType == "character" && orderChars.Contains(j.OwnerId)
+                             || j.OwnerType == "corporation" && orderCorps.Contains(j.OwnerId))
                     .Select(j => new { j.Status, j.CompletedDate })
                     .ToListAsync()))
-                    .Select(j => (j.Status, j.CompletedDate)));
+                .Select(j => (j.Status, Completed: j.CompletedDate)).ToList();
 
             ActiveJobCount    = jobs.Count(j => j.Status == "active").ToString("N0");
             CompletedJobCount = jobs.Count(j => j.Status == "delivered" &&
@@ -1131,11 +1141,25 @@ public class OverviewViewModel : ReactiveObject
                  Shown("WorklistJobs") || Shown("WorklistNeeds")))
             {
                 Step(OverviewText.StepWorklist);
-                await Worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+                // ⚠️ Started, not waited for. The sections fill themselves as the list's rows
+                // change (RebuildWorklistSections), so nothing here needs the build finished — and
+                // waiting held the whole Overview, and so the main window at startup, for the
+                // longest thing the app does: a full worklist build, every generator.
+                var worklist = Worklist;
+                var needs = Shown("WorklistNeeds");
+                _ = WorklistInBackgroundAsync();
 
-                // The needs report is loaded lazily by the tool when its tab is opened, which the
-                // Overview never does — without this the section stays empty forever.
-                if (Shown("WorklistNeeds")) await Worklist.EnsureNeedsLoadedAsync();
+                async Task WorklistInBackgroundAsync()
+                {
+                    try
+                    {
+                        await worklist.RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
+                        // The needs report is loaded lazily by the tool when its tab is opened, which
+                        // the Overview never does — without this the section stays empty forever.
+                        if (needs) await worklist.EnsureNeedsLoadedAsync();
+                    }
+                    catch (Exception ex) { PanelFailed(OverviewText.StepWorklist, ex); }
+                }
             }
 
             Step(OverviewText.StepStandingBuyOrders);
@@ -1504,6 +1528,24 @@ public class OverviewViewModel : ReactiveObject
     }
 
     // ── DTOs for raw SQL results ──────────────────────────────────────────────
+
+    /// <summary>The character and corporation ids among <paramref name="owners"/>, for one query over them all.</summary>
+    private static (List<long> Characters, List<long> Corporations) OwnerIds(List<(string Type, long Id)> owners) =>
+        ([.. owners.Where(o => o.Type == "character").Select(o => o.Id)],
+         [.. owners.Where(o => o.Type == "corporation").Select(o => o.Id)]);
+
+    /// <summary>
+    /// A WHERE condition matching any of <paramref name="owners"/>, for raw SQL. Only ever our own
+    /// owner ids, written in as numbers; the two owner types are this class's own constants.
+    /// </summary>
+    private static string OwnersSql(List<(string Type, long Id)> owners)
+    {
+        var (characters, corporations) = OwnerIds(owners);
+        var parts = new List<string>();
+        if (characters.Count > 0)   parts.Add($"(\"OwnerType\" = 'character' AND \"OwnerId\" IN ({string.Join(",", characters)}))");
+        if (corporations.Count > 0) parts.Add($"(\"OwnerType\" = 'corporation' AND \"OwnerId\" IN ({string.Join(",", corporations)}))");
+        return parts.Count == 0 ? "FALSE" : string.Join(" OR ", parts);
+    }
 
     private sealed class TxnSummary
     {

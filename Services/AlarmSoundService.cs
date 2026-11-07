@@ -17,26 +17,13 @@ public sealed record AlarmSound(string Key, string DisplayName, bool IsCustom)
 /// </summary>
 public sealed class AlarmSoundService
 {
-    private static readonly LibVLC? _vlc;
-
-    static AlarmSoundService()
-    {
-        try
-        {
-            VlcRuntime.Initialize();
-            _vlc = new LibVLC(enableDebugLogs: false);
-        }
-        catch (Exception ex)
-        {
-            _vlc = null;
-            InitError = ex.Message;
-        }
-    }
+    /// <summary>The app's one LibVLC (see <see cref="VlcRuntime.Shared"/>), started in the background at startup.</summary>
+    private static LibVLC? _vlc => VlcRuntime.Shared;
 
     public static bool IsAvailable => _vlc is not null;
 
     /// <summary>Why LibVLC would not start, or null when it did.</summary>
-    public static string? InitError { get; }
+    public static string? InitError => VlcRuntime.SharedError;
 
     /// <summary>
     /// What went wrong the last time a sound was asked for, or null if the last attempt was

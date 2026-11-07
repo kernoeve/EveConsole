@@ -44,6 +44,7 @@
   <data name="WorklistNotInApp" xml:space="preserve"><value>{0} isn't a character in EVE Console.</value></data>
   <data name="WorklistNothing" xml:space="preserve"><value>Nothing ready for {0}.</value></data>
   <data name="WorklistOpenTool" xml:space="preserve"><value>Open the Worklist</value></data>
+  <data name="WorklistLoading" xml:space="preserve"><value>Loading the worklist…</value><comment>A Worklist control before the list has been built for the first time, just after the app starts.</comment></data>
   <data name="WorklistNoClientShort" xml:space="preserve"><value>No one logged in</value><comment>A Worklist control's single line when no game client is logged in on its monitor.</comment></data>
   <data name="LabelWorklistMode" xml:space="preserve"><value>Shows as</value></data>
   <data name="WorklistModeList" xml:space="preserve"><value>The list of ready tasks</value></data>
