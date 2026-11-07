@@ -111,9 +111,10 @@ public sealed class GroupChatRowVm : ReactiveObject
 /// <summary>One message in a room or on a Mumble server. Both read the same on the screen.</summary>
 public sealed partial class GroupLineVm
 {
-    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention)
+    public GroupLineVm(long id, string sender, string body, string when, string channel, bool isMention, EmoteSet? emotes = null)
     {
         Id = id;
+        Emotes = emotes ?? EmoteSet.None;
         Sender = sender;
         Body = body;
         When = when;
@@ -132,6 +133,9 @@ public sealed partial class GroupLineVm
     public bool HasChannel => Channel.Length > 0;
 
     public bool IsMention { get; }
+
+    /// <summary>The emotes of the server it was said on. None for a Mumble server's.</summary>
+    public EmoteSet Emotes { get; }
 
     /// <summary>The web addresses in the message, to open. Web only: a link in a chat decides nothing else.</summary>
     public IReadOnlyList<string> Links { get; }
@@ -238,6 +242,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private readonly AlarmSoundService _sound;
     private readonly AlarmMuteState _mute;
     private readonly AppPreferencesService _prefs;
+    private readonly EmoteService? _emotes;
 
     private List<JabberUnread> _unread = [];
     private readonly Dictionary<int, (int Count, int Mentions)> _mumbleUnread = [];
@@ -247,8 +252,9 @@ public sealed class GroupChatViewModel : ReactiveObject
     private bool _refreshAgain;
     private bool _loadingDetail;
 
-    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null)
     {
+        _emotes = emotes;
         _jabber = jabber;
         _mumble = mumble;
         _prefs = prefs;
@@ -325,6 +331,7 @@ public sealed class GroupChatViewModel : ReactiveObject
             this.RaiseAndSetIfChanged(ref _selectedRow, value);
             IsAddingRooms = false;
             this.RaisePropertyChanged(nameof(Draft));
+            DraftEmotes = value is { IsRoom: true } room ? EmotesOf(room.ServerId) : EmoteSet.None;
             _ = OpenSelectedAsync();
         }
     }
@@ -638,10 +645,17 @@ public sealed class GroupChatViewModel : ReactiveObject
         await MarkOpenReadAsync();
     }
 
-    private static GroupLineVm ToLine(JabberStoredMessage m) => new(
+    private GroupLineVm ToLine(JabberStoredMessage m) => new(
         m.Id, m.Sender, m.Body,
         ChatTime.Of(m.SentAt),
-        "", m.IsMention);
+        "", m.IsMention, EmotesOf(m.AccountId));
+
+    private EmoteSet EmotesOf(int accountId) => _emotes?.For(accountId) ?? EmoteSet.None;
+
+    private EmoteSet _draftEmotes = EmoteSet.None;
+
+    /// <summary>The emotes the message being written can use: the room's server's. None for a Mumble server.</summary>
+    public EmoteSet DraftEmotes { get => _draftEmotes; private set => this.RaiseAndSetIfChanged(ref _draftEmotes, value); }
 
     private static GroupLineVm ToLine(MumbleSession session, MumbleChatLine line) => new(
         0, line.Sender, line.Text, ChatTime.Of(line.When),

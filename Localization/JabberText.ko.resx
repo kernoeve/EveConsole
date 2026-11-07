@@ -273,4 +273,91 @@
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>백그라운드 프로세스를 기다리는 중</value>
   </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Pidgin 스마일리 테마가 아닙니다. theme라는 파일이 없습니다.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>theme 파일이 너무 커서 스마일리 테마가 아닙니다.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>팩이 너무 큽니다. 팩에는 이미지 5,000개, 64MB까지 넣을 수 있습니다.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>이 파일을 zip으로 열 수 없습니다.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>테마에 나열된 이미지를 하나도 사용할 수 없어 아무것도 불러오지 않았습니다.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>이모트 검색</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>이름에 그 내용이 들어간 이모트가 없습니다.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>이모트 (: 와 처음 몇 글자를 입력해도 됩니다)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>코드 {0:N0}개 · 이미지 {1:N0}개</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>이모트 팩</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>:wave: 같은 코드는 이 서버의 방과 메시지에서 이미지로 표시되고, 글을 쓸 때 고를 수도 있습니다. 팩은 Pidgin 스마일리 테마입니다. 두 팩에 같은 코드가 있으면 위에 있는 팩이 우선합니다.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>이 서버에는 이모트 팩이 없어 코드가 일반 텍스트로 표시됩니다.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>위로: 아래 팩보다 우선합니다</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>아래로</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>빼기</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>팩 불러오기…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Pidgin 스마일리 테마: 그 zip 파일 또는 압축을 푼 폴더의 theme 파일. 한 번 불러오면 이 데이터베이스를 쓰는 모든 PC에서 사용할 수 있습니다.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>다른 서버용으로 이미 불러온 팩을 이 서버에도 줍니다</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>팩을 불러오는 중…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0}을(를) 불러왔습니다: 코드 {1:N0}개, 이미지 {2:N0}개.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0}을(를) 이 사본으로 업데이트했습니다(이 팩을 쓰는 모든 서버): 코드 {1:N0}개, 이미지 {2:N0}개.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>테마에 나열된 이미지 중 {0:N0}개가 팩에 없어 제외했습니다.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>파일 {0:N0}개는 이미지가 아니거나 이모트로 쓰기에 너무 커서 제외했습니다.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>{0}을(를) 뺄까요? 다른 서버에는 없으므로 삭제됩니다. 되돌리려면 다시 불러오세요.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0}을(를) 빼고, 다른 서버에 없어 삭제했습니다.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0}을(를) 이 서버에서 뺐습니다. 이 팩이 있는 다른 서버에는 남아 있습니다.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>이모트 팩 불러오기</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin 스마일리 테마</value>
+  </data>
 </root>

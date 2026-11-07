@@ -273,4 +273,91 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>En attente du processus en arrière-plan</value>
   </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Ce n'est pas un thème de smileys Pidgin : il ne contient aucun fichier nommé theme.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>Le fichier theme est trop gros pour être un thème de smileys.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>Ce pack est trop gros. Un pack peut contenir jusqu'à 5 000 images et 64 Mo.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>Ce fichier n'a pas pu être ouvert comme un zip.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>Aucune des images listées par le thème n'était utilisable, rien n'a donc été chargé.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Rechercher des emotes</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>Aucune emote n'a cela dans son nom.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Emotes (ou tapez : et les premières lettres)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>{0:N0} codes · {1:N0} images</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Packs d'emotes</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Les codes comme :wave: s'affichent sous forme d'image dans les salons et messages de ce serveur, et peuvent être choisis en écrivant. Les packs sont des thèmes de smileys Pidgin. Si deux packs ont le même code, celui du dessus l'emporte.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>Ce serveur n'a aucun pack d'emotes : les codes s'affichent en texte brut.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Monter : l'emporte sur les packs en dessous</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Charger un pack…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Un thème de smileys Pidgin : son zip, ou le fichier theme d'un dossier décompressé. Une fois chargé, il est présent sur chaque PC utilisant cette base de données.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Donner à ce serveur un pack déjà chargé pour un autre</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Chargement du pack…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0} chargé : {1:N0} codes, {2:N0} images.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} mis à jour avec cette copie, pour chaque serveur qui l'a : {1:N0} codes, {2:N0} images.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>{0:N0} images listées par le thème ne sont pas dans le pack et ont été ignorées.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} fichiers n'étaient pas des images, ou étaient trop gros pour une emote, et ont été ignorés.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>Retirer {0} ? Aucun autre serveur ne l'a, il sera donc supprimé. Rechargez-le pour le récupérer.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} retiré et supprimé, car aucun autre serveur ne l'avait.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} retiré de ce serveur. Les autres serveurs qui l'ont le gardent.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Charger un pack d'emotes</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Thème de smileys Pidgin</value>
+  </data>
 </root>

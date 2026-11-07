@@ -94,6 +94,18 @@ public sealed class JabberRowVm : ReactiveObject
 }
 
 public sealed record JabberShowChoice(XmppShow Show, string Label);
+
+/// <summary>A pack on a server's page, in the order the server reads them.</summary>
+public sealed class JabberEmotePackVm(EmotePackInfo info, bool canUp, bool canDown)
+{
+    public EmotePackInfo Info => info;
+    public string Name => info.Name;
+    public string Detail => string.Format(CultureInfo.CurrentCulture, JabberText.EmotePackDetail, info.Codes, info.Pictures);
+    public string About => string.Join("\n", new[] { info.Description, info.Author }.Where(t => t.Length > 0));
+    public bool HasAbout => About.Length > 0;
+    public bool CanUp => canUp;
+    public bool CanDown => canDown;
+}
 /// <summary>
 /// The Jabber tool: every server down the left with its people, and how each is set up on the right. Conversations
 /// are elsewhere: with one person in Messages, in a room in Group Chat.
@@ -102,13 +114,15 @@ public sealed class JabberViewModel : ReactiveObject
 {
     private readonly JabberService _service;
     private readonly AppPreferencesService _prefs;
+    private readonly EmoteService? _emotes;
     private List<JabberUnread> _unread = [];
     private int _refreshQueued;
 
-    public JabberViewModel(JabberService service, AppPreferencesService prefs)
+    public JabberViewModel(JabberService service, AppPreferencesService prefs, EmoteService? emotes = null)
     {
         _service = service;
         _prefs   = prefs;
+        _emotes  = emotes;
 
         AddAccountCommand      = ReactiveCommand.Create(BeginAddAccount);
         EditAccountCommand     = ReactiveCommand.Create(BeginEditAccount);
@@ -124,6 +138,8 @@ public sealed class JabberViewModel : ReactiveObject
         RemoveContactCommand   = ReactiveCommand.CreateFromTask(RemoveContactAsync);
         AcceptRequestCommand   = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(true));
         DenyRequestCommand     = ReactiveCommand.CreateFromTask(() => AnswerRequestAsync(false));
+        AddPackCommand         = ReactiveCommand.CreateFromTask(AddPackAsync);
+        AddPackCommand.ThrownExceptions.Subscribe(e => EmoteStatus = e.Message);
         foreach (var command in new IHandleObservableErrors[]
                  {
                      SaveAccountCommand, DeleteAccountCommand, DisconnectCommand, TrustCertificateCommand,
@@ -141,6 +157,7 @@ public sealed class JabberViewModel : ReactiveObject
 
         _service.SessionChanged += _ => QueueRefresh();
         _service.UnreadChanged  += QueueRefresh;
+        if (_emotes is not null) _emotes.PacksChanged += () => { if (ShowAccount) _ = LoadEmotePacksAsync(); };
         QueueRefresh();
     }
 
@@ -390,6 +407,9 @@ public sealed class JabberViewModel : ReactiveObject
 
         StatusText = "";
         RefreshDetail();
+
+        if (EmoteAccount != _emoteAccountShown) EmoteStatus = "";
+        _ = LoadEmotePacksAsync();
     }
 
     private string _status = "";
@@ -550,6 +570,125 @@ public sealed class JabberViewModel : ReactiveObject
 
     /// <summary>Set by the view: asks before something that cannot be undone.</summary>
     public Func<string, Task<bool>>? Confirm { get; set; }
+
+    // ── Emote packs: each server's own ────────────────────────────────────────
+
+    public ReactiveCommand<Unit, Unit> AddPackCommand { get; }
+
+    public bool CanUseEmotes => _emotes is not null;
+
+    public ObservableCollection<JabberEmotePackVm> EmotePacks { get; } = [];
+    public bool HasEmotePacks => EmotePacks.Count > 0;
+
+    private IReadOnlyList<EmotePackInfo> _otherPacks = [];
+
+    /// <summary>Packs loaded for other servers that this one could have too, without loading them again.</summary>
+    public IReadOnlyList<EmotePackInfo> OtherPacks
+    {
+        get => _otherPacks;
+        private set { this.RaiseAndSetIfChanged(ref _otherPacks, value); this.RaisePropertyChanged(nameof(HasOtherPacks)); }
+    }
+    public bool HasOtherPacks => OtherPacks.Count > 0;
+
+    private EmotePackInfo? _packToAdd;
+    public EmotePackInfo? PackToAdd { get => _packToAdd; set => this.RaiseAndSetIfChanged(ref _packToAdd, value); }
+
+    private bool _isLoadingPack;
+    public bool IsLoadingPack { get => _isLoadingPack; private set => this.RaiseAndSetIfChanged(ref _isLoadingPack, value); }
+
+    private string _emoteStatus = "";
+    public string EmoteStatus { get => _emoteStatus; private set { this.RaiseAndSetIfChanged(ref _emoteStatus, value); this.RaisePropertyChanged(nameof(HasEmoteStatus)); } }
+    public bool HasEmoteStatus => EmoteStatus.Length > 0;
+
+    private int _emoteAccountShown;
+    private int EmoteAccount => SelectedRow is { IsAccount: true } row ? row.AccountId : 0;
+
+    private async Task LoadEmotePacksAsync()
+    {
+        var account = EmoteAccount;
+        _emoteAccountShown = account;
+        if (_emotes is null || account == 0) return;
+
+        var all = await Task.Run(() => _emotes.PacksAsync());
+        var mine = await Task.Run(() => _emotes.PackIdsOfAsync(account));
+        if (EmoteAccount != account) return;
+
+        var list = mine.Select(id => all.FirstOrDefault(p => p.Id == id)).OfType<EmotePackInfo>().ToList();
+        EmotePacks.Clear();
+        for (var i = 0; i < list.Count; i++) EmotePacks.Add(new JabberEmotePackVm(list[i], i > 0, i < list.Count - 1));
+        this.RaisePropertyChanged(nameof(HasEmotePacks));
+
+        OtherPacks = [.. all.Where(p => !mine.Contains(p.Id))];
+        PackToAdd = OtherPacks.FirstOrDefault();
+    }
+
+    /// <summary>Loads a pack from a zip or a theme file and gives it to the server whose page is open.</summary>
+    public async Task LoadPackAsync(string path)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        IsLoadingPack = true;
+        EmoteStatus = "";
+        try
+        {
+            var result = await Task.Run(() => _emotes.ImportAsync(path, account));
+            EmoteStatus = LoadedText(result);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            EmoteStatus = e.Message;
+        }
+        finally
+        {
+            IsLoadingPack = false;
+        }
+        await LoadEmotePacksAsync();
+    }
+
+    public static string LoadedText(EmoteImportResult r)
+    {
+        var text = string.Format(CultureInfo.CurrentCulture, r.Replaced ? JabberText.EmoteReplaced : JabberText.EmoteLoaded, r.Name, r.Codes, r.Pictures);
+        if (r.Missing > 0) text += " " + string.Format(CultureInfo.CurrentCulture, JabberText.EmoteMissing, r.Missing);
+        if (r.Unusable > 0) text += " " + string.Format(CultureInfo.CurrentCulture, JabberText.EmoteUnusable, r.Unusable);
+        return text;
+    }
+
+    private async Task AddPackAsync()
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account) || PackToAdd is not { } pack) return;
+
+        EmoteStatus = "";
+        await Task.Run(() => _emotes.AddToAsync(account, pack.Id));
+        await LoadEmotePacksAsync();
+    }
+
+    public async Task MovePackAsync(JabberEmotePackVm pack, int by)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        await Task.Run(() => _emotes.MoveAsync(account, pack.Info.Id, by));
+        await LoadEmotePacksAsync();
+    }
+
+    /// <summary>Takes a pack off this server. Asked first when no other server has it, as it is then deleted.</summary>
+    public async Task RemovePackAsync(JabberEmotePackVm pack)
+    {
+        if (_emotes is null || EmoteAccount is not (> 0 and var account)) return;
+
+        var last = pack.Info.AccountIds.All(a => a == account);
+        if (last && (Confirm is null || !await Confirm(string.Format(CultureInfo.CurrentCulture, JabberText.EmoteRemoveLast, pack.Name)))) return;
+
+        try
+        {
+            var deleted = await Task.Run(() => _emotes.RemoveFromAsync(account, pack.Info.Id));
+            EmoteStatus = string.Format(CultureInfo.CurrentCulture, deleted ? JabberText.EmoteDeleted : JabberText.EmoteRemoved, pack.Name);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            EmoteStatus = e.Message;
+        }
+        await LoadEmotePacksAsync();
+    }
 
     // ── The account editor ────────────────────────────────────────────────────
 

@@ -5,6 +5,7 @@ using System.Text.Json;
 using Avalonia.Threading;
 using EveConsole.Localization;
 using EveConsole.Services;
+using EveConsole.Services.Jabber;
 using EveConsole.Services.Messages;
 using ReactiveUI;
 
@@ -35,9 +36,12 @@ public sealed class MessagesConversationVm(DmSummary summary)
     public bool DotAmber => summary.Presence == DmPresence.Away;
 }
 
-public sealed partial class MessagesLineVm(DmLine line, string shownSender)
+public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes)
 {
     public DmLine Line       => line;
+
+    /// <summary>The emotes of the server the conversation is on. None for one that is not on Jabber.</summary>
+    public EmoteSet Emotes   => emotes;
     public long   Id         => line.Id;
     public string Sender     { get; } = shownSender;
     public string Body       => line.Body;
@@ -65,10 +69,11 @@ public sealed class MessagesTabVm : ReactiveObject
     private DateTime _lastTypingSent = DateTime.MinValue;
     private int _theirTypingStamp;
 
-    public MessagesTabVm(IDmSource source, DmSummary summary)
+    public MessagesTabVm(IDmSource source, DmSummary summary, EmoteSet? emotes = null)
     {
         _source = source;
         Key = summary.Key;
+        Emotes = emotes ?? EmoteSet.None;
         Apply(summary);
 
         SendCommand = ReactiveCommand.CreateFromTask(SendAsync, this.WhenAnyValue(x => x.Draft, x => x.CanSend, (d, can) => can && !string.IsNullOrWhiteSpace(d)));
@@ -81,6 +86,9 @@ public sealed class MessagesTabVm : ReactiveObject
     }
 
     public DmKey Key { get; }
+
+    /// <summary>The emotes this conversation's messages are read and written with.</summary>
+    public EmoteSet Emotes { get; }
 
     public ReactiveCommand<Unit, Unit> SendCommand { get; }
     public ReactiveCommand<Unit, Unit> LoadEarlierCommand { get; }
@@ -182,7 +190,7 @@ public sealed class MessagesTabVm : ReactiveObject
     public string SendingFile { get => _sendingFile; private set { this.RaiseAndSetIfChanged(ref _sendingFile, value); this.RaisePropertyChanged(nameof(IsSendingFile)); } }
     public bool IsSendingFile => SendingFile.Length > 0;
 
-    private MessagesLineVm ToVm(DmLine line) => new(line, line.IsOutgoing ? JabberText.SenderYou : Name);
+    private MessagesLineVm ToVm(DmLine line) => new(line, line.IsOutgoing ? JabberText.SenderYou : Name, Emotes);
 
     public async Task LoadAsync()
     {
@@ -304,12 +312,18 @@ public sealed class MessagesViewModel : ReactiveObject
     private readonly AppPreferencesService _prefs;
     private readonly AlarmSoundService _sound;
     private readonly AlarmMuteState _mute;
+    private readonly EmoteService? _emotes;
 
     private List<DmSummary> _all = [];
     private int _refreshQueued;
 
-    public MessagesViewModel(DirectMessagesService service, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute)
+    /// <summary>A Jabber conversation is read with its server's emotes. Nothing else has any.</summary>
+    private EmoteSet EmotesOf(DmKey key) =>
+        key.Source == JabberDmSource.Name && _emotes is not null ? _emotes.For(key.ServerId) : EmoteSet.None;
+
+    public MessagesViewModel(DirectMessagesService service, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null)
     {
+        _emotes = emotes;
         _service = service;
         _prefs = prefs;
         _sound = sound;
@@ -563,7 +577,7 @@ public sealed class MessagesViewModel : ReactiveObject
         {
             if (_service.SourceOf(key) is not { } source) return;
 
-            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name)) { Confirm = AskAsync };
+            tab = new MessagesTabVm(source, _all.FirstOrDefault(c => c.Key == key) ?? source.Describe(key, name), EmotesOf(key)) { Confirm = AskAsync };
             Tabs.Add(tab);
             tab.Unread = _all.FirstOrDefault(c => c.Key == key)?.Unread ?? 0;
             await tab.LoadAsync();
@@ -609,7 +623,7 @@ public sealed class MessagesViewModel : ReactiveObject
             // Nothing saved any more, as when its server was deleted: there is nothing to come back to.
             if (known is null) continue;
 
-            var tab = new MessagesTabVm(source, known) { Confirm = AskAsync, Unread = known.Unread };
+            var tab = new MessagesTabVm(source, known, EmotesOf(key)) { Confirm = AskAsync, Unread = known.Unread };
             Tabs.Add(tab);
             await tab.LoadAsync();
         }

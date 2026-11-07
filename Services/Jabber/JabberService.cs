@@ -243,6 +243,12 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.JabberMessages.Where(m => m.AccountId == accountId).ExecuteDeleteAsync(ct);
         await db.JabberRooms.Where(r => r.AccountId == accountId).ExecuteDeleteAsync(ct);
+        await using (var tx = await db.Database.BeginTransactionAsync(ct))
+        {
+            await db.JabberEmotePacks.Where(l => l.AccountId == accountId).ExecuteDeleteAsync(ct);
+            await EmoteService.DeleteUnusedAsync(db, ct);
+            await tx.CommitAsync(ct);
+        }
         await db.JabberAccounts.Where(a => a.Id == accountId).ExecuteDeleteAsync(ct);
 
         await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(accountId), null), ct);

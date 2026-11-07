@@ -273,4 +273,91 @@
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>Ожидание фонового процесса</value>
   </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Это не тема смайликов Pidgin: в ней нет файла с именем theme.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>Файл theme слишком большой для темы смайликов.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>Набор слишком большой. В наборе может быть до 5 000 картинок и 64 МБ.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>Этот файл не удалось открыть как zip.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>Ни одну из картинок, перечисленных в теме, нельзя использовать, поэтому ничего не загружено.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Поиск смайлов</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>Нет смайла с таким названием.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Смайлы (или наберите : и первые буквы)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>Кодов: {0:N0} · картинок: {1:N0}</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Наборы смайлов</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Коды вроде :wave: показываются картинками в комнатах и сообщениях этого сервера, и их можно выбрать при наборе. Наборы — это темы смайликов Pidgin. Если в двух наборах один и тот же код, побеждает тот, что выше.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>У этого сервера нет наборов смайлов, поэтому коды показываются обычным текстом.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Выше: важнее наборов под ним</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Загрузить набор…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Тема смайликов Pidgin: её zip или файл theme в распакованной папке. Загруженный один раз, набор есть на каждом ПК с этой базой данных.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Дать этому серверу набор, уже загруженный для другого</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Загрузка набора…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>Загружен {0}: кодов {1:N0}, картинок {2:N0}.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} обновлён этой копией для всех серверов, где он есть: кодов {1:N0}, картинок {2:N0}.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>Картинок из темы нет в наборе: {0:N0}; они пропущены.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>Файлов, которые не картинки или слишком велики для смайла: {0:N0}; они пропущены.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>Убрать {0}? Он больше ни у одного сервера не используется, поэтому будет удалён. Чтобы вернуть, загрузите его снова.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} убран и удалён, так как других серверов с ним нет.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} убран с этого сервера. У других серверов, где он есть, он остаётся.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Загрузить набор смайлов</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Тема смайликов Pidgin</value>
+  </data>
 </root>

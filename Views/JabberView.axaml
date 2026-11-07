@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:jab="using:EveConsole.Services.Jabber"
              x:Class="EveConsole.Views.JabberView"
              x:DataType="vm:JabberViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -151,6 +152,45 @@
               </StackPanel>
             </StackPanel>
           </StackPanel>
+
+          <!-- This server's emote packs. Another server can have other packs, or none. -->
+          <Border IsVisible="{Binding CanUseEmotes}" Margin="0 16 0 0" Padding="0 12 0 0" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 1 0 0">
+            <StackPanel Spacing="6">
+              <TextBlock Text="{x:Static loc:JabberText.EmoteHeading}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Classes="note" Text="{x:Static loc:JabberText.EmoteNote}" />
+              <TextBlock Classes="note" Text="{x:Static loc:JabberText.EmoteNone}" IsVisible="{Binding !HasEmotePacks}" />
+
+              <ItemsControl ItemsSource="{Binding EmotePacks}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:JabberEmotePackVm">
+                    <Grid ColumnDefinitions="*,Auto" Margin="0 3">
+                      <StackPanel VerticalAlignment="Center" Background="Transparent" ToolTip.Tip="{Binding About}" ToolTip.IsEnabled="{Binding HasAbout}">
+                        <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                      </StackPanel>
+                      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4" Margin="12 0 0 0" VerticalAlignment="Center">
+                        <Button Content="↑" Click="OnPackUp" IsEnabled="{Binding CanUp}" ToolTip.Tip="{x:Static loc:JabberText.EmoteUpTip}" />
+                        <Button Content="↓" Click="OnPackDown" IsEnabled="{Binding CanDown}" ToolTip.Tip="{x:Static loc:JabberText.EmoteDownTip}" />
+                        <Button Content="{x:Static loc:JabberText.EmoteRemove}" Click="OnPackRemove" />
+                      </StackPanel>
+                    </Grid>
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 4 0 0">
+                <Button Content="{x:Static loc:JabberText.EmoteLoad}" Click="OnLoadPack" IsEnabled="{Binding !IsLoadingPack}" ToolTip.Tip="{x:Static loc:JabberText.EmoteLoadTip}" />
+                <ComboBox ItemsSource="{Binding OtherPacks}" SelectedItem="{Binding PackToAdd}" IsVisible="{Binding HasOtherPacks}" MinWidth="200" VerticalAlignment="Center">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="jab:EmotePackInfo"><TextBlock Text="{Binding Name}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <Button Content="{x:Static loc:JabberText.EmoteAdd}" Command="{Binding AddPackCommand}" IsVisible="{Binding HasOtherPacks}" ToolTip.Tip="{x:Static loc:JabberText.EmoteAddTip}" />
+              </StackPanel>
+              <TextBlock Classes="note" Text="{x:Static loc:JabberText.EmoteLoading}" IsVisible="{Binding IsLoadingPack}" />
+              <TextBlock Text="{Binding EmoteStatus}" IsVisible="{Binding HasEmoteStatus}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+            </StackPanel>
+          </Border>
         </StackPanel>
       </ScrollViewer>
 

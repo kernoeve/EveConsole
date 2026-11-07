@@ -1160,6 +1160,7 @@ public class MainWindowViewModel : ReactiveObject
         BuildCostService                buildCostService,
         ProductionCalculatorService     prodCalcService,
         EveConsole.Services.Jabber.JabberService jabberService,
+        EveConsole.Services.Jabber.EmoteService emoteService,
         EveConsole.Services.Mumble.MumbleService mumbleService,
         EveConsole.Services.Messages.DirectMessagesService directMessages,
         IServiceScopeFactory            scopeFactory,
@@ -1295,10 +1296,10 @@ public class MainWindowViewModel : ReactiveObject
             ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory);
         MailSvc           = eveMailService;
         EveMailVm         = new EveMailViewModel(eveMailService, CharacterVm.Characters);
-        JabberVm          = new JabberViewModel(jabberService, appPrefs);
+        JabberVm          = new JabberViewModel(jabberService, appPrefs, emoteService);
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
-        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute);
-        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute);
+        MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute, emoteService);
+        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));

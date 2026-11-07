@@ -273,4 +273,91 @@
   <data name="StateWaitingForWorker" xml:space="preserve">
     <value>バックグラウンドプロセスを待っています</value>
   </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Pidgin のスマイリーテーマではありません。theme という名前のファイルがありません。</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>theme ファイルが大きすぎるため、スマイリーテーマではありません。</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>パックが大きすぎます。パックに入れられるのは画像 5,000 枚、64 MB までです。</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>このファイルは zip として開けませんでした。</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>テーマに記載された画像がどれも使えなかったため、何も読み込みませんでした。</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>エモートを検索</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>名前にそれを含むエモートはありません。</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>エモート（: と最初の数文字を入力しても出ます）</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>コード {0:N0} 個 · 画像 {1:N0} 枚</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>エモートパック</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>:wave: のようなコードは、このサーバーのルームとメッセージで画像として表示され、入力時に選ぶこともできます。パックは Pidgin のスマイリーテーマです。2 つのパックに同じコードがある場合は、上にあるパックが優先されます。</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>このサーバーにはエモートパックがないため、コードはそのまま文字で表示されます。</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>上へ：下にあるパックより優先されます</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>下へ</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>外す</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>パックを読み込む…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Pidgin のスマイリーテーマ：その zip、または展開したフォルダー内の theme ファイル。一度読み込めば、このデータベースを使うすべての PC で使えます。</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>別のサーバー用に読み込み済みのパックをこのサーバーにも追加します</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>パックを読み込んでいます…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0} を読み込みました：コード {1:N0} 個、画像 {2:N0} 枚。</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} をこのコピーで更新しました（使っているすべてのサーバーが対象）：コード {1:N0} 個、画像 {2:N0} 枚。</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>テーマに記載された画像のうち {0:N0} 枚がパックになかったため、除外しました。</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} 個のファイルは画像でないか、エモートには大きすぎたため、除外しました。</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>{0} を外しますか？ ほかのサーバーは使っていないため、削除されます。戻すにはもう一度読み込んでください。</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} を外し、ほかのサーバーが使っていなかったため削除しました。</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} をこのサーバーから外しました。使っているほかのサーバーには残ります。</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>エモートパックを読み込む</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin スマイリーテーマ</value>
+  </data>
 </root>
