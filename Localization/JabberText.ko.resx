@@ -128,7 +128,7 @@
     <value>서버 추가</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>왼쪽에서 서버나 사람을 선택하세요.</value>
+    <value>왼쪽에서 서버를 선택하세요.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>연결</value>
@@ -398,5 +398,47 @@
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>기호</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>이 방에서 추방되었습니다.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>방의 서비스가 방을 닫았습니다.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>{0}에 의해</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>이 사람이 메시지를 삭제했지만, 사용 중인 클라이언트에서는 표시할 수 없습니다.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>답장</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>편집(빈 칸에서 위쪽 화살표도 가능)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>모두에게서 삭제</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>{0}님에게 답장 중</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>메시지 편집 중</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>여기에 저장되지 않은 메시지</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>이 메시지를 모두에게서 삭제할까요? 지원하는 클라이언트에서는 사라지지만, Pidgin 같은 오래된 클라이언트에서는 계속 보입니다.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>읽음</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>메시지를 읽었을 때 상대에게 알리기</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>개인과의 대화에서만(다른 클라이언트처럼): 상대 클라이언트에 읽음으로 표시됩니다. 방에서는 보내지 않습니다.</value>
   </data>
 </root>

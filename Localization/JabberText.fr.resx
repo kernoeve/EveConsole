@@ -128,7 +128,7 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
     <value>Ajouter un serveur</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Choisissez un serveur ou une personne à gauche.</value>
+    <value>Choisissez un serveur à gauche.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Connexion</value>
@@ -398,5 +398,47 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>Symboles</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Vous avez été expulsé de ce salon.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>Le service du salon l'a fermé.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>par {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Cette personne a supprimé un message, ce que votre client ne peut pas afficher.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Répondre</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Modifier (ou Haut dans une zone vide)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Supprimer pour tout le monde</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Réponse à {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Modification de votre message</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>un message non conservé ici</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Supprimer ce message pour tout le monde ? Les clients compatibles le retirent ; les plus anciens, comme Pidgin, continuent de l'afficher.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Vu</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Indiquer quand j'ai lu leurs messages</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Seulement avec une personne, comme les autres clients : son client peut alors afficher le message comme vu. Jamais dans les salons.</value>
   </data>
 </root>

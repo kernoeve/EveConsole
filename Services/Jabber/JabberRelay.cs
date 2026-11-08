@@ -201,7 +201,7 @@ public sealed partial class JabberService
     {
         foreach (var session in Sessions)
         {
-            MarkDisconnected(session);
+            MarkDisconnected(session, keep: false);
             SetState(session, JabberState.WaitingForWorker, JabberProblem.None, "");
         }
         lock (_seenLive) _seenLive.Clear();
@@ -425,7 +425,7 @@ public sealed partial class JabberService
 
     private sealed record LiveRoom(
         JabberRoom Room, bool Joined, string Nick, string Subject, XmppRoomFailure? Failure, string FailureText,
-        bool? HasArchive, bool ArchiveRefused, List<XmppOccupant> Occupants);
+        bool? HasArchive, bool ArchiveRefused, List<XmppOccupant> Occupants, bool GivesOccupantIds = false, string MyOccupantId = "");
 
     private readonly ConcurrentDictionary<int, byte> _liveDirty = new();
     private readonly Dictionary<int, Dictionary<string, string>> _written = [];
@@ -455,7 +455,7 @@ public sealed partial class JabberService
         foreach (var (jid, room) in s.RoomMap)
             parts[jid] = JsonSerializer.Serialize(new LiveRoom(
                 room.Room, room.Joined, room.Nick, room.Subject, room.Failure, room.FailureText, room.HasArchive, room.ArchiveRefused,
-                [.. room.Occupants.Values]));
+                [.. room.Occupants.Values], room.GivesOccupantIds, room.MyOccupantId));
 
         return parts;
     });
@@ -597,6 +597,7 @@ public sealed partial class JabberService
                     state.Room = r.Room; state.Joined = r.Joined; state.Nick = r.Nick; state.Subject = r.Subject;
                     state.Failure = r.Failure; state.FailureText = r.FailureText;
                     state.HasArchive = r.HasArchive; state.ArchiveRefused = r.ArchiveRefused;
+                    state.GivesOccupantIds = r.GivesOccupantIds; state.MyOccupantId = r.MyOccupantId;
                     state.Occupants.Clear();
                     foreach (var person in r.Occupants) state.Occupants[person.Nick] = person;
                 }
@@ -632,7 +633,8 @@ public sealed partial class JabberService
 
     private sealed record CommandArgs(
         string Conversation = "", bool IsRoom = false, string Text = "", bool Accept = false, XmppShow Show = XmppShow.Online,
-        string Status = "", string Name = "", long Size = 0, string ContentType = "");
+        string Status = "", string Name = "", long Size = 0, string ContentType = "",
+        string ReplaceId = "", string ReplyTo = "", string ReplyId = "", string ReplyQuote = "");
 
     private readonly ConcurrentDictionary<long, TaskCompletionSource> _waiting = new();
 
@@ -790,7 +792,10 @@ public sealed partial class JabberService
         {
             case "connect":       Connect(session); break;
             case "disconnect":    await DisconnectHereAsync(session); break;
-            case "send":          await SendAsync(session, a.Conversation, a.IsRoom, a.Text, ct); break;
+            case "send":          await SendAsync(session, a.Conversation, a.IsRoom, a.Text, ct,
+                                      a.ReplaceId.Length + a.ReplyId.Length > 0 ? new XmppSendExtras(a.ReplaceId, a.ReplyTo, a.ReplyId, a.ReplyQuote) : null); break;
+            case "retract":       await DeleteOwnAsync(session, a.Conversation, a.IsRoom, a.Text, a.Name, ct); break;
+            case "displayed":     if (session.Client is { } c) await c.SendDisplayedAsync(a.Conversation, a.Text, ct); break;
             case "sendurl":       await SendUrlAsync(session, a.Conversation, a.IsRoom, a.Text, ct); break;
             case "presence":      await SetPresenceAsync(session, a.Show, a.Status, ct); break;
             case "join":          await JoinSavedRoomAsync(session, a.Conversation, ct); break;

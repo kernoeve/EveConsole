@@ -168,7 +168,7 @@ Trust it only if this matches what the server's admin published. From then on, o
     <comment>Button.</comment>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Pick a server or person on the left.</value>
+    <value>Pick a server on the left.</value>
     <comment>Nothing selected.</comment>
   </data>
   <data name="Connect" xml:space="preserve">
@@ -474,5 +474,47 @@ Trust it only if this matches what the server's admin published. From then on, o
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>Symbols</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>You were kicked from this room.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>The room's service closed it.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>by {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>This person deleted a message, which your client cannot show.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Reply</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Edit (or Up in an empty box)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Delete for everyone</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Replying to {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Editing your message</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>a message not kept here</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Delete this message for everyone? Clients that support it remove it; older ones, such as Pidgin, keep showing it.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Seen</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Tell people when I have read their messages</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>With a person only, as other clients do: their client can then show the message as seen. Never in rooms.</value>
   </data>
 </root>

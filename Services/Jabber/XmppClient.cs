@@ -43,6 +43,22 @@ public sealed record XmppMessage(
 
     /// <summary>Their whole set of reactions to it now. Empty takes them all back.</summary>
     public IReadOnlyList<string> Reactions { get; init; } = [];
+
+    /// <summary>What it answers (XEP-0461): its id, and who wrote it. Blank for no answer.</summary>
+    public string ReplyId { get; init; } = "";
+    public string ReplyTo { get; init; } = "";
+
+    /// <summary>What its sender quoted of what it answers, taken out of its words.</summary>
+    public string ReplyQuote { get; init; } = "";
+
+    /// <summary>Not a message but a marker: their messages up to this id have been seen (XEP-0333).</summary>
+    public string DisplayedId { get; init; } = "";
+
+    /// <summary>Its sender wants to know when it has been seen.</summary>
+    public bool Markable { get; init; }
+
+    /// <summary>Who sent it in a room, as the room knows them whatever nickname they use (XEP-0421). Only the room's word when it says it gives these.</summary>
+    public string OccupantId { get; init; } = "";
 }
 
 /// <summary>How far an archive query got.</summary>
@@ -74,9 +90,17 @@ public sealed record XmppOccupant(
 {
     /// <summary>See <see cref="XmppPresence.PhotoHash"/>.</summary>
     public string? PhotoHash { get; init; }
+
+    /// <summary>See <see cref="XmppMessage.OccupantId"/>.</summary>
+    public string OccupantId { get; init; } = "";
+
+    /// <summary>The room's status codes, such as 307 for kicked and 301 for banned, with who did it and why.</summary>
+    public IReadOnlyCollection<string> Codes { get; init; } = [];
+    public string Actor { get; init; } = "";
+    public string Reason { get; init; } = "";
 }
 
-public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, NotFound, Other }
+public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, NotFound, Other, Kicked, Closed }
 
 /// <summary>A room on a conference service, as found by browsing it.</summary>
 public sealed record XmppRoomInfo(string Jid, string Name);
@@ -210,7 +234,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         catch (OperationCanceledException) { /* the session is ending */ }
         catch (Exception e) when (e is XmppException or TimeoutException)
         {
-            await connection.DisposeAsync();
+            // ⚠️ Not ended: a link that stopped answering is dropped as it is, so the server keeps the stream to pick up.
+            connection.Abandon();
         }
     }
 
@@ -331,7 +356,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         }
 
         // A delete usually carries words for clients that cannot do one, but need not.
-        if (message.Body.Length > 0 || message.RetractId.Length > 0 || message.ReactionsTo.Length > 0) MessageReceived?.Invoke(message);
+        if (message.Body.Length > 0 || message.RetractId.Length > 0 || message.ReactionsTo.Length > 0 || message.DisplayedId.Length > 0)
+            MessageReceived?.Invoke(message);
     }
 
     /// <summary>
@@ -359,7 +385,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             message = message with { RetractId = id, RetractByModerator = moderated, RetractReason = reason };
         if (ReactionsIn(inner) is (string target, List<string> emojis))
             message = message with { ReactionsTo = target, Reactions = emojis };
-        return message;
+        return WithExtras(message, inner);
     }
 
     /// <summary>The id a room gave a message, only when the room itself says so: anyone in it could put one in.</summary>
@@ -486,7 +512,14 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
                 from.Bare, from.Resource, show,
                 (string?)item?.Attribute("role") ?? "", (string?)item?.Attribute("affiliation") ?? "",
                 XmppAddress.Parse((string?)item?.Attribute("jid")).Bare,
-                codes.Contains("110"), type == "unavailable", status) { PhotoHash = photo });
+                codes.Contains("110"), type == "unavailable", status)
+            {
+                PhotoHash = photo,
+                OccupantId = (string?)stanza.Element(OccupantIdNs + "occupant-id")?.Attribute("id") ?? "",
+                Codes = [.. codes.OfType<string>()],
+                Actor = (string?)item?.Element(MucUser + "actor")?.Attribute("nick") ?? "",
+                Reason = item?.Element(MucUser + "reason")?.Value ?? "",
+            });
             return;
         }
 
@@ -581,7 +614,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     }
 
     /// <summary>Unguessable as well as unique: what answers a question is matched on this.</summary>
-    private static string NewId() => "ec" + Guid.NewGuid().ToString("N");
+    internal static string NewId() => "ec" + Guid.NewGuid().ToString("N");
 
     /// <summary>
     /// Whether a reply came from who was asked. Asking nobody in particular means this account's own server, which
@@ -722,22 +755,12 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     }
 
     /// <summary>Sends a direct message, or a room message for type "groupchat". Returns its id.</summary>
-    public async Task<string> SendMessageAsync(string to, string type, string body, CancellationToken ct, string? fileUrl = null)
+    public async Task<string> SendMessageAsync(string to, string type, string body, CancellationToken ct, string? fileUrl = null, XmppSendExtras? extras = null)
     {
         // ⚠️ Unique for good, not for this connection: a counter starts again on the next one, and the same id
         // to the same person reads as a repeat of what was already saved, so the new message would vanish.
         var id = "ec" + Guid.NewGuid().ToString("N");
-        var message = new XElement(Client + "message",
-            new XAttribute("to", to), new XAttribute("type", type), new XAttribute("id", id),
-            new XElement(Client + "body", Clean(body)));
-
-        // Says this client understands typing notices, so one that does can start sending them.
-        if (type == "chat") message.Add(new XElement(ChatStates + "active"));
-
-        // Tells a client that shows pictures that the words are a file's address, not something someone wrote.
-        if (fileUrl is not null) message.Add(new XElement(Oob + "x", new XElement(Oob + "url", fileUrl)));
-
-        await connection.WriteAsync(message, ct);
+        await connection.WriteAsync(OutgoingMessage(id, to, type, body, extras, fileUrl), ct);
         return id;
     }
 
@@ -773,7 +796,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         if (type is "groupchat" or "error") return null;
 
         var body = inner.Element(Client + "body")?.Value ?? "";
-        if (body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null) return null;
+        if (body.Length == 0 && RetractionIn(inner) is null && ReactionsIn(inner) is null && inner.Element(Markers + "displayed") is null) return null;
 
         var sender = XmppAddress.Parse((string?)inner.Attribute("from"));
 
@@ -841,10 +864,13 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     /// Whether a room says it keeps an archive. ⚠️ Not long to wait: rooms are joined at login, and a room on a far
     /// server that never answers must not hold that up.
     /// </summary>
-    public async Task<bool> RoomHasArchiveAsync(string room, CancellationToken ct)
+    public async Task<bool> RoomHasArchiveAsync(string room, CancellationToken ct) => (await RoomFeaturesAsync(room, ct)).Contains(Mam.NamespaceName);
+
+    /// <summary>What a room says it does, or nothing when it does not answer in reasonable time.</summary>
+    public async Task<HashSet<string>> RoomFeaturesAsync(string room, CancellationToken ct)
     {
-        try { return (await FeaturesOfAsync(room, ct).WaitAsync(TimeSpan.FromSeconds(5), ct)).Contains(Mam.NamespaceName); }
-        catch (TimeoutException) { return false; }
+        try { return await FeaturesOfAsync(room, ct).WaitAsync(TimeSpan.FromSeconds(5), ct); }
+        catch (TimeoutException) { return []; }
     }
 
     /// <summary>
@@ -1098,6 +1124,17 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
     /// <summary>Removes what XML cannot carry. ⚠️ One stray control character would otherwise throw on send.</summary>
     public static string Clean(string text) =>
         new([.. text.Where(c => c is '\t' or '\n' or '\r' || c >= ' ' && c != '￾' && c != '￿')]);
+
+    /// <summary>What picking this stream up again would take, or null where the server will not keep it.</summary>
+    public XmppStreamResume? Resumable => connection.Resumable;
+
+    /// <summary>Drops a failed connection without ending the stream, for the next connection to pick up.</summary>
+    public void Abandon()
+    {
+        try { _run?.Cancel(); }
+        catch (ObjectDisposedException) { /* already over */ }
+        connection.Abandon();
+    }
 
     public async ValueTask DisposeAsync()
     {

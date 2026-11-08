@@ -62,7 +62,7 @@ public sealed partial class JabberService
     /// the room's id for it in a room or its own id with a person, so nothing piles up for messages long gone.
     /// </summary>
     private async Task ApplyReactionsAsync(AppDbContext db, int accountId, string conversation, bool isRoom, string sender,
-        string target, IReadOnlyList<string> emojis, CancellationToken ct)
+        string target, IReadOnlyList<string> emojis, CancellationToken ct, string? senderName = null)
     {
         var recent = db.JabberMessages
             .Where(m => m.AccountId == accountId && m.Conversation == conversation)
@@ -82,6 +82,7 @@ public sealed partial class JabberService
             if (row?.Emojis == text) return;
             if (row is null) db.JabberReactions.Add(row = new JabberReaction { AccountId = accountId, Conversation = conversation, Target = target, Sender = sender });
             row.Emojis = text;
+            row.SenderName = senderName ?? sender;
             row.UpdatedAt = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         }
         await db.SaveChangesAsync(ct);
@@ -111,9 +112,10 @@ public sealed partial class JabberService
 
     public static Dictionary<string, List<JabberReactionCount>> Count(IEnumerable<JabberReaction> rows, string me) =>
         rows.GroupBy(r => r.Target).ToDictionary(g => g.Key, g =>
-            g.SelectMany(r => r.Emojis.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(e => (Emoji: e, r.Sender)))
+            g.SelectMany(r => r.Emojis.Split(' ', StringSplitOptions.RemoveEmptyEntries)
+                 .Select(e => (Emoji: e, r.Sender, Name: r.SenderName.Length > 0 ? r.SenderName : r.Sender)))
              .GroupBy(x => x.Emoji)
-             .Select(e => new JabberReactionCount(e.Key, e.Count(), [.. e.Select(x => x.Sender)], e.Any(x => x.Sender == me)))
+             .Select(e => new JabberReactionCount(e.Key, e.Count(), [.. e.Select(x => x.Name)], e.Any(x => x.Sender == me)))
              .OrderByDescending(c => c.Count)   // most chosen first; equal ones as first chosen, the sort keeping their order
              .ToList());
 

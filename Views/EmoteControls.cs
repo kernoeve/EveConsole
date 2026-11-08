@@ -8,6 +8,7 @@ using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using EveConsole.Services;
 using EveConsole.Services.Jabber;
 
 namespace EveConsole.Views;
@@ -219,12 +220,51 @@ public sealed class EmoteTextBlock : SelectableTextBlock
         if (_listening is not null) _listening.Changed += Rebuild;
     }
 
+    private static readonly FontFamily Monospace = new("Cascadia Mono, Consolas, Menlo, DejaVu Sans Mono, monospace");
+
+    /// <summary>
+    /// The message as styled text (XEP-0393) with its emotes, nothing being styled or swapped inside code. ⚠️ Plain text
+    /// stays as plain Text, the cheap way, for the many messages with neither.
+    /// </summary>
     private void Rebuild()
     {
         var body = Body ?? "";
-        _pieces = (Emotes ?? EmoteSet.None).Split(body);
+        var set = Emotes ?? EmoteSet.None;
+        IReadOnlyList<StyledSpan> spans = MessageStyling.MayHaveStyling(body) ? MessageStyling.Parse(body) : [new StyledSpan(body, TextStyle.None)];
 
-        if (_pieces.Count == 1 && _pieces[0].Emote is null)
+        var pieces = new List<EmotePiece>();
+        var inlines = new InlineCollection();
+        var plain = true;
+
+        foreach (var span in spans)
+        {
+            IReadOnlyList<EmotePiece> parts = span.Style.HasFlag(TextStyle.Mono) ? [new EmotePiece(span.Text, null)] : set.Split(span.Text);
+            foreach (var part in parts)
+            {
+                if (part.Text.Length == 0) continue;
+                pieces.Add(part);
+
+                if (part.Emote is { } emote)
+                {
+                    plain = false;
+                    var view = new EmoteView { Emote = emote };
+                    ToolTip.SetTip(view, emote.Code);
+                    inlines.Add(new InlineUIContainer(view) { BaselineAlignment = BaselineAlignment.Center });
+                    continue;
+                }
+
+                var run = new Run(part.Text);
+                if (span.Style != TextStyle.None)
+                {
+                    plain = false;
+                    StyleRun(run, span.Style);
+                }
+                inlines.Add(run);
+            }
+        }
+
+        _pieces = pieces;
+        if (plain)
         {
             Inlines?.Clear();
             Text = body;
@@ -232,18 +272,19 @@ public sealed class EmoteTextBlock : SelectableTextBlock
         }
 
         Text = null;
-        var inlines = new InlineCollection();
-        foreach (var piece in _pieces)
-        {
-            if (piece.Emote is { } emote)
-            {
-                var view = new EmoteView { Emote = emote };
-                ToolTip.SetTip(view, emote.Code);
-                inlines.Add(new InlineUIContainer(view) { BaselineAlignment = BaselineAlignment.Center });
-            }
-            else inlines.Add(new Run(piece.Text));
-        }
         Inlines = inlines;
+    }
+
+    private void StyleRun(Run run, TextStyle style)
+    {
+        if (style.HasFlag(TextStyle.Bold)) run.FontWeight = FontWeight.Bold;
+        if (style.HasFlag(TextStyle.Italic)) run.FontStyle = FontStyle.Italic;
+        if (style.HasFlag(TextStyle.Strike)) run.TextDecorations = Avalonia.Media.TextDecorations.Strikethrough;
+        if (style.HasFlag(TextStyle.Mono)) run.FontFamily = Monospace;
+
+        // The marks faint, a quote muted: from the theme, so both follow it.
+        if (style.HasFlag(TextStyle.Directive)) run.Bind(TextElement.ForegroundProperty, this.GetResourceObservable("TextFaintBrush"));
+        else if (style.HasFlag(TextStyle.Quote)) run.Bind(TextElement.ForegroundProperty, this.GetResourceObservable("TextMutedBrush"));
     }
 
     private void OnCopying(object? sender, RoutedEventArgs e)

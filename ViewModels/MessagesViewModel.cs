@@ -37,8 +37,24 @@ public sealed class MessagesConversationVm(DmSummary summary)
     public bool DotAmber => summary.Presence == DmPresence.Away;
 }
 
-public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null)
+public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null, string replyText = "", bool editable = false) : ReactiveObject
 {
+    public string MessageId => line.Target;
+
+    /// <summary>What it answers, shown above it.</summary>
+    public string ReplyText => replyText;
+    public bool HasReply => replyText.Length > 0;
+
+    private bool _canEdit, _showSeen;
+
+    /// <summary>This account's latest message here, the only one the protocol lets it correct.</summary>
+    public bool CanEdit { get => _canEdit; set => this.RaiseAndSetIfChanged(ref _canEdit, value); }
+    public bool CanDelete => editable && IsOutgoing && !IsDeleted && MessageId.Length > 0;
+    public bool CanReply => editable && CanReact;
+
+    /// <summary>The latest of this account's that the person has seen, which says so.</summary>
+    public bool ShowSeen { get => _showSeen; set => this.RaiseAndSetIfChanged(ref _showSeen, value); }
+
     /// <summary>What a reaction to it names. Blank where it cannot be reacted to.</summary>
     public string ReactTarget => line.Target;
     public bool CanReact => ReactTarget.Length > 0 && !IsDeleted;
@@ -210,7 +226,85 @@ public sealed class MessagesTabVm : ReactiveObject
     private MessagesLineVm ToVm(DmLine line)
     {
         var sender = line.IsOutgoing ? JabberText.SenderYou : Name;
-        return new(line, sender, Emotes, new AvatarRef(Key.Source, Key.ServerId, line.IsOutgoing ? "me" : Key.Peer, line.IsOutgoing ? MyName : Name));
+        var reply = GroupChatViewModel.ReplyTextFor(line.ReplyId, line.ReplyQuote, Lines, l => l.MessageId, l => l.Sender, l => l.Body);
+        return new(line, sender, Emotes, new AvatarRef(Key.Source, Key.ServerId, line.IsOutgoing ? "me" : Key.Peer, line.IsOutgoing ? MyName : Name),
+            reply, _source.CanEditMessages);
+    }
+
+    /// <summary>Which line can be corrected, and which says it was seen: both only ever the latest of their kind.</summary>
+    private void MarkLines()
+    {
+        var editable = _source.CanEditMessages ? Lines.LastOrDefault(l => l.IsOutgoing && !l.IsDeleted && l.MessageId.Length > 0) : null;
+        var seen = Lines.LastOrDefault(l => l.IsOutgoing && l.Line.SeenByThem);
+        foreach (var line in Lines)
+        {
+            line.CanEdit = ReferenceEquals(line, editable);
+            line.ShowSeen = ReferenceEquals(line, seen);
+        }
+    }
+
+    private enum DraftMode { None, Reply, Edit }
+    private DraftMode _mode;
+    private MessagesLineVm? _modeLine;
+    private string _draftBar = "";
+
+    public string DraftBarText { get => _draftBar; private set { this.RaiseAndSetIfChanged(ref _draftBar, value); this.RaisePropertyChanged(nameof(HasDraftBar)); } }
+    public bool HasDraftBar => DraftBarText.Length > 0;
+
+    public void BeginReply(MessagesLineVm line)
+    {
+        if (!line.CanReply) return;
+        _mode = DraftMode.Reply;
+        _modeLine = line;
+        DraftBarText = string.Format(CultureInfo.CurrentCulture, JabberText.ReplyingTo, line.Sender);
+    }
+
+    public void BeginEdit(MessagesLineVm line)
+    {
+        if (!line.CanEdit) return;
+        _mode = DraftMode.Edit;
+        _modeLine = line;
+        DraftBarText = JabberText.EditingMessage;
+        Draft = line.Body;
+    }
+
+    public bool BeginEditLast()
+    {
+        if (Lines.LastOrDefault(l => l.CanEdit) is not { } last) return false;
+        BeginEdit(last);
+        return true;
+    }
+
+    public void CancelDraftMode()
+    {
+        if (_mode == DraftMode.Edit) Draft = "";
+        _mode = DraftMode.None;
+        _modeLine = null;
+        DraftBarText = "";
+    }
+
+    private XmppSendExtras? TakeExtras()
+    {
+        var extras = (_mode, _modeLine) switch
+        {
+            (DraftMode.Edit, { } l) => new XmppSendExtras(ReplaceId: l.MessageId),
+            (DraftMode.Reply, { } l) => new XmppSendExtras(ReplyTo: Key.Peer, ReplyId: l.MessageId,
+                ReplyQuote: XmppClient.QuoteFor(l.IsOutgoing ? MyName : Name, l.Body)),
+            _ => null,
+        };
+        _mode = DraftMode.None;
+        _modeLine = null;
+        DraftBarText = "";
+        return extras;
+    }
+
+    /// <summary>Takes back one of this account's messages, for everyone.</summary>
+    public async Task DeleteOwnAsync(MessagesLineVm line)
+    {
+        if (!line.CanDelete) return;
+        StatusText = "";
+        try { await Task.Run(() => _source.DeleteOwnAsync(Key, line.MessageId)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
     }
 
     /// <summary>For this account's own picture's initial, where it has none: "You" would give everyone a Y.</summary>
@@ -222,6 +316,7 @@ public sealed class MessagesTabVm : ReactiveObject
         Lines.Clear();
         foreach (var line in page) Lines.Add(ToVm(line));
         HasEarlier = page.Count == PageSize;
+        MarkLines();
         ScrollToEndRequested?.Invoke();
         await LoadReactionsAsync();
     }
@@ -264,6 +359,7 @@ public sealed class MessagesTabVm : ReactiveObject
         if (Lines.Any(l => l.Id == line.Id)) return;
 
         Lines.Add(ToVm(line));
+        MarkLines();
         if (Lines.Count > MostShown)
         {
             Lines.RemoveAt(0);
@@ -275,10 +371,11 @@ public sealed class MessagesTabVm : ReactiveObject
     private async Task SendAsync()
     {
         var text = Draft;
+        var extras = TakeExtras();
         StatusText = "";
         Draft = "";
         StopTyping();
-        try { await Task.Run(() => _source.SendAsync(Key, text)); }
+        try { await Task.Run(() => extras is null ? _source.SendAsync(Key, text) : _source.SendAsync(Key, text, extras)); }
         catch { Draft = text; throw; }
     }
 

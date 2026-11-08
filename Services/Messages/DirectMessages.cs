@@ -46,7 +46,10 @@ public sealed record DmSummary(DmKey Key, string Name, string Server, string Ser
 
 /// <param name="Deleted">See <see cref="EveConsole.Models.JabberDeleted"/>: deleted messages keep their place.</param>
 /// <param name="Target">What a reaction to it names: its own id. Blank where reactions are not a thing.</param>
-public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "", string Target = "");
+/// <param name="ReplyId">What it answers, by <see cref="Target"/>. Blank for none.</param>
+/// <param name="SeenByThem">This account's, and the person has seen it.</param>
+public sealed record DmLine(long Id, string Sender, string Body, string SentAt, bool IsOutgoing, int Deleted = 0, string DeletedReason = "", string Target = "",
+    string ReplyId = "", string ReplyQuote = "", bool SeenByThem = false);
 
 /// <summary>Someone who can be written to right now, to start a conversation with.</summary>
 public sealed record DmPerson(DmKey Key, string Name, string Server, string Service)
@@ -82,6 +85,15 @@ public interface IDmSource
     /// <summary>The reactions to some of a conversation's messages, by what <see cref="DmLine.Target"/> each has.</summary>
     Task<Dictionary<string, List<EveConsole.Services.Jabber.JabberReactionCount>>> ReactionsAsync(DmKey key, IReadOnlyCollection<string> targets, CancellationToken ct = default) =>
         Task.FromResult(new Dictionary<string, List<EveConsole.Services.Jabber.JabberReactionCount>>());
+
+    /// <summary>Whether this account's messages can be corrected and taken back, and answered as replies.</summary>
+    bool CanEditMessages => false;
+
+    /// <summary>Sends words that correct this account's message, or answer one, as <see cref="EveConsole.Services.Jabber.XmppSendExtras"/> says.</summary>
+    Task SendAsync(DmKey key, string text, EveConsole.Services.Jabber.XmppSendExtras extras, CancellationToken ct = default) => SendAsync(key, text, ct);
+
+    /// <summary>Takes back one of this account's messages, for everyone.</summary>
+    Task DeleteOwnAsync(DmKey key, string ownId, CancellationToken ct = default) => Task.CompletedTask;
 
     /// <summary>Sends this person's whole set of reactions to one message.</summary>
     Task ReactAsync(DmKey key, string target, IReadOnlyList<string> emojis, CancellationToken ct = default) => Task.CompletedTask;

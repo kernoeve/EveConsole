@@ -41,6 +41,12 @@ public sealed class JabberRoomState(JabberRoom room)
     public string Nick       { get; set; } = "";
     public string Subject    { get; set; } = "";
 
+    /// <summary>The room says it gives everyone a lasting id (XEP-0421), so the ids in what it relays are its own.</summary>
+    public bool   GivesOccupantIds { get; set; }
+
+    /// <summary>This account's lasting id there, once the room has said.</summary>
+    public string MyOccupantId { get; set; } = "";
+
     /// <summary>What the last attempt to join ran into, and the room's own words.</summary>
     public XmppRoomFailure? Failure { get; set; }
     public string FailureText { get; set; } = "";
@@ -102,6 +108,10 @@ public sealed class JabberSession(JabberAccount account)
 
     internal XmppClient? Client { get; set; }
 
+    /// <summary>The stream of a connection that dropped, for the next to pick up, and how things stood when it did.</summary>
+    internal XmppStreamResume? Resume { get; set; }
+    internal JabberDropped? DroppedWith { get; set; }
+
     /// <summary>Where this connection's messages go to be saved.</summary>
     internal ChannelWriter<XmppMessage>? Inbox { get; set; }
     internal CancellationTokenSource? Run { get; set; }
@@ -126,6 +136,11 @@ public sealed class JabberSession(JabberAccount account)
     public IReadOnlyList<string> SubscriptionRequests => Locked(s => (IReadOnlyList<string>)[.. s.Requests]);
     public IReadOnlyList<XmppInvite> Invites => Locked(s => (IReadOnlyList<XmppInvite>)[.. s.InviteMap.Values]);
 }
+
+/// <summary>Who was online and in which rooms when a connection dropped, put back if its stream is picked up again.</summary>
+internal sealed record JabberDropped(
+    Dictionary<string, (Dictionary<string, XmppShow> Resources, XmppShow Show)> Contacts,
+    Dictionary<string, (bool Joined, List<KeyValuePair<string, XmppOccupant>> Occupants)> Rooms);
 
 /// <summary>Unread messages in one conversation.</summary>
 public readonly record struct JabberUnread(int AccountId, string Conversation, int Count, int Alerts, int Mentions);
@@ -331,6 +346,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         while (!ct.IsCancellationRequested)
         {
             var started = DateTimeOffset.UtcNow;
+            var fatal = false;
             SetState(session, attempt == 0 ? JabberState.Connecting : JabberState.Reconnecting, JabberProblem.None, session.Detail);
 
             try
@@ -342,6 +358,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { break; }
             catch (XmppException e) when (e.Failure is XmppFailure.Login or XmppFailure.Certificate or XmppFailure.NoEncryption or XmppFailure.Replaced)
             {
+                fatal = true;
                 session.CertificateFingerprint = e.CertificateFingerprint ?? "";
                 session.CertificateSubject     = e.CertificateSubject ?? "";
                 SetState(session, JabberState.Failed, e.Failure switch
@@ -368,11 +385,16 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
                     if (session.Client is { } client)
                     {
                         session.Client = null;
-                        await client.DisposeAsync();
+
+                        // A connection that failed is dropped as it is, where the server keeps streams, for the next to
+                        // pick up. ⚠️ One ended on purpose, or that cannot be retried, says it is over.
+                        session.Resume = !fatal && !ct.IsCancellationRequested ? client.Resumable : null;
+                        if (session.Resume is not null) client.Abandon();
+                        else await client.DisposeAsync();
                     }
                 }
                 catch (Exception e) when (e is not OperationCanceledException) { errors.Log(nameof(JabberService), "end a connection", e); }
-                MarkDisconnected(session);
+                MarkDisconnected(session, keep: !fatal && session.Resume is not null);
             }
 
             // Told to stop: the failure that just ended the read loop is that, and not worth retrying.
@@ -404,9 +426,14 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         var connection = new XmppConnection(new XmppLogin(
             account.Address, password, account.Host, account.Port,
             account.Resource.Length > 0 ? account.Resource : WorkerResource,
-            account.TrustedCertificate, account.DirectTls));
+            account.TrustedCertificate, account.DirectTls), session.Resume);
 
         await connection.ConnectAsync(ct);
+
+        // Used, whether or not the server still had it.
+        session.Resume = null;
+        var dropped = session.DroppedWith;
+        session.DroppedWith = null;
 
         var client = new XmppClient(connection);
         session.Client = client;
@@ -444,12 +471,20 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             SessionChanged?.Invoke(session);
         };
 
+        // ⚠️ Before reading: what the server kept for a stream picked up comes first, and changes what is put back.
+        if (connection.Resumed && dropped is not null) PutBack(session, dropped);
+
         var reading = client.RunAsync(ct);
         var saving  = SaveInboxAsync(session, inbox.Reader, ct);
 
         try
         {
-            await SetUpSessionAsync(session, client, ct);
+            // A stream picked up again is still set up: the rooms joined, presence sent. Only a new one needs it.
+            if (!connection.Resumed)
+            {
+                await SetUpSessionAsync(session, client, ct);
+                await SendAgainAsync(connection, ct);
+            }
             SetState(session, JabberState.Connected, JabberProblem.None, "");
             await reading;
         }
@@ -731,7 +766,8 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         var nick = NicknameFor(session.Account, room);
         var password = await Task.Run(() => AppConfig.GetServicePassword(RoomPasswordReference(room.Id)) ?? "", ct);
         var since = await CatchUpStartAsync(room, ct);
-        var hasArchive = await client.RoomHasArchiveAsync(room.RoomJid, ct);
+        var features = await client.RoomFeaturesAsync(room.RoomJid, ct);
+        var hasArchive = features.Contains(XmppClient.Mam.NamespaceName);
 
         session.Locked(s =>
         {
@@ -739,6 +775,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
             r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false;
             r.HasArchive = hasArchive; r.ArchiveRefused = false;
+            r.GivesOccupantIds = features.Contains(XmppClient.OccupantIdNs.NamespaceName);
             r.CatchUpFrom = since;
 
             // ⚠️ From before the join goes out, so that nothing it replays is saved ahead of what is older.
@@ -776,13 +813,51 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     /// </summary>
     public const string WorkerResource = "EVEConsole";
 
-    private void MarkDisconnected(JabberSession session)
+    /// <param name="keep">The stream may be picked up again: how things stood is kept to put back, once.</param>
+    private void MarkDisconnected(JabberSession session, bool keep)
     {
         session.Locked(s =>
         {
+            if (!keep) s.DroppedWith = null;
+            else s.DroppedWith ??= new JabberDropped(
+                s.ContactMap.ToDictionary(c => c.Key, c => (new Dictionary<string, XmppShow>(c.Value.Resources), c.Value.Show), StringComparer.Ordinal),
+                s.RoomMap.ToDictionary(r => r.Key, r => (r.Value.Joined, r.Value.Occupants.ToList()), StringComparer.Ordinal));
+
             foreach (var c in s.ContactMap.Values) { c.Resources.Clear(); c.Show = XmppShow.Offline; }
             foreach (var r in s.RoomMap.Values) { r.Joined = false; r.Occupants.Clear(); }
         });
+    }
+
+    /// <summary>Who was online and in which rooms, as it was when the connection dropped: the stream picked up is that one.</summary>
+    private void PutBack(JabberSession session, JabberDropped dropped)
+    {
+        session.Locked(s =>
+        {
+            foreach (var (jid, (resources, show)) in dropped.Contacts)
+            {
+                if (!s.ContactMap.TryGetValue(jid, out var c)) continue;
+                foreach (var (resource, shown) in resources) c.Resources[resource] = shown;
+                c.Show = show;
+            }
+            foreach (var (jid, (joined, occupants)) in dropped.Rooms)
+            {
+                if (!s.RoomMap.TryGetValue(jid, out var r)) continue;
+                r.Joined = joined;
+                foreach (var (nick, occupant) in occupants) r.Occupants[nick] = occupant;
+            }
+        });
+        SessionChanged?.Invoke(session);
+    }
+
+    /// <summary>
+    /// What a dropped connection sent to people that its server never confirmed, sent again on the new session. ⚠️ Only
+    /// messages to a person: a room's would be refused before its join is done, and anything else is set up afresh.
+    /// </summary>
+    private static async Task SendAgainAsync(XmppConnection connection, CancellationToken ct)
+    {
+        foreach (var stanza in connection.TakeUnsent())
+            if (stanza.Name == XmppClient.Client + "message" && (string?)stanza.Attribute("type") == "chat" && stanza.Element(XmppClient.Client + "body") is not null)
+                await connection.WriteAsync(stanza, ct);
     }
 
     private void SetState(JabberSession session, JabberState state, JabberProblem problem, string detail)
@@ -875,12 +950,33 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
                 if (!occupant.Left && !room.Joined) entered = room;
                 room.Joined = !occupant.Left;
                 if (!occupant.Left) room.Nick = occupant.Nick;
+                if (!occupant.Left && room.GivesOccupantIds) room.MyOccupantId = occupant.OccupantId;
+
+                // Put out, not leaving: why, by whom, and the button to go back stays with the room.
+                if (occupant.Left && RemovedBecause(occupant) is { } why)
+                {
+                    room.Failure = why;
+                    room.FailureText = RemovedText(occupant);
+                }
             }
         });
 
         if (entered is not null) _ = CatchUpRoomAsync(session, client, entered, ct);
         SessionChanged?.Invoke(session);
     }
+
+    /// <summary>Why the room put this account out, from its status codes. Null for leaving of its own accord.</summary>
+    public static XmppRoomFailure? RemovedBecause(XmppOccupant self) =>
+        self.Codes.Contains("301") ? XmppRoomFailure.Banned
+        : self.Codes.Contains("307") ? XmppRoomFailure.Kicked
+        : self.Codes.Contains("321") || self.Codes.Contains("322") ? XmppRoomFailure.NotAMember
+        : self.Codes.Contains("332") ? XmppRoomFailure.Closed
+        : null;
+
+    /// <summary>Who did it and why, as the room said: "by Name: reason", either part left out when it said nothing.</summary>
+    public static string RemovedText(XmppOccupant self) =>
+        string.Join(": ", new[] { self.Actor.Length > 0 ? string.Format(CultureInfo.CurrentCulture, Localization.JabberText.RemovedBy, self.Actor) : "", self.Reason }
+            .Where(t => t.Length > 0));
 
     private void OnJoinFailed(JabberSession session, XmppClient client, string room, XmppRoomFailure why, string text, CancellationToken ct)
     {
@@ -972,10 +1068,22 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
+        // A lasting id in a room is only the room's word where the room says it gives them: otherwise anyone could
+        // put one in, and pass for whoever had it.
+        if (room is null || !room.GivesOccupantIds) row.OccupantId = "";
+
+        // A marker is not a message: their own messages up to it have been seen, or this account read them elsewhere.
+        if (message.DisplayedId.Length > 0)
+        {
+            if (room is null) await ApplyDisplayedAsync(db, row, message.DisplayedId, ct);
+            return null;
+        }
+
         // Reactions are not a message of their own either, whatever words come with them for older clients.
         if (message.ReactionsTo.Length > 0)
         {
-            await ApplyReactionsAsync(db, row.AccountId, row.Conversation, room is not null, row.Sender, message.ReactionsTo, message.Reactions, ct);
+            await ApplyReactionsAsync(db, row.AccountId, row.Conversation, room is not null,
+                row.OccupantId.Length > 0 ? row.OccupantId : row.Sender, message.ReactionsTo, message.Reactions, ct, row.Sender);
             return null;
         }
 
@@ -1077,6 +1185,44 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     private const int LongestDeleteReason = 300;
 
     /// <summary>
+    /// Whether two messages in a conversation are the same person's: by the room's lasting id for them where both have
+    /// one, else by name. ⚠️ Where both have one it decides alone: someone who took a departed person's nickname is not them.
+    /// </summary>
+    public static bool SamePerson(JabberStoredMessage a, JabberStoredMessage b) =>
+        a.OccupantId.Length > 0 && b.OccupantId.Length > 0 ? a.OccupantId == b.OccupantId : a.Sender == b.Sender;
+
+    /// <summary>
+    /// A marker (XEP-0333) with a person. From them: this account's messages up to the one named have been seen. From
+    /// this account's other client: the person's messages up to it have been read there, so they are read here too.
+    /// </summary>
+    private async Task ApplyDisplayedAsync(AppDbContext db, JabberStoredMessage row, string displayedId, CancellationToken ct)
+    {
+        var mine = row.IsOutgoing;
+        var upTo = await db.JabberMessages.AsNoTracking()
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation && m.MessageId == displayedId && m.IsOutgoing != mine)
+            .OrderByDescending(m => m.Id).Select(m => (long?)m.Id).FirstOrDefaultAsync(ct);
+        if (upTo is not { } last) return;
+
+        if (mine)
+        {
+            var read = await db.JabberMessages
+                .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation && !m.IsOutgoing && !m.IsRead && m.Id <= last)
+                .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
+            if (read > 0) { UnreadChanged?.Invoke(); Tell("unread"); }
+            return;
+        }
+
+        var seen = await db.JabberMessages
+            .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation && m.IsOutgoing && !m.SeenByThem && m.Id <= last)
+            .ExecuteUpdateAsync(u => u.SetProperty(m => m.SeenByThem, true), ct);
+        if (seen > 0)
+        {
+            ConversationEdited?.Invoke(row.AccountId, row.Conversation);
+            Tell($"edit|{row.AccountId}|{row.Conversation}");
+        }
+    }
+
+    /// <summary>
     /// Deletes what a retraction names, keeping its place. ⚠️ Only from whoever may: in a room, someone's own message by
     /// the room's id for it, or anyone's when the room itself says a moderator removed it; with a person, only their
     /// own, or this account's from another of its clients. Anything else is left as it is, and nothing is said.
@@ -1096,7 +1242,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
             target = await recent.FirstOrDefaultAsync(m => m.StanzaId == id, ct)
                   ?? (byRoom ? null : await recent.FirstOrDefaultAsync(m => m.MessageId == id && m.Sender == row.Sender, ct));
-            if (target is null || !byRoom && target.Sender != row.Sender) return;
+            if (target is null || !byRoom && !SamePerson(target, row)) return;
         }
         else
         {
@@ -1132,10 +1278,14 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     /// </summary>
     private async Task<bool> ApplyCorrectionAsync(AppDbContext db, JabberStoredMessage row, string replaces, CancellationToken ct)
     {
-        var last = await db.JabberMessages
+        // By the room's lasting id for them where it gives one: a nickname can change hands.
+        var recent = db.JabberMessages
             .Where(m => m.AccountId == row.AccountId && m.Conversation == row.Conversation)
-            .OrderByDescending(m => m.Id).Take(50)
-            .FirstOrDefaultAsync(m => m.Sender == row.Sender, ct);
+            .OrderByDescending(m => m.Id).Take(50);
+        var last = row.OccupantId.Length > 0
+            ? await recent.FirstOrDefaultAsync(m => m.OccupantId == row.OccupantId, ct)
+            : await recent.FirstOrDefaultAsync(m => m.Sender == row.Sender, ct);
+        if (last is not null && !SamePerson(last, row)) last = null;
 
         // ⚠️ The one it names. In a room a nickname can pass to someone else, who could otherwise rewrite the last
         // thing its old owner said, and replayed history would overwrite whatever came since.
@@ -1190,6 +1340,10 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             DedupeKey    = DedupeKey(conversation, sender, message),
             MessageId    = message.Id,
             StanzaId     = isRoom ? message.RoomStanzaId : "",
+            ReplyId      = message.ReplyId,
+            ReplyQuote   = message.ReplyQuote.Length > 300 ? message.ReplyQuote[..300] : message.ReplyQuote,
+            OccupantId   = isRoom ? message.OccupantId : "",
+            Markable     = message.Markable,
         };
     }
 
@@ -1250,21 +1404,84 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     // ── Asking the server for things ──────────────────────────────────────────
 
     /// <summary>Sends a message. Rooms echo a message back, so only a direct one is saved here.</summary>
-    public async Task SendAsync(JabberSession session, string conversation, bool isRoom, string body, CancellationToken ct = default)
+    public async Task SendAsync(JabberSession session, string conversation, bool isRoom, string body, CancellationToken ct = default, XmppSendExtras? extras = null)
     {
         if (!ActsHere)
         {
-            await AskWorkerAsync(session.Account.Id, "send", new CommandArgs(conversation, isRoom, body), ct);
+            await AskWorkerAsync(session.Account.Id, "send", new CommandArgs(conversation, isRoom, body,
+                ReplaceId: extras?.ReplaceId ?? "", ReplyTo: extras?.ReplyTo ?? "", ReplyId: extras?.ReplyId ?? "", ReplyQuote: extras?.ReplyQuote ?? ""), ct);
             return;
         }
 
         var client = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
         var text   = XmppClient.Clean(body);
-        var id     = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", text, ct);
+        var id     = await client.SendMessageAsync(conversation, isRoom ? "groupchat" : "chat", text, ct, extras: extras);
 
+        // A room sends its own copy back, which is what is saved. Nothing comes back from a person, so it is saved here.
         if (isRoom) return;
 
-        await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", text, "", id, null, "", true), ct);
+        await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", text, "", id, null, "", true)
+        {
+            IsCorrection = extras is { ReplaceId.Length: > 0 },
+            ReplaceId = extras?.ReplaceId ?? "",
+            ReplyId = extras?.ReplyId ?? "",
+            ReplyTo = extras?.ReplyTo ?? "",
+            ReplyQuote = extras is { ReplyId.Length: > 0 } ? XmppClient.WithoutReplyFallback(
+                XmppClient.OutgoingMessage(id, conversation, "chat", text, extras), extras.ReplyQuote + text).Quote : "",
+        }, ct);
+    }
+
+    /// <summary>
+    /// Takes back one of this account's messages, for everyone (XEP-0424). In a room by the room's id for it, which its
+    /// copy back says it is gone; with a person by its own, and gone here at once, as nothing comes back.
+    /// </summary>
+    public async Task DeleteOwnAsync(JabberSession session, string conversation, bool isRoom, string target, string ownId, CancellationToken ct = default)
+    {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Account.Id, "retract", new CommandArgs(conversation, isRoom, target, Name: ownId), ct);
+            return;
+        }
+
+        var client = session.Client ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+        await client.SendRetractionAsync(conversation, isRoom, target, ownId, Localization.JabberText.RetractFallback, ct);
+        if (isRoom) return;
+
+        await StoreAsync(session, new XmppMessage(client.Self, XmppAddress.Parse(conversation), "chat", "", "", XmppClient.NewId(), null, "", true)
+            { RetractId = ownId }, ct);
+    }
+
+    public const string ReadMarkersPref = "jabber.read_markers";
+    private readonly Dictionary<(int, string), string> _markedDisplayed = [];
+
+    /// <summary>
+    /// Tells a person their messages have been seen, once each, as people's other clients do, unless that is switched
+    /// off. Only with a person: in a room it would tell everyone what each member has read.
+    /// </summary>
+    private async Task SendDisplayedAsync(AppDbContext db, int accountId, string conversation, CancellationToken ct)
+    {
+        if (SessionOf(accountId) is not { } session || session.Locked(s => s.RoomMap.ContainsKey(conversation)) || XmppAddress.Parse(conversation).Resource.Length > 0) return;
+
+        var off = await db.AppPreferences.AsNoTracking().Where(p => p.Key == ReadMarkersPref).Select(p => p.Value).FirstOrDefaultAsync(ct) == "false";
+        if (off) return;
+
+        var latest = await db.JabberMessages.AsNoTracking()
+            .Where(m => m.AccountId == accountId && m.Conversation == conversation && !m.IsOutgoing && m.Markable && m.MessageId != "")
+            .OrderByDescending(m => m.Id).Select(m => m.MessageId).FirstOrDefaultAsync(ct);
+        if (latest is null) return;
+
+        lock (_markedDisplayed)
+        {
+            if (_markedDisplayed.GetValueOrDefault((accountId, conversation)) == latest) return;
+            _markedDisplayed[(accountId, conversation)] = latest;
+        }
+
+        try
+        {
+            if (!ActsHere) await PostToWorkerAsync(accountId, "displayed", new CommandArgs(conversation, Text: latest), ct);
+            else if (session.Client is { } client) await client.SendDisplayedAsync(conversation, latest, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { errors.Log(nameof(JabberService), "say messages were seen", e); }
     }
 
     private static readonly HttpClient Uploads = new() { Timeout = TimeSpan.FromMinutes(15) };
@@ -1620,6 +1837,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             UnreadChanged?.Invoke();
             Tell("unread");
         }
+        await SendDisplayedAsync(db, accountId, conversation, ct);
     }
 
     /// <summary>Deletes messages past the kept days. ⚠️ Never an unread one: age is no reason to lose what was not seen.</summary>

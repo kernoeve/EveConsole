@@ -128,7 +128,7 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
     <value>Añadir servidor</value>
   </data>
   <data name="PickSomething" xml:space="preserve">
-    <value>Elige un servidor o una persona a la izquierda.</value>
+    <value>Elige un servidor a la izquierda.</value>
   </data>
   <data name="Connect" xml:space="preserve">
     <value>Conectar</value>
@@ -398,5 +398,47 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   </data>
   <data name="EmojiSymbols" xml:space="preserve">
     <value>Símbolos</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Te expulsaron de esta sala.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>El servicio de la sala la cerró.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>por {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Esta persona eliminó un mensaje, algo que tu cliente no puede mostrar.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Responder</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Editar (o Flecha arriba con el cuadro vacío)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Eliminar para todos</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Respondiendo a {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Editando tu mensaje</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>un mensaje que no se guarda aquí</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>¿Eliminar este mensaje para todos? Los clientes compatibles lo quitan; los más antiguos, como Pidgin, lo siguen mostrando.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Visto</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Avisar cuando he leído sus mensajes</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Solo con una persona, como otros clientes: su cliente puede mostrar el mensaje como visto. Nunca en salas.</value>
   </data>
 </root>

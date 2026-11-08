@@ -45,7 +45,24 @@ public sealed record XmppLogin(
     string TrustedCertificate = "", bool DirectTls = false);
 
 /// <summary>
+/// What picking a stream up again takes (XEP-0198), kept from the connection that dropped: the server's name for it,
+/// the address it had, how much came in, and what went out that the server had not yet said it got.
+/// </summary>
+public sealed class XmppStreamResume
+{
+    internal string Id { get; init; } = "";
+    internal XmppAddress Bound { get; init; }
+    internal uint Inbound { get; init; }
+    internal uint Outbound { get; init; }
+    internal IReadOnlyList<(uint Seq, XElement Stanza)> Unacked { get; init; } = [];
+}
+
+/// <summary>
 /// One encrypted XMPP stream, up to the point stanzas can flow: connect, STARTTLS, log in, bind.
+///
+/// <para>Then, where the server offers it, stream management (XEP-0198): each side counts what it has had from the
+/// other and says so when asked, so what went out unconfirmed is known, and a stream whose connection dropped can be
+/// picked up again a moment later as it was, rooms still joined, with what was missed meanwhile delivered.</para>
 ///
 /// <para>⚠️ Encryption is required, always. A server offering none gets no credentials, and a connection
 /// the certificate check rejects sends nothing further. A self-signed certificate is common on group
@@ -59,6 +76,10 @@ public sealed class XmppConnection : IAsyncDisposable
     public static readonly XNamespace Sasl    = "urn:ietf:params:xml:ns:xmpp-sasl";
     public static readonly XNamespace BindNs  = "urn:ietf:params:xml:ns:xmpp-bind";
     public static readonly XNamespace Session = "urn:ietf:params:xml:ns:xmpp-session";
+    public static readonly XNamespace Sm      = "urn:xmpp:sm:3";
+
+    /// <summary>The most kept unconfirmed. A server that never says what it got cannot make this hold more.</summary>
+    private const int MostUnacked = 500;
 
     /// <summary>Largest stanza accepted. A server, or anyone it relays, cannot make this client hold more.</summary>
     private const long MaxStanzaBytes = 2 * 1024 * 1024;
@@ -79,7 +100,49 @@ public sealed class XmppConnection : IAsyncDisposable
     private LimitedStream? _limited;
     private XmlReader? _reader;
 
-    public XmppConnection(XmppLogin login) => _login = login;
+    private readonly XmppStreamResume? _resumeFrom;
+    private readonly object _smGate = new();
+    private readonly Queue<(uint Seq, XElement Stanza)> _unacked = new();
+    private List<XElement> _unsent = [];
+    private volatile bool _counting;
+    private string _smId = "";
+    private uint _inbound, _outbound;
+
+    /// <param name="resume">The stream of a connection that dropped, to pick up again if the server still has it.</param>
+    public XmppConnection(XmppLogin login, XmppStreamResume? resume = null)
+    {
+        _login = login;
+        _resumeFrom = resume;
+    }
+
+    /// <summary>This connection picked up the stream of one that dropped: everything joined then still is.</summary>
+    public bool Resumed { get; private set; }
+
+    /// <summary>The server is counting with this client, so what went out unconfirmed is known.</summary>
+    public bool Counting => _counting;
+
+    /// <summary>What picking this stream up again would take, or null where the server will not keep it.</summary>
+    public XmppStreamResume? Resumable
+    {
+        get
+        {
+            lock (_smGate)
+                return _counting && _smId.Length > 0
+                    ? new XmppStreamResume { Id = _smId, Bound = Bound, Inbound = _inbound, Outbound = _outbound, Unacked = [.. _unacked] }
+                    : null;
+        }
+    }
+
+    /// <summary>
+    /// What a dropped connection sent that its server never confirmed, when this one could not pick its stream up:
+    /// for the caller to send again once the new session is set up, if it should be. Given once.
+    /// </summary>
+    public IReadOnlyList<XElement> TakeUnsent()
+    {
+        var unsent = _unsent;
+        _unsent = [];
+        return unsent;
+    }
 
     /// <summary>The address the server gave this connection, with its resource.</summary>
     public XmppAddress Bound { get; private set; }
@@ -149,8 +212,13 @@ public sealed class XmppConnection : IAsyncDisposable
 
             await LogInAsync(address, features, timeout.Token);
             features = await OpenStreamAsync(address.Domain, timeout.Token);
-            await BindAsync(features, timeout.Token);
             Features = features;
+
+            var managed = features.Element(Sm + "sm") is not null;
+            if (managed && _resumeFrom is { } from && await ResumeAsync(from, timeout.Token)) return;
+
+            await BindAsync(features, timeout.Token);
+            if (managed) await EnableAsync(timeout.Token);
         }
         catch (Exception e) when (!ct.IsCancellationRequested && (e is not XmppException || timeout.IsCancellationRequested))
         {
@@ -250,8 +318,36 @@ public sealed class XmppConnection : IAsyncDisposable
         throw new XmppException(XmppFailure.Network, "The server closed the connection.");
     }
 
-    /// <summary>The next thing the server sent, or null when it ended the stream.</summary>
+    /// <summary>
+    /// The next thing the server sent, or null when it ended the stream. ⚠️ Stream management's own messages are
+    /// answered and taken here, and each stanza counted as it is handed on: the count is what says it arrived.
+    /// </summary>
     public async Task<XElement?> ReadStanzaAsync(CancellationToken ct)
+    {
+        while (true)
+        {
+            var stanza = await ReadNextAsync(ct);
+            if (stanza is null || !_counting) return stanza;
+
+            if (stanza.Name == Sm + "r")
+            {
+                uint handled;
+                lock (_smGate) handled = _inbound;
+                await WriteAsync(new XElement(Sm + "a", new XAttribute("h", handled)), ct);
+                continue;
+            }
+            if (stanza.Name == Sm + "a")
+            {
+                if (uint.TryParse((string?)stanza.Attribute("h"), out var h)) Acked(h);
+                continue;
+            }
+
+            if (stanza.Name.Namespace == Client) lock (_smGate) _inbound++;
+            return stanza;
+        }
+    }
+
+    private async Task<XElement?> ReadNextAsync(CancellationToken ct)
     {
         try
         {
@@ -349,7 +445,7 @@ public sealed class XmppConnection : IAsyncDisposable
     }
 
     public Task WriteAsync(XElement stanza, CancellationToken ct) =>
-        WriteRawAsync(stanza.ToString(SaveOptions.DisableFormatting), ct);
+        WriteRawAsync(stanza.ToString(SaveOptions.DisableFormatting), ct, stanza.Name.Namespace == Client ? stanza : null);
 
     /// <summary>A single space: the keep-alive the protocol allows, which also proves the link still works.</summary>
     public Task KeepAliveAsync(CancellationToken ct) => WriteRawAsync(" ", ct);
@@ -357,10 +453,9 @@ public sealed class XmppConnection : IAsyncDisposable
     /// <summary>A server that stops reading must not leave a write waiting for ever: pings go through here too.</summary>
     private static readonly TimeSpan WriteTimeout = TimeSpan.FromSeconds(30);
 
-    private async Task WriteRawAsync(string text, CancellationToken ct)
+    /// <param name="stanza">A stanza, which the server counts, so it is kept until the server says it has it.</param>
+    private async Task WriteRawAsync(string text, CancellationToken ct, XElement? stanza = null)
     {
-        var bytes = Encoding.UTF8.GetBytes(text);
-
         using var limit = CancellationTokenSource.CreateLinkedTokenSource(ct);
         limit.CancelAfter(WriteTimeout);
         try
@@ -369,6 +464,21 @@ public sealed class XmppConnection : IAsyncDisposable
             try
             {
                 var stream = _stream ?? throw new XmppException(XmppFailure.Network, "Not connected.");
+
+                // Counted in the order written, which is the order the server counts. A message asks at once whether it
+                // arrived, as other clients do: it is what someone would miss.
+                if (stanza is not null && _counting)
+                {
+                    lock (_smGate)
+                    {
+                        _outbound++;
+                        _unacked.Enqueue((_outbound, new XElement(stanza)));
+                        while (_unacked.Count > MostUnacked) _unacked.Dequeue();
+                    }
+                    if (stanza.Name == Client + "message") text += "<r xmlns='urn:xmpp:sm:3'/>";
+                }
+
+                var bytes = Encoding.UTF8.GetBytes(text);
                 await stream.WriteAsync(bytes, limit.Token);
                 await stream.FlushAsync(limit.Token);
             }
@@ -458,6 +568,74 @@ public sealed class XmppConnection : IAsyncDisposable
             await QueryDuringSetupAsync("session", new XElement(Session + "session"), ct);
     }
 
+    // ── Stream management ─────────────────────────────────────────────────────
+
+    /// <summary>Asks the server to count, and to keep the stream a while if the connection drops. A refusal changes nothing else.</summary>
+    private async Task EnableAsync(CancellationToken ct)
+    {
+        await WriteAsync(new XElement(Sm + "enable", new XAttribute("resume", "true")), ct);
+        while (true)
+        {
+            var answer = await ReadStanzaAsync(ct) ?? throw new XmppException(XmppFailure.Network, "The server closed the connection.");
+            if (answer.Name == Streams + "error") throw StreamError(answer);
+            if (answer.Name == Sm + "failed") return;
+            if (answer.Name != Sm + "enabled") continue;
+
+            lock (_smGate)
+            {
+                _inbound = 0;
+                _outbound = 0;
+                _smId = (string?)answer.Attribute("resume") is "true" or "1" ? (string?)answer.Attribute("id") ?? "" : "";
+                _counting = true;
+            }
+            return;
+        }
+    }
+
+    /// <summary>
+    /// Picks up the stream of a connection that dropped, if the server still has it, and sends again what it had not
+    /// confirmed. Where it does not, what was unconfirmed is kept for <see cref="TakeUnsent"/> and a new session is made.
+    /// </summary>
+    private async Task<bool> ResumeAsync(XmppStreamResume from, CancellationToken ct)
+    {
+        await WriteAsync(new XElement(Sm + "resume", new XAttribute("previd", from.Id), new XAttribute("h", from.Inbound)), ct);
+
+        var answer = await ReadStanzaAsync(ct) ?? throw new XmppException(XmppFailure.Network, "The server closed the connection.");
+        if (answer.Name == Streams + "error") throw StreamError(answer);
+
+        uint? h = uint.TryParse((string?)answer.Attribute("h"), out var got) ? got : null;
+        var waiting = from.Unacked.Where(u => h is not { } done || After(u.Seq, done)).Select(u => u.Stanza).ToList();
+
+        if (answer.Name != Sm + "resumed")
+        {
+            _unsent = waiting;
+            return false;
+        }
+
+        lock (_smGate)
+        {
+            _smId = from.Id;
+            _inbound = from.Inbound;
+            _outbound = h ?? from.Outbound;
+            _counting = true;
+        }
+        Bound = from.Bound;
+        Resumed = true;
+
+        foreach (var stanza in waiting) await WriteAsync(stanza, ct);
+        return true;
+    }
+
+    /// <summary>The server has everything up to this count: no need to keep it any longer.</summary>
+    private void Acked(uint h)
+    {
+        lock (_smGate)
+            while (_unacked.TryPeek(out var first) && !After(first.Seq, h)) _unacked.Dequeue();
+    }
+
+    /// <summary>Whether one count comes after another, the counts going round past the largest number as the protocol says.</summary>
+    internal static bool After(uint seq, uint than) => (int)(seq - than) > 0;
+
     private async Task<XElement> QueryDuringSetupAsync(string id, XElement payload, CancellationToken ct)
     {
         await WriteAsync(new XElement(Client + "iq", new XAttribute("type", "set"), new XAttribute("id", id), payload), ct);
@@ -499,6 +677,12 @@ public sealed class XmppConnection : IAsyncDisposable
 
     private static string Escape(string text) =>
         text.Replace("&", "&amp;").Replace("<", "&lt;").Replace(">", "&gt;").Replace("'", "&apos;");
+
+    /// <summary>
+    /// Drops the connection without ending the stream, so a server that keeps streams has this one to pick up again.
+    /// ⚠️ For a connection that has failed. One being ended on purpose is disposed, which tells the server it is over.
+    /// </summary>
+    public void Abandon() => CloseSocket();
 
     private void CloseSocket()
     {

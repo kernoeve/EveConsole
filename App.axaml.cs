@@ -2914,6 +2914,12 @@ public class App : Application
                         PRIMARY KEY ("AccountId", "Conversation", "Target", "Sender")
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "ReplyId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "ReplyQuote" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "OccupantId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "Markable" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "SeenByThem" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberReactions" ADD COLUMN "SenderName" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "ChatAvatars" (
                         "Hash"   TEXT    NOT NULL PRIMARY KEY,

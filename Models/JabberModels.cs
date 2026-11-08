@@ -171,6 +171,21 @@ public class JabberStoredMessage
 
     /// <summary>Why a moderator removed it, if they said.</summary>
     public string DeletedReason { get; set; } = "";
+
+    /// <summary>What it answers: the room's id for it in a room, its own id with a person. Blank for none.</summary>
+    public string ReplyId      { get; set; } = "";
+
+    /// <summary>What its sender quoted of what it answers, for when that is not kept here.</summary>
+    public string ReplyQuote   { get; set; } = "";
+
+    /// <summary>Who said it in a room, as the room knows them whatever their nickname (XEP-0421). Blank when the room gives none.</summary>
+    public string OccupantId   { get; set; } = "";
+
+    /// <summary>Its sender asked to be told when it has been seen.</summary>
+    public bool   Markable     { get; set; }
+
+    /// <summary>This account's message, and the person it went to has seen it (XEP-0333).</summary>
+    public bool   SeenByThem   { get; set; }
 }
 
 /// <summary>
@@ -184,8 +199,11 @@ public class JabberReaction
     /// <summary>The message reacted to: the room's id for it in a room, its own id with a person.</summary>
     public string Target       { get; set; } = "";
 
-    /// <summary>Who: a nickname in a room, an address with a person.</summary>
+    /// <summary>Who: as the room knows them where it gives a lasting id, else a nickname in a room, an address with a person.</summary>
     public string Sender       { get; set; } = "";
+
+    /// <summary>The name to show them by, which in a room may be other than what they are known by.</summary>
+    public string SenderName   { get; set; } = "";
 
     /// <summary>Their emojis, in the order they chose them, separated by spaces.</summary>
     public string Emojis       { get; set; } = "";

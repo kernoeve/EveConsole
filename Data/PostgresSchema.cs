@@ -1895,5 +1895,23 @@ public static class PostgresSchema
         """
         ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "DeletedReason" TEXT NOT NULL DEFAULT ''
         """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "ReplyId" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "ReplyQuote" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "OccupantId" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "Markable" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "JabberMessages" ADD COLUMN IF NOT EXISTS "SeenByThem" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "JabberReactions" ADD COLUMN IF NOT EXISTS "SenderName" TEXT NOT NULL DEFAULT ''
+        """,
     ];
 }
