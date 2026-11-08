@@ -59,6 +59,9 @@ public sealed record XmppMessage(
 
     /// <summary>Who sent it in a room, as the room knows them whatever nickname they use (XEP-0421). Only the room's word when it says it gives these.</summary>
     public string OccupantId { get; init; } = "";
+
+    /// <summary>The id its sender gave it, which servers keep even where they change the other (XEP-0359).</summary>
+    public string OriginId { get; init; } = "";
 }
 
 /// <summary>How far an archive query got.</summary>
@@ -1127,6 +1130,9 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
 
     /// <summary>What picking this stream up again would take, or null where the server will not keep it.</summary>
     public XmppStreamResume? Resumable => connection.Resumable;
+
+    /// <summary>Sends again, as it was, something a dropped connection's server never confirmed.</summary>
+    public Task SendAgainAsync(XElement stanza, CancellationToken ct) => connection.WriteAsync(stanza, ct);
 
     /// <summary>Drops a failed connection without ending the stream, for the next connection to pick up.</summary>
     public void Abandon()

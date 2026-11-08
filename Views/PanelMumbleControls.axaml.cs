@@ -19,18 +19,24 @@ namespace EveConsole.Views;
 /// </summary>
 public partial class PanelMumbleControl : UserControl
 {
-    private readonly MainWindowViewModel? _main;
+    private readonly MumbleService? _service;
+    private readonly MumbleViewModel? _vm;
     private readonly int? _serverId;
     private readonly MumbleControlMode _mode;
     private MumbleOverlayColumn? _column;
     private PanelTalkPopup? _popup;
     private PanelMumbleListVm? _list;
+    private MumbleRowMenu? _menu;
 
     public PanelMumbleControl() => InitializeComponent();
 
-    public PanelMumbleControl(MainWindowViewModel? main, ControlOptions? options) : this()
+    public PanelMumbleControl(MainWindowViewModel? main, ControlOptions? options) : this(main?.MumbleService, main?.MumbleVm, options) { }
+
+    /// <summary>The Mumble parts alone: all this needs, and what a test puts it on a screen with.</summary>
+    public PanelMumbleControl(MumbleService? service, MumbleViewModel? vm, ControlOptions? options) : this()
     {
-        _main = main;
+        _service = service;
+        _vm = vm;
         _serverId = options?.MumbleServerId;
         _mode = PanelControls.MumbleModeOf(options);
         ListMode.IsVisible = _mode == MumbleControlMode.List;
@@ -49,7 +55,7 @@ public partial class PanelMumbleControl : UserControl
     protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnAttachedToVisualTree(e);
-        if (_main == null || _serverId is not { } serverId)
+        if (_service == null || _vm == null || _serverId is not { } serverId)
         {
             LineState.Text = ClientLayoutsText.MumbleChooseServer;
             return;
@@ -57,13 +63,13 @@ public partial class PanelMumbleControl : UserControl
 
         if (_mode == MumbleControlMode.List)
         {
-            _list = new PanelMumbleListVm(_main.MumbleService, serverId);
+            _list = new PanelMumbleListVm(_service, serverId);
             ListUsers.ItemsSource = _list.Users;
             _list.Start();
         }
 
-        _main.MumbleVm.OverlayColumns.CollectionChanged += OnColumnsChanged;
-        _main.MumbleService.SessionChanged += OnSessionChanged;
+        _vm.OverlayColumns.CollectionChanged += OnColumnsChanged;
+        _service.SessionChanged += OnSessionChanged;
         FindColumn();
     }
 
@@ -72,12 +78,13 @@ public partial class PanelMumbleControl : UserControl
         base.OnDetachedFromVisualTree(e);
         _list?.Dispose();
         _list = null;
-        if (_main != null)
+        if (_service != null && _vm != null)
         {
-            _main.MumbleVm.OverlayColumns.CollectionChanged -= OnColumnsChanged;
-            _main.MumbleService.SessionChanged -= OnSessionChanged;
+            _vm.OverlayColumns.CollectionChanged -= OnColumnsChanged;
+            _service.SessionChanged -= OnSessionChanged;
         }
         UseColumn(null);
+        _menu?.Close();
         _popup?.Close();
         _popup = null;
     }
@@ -92,10 +99,10 @@ public partial class PanelMumbleControl : UserControl
     /// <summary>A server has a column only while connected, and a new one after every reconnect.</summary>
     private void FindColumn()
     {
-        if (_main == null) return;
-        UseColumn(_main.MumbleVm.OverlayColumns.FirstOrDefault(c => c.ServerId == _serverId));
+        if (_service == null || _vm == null) return;
+        UseColumn(_vm.OverlayColumns.FirstOrDefault(c => c.ServerId == _serverId));
 
-        var session = _serverId is { } id ? _main.MumbleService.SessionOf(id) : null;
+        var session = _serverId is { } id ? _service.SessionOf(id) : null;
         ShowPower(session);
         if (_column != null) return;
 
@@ -117,9 +124,9 @@ public partial class PanelMumbleControl : UserControl
 
     private void OnPower(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
     {
-        if (_main == null || _serverId is not { } id || _main.MumbleService.SessionOf(id) is not { } session) return;
-        if (session.State is MumbleState.Offline or MumbleState.Failed) _main.MumbleService.Connect(session);
-        else _ = _main.MumbleService.DisconnectAsync(session);
+        if (_service == null || _serverId is not { } id || _service.SessionOf(id) is not { } session) return;
+        if (session.State is MumbleState.Offline or MumbleState.Failed) _service.Connect(session);
+        else _ = _service.DisconnectAsync(session);
     }
 
     private void UseColumn(MumbleOverlayColumn? column)
@@ -141,10 +148,66 @@ public partial class PanelMumbleControl : UserControl
         if (_mode == MumbleControlMode.List) return;
         if (_column == null || _column.Talking.Count == 0)
         {
-            _popup?.Hide();
+            // Not under an open menu: what it was opened on goes on being shown until it closes.
+            if (_popup is { MenuOpen: false }) _popup.Hide();
             return;
         }
-        _popup ??= new PanelTalkPopup();
+        if (_popup == null)
+        {
+            _popup = new PanelTalkPopup();
+            _popup.PersonMenuRequested += line => OpenPersonMenu(line.Session, _popup.MenuAnchor, _popup);
+        }
         _popup.Show(_column.Talking, this);
+    }
+
+    private void OnPersonMenu(object? sender, Avalonia.Controls.ContextRequestedEventArgs e)
+    {
+        if (sender is not Control { DataContext: MumbleOverlayLine line }) return;
+        e.Handled = true;
+        OpenPersonMenu(line.Session, ListMode, null);
+    }
+
+    /// <summary>
+    /// The channel tree's person menu, for someone in this control's list or talk window. ⚠️ Who it is for is taken now, as
+    /// the right-click happens: a talker drops out of the window a few seconds after they stop, and the list reorders as
+    /// people talk, so by the time something is chosen the line may be gone or be someone else. So the menu hangs from
+    /// what stays (the list, the window), never from the line, and acts on the person it was opened for.
+    /// </summary>
+    private void OpenPersonMenu(uint user, Control anchor, PanelTalkPopup? popup)
+    {
+        if (_vm is not { } vm || _serverId is not { } serverId || vm.PersonRow(serverId, user) is not { } row) return;
+
+        vm.SelectedRow = row;
+
+        // ⚠️ A new one each time: one that has opened in the talk window will not open again in the list's, which is
+        // another window.
+        _menu?.Close();
+        var menu = _menu = new MumbleRowMenu { DataContext = vm, Host = TopLevel.GetTopLevel(this) as Window };
+
+        // The talk window takes no focus by itself. Given it now, a click anywhere else takes it away again, which is what
+        // puts the menu away: otherwise it would stay over the game.
+        var window = TopLevel.GetTopLevel(anchor) as Window;
+        if (popup != null)
+        {
+            popup.MenuOpen = true;
+            popup.Activate();
+        }
+
+        anchor.ContextMenu = menu;
+        menu.Closed += Closed;
+        if (window != null) window.Deactivated += Deactivated;
+        menu.Open(anchor);
+
+        void Deactivated(object? s, EventArgs a) => menu.Close();
+        void Closed(object? s, Avalonia.Interactivity.RoutedEventArgs a)
+        {
+            menu.Closed -= Closed;
+            if (window != null) window.Deactivated -= Deactivated;
+            if (ReferenceEquals(anchor.ContextMenu, menu)) anchor.ContextMenu = null;
+            if (ReferenceEquals(_menu, menu)) _menu = null;
+            if (popup == null) return;
+            popup.MenuOpen = false;
+            OnTalkingChanged(null, null);
+        }
     }
 }

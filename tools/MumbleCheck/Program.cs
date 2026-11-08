@@ -761,6 +761,46 @@ static string RawFile(string path)
     }
     Check("mixer: too loud clips, and never wraps around into noise", !wrapped);
 
+    // A priority speaker, here saying nothing, and someone else talking over them: turned down 18 dB, unless that someone
+    // is whispering to this listener alone.
+    double Duet(bool priority, int otherTarget)
+    {
+        var duet = new MumbleMixer();
+        var quiet = new MumbleEncoder(MumbleEncoder.BitrateFor(72_000));
+        var silence = new short[MumbleEncoder.FrameSamples];
+        var collected = new List<short>();
+        var buffer = new short[MumbleMixer.SamplesPer10Ms];
+        for (var f = 0; f < 60; f++)
+        {
+            duet.Receive(1, quiet.Encode(silence, 0, false) with { Session = 7 }, 1.0, priority);
+            duet.Receive(1, encoder.Encode(Frame(), 0, false) with { Session = 6, Target = otherTarget });
+            duet.ReadMix(buffer);
+            collected.AddRange(buffer);
+        }
+        var tail = collected.Skip(collected.Count / 2).Select(v => (double)v * v).ToList();
+        return Math.Sqrt(tail.Average());
+    }
+
+    var plain = Duet(priority: false, otherTarget: 0);
+    var ducked = Duet(priority: true, otherTarget: 0);
+    var whispered = Duet(priority: true, otherTarget: 2);
+    Check("priority: nobody's is heard as sent", Math.Abs(plain - expected) < expected * 0.15, $"{plain:N0}");
+    Check("priority: everyone else 18 dB down while they are heard", Math.Abs(ducked - expected * MumbleMixer.PriorityDuck) < expected * MumbleMixer.PriorityDuck * 0.3,
+          $"{ducked:N0} vs {expected * MumbleMixer.PriorityDuck:N0}");
+    Check("priority: not someone whispering to this listener alone", Math.Abs(whispered - expected) < expected * 0.15, $"{whispered:N0}");
+
+    var alone = new MumbleMixer();
+    var aloneOut = new List<short>();
+    var aloneBuffer = new short[MumbleMixer.SamplesPer10Ms];
+    for (var f = 0; f < 60; f++)
+    {
+        alone.Receive(1, encoder.Encode(Frame(), 0, false) with { Session = 8 }, 1.0, priority: true);
+        alone.ReadMix(aloneBuffer);
+        aloneOut.AddRange(aloneBuffer);
+    }
+    var aloneRms = Math.Sqrt(aloneOut.Skip(aloneOut.Count / 2).Select(v => (double)v * v).Average());
+    Check("priority: the priority speaker themselves as sent", Math.Abs(aloneRms - expected) < expected * 0.15, $"{aloneRms:N0}");
+
     var junkMixer = new MumbleMixer();
     var survived = true;
     try { junkMixer.Receive(1, new MumbleVoicePacket(0, 9, 1, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF], false)); }
