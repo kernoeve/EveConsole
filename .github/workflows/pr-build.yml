@@ -104,6 +104,12 @@ jobs:
       - name: Worklist rank check
         run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
 
+      # ⚠️ Does the Worklist's shopping list still paste into multibuy? A list that counts an
+      # expanded row twice, lists a blueprint's runs as items, or drops a station's share of an
+      # item still looks like a finished list. This builds the text from constructed rows.
+      - name: Worklist buy list check
+        run: dotnet run --project tools/WorklistBuyListCheck/WorklistBuyListCheck.csproj -c Release
+
       # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
       # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
       # picks up all look like a finished report. This builds battles whose answers are known, on
@@ -233,6 +239,17 @@ jobs:
           grep -q "this process holds the lease" worker.log
           grep -q "Stopping" worker.log
           test "$code" = 0
+
+      # ⚠️ Do the two bootstraps still agree, and can a SQLite user still move to PostgreSQL? An
+      # index added for SQLite and not in PostgresSchema is no error, only a screen that is slow
+      # for PostgreSQL users; a model property the migration's binary COPY cannot type fails a
+      # user's first migration at the first row, as an enum once did. Neither shows anywhere else.
+      # Against the worker's database it also checks the seed rows, and that a second apply — what
+      # every launch after the first does — changes nothing.
+      - name: PostgreSQL schema matches SQLite's, migrates, and re-applies cleanly
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/PgSchemaCheck/PgSchemaCheck.csproj -c Release
 
       # The worker has just built the whole schema in an empty database, and that database is
       # still running — the one place in CI with every table PostgreSQL will see. So PgSqlCheck
