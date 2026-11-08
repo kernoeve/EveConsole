@@ -658,4 +658,16 @@
   <data name="AclNotKept" xml:space="preserve">
     <value>サーバーはすべてを保存しませんでした。これが現在の内容です。少し待ってから変更し直して保存してください。</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>選択対象へのささやきキー</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>このキーを押している間、チャンネル一覧で選択した対象にささやきます。人をクリックまたは右クリック、チャンネルは右クリックで選択します（クリックは従来どおり移動します）。選択は一覧で強調表示され、話している間は自分の名前の横に表示されます。</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>チャンネル選択時は次にも届ける</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

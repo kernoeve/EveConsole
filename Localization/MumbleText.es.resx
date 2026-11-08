@@ -658,4 +658,16 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="AclNotKept" xml:space="preserve">
     <value>El servidor no guardó todo. Esto es lo que tiene ahora: vuelve a cambiarlo y guarda dentro de un momento.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Tecla de susurro a la selección</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Mantén esta tecla para susurrar a lo seleccionado en la lista de canales: haz clic o clic derecho en una persona, o clic derecho en un canal (un clic sigue llevándote allí). La selección se resalta en la lista y se nombra junto a tu nombre mientras hablas.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Con un canal seleccionado, llegar también a</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

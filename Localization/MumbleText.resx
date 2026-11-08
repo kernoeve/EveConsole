@@ -706,4 +706,16 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="AclNotKept" xml:space="preserve">
     <value>The server didn't keep all of that. This is what it holds now: change it again and save, after a moment.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Whisper to selection key</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Hold this key to whisper to whatever is selected in the channel list: click or right-click a person, or right-click a channel (a click still moves you there). The selection is highlighted in the list, and named beside your name while you talk.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>When a channel is selected, also reach</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

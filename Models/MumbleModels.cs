@@ -74,6 +74,18 @@ public class MumbleServer
     /// <summary>The same for deafening.</summary>
     public int    DeafenKey  { get; set; }
 
+    /// <summary>
+    /// The key held to whisper to what is selected in the channel tree, the standard client's "current selection": a
+    /// person, or a channel. Zero for none.
+    /// </summary>
+    public int    PickKey    { get; set; }
+
+    /// <summary>A selected channel's links are whispered to as well.</summary>
+    public bool   PickLinks  { get; set; }
+
+    /// <summary>A selected channel's subchannels are whispered to as well.</summary>
+    public bool   PickSubchannels { get; set; }
+
     /// <summary>Who each talk key reaches, as JSON: see <see cref="Services.Mumble.MumbleTargets"/>. Empty until first saved.</summary>
     public string TalkTargets { get; set; } = "";
 

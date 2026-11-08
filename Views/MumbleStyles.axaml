@@ -36,6 +36,8 @@
   <Style Selector="Button.chevron:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /></Style>
   <!-- A row someone is being dragged onto. ⚠️ The background is set here, not on the row: a value set there would win over this. -->
   <Style Selector="Grid.row"><Setter Property="Background" Value="Transparent" /></Style>
+  <!-- What the selection key whispers to, in a wash of the whisper colour. Before the drop target, which wins over it. -->
+  <Style Selector="Grid.row.picked"><Setter Property="Background" Value="#33B57EDC" /></Style>
   <Style Selector="Grid.row.drop"><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
   <Style Selector="TextBlock.person"><Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" /><Setter Property="FontSize" Value="12" /><Setter Property="TextTrimming" Value="CharacterEllipsis" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
   <Style Selector="TextBlock.person.me"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>

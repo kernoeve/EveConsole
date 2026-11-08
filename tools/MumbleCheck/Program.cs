@@ -1041,7 +1041,8 @@ static string RawFile(string path)
 
     var many = Enumerable.Range(0, 33).Select(_ => Plain(new MumbleTargetChannel { Path = "Ops" })).ToList();
     var manySlots = MumbleTargets.Slots(many);
-    Check("targets: a server has room for 30", manySlots[29] == 30 && manySlots[30] == -1 && manySlots[32] == -1);
+    Check("targets: a server has room for 29 saved", manySlots[28] == 29 && manySlots[29] == -1 && manySlots[32] == -1);
+    Check("targets: no saved target takes the selection's", !manySlots.Contains(MumbleTargets.PickSlot) && MumbleTargets.PickSlot == 30);
 
     // What goes to the server.
     var written = MumbleClient.VoiceTargetMessage(5, [new MumbleTargetEntry(7, "admin", true, true, [])]);
@@ -1210,6 +1211,12 @@ static string RawFile(string path)
     Check("keys: mute and deafen on one server must differ", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", MuteKey = 0x72, DeafenKey = 0x72 }, []) == "Three");
     Check("keys: my mute key on my own talk key", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", ShoutKey = 0x72, MuteKey = 0x72 }, []) == "Three");
     Check("keys: different mute and deafen keys are fine", MumbleService.KeyClash(new MumbleServer { Id = 3, MuteKey = 0x72, DeafenKey = 0x73 }, [a]) is null);
+
+    // The selection key is held like a talk key, so it clashes like one.
+    Check("keys: my selection key on their talk key", MumbleService.KeyClash(new MumbleServer { Id = 2, PickKey = 0x7C }, [a]) == "One");
+    Check("keys: their selection key on my talk key", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x74 }, [new MumbleServer { Id = 1, Name = "P", PickKey = 0x74 }]) == "P");
+    Check("keys: the selection key and mute on one server must differ", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", MuteKey = 0x75, PickKey = 0x75 }, []) == "Three");
+    Check("keys: a selection key of its own is fine", MumbleService.KeyClash(new MumbleServer { Id = 3, MuteKey = 0x72, DeafenKey = 0x73, PickKey = 0x76 }, [a]) is null);
 }
 
 // ── A channel's permissions and groups, as they come and as they go back ─────────

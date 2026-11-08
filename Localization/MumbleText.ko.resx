@@ -658,4 +658,16 @@
   <data name="AclNotKept" xml:space="preserve">
     <value>서버가 전부 저장하지 않았습니다. 지금 서버에 있는 내용입니다. 잠시 후 다시 바꾸고 저장하세요.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>선택 대상 귓속말 키</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>이 키를 누르고 있으면 채널 목록에서 선택한 대상에게 귓속말합니다. 사람은 클릭하거나 오른쪽 클릭하고, 채널은 오른쪽 클릭하세요(클릭은 여전히 그 채널로 이동합니다). 선택은 목록에서 강조되고, 말하는 동안 내 이름 옆에 표시됩니다.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>채널을 선택했을 때 함께 전달</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

@@ -153,6 +153,13 @@ public partial class MumbleServerBar : UserControl
         var dragged = _dragStarted;
         EndDrag(e.Pointer);
 
+        // Clicked rather than dragged: selected, for the selection key.
+        if (!dragged && person is not null && Column is { } picking)
+        {
+            picking.Owner.SelectedRow = person;
+            return;
+        }
+
         if (!dragged || person is null || to is null || Column is not { } column) return;
         e.Handled = true;
         await column.Owner.DropPersonAsync(person, to.Id);

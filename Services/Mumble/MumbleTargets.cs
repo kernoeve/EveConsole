@@ -17,8 +17,11 @@ public static class MumbleTargets
     /// <summary>A target's channel by this name is the root, which has no path of its own.</summary>
     public const string RootPath = "/";
 
-    /// <summary>How many a server has room for, besides plain talk.</summary>
-    public const int MostSaved = 30;
+    /// <summary>How many a server has room for, besides plain talk and the one kept for what is selected.</summary>
+    public const int MostSaved = 29;
+
+    /// <summary>The server's last, kept for whatever is selected in the channel tree: see <see cref="EntriesOfPick"/>.</summary>
+    public const int PickSlot = 30;
 
     /// <summary>
     /// A server's targets. A server that has never saved any gets the two everyone starts with, on the keys it already
@@ -88,6 +91,17 @@ public static class MumbleTargets
 
         return entries;
     }
+
+    /// <summary>
+    /// Who the selection key reaches: the person selected, or the channel, with its links and subchannels if asked. Nothing
+    /// once they have gone from the server.
+    /// </summary>
+    public static List<MumbleTargetEntry> EntriesOfPick(MumblePick? pick, bool links, bool subchannels, MumbleClient client) => pick switch
+    {
+        { IsPerson: true } when client.UserOf(pick.Id) is not null => [new MumbleTargetEntry(null, "", false, false, [pick.Id])],
+        { IsPerson: false } when client.ChannelOf(pick.Id) is not null => [new MumbleTargetEntry(pick.Id, "", links, subchannels, [])],
+        _ => [],
+    };
 
     private static HashSet<string> Names(MumbleTalkTarget target) =>
         target.People.Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToHashSet(StringComparer.OrdinalIgnoreCase);

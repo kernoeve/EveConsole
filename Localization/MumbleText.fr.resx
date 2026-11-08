@@ -658,4 +658,16 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="AclNotKept" xml:space="preserve">
     <value>Le serveur n'a pas tout gardé. Voici ce qu'il contient maintenant : modifiez à nouveau et enregistrez dans un instant.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Touche de chuchotement à la sélection</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Maintenez cette touche pour chuchoter à ce qui est sélectionné dans la liste des canaux : cliquez ou faites un clic droit sur une personne, ou un clic droit sur un canal (un clic vous y déplace toujours). La sélection est mise en évidence dans la liste et nommée à côté de votre nom pendant que vous parlez.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Quand un canal est sélectionné, atteindre aussi</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

@@ -5,7 +5,7 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-/// <summary>Something on the Servers tab a key is chosen for by pressing it: a channel target, or mute or deafen.</summary>
+/// <summary>Something on the Servers tab a key is chosen for by pressing it: a channel target, mute, deafen or the selection.</summary>
 public interface IMumbleKeySlot
 {
     int Key { get; set; }
@@ -14,7 +14,7 @@ public interface IMumbleKeySlot
     bool Capturing { get; set; }
 }
 
-/// <summary>The key that turns one of the server's switches on and off: mute, or deafen.</summary>
+/// <summary>One of the server's keys that isn't a channel target: mute and deafen, which switch, and the selection key, held.</summary>
 public sealed class MumbleToggleKeyVm : ReactiveObject, IMumbleKeySlot
 {
     private int _key;

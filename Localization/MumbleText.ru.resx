@@ -658,4 +658,16 @@
   <data name="AclNotKept" xml:space="preserve">
     <value>Сервер сохранил не всё. Вот что на нём сейчас: немного подождите, измените снова и сохраните.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Клавиша шёпота выбранному</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Удерживайте эту клавишу, чтобы шептать выбранному в списке каналов: щёлкните или щёлкните правой кнопкой по человеку, или правой кнопкой по каналу (щелчок по-прежнему переносит вас туда). Выбранное подсвечено в списке и называется рядом с вашим именем, пока вы говорите.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Если выбран канал, также охватывать</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

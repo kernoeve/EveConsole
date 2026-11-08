@@ -658,4 +658,16 @@
   <data name="AclNotKept" xml:space="preserve">
     <value>服务器没有全部保存。这是它现在保存的内容：请稍后再次更改并保存。</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>向所选对象耳语的按键</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>按住此键，向频道列表中选中的对象耳语：单击或右键单击某人，或右键单击某个频道（单击仍会移动到那里）。选中项在列表中高亮显示，说话时会显示在你的名字旁边。</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>选中频道时，同时传到</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

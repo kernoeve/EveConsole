@@ -164,6 +164,23 @@
                         </StackPanel>
                       </StackPanel>
                     </Border>
+
+                    <!-- Held, like a talk key, to whisper to whatever is selected in the channel tree. -->
+                    <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="10">
+                      <StackPanel Spacing="2">
+                        <TextBlock Classes="note" Margin="0" Text="{x:Static loc:MumbleText.PickKeyNote}" />
+                        <TextBlock Classes="label" Text="{x:Static loc:MumbleText.PickKey}" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Button Content="{Binding PickKey.KeyText}" Command="{Binding PickKey.CaptureKeyCommand}" MinWidth="220" />
+                          <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding PickKey.ClearKeyCommand}" />
+                        </StackPanel>
+                        <TextBlock Classes="label" Text="{x:Static loc:MumbleText.PickChannelAlso}" />
+                        <StackPanel Orientation="Horizontal" Spacing="10">
+                          <CheckBox IsChecked="{Binding PickLinks}" FontSize="11" Content="{x:Static loc:MumbleText.TargetLinks}" />
+                          <CheckBox IsChecked="{Binding PickSubchannels}" FontSize="11" Content="{x:Static loc:MumbleText.TargetSubchannels}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
                   </StackPanel>
                 </ScrollViewer>
               </TabItem>

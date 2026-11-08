@@ -658,4 +658,16 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
   <data name="AclNotKept" xml:space="preserve">
     <value>Der Server hat nicht alles übernommen. So steht es jetzt dort: nach einem Moment erneut ändern und speichern.</value>
   </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Taste: Flüstern an Auswahl</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Halten Sie diese Taste, um dem in der Kanalliste Ausgewählten zuzuflüstern: eine Person anklicken oder rechtsklicken, oder einen Kanal rechtsklicken (ein Klick wechselt weiterhin dorthin). Die Auswahl ist in der Liste hervorgehoben und wird beim Sprechen neben Ihrem Namen genannt.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Bei ausgewähltem Kanal auch erreichen</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>
