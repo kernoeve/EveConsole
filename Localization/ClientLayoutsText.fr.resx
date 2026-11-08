@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>Couleur</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>Utiliser la couleur d'EVE</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>Style</value>
   </data>
@@ -230,6 +227,29 @@
     <value>En creux</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>Plan</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>Carte</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>ligne {0}, colonne {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Colonnes</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Lignes</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Chaque cellule est un panneau et garde sa place. Réduire la grille retire les cellules au-delà du nouveau bord, avec leur contenu ; Annuler les rétablit. Cliquez sur une ligne entre les cellules pour sélectionner la grille.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Client</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Ancrer une grille</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Retirer le client</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Ancrer un panneau à l&apos;écran</value></data>
+  <data name="Undo" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Redo" xml:space="preserve"><value>Rétablir</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Annuler la dernière modification de cette disposition (Ctrl+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Rétablir la modification qui vient d&apos;être annulée (Ctrl+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Ancré à</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Ordre d&apos;ancrage</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Faites glisser une ligne vers le haut ou le bas pour changer l&apos;ordre ; cliquez dessus pour la sélectionner. Le plus haut s&apos;ancre en premier et prend tout son bord ; les suivants tiennent dans ce qui reste.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Marge intérieure</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Gauche</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Haut</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Droite</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Bas</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Pixels à 100 %, laissés libres à l&apos;intérieur du panneau, ou autour des cellules d&apos;une grille et entre elles. Un bord en relief, en creux ou en arête en laisse 4 de plus, une carte 5, pour que rien n&apos;atteigne ses coins arrondis.</value></data>
     <value>Arête</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>Ancrer un panneau à l'intérieur</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>Ancrer un panneau à côté de celui-ci</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>Tout l'espace</value>
@@ -344,7 +361,7 @@
     <value>Copie de {0}</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>Faites un clic droit sur n'importe quel élément pour y ancrer un panneau ou un contrôle, le diviser en grille ou atteindre ce qui le contient. Faites glisser les lignes entre les éléments pour les redimensionner.</value>
+    <value>Clic droit sur l&apos;écran pour y ancrer des panneaux, ou sur un panneau pour y ancrer des panneaux, contrôles, clients et grilles, ou atteindre ce qui le contient. Faites glisser les lignes entre les éléments pour les redimensionner.</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>Nom de la disposition</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>Vide</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>Ancrer un panneau ici</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>Haut</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>Droite</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>Diviser en grille</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>Retirer cette grille</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>Contient un client de jeu</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>Contient un panneau</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>Ne contient rien</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>Mettre à l'arrière-plan</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0} : une partie de cette disposition ne peut pas être utilisée telle qu'enregistrée. Elle vient peut-être d'une version plus récente.</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>Assistant IA</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>Messages directs</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>Discussion de groupe</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>Version de l&apos;application</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>Version du SDE</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>Base de données</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>Travail en arrière-plan</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>État d&apos;ESI</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>Thème</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>Échelle de l&apos;interface</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>Voyant d&apos;alarme</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>Planificateur</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>Alertes</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>Ouvrir Messages</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>Ouvrir Discussion de groupe</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>Aucun nouveau message direct.</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>Rien de nouveau dans la discussion de groupe.</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>L&apos;assistant IA est désactivé. Activez-le dans les Paramètres.</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>Messagerie d&apos;EVE</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>Utiliser la couleur du thème</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>Salon de discussion de groupe</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>Conversations de messages directs</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>Salon</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>Choisissez un salon pour ce contrôle dans Dispositions des clients, ou choisissez-en un ci-dessus.</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>Le salon choisi pour ce contrôle n&apos;est plus dans la discussion de groupe.</value>
   </data>
 </root>

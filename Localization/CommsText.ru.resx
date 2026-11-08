@@ -1055,4 +1055,10 @@
   <data name="TimeAgoDaysMany" xml:space="preserve">
     <value>{0} дней</value>
   </data>
+  <data name="MailUnreadTip" xml:space="preserve">
+    <value>Почта EVE: непрочитанных — {0}</value>
+  </data>
+  <data name="MailNoUnreadTip" xml:space="preserve">
+    <value>Почта EVE: всё прочитано</value>
+  </data>
 </root>

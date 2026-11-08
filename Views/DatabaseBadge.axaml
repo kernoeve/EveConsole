@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.DatabaseBadge"
+             x:DataType="vm:MainWindowViewModel">
+
+  <!-- Which database this window is talking to, for the main window's bar and for panels. The icon
+       carries it before the word is read; the hover says where the data actually lives. -->
+  <StackPanel Orientation="Horizontal" Spacing="4" VerticalAlignment="Center" Background="Transparent"
+              ToolTip.Tip="{Binding DbEngineTip}">
+
+    <!-- The projects' own artwork, the same way the Slack mark on the Corp Activity
+         buttons is theirs. PostgreSQL's trademark policy permits this to say that
+         software works with it, provided no affiliation is implied; the attribution it
+         asks for is on the Settings Database tab. SQLite publishes no logo policy, only
+         a public-domain dedication covering code and documentation.
+
+         postgresql.png  the 3-colour Slonik, from wiki.postgresql.org, resized only.
+         sqlite.png      sqlite.org's banner, cropped to the mark (its wordmark begins
+                         at column 100 of 220) with the white ground made transparent,
+                         since the banner is drawn for a white page and this bar is not. -->
+    <Image Source="avares://EveConsole/Assets/sqlite.png"
+           Width="16" Height="16" VerticalAlignment="Center"
+           RenderOptions.BitmapInterpolationMode="HighQuality"
+           IsVisible="{Binding !DbIsPostgres}" />
+
+    <Image Source="avares://EveConsole/Assets/postgresql.png"
+           Width="16" Height="16" VerticalAlignment="Center"
+           RenderOptions.BitmapInterpolationMode="HighQuality"
+           IsVisible="{Binding DbIsPostgres}" />
+
+    <!-- ⚠️ Each wordmark's own colour treatment, lifted in lightness but not shifted in
+         hue. Their palettes are chosen for a white page: PostgreSQL's #336791 and
+         SQLite's #003B57 both fall to roughly 2:1 contrast on this bar and would be
+         close to unreadable as printed. -->
+    <!-- ⚠️ Two TextBlocks, not two Runs in one. A Run is not a Control and does not sit in
+         the tree a DynamicResource is looked up through, so when these two literals became
+         palette brushes the lookup resolved to nothing and the wordmark went invisible on
+         every theme. Spacing 0 joins them with no gap, and being separate elements there
+         is no newline to render as "Postgre SQL" either.
+
+         SQL keeps its blue, through the palette's own Info rather than the #5590be it had:
+         same hue, and it holds up on a light theme, which a colour lifted for this bar
+         does not. -->
+    <StackPanel Orientation="Horizontal" Spacing="0" VerticalAlignment="Center"
+                IsVisible="{Binding DbIsPostgres}">
+      <TextBlock Text="Postgre" FontSize="11" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextMutedBrush}" />
+      <TextBlock Text="SQL" FontSize="11" VerticalAlignment="Center"
+                 Foreground="{DynamicResource InfoBrush}" />
+    </StackPanel>
+
+    <TextBlock Text="SQLite" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+               VerticalAlignment="Center"
+               IsVisible="{Binding !DbIsPostgres}" />
+  </StackPanel>
+</UserControl>

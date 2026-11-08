@@ -51,6 +51,29 @@
   <data name="WorklistModeLine" xml:space="preserve"><value>One line of counts, the list dropping down when clicked</value></data>
   <data name="ItemMenu" xml:space="preserve"><value>Menu</value><comment>A control on a panel: three lines that open a menu of the app's tools.</comment></data>
   <data name="ItemToolContainer" xml:space="preserve"><value>Tool Container</value><comment>A control on a panel that holds one of the app's tools, or tabs of them.</comment></data>
+  <data name="ItemAgent" xml:space="preserve"><value>AI companion</value><comment>A control on a panel: the conversation with the app's AI companion, as on the right of the main window.</comment></data>
+  <data name="ItemDirectMessages" xml:space="preserve"><value>Direct messages</value><comment>A control on a panel: the direct messages icon from the main window's top bar.</comment></data>
+  <data name="ItemGroupChat" xml:space="preserve"><value>Group chat</value><comment>A control on a panel: the group chat icon from the main window's top bar.</comment></data>
+  <data name="ItemAppVersion" xml:space="preserve"><value>App version</value><comment>A control on a panel: which version of EVE Console this is, and whether a newer one is out.</comment></data>
+  <data name="ItemSdeVersion" xml:space="preserve"><value>SDE version</value><comment>A control on a panel: which Static Data Export is loaded, and whether a newer one is out.</comment></data>
+  <data name="ItemDatabase" xml:space="preserve"><value>Database</value><comment>A control on a panel: SQLite or PostgreSQL, whichever the app uses.</comment></data>
+  <data name="ItemBackgroundOwner" xml:space="preserve"><value>Background worker</value><comment>A control on a panel: which copy of the app is doing the background work.</comment></data>
+  <data name="ItemEsiStatus" xml:space="preserve"><value>ESI status</value><comment>A control on a panel: what each background process is doing, as at the bottom left of the main window.</comment></data>
+  <data name="ItemTheme" xml:space="preserve"><value>Theme</value></data>
+  <data name="ItemUiScale" xml:space="preserve"><value>UI scale</value></data>
+  <data name="ItemAlarms" xml:space="preserve"><value>Alarm light</value><comment>A control on a panel: the alarm beacon from the main window's top bar.</comment></data>
+  <data name="ItemScheduler" xml:space="preserve"><value>Scheduler</value></data>
+  <data name="ItemAlerts" xml:space="preserve"><value>Alerts</value><comment>A control on a panel: the alerts list, as on the Overview.</comment></data>
+  <data name="ItemEveMail" xml:space="preserve"><value>Eve Mail</value><comment>A control on a panel: an envelope that turns white with a count when there is unread mail.</comment></data>
+  <data name="ItemGroupChatRoom" xml:space="preserve"><value>Group chat room</value><comment>A control on a panel: one group chat room, chosen for the control, with a dropdown to show another.</comment></data>
+  <data name="ItemDirectMessageChat" xml:space="preserve"><value>Direct message conversations</value><comment>A control on a panel: the people with direct messages down the side, and the conversation picked beside it.</comment></data>
+  <data name="LabelGroupChatRoom" xml:space="preserve"><value>Room</value><comment>Which group chat room a Group chat room control opens on.</comment></data>
+  <data name="GroupChatChooseRoom" xml:space="preserve"><value>Choose a room for this control in Client Layouts, or pick one above.</value></data>
+  <data name="GroupChatRoomGone" xml:space="preserve"><value>The room set for this control is no longer in Group Chat.</value></data>  <data name="ChatOpenMessages" xml:space="preserve"><value>Open Messages</value><comment>Link at the foot of the direct messages control's drop-down, to the Messages tool.</comment></data>
+  <data name="ChatOpenGroupChat" xml:space="preserve"><value>Open Group Chat</value><comment>Link at the foot of the group chat control's drop-down, to the Group Chat tool.</comment></data>
+  <data name="ChatNoNewMessages" xml:space="preserve"><value>No new direct messages.</value></data>
+  <data name="ChatNoNewGroup" xml:space="preserve"><value>Nothing new in group chat.</value></data>
+  <data name="AgentOff" xml:space="preserve"><value>The AI companion is turned off. Turn it on in Settings.</value></data>
   <data name="MenuTip" xml:space="preserve"><value>Tools</value></data>
   <data name="LabelMenuTarget" xml:space="preserve"><value>Opens tools in</value></data>
   <data name="MenuTargetNewWindow" xml:space="preserve"><value>A new window</value></data>
@@ -74,15 +97,37 @@
   <data name="LabelHeight" xml:space="preserve"><value>Height in pixels</value></data>
   <data name="LabelControl" xml:space="preserve"><value>Control</value></data>
   <data name="LabelColor" xml:space="preserve"><value>Color</value></data>
-  <data name="ResetColor" xml:space="preserve"><value>Use the EVE color</value><comment>Sets a panel's color back to the default, which matches the game's UI.</comment></data>
+  <data name="ResetColorTheme" xml:space="preserve"><value>Use the theme's color</value><comment>Sets a panel's color back to the default: the page color of the theme in use, which follows the theme as it changes.</comment></data>
   <data name="LabelStyle" xml:space="preserve"><value>Style</value></data>
   <data name="StyleFlat" xml:space="preserve"><value>Flat</value><comment>A panel's edge: no depth.</comment></data>
   <data name="StyleRaised" xml:space="preserve"><value>Raised</value><comment>A panel's edge: stands out from the screen.</comment></data>
   <data name="StyleInset" xml:space="preserve"><value>Inset</value><comment>A panel's edge: sits into the screen.</comment></data>
   <data name="StyleRidge" xml:space="preserve"><value>Ridge</value><comment>A panel's edge: a raised line around the panel.</comment></data>
+  <data name="StyleCard" xml:space="preserve"><value>Card</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineTitle" xml:space="preserve"><value>Outline</value></data>
+  <data name="OutlineCell" xml:space="preserve"><value>row {0}, column {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Columns</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Rows</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Each cell is a panel and keeps its place. Making the grid smaller removes the cells past its new edge, with what&apos;s in them; Undo brings them back. Click a line between cells to select the grid.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Client</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Dock a grid</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Remove client</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Dock a panel on the monitor</value></data>
+  <data name="Undo" xml:space="preserve"><value>Undo</value></data>
+  <data name="Redo" xml:space="preserve"><value>Redo</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Undo the last change to this layout (Ctrl+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Redo the change just undone (Ctrl+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Docked to</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Dock order</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Drag a row up or down to change the order; click one to select it. Higher docks first and takes its whole edge; lower ones fit in what is left.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Content padding</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Left</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Top</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Right</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Bottom</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Pixels at 100%, kept free inside the panel, or round a grid&apos;s cells and between them. A raised, inset or ridged edge keeps 4 more, a card 5, so nothing reaches its rounded corners.</value></data>
   <data name="MenuDockControl" xml:space="preserve"><value>Dock a control</value></data>
   <data name="MenuDockInside" xml:space="preserve"><value>Dock a panel inside</value></data>
-  <data name="MenuDockBeside" xml:space="preserve"><value>Dock a panel beside this one</value></data>
   <data name="MenuEdgeFull" xml:space="preserve"><value>Full</value><comment>Docked to fill all the space, so it has no size of its own.</comment></data>
   <data name="MenuRemoveControl" xml:space="preserve"><value>Remove control</value></data>
   <data name="MenuParent" xml:space="preserve"><value>Parent: {0}</value><comment>Right-click submenu for what holds the thing clicked. {0} is a panel's name, or one of the words below.</comment></data>
@@ -117,7 +162,7 @@
   <data name="DeleteLayout" xml:space="preserve"><value>Delete</value></data>
   <data name="NewLayoutName" xml:space="preserve"><value>New layout</value></data>
   <data name="CopyOfName" xml:space="preserve"><value>{0} copy</value><comment>{0} is the name of the layout that was duplicated.</comment></data>
-  <data name="LayoutHint" xml:space="preserve"><value>Right click anything to dock a panel or control in it, split it into a grid, or reach what holds it. Drag the lines between things to resize them.</value></data>
+  <data name="LayoutHint" xml:space="preserve"><value>Right-click the monitor to dock panels on it, or a panel to dock panels, controls, clients and grids in it, or to reach what holds it. Drag the lines between things to resize them.</value></data>
   <data name="LabelLayoutName" xml:space="preserve"><value>Layout name</value></data>
   <data name="LabelPreviewOn" xml:space="preserve"><value>Show on</value><comment>Which monitor's size the layout is drawn at while editing.</comment></data>
   <data name="LabelPanelName" xml:space="preserve"><value>Panel name</value></data>
@@ -126,16 +171,11 @@
   <data name="CanvasClient" xml:space="preserve"><value>Client {0}</value><comment>{0} is the number of a game client position on a monitor.</comment></data>
   <data name="CanvasSize" xml:space="preserve"><value>{0} × {1}</value><comment>A width and height, or columns and rows of a grid.</comment></data>
   <data name="CanvasEmpty" xml:space="preserve"><value>Empty</value></data>
-  <data name="MenuDockHere" xml:space="preserve"><value>Dock a panel here</value></data>
   <data name="MenuEdgeTop" xml:space="preserve"><value>Top</value></data>
   <data name="MenuEdgeBottom" xml:space="preserve"><value>Bottom</value></data>
   <data name="MenuEdgeLeft" xml:space="preserve"><value>Left</value></data>
   <data name="MenuEdgeRight" xml:space="preserve"><value>Right</value></data>
-  <data name="MenuSplit" xml:space="preserve"><value>Split into a grid</value></data>
   <data name="MenuRemoveGrid" xml:space="preserve"><value>Remove this grid</value></data>
-  <data name="MenuHoldsClient" xml:space="preserve"><value>Holds a game client</value></data>
-  <data name="MenuHoldsPanel" xml:space="preserve"><value>Holds a panel</value></data>
-  <data name="MenuHoldsNothing" xml:space="preserve"><value>Holds nothing</value></data>
   <data name="MenuSendToBack" xml:space="preserve"><value>Send to Back</value><comment>Makes this panel first in dock order, so it takes its full edge.</comment></data>
   <data name="MenuBringToFront" xml:space="preserve"><value>Bring to Front</value><comment>Makes this panel last in dock order, so it fits in what the others leave.</comment></data>
   <data name="MenuRemovePanel" xml:space="preserve"><value>Remove panel</value></data>

@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>Цвет</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>Использовать цвет EVE</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>Стиль</value>
   </data>
@@ -230,6 +227,29 @@
     <value>Вдавленный</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>Структура</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>Карточка</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>строка {0}, столбец {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Столбцы</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Строки</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Каждая ячейка — панель и сохраняет своё место. При уменьшении сетки ячейки за новым краем удаляются вместе с содержимым; «Отменить» возвращает их. Щёлкните линию между ячейками, чтобы выбрать сетку.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Клиент</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Пристыковать сетку</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Убрать клиент</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Пристыковать панель к монитору</value></data>
+  <data name="Undo" xml:space="preserve"><value>Отменить</value></data>
+  <data name="Redo" xml:space="preserve"><value>Повторить</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Отменить последнее изменение этого макета (Ctrl+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Повторить только что отменённое изменение (Ctrl+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Пристыковано</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Порядок пристыковки</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Перетащите строку вверх или вниз, чтобы изменить порядок; щёлкните, чтобы выбрать. Верхние пристыковываются первыми и занимают весь край; нижние помещаются в оставшееся место.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Внутренний отступ</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Слева</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Сверху</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Справа</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Снизу</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Пиксели при 100 %, свободные внутри панели или вокруг ячеек сетки и между ними. Выпуклый, вдавленный или рельефный край оставляет ещё 4, карточка — 5, чтобы ничего не заходило в её скруглённые углы.</value></data>
     <value>Рельефный</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>Пристыковать панель внутри</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>Пристыковать панель рядом с этой</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>Целиком</value>
@@ -344,7 +361,7 @@
     <value>{0} (копия)</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>Щёлкните правой кнопкой мыши что угодно, чтобы пристыковать к нему панель или элемент, разбить его на сетку или перейти к тому, что его содержит. Перетаскивайте линии между частями, чтобы менять их размер.</value>
+    <value>Щёлкните правой кнопкой по монитору, чтобы пристыковать к нему панели, или по панели, чтобы пристыковать в неё панели, элементы, клиенты и сетки или перейти к тому, что её содержит. Перетаскивайте линии между частями, чтобы менять размер.</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>Название макета</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>Пусто</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>Пристыковать панель сюда</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>Сверху</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>Справа</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>Разбить на сетку</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>Убрать эту сетку</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>Содержит игровой клиент</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>Содержит панель</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>Ничего не содержит</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>На задний план</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0}: часть этого макета нельзя использовать в сохранённом виде. Возможно, он создан более новой версией.</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>ИИ-помощник</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>Личные сообщения</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>Версия приложения</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>Версия SDE</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>База данных</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>Фоновая работа</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>Состояние ESI</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>Тема</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>Масштаб интерфейса</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>Сигнальный маяк</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>Планировщик</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>Оповещения</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>Открыть «Сообщения»</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>Открыть «Групповой чат»</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>Новых личных сообщений нет.</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>В групповом чате ничего нового.</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>ИИ-помощник выключен. Включите его в настройках.</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>Почта EVE</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>Использовать цвет темы</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>Комната группового чата</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>Беседы в личных сообщениях</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>Комната</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>Выберите комнату для этого элемента в разделе «Макеты клиентов» или выберите её выше.</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>Комнаты, заданной для этого элемента, больше нет в групповом чате.</value>
   </data>
 </root>

@@ -346,12 +346,16 @@ public static class AppConfig
     /// </summary>
     public static bool GetAlarmsMuted() => Load().AlarmsMuted == true;
 
-    public static bool GetShowTrayIcon() => Load().ShowTrayIcon == true;
+    /// <summary>
+    /// Whether closing the main window leaves EVE Console running in the notification area, panels
+    /// and all, rather than ending it. Per machine, like the alarm mute.
+    /// </summary>
+    public static bool GetKeepRunningInTray() => Load().KeepRunningInTray == true;
 
-    public static void SetShowTrayIcon(bool show)
+    public static void SetKeepRunningInTray(bool keep)
     {
         var c = Load();
-        c.ShowTrayIcon = show ? true : null;   // absent rather than false — keeps the file tidy
+        c.KeepRunningInTray = keep ? true : null;   // absent rather than false — keeps the file tidy
         Save(c);
     }
 
@@ -1122,9 +1126,9 @@ public static class AppConfig
         [JsonPropertyName("gameLogEnabled")] public bool?   GameLogEnabled { get; set; }
         [JsonPropertyName("chatLogEnabled")] public bool?   ChatLogEnabled { get; set; }
 
-        // Per client, like the alarm mute: whether THIS window puts an icon in the tray is a
-        // fact about this desktop, not about the data.
-        [JsonPropertyName("showTrayIcon")]  public bool? ShowTrayIcon { get; set; }
+        // Per client, like the alarm mute: whether closing the main window leaves the app running
+        // in the notification area is a fact about this desktop, not about the data.
+        [JsonPropertyName("keepRunningInTray")] public bool? KeepRunningInTray { get; set; }
 
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }

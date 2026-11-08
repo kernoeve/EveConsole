@@ -3,6 +3,7 @@ using System.Collections.Specialized;
 using Avalonia.Threading;
 using EveConsole.Localization;
 using EveConsole.Models;
+using EveConsole.Services;
 using EveConsole.Services.ClientLayouts;
 using ReactiveUI;
 
@@ -84,6 +85,7 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
         _started = true;
         _focus.Changed += OnFocusChanged;
         _worklist.PoolRows.CollectionChanged += OnPoolChanged;
+        _worklist.PropertyChanged += OnWorklistChanged;
         _characters.CollectionChanged += OnPoolChanged;
         _stale.Start();
         ShowSelection();
@@ -96,6 +98,7 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
         _started = false;
         _focus.Changed -= OnFocusChanged;
         _worklist.PoolRows.CollectionChanged -= OnPoolChanged;
+        _worklist.PropertyChanged -= OnWorklistChanged;
         _characters.CollectionChanged -= OnPoolChanged;
         _stale.Stop();
     }
@@ -144,11 +147,38 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
         foreach (var kind in fresh.GroupBy(r => WorklistRowVm.KindLabel(r.Item)))
             Counts.Add(new WorklistKindCount(kind.Key, kind.Count()));
 
+        _shownId = id;
+        _shownCount = fresh.Count;
+        ShowNote();
+    }
+
+    private long? _shownId;
+    private int _shownCount;
+
+    /// <summary>
+    /// Why the list is empty, when it is. Before the worklist's first build that's "loading" while
+    /// one is coming; but a first build that failed outright (the database out of reach, say) leaves
+    /// it unbuilt, and then the worklist's own status, which says what went wrong, rather than a
+    /// "loading" that never ends.
+    /// </summary>
+    private void ShowNote()
+    {
+        var name = _selectedName;
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        var failed = !_worklist.HasBuilt && !_worklist.IsLoading && AppStartup.IsSettled && _worklist.Status.Length > 0;
         Note = name == null ? ClientLayoutsText.WorklistNoClient
-            : id == null ? string.Format(System.Globalization.CultureInfo.CurrentCulture, ClientLayoutsText.WorklistNotInApp, name)
-            : fresh.Count == 0 && !_worklist.HasBuilt ? ClientLayoutsText.WorklistLoading
-            : fresh.Count == 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, ClientLayoutsText.WorklistNothing, name)
+            : _shownId == null ? string.Format(culture, ClientLayoutsText.WorklistNotInApp, name)
+            : _shownCount == 0 && failed ? _worklist.Status
+            : _shownCount == 0 && !_worklist.HasBuilt ? ClientLayoutsText.WorklistLoading
+            : _shownCount == 0 ? string.Format(culture, ClientLayoutsText.WorklistNothing, name)
             : "";
+    }
+
+    /// <summary>A build starting or stopping can change why the list is empty, without changing its rows.</summary>
+    private void OnWorklistChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName is nameof(WorklistViewModel.IsLoading) or nameof(WorklistViewModel.Status))
+            Dispatcher.UIThread.Post(ShowNote);
     }
 
     private void OnExpansionChanged(WorklistRowVm row)

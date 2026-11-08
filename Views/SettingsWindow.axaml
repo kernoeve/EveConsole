@@ -1266,10 +1266,8 @@
             </StackPanel>
           </Border>
 
-          <!-- ⚠️ Its own section, not a line at the bottom of the service one. The tray icon has
-               nothing to do with the service: it is useful with no service installed at all, and it
-               was previously nested inside a border that is hidden where no service mechanism
-               exists — so on a machine without one it silently could not be turned on. -->
+          <!-- ⚠️ Its own section, not a line at the bottom of the service one: it has nothing to do
+               with the service, and that border is hidden where no service mechanism exists. -->
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
@@ -1277,19 +1275,12 @@
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
-                <!-- A separate process, and it has to be: a Windows service runs in session 0 with
-                     no desktop and cannot draw, and an icon inside this window would vanish exactly
-                     when somebody wants it — while the application is closed. -->
-                <CheckBox IsChecked="{Binding PollingVm.TrayAtLogon}"
+                <CheckBox IsChecked="{Binding PollingVm.KeepRunningInTray}"
                           Content="{Binding PollingVm.TrayCheckboxText}"
                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 -2 0 0"
-                           Text="{x:Static loc:SettingsText.ASmallSeparateProcessNote}" />
-
-                <TextBlock Text="{Binding PollingVm.TrayStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                           TextWrapping="Wrap"
-                           IsVisible="{Binding PollingVm.TrayStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                           Text="{Binding PollingVm.KeepRunningInTrayNote}" />
               </StackPanel>
             </StackPanel>
           </Border>

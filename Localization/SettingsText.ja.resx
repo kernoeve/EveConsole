@@ -823,9 +823,6 @@
   <data name="NotificationAreaIcon" xml:space="preserve">
     <value>通知領域のアイコン</value>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>どのクライアントがバックグラウンド処理を行っているかを表示する、小さな別プロセスです。メニューから「バックグラウンド処理」ウィンドウや新しいEVE Consoleを開けます。このプロセス自体がバックグラウンド処理を行うことはなく、アラームも扱いません — それらを止めるにはEVE Consoleを閉じてください。</value>
-  </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>ゲームログの取り込み</value>
   </data>
@@ -2131,15 +2128,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcRunsLabel" xml:space="preserve">
     <value>実行ファイル：</value>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>通知領域のアイコンを表示する（Windowsの起動時に開始）</value>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>通知領域のアイコンを表示する（デスクトップセッションの開始時に開始）</value>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>メニューバーにアイコンを表示する（ログイン時に開始）</value>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>PostgreSQLが必要です。このクライアントはPostgreSQLを使用しています — ワーカーとすべてのクライアントが1つのサーバーを共有します。</value>
   </data>
@@ -2157,30 +2145,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>このサービスは、現在使用しているものとは別のEVE Consoleのコピーを実行しています。そのコピーの設定でバックグラウンド処理を行っています。</value>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>次回のログオン時の開始は登録しましたが、今すぐ開始できませんでした — {0}</value>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>実行中です。Windowsの起動時に開始します。</value>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>実行中です。デスクトップセッションの開始時に開始します。</value>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>実行中です。ログイン時に開始します。</value>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Windowsの起動時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>デスクトップセッションの開始時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>ログイン時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログアウトするまで残ります。</value>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>変更できませんでした — {0}</value>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>スタートアップを変更中…</value>
@@ -3900,5 +3864,14 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="OnlineErrStatus" xml:space="preserve">
     <value>eveconsole.com がエラーを返しました（{0}）。</value>
+  </data>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>メインウィンドウを閉じても、EVE Consoleを通知領域で実行し続ける</value>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>メインウィンドウを閉じても、EVE Consoleをメニューバーで実行し続ける</value>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>メインウィンドウを閉じても非表示になるだけで、パネル、アラーム、バックグラウンド処理は続きます。ウィンドウを戻すにはアイコンをダブルクリックするか、メニューの「{0}」を選び、EVE Consoleを終了するには「{1}」を選びます。</value>
   </data>
 </root>

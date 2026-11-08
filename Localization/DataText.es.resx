@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>Guardar tarifas</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>Procesos en segundo plano</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>Registro de actividad de ESI</value>
   </data>
@@ -1752,9 +1749,6 @@
   </data>
   <data name="JabberNoAccounts" xml:space="preserve">
     <value>No hay servidores de Jabber configurados. Añade uno en la pestaña Jabber de Ajustes.</value>
-  </data>
-  <data name="JabberOpenTheApp" xml:space="preserve">
-    <value>Abre la aplicación para ver Jabber: no funciona desde el icono de la bandeja.</value>
   </data>
   <data name="JabberDirectMessages" xml:space="preserve">
     <value>Mensajes directos</value>

@@ -29,4 +29,15 @@ public static class AppThemes
     public static readonly ThemeVariant PinkLight  = new("PinkLight",  ThemeVariant.Light);
     public static readonly ThemeVariant BeigeDark  = new("BeigeDark",  ThemeVariant.Dark);
     public static readonly ThemeVariant BeigeLight = new("BeigeLight", ThemeVariant.Light);
+
+    // EVE's own colour themes, as the game's settings name them: its near-black ground, and the
+    // theme's colours for the accent. Dark underneath, for everything that carries meaning.
+    public static readonly ThemeVariant EveAmarr = new("EveAmarr", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveCaldari = new("EveCaldari", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveCarbon = new("EveCarbon", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveGallente = new("EveGallente", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveMinmatar = new("EveMinmatar", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveOre = new("EveOre", ThemeVariant.Dark);
+    public static readonly ThemeVariant EvePhoton = new("EvePhoton", ThemeVariant.Dark);
+    public static readonly ThemeVariant EveSisters = new("EveSisters", ThemeVariant.Dark);
 }

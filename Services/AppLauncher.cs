@@ -53,12 +53,10 @@ public static class AppLauncher
     /// binary is not a job for the file manager.</para>
     ///
     /// <para>⚠️ And through <c>setsid</c> off Windows, so the new process gets its own session and
-    /// process group. Everything started here is meant to OUTLIVE this process — the tray icon, the
-    /// replacement after a "Save and Restart", a second client from the tray menu — and a plain
-    /// child does not. It inherits this process's group, so a signal sent to the group reaches it
-    /// too, a terminal closing SIGHUPs it, and an IDE that ends a run by killing the group takes it
-    /// along. Ticking the tray box started an icon that duly appeared and then vanished the moment
-    /// the client that started it closed, which is the one moment the icon exists for.</para>
+    /// process group. Everything started here is meant to OUTLIVE this process — the replacement
+    /// after a "Save and Restart", say — and a plain child does not. It inherits this process's
+    /// group, so a signal sent to the group reaches it too, a terminal closing SIGHUPs it, and an IDE
+    /// that ends a run by killing the group takes it along.</para>
     /// </summary>
     public static string? Start(params string[] arguments)
     {
@@ -73,7 +71,7 @@ public static class AppLauncher
 
             // setsid forks when it is already a group leader and execs in place when it is not;
             // either way what comes out is detached. If it is missing, start directly rather than
-            // not at all — a tray icon that dies with its parent still beats no tray icon.
+            // not at all — a replacement that dies with its parent still beats none.
             if (!OperatingSystem.IsWindows() && Setsid() is { } setsid)
             {
                 psi.FileName = setsid;

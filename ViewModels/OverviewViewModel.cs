@@ -506,6 +506,23 @@ public class OverviewViewModel : ReactiveObject
     /// </summary>
     private bool Shown(string key) => _layout.Sections.Any(s => s.Key == key && s.Enabled);
 
+    // ── Alerts for panels ─────────────────────────────────────────────────────
+    //
+    // An Alerts control on a panel shows the main Overview's alerts, so they are worked out once.
+    // ⚠️ Whether or not this Overview's layout shows them: one that leaves them off would otherwise
+    // leave every panel's list empty.
+
+    private int _alertsWanted;
+
+    private bool AlertsOn => Shown("Alerts") || _alertsWanted > 0;
+
+    /// <summary>Keeps the alerts worked out until the result is disposed, for an Alerts control on a panel.</summary>
+    public IDisposable WantAlerts()
+    {
+        if (_alertsWanted++ == 0 && !Shown("Alerts") && _firstLoad is not null) _ = LoadAsync();
+        return System.Reactive.Disposables.Disposable.Create(() => _alertsWanted--);
+    }
+
     // Raised when the layout changes; the view rebuilds its section grid in response.
     public event Action? LayoutChanged;
 
@@ -541,9 +558,30 @@ public class OverviewViewModel : ReactiveObject
         }
     }
 
+    /// <summary>
+    /// Set for a panel control showing one of the Overview's sections: this Overview shows that
+    /// section and nothing else, so it loads only that section's data, and the saved layouts never
+    /// change it.
+    /// </summary>
+    private bool _oneSection;
+
+    public void ShowOnlySection(string sectionKey, bool load = true)
+    {
+        _oneSection = true;
+        _layout = new OverviewLayout
+        {
+            Rows = 1,
+            Cols = 1,
+            Sections = [new OverviewPlacement { Key = sectionKey, Enabled = true }],
+        };
+        LayoutChanged?.Invoke();
+        if (load) _ = LoadAsync();
+    }
+
     /// <summary>Switches to another saved layout.</summary>
     public void ShowLayout(string? key)
     {
+        if (_oneSection) return;
         _layoutKey = _layouts.KeyOf(key);
         if (_isMain) _layouts.MainLayout = _layoutKey;
         _layout = _layouts.Get(_layoutKey);
@@ -573,6 +611,7 @@ public class OverviewViewModel : ReactiveObject
     /// </summary>
     private void OnLayoutsChanged(IReadOnlyDictionary<string, string> renames)
     {
+        if (_oneSection) return;
         if (renames.TryGetValue(_layoutKey, out var renamed)) _layoutKey = renamed;
         var key = _layouts.KeyOf(_layoutKey);
         var layout = _layouts.Get(key);
@@ -923,7 +962,7 @@ public class OverviewViewModel : ReactiveObject
         LoadStatus = OverviewText.StepQueryingScope;
         try
         {
-            if (Shown("Alerts")) await _alertSettings.LoadAsync();
+            if (AlertsOn) await _alertSettings.LoadAsync();
 
             // ── Scope ─────────────────────────────────────────────────────────
             // Only characters we have auth tokens for (i.e. authenticated characters).
@@ -1178,7 +1217,7 @@ public class OverviewViewModel : ReactiveObject
             BuildPieCharts(WalletCategorizer.Categorize(journalByType));
 
             Step(OverviewText.StepAlerts);
-            if (Shown("Alerts")) await EvaluateAlertsAsync(charIds);
+            if (AlertsOn) await EvaluateAlertsAsync(charIds);
 
             Step(OverviewText.StepNews);
             if (newsTask is not null)

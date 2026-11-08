@@ -23,8 +23,8 @@ class Program
     public const string ServiceArgument = "--service";
 
     /// <summary>
-    /// A notification-area icon in the user's session and nothing else. Started at logon so there
-    /// is something to look at while the worker runs as a service, which cannot draw at all.
+    /// What started the old notification-area process at logon. It now only takes that start
+    /// away: the desktop app shows the icon itself (see <see cref="TrayIconController"/>).
     /// </summary>
     public const string TrayArgument = "--tray";
 
@@ -95,8 +95,13 @@ class Program
             }
         }
 
-        var asTray = args.Any(a => string.Equals(a, TrayArgument, StringComparison.OrdinalIgnoreCase));
-        if (asTray) AppRuntime.MarkTray();
+        // A tray process of its own is no more: the desktop app shows the icon itself. One still
+        // started at logon by the old setting takes that setting away, and goes.
+        if (args.Any(a => string.Equals(a, TrayArgument, StringComparison.OrdinalIgnoreCase)))
+        {
+            TrayIconController.RetireLogonTray();
+            return;
+        }
 
         var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));
         var headless  = asService

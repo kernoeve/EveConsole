@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>Сохранить тарифы</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>Фоновые процессы</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>Журнал активности ESI</value>
   </data>
@@ -1812,9 +1809,6 @@
   </data>
   <data name="JabberNoAccounts" xml:space="preserve">
     <value>Серверы Jabber не настроены. Добавьте сервер на вкладке Jabber в настройках.</value>
-  </data>
-  <data name="JabberOpenTheApp" xml:space="preserve">
-    <value>Откройте приложение, чтобы увидеть Jabber: из значка в трее он не работает.</value>
   </data>
   <data name="JabberDirectMessages" xml:space="preserve">
     <value>Личные сообщения</value>

@@ -188,6 +188,14 @@
     <value>All Mail</value>
     <comment>Mail folder.</comment>
   </data>
+  <data name="MailUnreadTip" xml:space="preserve">
+    <value>Eve Mail: {0} unread</value>
+    <comment>Hover on the envelope icon. {0} is how many mails are unread, across every character.</comment>
+  </data>
+  <data name="MailNoUnreadTip" xml:space="preserve">
+    <value>Eve Mail: nothing unread</value>
+    <comment>Hover on the envelope icon when every mail has been read.</comment>
+  </data>
   <data name="MailFolderUnread" xml:space="preserve">
     <value>Unread</value>
     <comment>Mail folder: every unread mail, however old (All Mail shows the newest 500). The unread mail alert opens it.</comment>
