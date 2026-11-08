@@ -1202,6 +1202,85 @@ static string RawFile(string path)
     Check("keys: one server's two keys must differ too", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", WhisperKey = 0x7C, ShoutKey = 0x7C }, []) == "Three");
     Check("keys: no key clashes with no key", MumbleService.KeyClash(new MumbleServer { Id = 2 }, [new MumbleServer { Id = 1 }]) is null);
     Check("keys: a server with no name is named by its host", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 5 }, [new MumbleServer { Id = 1, Host = "voice.example", WhisperKey = 5 }]) == "voice.example");
+
+    // Mute and deafen keys are keys like any other: one press must not do two things.
+    Check("keys: my mute key on their talk key", MumbleService.KeyClash(new MumbleServer { Id = 2, MuteKey = 0x7C }, [a]) == "One");
+    Check("keys: my deafen key on their talk key", MumbleService.KeyClash(new MumbleServer { Id = 2, DeafenKey = 0x7D }, [a]) == "One");
+    Check("keys: their mute key on my talk key", MumbleService.KeyClash(new MumbleServer { Id = 2, WhisperKey = 0x71 }, [new MumbleServer { Id = 1, Name = "M", MuteKey = 0x71 }]) == "M");
+    Check("keys: mute and deafen on one server must differ", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", MuteKey = 0x72, DeafenKey = 0x72 }, []) == "Three");
+    Check("keys: my mute key on my own talk key", MumbleService.KeyClash(new MumbleServer { Id = 3, Name = "Three", ShoutKey = 0x72, MuteKey = 0x72 }, []) == "Three");
+    Check("keys: different mute and deafen keys are fine", MumbleService.KeyClash(new MumbleServer { Id = 3, MuteKey = 0x72, DeafenKey = 0x73 }, [a]) is null);
+}
+
+// ── A channel's permissions and groups, as they come and as they go back ─────────
+{
+    // As a server sends them: root's line inherited, the channel's own, a group from above changed here, one of its own.
+    var raw = new PbWriter().UInt(1, 7).Bool(2, true)
+        .Bytes(3, new PbWriter().Text(1, "admin").Bool(2, true).Bool(3, true).Bool(4, true).UInt(7, 1).UInt(7, 2).ToArray())
+        .Bytes(3, new PbWriter().Text(1, "pilots").Bool(2, true).Bool(3, true).Bool(4, false).UInt(5, 9).UInt(6, 2).UInt(7, 2).ToArray())
+        .Bytes(3, new PbWriter().Text(1, "mine").Bool(2, false).Bool(3, false).Bool(4, true).UInt(5, 4).ToArray())
+        .Bytes(4, new PbWriter().Bool(1, true).Bool(2, true).Bool(3, true).Text(5, "admin").UInt(6, 0x1).UInt(7, 0).ToArray())
+        .Bytes(4, new PbWriter().Bool(1, true).Bool(2, false).Bool(3, false).UInt(4, 9).UInt(6, (ulong)MumblePermission.Enter).UInt(7, (ulong)MumblePermission.Speak).ToArray())
+        .Bytes(4, new PbWriter().Bool(3, false).Text(5, "~in").ToArray())
+        .ToArray();
+    var acl = MumbleAcl.Read(new PbMessage(raw));
+    Check("acl: the channel", acl.Channel == 7 && acl.InheritAcls);
+    Check("acl: every group", acl.Groups.Select(g => g.Name).SequenceEqual(["admin", "pilots", "mine"]));
+    Check("acl: a group's members from above", acl.Groups[0].InheritedMembers.SequenceEqual([1u, 2u]));
+    Check("acl: added and taken away here", acl.Groups[1].Add.SequenceEqual([9u]) && acl.Groups[1].Remove.SequenceEqual([2u]) && !acl.Groups[1].Inheritable);
+    Check("acl: every line, in order", acl.Entries.Count == 3 && acl.Entries[0].Inherited && !acl.Entries[1].Inherited);
+    Check("acl: a person's line", acl.Entries[1] is { UserId: 9, Group: "", ApplyHere: true, ApplySubs: false, Grant: MumblePermission.Enter, Deny: MumblePermission.Speak });
+    Check("acl: what isn't sent is true, as the protocol says", acl.Entries[2] is { ApplyHere: true, ApplySubs: true, UserId: null, Group: "~in" });
+    Check("acl: a group missing its flags is inherited and inherits", MumbleAcl.Read(new PbMessage(new PbWriter().UInt(1, 1).Bytes(3, new PbWriter().Text(1, "x").ToArray()).ToArray())).Groups[0] is { Inherited: true, Inherit: true, Inheritable: true });
+    Check("acl: the user ids it names, once each", acl.UserIds.Order().SequenceEqual([1u, 2u, 4u, 9u]));
+
+    // Back to the server.
+    var sent = new PbMessage(acl.ToMessage());
+    Check("acl: sent for the channel, and not a question", sent.UInt(1) == 7 && sent.Bool(5) == false && sent.Bool(2) == true);
+    var lines = sent.AllBytes(4).Select(b => new PbMessage(b)).ToList();
+    Check("acl: what is inherited isn't sent back", lines.Count == 2, $"{lines.Count}");
+    Check("acl: a person's line goes back by id, not group", lines[0].UInt(4) == 9 && lines[0].Text(5) is null && lines[0].UInt(6) == (ulong)MumblePermission.Enter && lines[0].UInt(7) == (ulong)MumblePermission.Speak);
+    Check("acl: a line's flags go back as they are", lines[0].Bool(1) == true && lines[0].Bool(2) == false && lines[0].Bool(3) == false);
+    Check("acl: a group's line by name", lines[1].Text(5) == "~in" && lines[1].UInt(4) is null);
+    var groups = sent.AllBytes(3).Select(b => new PbMessage(b)).ToList();
+    Check("acl: a group just as it is above isn't sent, or it would stop following", groups.Select(g => g.Text(1)).SequenceEqual(["pilots", "mine"]), string.Join(",", groups.Select(g => g.Text(1))));
+    Check("acl: a changed group goes with its changes", groups[0].UInts(5).SequenceEqual([9ul]) && groups[0].UInts(6).SequenceEqual([2ul]) && groups[0].Bool(4) == false);
+    Check("acl: and without the members the server works out", groups[0].UInts(7).Count == 0);
+    Check("acl: the channel's own group", groups[1].Bool(3) == false && groups[1].UInts(5).SequenceEqual([4ul]));
+    Check("acl: no longer taking from above is sent", MumbleAcl.Read(new PbMessage(new MumbleAcl { Channel = 3, InheritAcls = false }.ToMessage())).InheritAcls == false);
+    Check("acl: a group from above with one switch off is a change", !new MumbleAclGroup { Inherited = true, Inherit = false }.IsJustInherited);
+
+    // Whether what the server holds afterwards is what was sent.
+    var held = MumbleAcl.Read(new PbMessage(raw));
+    Check("acl: what was sent is kept", held.Keeps(acl));
+    var dropped = MumbleAcl.Read(new PbMessage(raw));
+    dropped.Entries.RemoveAt(1);
+    Check("acl: a line the server doesn't have is not kept", !dropped.Keeps(acl));
+    var reordered = MumbleAcl.Read(new PbMessage(raw));
+    (reordered.Entries[1], reordered.Entries[2]) = (reordered.Entries[2], reordered.Entries[1]);
+    Check("acl: lines in another order are not kept, as order decides", !reordered.Keeps(acl));
+    var changed = MumbleAcl.Read(new PbMessage(raw));
+    changed.Entries[1].Deny = MumblePermission.None;
+    Check("acl: a permission the server doesn't have is not kept", !changed.Keeps(acl));
+    var noGroup = MumbleAcl.Read(new PbMessage(raw));
+    noGroup.Groups.RemoveAll(g => g.Name == "mine");
+    Check("acl: a group the server doesn't have is not kept", !noGroup.Keeps(acl));
+    var member = MumbleAcl.Read(new PbMessage(raw));
+    member.Groups.First(g => g.Name == "pilots").Add.Clear();
+    Check("acl: a member the server doesn't have is not kept", !member.Keeps(acl));
+    var extra = MumbleAcl.Read(new PbMessage(raw));
+    extra.Groups.Add(new MumbleAclGroup { Name = "left over", Inherited = false });
+    Check("acl: a group the server still has after removing it is not kept", !extra.Keeps(acl));
+    var inheriting = MumbleAcl.Read(new PbMessage(raw));
+    inheriting.InheritAcls = false;
+    Check("acl: inheriting or not must match", !inheriting.Keeps(acl));
+    var aboveMoved = MumbleAcl.Read(new PbMessage(raw));
+    aboveMoved.Entries[0].Grant = MumblePermission.Speak;
+    aboveMoved.Groups[0].InheritedMembers.Add(77);
+    Check("acl: what changed above doesn't count against it", aboveMoved.Keeps(acl));
+
+    var question = new PbMessage(MumbleAcl.QueryMessage(12));
+    Check("acl: asking is a question about the channel", question.UInt(1) == 12 && question.Bool(5) == true && question.AllBytes(4).Count == 0);
 }
 
 // ── Text arrives as HTML and is shown as words ────────────────────────────────

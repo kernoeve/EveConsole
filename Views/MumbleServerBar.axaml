@@ -34,7 +34,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:MumbleRowVm">
-                  <Grid Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
+                  <Grid Classes="row" Classes.drop="{Binding IsDropTarget}" Margin="{Binding Indent}" ContextRequested="OnRowMenu">
                     <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*,Auto">
                       <Button Classes="chevron" IsVisible="{Binding HasChildren}" Click="OnToggleChannel">
                         <Panel>

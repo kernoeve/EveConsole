@@ -630,7 +630,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(id), password), ct);
         }
 
-        var keysChanged = SessionOf(server.Id)?.Server is not { } before || before.TalkTargets != server.TalkTargets;
+        var keysChanged = SessionOf(server.Id)?.Server is not { } before || before.TalkTargets != server.TalkTargets
+                       || before.MuteKey != server.MuteKey || before.DeafenKey != server.DeafenKey;
         var session = Track(server);
 
         // A key changed while held would never be seen to come up. ⚠️ Only then: this runs each time typing pauses in
@@ -1188,6 +1189,25 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             hook.Configure(targets[i].Key);
             session.KeyHooks.Add(hook);
         }
+
+        // Mute and deafen go on and off at each press, as the standard client's do.
+        BindToggle(session, session.Server.MuteKey, () => ToggleMuteAsync(session));
+        BindToggle(session, session.Server.DeafenKey, () => ToggleDeafenAsync(session));
+    }
+
+    private void BindToggle(MumbleSession session, int key, Func<Task> toggle)
+    {
+        if (key == 0) return;
+
+        var hook = new GlobalHotkeyService { OnPress = () => _keyEvents.Writer.TryWrite(() => _ = ToggledAsync(toggle)) };
+        hook.Configure(key);
+        session.KeyHooks.Add(hook);
+    }
+
+    private async Task ToggledAsync(Func<Task> toggle)
+    {
+        try { await toggle(); }
+        catch (Exception e) { errors.Log(nameof(MumbleService), "mute or deafen from a key", e); }
     }
 
     private static void UnbindKeys(MumbleSession session)
@@ -1447,5 +1467,6 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         return null;
     }
 
-    private static List<int> KeysOf(MumbleServer server) => [.. MumbleTargets.Read(server).Select(t => t.Key).Where(k => k != 0)];
+    private static List<int> KeysOf(MumbleServer server) =>
+        [.. MumbleTargets.Read(server).Select(t => t.Key).Append(server.MuteKey).Append(server.DeafenKey).Where(k => k != 0)];
 }

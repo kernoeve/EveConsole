@@ -454,4 +454,208 @@
   <data name="ChannelCountsTip" xml:space="preserve">
     <value>Здесь {0}, слышат {1}</value>
   </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>Клавиши отключения микрофона и звука работают отовсюду, как клавиши речи. Каждое нажатие включает или выключает.</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>Клавиша отключения микрофона</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>Клавиша отключения звука</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>Права…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>Права: {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>Нижние строки важнее верхних. Серые строки пришли из каналов выше и меняются там.</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>Запрос к серверу…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>Права</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>Брать права каналов выше</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>Выше</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>Из канала выше: меняйте там.</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>Зарегистрированный человек</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>Зарегистрированное имя</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all: все. auth: зарегистрированные. in / out: те, кто в этом канале или нет. ~ означает канал строки, а не тот, где она действует.</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>Действует здесь</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>Действует в подканалах</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>Право</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>Запретить</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>Имя новой группы</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>Включает участников сверху</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>Есть и в подканалах</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>Добавлены здесь</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>Сверху</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>Исключены здесь</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>Перечитать</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>Сервер отказал. Для изменения прав нужно право «Запись» в этом канале.</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>Группу нельзя назвать «{0}»: имя занято или его вычисляет сам сервер.</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>На сервере нет зарегистрированного человека с именем «{0}».</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>Строке нужна группа или человек.</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>Сохранение…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>Сохранено. Вот что сейчас на сервере.</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>только здесь</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>только подканалы</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>нигде не действует</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0} (сверху)</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>Вернуть как сверху</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>Удалить группу</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>Исключить здесь</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>Вернуть</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>Запись (менять права)</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>Проход</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>Речь</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>Отключать другим микрофон и звук</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>Перемещать людей</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>Создавать каналы</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>Создавать временные каналы</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>Связывать каналы</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>Шёпот</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>Текстовые сообщения</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>Прослушивание</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>Выгонять</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>Банить</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>Регистрировать других</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>Регистрировать себя</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>Сбрасывать чужие комментарии и картинки</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>Выбрать…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>Сервер не ответил. Он отбрасывает слишком частые сообщения: подождите немного и перечитайте.</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>Сервер сохранил не всё. Вот что на нём сейчас: немного подождите, измените снова и сохраните.</value>
+  </data>
 </root>

@@ -68,6 +68,12 @@ public class MumbleServer
     /// <summary>The key that shouts, the standard client's Push to Talk: the current channel and those linked to it. Zero for none.</summary>
     public int    ShoutKey   { get; set; }
 
+    /// <summary>The key that turns this server's mute on and off, wherever the focus is. Zero for none.</summary>
+    public int    MuteKey    { get; set; }
+
+    /// <summary>The same for deafening.</summary>
+    public int    DeafenKey  { get; set; }
+
     /// <summary>Who each talk key reaches, as JSON: see <see cref="Services.Mumble.MumbleTargets"/>. Empty until first saved.</summary>
     public string TalkTargets { get; set; } = "";
 

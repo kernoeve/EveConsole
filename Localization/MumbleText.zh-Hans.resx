@@ -454,4 +454,208 @@
   <data name="ChannelCountsTip" xml:space="preserve">
     <value>{0} 人在此，其中 {1} 人能听到</value>
   </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>静音和关闭声音键与说话键一样在任何地方都有效。每按一次切换开或关。</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>静音键</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>关闭声音键</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>权限…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>权限：{0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>下面的行优先于上面的行。灰色的行来自上级频道，需在那里更改。</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>权限</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>组</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>继承上级频道的权限</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>来自上级频道：请在那里更改。</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>组</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>已注册的人</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>注册名</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all：所有人。auth：已注册的人。in / out：在或不在此频道的人。~ 表示该行所在的频道，而非其生效的频道。</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>适用于此处</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>适用于子频道</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>权限</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>允许</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>新组名</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>包含上级的成员</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>子频道也有此组</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>在此添加</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>来自上级</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>在此排除</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>重新读取</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>服务器拒绝了。更改权限需要此频道的写入权限。</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>组不能命名为“{0}”：名称已被使用，或是服务器自行计算的名称。</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>服务器上没有名为“{0}”的已注册用户。</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>每行需要一个组或一个人。</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>正在保存…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>已保存。这是服务器现在保存的内容。</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>仅此处</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>仅子频道</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>不适用于任何地方</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0}（来自上级）</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>恢复为上级的样子</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>删除组</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>在此排除</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>恢复</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>写入（更改权限）</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>穿越</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>进入</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>说话</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>将他人静音和关闭声音</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>移动他人</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>创建频道</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>创建临时频道</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>链接频道</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>耳语</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>文字消息</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>收听</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>踢出</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>注册他人</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>注册自己</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>重置他人的备注和头像</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>选择…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>服务器没有回应。发送过快的消息会被丢弃：请稍等后重新读取。</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>服务器没有全部保存。这是它现在保存的内容：请稍后再次更改并保存。</value>
+  </data>
 </root>

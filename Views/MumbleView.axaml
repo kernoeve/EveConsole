@@ -147,6 +147,23 @@
                     </ItemsControl>
 
                     <Button Content="{x:Static loc:MumbleText.TargetAdd}" Command="{Binding AddTargetCommand}" HorizontalAlignment="Left" />
+
+                    <!-- Switches, rather than held: each press turns it on or off. -->
+                    <Border Background="{DynamicResource SurfacePanelBrush}" CornerRadius="4" Padding="10" Margin="0 8 0 0">
+                      <StackPanel Spacing="2">
+                        <TextBlock Classes="note" Margin="0" Text="{x:Static loc:MumbleText.ToggleKeysNote}" />
+                        <TextBlock Classes="label" Text="{x:Static loc:MumbleText.MuteKey}" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Button Content="{Binding MuteKey.KeyText}" Command="{Binding MuteKey.CaptureKeyCommand}" MinWidth="220" />
+                          <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding MuteKey.ClearKeyCommand}" />
+                        </StackPanel>
+                        <TextBlock Classes="label" Text="{x:Static loc:MumbleText.DeafenKey}" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Button Content="{Binding DeafenKey.KeyText}" Command="{Binding DeafenKey.CaptureKeyCommand}" MinWidth="220" />
+                          <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding DeafenKey.ClearKeyCommand}" />
+                        </StackPanel>
+                      </StackPanel>
+                    </Border>
                   </StackPanel>
                 </ScrollViewer>
               </TabItem>
