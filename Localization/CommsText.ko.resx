@@ -983,4 +983,10 @@
   <data name="TimeAgoDaysOther" xml:space="preserve">
     <value>{0}일</value>
   </data>
+  <data name="MailUnreadTip" xml:space="preserve">
+    <value>EVE 메일: 읽지 않음 {0}개</value>
+  </data>
+  <data name="MailNoUnreadTip" xml:space="preserve">
+    <value>EVE 메일: 읽지 않은 메일 없음</value>
+  </data>
 </root>

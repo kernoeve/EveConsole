@@ -64,7 +64,8 @@ public static class ClientLayoutPlanner
     /// A monitor that isn't plugged in has no cells or panels until it's back, and a character
     /// assigned there simply has no position for now.
     /// </summary>
-    public static DesktopPlan Build(AppliedDesktop applied, IReadOnlyList<DesktopMonitor> monitors)
+    /// <param name="scale">The UI scale, which docked sizes are multiplied by (see <see cref="ClientLayoutCalculator.Calculate"/>).</param>
+    public static DesktopPlan Build(AppliedDesktop applied, IReadOnlyList<DesktopMonitor> monitors, double scale = 1)
     {
         var placement = new List<PlacementMonitor>();
         var panels = new List<MonitorPanels>();
@@ -76,9 +77,9 @@ public static class ClientLayoutPlanner
             if (monitor == null) continue;
 
             var space = saved.FullMonitor ? monitor.Bounds : monitor.Work;
-            var result = ClientLayoutCalculator.Calculate(ClientLayoutJson.Read(saved.Definition), space);
+            var result = ClientLayoutCalculator.Calculate(ClientLayoutJson.Read(saved.Definition), space, scale);
             placement.Add(new PlacementMonitor(monitor.Key, monitor.Bounds, result.Clients));
-            panels.Add(new MonitorPanels(monitor.Key, monitor.Bounds, saved.PanelStart, result.Panels, saved.FullMonitor));
+            panels.Add(new MonitorPanels(monitor.Key, monitor.Bounds, saved.PanelStart, [.. result.Panels.Where(p => !AllHole(p))], saved.FullMonitor));
 
             foreach (var cell in result.Clients)
             {
@@ -89,6 +90,14 @@ public static class ClientLayoutPlanner
 
         return new DesktopPlan(new PlacementPlan { Monitors = placement, Positions = positions }, panels);
     }
+
+    /// <summary>
+    /// A panel a client fills exactly: its window would be nothing but the hole the client shows
+    /// through, so none is made. A layout that is just one client on the monitor — a panel filling it
+    /// with a client filling the panel — puts up no window at all, as it did before panels held clients.
+    /// </summary>
+    public static bool AllHole(PlacedPanel panel) =>
+        panel.Parts?.Any(p => p.Kind == PlacedPartKind.Client && p.Rect == panel.Rect) == true;
 
     /// <summary>"With EVE" panels show only while a client is on their monitor, hiding at once when the last goes.</summary>
     public static bool PanelsShow(PanelStart start, int clientsOnMonitor) =>

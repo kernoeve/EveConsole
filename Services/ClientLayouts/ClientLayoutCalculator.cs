@@ -38,7 +38,13 @@ public readonly record struct LayoutProblem(LayoutProblemKind Kind, string AreaI
 public readonly record struct PlacedEmpty(string AreaId, LayoutRect Rect);
 
 /// <summary>A grid's place on screen, which the editor needs to turn a dragged line into a share.</summary>
-public readonly record struct PlacedGrid(string AreaId, LayoutRect Rect);
+/// <summary>
+/// A grid's place on screen, which the editor needs to turn a dragged line into a share.
+/// <see cref="GapX"/> and <see cref="GapY"/> are the gaps between its columns and between its rows,
+/// in screen pixels: the cells share what's left of <see cref="Rect"/> once the gaps are taken out,
+/// and each line sits in the middle of its gap.
+/// </summary>
+public readonly record struct PlacedGrid(string AreaId, LayoutRect Rect, int GapX = 0, int GapY = 0);
 
 public sealed class ClientLayoutResult
 {
@@ -61,10 +67,16 @@ public static class ClientLayoutCalculator
     /// </summary>
     public const int SmallClientWidth = 800, SmallClientHeight = 600;
 
-    public static ClientLayoutResult Calculate(LayoutArea root, LayoutRect space)
+    /// <param name="scale">
+    /// The UI scale. A layout's sizes are pixels at 100%: what is docked takes its size times this
+    /// along the edge it's docked to (a height at the top or bottom, a width at the left or right),
+    /// and the rest of its room from where it's docked. Anything full, and grid cells, take what
+    /// they're given.
+    /// </param>
+    public static ClientLayoutResult Calculate(LayoutArea root, LayoutRect space, double scale = 1)
     {
         var result = new ClientLayoutResult();
-        Place(root, space, 0, result, null, false);
+        Place(root, space, 0, result, null, false, scale);
         return result;
     }
 
@@ -73,19 +85,30 @@ public static class ClientLayoutCalculator
     {
         var deepest = area.Inside == null ? 0 : GridDepth(area.Inside);
         foreach (var panel in area.Docked)
+        {
             if (panel.Inside != null) deepest = Math.Max(deepest, GridDepth(panel.Inside));
-        if (area.Content == AreaContent.Grid && area.Grid != null)
-            deepest = Math.Max(deepest, 1 + (area.Grid.Cells.Count == 0 ? 0 : area.Grid.Cells.Max(GridDepth)));
+            if (panel.Grid != null) deepest = Math.Max(deepest, GridDepth(panel.Grid));
+        }
+        if (area.Content == AreaContent.Grid && area.Grid != null) deepest = Math.Max(deepest, GridDepth(area.Grid));
         return deepest;
     }
+
+    private static int GridDepth(LayoutGrid grid) => 1 + (grid.Cells.Count == 0 ? 0 : grid.Cells.Max(GridDepth));
 
     /// <summary>The ids of every client position in a layout, in reading order.</summary>
     public static IEnumerable<string> ClientAreaIds(LayoutArea area)
     {
         foreach (var panel in area.Docked)
+        {
+            if (PanelControls.IsClient(panel.Control)) yield return panel.Id;
             if (panel.Inside != null)
                 foreach (var id in ClientAreaIds(panel.Inside))
                     yield return id;
+            if (panel.Grid != null)
+                foreach (var cell in panel.Grid.Cells)
+                    foreach (var id in ClientAreaIds(cell))
+                        yield return id;
+        }
 
         if (area.Content == AreaContent.Client) yield return area.Id;
         if (area.Content == AreaContent.Panel && area.Inside != null)
@@ -99,20 +122,17 @@ public static class ClientLayoutCalculator
 
     /// <param name="host">The parts of the top-level panel this is inside, or null if it isn't in one.</param>
     /// <param name="isCell">It's a grid cell, so it's a thing of its own even when empty.</param>
-    private static void Place(LayoutArea area, LayoutRect space, int depth, ClientLayoutResult result, List<PlacedPart>? host, bool isCell)
+    private static void Place(LayoutArea area, LayoutRect space, int depth, ClientLayoutResult result, List<PlacedPart>? host, bool isCell, double scale)
     {
-        var middle = TakeDocked(area, space, depth, result, host);
+        var middle = TakeDocked(area, space, depth, result, host, scale);
         switch (area.Content)
         {
             case AreaContent.Client:
-                result.Clients.Add(new PlacedClient(area.Id, middle));
-                host?.Add(new PlacedPart(PlacedPartKind.Client, area.Id, "", middle));
-                if (middle.Width < SmallClientWidth || middle.Height < SmallClientHeight)
-                    result.Problems.Add(new LayoutProblem(LayoutProblemKind.SmallClient, area.Id, middle));
+                PlaceClient(area.Id, middle, result, host);
                 break;
 
             case AreaContent.Panel:
-                PlacePanel(area.Id, area.Name, area.Look, area.Inside, middle, depth, result, host);
+                PlacePanel(area.Id, area.Name, area.Look, area.Inside, middle, depth, result, host, scale);
                 break;
 
             case AreaContent.Control when host != null:
@@ -124,20 +144,22 @@ public static class ClientLayoutCalculator
                 break;
 
             case AreaContent.Grid when area.Grid != null:
-                if (depth >= MaxGridDepth)
-                {
-                    result.Problems.Add(new LayoutProblem(LayoutProblemKind.TooDeep, area.Id, middle));
-                    Nothing(area, middle, result, host, isCell);
-                    break;
-                }
-                result.Grids.Add(new PlacedGrid(area.Id, middle));
-                PlaceGrid(area, area.Grid, middle, depth, result, host);
+                if (!PlaceGrid(area.Id, area.Grid, middle, depth, result, host, scale)) Nothing(area, middle, result, host, isCell);
                 break;
 
             default:
                 Nothing(area, middle, result, host, isCell);
                 break;
         }
+    }
+
+    /// <summary>A game client's place: a hole in the panel it's in.</summary>
+    private static void PlaceClient(string id, LayoutRect rect, ClientLayoutResult result, List<PlacedPart>? host)
+    {
+        result.Clients.Add(new PlacedClient(id, rect));
+        host?.Add(new PlacedPart(PlacedPartKind.Client, id, "", rect));
+        if (rect.Width < SmallClientWidth || rect.Height < SmallClientHeight)
+            result.Problems.Add(new LayoutProblem(LayoutProblemKind.SmallClient, id, rect));
     }
 
     /// <summary>The middle of a panel with nothing in it is just more of that panel.</summary>
@@ -147,7 +169,7 @@ public static class ClientLayoutCalculator
         else if (isCell) host.Add(new PlacedPart(PlacedPartKind.EmptyCell, area.Id, "", middle));
     }
 
-    private static void PlacePanel(string id, string name, PanelLook? look, LayoutArea? inside, LayoutRect rect, int depth, ClientLayoutResult result, List<PlacedPart>? host)
+    private static void PlacePanel(string id, string name, PanelLook? look, LayoutArea? inside, LayoutRect rect, int depth, ClientLayoutResult result, List<PlacedPart>? host, double scale)
     {
         var bare = inside == null || (inside.Docked.Count == 0 && inside.Content == AreaContent.Empty);
         if (host == null)
@@ -160,19 +182,21 @@ public static class ClientLayoutCalculator
         {
             host.Add(new PlacedPart(PlacedPartKind.Panel, id, name, rect, look, null, bare));
         }
-        if (inside != null) Place(inside, rect, depth, result, host, false);
+        // Clear of the panel's edge, when it has one.
+        if (inside != null) Place(inside, PanelLooks.Inside(rect, look, scale), depth, result, host, false, scale);
     }
 
     /// <summary>What's docked, in order, each taking its edge of whatever is left. Returns the middle.</summary>
-    private static LayoutRect TakeDocked(LayoutArea area, LayoutRect space, int depth, ClientLayoutResult result, List<PlacedPart>? host)
+    private static LayoutRect TakeDocked(LayoutArea area, LayoutRect space, int depth, ClientLayoutResult result, List<PlacedPart>? host, double scale)
     {
         var left = space;
         var ran = false;
         foreach (var panel in area.Docked)
         {
             var along = panel.Edge is DockEdge.Top or DockEdge.Bottom ? left.Height : left.Width;
-            var size = Math.Clamp(panel.Size, 0, along);
-            if (size < panel.Size) ran = true;
+            var wanted = (int)Math.Round(panel.Size * scale);
+            var size = Math.Clamp(wanted, 0, along);
+            if (size < wanted) ran = true;
             LayoutRect rect;
             switch (panel.Edge)
             {
@@ -193,8 +217,12 @@ public static class ClientLayoutCalculator
                     left = new LayoutRect(left.X, left.Y, left.Width - size, left.Height);
                     break;
             }
-            if (panel.Control == null)
-                PlacePanel(panel.Id, panel.Name, panel.Look, panel.Inside, rect, depth, result, host);
+            if (panel.Grid != null)
+                PlaceGrid(panel.Id, panel.Grid, rect, depth, result, host, scale);
+            else if (PanelControls.IsClient(panel.Control))
+                PlaceClient(panel.Id, rect, result, host);
+            else if (panel.Control == null)
+                PlacePanel(panel.Id, panel.Name, panel.Look, panel.Inside, rect, depth, result, host, scale);
             else if (host != null)
                 host.Add(new PlacedPart(PlacedPartKind.Control, panel.Id, panel.Name, rect, null, panel.Control, false, panel.Options));
             else
@@ -205,25 +233,49 @@ public static class ClientLayoutCalculator
         return left;
     }
 
-    private static void PlaceGrid(LayoutArea area, LayoutGrid grid, LayoutRect space, int depth, ClientLayoutResult result, List<PlacedPart>? host)
+    /// <summary>
+    /// A grid, full or docked, by the id it's selected by. The cells share what its padding leaves,
+    /// and lines are dragged across that. A grid has no edge or colour of its own: the panel it's in,
+    /// and the panels that are its cells, have those. False when it's nested too deep to place.
+    /// </summary>
+    private static bool PlaceGrid(string id, LayoutGrid grid, LayoutRect rect, int depth, ClientLayoutResult result, List<PlacedPart>? host, double scale)
     {
+        if (depth >= MaxGridDepth)
+        {
+            result.Problems.Add(new LayoutProblem(LayoutProblemKind.TooDeep, id, rect));
+            return false;
+        }
+        var space = PanelLooks.Padded(rect, grid.Padding, scale);
+        // ⚠️ A grid's padding is between its cells as well as round them: padding 3 is 3 between
+        // each panel and the next, not only at the grid's edges. Between columns it's the average of
+        // the left and right padding, between rows of the top and bottom — the padding itself, when
+        // all four sides are the same, which they are unless someone sets them otherwise.
+        var padding = grid.Padding;
+        var gapX = Math.Max((int)Math.Round(((padding?.Left ?? 0) + (padding?.Right ?? 0)) / 2.0 * scale), 0);
+        var gapY = Math.Max((int)Math.Round(((padding?.Top ?? 0) + (padding?.Bottom ?? 0)) / 2.0 * scale), 0);
+
         var columns = Math.Max(grid.Columns.Count, 1);
         var rows = Math.Max(grid.Rows.Count, 1);
         if (grid.Cells.Count != columns * rows)
-            result.Problems.Add(new LayoutProblem(LayoutProblemKind.BadGrid, area.Id, space));
+            result.Problems.Add(new LayoutProblem(LayoutProblemKind.BadGrid, id, space));
 
-        var xs = Edges(grid.Columns, columns, space.X, space.Width);
-        var ys = Edges(grid.Rows, rows, space.Y, space.Height);
+        // The gaps come out first and the cells share the rest, so equal shares stay equal sizes.
+        gapX = Math.Min(gapX, columns > 1 ? space.Width / (columns - 1) : 0);
+        gapY = Math.Min(gapY, rows > 1 ? space.Height / (rows - 1) : 0);
+        result.Grids.Add(new PlacedGrid(id, space, gapX, gapY));
+        var xs = Edges(grid.Columns, columns, space.X, Math.Max(space.Width - gapX * (columns - 1), 0));
+        var ys = Edges(grid.Rows, rows, space.Y, Math.Max(space.Height - gapY * (rows - 1), 0));
         for (var row = 0; row < rows; row++)
         {
             for (var column = 0; column < columns; column++)
             {
                 var index = row * columns + column;
                 if (index >= grid.Cells.Count) continue;
-                var rect = new LayoutRect(xs[column], ys[row], xs[column + 1] - xs[column], ys[row + 1] - ys[row]);
-                Place(grid.Cells[index], rect, depth + 1, result, host, true);
+                var cellRect = new LayoutRect(xs[column] + column * gapX, ys[row] + row * gapY, xs[column + 1] - xs[column], ys[row + 1] - ys[row]);
+                Place(grid.Cells[index], cellRect, depth + 1, result, host, true, scale);
             }
         }
+        return true;
     }
 
     /// <summary>

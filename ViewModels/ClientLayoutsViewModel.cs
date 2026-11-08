@@ -94,6 +94,18 @@ public sealed class ContainerToolRowVm : ReactiveObject
 /// <summary>An edge style a panel can have.</summary>
 public sealed record PanelStyleChoice(PanelStyle Style, string Label);
 
+/// <summary>Where the selected panel, control or grid can sit: an edge, or full.</summary>
+public sealed record DockPlaceChoice(DockPlace Place, string Label);
+
+/// <summary>One thing docked in the same area as the selection, in dock order.</summary>
+public sealed class DockOrderRowVm(DockedPanel panel, string name, string edge, bool isSelected)
+{
+    public DockedPanel Panel { get; } = panel;
+    public string Name { get; } = name;
+    public string Edge { get; } = edge;
+    public bool IsSelected { get; } = isSelected;
+}
+
 /// <summary>A choice of when a monitor's panels start.</summary>
 public sealed record PanelStartChoice(PanelStart Value, string Label);
 
@@ -206,11 +218,14 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     private readonly Func<IReadOnlyList<MumbleServerChoice>>? _mumbleServers;
     private readonly Func<IReadOnlyList<ToolChoice>>? _tools;
+    private readonly Func<IReadOnlyList<PanelRoomChoice>>? _groupRooms;
 
     public ClientLayoutsViewModel(ClientLayoutStore store, ClientLayoutService service, IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errorLogger,
-        Func<IReadOnlyList<MumbleServerChoice>>? mumbleServers = null, Func<IReadOnlyList<ToolChoice>>? tools = null)
+        Func<IReadOnlyList<MumbleServerChoice>>? mumbleServers = null, Func<IReadOnlyList<ToolChoice>>? tools = null,
+        Func<IReadOnlyList<PanelRoomChoice>>? groupRooms = null)
     {
         _mumbleServers = mumbleServers;
+        _groupRooms = groupRooms;
         _tools = tools;
         AddToolCommand = ReactiveCommand.Create(AddTool);
         _store = store;
@@ -235,6 +250,10 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         NewProfileCommand = ReactiveCommand.CreateFromTask(() => Run(NewProfileAsync));
         DuplicateProfileCommand = ReactiveCommand.CreateFromTask(() => Run(DuplicateProfileAsync));
         DeleteProfileCommand = ReactiveCommand.CreateFromTask(() => Run(DeleteProfileAsync));
+        UndoCommand = ReactiveCommand.Create(Undo, this.WhenAnyValue(x => x.CanUndo));
+        // The outline follows every change to the layout, names typed included.
+        this.WhenAnyValue(x => x.Revision).Subscribe(_ => ShowOutline());
+        RedoCommand = ReactiveCommand.Create(Redo, this.WhenAnyValue(x => x.CanRedo));
 
         service.NoticesChanged += () => Dispatcher.UIThread.Post(ShowNotices);
         service.SeenCharactersChanged += () => Dispatcher.UIThread.Post(ShowCandidates);
@@ -275,6 +294,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         new(PanelStyle.Raised, ClientLayoutsText.StyleRaised),
         new(PanelStyle.Inset, ClientLayoutsText.StyleInset),
         new(PanelStyle.Ridge, ClientLayoutsText.StyleRidge),
+        new(PanelStyle.Card, ClientLayoutsText.StyleCard),
     ];
     public IReadOnlyList<PanelStartChoice> PanelStarts { get; }
 
@@ -287,6 +307,166 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     public ReactiveCommand<Unit, Unit> NewLayoutCommand { get; }
     public ReactiveCommand<Unit, Unit> DuplicateLayoutCommand { get; }
     public ReactiveCommand<Unit, Unit> DeleteLayoutCommand { get; }
+    public ReactiveCommand<Unit, Unit> UndoCommand { get; }
+    public ReactiveCommand<Unit, Unit> RedoCommand { get; }
+
+    // ---- The outline: the layout as a tree, to select from ----
+
+    /// <summary>The monitor, as the outline's one top line.</summary>
+    public ObservableCollection<OutlineNodeVm> Outline { get; } = [];
+
+    /// <summary>What has been folded away, by id, so a rebuilt outline keeps it folded.</summary>
+    private readonly HashSet<string> _folded = [];
+    private string _outlineShape = "";
+    private bool _syncingOutline;
+
+    private OutlineNodeVm? _outlineSelected;
+    /// <summary>The line picked in the outline, which selects the same thing on the drawing.</summary>
+    public OutlineNodeVm? OutlineSelected
+    {
+        get => _outlineSelected;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _outlineSelected, value);
+            if (_syncingOutline || value?.Id is not { } id || id == SelectedId) return;
+            SelectedId = id;
+        }
+    }
+
+    /// <summary>
+    /// Builds the outline again, only if something in it changed — a rebuilt tree would close the
+    /// folds being opened and jump its scroll — and marks what's selected.
+    /// </summary>
+    private void ShowOutline()
+    {
+        if (EditingRoot is not { } root)
+        {
+            Outline.Clear();
+            _outlineShape = "";
+            return;
+        }
+        var built = LayoutOutline.Build(root);
+        var lines = LayoutOutline.Walk(built).ToList();
+        var shape = string.Join("\n", lines.Select(l => $"{l.Depth}|{l.Node.Id}|{l.Node.Label}|{l.Node.Detail}"));
+        if (shape != _outlineShape)
+        {
+            _outlineShape = shape;
+            foreach (var (node, _) in lines)
+            {
+                node.IsExpanded = !_folded.Contains(node.Key);
+                node.Expanded = (n, open) => { if (open) _folded.Remove(n.Key); else _folded.Add(n.Key); };
+            }
+            _syncingOutline = true;
+            try
+            {
+                Outline.Clear();
+                Outline.Add(built);
+            }
+            finally { _syncingOutline = false; }
+        }
+        SelectInOutline();
+    }
+
+    /// <summary>
+    /// Removes what's selected, as its menu's Remove does, and selects what it was in. The Delete key.
+    /// A grid's cell and the monitor stay; Undo brings back anything removed.
+    /// </summary>
+    public void DeleteSelected()
+    {
+        if (SelectedLayout is not { } row || SelectedId is not { } id) return;
+        var next = ClientLayoutEditing.Remove(row.Root, id, out var removed);
+        if (!removed) return;
+        Revision++;
+        StepNow(row);
+        SelectedId = next;
+    }
+
+    /// <summary>
+    /// Whether what has this id can be moved into the panel with <paramref name="targetId"/>; null is
+    /// the monitor. A grid's cell stands for its grid (see <see cref="ClientLayoutEditing.DraggedBy"/>).
+    /// </summary>
+    public bool CanMoveTo(string id, string? targetId) =>
+        SelectedLayout is { } row && ClientLayoutEditing.CanMove(row.Root, ClientLayoutEditing.DraggedBy(row.Root, id), targetId ?? ClientLayoutEditing.MonitorTarget);
+
+    /// <summary>Moves what has this id — a cell, its grid — into another panel, or onto the monitor (null), and selects it there.</summary>
+    public void MoveTo(string id, string? targetId)
+    {
+        if (SelectedLayout is not { } row
+            || ClientLayoutEditing.Move(row.Root, ClientLayoutEditing.DraggedBy(row.Root, id), targetId ?? ClientLayoutEditing.MonitorTarget) is not { } moved) return;
+        Revision++;
+        StepNow(row);
+        SelectedId = moved;
+    }
+
+    /// <summary>The selection's line, with every fold above it opened so it can be seen.</summary>
+    private void SelectInOutline()
+    {
+        var node = Outline.Count == 0 || SelectedId == null ? null
+            : LayoutOutline.Walk(Outline[0]).Select(l => l.Node).FirstOrDefault(n => n.Id == SelectedId);
+        for (var up = node?.Parent; up != null; up = up.Parent) up.IsExpanded = true;
+        _syncingOutline = true;
+        try { OutlineSelected = node; }
+        finally { _syncingOutline = false; }
+    }
+
+    // ---- Undo and redo, per layout ----
+
+    /// <summary>
+    /// By the layout's id, so its history is still there after the layouts are read again on coming
+    /// back to the tab. Kept for as long as this editor is.
+    /// </summary>
+    private readonly Dictionary<object, LayoutHistory> _histories = [];
+
+    private bool _canUndo, _canRedo;
+    public bool CanUndo { get => _canUndo; private set => this.RaiseAndSetIfChanged(ref _canUndo, value); }
+    public bool CanRedo { get => _canRedo; private set => this.RaiseAndSetIfChanged(ref _canRedo, value); }
+
+    /// <summary>The layout's history, begun with the layout as it is now if it hasn't one.</summary>
+    private LayoutHistory HistoryOf(LayoutRowVm row)
+    {
+        object key = row.Id is { } id ? id : row;
+        if (!_histories.TryGetValue(key, out var history)) _histories[key] = history = new LayoutHistory(row.Root);
+        return history;
+    }
+
+    /// <summary>A change to the layout has settled: it becomes a step that can be undone.</summary>
+    private void RecordStep(LayoutRowVm row)
+    {
+        HistoryOf(row).Record(row.Root);
+        ShowHistory();
+    }
+
+    private void ShowHistory()
+    {
+        var history = SelectedLayout is { } row ? HistoryOf(row) : null;
+        CanUndo = history?.CanUndo == true;
+        CanRedo = history?.CanRedo == true;
+    }
+
+    public void Undo() => StepHistory(undo: true);
+
+    public void Redo() => StepHistory(undo: false);
+
+    private void StepHistory(bool undo)
+    {
+        if (SelectedLayout is not { } row) return;
+        // ⚠️ Typing still waiting to be saved is taken as a step first, so it is what an undo takes
+        // back rather than being saved over the layout an undo put back.
+        if (ReferenceEquals(_typedInto, row))
+        {
+            _typedInto = null;
+            _typedSave?.Stop();
+        }
+        var history = HistoryOf(row);
+        if (!(undo ? history.Undo(row.Root) : history.Redo(row.Root))) { ShowHistory(); return; }
+
+        // What was selected may not be there any more.
+        if (SelectedId is { } id && ClientLayoutEditing.FindArea(row.Root, id) == null && ClientLayoutEditing.FindDocked(row.Root, id) == null)
+            _selectedId = null;
+        this.RaisePropertyChanged(nameof(SelectedId));
+        ShowHistory();
+        _ = Run(SaveEditedLayoutAsync);
+    }
     public ReactiveCommand<Unit, Unit> ResetColorCommand { get; }
 
     private IReadOnlyList<MonitorMapItem> _mapItems = [];
@@ -412,6 +592,9 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         {
             _ = SaveTypedNowAsync();
             this.RaiseAndSetIfChanged(ref _selectedLayout, value);
+            // Its history begins here, before anything is changed, if it hasn't begun already.
+            if (value != null) HistoryOf(value);
+            ShowHistory();
             SelectedId = null;
             this.RaisePropertyChanged(nameof(EditingRoot));
             this.RaisePropertyChanged(nameof(HasLayout));
@@ -451,6 +634,24 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     private bool _hasControl;
     public bool HasControl { get => _hasControl; private set => this.RaiseAndSetIfChanged(ref _hasControl, value); }
+
+    private bool _isGroupChatRoom;
+    /// <summary>A Group Chat control, which opens on a room chosen here.</summary>
+    public bool IsGroupChatRoom { get => _isGroupChatRoom; private set => this.RaiseAndSetIfChanged(ref _isGroupChatRoom, value); }
+
+    public ObservableCollection<PanelRoomChoice> GroupRooms { get; } = [];
+
+    private PanelRoomChoice? _selectedGroupRoom;
+    public PanelRoomChoice? SelectedGroupRoom
+    {
+        get => _selectedGroupRoom;
+        set
+        {
+            if (value == null || _selectedGroupRoom == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedGroupRoom, value);
+            OptionsOfSelection(o => o.GroupChatRoom = value.Id);
+        }
+    }
 
     private bool _isMumbleControl;
     public bool IsMumbleControl { get => _isMumbleControl; private set => this.RaiseAndSetIfChanged(ref _isMumbleControl, value); }
@@ -732,8 +933,146 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
             // A ComboBox reports null while it's being refilled; that isn't a choice.
             if (value == null || _selectedStyle == value) return;
             this.RaiseAndSetIfChanged(ref _selectedStyle, value);
-            LookOfSelection(look => look.Style = value.Style.ToString());
+            LookOfSelection(look => look.Style = value.Style.ToString(), step: true);
         }
+    }
+
+    /// <summary>Where the selection can go. Only the places it can go: full is offered only when the
+    /// middle it would take is empty.</summary>
+    public ObservableCollection<DockPlaceChoice> DockChoices { get; } = [];
+
+    private bool _hasDock;
+    public bool HasDock { get => _hasDock; private set => this.RaiseAndSetIfChanged(ref _hasDock, value); }
+
+    private DockPlaceChoice? _selectedDock;
+    public DockPlaceChoice? SelectedDock
+    {
+        get => _selectedDock;
+        set
+        {
+            // A ComboBox reports null while it's being refilled; that isn't a choice.
+            if (value == null || _selectedDock == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedDock, value);
+            if (SelectedLayout is not { } row || SelectedId == null || ClientLayoutEditing.PlaceOf(row.Root, SelectedId) == value.Place) return;
+            if (ClientLayoutEditing.Redock(row.Root, SelectedId, value.Place) is not { } id) return;
+            Revision++;
+            StepNow(row);
+            SelectedId = id;   // shows it again, in its new place
+        }
+    }
+
+    /// <summary>What's docked beside the selection, first docked first. Dragged into a new order.</summary>
+    public ObservableCollection<DockOrderRowVm> DockOrder { get; } = [];
+
+    private bool _hasDockOrder;
+    public bool HasDockOrder { get => _hasDockOrder; private set => this.RaiseAndSetIfChanged(ref _hasDockOrder, value); }
+
+    /// <summary>Moves a row of the dock order, and what it stands for, to another place in it.
+    /// Saved, and a step to undo, when the drag ends: see <see cref="DockOrderDropped"/>.</summary>
+    public void MoveDockOrder(int from, int to)
+    {
+        if (from == to || from < 0 || to < 0 || from >= DockOrder.Count || to >= DockOrder.Count) return;
+        if (SelectedLayout is not { } row) return;
+        var moving = DockOrder[from].Panel;
+        if (ClientLayoutEditing.FindDocked(row.Root, moving.Id) is not { } docked) return;
+        if (!ClientLayoutEditing.MoveDocked(docked.Area, moving, to)) return;
+        DockOrder.Move(from, to);
+        Revision++;
+        _dockOrderMoved = true;
+    }
+
+    private bool _dockOrderMoved;
+
+    /// <summary>A drag in the dock order has ended: however many rows it passed, one step.</summary>
+    public void DockOrderDropped()
+    {
+        if (!_dockOrderMoved || SelectedLayout is not { } row) return;
+        _dockOrderMoved = false;
+        StepNow(row);
+    }
+
+    private static string DockLabel(DockPlace place) => place switch
+    {
+        DockPlace.Top => ClientLayoutsText.MenuEdgeTop,
+        DockPlace.Bottom => ClientLayoutsText.MenuEdgeBottom,
+        DockPlace.Left => ClientLayoutsText.MenuEdgeLeft,
+        DockPlace.Right => ClientLayoutsText.MenuEdgeRight,
+        _ => ClientLayoutsText.MenuEdgeFull,
+    };
+
+    private void ShowDock(LayoutArea? root, (LayoutArea Area, DockedPanel Panel)? docked)
+    {
+        DockChoices.Clear();
+        var now = root == null || SelectedId == null ? null : ClientLayoutEditing.PlaceOf(root, SelectedId);
+        if (now != null)
+            foreach (var place in Enum.GetValues<DockPlace>())
+                if (ClientLayoutEditing.CanPlace(root!, SelectedId!, place)) DockChoices.Add(new DockPlaceChoice(place, DockLabel(place)));
+        HasDock = now != null;
+        _selectedDock = DockChoices.FirstOrDefault(c => c.Place == now);
+        this.RaisePropertyChanged(nameof(SelectedDock));
+
+        DockOrder.Clear();
+        if (docked is { } d)
+            foreach (var panel in d.Area.Docked)
+            {
+                var name = panel.Grid != null ? ClientLayoutsText.ParentGrid
+                    : panel.Control != null ? ClientLayoutPainter.ControlName(panel.Control)
+                    : panel.Name.Length > 0 ? panel.Name : ClientLayoutsText.PanelDefaultName;
+                if (panel.Control != null && panel.Name.Length > 0) name = panel.Name + " · " + name;
+                DockOrder.Add(new DockOrderRowVm(panel, name, DockLabel((DockPlace)panel.Edge), ReferenceEquals(panel, d.Panel)));
+            }
+        HasDockOrder = DockOrder.Count > 1;
+    }
+
+    private bool _hasPadding;
+    /// <summary>A panel or a grid is selected: what it holds can be kept in from its sides.</summary>
+    public bool HasPadding { get => _hasPadding; private set => this.RaiseAndSetIfChanged(ref _hasPadding, value); }
+
+    /// <summary>A panel is selected: it has a colour and an edge.</summary>
+    private bool _hasLook;
+    public bool HasLook { get => _hasLook; private set => this.RaiseAndSetIfChanged(ref _hasLook, value); }
+
+    private bool _hasGrid;
+    /// <summary>A grid is selected: its columns and rows can be set.</summary>
+    public bool HasGrid { get => _hasGrid; private set => this.RaiseAndSetIfChanged(ref _hasGrid, value); }
+
+    public int MaxGridLines => ClientLayoutEditing.MaxGridLines;
+
+
+    private decimal? _gridColumns, _gridRows;
+    public decimal? GridColumns { get => _gridColumns; set => SetGridSize(ref _gridColumns, value, columns: true); }
+    public decimal? GridRows { get => _gridRows; set => SetGridSize(ref _gridRows, value, columns: false); }
+
+    /// <summary>A grid's columns or rows, set from its box: a step to undo of its own, as dropping cells is a big change.</summary>
+    private void SetGridSize(ref decimal? field, decimal? value, bool columns, [System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+    {
+        if (field == value) return;
+        field = value;
+        this.RaisePropertyChanged(name);
+        if (value is not { } count || SelectedLayout is not { } row || SelectedId == null
+            || ClientLayoutEditing.FindGrid(row.Root, SelectedId) is not { } grid) return;
+        var changed = columns
+            ? ClientLayoutEditing.ResizeGrid(grid, (int)count, Math.Max(grid.Rows.Count, 1))
+            : ClientLayoutEditing.ResizeGrid(grid, Math.Max(grid.Columns.Count, 1), (int)count);
+        if (!changed) return;
+        Revision++;
+        StepNow(row);
+    }
+
+    private decimal? _paddingLeft, _paddingTop, _paddingRight, _paddingBottom;
+    public decimal? PaddingLeft { get => _paddingLeft; set => SetPadding(ref _paddingLeft, value, (p, v) => p.Left = v); }
+    public decimal? PaddingTop { get => _paddingTop; set => SetPadding(ref _paddingTop, value, (p, v) => p.Top = v); }
+    public decimal? PaddingRight { get => _paddingRight; set => SetPadding(ref _paddingRight, value, (p, v) => p.Right = v); }
+    public decimal? PaddingBottom { get => _paddingBottom; set => SetPadding(ref _paddingBottom, value, (p, v) => p.Bottom = v); }
+
+    private void SetPadding(ref decimal? field, decimal? value, Action<LayoutPadding, int> side, [System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+    {
+        if (field == value) return;
+        field = value;
+        this.RaisePropertyChanged(name);
+        // An emptied box is 0, as the side was before anything was set.
+        var pixels = Math.Max((int)(value ?? 0), 0);
+        PaddingOfSelection(p => side(p, pixels));
     }
 
     private LayoutRowVm? _typedInto;
@@ -965,7 +1304,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     private void ShowCells(DesktopMonitor monitor, ClientLayoutMonitor? row, int number)
     {
-        var result = ClientLayoutCalculator.Calculate(_monitorLayout!.Root, _monitorFull ? monitor.Bounds : monitor.Work);
+        var result = ClientLayoutCalculator.Calculate(_monitorLayout!.Root, _monitorFull ? monitor.Bounds : monitor.Work, UiScaleService.Scale);
         var candidates = Candidates();
         for (var i = 0; i < result.Clients.Count; i++)
         {
@@ -1014,7 +1353,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
             var layout = Layouts.FirstOrDefault(l => l.Id == row?.LayoutId);
             var space = row?.FullMonitor == true ? monitor.Bounds : monitor.Work;
             items.Add(new MonitorMapItem(monitor.Key, MonitorLabel(monitor, number), monitor.Bounds,
-                layout == null ? null : ClientLayoutCalculator.Calculate(layout.Root, space),
+                layout == null ? null : ClientLayoutCalculator.Calculate(layout.Root, space, UiScaleService.Scale),
                 monitor.Key == _selectedMonitorKey));
         }
         MapItems = items;
@@ -1149,7 +1488,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     private async Task NewLayoutAsync()
     {
-        var root = new LayoutArea { Content = AreaContent.Client };
+        var root = ClientLayoutEditing.NewRoot();
         var row = new LayoutRowVm(null, ClientLayoutsText.NewLayoutName, root);
         row.Id = await _store.SaveLayoutAsync(null, row.Name, root);
         Layouts.Add(row);
@@ -1201,6 +1540,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
     private async Task SaveEditedLayoutAsync()
     {
         if (SelectedLayout is not { } row) return;
+        RecordStep(row);
         await _store.SaveLayoutAsync(row.Id, row.Name, row.Root);
         Revision++;
         ShowSelection();
@@ -1215,7 +1555,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         var docked = root == null || SelectedId == null ? null : ClientLayoutEditing.FindDocked(root, SelectedId);
         var area = root == null || SelectedId == null ? null : ClientLayoutEditing.FindArea(root, SelectedId);
         var control = docked?.Panel.Control ?? (area?.Content == AreaContent.Control ? area.Control : null);
-        var isPanel = docked is { Panel.Control: null } || area?.Content == AreaContent.Panel;
+        var isPanel = docked is { Panel: { Control: null, Grid: null } } || (docked == null && area?.Content == AreaContent.Panel);
 
         HasSize = docked != null;
         SizeLabel = docked?.Panel.Edge is DockEdge.Top or DockEdge.Bottom ? ClientLayoutsText.LabelHeight : ClientLayoutsText.LabelWidth;
@@ -1228,11 +1568,34 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         this.RaisePropertyChanged(nameof(SelectedSize));
 
         // Directly, so that showing what's there doesn't count as choosing it.
-        var look = docked?.Panel.Look ?? area?.Look;
-        _selectedColor = Color.TryParse(PanelLooks.ColorOf(look), out var color) ? color : Color.Parse(PanelLooks.DefaultColor);
+        var look = root == null || SelectedId == null ? null : LookOf(root, SelectedId, create: false);
+        _selectedColor = PanelLooks.ColorOf(look) is { } own && Color.TryParse(own, out var color) ? color : ClientPanelSurface.ThemeGround(null);
         this.RaisePropertyChanged(nameof(SelectedColor));
         _selectedStyle = StyleChoices.First(s => s.Style == PanelLooks.StyleOf(look));
         this.RaisePropertyChanged(nameof(SelectedStyle));
+
+        ShowDock(root, docked);
+        ShowOutline();
+
+        var grid = root == null || SelectedId == null ? null : ClientLayoutEditing.FindGrid(root, SelectedId);
+        // A panel has a colour, an edge and padding; a grid only padding: its panel, or the panels in it, have the rest.
+        HasLook = isPanel;
+        HasPadding = isPanel || grid != null;
+        HasGrid = grid != null;
+        _gridColumns = grid == null ? null : Math.Max(grid.Columns.Count, 1);
+        _gridRows = grid == null ? null : Math.Max(grid.Rows.Count, 1);
+
+        this.RaisePropertyChanged(nameof(GridColumns));
+        this.RaisePropertyChanged(nameof(GridRows));
+        var padding = grid != null ? grid.Padding : look?.Padding;
+        _paddingLeft = padding?.Left ?? 0;
+        _paddingTop = padding?.Top ?? 0;
+        _paddingRight = padding?.Right ?? 0;
+        _paddingBottom = padding?.Bottom ?? 0;
+        this.RaisePropertyChanged(nameof(PaddingLeft));
+        this.RaisePropertyChanged(nameof(PaddingTop));
+        this.RaisePropertyChanged(nameof(PaddingRight));
+        this.RaisePropertyChanged(nameof(PaddingBottom));
 
         var options = docked?.Panel.Options ?? area?.Options;
         IsWorklistControl = PanelControls.Parse(control) == PanelControlKind.Worklist;
@@ -1245,6 +1608,19 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         if (IsMenuControl) ShowMenuTargets(options);
         IsToolContainer = PanelControls.Parse(control) == PanelControlKind.ToolContainer;
         if (IsToolContainer) ShowContainer(options);
+
+        IsGroupChatRoom = PanelControls.Parse(control) == PanelControlKind.GroupChatRoom;
+        if (IsGroupChatRoom)
+        {
+            var rooms = _groupRooms?.Invoke() ?? [];
+            GroupRooms.Clear();
+            foreach (var room in rooms) GroupRooms.Add(room);
+            // A room set once and no longer in Group Chat stays chosen, by its saved name.
+            if (options?.GroupChatRoom is { } saved && GroupRooms.All(r => r.Id != saved))
+                GroupRooms.Add(new PanelRoomChoice(saved, ClientLayoutsText.GroupChatRoomGone));
+            _selectedGroupRoom = GroupRooms.FirstOrDefault(r => r.Id == options?.GroupChatRoom);
+            this.RaisePropertyChanged(nameof(SelectedGroupRoom));
+        }
 
         IsMumbleControl = PanelControls.Parse(control) == PanelControlKind.Mumble;
         if (IsMumbleControl)
@@ -1269,26 +1645,59 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { Content: AreaContent.Control } area)
             change(area.Options ??= new ControlOptions());
         else return;
-        SaveTypedSoon(row);
+        StepNow(row);
     }
 
     /// <summary>Changes how the selected panel looks, and saves once the changes stop, as a color drag makes many.</summary>
-    private void LookOfSelection(Action<PanelLook> change)
+    /// <param name="step">A choice made in one go, as a style is, which is a step to undo of its own
+    /// at once rather than whenever the changes stop.</param>
+    private void LookOfSelection(Action<PanelLook> change, bool step = false)
     {
         var row = SelectedLayout;
-        if (row == null || SelectedId == null) return;
-        if (ClientLayoutEditing.FindDocked(row.Root, SelectedId) is { Panel.Control: null } docked)
-            change(docked.Panel.Look ??= new PanelLook());
-        else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { Content: AreaContent.Panel } area)
-            change(area.Look ??= new PanelLook());
-        else return;
+        if (row == null || SelectedId == null || LookOf(row.Root, SelectedId, create: true) is not { } look) return;
+        change(look);
         Revision++;
-        SaveTypedSoon(row);
+        if (step) StepNow(row);
+        else SaveTypedSoon(row);
+    }
+
+    /// <summary>Changes the selected panel's or grid's padding, and saves once the changes stop.
+    /// Back to none on every side, it's not kept at all.</summary>
+    private void PaddingOfSelection(Action<LayoutPadding> change)
+    {
+        if (SelectedLayout is { } row && SelectedId != null && ClientLayoutEditing.FindGrid(row.Root, SelectedId) is { } grid)
+        {
+            change(grid.Padding ??= new LayoutPadding());
+            if (grid.Padding.IsNone) grid.Padding = null;
+            Revision++;
+            SaveTypedSoon(row);
+            return;
+        }
+        LookOfSelection(look =>
+        {
+            change(look.Padding ??= new LayoutPadding());
+            if (look.Padding.IsNone) look.Padding = null;
+        });
+    }
+
+    /// <summary>
+    /// The look of the panel with this id, made if asked for and it hasn't one. Null for anything
+    /// else: a grid has no look of its own, only padding.
+    /// </summary>
+    private static PanelLook? LookOf(LayoutArea root, string id, bool create)
+    {
+        if (ClientLayoutEditing.FindDocked(root, id) is { } docked)
+            return docked.Panel.Control != null || docked.Panel.Grid != null ? null : create ? docked.Panel.Look ??= new PanelLook() : docked.Panel.Look;
+        return ClientLayoutEditing.FindArea(root, id) switch
+        {
+            { Content: AreaContent.Panel } area => create ? area.Look ??= new PanelLook() : area.Look,
+            _ => null,
+        };
     }
 
     private void ResetColor()
     {
-        LookOfSelection(look => look.Color = null);
+        LookOfSelection(look => look.Color = null, step: true);
         ShowSelection();
     }
 
@@ -1305,7 +1714,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         static bool Named(string? control) => control == null || PanelControls.Parse(control) == PanelControlKind.ToolContainer;
         if (ClientLayoutEditing.FindDocked(row.Root, SelectedId) is { } docked)
         {
-            if (Named(docked.Panel.Control)) docked.Panel.Name = SelectedName;
+            if (docked.Panel.Grid == null && Named(docked.Panel.Control)) docked.Panel.Name = SelectedName;
             if (SelectedSize is { } size) docked.Panel.Size = Math.Max((int)size, 1);
         }
         else if (ClientLayoutEditing.FindArea(row.Root, SelectedId) is { } area
@@ -1318,10 +1727,23 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         SaveTypedSoon(row);
     }
 
+    /// <summary>A change made in one go: a step to undo at once, saved with the rest shortly after.</summary>
+    private void StepNow(LayoutRowVm row)
+    {
+        SaveTypedSoon(row);
+        RecordStep(row);
+    }
+
     /// <summary>Saves once the typing stops, not for every key.</summary>
     private void SaveTypedSoon(LayoutRowVm row)
     {
         _typedInto = row;
+        // A change waiting to be saved can already be undone, and ends what could be redone.
+        if (ReferenceEquals(row, SelectedLayout))
+        {
+            CanUndo = true;
+            CanRedo = false;
+        }
         RestartTypedSave();
     }
 
@@ -1359,6 +1781,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         }
         if (_typedInto is not { } row) return Task.CompletedTask;
         _typedInto = null;
+        RecordStep(row);
         return Run(async () =>
         {
             await _store.SaveLayoutAsync(row.Id, row.Name, row.Root);
@@ -1378,7 +1801,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
             {
                 var saved = _monitorRows.FirstOrDefault(r => r.HardwareKey == monitor.Key);
                 if (saved?.LayoutId != id) continue;
-                var result = ClientLayoutCalculator.Calculate(row.Root, saved.FullMonitor ? monitor.Bounds : monitor.Work);
+                var result = ClientLayoutCalculator.Calculate(row.Root, saved.FullMonitor ? monitor.Bounds : monitor.Work, UiScaleService.Scale);
                 foreach (var warning in Describe(result, MonitorLabel(monitor, number))) LayoutWarnings.Add(warning);
             }
         }

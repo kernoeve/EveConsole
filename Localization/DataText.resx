@@ -176,10 +176,6 @@
     <value>Save Rates</value>
     <comment>Button or option in AgentUsageView.</comment>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>Background Processes</value>
-    <comment>Window title in ApiActivityWindow.</comment>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>ESI Activity Log</value>
     <comment>Tab in BackgroundProcessesView.</comment>
@@ -2328,9 +2324,6 @@
   </data>
   <data name="JabberNoAccounts" xml:space="preserve">
     <value>No Jabber servers set up. Add one on the Jabber tab in Settings.</value>
-  </data>
-  <data name="JabberOpenTheApp" xml:space="preserve">
-    <value>Open the app to see Jabber: it does not run from the tray icon.</value>
   </data>
   <data name="JabberDirectMessages" xml:space="preserve">
     <value>Direct messages</value>

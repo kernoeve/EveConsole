@@ -109,16 +109,7 @@ public class App : Application
         // the first window — the splash included — rather than applied to windows already open.
         UiScaleService.Load();
 
-        // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
-        // process shows an icon and waits; a progress window flashing up at logon for something the
-        // user did not launch would be the most annoying possible way to start.
-        if (AppRuntime.IsTray && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayStartup)
-        {
-            // Nothing else keeps this process alive — there is no window, and OnLastWindowClose
-            // would end it the moment startup finished.
-            trayStartup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
-        }
-        else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
         {
             // Kept alive by the splash until the main window takes over.
             startup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
@@ -349,8 +340,6 @@ public class App : Application
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
 
-        // The tray reports; it does not work. Nothing below it is wanted there.
-        if (!AppRuntime.IsTray)
         // ⚠️ NOT conditioned on a desktop lifetime, and that was a real bug for as long as it was.
         // Everything below is background work — the services themselves, the chat-log hook that
         // feeds intel and alarms, token refresh, and the build-cost and price-history recalcs — and
@@ -617,74 +606,6 @@ public class App : Application
             };
         }
 
-        // ── Tray: an icon in somebody's session, and nothing else ──────────────
-        //
-        // ⚠️ Returns before the lease is touched, and that is the whole point. This process exists
-        // to report on the worker and must never become one: a tray icon that quietly picked up
-        // the background work because the service happened to be down would be running all of it
-        // from the one place nobody would think to look — and would keep the real worker out when
-        // it came back. It does not own the schema either, so it returns before that too.
-        if (AppRuntime.IsTray)
-        {
-            Start("client signals", () =>
-            {
-                var signals  = Services.GetRequiredService<ClientSignals>();
-                var activity = Services.GetRequiredService<WorkerActivityService>();
-
-                // ⚠️ The activity board only. Alarm signals reach this process and are deliberately
-                // dropped: closing the desktop client is how somebody turns notifications off, and
-                // a tray icon that went on sounding them would have taken that decision away. What
-                // this listens for is what the Background Processes window needs to stay live.
-                signals.Received += payload => activity.TryApplySignal(payload);
-                signals.Start();
-            });
-
-            Start("tray icon", () =>
-            {
-                var tray = Services.GetRequiredService<TrayIconController>();
-
-                // The monitoring view without the application around it — the reason somebody
-                // would leave this icon running at all.
-                tray.ShowBackgroundProcesses = () =>
-                {
-                    try
-                    {
-                        var window = new Views.ApiActivityWindow
-                        { DataContext = Services.GetRequiredService<ApiActivityViewModel>() };
-                        window.Show();
-                        window.Activate();
-                    }
-                    catch (Exception ex) { errorLogger.Log("Tray", "opening background processes", ex); }
-                };
-
-                // No window of our own to restore, so "Open EVE Console" starts a copy — which is
-                // what somebody clicking it means by it.
-                tray.ShowWindow = () =>
-                {
-                    try
-                    {
-                        // Through AppLauncher: under an AppImage this process runs out of a temporary
-                        // mount, so the copy to start is the .AppImage file the user actually launched —
-                        // and on Linux UseShellExecute would hand it to xdg-open rather than run it.
-                        EveConsole.Services.AppLauncher.Start();
-                    }
-                    catch (Exception ex) { errorLogger.Log("Tray", "opening the application", ex); }
-                };
-
-                tray.Quit = () =>
-                {
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayLifetime)
-                        trayLifetime.Shutdown();
-                    else
-                        Environment.Exit(0);
-                };
-
-                tray.Show();
-            });
-
-            return;
-        }
-
         // ── Who owns the background work, and therefore the schema? ────────────
         //
         // ⚠️ Bringing the schema up IS the start of background processing, so the right to do it
@@ -776,7 +697,7 @@ public class App : Application
         }
 
         // A yes/no before the main window exists: over the splash when there is one, on its own
-        // when a tray start has none.
+        // when there is none.
         static async Task<bool> AskAsync(Views.ConfirmDialog dialog, Avalonia.Controls.Window? owner)
         {
             if (owner is not null) return await dialog.ShowDialog<bool>(owner);
@@ -864,7 +785,6 @@ public class App : Application
                         : new FatalDialog(ShellText.VersionMismatchHeading,
                             string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
 
-                    // A tray start has no splash to own it, and used to end here without a word.
                     await ShowAndWaitAsync(dialog, splash);
                     stopping.Shutdown();
                 }
@@ -4566,6 +4486,17 @@ public class App : Application
 
             p.Report((100, ShellText.SplashReady));
             StartupTrace.Timed("main window shown", mainWindow.Show);
+
+            // The notification-area icon, in this process: it brings the main window back once
+            // that's closed with the app kept running (AppConfig.GetKeepRunningInTray).
+            TrayIconController.RetireLogonTray();
+            var tray  = Services.GetRequiredService<TrayIconController>();
+            var shown = mainWindow;
+            tray.ShowWindow = () => shown.ShowFromTray();
+            tray.ShowBackgroundProcesses = () => mainVm.ShowTool("background");
+            tray.Quit = () => desktopFinal.Shutdown();
+            tray.Show();
+            Views.MainWindow.TrayShowing = () => tray.IsVisible;
 
             await Task.Delay(250); // brief pause so the 100 % state is visible
             startupDone = true;

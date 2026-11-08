@@ -823,9 +823,6 @@
   <data name="NotificationAreaIcon" xml:space="preserve">
     <value>Icono del área de notificación</value>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>Un pequeño proceso aparte que muestra qué cliente hace el trabajo en segundo plano y, desde su menú, abre la ventana Procesos en segundo plano o un nuevo EVE Console. Nunca hace el trabajo en segundo plano por sí mismo ni gestiona las alarmas: para detenerlas hay que cerrar EVE Console.</value>
-  </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>Importación de registros de juego</value>
   </data>
@@ -2131,15 +2128,6 @@ La aplicación se reiniciará.</value>
   <data name="SvcRunsLabel" xml:space="preserve">
     <value>Ejecuta:</value>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>Mostrar un icono en el área de notificación, que se inicie con Windows</value>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>Mostrar un icono en el área de notificación, que se inicie con tu sesión de escritorio</value>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>Mostrar un icono en la barra de menús, que se inicie al iniciar sesión</value>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Necesita PostgreSQL, que es lo que usa este cliente: el servicio y todos los clientes comparten el mismo servidor.</value>
   </data>
@@ -2157,30 +2145,6 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>Este servicio ejecuta otra copia de EVE Console, no la que estás usando ahora. Está haciendo el trabajo en segundo plano con los ajustes de esa copia.</value>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>Registrado para el próximo inicio de sesión, pero no se ha podido iniciar ahora — {0}</value>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>En ejecución; se iniciará con Windows.</value>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>En ejecución; se iniciará con tu sesión de escritorio.</value>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>En ejecución; se iniciará cuando inicies sesión.</value>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>No se iniciará con Windows. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>No se iniciará con tu sesión de escritorio. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>No se iniciará cuando inicies sesión. Cualquier icono que ya se muestre seguirá ahí hasta que elijas {0} en él o cierres la sesión.</value>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>No se ha podido cambiar — {0}</value>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>Cambiando el inicio…</value>
@@ -3903,5 +3867,14 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="OnlineErrStatus" xml:space="preserve">
     <value>eveconsole.com respondió con un error ({0}).</value>
+  </data>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>Mantener EVE Console en ejecución en el área de notificación al cerrar la ventana principal</value>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>Mantener EVE Console en ejecución en la barra de menús al cerrar la ventana principal</value>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>Al cerrar la ventana principal solo se oculta: los paneles, las alarmas y el trabajo en segundo plano continúan. Haz doble clic en el icono, o elige {0} en su menú, para recuperar la ventana, y {1} para cerrar EVE Console.</value>
   </data>
 </root>

@@ -812,9 +812,7 @@ public class ApiActivityViewModel : ReactiveObject
     {
         var sessions = _jabber.Sessions;
 
-        // ⚠️ The tray's process does not run Jabber at all, so an empty list there would say something untrue.
-        JabberWhere = AppRuntime.IsTray ? DataText.JabberOpenTheApp
-            : sessions.Count == 0 ? DataText.JabberNoAccounts
+        JabberWhere = sessions.Count == 0 ? DataText.JabberNoAccounts
             : _lease.IsHolder ? DataText.JabberRunsHere
             : _jabberWorkerHost.Length > 0 ? string.Format(CultureInfo.CurrentCulture, DataText.JabberRunsOn, _jabberWorkerHost)
             : DataText.JabberRunsNowhere;

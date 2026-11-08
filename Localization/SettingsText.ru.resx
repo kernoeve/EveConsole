@@ -823,9 +823,6 @@
   <data name="NotificationAreaIcon" xml:space="preserve">
     <value>Значок в области уведомлений</value>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>Небольшой отдельный процесс, который показывает, какой клиент выполняет фоновую работу, и открывает из своего меню окно «Фоновые процессы» или новую EVE Console. Сам он фоновую работу не выполняет и тревоги не обрабатывает — чтобы остановить их, закройте EVE Console.</value>
-  </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>Импорт игровых журналов</value>
   </data>
@@ -2131,15 +2128,6 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="SvcRunsLabel" xml:space="preserve">
     <value>Запускает:</value>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>Показывать значок в области уведомлений, запуская его вместе с Windows</value>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>Показывать значок в области уведомлений, запуская его вместе с сеансом рабочего стола</value>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>Показывать значок в строке меню, запуская его при входе в систему</value>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Нужен PostgreSQL, который этот клиент и использует, — фоновый процесс и все клиенты работают с одним сервером.</value>
   </data>
@@ -2157,30 +2145,6 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>Эта служба запускает другую копию EVE Console, а не ту, которой вы пользуетесь сейчас. Она выполняет фоновую работу с настройками той копии.</value>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>Зарегистрирован для следующего входа в систему, но сейчас запустить не удалось — {0}</value>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>Работает и будет запускаться вместе с Windows.</value>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>Работает и будет запускаться вместе с сеансом рабочего стола.</value>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>Работает и будет запускаться при входе в систему.</value>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Не будет запускаться вместе с Windows. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>Не будет запускаться вместе с сеансом рабочего стола. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>Не будет запускаться при входе в систему. Уже показанный значок останется, пока вы не выберете в его меню «{0}» или не выйдете из системы.</value>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>Не удалось изменить — {0}</value>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>Изменение автозапуска…</value>
@@ -3909,5 +3873,14 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="OnlineErrStatus" xml:space="preserve">
     <value>eveconsole.com вернул ошибку ({0}).</value>
+  </data>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>Оставлять EVE Console работать в области уведомлений после закрытия главного окна</value>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>Оставлять EVE Console работать в строке меню после закрытия главного окна</value>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>Тогда закрытие главного окна только скрывает его: панели, тревоги и фоновая работа продолжаются. Чтобы вернуть окно, дважды щёлкните значок или выберите «{0}» в его меню; чтобы завершить EVE Console — «{1}».</value>
   </data>
 </root>

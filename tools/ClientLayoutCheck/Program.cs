@@ -130,7 +130,7 @@ var monitor4K = new LayoutRect(0, 0, 3840, 2112);
     area.Grid.Cells.RemoveAt(3);
     var result = ClientLayoutCalculator.Calculate(area, monitor4K);
     Check(result.Problems.Any(p => p.Kind == LayoutProblemKind.BadGrid), "a grid short of cells is reported");
-    Same(result.Empties.Count, 3, "with the cells it has");
+    Same(result.Panels.Count, 3, "with the cells it has, each a panel");
 }
 {
     // A small client position warns, at exactly the limit it doesn't.
@@ -227,17 +227,22 @@ var monitor4K = new LayoutRect(0, 0, 3840, 2112);
 
 // ---- Stored form ----
 {
-    var root = new LayoutArea { Content = AreaContent.Grid, Grid = LayoutGrid.Equal(2, 1) };
-    root.Grid.Cells[0].Content = AreaContent.Client;
-    root.Grid.Cells[1].Content = AreaContent.Panel;
-    root.Grid.Cells[1].Name = "Map";
-    root.Grid.Columns[0] = 2.5;
+    // As the editor makes them now: a panel on the monitor, a grid of panels in it.
+    var root = ClientLayoutEditing.NewRoot();
+    root.Inside!.Content = AreaContent.Empty;
+    ClientLayoutEditing.DockGrid(root, root.Inside, DockPlace.Full, 2, 1);
+    var grid = root.Inside.Grid!;
+    grid.Cells[0].Inside = new LayoutArea { Content = AreaContent.Client };
+    grid.Cells[1].Name = "Map";
+    grid.Columns[0] = 2.5;
     ClientLayoutEditing.Dock(root, DockEdge.Right, 77, "side");
-    var back = ClientLayoutJson.Read(ClientLayoutJson.Write(root));
+    var json = ClientLayoutJson.Write(root);
+    var back = ClientLayoutJson.Read(json);
+    Same(ClientLayoutJson.Write(back), json, "a layout made now reads back unchanged");
     Same(back.Id, root.Id, "ids survive storage");
-    Same(back.Grid!.Cells[0].Id, root.Grid.Cells[0].Id, "cell ids survive storage");
-    Same(back.Grid.Cells[1].Name, "Map", "names survive storage");
-    Same(back.Grid.Columns[0], 2.5, "shares survive storage");
+    Same(back.Inside!.Grid!.Cells[0].Inside!.Id, grid.Cells[0].Inside!.Id, "client ids survive storage");
+    Same(back.Inside.Grid.Cells[1].Name, "Map", "names survive storage");
+    Same(back.Inside.Grid.Columns[0], 2.5, "shares survive storage");
     Same(back.Docked[0].Edge, DockEdge.Right, "edges survive storage");
     Same(back.Docked[0].Size, 77, "sizes survive storage");
     Same(ClientLayoutJson.Read("not json").Content, AreaContent.Empty, "a damaged layout reads as empty");
@@ -342,7 +347,8 @@ LayoutArea TwoClients(out string first, out string second)
     // Parents, as someone working on the layout sees them.
     Same(ClientLayoutEditing.ParentOf(root, gear.Id), bar.Id, "a control's parent is its panel");
     Same(ClientLayoutEditing.ParentOf(root, bar.Id), root.Id, "a panel's is what it's docked on");
-    Same(ClientLayoutEditing.ParentOf(root, filled.Id), side.Id, "a cell in a panel's grid has the panel");
+    Same(ClientLayoutEditing.ParentOf(root, filled.Id), inSide.Id, "a cell in a panel's grid has the grid as parent");
+    Same(ClientLayoutEditing.ParentOf(root, inSide.Id), side.Id, "and the grid has the panel");
     Same(ClientLayoutEditing.ParentOf(root, root.Id), null, "the monitor has none");
     var full = new LayoutArea { Content = AreaContent.Panel };
     var fullInside = ClientLayoutEditing.InsideOf(full);
@@ -364,7 +370,7 @@ LayoutArea TwoClients(out string first, out string second)
     Same(withClients.Panels.Single(p => p.Id == side.Id).Parts!.Count(p => p.Kind == PlacedPartKind.Client), 1, "as does the panel with one in a cell");
     Same(ClientLayoutCalculator.ClientAreaIds(root).Count(), 3, "and they can all have characters assigned");
     Same(ClientLayoutEditing.ParentOf(root, inBottom.Id), bottom.Id, "a client filling a panel has that panel as parent");
-    Same(ClientLayoutEditing.ParentOf(root, emptyCell.Id), side.Id, "one in a cell has the panel with the grid");
+    Same(ClientLayoutEditing.ParentOf(root, emptyCell.Id), inSide.Id, "one in a cell has the grid as parent");
     root.Docked.Remove(bottom);
     emptyCell.Content = AreaContent.Empty;
 
@@ -401,10 +407,126 @@ LayoutArea TwoClients(out string first, out string second)
     Same(ClientLayoutJson.Read("{\"Docked\":[{\"Edge\":\"Top\",\"Size\":25,\"Name\":\"old\",\"Items\":[\"EveTime\"]}]}").Docked[0].Name, "old", "a layout saved before controls could dock still reads");
 
     // How a panel looks.
-    Same(PanelLooks.ColorOf(null), PanelLooks.DefaultColor, "panels default to the game's UI color");
+    Check(PanelLooks.ColorOf(null) == null, "a panel with no color of its own takes the theme's");
     Same(PanelLooks.StyleOf(null), PanelStyle.Flat, "and flat");
     Same(PanelLooks.StyleOf(new PanelLook { Style = "Inset" }), PanelStyle.Inset, "a style is read back by name");
     Same(PanelLooks.StyleOf(new PanelLook { Style = "FromANewerVersion" }), PanelStyle.Flat, "one this copy doesn't know is flat");
+
+    // What a panel holds keeps clear of its edge; a flat one has none.
+    PlacedPart HeldIn(string? style, double at)
+    {
+        var bar = new LayoutArea { Content = AreaContent.Empty };
+        var dock = ClientLayoutEditing.Dock(bar, DockEdge.Top, 40, "bar");
+        dock.Look = style == null ? null : new PanelLook { Style = style };
+        ClientLayoutEditing.DockControl(ClientLayoutEditing.InsideOf(dock), PanelControlKind.EveTime, DockEdge.Left);
+        return ClientLayoutCalculator.Calculate(bar, new LayoutRect(0, 0, 400, 300), at).Panels.Single().Parts!.Single(p => p.Kind == PlacedPartKind.Control);
+    }
+    Same(HeldIn(null, 1).Rect, new LayoutRect(0, 0, 110, 40), "a flat panel's control reaches its edge");
+    Same(HeldIn("Raised", 1).Rect, new LayoutRect(4, 4, 110, 32), "a raised panel's starts 4 in");
+    Same(HeldIn("Inset", 1).Rect, new LayoutRect(4, 4, 110, 32), "an inset panel's too");
+    Same(HeldIn("Ridge", 1.5).Rect, new LayoutRect(6, 6, 165, 48), "the margin scales with the UI");
+    Same(HeldIn("Card", 1).Rect, new LayoutRect(5, 5, 110, 30), "a card's is 5, clear of its rounded corners and border");
+    Same(PanelLooks.StyleOf(new PanelLook { Style = "Card" }), PanelStyle.Card, "a card is read back by name");
+    Check(PanelLooks.CardMargin >= PanelLooks.CardRadius + 1, "the margin clears the curve and the border, so a square control docked full stays inside");
+
+    // Padding: inside the edge's margin on a panel, around the cells on a grid, each side at the UI scale.
+    var padded = new PanelLook { Style = "Raised", Padding = new LayoutPadding { Left = 10, Top = 2, Right = 6, Bottom = 0 } };
+    Same(PanelLooks.Inside(new LayoutRect(0, 0, 200, 100), padded, 1), new LayoutRect(14, 6, 176, 90), "a panel's padding is past its edge's margin");
+    Same(PanelLooks.Inside(new LayoutRect(0, 0, 200, 100), new PanelLook { Padding = padded.Padding }, 2), new LayoutRect(20, 4, 168, 96), "on a flat panel it is all there is, at the UI scale");
+    Same(PanelLooks.Inside(new LayoutRect(0, 0, 200, 100), new PanelLook(), 1), new LayoutRect(0, 0, 200, 100), "none by default");
+    Same(PanelLooks.Padded(new LayoutRect(0, 0, 20, 20), new LayoutPadding { Left = 30, Right = 30 }, 1), new LayoutRect(20, 0, 0, 20), "more padding than room leaves nothing");
+    var gridded = new LayoutArea { Content = AreaContent.Panel, Inside = new LayoutArea() };
+    ClientLayoutEditing.DockGrid(gridded, gridded.Inside, DockPlace.Full, 2, 1);
+    gridded.Inside.Grid!.Padding = new LayoutPadding { Left = 8, Top = 8, Right = 8, Bottom = 8 };
+    var gridResult = ClientLayoutCalculator.Calculate(gridded, new LayoutRect(0, 0, 416, 216));
+    Same(gridResult.Grids.Single().Rect, new LayoutRect(8, 8, 400, 200), "a grid's cells share what its padding leaves");
+    var cellParts = gridResult.Panels.Single().Parts!.Where(p => p.Kind == PlacedPartKind.Panel).ToList();
+    Same(cellParts.Count, 2, "its cells are panels");
+    Same(cellParts[1].Rect, new LayoutRect(212, 8, 196, 200), "and divide it, with the padding between them too");
+    Same(ClientLayoutJson.Read(ClientLayoutJson.Write(gridded)).Inside!.Grid!.Padding!.Left, 8, "a grid's padding is saved");
+    // A grid's padding is round its cells and between them: padding 3 is 3 between each panel and the next.
+    var spaced = new LayoutArea { Content = AreaContent.Panel, Inside = new LayoutArea() };
+    ClientLayoutEditing.DockGrid(spaced, spaced.Inside, DockPlace.Full, 3, 1);
+    spaced.Inside.Grid!.Padding = new LayoutPadding { Left = 3, Top = 3, Right = 3, Bottom = 3 };
+    var spacedResult = ClientLayoutCalculator.Calculate(spaced, new LayoutRect(0, 0, 312, 106));
+    var spacedCells = spacedResult.Panels.Single().Parts!.Where(p => p.Kind == PlacedPartKind.Panel).Select(p => p.Rect).ToList();
+    Check(spacedCells.SequenceEqual([new LayoutRect(3, 3, 100, 100), new LayoutRect(106, 3, 100, 100), new LayoutRect(209, 3, 100, 100)]),
+        "padding 3: 3 at the edges and 3 between the panels, which stay equal: " + string.Join(" ", spacedCells));
+    Same(spacedResult.Grids.Single().GapX, 3, "the gap is known to the editor, for dragging lines");
+    spaced.Inside.Grid.Padding = new LayoutPadding { Left = 10, Top = 10, Right = 10, Bottom = 10 };
+    Same(ClientLayoutCalculator.Calculate(spaced, new LayoutRect(0, 0, 340, 120)).Panels.Single().Parts!.Where(p => p.Kind == PlacedPartKind.Panel).Skip(1).First().Rect.X,
+        10 + 100 + 10, "padding 10 is 10 between them too");
+    Same(ClientLayoutCalculator.Calculate(spaced, new LayoutRect(0, 0, 680, 240), 2).Panels.Single().Parts!.Where(p => p.Kind == PlacedPartKind.Panel).Skip(1).First().Rect.X,
+        20 + 200 + 20, "and grows with the UI scale");
+    spaced.Inside.Grid.Padding = new LayoutPadding { Left = 4, Top = 0, Right = 8, Bottom = 2 };
+    var uneven = ClientLayoutCalculator.Calculate(spaced, new LayoutRect(0, 0, 312, 100)).Grids.Single();
+    Check(uneven.GapX == 6 && uneven.GapY == 0, "uneven sides: the gap between columns is left and right's average; one row has no gap between rows");
+    // Undo and redo: whole steps, back into the same layout object.
+    var undoRoot = ClientLayoutEditing.NewRoot();
+    var history = new LayoutHistory(undoRoot);
+    Check(!history.CanUndo && !history.Record(undoRoot), "nothing to undo before a change");
+    var firstDock = ClientLayoutEditing.Dock(undoRoot, DockEdge.Top, 40, "first");
+    Check(history.Record(undoRoot) && history.CanUndo, "a change is a step");
+    ClientLayoutEditing.Dock(undoRoot, DockEdge.Left, 60, "second");
+    firstDock.Name = "renamed";   // not recorded yet: an undo takes it as a step first
+    var clientId = undoRoot.Inside!.Id;
+    Check(history.Undo(undoRoot) && undoRoot.Docked.Count == 1 && undoRoot.Docked[0].Name == "first", "undo takes back all since the last step, recorded or not, as one");
+    Check(history.Undo(undoRoot) && undoRoot.Docked.Count == 0 && undoRoot.Inside?.Content == AreaContent.Client && undoRoot.Inside.Id == clientId, "back to the start, the client keeping its id");
+    Check(!history.Undo(undoRoot) && history.CanRedo, "no further");
+    Check(history.Redo(undoRoot) && history.Redo(undoRoot) && undoRoot.Docked[0].Name == "renamed" && undoRoot.Docked.Count == 2, "redo puts it all back");
+    history.Undo(undoRoot);
+    undoRoot.Content = AreaContent.Empty;
+    Check(!history.Redo(undoRoot) && !history.CanRedo, "a new change after an undo ends redo");
+    for (var i = 0; i < LayoutHistory.Limit + 20; i++) { undoRoot.Name = "n" + i; history.Record(undoRoot); }
+    var steps = 0;
+    while (history.Undo(undoRoot)) steps++;
+    Same(steps, LayoutHistory.Limit, "only so many steps are kept");
+
+    // Dock order: one thing moved to any place in one step, the rest keeping their order.
+    var ordered = new LayoutArea();
+    var dA = ClientLayoutEditing.Dock(ordered, DockEdge.Top, 10, "a");
+    var dB = ClientLayoutEditing.Dock(ordered, DockEdge.Left, 10, "b");
+    var dC = ClientLayoutEditing.Dock(ordered, DockEdge.Top, 10, "c");
+    var dD = ClientLayoutEditing.Dock(ordered, DockEdge.Right, 10, "d");
+    Check(ClientLayoutEditing.MoveDocked(ordered, dD, 0), "moving the last to the start");
+    Same(string.Join("", ordered.Docked.Select(d => d.Name)), "dabc", "goes there in one step");
+    ClientLayoutEditing.MoveDocked(ordered, dD, 2);
+    Same(string.Join("", ordered.Docked.Select(d => d.Name)), "abdc", "and back into the middle");
+    ClientLayoutEditing.MoveDocked(ordered, dA, 99);
+    Same(string.Join("", ordered.Docked.Select(d => d.Name)), "bdca", "past the end is the end");
+    Check(!ClientLayoutEditing.MoveDocked(new LayoutArea(), dA, 0), "one not in that area isn't moved");
+
+    // Docked somewhere else, or full, from the editor.
+    var host = new LayoutArea();
+    var time = ClientLayoutEditing.DockControl(host, PanelControlKind.EveTime, DockEdge.Left);
+    Same(ClientLayoutEditing.PlaceOf(host, time.Id), DockPlace.Left, "a docked control's place is its edge");
+    Same(ClientLayoutEditing.Redock(host, time.Id, DockPlace.Top), time.Id, "docked to another edge, it keeps its id");
+    Check(time.Edge == DockEdge.Top && time.Size == PanelControls.DefaultSize(PanelControlKind.EveTime, DockEdge.Top), "and turned across, a control takes the size that suits it there");
+    var boxed = ClientLayoutEditing.Dock(host, DockEdge.Right, 77, "boxed");
+    boxed.Look = new PanelLook { Style = "Inset" };
+    var boxedClient = ClientLayoutEditing.InsideOf(boxed);
+    boxedClient.Content = AreaContent.Client;
+    ClientLayoutEditing.Redock(host, boxed.Id, DockPlace.Bottom);
+    Same(boxed.Size, 77, "a panel keeps its own size on another edge");
+    Check(ClientLayoutEditing.CanPlace(host, boxed.Id, DockPlace.Full), "full while the middle is empty");
+    var fullId = ClientLayoutEditing.Redock(host, boxed.Id, DockPlace.Full);
+    Check(fullId == host.Id && host.Content == AreaContent.Panel && host.Inside == boxedClient && host.Look?.Style == "Inset" && host.Name == "boxed" && !host.Docked.Contains(boxed),
+        "made full, a panel takes the middle with all it holds");
+    Same(ClientLayoutEditing.PlaceOf(host, host.Id), DockPlace.Full, "and its place is full");
+    var other = ClientLayoutEditing.Dock(host, DockEdge.Left, 50, "other");
+    Check(!ClientLayoutEditing.CanPlace(host, other.Id, DockPlace.Full) && ClientLayoutEditing.Redock(host, other.Id, DockPlace.Full) == null, "never full over a middle that holds something");
+    var back = ClientLayoutEditing.Redock(host, host.Id, DockPlace.Right);
+    var backPanel = host.Docked.Last();
+    Check(back == backPanel.Id && host.Content == AreaContent.Empty && backPanel.Inside == boxedClient && backPanel.Name == "boxed" && backPanel.Edge == DockEdge.Right,
+        "and docked again, it's docked last, holding the same");
+    Same(boxedClient.Id, ClientLayoutCalculator.ClientAreaIds(host).Single(), "its client keeps its id throughout");
+
+    var split = new LayoutArea();
+    ClientLayoutEditing.Split(split, split, 2, 1);
+    var splitGrid = split.Grid;
+    var dockedGrid = ClientLayoutEditing.Redock(split, split.Id, DockPlace.Top);
+    Check(dockedGrid != null && split.Content == AreaContent.Empty && split.Docked.Single().Grid == splitGrid && split.Docked.Single().Id == dockedGrid, "a grid docked to an edge is docked there itself, by the id it had");
+    Check(ClientLayoutEditing.PlaceOf(split, split.Id) == null, "and the empty middle left has no place to change");
 
     // Splitting carries everything across, so nothing set on a panel is lost.
     var whole = new LayoutArea { Content = AreaContent.Panel, Name = "whole", Look = new PanelLook { Style = "Raised" } };
@@ -414,6 +536,190 @@ LayoutArea TwoClients(out string first, out string second)
     var first = whole.Grid!.Cells[0];
     Check(first.Id == wholeId && first.Inside == wholeInside && first.Look?.Style == "Raised" && first.Name == "whole", "keeps it whole in the first cell");
     Check(whole.Inside == null && whole.Look == null, "and leaves none of it on the grid");
+}
+
+// ---- Only panels on the monitor; clients, controls and grids in panels; grid cells are panels ----
+{
+    var space = new LayoutRect(0, 0, 2560, 1440);
+    string Rects(ClientLayoutResult r) => string.Join(";", r.Clients.Select(c => c.AreaId + "@" + c.Rect)) + "|" +
+        string.Join(";", r.Panels.SelectMany(p => p.Parts ?? []).Where(p => p.Kind == PlacedPartKind.Control).Select(p => p.Id + "@" + p.Rect));
+
+    // An old layout: a grid straight on the monitor with a client, a control and nothing in its cells,
+    // a control and a client docked on the monitor, and a panel docked there too.
+    var old = new LayoutArea { Content = AreaContent.Grid, Grid = new LayoutGrid { Columns = [1, 1], Rows = [1, 1] } };
+    var c1 = new LayoutArea { Content = AreaContent.Client };
+    var c2 = new LayoutArea { Content = AreaContent.Control, Control = nameof(PanelControlKind.Worklist) };
+    c2.Docked.Add(new DockedPanel { Edge = DockEdge.Top, Size = 30, Control = nameof(PanelControlKind.EveTime) });
+    var c3 = new LayoutArea();
+    var c4 = new LayoutArea { Content = AreaContent.Panel, Name = "Map", Look = new PanelLook { Style = "Raised" } };
+    old.Grid.Cells.AddRange([c1, c2, c3, c4]);
+    var bar = new DockedPanel { Edge = DockEdge.Top, Size = 40, Control = nameof(PanelControlKind.Menu) };
+    var dockedClient = new DockedPanel { Edge = DockEdge.Left, Size = 900, Control = nameof(PanelControlKind.Client) };
+    var side = new DockedPanel { Edge = DockEdge.Right, Size = 200, Name = "side" };
+    old.Docked.AddRange([bar, dockedClient, side]);
+    var oldRootId = old.Id;
+    var before = ClientLayoutCalculator.Calculate(old, space);
+    var oldClients = ClientLayoutCalculator.ClientAreaIds(old).ToList();
+
+    var converted = ClientLayoutJson.Read(ClientLayoutJson.Write(old));
+    Check(converted.Docked.All(d => d.Control == null && d.Grid == null), "read again, only panels are docked on the monitor");
+    Same(converted.Content, AreaContent.Panel, "and what filled it is in a panel filling it");
+    Same(converted.Inside!.Id, oldRootId, "which keeps the id it had");
+    Same(converted.Docked[0].Inside!.Id, bar.Id, "a control docked on the monitor is in a panel in its place, keeping its id");
+    Check(converted.Docked[0].Edge == DockEdge.Top && converted.Docked[0].Size == 40 && converted.Docked[0].Inside.Content == AreaContent.Control, "same edge, same size");
+    Same(converted.Docked[1].Inside!.Content, AreaContent.Client, "a client docked there is a client in a panel");
+    Same(converted.Docked[2].Name, "side", "a panel docked there stays as it was");
+    Check(converted.Inside.Grid!.Cells.All(c => c.Content == AreaContent.Panel && c.Docked.Count == 0), "every cell is a panel");
+    Same(converted.Inside.Grid.Cells[0].Inside!.Id, c1.Id, "a client cell's id goes with the client");
+    Check(converted.Inside.Grid.Cells[1].Inside!.Docked.Count == 1, "what was docked in a cell goes in with it");
+    Check(converted.Inside.Grid.Cells[2].Inside == null, "an empty cell is an empty panel");
+    Check(converted.Inside.Grid.Cells[3].Name == "Map" && converted.Inside.Grid.Cells[3].Look?.Style == "Raised", "a panel cell is left as it was");
+    var after = ClientLayoutCalculator.Calculate(converted, space);
+    Same(Rects(after), Rects(before), "every client and control is exactly where it was");
+    Check(ClientLayoutCalculator.ClientAreaIds(converted).SequenceEqual(oldClients), "and the clients keep their ids, in their order");
+    var once = ClientLayoutJson.Write(converted);
+    Same(ClientLayoutJson.Write(ClientLayoutMigration.Normalize(ClientLayoutJson.Read(once))), once, "reading it again changes nothing more");
+
+    // A new layout is a panel filling the monitor with a client filling the panel.
+    var fresh = ClientLayoutEditing.NewRoot();
+    Check(fresh.Content == AreaContent.Panel && fresh.Inside?.Content == AreaContent.Client, "a new layout: a panel holding a client");
+    Same(ClientLayoutCalculator.Calculate(fresh, space).Clients.Single().Rect, space, "which fills the monitor");
+    Check(ClientLayoutPlanner.AllHole(ClientLayoutCalculator.Calculate(fresh, space).Panels.Single()), "and puts up no window: the client fills its panel");
+    var framed = ClientLayoutEditing.NewRoot();
+    framed.Look = new PanelLook { Style = "Raised" };
+    Check(!ClientLayoutPlanner.AllHole(ClientLayoutCalculator.Calculate(framed, space).Panels.Single()), "a panel with an edge round its client does");
+
+    // A client docked to an edge of a panel, and a grid docked beside it.
+    var host = ClientLayoutEditing.NewRoot();
+    var inside = host.Inside!;
+    inside.Content = AreaContent.Empty;
+    var game = ClientLayoutEditing.DockControl(inside, PanelControlKind.Client, DockEdge.Left);
+    var gridId = ClientLayoutEditing.DockGrid(host, inside, DockPlace.Top, 2, 1);
+    Check(gridId != null && inside.Docked.Last().Grid != null, "a grid docks to an edge");
+    var grid = ClientLayoutEditing.FindGrid(host, gridId!)!;
+    grid.Cells[1].Inside = new LayoutArea { Content = AreaContent.Client };
+    var placed = ClientLayoutCalculator.Calculate(host, space);
+    Same(placed.Clients.First().AreaId, game.Id, "a docked client is placed by its own id");
+    Same(placed.Clients.First().Rect, new LayoutRect(0, 0, 800, 1440), "at its size on its edge");
+    Check(placed.Panels.Single().Parts!.Any(p => p.Kind == PlacedPartKind.Client && p.Id == game.Id), "and is a hole in its panel");
+    Check(ClientLayoutCalculator.ClientAreaIds(host).SequenceEqual([game.Id, grid.Cells[1].Inside!.Id]), "clients are found docked and in docked grids");
+    Same(placed.Grids.Single().Rect, new LayoutRect(800, 0, 1760, 300), "the docked grid takes its edge of what's left");
+    Same(placed.Panels.Single().Parts!.Count(p => p.Kind == PlacedPartKind.Panel), 2, "its cells are panels");
+    Same(ClientLayoutEditing.ParentOf(host, grid.Cells[0].Id), gridId, "a cell's parent is its grid");
+    Same(ClientLayoutEditing.GridsAbove(host, grid.Cells[1].Inside.Id), 1, "a docked grid counts toward the cap");
+    Check(ClientLayoutEditing.PlaceOf(host, grid.Cells[0].Id) == null, "a cell has no place to change");
+    Check(ClientLayoutEditing.DockGrid(host, host, DockPlace.Full, 2, 2) == null, "full never replaces what fills an area");
+
+    // The way up: client › its cell's panel › the grid › the panel the grid fills.
+    var chain = ClientLayoutEditing.NewRoot();
+    chain.Inside!.Content = AreaContent.Empty;
+    var fullGridId = ClientLayoutEditing.DockGrid(chain, chain.Inside, DockPlace.Full, 2, 2)!;
+    Same(fullGridId, chain.Inside.Id, "a grid filling a panel is selected by its own id");
+    var chainCell = chain.Inside.Grid!.Cells[3];
+    var chainClient = ClientLayoutEditing.InsideOf(chainCell);
+    chainClient.Content = AreaContent.Client;
+    Same(ClientLayoutEditing.ParentOf(chain, chainClient.Id), chainCell.Id, "a client's parent is the cell's panel");
+    Same(ClientLayoutEditing.ParentOf(chain, chainCell.Id), fullGridId, "a cell's parent is its grid");
+    Same(ClientLayoutEditing.ParentOf(chain, fullGridId), chain.Id, "a grid's parent is the panel it fills");
+    Same(ClientLayoutEditing.ParentOf(chain, chain.Id), (string?)null, "and that panel, on the monitor, is the top");
+    Same(ClientLayoutEditing.FindGrid(chain, fullGridId), chain.Inside.Grid, "the grid is found by that id");
+    Same(ClientLayoutEditing.PlaceOf(chain, fullGridId), DockPlace.Full, "and has a place that can be changed");
+
+    // Columns and rows, one at a time: cells keep their places, ids and what they hold.
+    var sized = chain.Inside.Grid;
+    sized.Columns[0] = 3;
+    Check(ClientLayoutEditing.ResizeGrid(sized, 3, 2), "a column is added");
+    Check(sized.Cells.Count == 6 && sized.Columns.Count == 3 && sized.Rows.Count == 2, "3 x 2 now");
+    Same(sized.Cells[4], chainCell, "the bottom-right cell is still at row 2, column 2");
+    Same(sized.Columns[2], 2.0, "the new column takes the average share");
+    Check(sized.Cells[2].Content == AreaContent.Panel && sized.Cells[5].Content == AreaContent.Panel, "new cells are empty panels");
+    Check(ClientLayoutEditing.ResizeGrid(sized, 3, 1), "a row is taken away");
+    Check(sized.Cells.Count == 3 && !sized.Cells.Contains(chainCell) && sized.Columns[0] == 3, "its cells go, the rest stay as they were");
+    Check(!ClientLayoutEditing.ResizeGrid(sized, 3, 1), "the same size changes nothing");
+    ClientLayoutEditing.ResizeGrid(sized, 99, 0);
+    Check(sized.Columns.Count == ClientLayoutEditing.MaxGridLines && sized.Rows.Count == 1, "columns and rows stay between 1 and the most allowed");
+
+    // Moving them: each keeps its id, and what it holds.
+    Same(ClientLayoutEditing.Redock(host, gridId!, DockPlace.Full), gridId, "a docked grid made full keeps its id");
+    Check(inside.Content == AreaContent.Grid && inside.Grid == grid && inside.Id == gridId, "and fills the panel");
+    Same(ClientLayoutEditing.Redock(host, gridId!, DockPlace.Bottom), gridId, "docked again, still the same id");
+    Check(inside.Content == AreaContent.Empty && inside.Docked.Last().Grid == grid && inside.Id != gridId, "and the panel's middle is free again");
+    Same(ClientLayoutEditing.Redock(host, game.Id, DockPlace.Full), game.Id, "a docked client made full keeps its id");
+    Check(inside.Content == AreaContent.Client && inside.Id == game.Id, "and is the panel's client");
+    Same(ClientLayoutEditing.Redock(host, game.Id, DockPlace.Right), game.Id, "and docked again");
+    Check(PanelControls.IsClient(inside.Docked.Last().Control) && inside.Docked.Last().Id == game.Id, "as a client, by the same id");
+    Check(ClientLayoutCalculator.ClientAreaIds(host).Contains(game.Id), "its characters stay assigned throughout");
+}
+
+// ---- Moving things between panels, and removing them ----
+{
+    // On the monitor: a panel down the left, and one filling the rest with a client and a clock in it.
+    var root = ClientLayoutEditing.NewRoot();
+    var main = root.Inside!;
+    var clientId = main.Id;
+    var clock = ClientLayoutEditing.DockControl(main, PanelControlKind.EveTime, DockEdge.Top);
+    var side = ClientLayoutEditing.Dock(root, DockEdge.Left, 300, "side");
+
+    Check(ClientLayoutEditing.CanMove(root, clock.Id, side.Id), "a docked control can move to another panel");
+    Same(ClientLayoutEditing.Move(root, clock.Id, side.Id), clock.Id, "and keeps its id");
+    Check(side.Inside!.Docked.Single() == clock && clock.Edge == DockEdge.Top && !main.Docked.Contains(clock), "docked there on the same edge, gone from where it was");
+    Check(!ClientLayoutEditing.CanMove(root, clock.Id, side.Id), "moving it where it already is does nothing");
+
+    // A full client into an empty panel fills it, by the same id.
+    Same(ClientLayoutEditing.Move(root, clientId, side.Id), clientId, "a full client moves");
+    Check(side.Inside.Content == AreaContent.Client && side.Inside.Id == clientId, "and fills the empty middle of its new panel");
+    Check(main.Content == AreaContent.Empty && main.Id != clientId, "leaving the old one empty under a new id");
+    Same(ClientLayoutCalculator.ClientAreaIds(root).Single(), clientId, "its characters stay assigned");
+
+    // Full into a panel that's already filled: docked to the top instead.
+    var other = ClientLayoutEditing.Dock(root, DockEdge.Right, 200, "other");
+    ClientLayoutEditing.InsideOf(other).Content = AreaContent.Client;
+    Same(ClientLayoutEditing.Move(root, clientId, other.Id), clientId, "a full client into a filled panel");
+    Check(other.Inside!.Docked.Single().Id == clientId && PanelControls.IsClient(other.Inside.Docked.Single().Control) && other.Inside.Docked.Single().Edge == DockEdge.Top,
+        "is docked to its top, still a client by the same id");
+
+    // The monitor takes panels only; nothing goes into itself.
+    Check(!ClientLayoutEditing.CanMove(root, clock.Id, ClientLayoutEditing.MonitorTarget), "a control can't go straight on the monitor");
+    var inner = ClientLayoutEditing.Dock(side.Inside, DockEdge.Bottom, 50, "inner");
+    Check(ClientLayoutEditing.CanMove(root, inner.Id, ClientLayoutEditing.MonitorTarget), "a panel can");
+    Check(!ClientLayoutEditing.CanMove(root, side.Id, inner.Id), "a panel can't go into a panel it holds");
+    Check(!ClientLayoutEditing.CanMove(root, side.Id, side.Id), "or into itself");
+    Same(ClientLayoutEditing.Move(root, inner.Id, ClientLayoutEditing.MonitorTarget), inner.Id, "moved onto the monitor");
+    Check(root.Docked.Contains(inner) && !side.Inside.Docked.Contains(inner), "it's docked there now");
+
+    // Grids: a cell stays in its grid; the cap on nested grids holds for moves too.
+    var gridId = ClientLayoutEditing.DockGrid(root, side.Inside, DockPlace.Bottom, 2, 1)!;
+    var grid = ClientLayoutEditing.FindGrid(root, gridId)!;
+    Check(!ClientLayoutEditing.CanMove(root, grid.Cells[0].Id, other.Id), "a grid's cell can't be moved out of it");
+    Same(ClientLayoutEditing.Move(root, clock.Id, grid.Cells[1].Id), clock.Id, "but what's in a cell can move, and things can move into a cell");
+    Same(ClientLayoutEditing.Move(root, gridId, other.Id), gridId, "a whole grid moves, with its cells");
+    Check(other.Inside.Docked.Any(d => d.Grid == grid) && grid.Cells[1].Inside!.Docked.Single() == clock, "taking what's in them along");
+    var deep = ClientLayoutEditing.NewRoot();
+    deep.Inside!.Content = AreaContent.Empty;
+    var walk = deep.Inside;
+    LayoutArea lastCell = deep;
+    for (var i = 0; i < 4; i++) { ClientLayoutEditing.DockGrid(deep, walk, DockPlace.Full, 2, 1); lastCell = walk.Grid!.Cells[1]; walk = ClientLayoutEditing.InsideOf(lastCell); }
+    var twoDeep = ClientLayoutEditing.Dock(deep, DockEdge.Left, 100, "two");
+    ClientLayoutEditing.DockGrid(deep, ClientLayoutEditing.InsideOf(twoDeep), DockPlace.Full, 2, 1);
+    ClientLayoutEditing.DockGrid(deep, ClientLayoutEditing.InsideOf(twoDeep.Inside!.Grid!.Cells[0]), DockPlace.Full, 2, 1);
+    Check(!ClientLayoutEditing.CanMove(deep, twoDeep.Id, lastCell.Id), "two levels of grid can't go four deep: past the cap");
+
+    // Removing.
+    var selectAfter = ClientLayoutEditing.Remove(root, clock.Id, out var removed);
+    Check(removed && selectAfter == grid.Cells[1].Id && grid.Cells[1].Inside!.Docked.Count == 0, "removing a docked control selects the panel it was in");
+    var keptCell = ClientLayoutEditing.Remove(root, grid.Cells[0].Id, out removed);
+    Check(!removed && keptCell == grid.Cells[0].Id && grid.Cells.Count == 2, "a grid's cell isn't removed");
+    ClientLayoutEditing.Remove(root, other.Inside.Id, out removed);
+    Check(removed && other.Inside.Content == AreaContent.Empty, "a full client is removed from its panel");
+    ClientLayoutEditing.Remove(root, root.Id, out removed);
+    Check(removed && root.Content == AreaContent.Empty, "and so is the panel filling the monitor");
+    ClientLayoutEditing.Remove(root, root.Id, out removed);
+    Check(!removed, "but never the monitor itself");
+    var probe = ClientLayoutEditing.NewRoot();
+    var bare = ClientLayoutEditing.Dock(probe, DockEdge.Top, 30, "bare");
+    var before = ClientLayoutJson.Write(probe);
+    ClientLayoutEditing.CanMove(probe, probe.Inside!.Id, bare.Id);
+    Same(ClientLayoutJson.Write(probe), before, "asking whether something can move changes nothing, not even an empty panel's inside");
 }
 
 // ---- Which character a monitor's controls follow ----
@@ -636,6 +942,53 @@ LayoutArea TwoClients(out string first, out string second)
     var placed = ClientLayoutCalculator.Calculate(read, monitor4K).Panels.SelectMany(p => p.Parts ?? []).Single(p => p.Id == cell.Id);
     Same(placed.Name, "Market", "the name reaches the screen");
     Check(PanelControls.Splits(placed.Options), "and so does what it can do");
+}
+
+// ---- The UI scale ----
+{
+    // A 28 px bar at the top holding a 40 px gear at its left and a full control below it on a 300 px right side.
+    var root = new LayoutArea { Content = AreaContent.Client };
+    var top = ClientLayoutEditing.Dock(root, DockEdge.Top, 28, "Top");
+    var gear = ClientLayoutEditing.DockControl(ClientLayoutEditing.InsideOf(top), PanelControlKind.Settings, DockEdge.Left);
+    var side = ClientLayoutEditing.Dock(root, DockEdge.Right, 300, "Side");
+    var sideInside = ClientLayoutEditing.InsideOf(side);
+    ClientLayoutEditing.FillWithControl(sideInside, PanelControlKind.Alerts);
+    var space = new LayoutRect(0, 0, 2000, 1000);
+
+    foreach (var (scale, bar, gearWidth, sideWidth) in new[] { (1.0, 28, 40, 300), (1.25, 35, 50, 375), (0.75, 21, 30, 225) })
+    {
+        var result = ClientLayoutCalculator.Calculate(root, space, scale);
+        var topPanel = result.Panels.Single(p => p.Id == top.Id);
+        Same(topPanel.Rect, new LayoutRect(0, 0, 2000, bar), $"at {scale:P0} the top bar is the full width, its height scaled");
+        Same(topPanel.Parts!.Single(p => p.Id == gear.Id).Rect, new LayoutRect(0, 0, gearWidth, bar), $"at {scale:P0} what's docked left in it has its width scaled");
+        var sidePanel = result.Panels.Single(p => p.Id == side.Id);
+        Same(sidePanel.Rect, new LayoutRect(2000 - sideWidth, bar, sideWidth, 1000 - bar), $"at {scale:P0} the side's width is scaled, its height what's left");
+        Same(sidePanel.Parts!.Single(p => p.Id == sideInside.Id).Rect, sidePanel.Rect, $"at {scale:P0} what's full takes all its room");
+        Same(result.Clients.Single().Rect, new LayoutRect(0, bar, 2000 - sideWidth, 1000 - bar), $"at {scale:P0} the client has the rest");
+        Check(!result.Problems.Any(), $"at {scale:P0} everything fits");
+    }
+}
+
+// ---- The main window's own controls, on panels ----
+{
+    foreach (var kind in Enum.GetValues<PanelControlKind>())
+    {
+        Same(PanelControls.Parse(kind.ToString()), kind, $"{kind} is read back by the name it's saved as");
+        Check(PanelControls.DefaultSize(kind, DockEdge.Left) > 0 && PanelControls.DefaultSize(kind, DockEdge.Top) > 0, $"{kind} docks at a size");
+    }
+    Same(PanelControls.DefaultSize(PanelControlKind.Agent, DockEdge.Right), 360, "the companion docks as wide as the main window's");
+    Same(PanelControls.DefaultSize(PanelControlKind.Alerts, DockEdge.Top), 300, "alerts dock tall enough for a few");
+    Same(PanelControls.DefaultSize(PanelControlKind.Scheduler, DockEdge.Left), 34, "an icon docks narrow");
+
+    // A layout from this version, read by one that doesn't know its newer controls, keeps them.
+    var root = new LayoutArea { Content = AreaContent.Client };
+    var bar = ClientLayoutEditing.InsideOf(ClientLayoutEditing.Dock(root, DockEdge.Top, 28, "Top"));
+    foreach (var kind in new[] { PanelControlKind.DirectMessages, PanelControlKind.GroupChat, PanelControlKind.Alarms, PanelControlKind.EsiStatus })
+        ClientLayoutEditing.DockControl(bar, kind, DockEdge.Left);
+    var json = ClientLayoutJson.Write(root).Replace("\"EsiStatus\"", "\"FromANewerVersion\"", StringComparison.Ordinal);
+    var controls = ClientLayoutEditing.Controls(ClientLayoutJson.Read(json)).Select(c => c.Control).ToList();
+    Same(string.Join(",", controls), "DirectMessages,GroupChat,Alarms,FromANewerVersion", "every control is kept, a newer one by its saved name");
+    Same(PanelControls.Parse("FromANewerVersion"), null, "and this copy doesn't build one it doesn't know");
 }
 
 // ---- The Overview's saved layouts ----

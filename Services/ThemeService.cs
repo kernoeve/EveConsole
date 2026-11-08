@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Styling;
 using EveConsole.Localization;
 using ReactiveUI;
@@ -37,6 +38,16 @@ public static class ThemeService
         new("pink-light",  ShellText.ThemePinkLight,  AppThemes.PinkLight),
         new("beige-dark",  ShellText.ThemeBeigeDark,  AppThemes.BeigeDark),
         new("beige-light", ShellText.ThemeBeigeLight, AppThemes.BeigeLight),
+
+        // EVE's own colour themes, as the game names them.
+        new("eve-amarr", ShellText.ThemeEveAmarr, AppThemes.EveAmarr),
+        new("eve-caldari", ShellText.ThemeEveCaldari, AppThemes.EveCaldari),
+        new("eve-carbon", ShellText.ThemeEveCarbon, AppThemes.EveCarbon),
+        new("eve-gallente", ShellText.ThemeEveGallente, AppThemes.EveGallente),
+        new("eve-minmatar", ShellText.ThemeEveMinmatar, AppThemes.EveMinmatar),
+        new("eve-ore", ShellText.ThemeEveOre, AppThemes.EveOre),
+        new("eve-photon", ShellText.ThemeEvePhoton, AppThemes.EvePhoton),
+        new("eve-sisters", ShellText.ThemeEveSisters, AppThemes.EveSisters),
     ];
 
     /// <summary>The user's own, after the built-in ones. One instance per theme for its life, so a
@@ -93,7 +104,11 @@ public static class ThemeService
 
         Current = choice.Key;
 
-        if (Application.Current is { } app) app.RequestedThemeVariant = choice.Variant;
+        if (Application.Current is { } app)
+        {
+            app.RequestedThemeVariant = choice.Variant;
+            SyncFluentAccent(app, choice.Variant);
+        }
 
         // ⚠️ Charts do not follow on their own. LiveCharts draws through Skia and takes a colour
         // value, so an axis keeps whatever it was built with until something replaces it — the
@@ -128,6 +143,7 @@ public static class ThemeService
                 app.RequestedThemeVariant = variant.InheritVariant;
                 app.RequestedThemeVariant = variant;
             }
+            if (Application.Current is { } current) SyncFluentAccent(current, Find(theme.Key)!.Variant);
             ChartPaint.Restyle();
             Changed?.Invoke();
         }
@@ -162,6 +178,52 @@ public static class ThemeService
             if (choice is null) Own.Add(new ThemeChoice(t.Key, t.Name, variant, isOwn: true));
             else { choice.Name = t.Name; choice.Variant = variant; }
         }
+    }
+
+    /// <summary>The accent colours Fluent's own controls draw with: selection, tick boxes, sliders,
+    /// toggles, focus borders.</summary>
+    private static readonly string[] FluentAccentKeys =
+    [
+        "SystemAccentColor",
+        "SystemAccentColorDark1", "SystemAccentColorDark2", "SystemAccentColorDark3",
+        "SystemAccentColorLight1", "SystemAccentColorLight2", "SystemAccentColorLight3",
+    ];
+
+    /// <summary>
+    /// Puts the theme's accent colours where Fluent's controls will find them.
+    ///
+    /// <para>⚠️ Fluent never asks for the theme being worn. Its accent brushes are declared in its own
+    /// Dark and Light dictionaries, and a DynamicResource inside a theme dictionary resolves for THAT
+    /// dictionary's variant — so every one of them asked for Dark's accent, or Light's, and a selected
+    /// row or a tick box stayed amber on Caldari, Blue and Pink alike. Copied to the application's own
+    /// entries, which every lookup reaches before any theme dictionary, the worn theme's colours are
+    /// the only ones there are to find, and Fluent keeps its own opacities for light and dark.</para>
+    ///
+    /// <para>Read from where the theme declares them, past the copies: the application's own theme
+    /// dictionaries (a user's theme), then the merged ones (the palette).</para>
+    /// </summary>
+    private static void SyncFluentAccent(Application app, ThemeVariant variant)
+    {
+        var root = app.Resources;
+        foreach (var key in FluentAccentKeys)
+        {
+            if (Declared(root, key, variant) is not { } colour) root.Remove(key);
+            else if (!root.TryGetValue(key, out var old) || !Equals(old, colour)) root[key] = colour;
+        }
+    }
+
+    private static object? Declared(IResourceDictionary root, string key, ThemeVariant variant)
+    {
+        for (var v = variant; v is not null; v = v.InheritVariant)
+            if (root.ThemeDictionaries.TryGetValue(v, out var own) && own.TryGetResource(key, variant, out var value))
+                return value;
+
+        // Last merged first, as the application itself looks.
+        for (var i = root.MergedDictionaries.Count - 1; i >= 0; i--)
+            if (root.MergedDictionaries[i].TryGetResource(key, variant, out var value))
+                return value;
+
+        return null;
     }
 
     private static ThemeChoice? Find(string key) =>

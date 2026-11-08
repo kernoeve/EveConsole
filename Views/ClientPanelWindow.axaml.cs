@@ -39,7 +39,15 @@ public partial class ClientPanelWindow : Window
         AddHandler(PointerPressedEvent, (_, _) => Pressed?.Invoke(), RoutingStrategies.Tunnel);
         ScalingChanged += (_, _) => BuildParts();
         Deactivated += (_, _) => StayOutOfTheWay();
+        Closed += (_, _) => EveConsole.Services.UiScaleService.Changed -= OnUiScaleChanged;
+        EveConsole.Services.UiScaleService.Changed += OnUiScaleChanged;
     }
+
+    /// <summary>
+    /// Drawn at the new scale at once. The layout is placed again for it too, which sizes this
+    /// window and what's in it afresh.
+    /// </summary>
+    private void OnUiScaleChanged() => BuildParts();
 
     /// <summary>
     /// Takes the keyboard, for a tool or menu in this panel the user has just clicked, as a window
@@ -131,16 +139,26 @@ public partial class ClientPanelWindow : Window
     {
         Parts.Children.Clear();
         if (_parts == null) return;
+        // ⚠️ The layout is in the screen's pixels, already sized for the UI scale (see
+        // ClientLayoutCalculator.Calculate), so each part goes at exactly its pixels, and only what
+        // it draws inside them is at the UI scale. Not the whole window scaled, as other windows
+        // are (UiScaleService is off for this one): that also grew the window's frame, which is the
+        // layout's, and pushed what was docked on the right off the end.
         var scale = RenderScaling;
+        var uiScale = EveConsole.Services.UiScaleService.Scale;
         foreach (var part in _parts)
         {
             var view = BuildPart(part);
             if (view == null) continue;
-            view.Width = part.Rect.Width / scale;
-            view.Height = part.Rect.Height / scale;
-            Canvas.SetLeft(view, (part.Rect.X - _rect.X) / scale);
-            Canvas.SetTop(view, (part.Rect.Y - _rect.Y) / scale);
-            Parts.Children.Add(view);
+            var host = new EveConsole.Services.UiScaleHost(view)
+            {
+                Scale = uiScale,
+                Width = part.Rect.Width / scale,
+                Height = part.Rect.Height / scale,
+            };
+            Canvas.SetLeft(host, (part.Rect.X - _rect.X) / scale);
+            Canvas.SetTop(host, (part.Rect.Y - _rect.Y) / scale);
+            Parts.Children.Add(host);
         }
     }
 
@@ -178,7 +196,28 @@ public partial class ClientPanelWindow : Window
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.ToolContainer:
                 return _around?.MainScreen is not { } toolsMain ? null : new PanelToolContainer(toolsMain, part.Id, part.Options, _around.MonitorKey);
 
-            case PlacedPartKind.Control when PanelControls.Parse(part.Control) is { } kind:
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Agent:
+                return _around?.MainScreen is not { } agentMain ? null : new PanelAgentControl(agentMain);
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) is { } sectionKind && PanelControls.OverviewSectionOf(sectionKind) is { } section:
+                return _around?.MainScreen is not { } sectionMain ? null : new PanelOverviewSection(sectionMain, section);
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.GroupChatRoom:
+                return _around?.MainScreen is not { } roomMain ? null : new PanelGroupChatControl(new PanelGroupChatVm(roomMain.GroupChatVm, part.Options?.GroupChatRoom));
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.DirectMessageChat:
+                return _around?.MainScreen is not { } dmChatMain ? null : new PanelDmControl(new PanelDmVm(dmChatMain.MessagesVm));
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Alerts:
+                return _around?.MainScreen is not { } alertsMain ? null : new PanelAlertsControl(alertsMain);
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.DirectMessages:
+                return _around?.MainScreen is not { } dmMain ? null : PanelChatLine.Messages(dmMain);
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.GroupChat:
+                return _around?.MainScreen is not { } groupMain ? null : PanelChatLine.GroupChat(groupMain);
+
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) is { } kind && ClientPanelItemView.Shows(kind):
                 var control = new ClientPanelItemView
                 {
                     DataContext = _around?.MainScreen,
@@ -187,9 +226,11 @@ public partial class ClientPanelWindow : Window
                 };
                 control.ShowOnly(kind);
 
-                // Centered in the room the layout gave it.
+                // Centered in the room the layout gave it, and made smaller to fit when the room is
+                // smaller than it — never larger. ⚠️ Not clipped: a gear too tall for a thin bar, or for
+                // one whose edge keeps some of its height, was cut off at the top and the side.
                 var room = new Panel { Background = Brushes.Transparent };
-                room.Children.Add(control);
+                room.Children.Add(new Viewbox { Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, Child = control });
                 return room;
 
             // A client's place is a hole in this window, and an empty cell is just more of the panel.

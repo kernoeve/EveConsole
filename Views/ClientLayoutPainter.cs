@@ -64,7 +64,7 @@ internal sealed class ClientLayoutPainter(Control owner)
         {
             if (panel.Rect.IsEmpty) continue;
             var rect = view.ToControl(panel.Rect);
-            ClientPanelSurface.Draw(context, rect, panel.Look, EdgeIn(view));
+            ClientPanelSurface.Draw(context, rect, panel.Look, EdgeIn(view), ClientPanelSurface.ThemeGround(null));
             context.DrawRectangle(null, line, rect);
             if ((panel.Parts?.Count ?? 0) == 0)
                 Label(context, rect, NameOf(panel.Name), Size(panel.Rect), "TextSecondaryBrush");
@@ -79,6 +79,11 @@ internal sealed class ClientLayoutPainter(Control owner)
             foreach (var part in panel.Parts ?? [])
                 if (part.Id == selected) context.DrawRectangle(null, accent, view.ToControl(part.Rect));
         }
+
+        // A grid has no part of its own, its cells cover it: outlined dashed, round all its cells.
+        foreach (var grid in result.Grids)
+            if (grid.AreaId == selected)
+                context.DrawRectangle(null, new Pen(Brush("AccentBrush"), 2, new DashStyle([3, 2], 0)), view.ToControl(grid.Rect));
     }
 
     private void DrawPart(DrawingContext context, PlacedPart part, View view, Pen line, ClientLayoutResult result)
@@ -88,7 +93,7 @@ internal sealed class ClientLayoutPainter(Control owner)
         switch (part.Kind)
         {
             case PlacedPartKind.Panel:
-                ClientPanelSurface.Draw(context, rect, part.Look, EdgeIn(view));
+                ClientPanelSurface.Draw(context, rect, part.Look, EdgeIn(view), ClientPanelSurface.ThemeGround(null));
                 context.DrawRectangle(null, line, rect);
                 if (part.Bare) Label(context, rect, NameOf(part.Name), Size(part.Rect), "TextSecondaryBrush");
                 break;
@@ -121,6 +126,7 @@ internal sealed class ClientLayoutPainter(Control owner)
 
     public static string ControlName(PanelControlKind kind) => kind switch
     {
+        PanelControlKind.Client => ClientLayoutsText.ItemClient,
         PanelControlKind.Settings => ClientLayoutsText.ItemSettings,
         PanelControlKind.ServerStatus => ClientLayoutsText.ItemServerStatus,
         PanelControlKind.EveTime => ClientLayoutsText.ItemEveTime,
@@ -130,6 +136,29 @@ internal sealed class ClientLayoutPainter(Control owner)
         PanelControlKind.Worklist => ClientLayoutsText.ItemWorklist,
         PanelControlKind.Menu => ClientLayoutsText.ItemMenu,
         PanelControlKind.ToolContainer => ClientLayoutsText.ItemToolContainer,
+        PanelControlKind.Agent => ClientLayoutsText.ItemAgent,
+        PanelControlKind.DirectMessages => ClientLayoutsText.ItemDirectMessages,
+        PanelControlKind.GroupChat => ClientLayoutsText.ItemGroupChat,
+        PanelControlKind.AppVersion => ClientLayoutsText.ItemAppVersion,
+        PanelControlKind.SdeVersion => ClientLayoutsText.ItemSdeVersion,
+        PanelControlKind.Database => ClientLayoutsText.ItemDatabase,
+        PanelControlKind.BackgroundOwner => ClientLayoutsText.ItemBackgroundOwner,
+        PanelControlKind.EsiStatus => ClientLayoutsText.ItemEsiStatus,
+        PanelControlKind.Theme => ClientLayoutsText.ItemTheme,
+        PanelControlKind.UiScale => ClientLayoutsText.ItemUiScale,
+        PanelControlKind.Alarms => ClientLayoutsText.ItemAlarms,
+        PanelControlKind.Scheduler => ClientLayoutsText.ItemScheduler,
+        PanelControlKind.Alerts => ClientLayoutsText.ItemAlerts,
+        PanelControlKind.EveMail => ClientLayoutsText.ItemEveMail,
+        // The Overview's own titles for its sections.
+        PanelControlKind.Orders => OverviewText.Orders,
+        PanelControlKind.SalesBuildCost => ShellText.TabSaleListingBuild,
+        PanelControlKind.SalesMarket => ShellText.TabSaleListingMarket,
+        PanelControlKind.Notifications => OverviewText.Notifications,
+        PanelControlKind.EveNews => OverviewText.EveOnlineNews,
+        PanelControlKind.Killmails => OverviewText.PersonalKillmails,
+        PanelControlKind.GroupChatRoom => ClientLayoutsText.ItemGroupChatRoom,
+        PanelControlKind.DirectMessageChat => ClientLayoutsText.ItemDirectMessageChat,
         _ => kind.ToString(),
     };
 

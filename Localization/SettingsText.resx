@@ -1062,9 +1062,17 @@
     <value>Notification Area Icon</value>
     <comment>Text in SettingsWindow.</comment>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>A small separate process that shows which client is doing the background work, and opens the Background Processes window or a new EVE Console from its menu. It never does the background work itself, and it never handles alarms — closing EVE Console is how you stop those.</value>
-    <comment>Note in SettingsWindow.</comment>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>Keep EVE Console running in the notification area when the main window is closed</value>
+    <comment>Checkbox (Windows, Linux). Off, closing the main window ends EVE Console.</comment>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>Keep EVE Console running in the menu bar when the main window is closed</value>
+    <comment>Checkbox (macOS). Off, closing the main window ends EVE Console.</comment>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>Closing the main window then only hides it: panels, alarms and the background work carry on. Double-click the icon, or choose {0} on its menu, to bring the window back, and {1} to end EVE Console.</value>
+    <comment>Under the checkbox above. {0} and {1} are the icon's menu items, "Open EVE Console" and "Exit", as translated.</comment>
   </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>Game Log Import</value>
@@ -2795,18 +2803,6 @@ The application will restart.</value>
     <value>Runs:</value>
     <comment>Label before the program the Windows service runs.</comment>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>Show a notification-area icon, starting with Windows</value>
-    <comment>Checkbox (Windows): the notification-area icon starts with Windows.</comment>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>Show a notification-area icon, starting with your desktop session</value>
-    <comment>Checkbox (Linux): the notification-area icon starts with the desktop session.</comment>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>Show a menu bar icon, starting when you log in</value>
-    <comment>Checkbox (macOS): the menu bar icon starts when the person logs in.</comment>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Requires PostgreSQL, which this client is using — the worker and every client share the one server.</value>
     <comment>Polling tab, background service: this client is on PostgreSQL.</comment>
@@ -2830,38 +2826,6 @@ The application will restart.</value>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.</value>
     <comment>Why the background service needs updating (Windows service).</comment>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>Registered for next logon, but could not start it now — {0}</value>
-    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>Running, and will start with Windows.</value>
-    <comment>Notification-area icon status.</comment>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>Running, and will start with your desktop session.</value>
-    <comment>Notification-area icon status.</comment>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>Running, and will start when you log in.</value>
-    <comment>Menu bar icon status (macOS).</comment>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Will not start with Windows. Any icon already showing stays until you choose {0} on it, or log off.</value>
-    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>Will not start with your desktop session. Any icon already showing stays until you choose {0} on it, or log off.</value>
-    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>Will not start when you log in. Any icon already showing stays until you choose {0} on it, or log out.</value>
-    <comment>Status of the menu bar icon's startup setting (macOS). {0} is the icon menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>Could not change it — {0}</value>
-    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>Changing startup…</value>

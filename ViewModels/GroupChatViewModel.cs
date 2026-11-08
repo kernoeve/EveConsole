@@ -364,7 +364,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
         _jabber.SessionChanged += _ => QueueRefresh();
         _jabber.UnreadChanged += QueueRefresh;
-        _jabber.MessageStored += m => Dispatcher.UIThread.Post(() => OnRoomMessage(m));
+        _jabber.MessageStored += m => Dispatcher.UIThread.Post(() => { OnRoomMessage(m); RaisePanelLine(m); });
         _jabber.AlertArrived += OnRoomAlert;
         _jabber.ConversationEdited += (account, conversation) => Dispatcher.UIThread.Post(() =>
         {
@@ -375,7 +375,7 @@ public sealed class GroupChatViewModel : ReactiveObject
             if (SelectedRow is { IsRoom: true } row && row.ServerId == account && row.Key == conversation) _ = LoadReactionsAsync();
         });
         _mumble.SessionChanged += _ => QueueRefresh();
-        _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => OnMumbleChat(session, line));
+        _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => { OnMumbleChat(session, line); RaisePanelLine(session, line); });
 
         QueueRefresh();
     }
@@ -883,6 +883,63 @@ public sealed class GroupChatViewModel : ReactiveObject
             HasEarlier = SelectedRow is { IsRoom: true };
         }
         ScrollToEndRequested?.Invoke();
+    }
+
+    // ── For the Group Chat control on panels ──────────────────────────────────
+    //
+    // A panel shows one room of its own, apart from this tool's selection, so changing it there
+    // doesn't change what the tool shows. These are this tool's own ways of reading and writing.
+
+    /// <summary>The rooms and Mumble servers a panel can show, by <see cref="GroupChatRowVm.Identity"/>, named with their server.</summary>
+    public IReadOnlyList<(string Id, string Name)> PanelRooms()
+    {
+        var list = new List<(string, string)>();
+        var server = "";
+        foreach (var row in Rows)
+        {
+            if (row.Kind == GroupRowKind.JabberServer) { server = row.ShownText; continue; }
+            if (row.IsRoom) list.Add((row.Identity, $"{row.ShownText} · {server}"));
+            else if (row.IsMumble) list.Add((row.Identity, $"{row.ShownText} · Mumble"));
+        }
+        return list;
+    }
+
+    public GroupChatRowVm? RowOf(string id) => Rows.FirstOrDefault(r => r.Identity == id);
+
+    /// <summary>A room's messages, or a Mumble server's chat, the latest page of them.</summary>
+    public async Task<(IReadOnlyList<GroupLineVm> Lines, bool HasEarlier)> PanelLinesAsync(GroupChatRowVm row)
+    {
+        if (row.IsMumble)
+            return (MumbleOf(row) is { } session ? [.. session.Chat.Select(l => ToLine(session, l))] : [], false);
+        var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, limit: PageSize));
+        return ([.. page.Select(ToLine)], page.Count == PageSize);
+    }
+
+    /// <summary>Raised on the UI thread with a new line and the room or server it's in (its Identity).</summary>
+    public event Action<string, GroupLineVm>? PanelLineArrived;
+
+    private void RaisePanelLine(JabberStoredMessage m)
+    {
+        if (m.IsRoom) PanelLineArrived?.Invoke(new GroupChatRowVm { Kind = GroupRowKind.Room, ServerId = m.AccountId, Key = m.Conversation }.Identity, ToLine(m));
+    }
+
+    private void RaisePanelLine(MumbleSession session, MumbleChatLine line) =>
+        PanelLineArrived?.Invoke(new GroupChatRowVm { Kind = GroupRowKind.MumbleServer, ServerId = session.Server.Id }.Identity, ToLine(session, line));
+
+    /// <summary>Sends to a room or a Mumble server's channel. Throws as the tool's own send does.</summary>
+    public async Task PanelSendAsync(GroupChatRowVm row, string text)
+    {
+        if (MumbleOf(row) is { } mumble) await Task.Run(() => _mumble.SendTextAsync(mumble, text, null, false));
+        else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text));
+        else throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected,
+            row.IsMumble ? row.ShownText : PanelRooms().FirstOrDefault(r => r.Id == row.Identity).Name ?? row.ShownText));
+    }
+
+    /// <summary>Marks a room read, as looking at it in the tool does.</summary>
+    public async Task PanelMarkReadAsync(GroupChatRowVm row)
+    {
+        if (row.IsMumble) { if (_mumbleUnread.Remove(row.ServerId)) QueueRefresh(); }
+        else if (row.IsRoom) await Task.Run(() => _jabber.MarkReadAsync(row.ServerId, row.Key));
     }
 
     private async Task LoadEarlierAsync()
