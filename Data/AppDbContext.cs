@@ -163,6 +163,11 @@ public class AppDbContext : DbContext
     public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
+
+    // Which characters are one player's: see LinkedCharacterModels. Empty on most installs.
+    public DbSet<LinkedSource>    LinkedSources    => Set<LinkedSource>();
+    public DbSet<LinkedAccount>   LinkedAccounts   => Set<LinkedAccount>();
+    public DbSet<LinkedCharacter> LinkedCharacters => Set<LinkedCharacter>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
     // ── Market pricing ───────────────────────────────────────────────
@@ -1536,6 +1541,20 @@ public class AppDbContext : DbContext
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("EveScoutConnections"); });
+
+        mb.Entity<LinkedSource>(e => {
+            e.HasKey(x => x.Source);
+            e.ToTable("LinkedSources"); });
+
+        mb.Entity<LinkedAccount>(e => {
+            e.HasKey(x => new { x.Source, x.AccountId });
+            e.ToTable("LinkedAccounts"); });
+
+        mb.Entity<LinkedCharacter>(e => {
+            e.HasKey(x => new { x.Source, x.CharacterId });
+            // An account's characters, which is what every reader asks for.
+            e.HasIndex(x => new { x.Source, x.AccountId }).HasDatabaseName("IX_LinkedCharacters_Account");
+            e.ToTable("LinkedCharacters"); });
 
         mb.Entity<EveScoutStorm>(e => {
             e.HasKey(x => x.Id);

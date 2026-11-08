@@ -117,9 +117,12 @@ public sealed class AgentSchema
             // ⚠️ Private conversations, some of them other people's words, are not for sending to a model
             // provider because a question happened to reach for a table. The same for who the owner talks to,
             // and for the emote packs their groups pass around, which are pictures and nothing to ask about.
+            // Linked characters too: which characters are whose, for other people, given to this install
+            // by somewhere they registered them — not the owner's to hand to a provider.
             if (table.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)
-                || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)) continue;
+                || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)
+                || table.StartsWith("Linked", StringComparison.OrdinalIgnoreCase)) continue;
 
             var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
             var columns = new List<Column>();

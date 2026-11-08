@@ -117,6 +117,12 @@ jobs:
       - name: Battle report check
         run: dotnet run --project tools/BattleReportCheck/BattleReportCheck.csproj -c Release
 
+      # ⚠️ Does a file of linked characters import exactly what it says, and nothing for an install
+      # without one? An import that keeps a character the file dropped, lets an older copy put back
+      # old links, or takes half of a file it should refuse all leave tables that look fine.
+      - name: Linked characters check
+        run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release
+
       # ⚠️ Do the scheduled posts' rich Slack lists still line up, on a phone as well as a PC?
       # Rows with images have no real columns, only padding worked out from the font, and only two
       # kinds of blank keep their width in a container on a phone. Drift, a corp with a pilot's
@@ -250,6 +256,14 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSchemaCheck/PgSchemaCheck.csproj -c Release
+
+      # The same import on PostgreSQL, where its tables come from PostgresSchema's own statements
+      # and its times are TIMESTAMPTZ. It makes a database of its own on the worker's server and
+      # drops it after; --require-pg makes a server it cannot use a failure, not a skip.
+      - name: Linked characters import on PostgreSQL
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release -- --require-pg
 
       # The worker has just built the whole schema in an empty database, and that database is
       # still running — the one place in CI with every table PostgreSQL will see. So PgSqlCheck

@@ -2723,6 +2723,39 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsRead" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
+                // Which characters are one player's, imported from a file: see LinkedCharacterImportService.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedSources" (
+                        "Source"      TEXT    NOT NULL PRIMARY KEY,
+                        "GeneratedAt" TEXT    NOT NULL DEFAULT '',
+                        "ImportedAt"  TEXT    NOT NULL DEFAULT '',
+                        "Accounts"    INTEGER NOT NULL DEFAULT 0,
+                        "Characters"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedAccounts" (
+                        "Source"          TEXT    NOT NULL DEFAULT '',
+                        "AccountId"       INTEGER NOT NULL DEFAULT 0,
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "MainCharacterId" INTEGER NULL,
+                        PRIMARY KEY ("Source", "AccountId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedCharacters" (
+                        "Source"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                        "AccountId"     INTEGER NOT NULL DEFAULT 0,
+                        "Name"          TEXT    NOT NULL DEFAULT '',
+                        "IsMain"        INTEGER NOT NULL DEFAULT 0,
+                        "CorporationId" INTEGER NOT NULL DEFAULT 0,
+                        "AllianceId"    INTEGER NULL,
+                        "TokenValid"    INTEGER NULL,
+                        PRIMARY KEY ("Source", "CharacterId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_LinkedCharacters_Account" ON "LinkedCharacters" ("Source", "AccountId")""");
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -4583,6 +4616,10 @@ public class App : Application
             Start("game logs",          () => gameLogs?.Start());
             Start("chat logs",          () => chatLogs?.Start());
 
+            // Host-bound for the same reason: a file a tool on THIS machine wrote. Does nothing but
+            // ask once a minute whether the folder exists, which on nearly every install it never will.
+            Start("linked characters",  () => Services.GetRequiredService<LinkedCharacterImportService>().Start());
+
             // ⚠️ Force Now on the Timers tab only reset the polling loop's schedule, which does
             // nothing for any of these — each runs on its own timer and never consults it. So each
             // says here how to run itself now, against the same key its row uses.
@@ -5184,6 +5221,8 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<EveScoutService>();
+        services.AddSingleton(sp => new LinkedCharacterImportService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(), sp.GetRequiredService<AppErrorLogger>()));
         services.AddSingleton<SovCampaignService>();
         services.AddHttpClient("eve-scout", c =>
         {
