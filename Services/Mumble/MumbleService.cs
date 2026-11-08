@@ -986,7 +986,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         var gain = session.VolumeOf(user);
         if (gain <= 0 || session.IsLocalMuted(user)) return;
 
-        Mixer.Receive(session.Server.Id, packet, gain);
+        Mixer.Receive(session.Server.Id, packet, gain, user.PrioritySpeaker);
     }
 
     private async Task LoadVolumesAsync(MumbleSession session, CancellationToken ct)

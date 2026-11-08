@@ -1599,6 +1599,36 @@ finally
     }
 }
 
+// ── A room's unconfirmed messages: not sent twice when the room had them after all ──
+{
+    var self = XmppAddress.Parse("me@example/here");
+    XElement Sent(string id) => XmppClient.OutgoingMessage(id, "ops@rooms.example", "groupchat", "words " + id);
+    Dictionary<string, List<XElement>> Waiting() => new() { ["ops@rooms.example"] = [Sent("u1"), Sent("u2")] };
+    XmppMessage Echo(string from, string type, string id, string? origin = null)
+    {
+        var copy = new XElement(XmppClient.Client + "message", new XAttribute("from", from), new XAttribute("type", type), new XAttribute("id", id),
+            new XElement(XmppClient.Client + "body", "words"));
+        if (origin is not null) copy.Add(new XElement(XmppClient.StanzaId + "origin-id", new XAttribute("id", origin)));
+        return XmppClient.ParseMessage(copy, self)!;
+    }
+    string Left(Dictionary<string, List<XElement>> w) => w.TryGetValue("ops@rooms.example", out var l) ? string.Join(",", l.Select(s => (string?)s.Attribute("id"))) : "none";
+
+    var waiting = Waiting();
+    JabberService.Landed(waiting, Echo("ops@rooms.example/me", "groupchat", "u1"));
+    Check("resend: the room's copy back means it arrived", Left(waiting) == "u2", Left(waiting));
+    JabberService.Landed(waiting, Echo("ops@rooms.example/me", "groupchat", "server-made", origin: "u2"));
+    Check("resend: known by the id servers must keep, where they changed the other", Left(waiting) == "none", Left(waiting));
+
+    var others = Waiting();
+    JabberService.Landed(others, Echo("ops@rooms.example/me", "groupchat", "zz"));
+    JabberService.Landed(others, Echo("market@rooms.example/me", "groupchat", "u1"));
+    JabberService.Landed(others, Echo("ops@rooms.example/me", "chat", "u1"));
+    Check("resend: anything else leaves it waiting", Left(others) == "u1,u2", Left(others));
+    var own = Sent("o9");
+    own.SetAttributeValue("from", "ops@rooms.example/me");
+    Check("resend: its own id read from a message", XmppClient.ParseMessage(own, self)?.OriginId == "o9");
+}
+
 static async Task<string?> FailsAsync(Func<Task> act)
 {
     try { await act(); return null; }

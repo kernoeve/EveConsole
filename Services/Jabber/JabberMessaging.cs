@@ -137,6 +137,7 @@ public sealed partial class XmppClient
         {
             Markable = inner.Element(Markers + "markable") is not null,
             OccupantId = (string?)inner.Element(OccupantIdNs + "occupant-id")?.Attribute("id") ?? "",
+            OriginId = (string?)inner.Element(StanzaId + "origin-id")?.Attribute("id") ?? "",
         };
     }
 }

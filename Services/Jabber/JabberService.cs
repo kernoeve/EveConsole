@@ -63,6 +63,9 @@ public sealed class JabberRoomState(JabberRoom room)
     /// <summary>It says it keeps one, but would not share it with this account.</summary>
     public bool ArchiveRefused { get; set; }
 
+    /// <summary>What the room missed while away has come in since joining: its archive, or there was none to ask.</summary>
+    internal bool CaughtUp { get; set; }
+
     /// <summary>Where catching up on this room starts. Null for a room with nothing saved yet.</summary>
     internal DateTimeOffset? CatchUpFrom { get; set; }
 
@@ -111,6 +114,12 @@ public sealed class JabberSession(JabberAccount account)
     /// <summary>The stream of a connection that dropped, for the next to pick up, and how things stood when it did.</summary>
     internal XmppStreamResume? Resume { get; set; }
     internal JabberDropped? DroppedWith { get; set; }
+
+    /// <summary>
+    /// What was said to rooms on a connection that dropped and whose server never confirmed it, by room: sent again once
+    /// back in the room and caught up there, unless what the room replays shows it arrived after all.
+    /// </summary>
+    internal Dictionary<string, List<System.Xml.Linq.XElement>> UnsentToRooms { get; } = new(StringComparer.Ordinal);
 
     /// <summary>Where this connection's messages go to be saved.</summary>
     internal ChannelWriter<XmppMessage>? Inbox { get; set; }
@@ -441,7 +450,11 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         // One worker per connection keeps messages in order, and the database off the reading thread.
         var inbox = Channel.CreateUnbounded<XmppMessage>(new UnboundedChannelOptions { SingleReader = true });
         session.Inbox = inbox.Writer;
-        client.MessageReceived += m => { if (Arriving(session, m) is { } now) inbox.Writer.TryWrite(now); };
+        client.MessageReceived += m =>
+        {
+            session.Locked(s => Landed(s.UnsentToRooms, m));
+            if (Arriving(session, m) is { } now) inbox.Writer.TryWrite(now);
+        };
         client.TypingChanged += (from, typing) =>
         {
             session.Locked(s => s.SendsTyping.Add(from.Bare));
@@ -466,6 +479,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
                 r.Subject = subject;
                 r.HistoryDone = true;
             });
+            _ = SendAgainToRoomAsync(session, client, room, ct);
 
             // ⚠️ Told, or a new topic only showed once the room was opened again, and other clients only saw it later.
             SessionChanged?.Invoke(session);
@@ -483,7 +497,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             if (!connection.Resumed)
             {
                 await SetUpSessionAsync(session, client, ct);
-                await SendAgainAsync(connection, ct);
+                await SendAgainAsync(session, connection, ct);
             }
             SetState(session, JabberState.Connected, JabberProblem.None, "");
             await reading;
@@ -644,7 +658,9 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         finally
         {
             ReleaseHeld(session, room);
+            session.Locked(_ => room.CaughtUp = true);
             SessionChanged?.Invoke(session);
+            await SendAgainToRoomAsync(session, client, room.Room.RoomJid, ct);
         }
     }
 
@@ -773,7 +789,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
         {
             if (!s.RoomMap.TryGetValue(room.RoomJid, out var r)) return;
 
-            r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false;
+            r.Nick = nick; r.Failure = null; r.FailureText = ""; r.HistoryDone = false; r.CaughtUp = false;
             r.HasArchive = hasArchive; r.ArchiveRefused = false;
             r.GivesOccupantIds = features.Contains(XmppClient.OccupantIdNs.NamespaceName);
             r.CatchUpFrom = since;
@@ -850,14 +866,63 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     }
 
     /// <summary>
-    /// What a dropped connection sent to people that its server never confirmed, sent again on the new session. ⚠️ Only
-    /// messages to a person: a room's would be refused before its join is done, and anything else is set up afresh.
+    /// What a dropped connection sent that its server never confirmed. To a person, sent again now. To a room, kept until
+    /// back in it (a room refuses anyone not in it) and caught up there. Anything else is set up afresh.
     /// </summary>
-    private static async Task SendAgainAsync(XmppConnection connection, CancellationToken ct)
+    private static async Task SendAgainAsync(JabberSession session, XmppConnection connection, CancellationToken ct)
     {
         foreach (var stanza in connection.TakeUnsent())
-            if (stanza.Name == XmppClient.Client + "message" && (string?)stanza.Attribute("type") == "chat" && stanza.Element(XmppClient.Client + "body") is not null)
-                await connection.WriteAsync(stanza, ct);
+        {
+            if (stanza.Name != XmppClient.Client + "message" || stanza.Element(XmppClient.Client + "body") is null) continue;
+
+            switch ((string?)stanza.Attribute("type"))
+            {
+                case "chat":
+                    await connection.WriteAsync(stanza, ct);
+                    break;
+                case "groupchat":
+                    var room = XmppAddress.Parse((string?)stanza.Attribute("to")).Bare;
+                    session.Locked(s =>
+                    {
+                        if (!s.UnsentToRooms.TryGetValue(room, out var waiting)) s.UnsentToRooms[room] = waiting = [];
+                        waiting.Add(stanza);
+                    });
+                    break;
+            }
+        }
+    }
+
+    /// <summary>
+    /// A room's own copy of something waiting to be sent again, live or out of its archive: it arrived after all, so it
+    /// is not sent twice. Known by the id it went with, or the one servers must keep.
+    /// </summary>
+    internal static void Landed(Dictionary<string, List<System.Xml.Linq.XElement>> unsent, XmppMessage message)
+    {
+        if (message.Type != "groupchat" || !unsent.TryGetValue(message.From.Bare, out var waiting)) return;
+
+        waiting.RemoveAll(s => (string?)s.Attribute("id") is { Length: > 0 } id && (id == message.Id || id == message.OriginId));
+        if (waiting.Count == 0) unsent.Remove(message.From.Bare);
+    }
+
+    /// <summary>
+    /// Sends a room what it never confirmed, once this client is back in it and has seen what it missed there: its replay
+    /// and its archive are what show something arrived after all. Called as either of those finishes; the later one sends.
+    /// </summary>
+    private async Task SendAgainToRoomAsync(JabberSession session, XmppClient client, string roomJid, CancellationToken ct)
+    {
+        var due = session.Locked(s =>
+            s.RoomMap.TryGetValue(roomJid, out var room) && room is { Joined: true, HistoryDone: true, CaughtUp: true } && s.UnsentToRooms.Remove(roomJid, out var waiting)
+                ? waiting : null);
+        if (due is null) return;
+
+        try
+        {
+            foreach (var stanza in due) await client.SendAgainAsync(stanza, ct);
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            if (e is not (XmppException or IOException)) errors.Log(nameof(JabberService), "send again to a room", e);
+        }
     }
 
     private void SetState(JabberSession session, JabberState state, JabberProblem problem, string detail)

@@ -67,6 +67,15 @@ public sealed class MumbleMixer
 
     private static readonly TimeSpan HeardFor = TimeSpan.FromMilliseconds(350);
 
+    /// <summary>
+    /// How far everyone else is turned down while a priority speaker is heard: 18 dB, the standard client's own figure.
+    /// ⚠️ Not someone whispering to this listener alone, who is meant to be heard over everything.
+    /// </summary>
+    public static readonly double PriorityDuck = Math.Pow(10, -18 / 20.0);
+
+    /// <summary>What a voice packet's target is when it was whispered to this listener alone.</summary>
+    private const int DirectWhisper = 2;
+
     private readonly record struct Waiting(byte[] Opus, double Gain);
 
     private sealed class Speaker
@@ -80,6 +89,9 @@ public sealed class MumbleMixer
         public DateTime LastHeard;
         public bool Ended;
         public int Target;
+
+        /// <summary>Set as a priority speaker on their server, as of their latest packet.</summary>
+        public bool Priority;
 
         /// <summary>The sequence number due next, or -1 between one stretch of talking and the next.</summary>
         public long Next = -1;
@@ -102,6 +114,7 @@ public sealed class MumbleMixer
     private readonly short[] _decoded = new short[MaxFrame];
     private readonly double[] _sorting = new double[ArrivalsKept];
     private readonly Queue<short> _cue = new();
+    private readonly List<Speaker> _heard = [];
 
     /// <summary>The time in milliseconds. A test sets this to run a made-up network faster than real time.</summary>
     public Func<double> Clock { get; set; } = static () => Stopwatch.GetTimestamp() * 1000.0 / Stopwatch.Frequency;
@@ -136,7 +149,8 @@ public sealed class MumbleMixer
     /// Takes one packet of someone's voice.
     /// </summary>
     /// <param name="gain">This person's own volume, 1 as sent.</param>
-    public void Receive(int server, MumbleVoicePacket packet, double gain = 1.0)
+    /// <param name="priority">The server has made them a priority speaker: everyone else is turned down while they are heard.</param>
+    public void Receive(int server, MumbleVoicePacket packet, double gain = 1.0, bool priority = false)
     {
         lock (_gate)
         {
@@ -148,6 +162,7 @@ public sealed class MumbleMixer
             speaker.LastHeard = DateTime.UtcNow;
             speaker.Ended = packet.Last;
             speaker.Target = packet.Target;
+            speaker.Priority = priority;
 
             // A terminator carrying no sound only says they let go.
             if (packet.Opus.Length == 0) return;
@@ -322,6 +337,7 @@ public sealed class MumbleMixer
         lock (_gate)
         {
             Span<int> mix = into.Length <= 4096 ? stackalloc int[into.Length] : new int[into.Length];
+            _heard.Clear();
 
             foreach (var speaker in _speakers.Values)
             {
@@ -351,8 +367,18 @@ public sealed class MumbleMixer
                 }
 
                 heard++;
+                _heard.Add(speaker);
+            }
+
+            // Who is heard is known only once everyone's sound for this stretch is in: a priority speaker among them turns
+            // the others down for all of it.
+            var priorityHeard = _heard.Exists(s => s.Priority);
+            foreach (var speaker in _heard)
+            {
+                var duck = priorityHeard && !speaker.Priority && speaker.Target != DirectWhisper ? PriorityDuck : 1.0;
                 var take = Math.Min(into.Length, speaker.Samples.Count);
-                for (var i = 0; i < take; i++) mix[i] += speaker.Samples.Dequeue();
+                if (duck == 1.0) for (var i = 0; i < take; i++) mix[i] += speaker.Samples.Dequeue();
+                else for (var i = 0; i < take; i++) mix[i] += (int)(speaker.Samples.Dequeue() * duck);
             }
 
             var cued = _cue.Count > 0;

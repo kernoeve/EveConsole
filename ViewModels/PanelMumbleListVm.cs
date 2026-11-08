@@ -67,7 +67,7 @@ public sealed class PanelMumbleListVm(MumbleService service, int serverId) : Rea
             var line = Users.FirstOrDefault(l => l.Session == user.Session);
             if (line == null)
             {
-                line = new MumbleOverlayLine(user.Session, user.Name);
+                line = new MumbleOverlayLine(user.Session, user.Name) { Avatar = MumbleOverlayLine.AvatarOf(session, user.Session, user.Name) };
                 Users.Insert(i, line);
             }
             else

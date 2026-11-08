@@ -148,6 +148,13 @@ public sealed class MumbleOverlayLine(uint session, string name) : ReactiveObjec
 
     public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
     public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+
+    /// <summary>Their picture, or their initial.</summary>
+    public AvatarRef? Avatar { get; init; }
+
+    public static AvatarRef? AvatarOf(MumbleSession session, uint user, string name) =>
+        session.Client?.UserOf(user) is { } u ? new AvatarRef(MumbleService.AvatarServiceName, session.Server.Id, MumbleService.UserKey(u), u.Name)
+                                               : new AvatarRef(MumbleService.AvatarServiceName, session.Server.Id, $"name:{name}", name);
 }
 
 /// <summary>One server on the always-on-top list: this client on it, and under that whoever is talking there.</summary>
@@ -543,6 +550,25 @@ public sealed class MumbleViewModel : ReactiveObject
     public bool ShowWelcome => !HasServers;
 
     private MumbleSession? Session => SelectedRow is { } row ? _service.SessionOf(row.ServerId) : null;
+
+    /// <summary>
+    /// Someone on a server as a row of the tree, for the person menu opened from somewhere else: the tree's own row where
+    /// it shows them, else one made for them now. Null once they have left the server.
+    /// </summary>
+    public MumbleRowVm? PersonRow(int serverId, uint user)
+    {
+        var identity = $"{MumbleRowKind.User}:{serverId}:{user}";
+        if (Rows.FirstOrDefault(r => r.Identity == identity) is { } shown) return shown;
+        if (_service.SessionOf(serverId) is not { Client: { } client } session || client.UserOf(user) is not { } u) return null;
+
+        return new MumbleRowVm
+        {
+            Kind = MumbleRowKind.User, ServerId = serverId, Id = user, Text = u.Name, IsMe = u.Session == client.Me?.Session,
+            Avatar = new AvatarRef(MumbleService.AvatarServiceName, serverId, MumbleService.UserKey(u), u.Name),
+            IsDeaf = u.Deaf || u.SelfDeaf, IsMuted = u.Mute || u.SelfMute || u.Suppress,
+            IsLocalMuted = session.IsLocalMuted(u), IsPriority = u.PrioritySpeaker,
+        };
+    }
 
     public bool ShowServer  => SelectedRow is { IsServer: true };
     public bool ShowChannel => SelectedRow is { IsChannel: true };
@@ -1523,7 +1549,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 if (t.Session == column.Me.Session) continue;
 
                 var line = column.Talking.FirstOrDefault(l => l.Session == t.Session);
-                if (line is null) column.Talking.Add(line = new MumbleOverlayLine(t.Session, t.Name));
+                if (line is null) column.Talking.Add(line = new MumbleOverlayLine(t.Session, t.Name) { Avatar = MumbleOverlayLine.AvatarOf(column.Session, t.Session, t.Name) });
                 line.LastTalked = when;
             }
 
