@@ -454,4 +454,220 @@
   <data name="ChannelCountsTip" xml:space="preserve">
     <value>{0} 人がいて、そのうち {1} 人が聞いています</value>
   </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>ミュートとスピーカーミュートのキーは、発言キーと同じくどこからでも使えます。押すたびにオン・オフが切り替わります。</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>ミュートキー</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>スピーカーミュートキー</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>権限…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>権限: {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>下の行が上の行より優先されます。灰色の行は上位チャンネルから来ており、そちらで変更します。</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>サーバーに問い合わせ中…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>権限</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>上位チャンネルの権限を引き継ぐ</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>上へ</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>下へ</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>上位チャンネルのものです。そちらで変更してください。</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>グループ</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>登録済みの人</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>登録名</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all: 全員。auth: 登録済みの人。in / out: このチャンネルにいる人・いない人。~ は適用先ではなく、その行があるチャンネルを指します。</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>ここに適用</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>サブチャンネルに適用</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>権限</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>許可</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>新しいグループ名</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>上位のメンバーを含める</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>サブチャンネルにも引き継ぐ</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>ここで追加</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>上位から</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>ここで除外</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>読み直す</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>サーバーが拒否しました。権限の変更にはこのチャンネルの書き込み権限が必要です。</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>グループ名を「{0}」にはできません。使用済みか、サーバーが自動で決める名前です。</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>サーバーに「{0}」という登録済みの人はいません。</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>行にはグループか人が必要です。</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>保存中…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>保存しました。これが現在サーバーにある内容です。</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>ここのみ</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>サブチャンネルのみ</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>どこにも適用されない</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0}（上位から）</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>上位と同じに戻す</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>グループを削除</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>ここで除外</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>戻す</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>書き込み（権限の変更）</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>通過</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>入室</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>発言</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>他人をミュート・スピーカーミュート</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>人を移動</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>チャンネル作成</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>一時チャンネル作成</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>チャンネルのリンク</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>ささやき</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>テキストメッセージ</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>リスン</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>キック</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>BAN</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>他人を登録</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>自分を登録</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>他人のコメントと画像をリセット</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>選択…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>サーバーが応答しませんでした。送信が速すぎるメッセージは捨てられます。少し待ってから読み直してください。</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>サーバーはすべてを保存しませんでした。これが現在の内容です。少し待ってから変更し直して保存してください。</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>選択対象へのささやきキー</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>このキーを押している間、チャンネル一覧で選択した対象にささやきます。人をクリックまたは右クリック、チャンネルは右クリックで選択します（クリックは従来どおり移動します）。選択は一覧で強調表示され、話している間は自分の名前の横に表示されます。</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>チャンネル選択時は次にも届ける</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>

@@ -66,7 +66,7 @@ public sealed class MumbleTargetChannelVm : ReactiveObject
 }
 
 /// <summary>One channel target, as it stands in Settings: what it's called, its key, and who it reaches.</summary>
-public sealed class MumbleTargetVm : ReactiveObject
+public sealed class MumbleTargetVm : ReactiveObject, IMumbleKeySlot
 {
     private readonly MumbleViewModel _owner;
     private string _name, _people, _group;

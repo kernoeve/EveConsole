@@ -134,6 +134,8 @@ public sealed class MumbleClient : IAsyncDisposable
     private readonly Dictionary<uint, MumbleUser> _users = [];
     private readonly Dictionary<uint, MumblePermission> _permissions = [];
     private readonly HashSet<uint> _permissionsAsked = [];
+    private readonly Dictionary<uint, string> _userNames = [];
+    private readonly Dictionary<string, uint> _userIds = new(StringComparer.OrdinalIgnoreCase);
 
     private TcpClient? _tcp;
     private Stream? _stream;
@@ -174,6 +176,18 @@ public sealed class MumbleClient : IAsyncDisposable
 
     /// <summary>A permission or action was refused, in the server's words if it gave any.</summary>
     public event Action<string>? Denied;
+
+    /// <summary>A channel's permissions and groups, as asked for with <see cref="AskAclAsync"/>.</summary>
+    public event Action<MumbleAcl>? AclReceived;
+
+    /// <summary>The server said who some registered users are: see <see cref="RegisteredName"/> and <see cref="RegisteredId"/>.</summary>
+    public event Action? RegisteredNamesChanged;
+
+    /// <summary>A registered user's name, by their id, once the server has said it.</summary>
+    public string? RegisteredName(uint userId) { lock (_gate) return _userNames.GetValueOrDefault(userId); }
+
+    /// <summary>A registered user's id, by their name, once the server has said it.</summary>
+    public uint? RegisteredId(string name) { lock (_gate) return _userIds.TryGetValue(name, out var id) ? id : null; }
 
     /// <summary>A voice packet arrived. ⚠️ On the reading thread: anything slow here holds up the connection.</summary>
     public event Action<MumbleVoicePacket>? VoiceReceived;
@@ -460,6 +474,27 @@ public sealed class MumbleClient : IAsyncDisposable
                 Changed?.Invoke();
                 break;
 
+            case MumbleMessage.Acl:
+                MumbleAcl acl;
+                try { acl = MumbleAcl.Read(m); }
+                catch (InvalidDataException) { break; /* not worth the connection */ }
+                AclReceived?.Invoke(acl);
+                break;
+
+            case MumbleMessage.QueryUsers:
+                // Two lists side by side, ids and names. ⚠️ A name the server doesn't know is simply left out of the answer.
+                var ids = m.UInts(1);
+                var names = m.AllBytes(2);
+                lock (_gate)
+                    for (var i = 0; i < Math.Min(ids.Count, names.Count) && _userNames.Count < MostUsers * 4; i++)
+                    {
+                        var name = System.Text.Encoding.UTF8.GetString(names[i]);
+                        _userNames[(uint)ids[i]] = name;
+                        _userIds[name] = (uint)ids[i];
+                    }
+                RegisteredNamesChanged?.Invoke();
+                break;
+
             case MumbleMessage.PermissionQuery:
                 lock (_gate)
                 {
@@ -637,6 +672,21 @@ public sealed class MumbleClient : IAsyncDisposable
     /// <summary>⚠️ This is the whole list: a server takes whatever it is sent as all there is, and anyone left off is unbanned.</summary>
     public Task SetBansAsync(IEnumerable<MumbleBan> bans, CancellationToken ct) =>
         SendAsync(MumbleMessage.BanList, BanListMessage(bans), ct);
+
+    /// <summary>Asks for a channel's permissions and groups. The answer arrives as <see cref="AclReceived"/>, or a refusal as <see cref="Denied"/>.</summary>
+    public Task AskAclAsync(uint channel, CancellationToken ct) => SendAsync(MumbleMessage.Acl, MumbleAcl.QueryMessage(channel), ct);
+
+    /// <summary>⚠️ Replaces all of the channel's own permissions and groups with these.</summary>
+    public Task SetAclAsync(MumbleAcl acl, CancellationToken ct) => SendAsync(MumbleMessage.Acl, acl.ToMessage(), ct);
+
+    /// <summary>Asks who registered users are, by id or by name. The answer arrives as <see cref="RegisteredNamesChanged"/>.</summary>
+    public Task AskRegisteredAsync(IEnumerable<uint> ids, IEnumerable<string> names, CancellationToken ct)
+    {
+        var message = new PbWriter();
+        foreach (var id in ids) message.UInt(1, id);
+        foreach (var name in names) message.Text(2, name);
+        return SendAsync(MumbleMessage.QueryUsers, message.ToArray(), ct);
+    }
 
     /// <summary>Changes a channel's name or description. Whichever is null stays as it is.</summary>
     public Task EditChannelAsync(uint channel, string? name, string? description, CancellationToken ct)

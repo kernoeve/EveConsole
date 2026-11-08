@@ -2677,7 +2677,12 @@ public class App : Application
                         "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
                         "LastChannel"        TEXT    NOT NULL DEFAULT '',
                         "VoiceActivated"     INTEGER NOT NULL DEFAULT 0,
-                        "TalkTargets"        TEXT NOT NULL DEFAULT ''
+                        "TalkTargets"        TEXT NOT NULL DEFAULT '',
+                        "MuteKey"            INTEGER NOT NULL DEFAULT 0,
+                        "DeafenKey"          INTEGER NOT NULL DEFAULT 0,
+                        "PickKey"            INTEGER NOT NULL DEFAULT 0,
+                        "PickLinks"          INTEGER NOT NULL DEFAULT 0,
+                        "PickSubchannels"    INTEGER NOT NULL DEFAULT 0
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
@@ -2692,6 +2697,11 @@ public class App : Application
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "VoiceActivated" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "TalkTargets" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "MuteKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "DeafenKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickLinks" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickSubchannels" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "LocalMute" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "IgnoreText" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""

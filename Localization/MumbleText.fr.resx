@@ -454,4 +454,220 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   <data name="ChannelCountsTip" xml:space="preserve">
     <value>{0} ici, dont {1} entendent</value>
   </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>Les touches de sourdine et d'assourdissement marchent partout, comme les touches de parole. Chaque appui active ou désactive.</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>Touche de sourdine</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>Touche d'assourdissement</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>Permissions…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>Permissions : {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>Les lignes du bas l'emportent sur celles du haut. Les lignes grisées viennent des salons parents et se modifient là-bas.</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>Demande au serveur…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>Permissions</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>Groupes</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>Reprendre les permissions des salons parents</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>Monter</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>D'un salon parent : modifiez-la là-bas.</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>Groupe</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>Personne enregistrée</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>Nom enregistré</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all : tout le monde. auth : personnes enregistrées. in / out : ceux dans ce salon ou non. ~ désigne le salon de la ligne, pas celui où elle s'applique.</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>S'applique ici</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>S'applique aux sous-salons</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>Permission</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>Autoriser</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>Nom du nouveau groupe</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>A les membres d'au-dessus</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>Les sous-salons l'ont aussi</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>Ajoutés ici</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>D'au-dessus</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>Retirés ici</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>Relire</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>Le serveur a refusé. Modifier les permissions demande Écriture sur ce salon.</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>Un groupe ne peut pas s'appeler « {0} » : le nom est pris ou c'est un nom que le serveur calcule lui-même.</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>Le serveur n'a aucune personne enregistrée nommée « {0} ».</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>Une ligne a besoin d'un groupe ou d'une personne.</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>Enregistrement…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>Enregistré. Voici ce que le serveur contient maintenant.</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>ici seulement</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>sous-salons seulement</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>ne s'applique nulle part</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0} (d'au-dessus)</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>Revenir à celui d'au-dessus</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>Retirer le groupe</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>Retirer ici</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>Remettre</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>Écriture (modifier les permissions)</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>Traverser</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>Entrer</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>Parler</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>Rendre muets et sourds les autres</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>Déplacer des personnes</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>Créer des salons</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>Créer des salons temporaires</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>Lier des salons</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>Chuchoter</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>Messages texte</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>Écouter</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>Expulser</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>Bannir</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>Enregistrer les autres</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>S'enregistrer soi-même</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>Réinitialiser commentaires et images des autres</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>Choisir…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>Le serveur n'a pas répondu. Il ignore les messages envoyés trop vite : attendez un instant, puis relisez.</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>Le serveur n'a pas tout gardé. Voici ce qu'il contient maintenant : modifiez à nouveau et enregistrez dans un instant.</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Touche de chuchotement à la sélection</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Maintenez cette touche pour chuchoter à ce qui est sélectionné dans la liste des canaux : cliquez ou faites un clic droit sur une personne, ou un clic droit sur un canal (un clic vous y déplace toujours). La sélection est mise en évidence dans la liste et nommée à côté de votre nom pendant que vous parlez.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Quand un canal est sélectionné, atteindre aussi</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
 </root>
