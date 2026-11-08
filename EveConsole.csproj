@@ -234,10 +234,17 @@
     </Content>
   </ItemGroup>
 
+  <!-- ⚠️ The release, pinned, not "latest". The Piper project is archived, so this is its last
+       release and will stay so; and GitHub's latest/download redirect is a separate service that went
+       down (504) on 2026-11-08 while the release itself downloaded fine, failing the Linux CI build. -->
+  <PropertyGroup>
+    <PiperRelease>2023.11.14-2</PiperRelease>
+  </PropertyGroup>
+
   <Target Name="DownloadPiperBinaryWindows" BeforeTargets="Build" Condition="$([MSBuild]::IsOsPlatform('Windows')) And !Exists('$(ProjectDir)Resources\piper\piper.exe')">
     <Message Text="[EveConsole] Downloading Piper TTS binary for Windows x64..." Importance="high" />
     <MakeDir Directories="$(ProjectDir)Resources\" />
-    <Exec Command="powershell -NonInteractive -Command &quot;Invoke-WebRequest -Uri 'https://github.com/rhasspy/piper/releases/latest/download/piper_windows_amd64.zip' -OutFile '$(ProjectDir)Resources\piper_win_tmp.zip'&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="powershell -NonInteractive -Command &quot;Invoke-WebRequest -Uri 'https://github.com/rhasspy/piper/releases/download/$(PiperRelease)/piper_windows_amd64.zip' -OutFile '$(ProjectDir)Resources\piper_win_tmp.zip'&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Exec Command="powershell -NonInteractive -Command &quot;if (Test-Path '$(ProjectDir)Resources\piper_win_tmp.zip') { Expand-Archive -Path '$(ProjectDir)Resources\piper_win_tmp.zip' -DestinationPath '$(ProjectDir)Resources\' -Force; Remove-Item '$(ProjectDir)Resources\piper_win_tmp.zip' }&quot;" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
   </Target>
@@ -256,7 +263,7 @@
   <Target Name="DownloadPiperBinaryLinux" BeforeTargets="AssignTargetPaths" Condition="$([MSBuild]::IsOsPlatform('Linux')) And !Exists('$(ProjectDir)Resources/piper-linux/piper/piper')">
     <Message Text="[EveConsole] Downloading Piper TTS binary for Linux x64..." Importance="high" />
     <MakeDir Directories="$(ProjectDir)Resources/piper-linux/" />
-    <Exec Command="curl -fsSL -o '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' https://github.com/rhasspy/piper/releases/latest/download/piper_linux_x86_64.tar.gz" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
+    <Exec Command="curl -fsSL --retry 4 --retry-delay 5 --retry-all-errors -o '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' https://github.com/rhasspy/piper/releases/download/$(PiperRelease)/piper_linux_x86_64.tar.gz" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Exec Command="tar -xzf '$(ProjectDir)Resources/piper_linux_tmp.tar.gz' -C '$(ProjectDir)Resources/piper-linux/' &amp;&amp; rm -f '$(ProjectDir)Resources/piper_linux_tmp.tar.gz'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Exec Command="chmod +x '$(ProjectDir)Resources/piper-linux/piper/piper'" WorkingDirectory="$(ProjectDir)" ContinueOnError="true" />
     <Message Text="[EveConsole] Piper binary download complete." Importance="high" />
