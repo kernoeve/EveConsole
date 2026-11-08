@@ -312,6 +312,12 @@
                   <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                              Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                              ConverterParameter=Value}"/>
+                  <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnCopyBuyList"
+                          IsVisible="{Binding ((vm:WorklistRowVm)Items[0]).IsBuy}"
+                          IsEnabled="{Binding !$parent[UserControl].((vm:WorklistViewModel)DataContext).IsLoading}"
+                          FontSize="11" Padding="6 2" Background="Transparent"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipCopyItemNameAnd}"/>
                 </StackPanel>
               </Border>
             </ControlTemplate>
