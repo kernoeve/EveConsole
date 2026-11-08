@@ -104,6 +104,12 @@ jobs:
       - name: Worklist rank check
         run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
 
+      # ⚠️ Does the Worklist's shopping list still paste into multibuy? A list that counts an
+      # expanded row twice, lists a blueprint's runs as items, or drops a station's share of an
+      # item still looks like a finished list. This builds the text from constructed rows.
+      - name: Worklist buy list check
+        run: dotnet run --project tools/WorklistBuyListCheck/WorklistBuyListCheck.csproj -c Release
+
       # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
       # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
       # picks up all look like a finished report. This builds battles whose answers are known, on
