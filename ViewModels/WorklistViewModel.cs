@@ -1893,6 +1893,19 @@ public class WorklistViewModel : ReactiveObject
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
 
+    /// <summary>Multibuy text from the filtered rows, using English names and unformatted units.</summary>
+    public static string FormatBuyList(IEnumerable<WorklistRowVm> rows) =>
+        string.Join(Environment.NewLine, rows
+            .Where(r => r.IsBuy)
+            .Select(r => r.Item)
+            // Order maintenance has no quantity; blueprint requests can count runs, not items.
+            .Where(i => i.Quantity > 0 && i.TypeId > 0 && !string.IsNullOrWhiteSpace(i.TypeName)
+                        && i.TitleTag != "BPO/BPC" && i.Print != PrintKind.Copy)
+            .GroupBy(i => i.TypeId)
+            .OrderBy(g => g.First().TypeName, StringComparer.Ordinal)
+            .Select(g => g.First().TypeName + "\t"
+                         + g.Sum(i => i.Quantity).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+
     /// <summary>
     /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
     ///

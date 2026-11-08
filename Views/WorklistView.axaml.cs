@@ -9,6 +9,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
+using EveConsole.Localization;
 
 namespace EveConsole.Views;
 
@@ -23,6 +24,29 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         // source.
         AddHandler(GotFocusEvent, OnFieldFocused, RoutingStrategies.Bubble);
         AddHandler(PointerReleasedEvent, OnPointerReleased, RoutingStrategies.Bubble);
+    }
+
+    private async void OnCopyBuyList(object? sender, RoutedEventArgs e)
+    {
+        if (DataContext is not WorklistViewModel vm) return;
+        var top = TopLevel.GetTopLevel(this);
+        var main = top as MainWindow;
+        try
+        {
+            var text = WorklistViewModel.FormatBuyList(vm.Rows);
+            if (text.Length == 0)
+            {
+                main?.ShowToast(IndustryText.ToastNothingToCopy);
+                return;
+            }
+            if (top?.Clipboard is not { } clipboard) return;
+            await clipboard.SetTextAsync(text);
+            main?.ShowToast(IndustryText.ToastCopied);
+        }
+        catch (Exception ex)
+        {
+            main?.ShowToast(string.Format(CommonText.ErrorWithMessage, ex.Message));
+        }
     }
 
     private WorklistViewModel? _shownFor;
