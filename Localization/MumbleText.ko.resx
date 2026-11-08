@@ -670,4 +670,10 @@
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
   </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>Mumble 서버 {1}의 {0}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>채널 대상 {0}</value>
+  </data>
 </root>

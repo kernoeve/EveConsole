@@ -932,4 +932,11 @@ Click for the ESI limits.</value>
     <value>EVE Servant Sisters</value>
     <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
   </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+This client is set never to run the background processes, and only the client running them may change the schema, so it cannot bring the database up to {1}.
+
+Start a {1} client that may run them, or turn this off: remove "neverRunBackgroundWork" from {2}.</value>
+  </data>
 </root>

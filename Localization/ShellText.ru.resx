@@ -748,4 +748,11 @@ PID: {2}
   <data name="ThemeEveSisters" xml:space="preserve">
     <value>EVE Servant Sisters</value>
   </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Версия этой базы данных — {0}, а этого клиента — {1}.
+
+Этот клиент настроен никогда не выполнять фоновые процессы, а менять схему может только клиент, который их выполняет, поэтому он не может обновить базу данных до {1}.
+
+Запустите клиент {1}, которому это разрешено, или отключите настройку: удалите «neverRunBackgroundWork» из {2}.</value>
+  </data>
 </root>

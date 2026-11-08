@@ -3883,4 +3883,25 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Тогда закрытие главного окна только скрывает его: панели, тревоги и фоновая работа продолжаются. Чтобы вернуть окно, дважды щёлкните значок или выберите «{0}» в его меню; чтобы завершить EVE Console — «{1}».</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>режим рации для {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Нажмите клавишу или кнопку мыши (Esc — отмена)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Фоновая работа на этом компьютере</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Никогда не выполнять фоновую работу в этом клиенте</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Когда клиент, который опрашивает и выполняет остальную фоновую работу, закрывается, её берёт на себя другой подключённый клиент. Если отмечено, этот не возьмёт никогда: он только показывает то, что собирают другие. Сохраняется только на этом компьютере, а не для всех клиентов. Если других клиентов нет, опроса не будет.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Только для общей базы данных PostgreSQL: с SQLite этот клиент единственный, поэтому он всегда выполняет работу.</value>
+  </data>
 </root>

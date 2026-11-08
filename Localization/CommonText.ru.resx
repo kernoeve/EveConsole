@@ -364,4 +364,13 @@
   <data name="PrintOriginalName" xml:space="preserve">
     <value>{0} (оригинал)</value>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} уже используется: {1}. Выберите другую клавишу или сначала уберите её там.</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} также используется: {1}, поэтому одно нажатие делает и то, и другое. Выберите другую клавишу для одного из них.</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

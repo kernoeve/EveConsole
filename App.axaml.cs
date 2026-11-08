@@ -651,7 +651,8 @@ public class App : Application
             var older = unrecorded || (dbOld is not null && appNow is not null && dbOld < appNow);
             var heldElsewhere = workerStatus is not null && WorkerLease.IsLive(workerStatus);
 
-            if (older && !heldElsewhere)
+            // Nor when this client is set never to run them: it could not upgrade anything either.
+            if (older && !heldElsewhere && !WorkerLease.StandsAside)
             {
                 var from  = dbVersion ?? ShellText.DatabaseVersionUnrecorded;
                 var where = DescribeDatabase();
@@ -778,10 +779,15 @@ public class App : Application
                     // ⚠️ The dialog says `message` again, in the interface's language; the console
                     // line below keeps the English, as every log line does. A change to one is a
                     // change to the other.
+                    // ⚠️ Set never to run the background work, this client can't move the schema even with nobody
+                    // else running, and can't reach Settings to change that: told where the setting is kept.
                     Avalonia.Controls.Window dialog = dbV > appV
                         ? new UpdateRequiredDialog(
                             string.Format(ShellText.VersionMismatchDatabaseAhead, dbVersion, AppVersion.Number),
                             dbV!, errorLogger)
+                        : WorkerLease.StandsAside
+                        ? new FatalDialog(ShellText.VersionMismatchHeading,
+                            string.Format(ShellText.VersionMismatchStandingAside, dbVersion, AppVersion.Number, AppConfig.ConfigFilePath))
                         : new FatalDialog(ShellText.VersionMismatchHeading,
                             string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
 

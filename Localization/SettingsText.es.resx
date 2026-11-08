@@ -3877,4 +3877,25 @@ La aplicación se reiniciará.</value>
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Al cerrar la ventana principal solo se oculta: los paneles, las alarmas y el trabajo en segundo plano continúan. Haz doble clic en el icono, o elige {0} en su menú, para recuperar la ventana, y {1} para cerrar EVE Console.</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>pulsar para hablar de {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Pulsa una tecla o un botón del ratón (Esc cancela)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Trabajo en segundo plano en este equipo</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>No ejecutar nunca el trabajo en segundo plano en este cliente</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Cuando se cierra el cliente que consulta y hace el resto del trabajo en segundo plano, otro cliente conectado lo asume. Si está marcado, este nunca lo hace: solo muestra lo que recogen los demás. Se guarda solo en este equipo, no para todos los clientes. Si no hay otro cliente en marcha, nadie consulta.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Solo con una base de datos PostgreSQL compartida: con SQLite este es el único cliente, así que siempre hace el trabajo.</value>
+  </data>
 </root>

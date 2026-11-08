@@ -3874,4 +3874,25 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>此时关闭主窗口只会将其隐藏：面板、警报和后台工作照常进行。双击图标，或在其菜单中选择“{0}”，即可让窗口重新出现；选择“{1}”则退出 EVE Console。</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>{0} 的按键通话</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>请按一个键或鼠标按钮（Esc 取消）</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>清除</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>此计算机上的后台工作</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>此客户端从不运行后台工作</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>执行轮询及其他后台工作的客户端关闭时，另一个已连接的客户端会接手。勾选后，此客户端永不接手：它只显示其他客户端收集的内容。仅保存在此计算机上，不适用于所有客户端。如果没有其他客户端在运行，就不会有轮询。</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>仅适用于共享的 PostgreSQL 数据库：使用 SQLite 时此客户端是唯一的客户端，因此始终执行工作。</value>
+  </data>
 </root>

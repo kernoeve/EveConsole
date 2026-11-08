@@ -670,4 +670,10 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
   </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} en el servidor de Mumble {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>destino de canal {0}</value>
+  </data>
 </root>

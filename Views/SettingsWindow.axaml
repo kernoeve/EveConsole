@@ -1285,6 +1285,26 @@
             </StackPanel>
           </Border>
 
+          <!-- Kept on this computer only: for a client that must never take the work over, beside one being restarted. -->
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <CheckBox IsChecked="{Binding PollingVm.NeverRunBackgroundWork}" IsEnabled="{Binding PollingVm.CanStandAside}"
+                          Content="{x:Static loc:SettingsText.NeverRunBackgroundWork}"
+                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 -2 0 0"
+                           Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkNote}" />
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkSqlite}" IsVisible="{Binding !PollingVm.CanStandAside}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
         </StackPanel>
       </ScrollViewer>
     </TabItem>
@@ -1946,7 +1966,7 @@
       <!-- Four sub-tabs over one view model and ONE status bar: the tab had grown to two hundred
            lines of sections, all saved as they are changed, so the bar that says so stays outside
            the sub-tabs where it is visible whichever one is showing. -->
-      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0"
+      <Grid x:Name="AgentSettingsPane" RowDefinitions="*,Auto" Margin="0 8 0 0"
             x:DataType="vm:AgentSettingsViewModel" DataContext="{Binding AgentVm}">
         <TabControl Grid.Row="0" Padding="0">
 
@@ -2604,9 +2624,18 @@
                       <!-- Global push-to-talk key -->
                       <StackPanel IsVisible="{Binding ShowMicrophoneSettings}" Spacing="8">
                         <TextBlock Text="{x:Static loc:SettingsText.GlobalPushToTalkKey}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding PushToTalkKeyNames}"
-                                  SelectedItem="{Binding SelectedPushToTalkKeyName}"
-                                  HorizontalAlignment="Stretch" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Button Content="{Binding PushToTalkKeyText}" Command="{Binding CapturePushToTalkKeyCommand}" MinWidth="260" />
+                          <Button Content="{x:Static loc:SettingsText.PttKeyClear}" Command="{Binding ClearPushToTalkKeyCommand}" />
+                        </StackPanel>
+                        <!-- A key another place listens for too: a warning; one just refused, an error. -->
+                        <TextBlock Classes="keyproblem" Classes.bad="{Binding PushToTalkKeyRefused}"
+                                   Text="{Binding PushToTalkKeyProblem}" IsVisible="{Binding HasPushToTalkKeyProblem}">
+                          <TextBlock.Styles>
+                            <Style Selector="TextBlock.keyproblem"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
+                            <Style Selector="TextBlock.keyproblem.bad"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+                          </TextBlock.Styles>
+                        </TextBlock>
                         <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
                                    Text="{Binding PttHelpText}" />
                       </StackPanel>

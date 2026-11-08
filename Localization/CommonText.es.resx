@@ -364,4 +364,13 @@
   <data name="PrintOriginalName" xml:space="preserve">
     <value>{0} (original)</value>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} ya se usa para {1}. Elige otra tecla o quítala allí primero.</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} también se usa para {1}, así que una pulsación hace las dos cosas. Elige otra tecla para una de ellas.</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

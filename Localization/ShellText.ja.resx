@@ -730,4 +730,11 @@ PID：{2}
   <data name="ThemeEveSisters" xml:space="preserve">
     <value>EVE Servant Sisters</value>
   </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>このデータベースのバージョンは{0}、このクライアントは{1}です。
+
+このクライアントはバックグラウンド処理を行わない設定になっており、スキーマを変更できるのは処理を行っているクライアントだけなので、データベースを{1}に上げられません。
+
+処理を行える{1}のクライアントを起動するか、この設定をオフにしてください：{2} から "neverRunBackgroundWork" を削除します。</value>
+  </data>
 </root>

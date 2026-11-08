@@ -3874,4 +3874,25 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>メインウィンドウを閉じても非表示になるだけで、パネル、アラーム、バックグラウンド処理は続きます。ウィンドウを戻すにはアイコンをダブルクリックするか、メニューの「{0}」を選び、EVE Consoleを終了するには「{1}」を選びます。</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>{0} のプッシュトゥトーク</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>キーまたはマウスボタンを押してください (Esc でキャンセル)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>このコンピューターでのバックグラウンド処理</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>このクライアントではバックグラウンド処理を行わない</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>ポーリングなどのバックグラウンド処理を行っているクライアントが終了すると、接続中の別のクライアントが引き継ぎます。オンにすると、このクライアントは引き継ぎません。他のクライアントが集めたものを表示するだけです。この設定はこのコンピューターにだけ保存され、すべてのクライアントには適用されません。他のクライアントが動いていなければ、ポーリングは行われません。</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>共有の PostgreSQL データベースでのみ使えます。SQLite ではこのクライアントが唯一なので、常に処理を行います。</value>
+  </data>
 </root>
