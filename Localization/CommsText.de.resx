@@ -1007,4 +1007,10 @@ Im Strukturbrowser öffnen</value>
   <data name="TimeAgoDaysOther" xml:space="preserve">
     <value>{0} Tagen</value>
   </data>
+  <data name="MailUnreadTip" xml:space="preserve">
+    <value>EVE-Mail: {0} ungelesen</value>
+  </data>
+  <data name="MailNoUnreadTip" xml:space="preserve">
+    <value>EVE-Mail: nichts ungelesen</value>
+  </data>
 </root>

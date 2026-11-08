@@ -85,8 +85,6 @@ public sealed partial class JabberService
     /// <summary>This process now holds the lease: the connections are its to keep.</summary>
     public async Task BecomeWorkerAsync(CancellationToken ct = default)
     {
-        if (AppRuntime.IsTray) return;
-
         try
         {
             _isWorker = true;

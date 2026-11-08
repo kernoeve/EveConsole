@@ -6,6 +6,9 @@ namespace EveConsole.Services.ClientLayouts;
 /// <summary>Which edge of an area a panel or control is docked to.</summary>
 public enum DockEdge { Top, Bottom, Left, Right }
 
+/// <summary>An edge, as <see cref="DockEdge"/> numbers them, or the whole of an area's middle.</summary>
+public enum DockPlace { Top = DockEdge.Top, Bottom = DockEdge.Bottom, Left = DockEdge.Left, Right = DockEdge.Right, Full }
+
 /// <summary>What the middle of an area holds, once what's docked in it has taken its share.</summary>
 public enum AreaContent { Empty, Client, Panel, Grid, Control }
 
@@ -13,12 +16,17 @@ public enum AreaContent { Empty, Client, Panel, Grid, Control }
 /// The one building block of a layout. A monitor's layout is an area, a grid's cells are areas, and
 /// the inside of a panel is an area.
 ///
+/// <para>⚠️ Only panels go on the monitor itself: docked to its edges, or one filling its middle.
+/// Everything else — controls, clients, grids, more panels — goes inside a panel. And a grid's cells
+/// are all panels: a grid is how a panel is divided into more panels. Layouts saved before that rule
+/// are brought into line as they're read (see <see cref="ClientLayoutMigration"/>).</para>
+///
 /// <para>⚠️ A layout holds shape only. Which characters run in a client area is the monitor's
 /// business, because one layout can be used on several monitors. <see cref="Id"/> is what ties
 /// those assignments to the area, so it has to survive every edit of the layout.</para>
 ///
-/// <para>A client can sit in any area, including inside a panel. Its panel's window has a hole cut
-/// where the client is, so it shows through and gets its own clicks.</para>
+/// <para>A client sits inside a panel, docked to an edge or filling it. The panel's window has a hole
+/// cut where the client is, so it shows through and gets its own clicks.</para>
 /// </summary>
 public sealed class LayoutArea
 {
@@ -49,9 +57,11 @@ public sealed class LayoutArea
 }
 
 /// <summary>
-/// A panel or control docked to one edge of an area. <see cref="Size"/> is its width or its height,
-/// whichever way it's docked, in pixels on every monitor. With <see cref="Control"/> set it's a
-/// control; otherwise it's a panel, which can hold more of the same in <see cref="Inside"/>.
+/// A panel, control, client or grid docked to one edge of an area. <see cref="Size"/> is its width
+/// or its height, whichever way it's docked, in pixels at 100%. With <see cref="Grid"/> set it's a
+/// grid; with <see cref="Control"/> set it's a control, or a client when that names
+/// <see cref="PanelControlKind.Client"/>; otherwise it's a panel, which can hold more in
+/// <see cref="Inside"/>. A client's id is what its characters are assigned by, as a client area's is.
 /// </summary>
 public sealed class DockedPanel
 {
@@ -70,6 +80,9 @@ public sealed class DockedPanel
     public LayoutArea? Inside { get; set; }
 
     public PanelLook? Look { get; set; }
+
+    /// <summary>A grid docked to the edge: its cells are panels.</summary>
+    public LayoutGrid? Grid { get; set; }
 }
 
 /// <summary>What's been chosen for a control that needs choices.</summary>
@@ -98,6 +111,12 @@ public sealed class ControlOptions
 
     /// <summary>The tools a Tool Container opens with, in order.</summary>
     public List<ContainerTool>? ContainerTools { get; set; }
+
+    /// <summary>
+    /// The room a Group Chat control opens on: a Jabber room or a Mumble server, as the Group Chat
+    /// tool's list names it (kind, server and room). Its dropdown can show another for a while.
+    /// </summary>
+    public string? GroupChatRoom { get; set; }
 }
 
 /// <summary>A tool a Tool Container opens with.</summary>
@@ -116,11 +135,28 @@ public sealed class ContainerTool
 /// <summary>How a panel looks. Null values mean the defaults, which match the game's own UI.</summary>
 public sealed class PanelLook
 {
-    /// <summary>"#RRGGBB", or null for <see cref="PanelLooks.DefaultColor"/>.</summary>
+    /// <summary>"#RRGGBB", or null for the theme's page color (see <see cref="PanelLooks.ColorOf"/>).</summary>
     public string? Color { get; set; }
 
     /// <summary>A <see cref="PanelStyle"/> by name, or null for flat.</summary>
     public string? Style { get; set; }
+
+    /// <summary>Room kept free inside the panel, past its edge's own margin. Null is none.</summary>
+    public LayoutPadding? Padding { get; set; }
+}
+
+/// <summary>
+/// Room kept free around what an area holds, in pixels at 100%: each side grows with the UI scale,
+/// like a docked size. All four default to 0.
+/// </summary>
+public sealed class LayoutPadding
+{
+    public int Left { get; set; }
+    public int Top { get; set; }
+    public int Right { get; set; }
+    public int Bottom { get; set; }
+
+    public bool IsNone => Left == 0 && Top == 0 && Right == 0 && Bottom == 0;
 }
 
 /// <summary>
@@ -135,7 +171,15 @@ public sealed class LayoutGrid
     /// <summary>Columns.Count x Rows.Count areas, across and then down.</summary>
     public List<LayoutArea> Cells { get; set; } = [];
 
-    /// <summary>A grid of equal cells, all empty.</summary>
+    /// <summary>
+    /// Room kept free round the cells and between them, so the panels in them don't touch: padding 3
+    /// leaves 3 at the edges and 3 between each cell and the next (see the calculator for uneven sides).
+    /// Null is none. A grid has no edge or colour of its own: the panel it's in, or its cells, have those.
+    /// </summary>
+    public LayoutPadding? Padding { get; set; }
+
+
+    /// <summary>A grid of equal cells, each an empty panel.</summary>
     public static LayoutGrid Equal(int columns, int rows)
     {
         var grid = new LayoutGrid
@@ -143,7 +187,7 @@ public sealed class LayoutGrid
             Columns = [.. Enumerable.Repeat(1.0, columns)],
             Rows = [.. Enumerable.Repeat(1.0, rows)],
         };
-        for (var i = 0; i < columns * rows; i++) grid.Cells.Add(new LayoutArea());
+        for (var i = 0; i < columns * rows; i++) grid.Cells.Add(new LayoutArea { Content = AreaContent.Panel });
         return grid;
     }
 }
@@ -172,7 +216,8 @@ public static class ClientLayoutJson
         if (string.IsNullOrWhiteSpace(json)) return new LayoutArea();
         try
         {
-            return JsonSerializer.Deserialize<LayoutArea>(json, Options) ?? new LayoutArea();
+            // Read as it's meant to be now, whenever it was saved.
+            return ClientLayoutMigration.Normalize(JsonSerializer.Deserialize<LayoutArea>(json, Options) ?? new LayoutArea());
         }
         catch (JsonException)
         {

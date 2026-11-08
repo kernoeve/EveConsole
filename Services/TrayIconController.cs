@@ -7,21 +7,16 @@ using EveConsole.Localization;
 namespace EveConsole.Services;
 
 /// <summary>
-/// The optional notification-area icon: what the background work is doing, without a window.
+/// The desktop app's notification-area icon: always there while the app runs, saying which client
+/// does the background work, and bringing the main window back.
 ///
-/// <para>⚠️ Its own process, started at logon with --tray, and it has to be. A Windows service
-/// runs in session 0, which has no interactive desktop, so the process actually doing the
-/// background work is incapable of putting anything in the notification area. Putting the icon in
-/// the desktop client instead would mean it vanished whenever that client was closed — which is
-/// precisely when somebody wants to know whether the worker is still going.</para>
+/// <para>With panels and Tool Containers, the main window is no longer needed for the app to be
+/// useful, so closing it can leave the app running here instead (see
+/// <see cref="AppConfig.GetKeepRunningInTray"/>). Exit on its menu ends the app.</para>
 ///
-/// <para>It reads: the worker row from the database, changes pushed over <see cref="ClientSignals"/>.
-/// ⚠️ It does NOT handle alarms. Closing the desktop client is how somebody turns notifications
-/// off, and a tray icon that went on sounding them would have taken that decision away from
-/// them.</para>
-///
-/// <para>Off by default. An icon nobody asked for is clutter, and this one is only useful to
-/// somebody who has a worker to keep an eye on.</para>
+/// <para>⚠️ In the desktop app's own process. It used to be a process of its own, started at logon
+/// with --tray, so as to show while the app was closed. A worker running as a Windows service still
+/// can't show it (session 0 has no desktop); the desktop app can, for as long as it runs.</para>
 /// </summary>
 public sealed class TrayIconController
 {
@@ -31,10 +26,10 @@ public sealed class TrayIconController
     private TrayIcon?       _icon;
     private DispatcherTimer? _poll;
 
-    /// <summary>Starts a fresh EVE Console client. There is no window of ours to bring back.</summary>
+    /// <summary>Brings the main window back, shown and in front.</summary>
     public Action? ShowWindow { get; set; }
 
-    /// <summary>Ends this tray process. ⚠️ Not the background work — that belongs to the worker.</summary>
+    /// <summary>Ends the app, as closing the main window does when it isn't kept running here.</summary>
     public Action? Quit { get; set; }
 
     public TrayIconController(WorkerLease lease, WorkerActivityService activity)
@@ -45,51 +40,47 @@ public sealed class TrayIconController
 
     public bool IsVisible => _icon is not null;
 
-    // ── Starting with the session ─────────────────────────────────────────────
+    // ── The separate tray process this replaced ───────────────────────────────
 
     private const string RunKeyPath = @"Software\Microsoft\Windows\CurrentVersion\Run";
     private const string RunName    = "EveConsoleTray";
 
     /// <summary>
-    /// ⚠️ HKEY_CURRENT_USER on Windows, <c>~/.config/autostart</c> on Linux and
-    /// <c>~/Library/LaunchAgents</c> on macOS — all per-person and per-session, which is exactly
-    /// what a tray icon is. The machine-wide equivalents would
-    /// ask for administrator approval to add an icon to one user's notification area, and would put
-    /// it in everyone's.
+    /// Takes away what started the old tray process at logon — the Run value on Windows,
+    /// <c>~/.config/autostart</c> on Linux, <c>~/Library/LaunchAgents</c> on macOS — and, for
+    /// someone who had it on, keeps the app running in the notification area instead: they
+    /// wanted it there. Run by the desktop app as it starts, and by a leftover --tray start,
+    /// which then exits. Nothing to do once it's gone.
     /// </summary>
-    public static bool StartsAtLogon()
+    public static void RetireLogonTray()
+    {
+        try
+        {
+            if (!StartedAtLogon()) return;
+            if (OperatingSystem.IsLinux()) LinuxAutostart.Remove();
+            else if (OperatingSystem.IsMacOS()) MacAutostart.Remove();
+            else if (OperatingSystem.IsWindows())
+            {
+                using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
+                key?.DeleteValue(RunName, throwOnMissingValue: false);
+            }
+            AppConfig.SetKeepRunningInTray(true);
+        }
+        catch
+        {
+            // Left as it was; tried again at the next start. A leftover --tray start just exits.
+        }
+    }
+
+    private static bool StartedAtLogon()
     {
         if (OperatingSystem.IsLinux()) return LinuxAutostart.StartsAtLogin();
         if (OperatingSystem.IsMacOS()) return MacAutostart.StartsAtLogin();
         if (!OperatingSystem.IsWindows()) return false;
 
-        try
-        {
-            using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKeyPath);
-            return key?.GetValue(RunName) is string;
-        }
-        catch { return false; }
+        using var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(RunKeyPath);
+        return key?.GetValue(RunName) is string;
     }
-
-    public static void SetStartsAtLogon(bool on)
-    {
-        if (OperatingSystem.IsLinux()) { LinuxAutostart.SetStartsAtLogin(on); return; }
-        if (OperatingSystem.IsMacOS()) { MacAutostart.SetStartsAtLogin(on); return; }
-        if (!OperatingSystem.IsWindows()) return;
-
-        using var key = Microsoft.Win32.Registry.CurrentUser.CreateSubKey(RunKeyPath);
-        if (key is null) return;
-
-        if (!on) { key.DeleteValue(RunName, throwOnMissingValue: false); return; }
-
-        // ⚠️ Quoted. Program Files has a space in it, and an unquoted path there is read as a
-        // command plus arguments — Windows would try to run "C:\Program" and report nothing.
-        if (AppLauncher.RelaunchPath is { } exe)
-            key.SetValue(RunName, $"\"{exe}\" {Program.TrayArgument}");
-    }
-
-    /// <summary>Starts a tray process now, so ticking the box does something visible today.</summary>
-    public static string? LaunchNow() => AppLauncher.Start(Program.TrayArgument);
 
     public void Show()
     {
@@ -109,7 +100,7 @@ public sealed class TrayIconController
             };
 
             // Double-click is the convention for "give me the window back"; Avalonia surfaces a
-            // single Clicked, which is close enough and less fiddly than nothing.
+            // single Clicked, so a double-click (or a single one) brings it back.
             _icon.Clicked += (_, _) => ShowWindow?.Invoke();
 
             _activity.Changed += Refresh;
@@ -169,11 +160,8 @@ public sealed class TrayIconController
         var quit = new NativeMenuItem(ShellText.TrayExit);
         quit.Click += (_, _) => Quit?.Invoke();
 
-        // ⚠️ No mute here, and no alarms anywhere in this process. Closing the desktop client is
-        // how somebody turns notifications off; a tray icon that went on sounding them would have
-        // taken that decision away, and a mute control would only be needed by a thing that made
-        // noise. Exit ends this icon, not the background work — that belongs to the worker.
-        return [monitor, open, new NativeMenuItemSeparator(), quit];
+        // Exit ends the app, alarms and all; the background work goes on wherever else it runs.
+        return [open, monitor, new NativeMenuItemSeparator(), quit];
     }
 
     private void Refresh() => _ = RefreshAsync();

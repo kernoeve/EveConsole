@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>Color</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>Usar el color de EVE</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>Estilo</value>
   </data>
@@ -230,6 +227,29 @@
     <value>Hundido</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>Esquema</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>Tarjeta</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>fila {0}, columna {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Columnas</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Filas</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Cada celda es un panel y conserva su lugar. Reducir la cuadrícula quita las celdas que quedan fuera del nuevo borde, con lo que contienen; Deshacer las recupera. Haz clic en una línea entre celdas para seleccionar la cuadrícula.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Cliente</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Acoplar una cuadrícula</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Quitar el cliente</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Acoplar un panel al monitor</value></data>
+  <data name="Undo" xml:space="preserve"><value>Deshacer</value></data>
+  <data name="Redo" xml:space="preserve"><value>Rehacer</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Deshacer el último cambio de este diseño (Ctrl+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Rehacer el cambio que se acaba de deshacer (Ctrl+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Acoplado a</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Orden de acoplamiento</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Arrastra una fila arriba o abajo para cambiar el orden; haz clic en una para seleccionarla. Lo de arriba se acopla primero y ocupa todo su borde; lo de abajo cabe en lo que queda.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Relleno del contenido</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Izquierda</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Arriba</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Derecha</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Abajo</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Píxeles al 100 %, libres dentro del panel, o alrededor de las celdas de una cuadrícula y entre ellas. Un borde en relieve, hundido o con cresta deja 4 más, una tarjeta 5, para que nada llegue a sus esquinas redondeadas.</value></data>
     <value>Reborde</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>Acoplar un panel dentro</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>Acoplar un panel junto a este</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>Completo</value>
@@ -344,7 +361,7 @@
     <value>Copia de {0}</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>Haz clic derecho en cualquier elemento para acoplarle un panel o un control, dividirlo en una cuadrícula o llegar a lo que lo contiene. Arrastra las líneas entre elementos para cambiar su tamaño.</value>
+    <value>Haz clic derecho en el monitor para acoplar paneles en él, o en un panel para acoplar paneles, controles, clientes y cuadrículas dentro, o para llegar a lo que lo contiene. Arrastra las líneas entre los elementos para cambiar su tamaño.</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>Nombre del diseño</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>Vacío</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>Acoplar un panel aquí</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>Arriba</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>Derecha</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>Dividir en una cuadrícula</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>Quitar esta cuadrícula</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>Contiene un cliente del juego</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>Contiene un panel</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>No contiene nada</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>Enviar al fondo</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0}: parte de este diseño no se puede usar tal como se guardó. Puede venir de una versión más reciente.</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>Asistente de IA</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>Mensajes directos</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>Chat de grupo</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>Versión de la aplicación</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>Versión del SDE</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>Base de datos</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>Trabajo en segundo plano</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>Estado de ESI</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>Tema</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>Escala de la interfaz</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>Luz de alarma</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>Programador</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>Alertas</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>Abrir Mensajes</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>Abrir Chat de grupo</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>No hay mensajes directos nuevos.</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>Nada nuevo en el chat de grupo.</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>El asistente de IA está desactivado. Actívalo en Ajustes.</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>Correo de EVE</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>Usar el color del tema</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>Sala de chat de grupo</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>Conversaciones de mensajes directos</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>Sala</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>Elige una sala para este control en Diseños de clientes, o elige una arriba.</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>La sala elegida para este control ya no está en el chat de grupo.</value>
   </data>
 </root>

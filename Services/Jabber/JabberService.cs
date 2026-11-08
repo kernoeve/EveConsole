@@ -198,8 +198,6 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     /// <summary>Loads the accounts, and starts showing how they stand. Connecting is for whoever holds the lease: <see cref="BecomeWorkerAsync"/>.</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
-        if (AppRuntime.IsTray) return;
-
         await LoadAccountsAsync(ct);
         await StartShowingAsync(ct);
     }
@@ -298,8 +296,6 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     /// <summary>Asks for this account to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(JabberSession session)
     {
-        if (AppRuntime.IsTray) return;
-
         if (!ActsHere)
         {
             PostToWorker(session.Account.Id, "connect", new CommandArgs());

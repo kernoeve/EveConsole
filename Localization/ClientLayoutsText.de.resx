@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>Farbe</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>EVE-Farbe verwenden</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>Stil</value>
   </data>
@@ -230,6 +227,29 @@
     <value>Vertieft</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>Gliederung</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>Karte</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>Zeile {0}, Spalte {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Spalten</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Zeilen</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Jede Zelle ist ein Panel und behält ihren Platz. Ein kleineres Raster entfernt die Zellen jenseits des neuen Rands samt Inhalt; Rückgängig holt sie zurück. Ein Klick auf eine Linie zwischen Zellen wählt das Raster aus.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Client</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Raster andocken</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Client entfernen</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Panel am Monitor andocken</value></data>
+  <data name="Undo" xml:space="preserve"><value>Rückgängig</value></data>
+  <data name="Redo" xml:space="preserve"><value>Wiederholen</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Die letzte Änderung an diesem Layout rückgängig machen (Strg+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Die eben rückgängig gemachte Änderung wiederholen (Strg+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Angedockt an</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Andockreihenfolge</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Eine Zeile nach oben oder unten ziehen, um die Reihenfolge zu ändern; anklicken, um sie auszuwählen. Weiter oben wird zuerst angedockt und nimmt den ganzen Rand; weiter unten passt in den Rest.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Innenabstand</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Links</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Oben</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Rechts</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Unten</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Pixel bei 100 %, frei gehalten innerhalb des Panels oder um die Zellen eines Rasters und zwischen ihnen. Ein erhabener, vertiefter oder gerippter Rand hält 4 weitere frei, eine Karte 5, damit nichts in ihre runden Ecken reicht.</value></data>
     <value>Grat</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>Panel darin andocken</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>Panel daneben andocken</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>Ausfüllen</value>
@@ -344,7 +361,7 @@
     <value>{0} (Kopie)</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>Klicken Sie mit der rechten Maustaste auf eine beliebige Stelle, um dort ein Panel oder Element anzudocken, sie in ein Raster zu teilen oder zu erreichen, was sie enthält. Ziehen Sie die Trennlinien, um Größen zu ändern.</value>
+    <value>Rechtsklick auf den Monitor dockt Panels daran an, Rechtsklick auf ein Panel dockt Panels, Elemente, Clients und Raster darin an oder erreicht, was es enthält. Die Linien zwischen den Teilen ziehen, um die Größe zu ändern.</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>Layout-Name</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>Leer</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>Panel hier andocken</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>Oben</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>Rechts</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>In ein Raster teilen</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>Dieses Raster entfernen</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>Enthält einen Spiel-Client</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>Enthält ein Panel</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>Enthält nichts</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>In den Hintergrund</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0}: Ein Teil dieses Layouts lässt sich so, wie gespeichert, nicht verwenden. Es stammt vielleicht aus einer neueren Version.</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>KI-Assistent</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>Direktnachrichten</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>Gruppenchat</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>App-Version</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>SDE-Version</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>Datenbank</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>Hintergrundarbeit</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>ESI-Status</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>Design</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>UI-Skalierung</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>Alarmleuchte</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>Planer</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>Warnungen</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>Nachrichten öffnen</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>Gruppenchat öffnen</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>Keine neuen Direktnachrichten.</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>Nichts Neues im Gruppenchat.</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>Der KI-Assistent ist ausgeschaltet. Schalte ihn in den Einstellungen ein.</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>EVE-Mail</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>Farbe des Designs verwenden</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>Gruppenchat-Raum</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>Direktnachrichten-Unterhaltungen</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>Raum</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>Wähle in Client-Layouts einen Raum für dieses Steuerelement oder oben einen aus.</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>Der für dieses Steuerelement gewählte Raum ist nicht mehr im Gruppenchat.</value>
   </data>
 </root>

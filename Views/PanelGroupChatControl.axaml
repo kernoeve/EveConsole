@@ -1,0 +1,57 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.PanelGroupChatControl"
+             x:DataType="vm:PanelGroupChatVm"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="ListBox.lines ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox.lines ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox.lines ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
+  </UserControl.Styles>
+
+  <!-- One room, the one set for the control; the dropdown shows another for a while. -->
+  <Grid RowDefinitions="Auto,*,Auto">
+    <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" Padding="6 4">
+      <ComboBox ItemsSource="{Binding Rooms}" SelectedItem="{Binding SelectedRoom}" HorizontalAlignment="Stretch" FontSize="12" />
+    </Border>
+
+    <TextBlock Grid.Row="1" Text="{Binding Note}" IsVisible="{Binding HasNote}" TextWrapping="Wrap" Margin="10"
+               FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+
+    <!-- A ListBox, not an ItemsControl in a scroller: long histories must stay virtualized. -->
+    <ListBox x:Name="LineList" Classes="lines" Grid.Row="1" ItemsSource="{Binding Lines}" Background="Transparent"
+             ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="vm:GroupLineVm">
+          <Grid ColumnDefinitions="Auto,*" Margin="8 3" Background="Transparent">
+            <views:AvatarView Of="{Binding Avatar}" Size="22" VerticalAlignment="Top" Margin="0 2 8 0" />
+            <StackPanel Grid.Column="1">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <TextBlock Text="{Binding Sender}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+                <TextBlock Text="{Binding When}" FontSize="9" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+              </StackPanel>
+              <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}"
+                                    TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+            </StackPanel>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <StackPanel Grid.Row="2">
+      <TextBlock Text="{Binding StatusText}" IsVisible="{Binding HasStatus}" TextWrapping="Wrap" FontSize="11" Margin="8 2 8 0"
+                 Foreground="{DynamicResource BadBrush}" />
+      <Grid ColumnDefinitions="*,Auto" Margin="6 4">
+        <TextBox x:Name="DraftBox" Text="{Binding Draft}" AcceptsReturn="False" TextWrapping="Wrap" MaxHeight="90" FontSize="12"
+                 Watermark="{x:Static loc:JabberText.MessageHint}" />
+        <Button Grid.Column="1" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="6 0 0 0"
+                VerticalAlignment="Bottom" FontSize="12" />
+      </Grid>
+    </StackPanel>
+  </Grid>
+</UserControl>

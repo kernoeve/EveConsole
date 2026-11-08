@@ -429,7 +429,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     /// <summary>Loads the servers and connects the ones set to connect on their own.</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
-        if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
+        if (AppRuntime.IsHeadless) return;
 
         Devices = new MumbleAudioDevices(Mixer) { InputDevice = _inputDevice, OutputDevice = _outputDevice, MicrophoneGain = _micGain };
         Devices.Captured += OnCaptured;
@@ -736,7 +736,7 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     public void Connect(MumbleSession session)
     {
-        if (AppRuntime.IsHeadless || AppRuntime.IsTray) return;
+        if (AppRuntime.IsHeadless) return;
 
         // A server still being filled in.
         if (session.Server.Host.Length == 0 || session.Server.Username.Length == 0) return;

@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>料金を保存</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>バックグラウンド処理</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>ESIアクティビティログ</value>
   </data>
@@ -1722,9 +1719,6 @@
   </data>
   <data name="JabberNoAccounts" xml:space="preserve">
     <value>Jabber サーバーが設定されていません。設定の Jabber タブで追加してください。</value>
-  </data>
-  <data name="JabberOpenTheApp" xml:space="preserve">
-    <value>Jabber を見るにはアプリを開いてください。トレイアイコンからは動作しません。</value>
   </data>
   <data name="JabberDirectMessages" xml:space="preserve">
     <value>ダイレクトメッセージ</value>

@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.PanelAlertsControl"
+             x:DataType="vm:OverviewViewModel"
+             Background="Transparent">
+
+  <!-- The main Overview's alerts, as its Alerts section shows them: each one going where it's
+       about, and dismissed for good where it can be. -->
+  <Grid RowDefinitions="Auto,*" Margin="10 8">
+
+    <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="0 0 0 6">
+      <TextBlock Text="{x:Static loc:OverviewText.Alerts}" FontSize="12" FontWeight="SemiBold"
+                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+      <Button Grid.Column="1" Background="Transparent" BorderThickness="0" Padding="0" MinHeight="0" Cursor="Hand"
+              Click="OnOpenAlertSettings" VerticalAlignment="Center">
+        <TextBlock Text="{x:Static loc:OverviewText.AlertSettings}" FontSize="11" Foreground="{DynamicResource InfoBrush}" TextDecorations="Underline" />
+      </Button>
+    </Grid>
+
+    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+      <StackPanel Spacing="4">
+        <TextBlock IsVisible="{Binding NoAlerts}" Text="{x:Static loc:OverviewText.NoActiveAlerts}"
+                   FontSize="11" Foreground="{DynamicResource TextFaintBrush}" FontStyle="Italic" />
+
+        <ItemsControl IsVisible="{Binding HasAlerts}" ItemsSource="{Binding Alerts}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:AlertRowVm">
+              <Border Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource AccentSurfaceBrush}"
+                      BorderThickness="1" CornerRadius="3" Padding="6 4" Margin="0 2">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                  <!-- Leading icon: the alert's own (a character's portrait, say) or the warning glyph. -->
+                  <Panel Grid.Column="0" Width="24" Height="24" VerticalAlignment="Center" Margin="0 0 6 0">
+                    <TextBlock Text="⚠" FontSize="14" Foreground="{DynamicResource AccentBrush}" IsVisible="{Binding NoIcon}"
+                               HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <Border IsVisible="{Binding HasIcon}" Width="24" Height="24" CornerRadius="12" ClipToBounds="True">
+                      <Image Source="{Binding Icon}" Width="24" Height="24" Stretch="UniformToFill" />
+                    </Border>
+                  </Panel>
+                  <TextBlock Grid.Column="1" Text="{Binding Message}" IsVisible="{Binding !IsClickable}"
+                             FontSize="11" Foreground="{DynamicResource WarnBrush}" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  <Button Grid.Column="1" IsVisible="{Binding IsClickable}" Background="Transparent" BorderThickness="0"
+                          Padding="0" MinHeight="0" Cursor="Hand" Click="OnNavigate"
+                          HorizontalAlignment="Stretch" HorizontalContentAlignment="Left">
+                    <TextBlock Text="{Binding Message}" FontSize="11" Foreground="{DynamicResource WarnBrush}"
+                               TextDecorations="Underline" VerticalAlignment="Center" TextWrapping="Wrap" />
+                  </Button>
+                  <Button Grid.Column="2" IsVisible="{Binding IsDismissible}" Command="{Binding DismissCommand}"
+                          Content="{x:Static loc:OverviewText.Dismiss}" FontSize="10" Padding="6 1" MinHeight="0" Margin="6 0 0 0"
+                          Background="{DynamicResource WarnSurfaceBrush}" Foreground="{DynamicResource AccentBrush}"
+                          BorderBrush="{DynamicResource AccentSurfaceBrush}" BorderThickness="1" VerticalAlignment="Center" />
+                </Grid>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </Grid>
+</UserControl>

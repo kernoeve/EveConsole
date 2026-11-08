@@ -35,6 +35,22 @@
       <Setter Property="CornerRadius"    Value="4" />
       <Setter Property="Padding"         Value="10" />
     </Style>
+    <!-- A row of the dock order: dragged up or down to move what it stands for. -->
+    <Style Selector="Border.dockrow">
+      <Setter Property="Background"   Value="{DynamicResource SurfacePanelAltBrush}" />
+      <Setter Property="CornerRadius" Value="2" />
+      <Setter Property="Padding"      Value="6 4" />
+      <Setter Property="Cursor"       Value="SizeNorthSouth" />
+    </Style>
+    <Style Selector="Border.dockrow:pointerover">
+      <Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" />
+    </Style>
+    <Style Selector="Border.dockrow.selected">
+      <Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" />
+    </Style>
+    <Style Selector="Border.dockrow.selected TextBlock.name">
+      <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <TabControl>
@@ -211,10 +227,10 @@
 
     <!-- ── Layouts ──────────────────────────────────────────────────────── -->
     <TabItem Header="{x:Static loc:ClientLayoutsText.TabLayouts}">
-      <Grid ColumnDefinitions="220,*,260" Margin="10" ColumnSpacing="10">
+      <Grid ColumnDefinitions="250,*,260" Margin="10" ColumnSpacing="10">
 
         <Border Grid.Column="0" Classes="section">
-          <Grid RowDefinitions="Auto,*,Auto" RowSpacing="8">
+          <Grid RowDefinitions="Auto,*,Auto,Auto,2*" RowSpacing="8">
             <TextBlock Grid.Row="0" Classes="title" Text="{x:Static loc:ClientLayoutsText.LayoutsTitle}" />
             <ListBox Grid.Row="1" ItemsSource="{Binding Layouts}" SelectedItem="{Binding SelectedLayout}">
               <ListBox.ItemTemplate>
@@ -228,12 +244,58 @@
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DuplicateLayout}" Command="{Binding DuplicateLayoutCommand}" IsEnabled="{Binding HasLayout}" />
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DeleteLayout}" Command="{Binding DeleteLayoutCommand}" IsEnabled="{Binding HasLayout}" />
             </WrapPanel>
+
+            <!-- The layout as a tree: the way to reach what's nested, or covered by what it holds. -->
+            <TextBlock Grid.Row="3" Classes="title" Text="{x:Static loc:ClientLayoutsText.OutlineTitle}" IsVisible="{Binding HasLayout}" />
+            <!-- ⚠️ Never scrolled sideways: a deep selection brought into view slid the whole tree
+                 left, cutting off the top of it. Deep lines are trimmed instead, on a small indent. -->
+            <TreeView Grid.Row="4" x:Name="OutlineTree" ItemsSource="{Binding Outline}" SelectedItem="{Binding OutlineSelected, Mode=TwoWay}"
+                      IsVisible="{Binding HasLayout}" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+              <TreeView.Resources>
+                <x:Double x:Key="TreeViewItemIndent">10</x:Double>
+              </TreeView.Resources>
+              <TreeView.Styles>
+                <Style Selector="Border.outlineline">
+                  <Setter Property="Padding" Value="2 0" />
+                  <Setter Property="BorderThickness" Value="1" />
+                  <Setter Property="BorderBrush" Value="Transparent" />
+                  <Setter Property="CornerRadius" Value="2" />
+                </Style>
+                <Style Selector="Border.outlineline.drop">
+                  <Setter Property="BorderBrush" Value="{DynamicResource InfoBrush}" />
+                  <Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" />
+                </Style>
+                <Style Selector="TreeViewItem" x:DataType="vm:OutlineNodeVm">
+                  <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                  <Setter Property="MinHeight" Value="22" />
+                  <Setter Property="Padding" Value="0" />
+                </Style>
+              </TreeView.Styles>
+              <TreeView.ItemTemplate>
+                <TreeDataTemplate x:DataType="vm:OutlineNodeVm" ItemsSource="{Binding Children}">
+                  <!-- Outlined while a line dragged over it would go in it. -->
+                  <Border Classes="outlineline" Classes.drop="{Binding IsDropTarget}">
+                  <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
+                    <TextBlock Grid.Column="0" FontSize="11" Text="{Binding Label}" TextTrimming="CharacterEllipsis" />
+                    <TextBlock Grid.Column="1" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" Text="{Binding Detail}" IsVisible="{Binding HasDetail}"
+                               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" />
+                  </Grid>
+                  </Border>
+                </TreeDataTemplate>
+              </TreeView.ItemTemplate>
+            </TreeView>
           </Grid>
         </Border>
 
         <Border Grid.Column="1" Classes="section" Padding="4">
           <Grid RowDefinitions="Auto,*">
-            <TextBlock Grid.Row="0" Classes="note" Margin="4 2 4 6" Text="{x:Static loc:ClientLayoutsText.LayoutHint}" />
+            <Grid Grid.Row="0" ColumnDefinitions="*,Auto,Auto" ColumnSpacing="4" Margin="4 2 4 6">
+              <TextBlock Grid.Column="0" Classes="note" VerticalAlignment="Center" TextWrapping="Wrap" Text="{x:Static loc:ClientLayoutsText.LayoutHint}" />
+              <Button Grid.Column="1" Padding="10 2" Content="{x:Static loc:ClientLayoutsText.Undo}" Command="{Binding UndoCommand}"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.UndoTip}" />
+              <Button Grid.Column="2" Padding="10 2" Content="{x:Static loc:ClientLayoutsText.Redo}" Command="{Binding RedoCommand}"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.RedoTip}" />
+            </Grid>
             <views:ClientLayoutCanvas Grid.Row="1" Root="{Binding EditingRoot}" Space="{Binding PreviewSpace}"
                                       Revision="{Binding Revision}" SelectedId="{Binding SelectedId}"
                                       Edited="{Binding LayoutEdited}" />
@@ -270,6 +332,10 @@
               <StackPanel Spacing="6">
                 <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelControl}" />
                 <TextBlock Text="{Binding SelectedControlName}" />
+                <StackPanel Spacing="6" IsVisible="{Binding IsGroupChatRoom}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelGroupChatRoom}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding GroupRooms}" SelectedItem="{Binding SelectedGroupRoom}" />
+                </StackPanel>
                 <StackPanel Spacing="6" IsVisible="{Binding IsMumbleControl}">
                   <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelMumbleServer}" />
                   <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding MumbleServers}" SelectedItem="{Binding SelectedMumbleServer}">
@@ -369,6 +435,57 @@
               </StackPanel>
             </Border>
 
+            <Border Classes="section" IsVisible="{Binding HasDock}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelDockedTo}" />
+                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding DockChoices}" SelectedItem="{Binding SelectedDock}">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DockPlaceChoice">
+                      <TextBlock Text="{Binding Label}" />
+                    </DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+                <StackPanel Spacing="4" IsVisible="{Binding HasDockOrder}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelDockOrder}" />
+                  <ItemsControl x:Name="DockOrderList" ItemsSource="{Binding DockOrder}"
+                                PointerPressed="DockOrder_PointerPressed" PointerMoved="DockOrder_PointerMoved"
+                                PointerReleased="DockOrder_PointerReleased" PointerCaptureLost="DockOrder_PointerCaptureLost">
+                    <ItemsControl.ItemsPanel>
+                      <ItemsPanelTemplate>
+                        <StackPanel Spacing="2" />
+                      </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:DockOrderRowVm">
+                        <Border Classes="dockrow" Classes.selected="{Binding IsSelected}">
+                          <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="8">
+                            <TextBlock Grid.Column="0" Text="≡" Foreground="{DynamicResource TextFaintBrush}" />
+                            <TextBlock Grid.Column="1" Classes="name" Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                            <TextBlock Grid.Column="2" Classes="note" Text="{Binding Edge}" />
+                          </Grid>
+                        </Border>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                  <TextBlock Classes="note" TextWrapping="Wrap" Text="{x:Static loc:ClientLayoutsText.DockOrderNote}" />
+                </StackPanel>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasGrid}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.ParentGrid}" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto" ColumnSpacing="6" RowSpacing="2">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="note" Text="{x:Static loc:ClientLayoutsText.GridColumns}" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="0" Value="{Binding GridColumns}" Minimum="1" Maximum="{Binding MaxGridLines}" FormatString="0" Increment="1" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Classes="note" Text="{x:Static loc:ClientLayoutsText.GridRows}" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding GridRows}" Minimum="1" Maximum="{Binding MaxGridLines}" FormatString="0" Increment="1" />
+                </Grid>
+
+                <TextBlock Classes="note" TextWrapping="Wrap" Text="{x:Static loc:ClientLayoutsText.GridSizeNote}" />
+              </StackPanel>
+            </Border>
+
             <Border Classes="section" IsVisible="{Binding HasSize}">
               <StackPanel Spacing="6">
                 <TextBlock Classes="label" Text="{Binding SizeLabel}" />
@@ -376,12 +493,12 @@
               </StackPanel>
             </Border>
 
-            <Border Classes="section" IsVisible="{Binding HasNamed}">
+            <Border Classes="section" IsVisible="{Binding HasLook}">
               <StackPanel Spacing="6">
                 <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelColor}" />
                 <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6">
                   <ColorPicker Grid.Column="0" Color="{Binding SelectedColor}" IsAlphaEnabled="False" IsAlphaVisible="False" />
-                  <Button Grid.Column="1" Content="{x:Static loc:ClientLayoutsText.ResetColor}" Command="{Binding ResetColorCommand}" />
+                  <Button Grid.Column="1" Content="{x:Static loc:ClientLayoutsText.ResetColorTheme}" Command="{Binding ResetColorCommand}" />
                 </Grid>
                 <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelStyle}" />
                 <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding StyleChoices}" SelectedItem="{Binding SelectedStyle}">
@@ -391,6 +508,23 @@
                     </DataTemplate>
                   </ComboBox.ItemTemplate>
                 </ComboBox>
+              </StackPanel>
+            </Border>
+
+            <Border Classes="section" IsVisible="{Binding HasPadding}">
+              <StackPanel Spacing="6">
+                <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelPadding}" />
+                <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="6" RowSpacing="2">
+                  <TextBlock Grid.Row="0" Grid.Column="0" Classes="note" Text="{x:Static loc:ClientLayoutsText.PaddingLeft}" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="0" Value="{Binding PaddingLeft}" Minimum="0" Maximum="2000" FormatString="0" Increment="1" />
+                  <TextBlock Grid.Row="0" Grid.Column="1" Classes="note" Text="{x:Static loc:ClientLayoutsText.PaddingTop}" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding PaddingTop}" Minimum="0" Maximum="2000" FormatString="0" Increment="1" />
+                  <TextBlock Grid.Row="2" Grid.Column="0" Classes="note" Text="{x:Static loc:ClientLayoutsText.PaddingRight}" />
+                  <NumericUpDown Grid.Row="3" Grid.Column="0" Value="{Binding PaddingRight}" Minimum="0" Maximum="2000" FormatString="0" Increment="1" />
+                  <TextBlock Grid.Row="2" Grid.Column="1" Classes="note" Text="{x:Static loc:ClientLayoutsText.PaddingBottom}" />
+                  <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding PaddingBottom}" Minimum="0" Maximum="2000" FormatString="0" Increment="1" />
+                </Grid>
+                <TextBlock Classes="note" TextWrapping="Wrap" Text="{x:Static loc:ClientLayoutsText.PaddingNote}" />
               </StackPanel>
             </Border>
 

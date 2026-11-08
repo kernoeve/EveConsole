@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.ClientPanelItemView"
              x:DataType="vm:MainWindowViewModel"
              VerticalAlignment="Center">
@@ -98,5 +99,123 @@
       <TextBlock Text="{Binding OnlineCharactersText}" FontSize="10"
                  Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
     </StackPanel>
+
+    <!-- Which build this is, and a link to the newer one's release page when there is one. -->
+    <StackPanel x:Name="AppVersionItem" IsVisible="False" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
+      <TextBlock Text="{Binding UpdateVm.CurrentVersionText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}"
+                 VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:ShellText.TipVersion}" />
+      <Button IsVisible="{Binding UpdateVm.HasUpdateBadge}" Content="{Binding UpdateVm.UpdateBadgeText}"
+              Background="Transparent" BorderThickness="0" Padding="4 0" MinHeight="0" FontSize="11"
+              Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" Cursor="Hand"
+              ToolTip.Tip="{x:Static loc:ShellText.TipReleasePage}" Click="OnReleaseLinkClick" />
+    </StackPanel>
+
+    <!-- Which SDE is loaded; up to date only when that was checked, and a link to Settings when a newer one is out. -->
+    <StackPanel x:Name="SdeVersionItem" IsVisible="False" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+      <TextBlock Text="{Binding SdeVm.SdeShortText}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center"
+                 ToolTip.Tip="{Binding SdeVm.LoadedBuild, StringFormat={x:Static loc:ShellText.FmtStaticDataExport}}" />
+      <TextBlock Text="{x:Static loc:ShellText.UpToDate}" IsVisible="{Binding SdeVm.SdeUpToDate}" FontSize="11"
+                 Foreground="{DynamicResource GoodBrush}" VerticalAlignment="Center"
+                 ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestFromCcpIs}}" />
+      <Button IsVisible="{Binding SdeVm.UpdateAvailable}" Content="{x:Static loc:ShellText.UpdateAvailable}"
+              Background="Transparent" BorderThickness="0" Padding="0" MinHeight="0" FontSize="11"
+              Foreground="{DynamicResource InfoBrush}" VerticalAlignment="Center" Cursor="Hand"
+              ToolTip.Tip="{Binding SdeVm.LatestBuild, StringFormat={x:Static loc:ShellText.FmtNewestIsOpenTheSde}}"
+              Click="OnSdeUpdateLinkClick" />
+    </StackPanel>
+
+    <views:DatabaseBadge x:Name="DatabaseItem" IsVisible="False" VerticalAlignment="Center" />
+
+    <!-- Which copy of the app is doing the background work. -->
+    <StackPanel x:Name="BackgroundOwnerItem" IsVisible="False" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center"
+                Background="Transparent" ToolTip.Tip="{Binding WorkerTip}">
+      <TextBlock Text="{x:Static loc:ShellText.BackgroundLabel}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+      <TextBlock Text="{Binding WorkerOwner}" FontSize="11" VerticalAlignment="Center"
+                 Foreground="{Binding WorkerState, Converter={x:Static views:WorkerStateBrushConverter.Instance}}" />
+    </StackPanel>
+
+    <!-- What each background process is doing, as at the bottom left of the main window: each
+         opens the Background Processes tool at its own tab, and a warning opens where it's put right. -->
+    <ItemsControl x:Name="EsiStatusItem" IsVisible="False" ItemsSource="{Binding ActivityVm.StatusBarItems}" VerticalAlignment="Center">
+      <ItemsControl.Styles>
+        <Style Selector="Button.bglabel">
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="BorderThickness" Value="0" />
+          <Setter Property="Padding" Value="6 0" />
+          <Setter Property="MinHeight" Value="0" />
+          <Setter Property="FontSize" Value="11" />
+          <Setter Property="Cursor" Value="Hand" />
+          <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        </Style>
+        <Style Selector="Button.bglabel.running">
+          <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+        </Style>
+        <Style Selector="Button.bglabel.warning">
+          <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+          <Setter Property="FontWeight" Value="SemiBold" />
+        </Style>
+      </ItemsControl.Styles>
+      <ItemsControl.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Orientation="Horizontal" Spacing="4" />
+        </ItemsPanelTemplate>
+      </ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate>
+        <DataTemplate x:DataType="vm:StatusBarItem">
+          <StackPanel Orientation="Horizontal" Spacing="0">
+            <Button Classes="bglabel" Classes.running="{Binding Running}" Content="{Binding Label}"
+                    Click="OnBackgroundLabelClick" VerticalAlignment="Center" />
+            <Button Classes="bglabel warning" IsVisible="{Binding HasWarning}" Content="{Binding Warning}"
+                    Click="OnStatusWarningClick" VerticalAlignment="Center" />
+          </StackPanel>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+    <!-- The theme, named, and the others on click. -->
+    <Button x:Name="ThemeItem" IsVisible="False" Background="Transparent" BorderThickness="0" Padding="6 0" MinHeight="0"
+            VerticalAlignment="Center" Cursor="Hand" ToolTip.Tip="{Binding ThemeTip}" Click="OnThemeClick">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <TextBlock Text="{Binding ThemeName}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock Text="▼" FontSize="7" VerticalAlignment="Center" Margin="0 1 0 0" Foreground="{DynamicResource TextFaintBrush}" />
+      </StackPanel>
+    </Button>
+
+    <!-- The UI scale, the same way. -->
+    <Button x:Name="UiScaleItem" IsVisible="False" Background="Transparent" BorderThickness="0" Padding="6 0" MinHeight="0"
+            VerticalAlignment="Center" Cursor="Hand" ToolTip.Tip="{Binding UiScaleTip}" Click="OnUiScaleClick">
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <TextBlock Text="{Binding UiScaleName}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock Text="▼" FontSize="7" VerticalAlignment="Center" Margin="0 1 0 0" Foreground="{DynamicResource TextFaintBrush}" />
+      </StackPanel>
+    </Button>
+
+    <!-- The alarm light: opens Alarms, and right-click mutes this machine, as on the main window. -->
+    <Button x:Name="AlarmsItem" IsVisible="False" Background="Transparent" BorderThickness="0" Padding="6 0" MinHeight="0"
+            VerticalAlignment="Center" ToolTip.Tip="{Binding AlarmsTip}" Click="OnAlarmsClick">
+      <Button.ContextMenu>
+        <ContextMenu>
+          <MenuItem Header="{Binding AlarmsMuteMenuText}" Click="OnAlarmMuteClick" />
+        </ContextMenu>
+      </Button.ContextMenu>
+      <views:AlarmBeacon />
+    </Button>
+
+    <!-- The Eve Mail envelope: opens Eve Mail, on the unread mail when there is some. -->
+    <Button x:Name="EveMailItem" IsVisible="False" Background="Transparent" BorderThickness="0" Padding="6 0" MinHeight="0"
+            VerticalAlignment="Center" Cursor="Hand" ToolTip.Tip="{Binding EveMailVm.UnreadTip}" Click="OnEveMailClick">
+      <views:ChatBadges Badge="Mail" />
+    </Button>
+
+    <!-- The scheduler's clock. -->
+    <Button x:Name="SchedulerItem" IsVisible="False" Background="Transparent" BorderThickness="0" Padding="6 0" MinHeight="0"
+            VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:ShellText.TipScheduler}" Click="OnSchedulerClick">
+      <Canvas Width="18" Height="18">
+        <Ellipse Canvas.Left="1" Canvas.Top="1" Width="16" Height="16"
+                 Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" />
+        <Path Data="M 9,9 L 9,4.4"     Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" StrokeLineCap="Round" />
+        <Path Data="M 9,9 L 12.4,10.6" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.4" StrokeLineCap="Round" />
+      </Canvas>
+    </Button>
   </Panel>
 </UserControl>

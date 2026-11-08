@@ -56,10 +56,36 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TryStartup();
     }
 
+    /// <summary>Whether the notification-area icon is up, to bring this window back. Set by App.</summary>
+    internal static Func<bool>? TrayShowing { get; set; }
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         SaveWindowState();
+
+        // Closed by the user with the app kept running: only hidden. The panels, alarms and the
+        // rest carry on, and the notification-area icon brings it back. ⚠️ Not when the app is
+        // ending (Exit on the icon, Windows shutting down, a restart), which closes it in code,
+        // and not with no icon to come back from.
+        if (!e.IsProgrammatic && e.CloseReason == WindowCloseReason.WindowClosing
+            && Services.AppConfig.GetKeepRunningInTray() && TrayShowing?.Invoke() == true
+            && DataContext is MainWindowViewModel vm)
+        {
+            e.Cancel = true;
+            vm.IsMainHidden = true;
+            Hide();
+            return;
+        }
         base.OnClosing(e);
+    }
+
+    /// <summary>Back from the notification area, or just brought to the front if it never left.</summary>
+    public void ShowFromTray()
+    {
+        if (DataContext is MainWindowViewModel vm) vm.IsMainHidden = false;
+        if (!IsVisible) Show();
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Activate();
     }
 
     /// <summary>
@@ -248,7 +274,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         vm.ShowWorkspaceRequested += ws =>
         {
             if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
-            else if (ws.IsMain) { if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal; Activate(); }
+            else if (ws.IsMain) ShowFromTray();
             // A Tool Container: its panel comes in front, without taking focus from a game client.
             else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForward();
         };
@@ -642,7 +668,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
         vm.OpenSettingsTab = header => _ = OpenSettingsAsync(vm, header);
-        vm.OpenSettingsOnMonitor = monitor => _ = OpenSettingsAsync(vm, nonModalOn: monitor);
+        vm.OpenSettingsOnMonitor = (monitor, tab) => _ = OpenSettingsAsync(vm, tab, nonModalOn: monitor);
         // The PI tool's Characters tab points at the PI switch, which is on Settings → Characters.
         vm.PlanetaryIndustryVm.OpenPiSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabCharacters);
 
@@ -682,15 +708,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
-    /// <summary>
-    /// The theme menu, built fresh each time it opens.
-    ///
-    /// <para>Built here rather than declared in the markup because the CHECK has to be right: the
-    /// theme can be changed from the Settings window too, and a menu assembled once would go on
-    /// ticking whatever was on when it was made.</para>
-    /// </summary>
-    /// <summary>The UI scale menu, built on click for the same reason as the theme's: the tick
-    /// has to show what is on now, and Settings can change it too.</summary>
     private int _toastShown;
 
     /// <summary>A message in the middle of the tools for a moment, then faded — for an action from
@@ -707,55 +724,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnUiScaleClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control anchor) return;
-
-        var menu = new MenuFlyout { Placement = PlacementMode.TopEdgeAlignedRight };
-
-        foreach (var choice in UiScaleChoice.All)
-        {
-            var item = new MenuItem
-            {
-                Header     = choice.Name,
-                ToggleType = MenuItemToggleType.Radio,
-                IsChecked  = Math.Abs(choice.Scale - UiScaleService.Scale) < 0.001,
-            };
-            var scale = choice.Scale;
-            item.Click += (_, _) => UiScaleService.Apply(scale);
-            menu.Items.Add(item);
-        }
-
-        menu.ShowAt(anchor);
+        if (sender is Control anchor) ShellMenus.UiScale(PlacementMode.TopEdgeAlignedRight).ShowAt(anchor);
     }
 
     private void OnThemeClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control anchor) return;
-
-        var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
-
-        foreach (var choice in ThemeService.All)
-        {
-            var item = new MenuItem
-            {
-                Header     = choice.Name,
-                ToggleType = MenuItemToggleType.Radio,
-                IsChecked  = choice.Key == ThemeService.Current,
-            };
-
-            // Captured, not read off the sender: a MenuItem's Click gives back the item, and
-            // recovering the key from its header would break the moment one was renamed.
-            var key = choice.Key;
-            item.Click += (_, _) => ThemeService.Apply(key);
-
-            menu.Items.Add(item);
-        }
-
-        menu.Items.Add(new Separator());
-        var edit = new MenuItem { Header = EveConsole.Localization.SettingsText.EditThemesButton };
-        edit.Click += (_, _) => ThemeEditorWindow.Open(this);
-        menu.Items.Add(edit);
-
-        menu.ShowAt(anchor);
+        if (sender is Control anchor) ShellMenus.Theme(PlacementMode.BottomEdgeAlignedRight, this).ShowAt(anchor);
     }
 
     private void OnSchedulerClick(object? sender, RoutedEventArgs e)

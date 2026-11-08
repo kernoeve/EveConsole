@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>色</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>EVEの色を使う</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>スタイル</value>
   </data>
@@ -230,6 +227,29 @@
     <value>くぼみ</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>構成</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>カード</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>{0} 行目、{1} 列目</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>列</value></data>
+  <data name="GridRows" xml:space="preserve"><value>行</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>各セルはパネルで、位置はそのまま保たれます。グリッドを小さくすると新しい端より外のセルが中身ごと削除されます。元に戻すで復元できます。セルの間の線をクリックするとグリッドを選択できます。</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>クライアント</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>グリッドをドッキング</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>クライアントを削除</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>モニターにパネルをドッキング</value></data>
+  <data name="Undo" xml:space="preserve"><value>元に戻す</value></data>
+  <data name="Redo" xml:space="preserve"><value>やり直す</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>このレイアウトへの最後の変更を元に戻します (Ctrl+Z)。</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>元に戻した変更をやり直します (Ctrl+Y)。</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>ドッキング先</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>ドッキング順</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>行を上下にドラッグして順序を変えます。クリックすると選択します。上のものが先にドッキングして辺全体を使い、下のものは残りに収まります。</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>コンテンツの余白</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>左</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>上</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>右</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>下</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>100% 時のピクセル数。パネルの内側、またはグリッドのセルの周りとセル同士の間に空けておく幅です。浮き出し・くぼみ・稜線の枠はさらに 4、カードは 5 空けるので、角の丸みに中身がかかりません。</value></data>
     <value>浮き出し線</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>内側にパネルをドッキング</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>このパネルの隣にパネルをドッキング</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>全体</value>
@@ -344,7 +361,7 @@
     <value>{0}のコピー</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>右クリックすると、パネルやコントロールのドッキング、グリッドへの分割、それを含む要素の選択ができます。間の線をドラッグするとサイズを変更できます。</value>
+    <value>モニターを右クリックするとパネルをドッキングでき、パネルを右クリックするとパネル・コントロール・クライアント・グリッドを中にドッキングしたり、それを含むものに移動したりできます。要素の間の線をドラッグするとサイズを変えられます。</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>レイアウト名</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>空</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>ここにパネルをドッキング</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>上</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>右</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>グリッドに分割</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>このグリッドを削除</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>ゲームクライアントを配置</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>パネルを配置</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>何も配置しない</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>最背面へ移動</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0}：このレイアウトの一部は保存されたとおりには使えません。新しいバージョンで作成された可能性があります。</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>AIアシスタント</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>ダイレクトメッセージ</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>グループチャット</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>アプリのバージョン</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>SDEのバージョン</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>データベース</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>バックグラウンド処理</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>ESIの状態</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>テーマ</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>UIの拡大率</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>アラームランプ</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>スケジューラー</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>アラート</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>メッセージを開く</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>グループチャットを開く</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>新しいダイレクトメッセージはありません。</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>グループチャットに新着はありません。</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>AIアシスタントはオフです。設定でオンにしてください。</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>EVEメール</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>テーマの色を使う</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>グループチャットのルーム</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>ダイレクトメッセージの会話</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>ルーム</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>クライアントレイアウトでこのコントロールのルームを選ぶか、上で選んでください。</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>このコントロールに設定したルームは、グループチャットにもうありません。</value>
   </data>
 </root>

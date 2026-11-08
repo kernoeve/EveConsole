@@ -214,9 +214,6 @@
   <data name="LabelColor" xml:space="preserve">
     <value>颜色</value>
   </data>
-  <data name="ResetColor" xml:space="preserve">
-    <value>使用 EVE 颜色</value>
-  </data>
   <data name="LabelStyle" xml:space="preserve">
     <value>样式</value>
   </data>
@@ -230,6 +227,29 @@
     <value>凹陷</value>
   </data>
   <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>结构</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>卡片</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>第 {0} 行，第 {1} 列</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>列</value></data>
+  <data name="GridRows" xml:space="preserve"><value>行</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>每个单元格都是一个面板并保持其位置。缩小网格会移除新边界之外的单元格及其内容；撤销可将其恢复。单击单元格之间的线可选中网格。</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>客户端</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>停靠网格</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>移除客户端</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>在显示器上停靠面板</value></data>
+  <data name="Undo" xml:space="preserve"><value>撤销</value></data>
+  <data name="Redo" xml:space="preserve"><value>重做</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>撤销对此布局的上一次更改 (Ctrl+Z)。</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>重做刚刚撤销的更改 (Ctrl+Y)。</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>停靠位置</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>停靠顺序</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>上下拖动一行可更改顺序；单击可选中。靠上的先停靠并占据整条边；靠下的放在剩余空间中。</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>内容内边距</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>左</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>上</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>右</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>下</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>100% 时的像素，在面板内侧，或在网格单元格四周及单元格之间留空。凸起、凹陷或脊线边框再留 4 像素，卡片留 5 像素，内容不会碰到圆角。</value></data>
     <value>凸棱</value>
   </data>
   <data name="MenuDockControl" xml:space="preserve">
@@ -237,9 +257,6 @@
   </data>
   <data name="MenuDockInside" xml:space="preserve">
     <value>在内部停靠面板</value>
-  </data>
-  <data name="MenuDockBeside" xml:space="preserve">
-    <value>在此面板旁停靠面板</value>
   </data>
   <data name="MenuEdgeFull" xml:space="preserve">
     <value>填满</value>
@@ -344,7 +361,7 @@
     <value>{0} 副本</value>
   </data>
   <data name="LayoutHint" xml:space="preserve">
-    <value>右键单击任意位置，可在其中停靠面板或控件、将其拆分为网格，或选中容纳它的上级。拖动各部分之间的分隔线可调整大小。</value>
+    <value>右键单击显示器可在其上停靠面板；右键单击面板可在其中停靠面板、控件、客户端和网格，或转到包含它的项。拖动各部分之间的线可调整大小。</value>
   </data>
   <data name="LabelLayoutName" xml:space="preserve">
     <value>布局名称</value>
@@ -370,9 +387,6 @@
   <data name="CanvasEmpty" xml:space="preserve">
     <value>空</value>
   </data>
-  <data name="MenuDockHere" xml:space="preserve">
-    <value>在此停靠面板</value>
-  </data>
   <data name="MenuEdgeTop" xml:space="preserve">
     <value>顶部</value>
   </data>
@@ -385,20 +399,8 @@
   <data name="MenuEdgeRight" xml:space="preserve">
     <value>右侧</value>
   </data>
-  <data name="MenuSplit" xml:space="preserve">
-    <value>拆分为网格</value>
-  </data>
   <data name="MenuRemoveGrid" xml:space="preserve">
     <value>移除此网格</value>
-  </data>
-  <data name="MenuHoldsClient" xml:space="preserve">
-    <value>放置游戏客户端</value>
-  </data>
-  <data name="MenuHoldsPanel" xml:space="preserve">
-    <value>放置面板</value>
-  </data>
-  <data name="MenuHoldsNothing" xml:space="preserve">
-    <value>不放置内容</value>
   </data>
   <data name="MenuSendToBack" xml:space="preserve">
     <value>置于底层</value>
@@ -417,5 +419,80 @@
   </data>
   <data name="WarnBroken" xml:space="preserve">
     <value>{0}：此布局有一部分无法按保存时的样子使用，可能来自较新的版本。</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>私信</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>群聊</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>应用版本</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>SDE 版本</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>数据库</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>后台工作</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>ESI 状态</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>界面缩放</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>警报灯</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>计划任务</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>打开消息</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>打开群聊</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>没有新私信。</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>群聊中没有新消息。</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>AI 助手已关闭。请在设置中开启。</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>使用主题颜色</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>群聊房间</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>私信会话</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>房间</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>请在客户端布局中为此控件选择房间，或在上方选择一个。</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>为此控件设置的房间已不在群聊中。</value>
   </data>
 </root>

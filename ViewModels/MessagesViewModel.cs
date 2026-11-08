@@ -675,6 +675,42 @@ public sealed class MessagesViewModel : ReactiveObject
     }
     public bool HasUnread => TotalUnread > 0;
     public string UnreadText => TotalUnread.ToString("N0", CultureInfo.CurrentCulture);
+
+    // ── For the Direct Messages control on panels ─────────────────────────────
+    //
+    // A panel shows conversations of its own, apart from this tool's tabs, so picking one there
+    // doesn't change what the tool shows.
+
+    /// <summary>The list of conversations was read again.</summary>
+    public event Action? ConversationsChanged;
+
+    /// <summary>A message came or went, in any conversation. On the UI thread.</summary>
+    public event Action<DmKey, DmLine>? LineArrived;
+
+    /// <summary>Every saved conversation, newest first, whatever the tool's list is searched for.</summary>
+    public IReadOnlyList<MessagesConversationVm> AllConversations() =>
+        [.. _all.OrderByDescending(c => c.LastAt).Select(c => new MessagesConversationVm(c))];
+
+    /// <summary>A conversation of its own, loaded, for a panel. Null for one whose service has gone.</summary>
+    public async Task<MessagesTabVm?> OpenForPanelAsync(DmKey key)
+    {
+        if (_service.SourceOf(key) is not { } source || _all.FirstOrDefault(c => c.Key == key) is not { } known) return null;
+        var tab = new MessagesTabVm(source, known, EmotesOf(key)) { Confirm = AskAsync, MyName = source.MyName(key.ServerId) };
+        await tab.LoadAsync();
+        return tab;
+    }
+
+    /// <summary>Marks a conversation read, as looking at it in the tool does.</summary>
+    public async Task MarkReadAsync(DmKey key)
+    {
+        if (TabOf(key) is { } tab) tab.Unread = 0;
+        if (_service.SourceOf(key) is { } source) await Task.Run(() => source.MarkReadAsync(key));
+    }
+
+    /// <summary>The conversations with something not yet read, newest first, whatever the list is searched for. For a panel's icon.</summary>
+    public IReadOnlyList<MessagesConversationVm> UnreadConversations() =>
+        [.. _all.Where(c => c.Unread > 0).OrderByDescending(c => c.LastAt).Select(c => new MessagesConversationVm(c))];
+
     public string WindowTitle => TotalUnread > 0 ? $"{MessagesText.WindowTitle} ({UnreadText})" : MessagesText.WindowTitle;
 
     /// <summary>Whether this tool is on screen, in a window with the person's attention. Set by the view.</summary>
@@ -799,6 +835,7 @@ public sealed class MessagesViewModel : ReactiveObject
     private void OnArrived(DmKey key, DmLine line, bool alert)
     {
         TabOf(key)?.Add(line);
+        LineArrived?.Invoke(key, line);
 
         var beingRead = IsBeingLookedAt && SelectedTab?.Key == key;
         if (beingRead) _ = MarkOpenReadAsync();
@@ -854,6 +891,7 @@ public sealed class MessagesViewModel : ReactiveObject
                 }
             }
             while (_refreshAgain);
+            ConversationsChanged?.Invoke();
         }
         catch (Exception e) when (e is InvalidOperationException or Microsoft.EntityFrameworkCore.DbUpdateException) { /* the next change asks again */ }
         finally { _refreshing = false; }

@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>保存费率</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>后台进程</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>ESI 活动日志</value>
   </data>
@@ -1722,9 +1719,6 @@
   </data>
   <data name="JabberNoAccounts" xml:space="preserve">
     <value>未设置 Jabber 服务器。请在设置的 Jabber 选项卡中添加。</value>
-  </data>
-  <data name="JabberOpenTheApp" xml:space="preserve">
-    <value>请打开应用以查看 Jabber：它不会从托盘图标运行。</value>
   </data>
   <data name="JabberDirectMessages" xml:space="preserve">
     <value>私信</value>

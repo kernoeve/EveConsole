@@ -534,6 +534,19 @@ public class EveMailService(
         }));
     }
 
+    /// <summary>
+    /// Unread mail, each MAIL once, as the Overview's alert counts it: a corp or alliance mail
+    /// reaches each of the user's characters in it under one mail id. Only characters still here.
+    /// </summary>
+    public async Task<int> CountUnreadAsync(CancellationToken ct = default)
+    {
+        using var db = dbFactory.CreateDbContext();
+        return await db.EsiMailHeaders.AsNoTracking()
+            .Where(m => !m.IsRead && db.Characters.Any(c => c.Id == m.CharacterId))
+            .Select(m => m.MailId).Distinct()
+            .CountAsync(ct);
+    }
+
     public async Task<bool> MarkReadAsync(long charId, int mailId, CancellationToken ct = default)
     {
         budget.Spend(charId);

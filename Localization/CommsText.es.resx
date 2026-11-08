@@ -1007,4 +1007,10 @@ Abrir en el Explorador de estructuras</value>
   <data name="TimeAgoDaysOther" xml:space="preserve">
     <value>{0} días</value>
   </data>
+  <data name="MailUnreadTip" xml:space="preserve">
+    <value>Correo de EVE: {0} sin leer</value>
+  </data>
+  <data name="MailNoUnreadTip" xml:space="preserve">
+    <value>Correo de EVE: nada sin leer</value>
+  </data>
 </root>

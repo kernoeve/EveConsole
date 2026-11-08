@@ -283,6 +283,7 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>The top bar's icon: the Messages tool, on what most needs reading if anything does.</summary>
     public ReactiveCommand<Unit, Unit> OpenMessagesCommand { get; }
     public ReactiveCommand<Unit, Unit> OpenGroupChatCommand { get; }
+    public ReactiveCommand<Unit, Unit> OpenEveMailCommand { get; }
     public ProductionCalculatorViewModel  ProductionCalcVm       { get; }
     public FittingViewModel               FittingVm              { get; }
     public PriceOverrideViewModel         PriceOverrideVm        { get; }
@@ -363,8 +364,8 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>For Mumble controls on panels, which can be for a server that isn't connected.</summary>
     public EveConsole.Services.Mumble.MumbleService MumbleService { get; }
 
-    /// <summary>Opens Settings without blocking anything, centered on the monitor given.</summary>
-    public Action<Avalonia.PixelRect>? OpenSettingsOnMonitor { get; set; }
+    /// <summary>Opens Settings without blocking anything, centered on the monitor given, at a tab by its header (null for the first).</summary>
+    public Action<Avalonia.PixelRect, string?>? OpenSettingsOnMonitor { get; set; }
 
     private void StartEveTimeClock()
     {
@@ -554,6 +555,13 @@ public class MainWindowViewModel : ReactiveObject
 
         MessagesVm.Show();
         return Task.CompletedTask;
+    }
+
+    /// <summary>The envelope: Eve Mail, on the unread mail when there is some, as the Overview's alert opens it.</summary>
+    public void OpenEveMail()
+    {
+        OpenTool("eve_mail");
+        if (EveMailVm.HasUnread) EveMailVm.ShowUnread();
     }
 
     private Task OpenGroupChatAsync()
@@ -878,7 +886,7 @@ public class MainWindowViewModel : ReactiveObject
     {
         if (WorkspaceOf(tab) is not { } ws) return;
         ws.SelectedTab = tab;
-        if (!ws.IsMain) ShowWorkspaceRequested?.Invoke(ws);
+        if (!ws.IsMain || IsMainHidden) ShowWorkspaceRequested?.Invoke(ws);
         this.RaisePropertyChanged(nameof(SelectedTab));
     }
 
@@ -949,7 +957,13 @@ public class MainWindowViewModel : ReactiveObject
     public IReadOnlyList<NavItem> ContainerToolChoices =>
         [.. _allNavItems.Where(i => i.ToolId is not ("jump_planner" or "route_planner" or "jabber" or "mumble"))];
 
-    private readonly Func<string?, OverviewViewModel> _newOverview;
+    private readonly Func<string?, string?, OverviewViewModel> _newOverview;
+
+    /// <summary>
+    /// An Overview of its own showing one section, for a panel control: it loads that section only,
+    /// once the main Overview has loaded. Disposed by the control when it goes.
+    /// </summary>
+    public OverviewViewModel NewSectionOverview(string sectionKey) => _newOverview(null, sectionKey);
 
     /// <summary>
     /// A container's Overview loads once the main one has. At startup all of them load together,
@@ -1015,7 +1029,7 @@ public class MainWindowViewModel : ReactiveObject
             // main window's is left where it is.
             if (tool.ToolId == "overview")
             {
-                var overview = new ToolTab(ContainerOverviewId(), ShellText.NavOverview, _newOverview(tool.Layout));
+                var overview = new ToolTab(ContainerOverviewId(), ShellText.NavOverview, _newOverview(tool.Layout, null));
                 ws.Add(overview);
                 if (!tool.CanClose) overview.PinnedIn = ws;
                 first ??= overview;
@@ -1084,9 +1098,18 @@ public class MainWindowViewModel : ReactiveObject
     /// </summary>
     public TabWorkspace? LastUsedWorkspace
     {
-        get => _lastUsed is { ShowsTabs: true } ws && Workspaces.Contains(ws) ? ws : Workspaces.FirstOrDefault(w => w.ShowsTabs);
+        get => _lastUsed is { } ws && TakesTools(ws) && Workspaces.Contains(ws) ? ws : Workspaces.FirstOrDefault(TakesTools);
         set { if (value is { ShowsTabs: true }) _lastUsed = value; }
     }
+
+    /// <summary>
+    /// The main window closed with the app kept running in the notification area. It holds its
+    /// tabs, but takes no new ones: a tool opened then goes to another window of tabs, or one of
+    /// its own. Asking for a tool that's in it brings it back.
+    /// </summary>
+    public bool IsMainHidden { get; set; }
+
+    private bool TakesTools(TabWorkspace ws) => ws.ShowsTabs && !(ws.IsMain && IsMainHidden);
 
     private TabWorkspace? _openInto;
     private bool _openInNewWindow;
@@ -1165,6 +1188,17 @@ public class MainWindowViewModel : ReactiveObject
         BringForwardWindowOf(toolId);
     }
 
+    private string? _lastOpenedTool;
+
+    /// <summary>
+    /// For a link on a panel that opens a tool by way of something else, such as an alert: the
+    /// window showing whichever tool was opened last comes forward, the main one too.
+    /// </summary>
+    public void BringForwardLastOpened()
+    {
+        if (_lastOpenedTool is { } toolId) BringForwardWindowOf(toolId);
+    }
+
     /// <summary>Asked for from a panel, so whichever window shows the tool comes forward, the main one too.</summary>
     private void BringForwardWindowOf(string toolId)
     {
@@ -1224,6 +1258,7 @@ public class MainWindowViewModel : ReactiveObject
             return;
         }
 
+        _lastOpenedTool = toolId;
         var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
         if (existing is not null)
         {
@@ -1530,11 +1565,12 @@ public class MainWindowViewModel : ReactiveObject
         StartupTrace.Step("new OverviewVm");
         OverviewVm        = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService, dbFactory, esi, standingBuyOrderService, indyFacilityCheck);
         // Another Overview, for a Tool Container: its own layout, everything else as the main one (WireLike).
-        _newOverview = layoutKey =>
+        _newOverview = (layoutKey, section) =>
         {
             var overview = new OverviewViewModel(dbFactory.CreateDbContext(), AlertSettingsVm, errorLogger, newsService, appPrefs, corpActivityService,
                 dbFactory, esi, standingBuyOrderService, indyFacilityCheck, isMain: false, layoutKey: layoutKey);
             overview.WireLike(OverviewVm);
+            if (section is not null) overview.ShowOnlySection(section, load: false);
             _ = LoadAfterMainAsync(overview);
             return overview;
         };
@@ -1609,7 +1645,9 @@ public class MainWindowViewModel : ReactiveObject
         StartupTrace.Step("new ClientLayoutsVm");
         ClientLayoutsVm   = new ClientLayoutsViewModel(clientLayoutStore, clientLayoutService, dbFactory, errorLogger,
             () => [.. mumbleService.Sessions.Select(s => new MumbleServerChoice(s.Server.Id, s.Server.Name.Length > 0 ? s.Server.Name : s.Server.Host))],
-            () => [.. ContainerToolChoices.Select(i => new ToolChoice(i.ToolId, i.Title))]);
+            () => [.. ContainerToolChoices.Select(i => new ToolChoice(i.ToolId, i.Title))],
+            // ⚠️ Asked for when the editor needs it: Group Chat is made after this.
+            () => [.. (GroupChatVm?.PanelRooms() ?? []).Select(r => new PanelRoomChoice(r.Id, r.Name))]);
         StartupTrace.Step("new KillmailBrowserVm");
         KillmailBrowserVm = new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters);
         StartupTrace.Step("new BattleReportVm");
@@ -1628,6 +1666,7 @@ public class MainWindowViewModel : ReactiveObject
         GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
+        OpenEveMailCommand = ReactiveCommand.Create(OpenEveMail);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
         GroupChatVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
         MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);

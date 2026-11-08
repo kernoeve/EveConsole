@@ -71,7 +71,7 @@
                   FontSize="13"
                   Padding="6 2"
                   Click="OnClearClick"/>
-          <Button Content="✕"
+          <Button x:Name="CloseButton" Content="✕"
                   ToolTip.Tip="{x:Static loc:AgentText.TipClosePanel}"
                   Background="Transparent"
                   Foreground="{DynamicResource InfoBrush}"

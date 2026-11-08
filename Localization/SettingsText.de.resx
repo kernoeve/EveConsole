@@ -823,9 +823,6 @@
   <data name="NotificationAreaIcon" xml:space="preserve">
     <value>Symbol im Infobereich</value>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>Ein kleiner separater Prozess, der anzeigt, welcher Client die Hintergrundarbeit erledigt, und über sein Menü das Fenster „Hintergrundprozesse“ oder eine neue EVE Console öffnet. Er erledigt nie selbst Hintergrundarbeit und verarbeitet nie Alarme – diese stoppen Sie, indem Sie EVE Console schließen.</value>
-  </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>Import der Spielprotokolle</value>
   </data>
@@ -2131,15 +2128,6 @@ Die Anwendung wird neu gestartet.</value>
   <data name="SvcRunsLabel" xml:space="preserve">
     <value>Führt aus:</value>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>Symbol im Infobereich anzeigen, Start mit Windows</value>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>Symbol im Infobereich anzeigen, Start mit Ihrer Desktop-Sitzung</value>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>Symbol in der Menüleiste anzeigen, Start bei der Anmeldung</value>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Erfordert PostgreSQL, das dieser Client verwendet – der Hintergrunddienst und alle Clients teilen sich denselben Server.</value>
   </data>
@@ -2157,30 +2145,6 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>Dieser Dienst führt eine andere Kopie von EVE Console aus, nicht die, die Sie gerade verwenden. Er erledigt die Hintergrundarbeit mit den Einstellungen dieser Kopie.</value>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>Für die nächste Anmeldung eingetragen, konnte aber jetzt nicht gestartet werden – {0}</value>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>Läuft und startet mit Windows.</value>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>Läuft und startet mit Ihrer Desktop-Sitzung.</value>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>Läuft und startet bei Ihrer Anmeldung.</value>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Startet nicht mit Windows. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>Startet nicht mit Ihrer Desktop-Sitzung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>Startet nicht bei Ihrer Anmeldung. Ein bereits angezeigtes Symbol bleibt, bis Sie darauf „{0}“ wählen oder sich abmelden.</value>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>Konnte nicht geändert werden – {0}</value>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>Autostart wird geändert…</value>
@@ -3903,5 +3867,14 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="OnlineErrStatus" xml:space="preserve">
     <value>eveconsole.com antwortete mit einem Fehler ({0}).</value>
+  </data>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>EVE Console im Infobereich weiterlaufen lassen, wenn das Hauptfenster geschlossen wird</value>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>EVE Console in der Menüleiste weiterlaufen lassen, wenn das Hauptfenster geschlossen wird</value>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>Das Schließen des Hauptfensters blendet es dann nur aus: Panels, Alarme und die Hintergrundarbeit laufen weiter. Doppelklicke auf das Symbol oder wähle {0} in seinem Menü, um das Fenster zurückzuholen, und {1}, um EVE Console zu beenden.</value>
   </data>
 </root>

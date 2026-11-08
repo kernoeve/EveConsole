@@ -72,10 +72,18 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
         _cts = new CancellationTokenSource();
         var token = _cts.Token;
         _loop = Task.Run(() => RunAsync(token), token);
+        UiScaleService.Changed += OnUiScaleChanged;
     }
+
+    /// <summary>
+    /// What is docked is sized by the UI scale, so a new scale is a new layout: panels and the
+    /// clients beside them are placed again for it, as Apply would.
+    /// </summary>
+    private void OnUiScaleChanged() => RequestApply();
 
     public async Task StopAsync()
     {
+        UiScaleService.Changed -= OnUiScaleChanged;
         var cts = _cts;
         var loop = _loop;
         _cts = null;
@@ -171,7 +179,7 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
                 }
                 if (replan)
                 {
-                    plan = ClientLayoutPlanner.Build(applied, monitors);
+                    plan = ClientLayoutPlanner.Build(applied, monitors, UiScaleService.Scale);
                     engine.UsePlan(plan.Placement);
                     // Everyone set for the same place, by each of them.
                     groups = plan.Placement.Positions
