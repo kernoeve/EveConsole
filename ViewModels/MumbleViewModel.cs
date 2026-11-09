@@ -107,6 +107,16 @@ public sealed class MumbleRowVm : ReactiveObject
     /// <summary>The channel this client is in, shown as such now that the people in it are not.</summary>
     public bool IsHere { get => _isHere; set => this.RaiseAndSetIfChanged(ref _isHere, value); }
 
+    private bool _isPicked;
+
+    /// <summary>What the selection key whispers to. Only shown on a server that has one.</summary>
+    public bool IsPicked { get => _isPicked; set => this.RaiseAndSetIfChanged(ref _isPicked, value); }
+
+    private bool _isDropTarget;
+
+    /// <summary>Where someone being dragged would go if let go now. Only while dragging, so not part of <see cref="Fill"/>.</summary>
+    public bool IsDropTarget { get => _isDropTarget; set => this.RaiseAndSetIfChanged(ref _isDropTarget, value); }
+
     public void Fill(MumbleRowVm from)
     {
         People = from.People; Hearing = from.Hearing; IsHere = from.IsHere; Avatar = from.Avatar;
@@ -115,6 +125,7 @@ public sealed class MumbleRowVm : ReactiveObject
         IsMuted = from.IsMuted; IsDeaf = from.IsDeaf;
         HasChildren = from.HasChildren; IsOpen = from.IsOpen;
         IsListening = from.IsListening; IsLocalMuted = from.IsLocalMuted; IsPriority = from.IsPriority;
+        IsPicked = from.IsPicked;
     }
 }
 
@@ -148,6 +159,16 @@ public sealed class MumbleOverlayLine(uint session, string name) : ReactiveObjec
 
     public bool IsMuted { get => _isMuted; set => this.RaiseAndSetIfChanged(ref _isMuted, value); }
     public bool IsDeaf { get => _isDeaf; set => this.RaiseAndSetIfChanged(ref _isDeaf, value); }
+
+    private string _toWhom = "";
+
+    /// <summary>On this client's own line, while the selection key is held: who it reaches, so a wrong one shows at once.</summary>
+    public string ToWhom
+    {
+        get => _toWhom;
+        set { this.RaiseAndSetIfChanged(ref _toWhom, value); this.RaisePropertyChanged(nameof(HasToWhom)); }
+    }
+    public bool HasToWhom => _toWhom.Length > 0;
 
     /// <summary>Their picture, or their initial.</summary>
     public AvatarRef? Avatar { get; init; }
@@ -238,6 +259,9 @@ public sealed class MumbleViewModel : ReactiveObject
 
         _autoSave = new AutoSave(SaveEditedAsync, e => StatusText = e.Message);
         AddTargetCommand      = ReactiveCommand.Create(AddTarget);
+        MuteKey   = new MumbleToggleKeyVm(this);
+        DeafenKey = new MumbleToggleKeyVm(this);
+        PickKey   = new MumbleToggleKeyVm(this);
         AddServerCommand      = ReactiveCommand.CreateFromTask(AddServerAsync);
         DeleteServerCommand   = ReactiveCommand.CreateFromTask(DeleteAsync);
         ConnectCommand        = ReactiveCommand.Create(Connect);
@@ -317,6 +341,10 @@ public sealed class MumbleViewModel : ReactiveObject
         {
             this.RaiseAndSetIfChanged(ref _selected, value);
             ShowChosen();
+
+            // What the selection key whispers to, as in the standard client: whatever was last selected.
+            if (value is { IsUser: true } or { IsChannel: true } && _service.SessionOf(value.ServerId) is { } session)
+                _service.Pick(session, new MumblePick(value.IsUser, value.Id));
         }
     }
 
@@ -441,6 +469,7 @@ public sealed class MumbleViewModel : ReactiveObject
         var users    = client.Users.ToLookup(u => u.ChannelId);
         var me       = client.Session;
         var shown    = new HashSet<uint>();
+        var picked   = session.Server.PickKey != 0 ? session.Picked : null;
 
         if (!_trees.TryGetValue(id, out var tree)) _trees[id] = tree = new MumbleChannelTree();
         tree.Update(client.Channels.Select(c => (c.Id, c.Parent)), client.Users.Select(u => u.ChannelId), client.Me?.ChannelId);
@@ -470,6 +499,7 @@ public sealed class MumbleViewModel : ReactiveObject
                 People = here.Count,
                 Hearing = here.Count(u => !(u.Deaf || u.SelfDeaf)),
                 IsHere = client.Me?.ChannelId == c.Id,
+                IsPicked = picked is { IsPerson: false } && picked.Id == c.Id,
             });
 
             // With nothing under it there is nothing to close it with, so whoever is in it shows when people do.
@@ -489,6 +519,7 @@ public sealed class MumbleViewModel : ReactiveObject
                     IsMuted = u.Mute || u.SelfMute || u.Suppress,
                     IsLocalMuted = session.IsLocalMuted(u),
                     IsPriority = u.PrioritySpeaker,
+                    IsPicked = picked is { IsPerson: true } && picked.Id == u.Session,
                 });
 
             foreach (var child in children[channel]
@@ -596,7 +627,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
         // ⚠️ One menu shows these for people and for channels: nothing carries over from what was selected before.
         CanServerMute = CanMovePerson = CanKick = CanBan = CanRegister = false;
-        CanJoin = CanListen = CanMakeChannel = CanMakeTempChannel = CanRemoveChannel = CanLinkChannel = false;
+        CanJoin = CanListen = CanMakeChannel = CanMakeTempChannel = CanRemoveChannel = CanLinkChannel = CanEditAcl = false;
 
         StatusText = "";
 
@@ -850,6 +881,9 @@ public sealed class MumbleViewModel : ReactiveObject
 
     private MumbleClient? ClientOf(MumbleRowVm row) => _service.SessionOf(row.ServerId)?.Client;
 
+    /// <summary>The connection a row is on, for a window that keeps working on it whatever is selected after.</summary>
+    public MumbleClient? ClientOfRow(MumbleRowVm row) => _service.SessionOf(row.ServerId) is { State: MumbleState.Connected, Client: { } client } ? client : null;
+
     public static string BanText(MumbleBan ban) => string.Join(" \u00B7 ", new[]
     {
         ban.Address,
@@ -892,6 +926,18 @@ public sealed class MumbleViewModel : ReactiveObject
         await Tried(() => client.MoveUserAsync(row.Id, channel, default));
     }
 
+    /// <summary>
+    /// Someone dragged onto a channel: moved there, as in the standard client, or this client goes there itself. The
+    /// server decides whether they may be moved, and says so if not.
+    /// </summary>
+    public async Task DropPersonAsync(MumbleRowVm person, uint channel)
+    {
+        if (!person.IsUser || ClientOf(person) is not { } client || client.UserOf(person.Id) is not { } user || user.ChannelId == channel) return;
+
+        StatusText = "";
+        await Tried(() => person.IsMe ? client.JoinChannelAsync(channel, default) : client.MoveUserAsync(user.Session, channel, default));
+    }
+
     public async Task RemovePersonAsync(MumbleRowVm row, string reason, bool ban)
     {
         if (ClientOf(row) is { } client) await Tried(() => client.KickOrBanAsync(row.Id, reason, ban, default));
@@ -912,7 +958,7 @@ public sealed class MumbleViewModel : ReactiveObject
 
     // ── What can be done to a channel ─────────────────────────────────────────
 
-    private bool _canJoin, _canListen, _isListening, _canMakeChannel, _canMakeTempChannel, _canRemoveChannel, _canLinkChannel, _isLinkedToMine;
+    private bool _canJoin, _canListen, _isListening, _canMakeChannel, _canMakeTempChannel, _canRemoveChannel, _canLinkChannel, _isLinkedToMine, _canEditAcl;
 
     public bool CanJoin { get => _canJoin; private set => this.RaiseAndSetIfChanged(ref _canJoin, value); }
     public bool CanListen { get => _canListen; private set => this.RaiseAndSetIfChanged(ref _canListen, value); }
@@ -922,7 +968,10 @@ public sealed class MumbleViewModel : ReactiveObject
     public bool CanMakeChannel { get => _canMakeChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
     public bool CanMakeTempChannel { get => _canMakeTempChannel; private set { this.RaiseAndSetIfChanged(ref _canMakeTempChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
     public bool CanRemoveChannel { get => _canRemoveChannel; private set { this.RaiseAndSetIfChanged(ref _canRemoveChannel, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
-    public bool ShowChannelAdmin => CanMakeChannel || CanMakeTempChannel || CanRemoveChannel;
+    public bool ShowChannelAdmin => CanMakeChannel || CanMakeTempChannel || CanRemoveChannel || CanEditAcl;
+
+    /// <summary>Its permissions and groups can be changed: the server's rule is Write on the channel.</summary>
+    public bool CanEditAcl { get => _canEditAcl; private set { this.RaiseAndSetIfChanged(ref _canEditAcl, value); this.RaisePropertyChanged(nameof(ShowChannelAdmin)); } }
     public bool CanLinkChannel { get => _canLinkChannel; private set => this.RaiseAndSetIfChanged(ref _canLinkChannel, value); }
     public bool IsLinkedToMine { get => _isLinkedToMine; private set { this.RaiseAndSetIfChanged(ref _isLinkedToMine, value); this.RaisePropertyChanged(nameof(LinkText)); } }
     public string LinkText => IsLinkedToMine ? MumbleText.UnlinkFromMine : MumbleText.LinkToMine;
@@ -984,6 +1033,7 @@ public sealed class MumbleViewModel : ReactiveObject
         CanMakeChannel = here.HasFlag(MumblePermission.MakeChannel);
         CanMakeTempChannel = here.HasFlag(MumblePermission.MakeTempChannel);
         CanRemoveChannel = here.HasFlag(MumblePermission.Write) && channel.Id != 0;
+        CanEditAcl = here.HasFlag(MumblePermission.Write);
 
         CanLinkChannel = me is not null && me.ChannelId != channel.Id && here.HasFlag(MumblePermission.LinkChannel) && mine.HasFlag(MumblePermission.LinkChannel);
         IsLinkedToMine = me is not null && channel.Links.Contains(me.ChannelId);
@@ -1201,8 +1251,16 @@ public sealed class MumbleViewModel : ReactiveObject
             if (EditSession?.Server is not { } s)
             {
                 EditName = EditHost = EditUsername = EditPassword = EditTokens = "";
+                MuteKey.Key = DeafenKey.Key = PickKey.Key = 0;
+                PickLinks = PickSubchannels = false;
                 return;
             }
+
+            MuteKey.Key = s.MuteKey;
+            DeafenKey.Key = s.DeafenKey;
+            PickKey.Key = s.PickKey;
+            PickLinks = s.PickLinks;
+            PickSubchannels = s.PickSubchannels;
 
             EditName = s.Name; EditHost = s.Host; EditPort = s.Port; EditUsername = s.Username; EditPassword = ""; EditTokens = s.Tokens;
             EditAutoConnect = MumbleService.AutoConnectsHere(s.Id);
@@ -1223,6 +1281,8 @@ public sealed class MumbleViewModel : ReactiveObject
             Id = old.Id, Name = EditName.Trim(), Host = host, Port = port,
             Username = EditUsername.Trim(), Tokens = EditTokens.Trim(), VoiceActivated = EditVoiceActivated,
             WhisperKey = old.WhisperKey, ShoutKey = old.ShoutKey, AutoConnect = old.AutoConnect,
+            MuteKey = MuteKey.Key, DeafenKey = DeafenKey.Key,
+            PickKey = PickKey.Key, PickLinks = PickLinks, PickSubchannels = PickSubchannels,
             TalkTargets = MumbleTargets.Write(Targets.Select(x => x.ToModel())),
             SelfMuted = old.SelfMuted, SelfDeafened = old.SelfDeafened, LastChannel = old.LastChannel,
 
@@ -1293,12 +1353,33 @@ public sealed class MumbleViewModel : ReactiveObject
         _autoSave.Changed();
     }
 
-    private MumbleTargetVm? _capturingFor;
+    /// <summary>The keys that turn the server's mute and deafen on and off.</summary>
+    public MumbleToggleKeyVm MuteKey { get; }
+    public MumbleToggleKeyVm DeafenKey { get; }
 
-    /// <summary>The next key or button pressed in this tool goes to a channel target.</summary>
+    /// <summary>The key held to whisper to what is selected in the channel tree, and what a selected channel takes with it.</summary>
+    public MumbleToggleKeyVm PickKey { get; }
+
+    private bool _pickLinks, _pickSubchannels;
+
+    public bool PickLinks
+    {
+        get => _pickLinks;
+        set { this.RaiseAndSetIfChanged(ref _pickLinks, value); _autoSave.Changed(); }
+    }
+
+    public bool PickSubchannels
+    {
+        get => _pickSubchannels;
+        set { this.RaiseAndSetIfChanged(ref _pickSubchannels, value); _autoSave.Changed(); }
+    }
+
+    private IMumbleKeySlot? _capturingFor;
+
+    /// <summary>The next key or button pressed in this tool goes to a channel target, or to mute or deafen.</summary>
     public bool IsCapturingKey => _capturingFor is not null;
 
-    internal void CaptureKeyFor(MumbleTargetVm target)
+    internal void CaptureKeyFor(IMumbleKeySlot target)
     {
         CancelKeyCapture();
         _capturingFor = target;
@@ -1554,6 +1635,9 @@ public sealed class MumbleViewModel : ReactiveObject
             }
 
             ShowState(column, column.Me, here);
+            column.Me.ToWhom = column.Session.TalkingNow != MumbleTalk.None && Volatile.Read(ref column.Session.TalkSlot) == MumbleTargets.PickSlot
+                               && PickedName(column.Session) is { } toWhom
+                ? string.Format(CultureInfo.CurrentCulture, MumbleText.PickTalkingTo, toWhom) : "";
 
             if (column.Session.Client is { Me: { } self } client)
             {
@@ -1580,6 +1664,14 @@ public sealed class MumbleViewModel : ReactiveObject
             OverlayChanged?.Invoke();
         }
     }
+
+    /// <summary>What the selection key reaches, by name. Null when nothing is selected or it has gone.</summary>
+    private static string? PickedName(MumbleSession session) => session.Client is not { } client ? null : session.Picked switch
+    {
+        { IsPerson: true } pick => client.UserOf(pick.Id)?.Name,
+        { } pick => client.ChannelOf(pick.Id) is { } channel ? channel.Name.Length > 0 ? channel.Name : MumbleText.RootChannel : null,
+        _ => null,
+    };
 
     /// <summary>Whether they are still there, having brought their line up to date if so.</summary>
     private bool ShowState(MumbleOverlayColumn column, MumbleOverlayLine line, List<MumbleTalker> talking)

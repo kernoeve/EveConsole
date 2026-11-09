@@ -36,6 +36,9 @@ public sealed record MumbleChatLine(DateTimeOffset When, string Sender, string T
 /// <summary>Somebody talking right now, for the overlay.</summary>
 public sealed record MumbleTalker(int ServerId, string Server, uint Session, string Name, bool IsSelf, MumbleTalk Mode);
 
+/// <summary>What is selected in a server's channel tree, for the selection key: a person by session, or a channel by id.</summary>
+public sealed record MumblePick(bool IsPerson, uint Id);
+
 /// <summary>One server's connection, kept up for as long as someone wants it.</summary>
 public sealed class MumbleSession(MumbleServer server)
 {
@@ -67,6 +70,30 @@ public sealed class MumbleSession(MumbleServer server)
 
     /// <summary>What this connection has told the server each saved target holds, so that it is only told what changed.</summary>
     internal Dictionary<int, byte[]> SentTargets { get; } = [];
+
+    private MumblePick? _pick;
+    private MumbleClient? _pickedOn;
+
+    /// <summary>
+    /// What was last selected in the channel tree, on this connection. ⚠️ None on a new one: people's sessions are
+    /// numbered afresh, and an old number could be someone else.
+    /// </summary>
+    public MumblePick? Picked => _pickedOn is { } on && ReferenceEquals(on, Client) ? _pick : null;
+
+    internal void SetPick(MumblePick pick, MumbleClient on)
+    {
+        _pick = pick;
+        _pickedOn = on;
+    }
+
+    /// <summary>
+    /// ⚠️ One telling of the selection at a time, each worked out as it goes: two at once could reach the server in the
+    /// other order, leaving it with the older one while this side believes the newer.
+    /// </summary>
+    internal SemaphoreSlim PickSending { get; } = new(1, 1);
+
+    /// <summary>The selection key is down. Telling the server can take a moment, and it may be let go before then.</summary>
+    internal volatile bool PickHeld;
 
     private MumbleServer? _targetsOf;
     private List<MumbleTalkTarget> _targets = [];
@@ -630,7 +657,9 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(id), password), ct);
         }
 
-        var keysChanged = SessionOf(server.Id)?.Server is not { } before || before.TalkTargets != server.TalkTargets;
+        var keysChanged = SessionOf(server.Id)?.Server is not { } before || before.TalkTargets != server.TalkTargets
+                       || before.MuteKey != server.MuteKey || before.DeafenKey != server.DeafenKey
+                       || before.PickKey != server.PickKey || before.PickLinks != server.PickLinks || before.PickSubchannels != server.PickSubchannels;
         var session = Track(server);
 
         // A key changed while held would never be seen to come up. ⚠️ Only then: this runs each time typing pauses in
@@ -917,6 +946,47 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
             await SendTargetAsync(client, message, ct);
         }
+
+        await SendPickAsync(session, client, ct);
+    }
+
+    /// <summary>
+    /// Tells the server who the selection key reaches, if that has changed. Done as the selection changes, not at the press,
+    /// so that the first words can't go to what was selected before.
+    /// </summary>
+    private static async Task SendPickAsync(MumbleSession session, MumbleClient client, CancellationToken ct)
+    {
+        if (session.Server.PickKey == 0) return;
+
+        await session.PickSending.WaitAsync(ct);
+        try
+        {
+            var message = MumbleClient.VoiceTargetMessage(MumbleTargets.PickSlot,
+                MumbleTargets.EntriesOfPick(session.Picked, session.Server.PickLinks, session.Server.PickSubchannels, client));
+            lock (session.SentTargets)
+            {
+                if (session.SentTargets.TryGetValue(MumbleTargets.PickSlot, out var sent) && sent.AsSpan().SequenceEqual(message)) return;
+                session.SentTargets[MumbleTargets.PickSlot] = message;
+            }
+
+            await SendTargetAsync(client, message, ct);
+        }
+        finally { session.PickSending.Release(); }
+    }
+
+    /// <summary>
+    /// Selects a person or a channel for the selection key, as the standard client's tree does: what is clicked or
+    /// right-clicked there. Yourself is not something to whisper to.
+    /// </summary>
+    public void Pick(MumbleSession session, MumblePick pick)
+    {
+        if (session.State != MumbleState.Connected || session.Client is not { } client) return;
+        if (pick.IsPerson && pick.Id == client.Session) return;
+        if (session.Picked == pick) return;
+
+        session.SetPick(pick, client);
+        _ = SendPickAsync(session, client, CancellationToken.None);
+        SessionChanged?.Invoke(session);
     }
 
     private static async Task SendTargetAsync(MumbleClient client, byte[] message, CancellationToken ct)
@@ -1188,6 +1258,57 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             hook.Configure(targets[i].Key);
             session.KeyHooks.Add(hook);
         }
+
+        if (session.Server.PickKey != 0)
+        {
+            var hook = new GlobalHotkeyService
+            {
+                OnPress   = () => _keyEvents.Writer.TryWrite(() => _ = StartPickedAsync(session)),
+                OnRelease = () => _keyEvents.Writer.TryWrite(() =>
+                {
+                    session.PickHeld = false;
+                    StopTalkingFrom(session, MumbleTargets.PickSlot);
+                }),
+            };
+            hook.Configure(session.Server.PickKey);
+            session.KeyHooks.Add(hook);
+        }
+
+        // Mute and deafen go on and off at each press, as the standard client's do.
+        BindToggle(session, session.Server.MuteKey, () => ToggleMuteAsync(session));
+        BindToggle(session, session.Server.DeafenKey, () => ToggleDeafenAsync(session));
+    }
+
+    private void BindToggle(MumbleSession session, int key, Func<Task> toggle)
+    {
+        if (key == 0) return;
+
+        var hook = new GlobalHotkeyService { OnPress = () => _keyEvents.Writer.TryWrite(() => _ = ToggledAsync(toggle)) };
+        hook.Configure(key);
+        session.KeyHooks.Add(hook);
+    }
+
+    /// <summary>Whispers to what is selected, for as long as the key is held. Nothing selected, or gone since, says nothing.</summary>
+    private async Task StartPickedAsync(MumbleSession session)
+    {
+        session.PickHeld = true;
+        if (session.Client is not { } client || session.Picked is not { } pick
+            || MumbleTargets.EntriesOfPick(pick, session.Server.PickLinks, session.Server.PickSubchannels, client).Count == 0) return;
+
+        try
+        {
+            // Told already when it was selected. Again only if the server doesn't hold it, as after it reconnected.
+            await SendPickAsync(session, client, CancellationToken.None);
+            if (!session.PickHeld) return;
+            StartTalking(session, pick.IsPerson ? MumbleTalk.Direct : MumbleTalk.Channel, MumbleTargets.PickSlot);
+        }
+        catch (Exception e) { errors.Log(nameof(MumbleService), "whisper to the selection", e); }
+    }
+
+    private async Task ToggledAsync(Func<Task> toggle)
+    {
+        try { await toggle(); }
+        catch (Exception e) { errors.Log(nameof(MumbleService), "mute or deafen from a key", e); }
     }
 
     private static void UnbindKeys(MumbleSession session)
@@ -1447,5 +1568,6 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         return null;
     }
 
-    private static List<int> KeysOf(MumbleServer server) => [.. MumbleTargets.Read(server).Select(t => t.Key).Where(k => k != 0)];
+    private static List<int> KeysOf(MumbleServer server) =>
+        [.. MumbleTargets.Read(server).Select(t => t.Key).Append(server.MuteKey).Append(server.DeafenKey).Append(server.PickKey).Where(k => k != 0)];
 }

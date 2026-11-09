@@ -81,6 +81,15 @@ public partial class MumbleRowMenu : ContextMenu
         if (await ConfirmAsync(string.Format(CultureInfo.CurrentCulture, MumbleText.ConfirmRemoveChannel, row.Text))) await vm.RemoveChannelAsync(row);
     }
 
+    /// <summary>⚠️ The channel and connection are taken now: the editor keeps acting on them whatever is selected later.</summary>
+    private void OnPermissions(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { SelectedRow: { IsChannel: true } row } vm || vm.ClientOfRow(row) is not { } client || Host is not { } host) return;
+
+        HideTree?.Invoke();
+        MumbleAclWindow.ShowFor(client, row.Id, row.Text, host);
+    }
+
     private async void OnRegister(object? sender, RoutedEventArgs e)
     {
         if (Vm is not { SelectedRow: { IsUser: true } row } vm) return;

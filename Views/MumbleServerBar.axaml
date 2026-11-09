@@ -34,7 +34,7 @@
               </ItemsControl.ItemsPanel>
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:MumbleRowVm">
-                  <Grid Margin="{Binding Indent}" Background="Transparent" ContextRequested="OnRowMenu">
+                  <Grid Classes="row" Classes.picked="{Binding IsPicked}" Classes.drop="{Binding IsDropTarget}" Margin="{Binding Indent}" ContextRequested="OnRowMenu">
                     <Grid IsVisible="{Binding IsChannel}" ColumnDefinitions="14,*,Auto">
                       <Button Classes="chevron" IsVisible="{Binding HasChildren}" Click="OnToggleChannel">
                         <Panel>
@@ -98,6 +98,10 @@
             Fill="{DynamicResource TextDimBrush}" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />
       <TextBlock Text="{Binding Listening}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
     </StackPanel>
+
+    <!-- Who the selection key is reaching, while it is held: a wrong selection shows at once. -->
+    <TextBlock Classes="talker" Classes.channel="{Binding Me.TalksChannel}" Classes.direct="{Binding Me.TalksDirect}" Text="{Binding Me.ToWhom}"
+               IsVisible="{Binding Me.HasToWhom}" FontSize="12" VerticalAlignment="Center" Margin="0 0 4 0" />
 
     <Button Classes="icon mute" Command="{Binding ToggleMuteCommand}" ToolTip.Tip="{x:Static loc:MumbleText.Mute}">
       <Path Classes="state" Classes.off="{Binding !Me.IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" />

@@ -45,4 +45,5 @@
   <MenuItem Header="{x:Static loc:MumbleText.MenuNewChannel}" Click="OnNewChannel" IsVisible="{Binding CanMakeChannel}" />
   <MenuItem Header="{x:Static loc:MumbleText.MenuNewTempChannel}" Click="OnNewTempChannel" IsVisible="{Binding CanMakeTempChannel}" />
   <MenuItem Header="{x:Static loc:MumbleText.MenuRemoveChannel}" Click="OnRemoveChannel" IsVisible="{Binding CanRemoveChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuPermissions}" Click="OnPermissions" IsVisible="{Binding CanEditAcl}" />
 </ContextMenu>

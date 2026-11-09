@@ -1211,6 +1211,11 @@ public static class PostgresSchema
             "LastChannel"        TEXT    NOT NULL DEFAULT '',
             "VoiceActivated"     BOOLEAN NOT NULL DEFAULT FALSE,
             "TalkTargets"        TEXT NOT NULL DEFAULT '',
+            "MuteKey"            INTEGER NOT NULL DEFAULT 0,
+            "DeafenKey"          INTEGER NOT NULL DEFAULT 0,
+            "PickKey"            INTEGER NOT NULL DEFAULT 0,
+            "PickLinks"          BOOLEAN NOT NULL DEFAULT FALSE,
+            "PickSubchannels"    BOOLEAN NOT NULL DEFAULT FALSE,
             CONSTRAINT "PK_MumbleServers" PRIMARY KEY ("Id")
         )
         """,
@@ -1926,6 +1931,21 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "TalkTargets" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "MuteKey" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "DeafenKey" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "PickKey" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "PickLinks" BOOLEAN NOT NULL DEFAULT FALSE
+        """,
+        """
+        ALTER TABLE "MumbleServers" ADD COLUMN IF NOT EXISTS "PickSubchannels" BOOLEAN NOT NULL DEFAULT FALSE
         """,
         """
         ALTER TABLE "MumbleUserVolumes" ADD COLUMN IF NOT EXISTS "LocalMute" BOOLEAN NOT NULL DEFAULT FALSE
