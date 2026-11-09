@@ -274,8 +274,8 @@ public sealed class AgentSchema
         var sb = new StringBuilder();
         sb.AppendLine($"## Database tables ({remaining.Count})");
         sb.AppendLine();
-        sb.AppendLine("Every table in the database is listed here. This is the complete set — if a");
-        sb.AppendLine("question needs data, it is in one of these. Names are exact and case-sensitive.");
+        sb.AppendLine("The complete set of tables: data a question needs is in one of these. Names");
+        sb.AppendLine("are exact and case-sensitive.");
         sb.AppendLine();
         sb.AppendLine("⚠️ You do NOT know the columns of any of these. Call describe_tables for the ones");
         sb.AppendLine("you intend to use BEFORE writing SQL against them. Guessing a column name does not");
