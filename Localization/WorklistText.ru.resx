@@ -2774,7 +2774,7 @@
     <value>{0:N0} типов предметов</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0} — {1}</value>
+    <value>{0} — {1}, {2}</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}: переместите это из своего ангара в ангар {1} на {2}.</value>

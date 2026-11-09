@@ -153,7 +153,9 @@ public class TransferGenerator(
                 Key           = $"transfer:{from}:{to}:{station}",
                 Source        = Id,
                 Kind          = WorklistKind.Transfer,
-                Title         = string.Format(WorklistText.TransferTitle, phrase, NameOf(to, toCorp)),
+                // The station in the title: the row is read without being opened, and a transfer
+                // is done where the goods are.
+                Title         = string.Format(WorklistText.TransferTitle, phrase, NameOf(to, toCorp), PlaceOf(station)),
                 Detail        = detail,
                 CharacterId   = doer,
                 CharacterName = doer == 0 ? "" : NameOf(doer, false),

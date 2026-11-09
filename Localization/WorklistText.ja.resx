@@ -2660,7 +2660,7 @@
     <value>{0:N0}種類のアイテム</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0}を{1}へ</value>
+    <value>{2}で{0}を{1}へ</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}：{2}で、これらを自分のハンガーから{1}のハンガーへ移してください。</value>

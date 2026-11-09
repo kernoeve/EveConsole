@@ -2660,7 +2660,7 @@
     <value>{0:N0} 种物品</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0} 交给 {1}</value>
+    <value>在 {2} 将{0}交给 {1}</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}：在 {2} 把这些从你自己的机库移到 {1} 的机库。</value>

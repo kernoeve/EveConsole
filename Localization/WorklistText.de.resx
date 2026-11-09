@@ -2702,7 +2702,7 @@
     <value>{0:N0} Gegenstandstypen</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0} an {1}</value>
+    <value>{0} an {1} in {2}</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}: Verschiebe diese aus deinem eigenen Hangar in den Hangar von {1} in {2}.</value>

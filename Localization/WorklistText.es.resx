@@ -2702,7 +2702,7 @@
     <value>{0:N0} tipos de objetos</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0} a {1}</value>
+    <value>{0} a {1} en {2}</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}: mueve esto de tu propio hangar al hangar de {1} en {2}.</value>

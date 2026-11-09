@@ -2660,7 +2660,7 @@
     <value>아이템 {0:N0}종</value>
   </data>
   <data name="TransferTitle" xml:space="preserve">
-    <value>{0} → {1}</value>
+    <value>{2}: {0} → {1}</value>
   </data>
   <data name="TransferToCorpInCorp" xml:space="preserve">
     <value>{0}: {2}에서 이것들을 자기 격납고에서 {1}의 격납고로 옮기세요.</value>

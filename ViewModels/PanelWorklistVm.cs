@@ -136,6 +136,11 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
 
         var fresh = id is not { } characterId ? [] : _worklist.PoolRows
             .Where(r => r.Item.CharacterId == characterId)
+            // ⚠️ By task name here, and only here: this list can't be sorted by the one reading
+            // it, and alike tasks side by side are run through faster. The Worklist's own grids
+            // keep their order. Then the Worklist's order, among tasks of one name.
+            .OrderBy(r => r.Item.Title, StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(r => r.Sequence)
             .Select(r => new WorklistRowVm(r.Item, r.Sequence) { ExpansionChanged = OnExpansionChanged })
             .ToList();
         RowExpansion.Carry(_parents, fresh);
