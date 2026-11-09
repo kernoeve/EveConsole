@@ -62,9 +62,9 @@ public static class CharacterLevelTargets
 /// </list>
 ///
 /// <para>⚠️ Never touched: blueprints (what an alt outside the corporation holds is what it can
-/// build), assembled ships, anything in a ship at all — fitted, in a bay, or in its cargo hold,
-/// where a cyno ship's Liquid Ozone is what lights its cyno (the user's rule, 2026-11-08) — and
-/// anything in asset safety. An item two owners' snapshots both list counts where the newest
+/// build), assembled ships, anything fitted to a ship or in one of its bays (the fuel bay among
+/// them), the fuels in a ship's cargo hold (see <see cref="ShipFuel"/>), and anything in asset
+/// safety. The rest of a docked ship's cargo hold is given like a hangar's. An item two owners' snapshots both list counts where the newest
 /// one has it, or a hold just unloaded into the corporation's hangar would be "given" twice.</para>
 ///
 /// <para>Done when the next asset polls show it moved: like every task, it simply stops appearing.</para>
@@ -81,7 +81,18 @@ public class TransferGenerator(
     private const int ShipCategory      = 6;
     private const int BlueprintCategory = 9;
 
-    private sealed record Row(long ItemId, long OwnerId, bool IsCorp, int TypeId, long Station, long Quantity);
+    /// <summary>A ship's cargo hold, the one place in a ship whose contents are given: anything else
+    /// in a ship is fitted to it or in a bay of its own, the fuel bay among them.</summary>
+    private const string CargoFlag = "Cargo";
+
+    /// <summary>
+    /// What a ship carries in its cargo hold as fuel, left with it (the user's rule, 2026-11-09):
+    /// Liquid Ozone and Strontium Clathrates, and the four isotopes. A cyno ship's ozone lights its
+    /// cyno, a capital's isotopes jump it, and there is often more in the hold than the fuel bay takes.
+    /// </summary>
+    private static readonly HashSet<int> ShipFuel = [16273, 16275, 16274, 17887, 17888, 17889];
+
+    private sealed record Row(long ItemId, long OwnerId, bool IsCorp, int TypeId, long Station, long Quantity, bool InShip);
 
     public async Task<List<WorklistItem>> GenerateAsync(CancellationToken ct = default)
     {
@@ -123,6 +134,7 @@ public class TransferGenerator(
 
         var held = rows.GroupBy(r => (r.OwnerId, r.Station, r.TypeId))
                        .ToDictionary(g => g.Key, g => g.Sum(r => r.Quantity));
+        var inHold = rows.Where(r => r.InShip).Select(r => (r.OwnerId, r.Station)).ToHashSet();
 
         var names     = await NamesAsync(db, ct);
         var typeNames = await db.SdeTypes.AsNoTracking()
@@ -216,6 +228,9 @@ public class TransferGenerator(
                     detail = string.Format(WorklistText.TransferToCorpContract, NameOf(owner, false), corp, place);
                 }
 
+                // Said, since the hold has to be opened to find them.
+                if (inHold.Contains((owner, station))) detail += " " + WorklistText.TransferSomeInHold;
+
                 items.Add(Task(owner, isCorp, home, true, station, doer, lines, detail, WorklistPriority.TransferToCorp));
             }
         }
@@ -290,7 +305,7 @@ public class TransferGenerator(
     /// <summary>
     /// The holdings that can be transferred, at the stations asked about: characters', the default
     /// corporation's, and the player's other corporations' when they give too. Each placed at its
-    /// station; nothing in a ship.
+    /// station, and marked when it's in a ship's cargo hold.
     /// </summary>
     private static async Task<List<Row>> RowsAsync(
         AppDbContext db, HashSet<int> types, HashSet<long> stations, long home, bool givers,
@@ -343,19 +358,27 @@ public class TransferGenerator(
             if (category == ShipCategory && a.IsSingleton) continue;
             if (a.LocationFlag == "AssetSafety") continue;
 
-            // Up the chain: in a ship, or in asset safety, is never moved. ⚠️ Not even the cargo
-            // hold: what a ship carries is packed for its work — a cyno ship's Liquid Ozone lights
-            // its cyno, and given to the corporation it could not.
+            // Up the chain: fitted to a ship, in one of its bays, a fuel in its hold, or in asset
+            // safety, is never moved.
             var keep = true;
-            var (loc, locType) = (a.LocationId, a.LocationType);
+            var inShip = false;
+            var (loc, locType, flag) = (a.LocationId, a.LocationType, a.LocationFlag);
             for (var depth = 0; depth < 8 && locType == "item" && parents.TryGetValue(loc, out var p); depth++)
             {
-                if (categoryOf.GetValueOrDefault(p.TypeId) == ShipCategory || p.Flag == "AssetSafety") { keep = false; break; }
-                (loc, locType) = (p.LocationId, p.LocationType);
+                if (categoryOf.GetValueOrDefault(p.TypeId) == ShipCategory)
+                {
+                    // ⚠️ The cargo hold only, and not its fuel: the fuel bay's isotopes are the
+                    // ship's own jump fuel, the other bays are packed for the ship's work, and a
+                    // cyno ship's ozone in its hold lights its cyno.
+                    if (flag != CargoFlag || ShipFuel.Contains(a.TypeId)) { keep = false; break; }
+                    inShip = true;
+                }
+                if (p.Flag == "AssetSafety") { keep = false; break; }
+                (loc, locType, flag) = (p.LocationId, p.LocationType, p.Flag);
             }
             if (!keep) continue;
 
-            rows.Add(new Row(a.ItemId, a.OwnerId, a.OwnerType == "corporation", a.TypeId, a.RootLocationId, a.Quantity));
+            rows.Add(new Row(a.ItemId, a.OwnerId, a.OwnerType == "corporation", a.TypeId, a.RootLocationId, a.Quantity, inShip));
         }
         return rows;
     }

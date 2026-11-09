@@ -1489,4 +1489,10 @@ Warrior II 5
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>此后写入 {0:N0} 行</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>市场订单 {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>在市场购买</value>
+  </data>
 </root>

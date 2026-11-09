@@ -2067,4 +2067,10 @@ away: Edit list brings it back.</value>
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>{0:N0} rows written since</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>market order {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>bought on the market</value>
+  </data>
 </root>

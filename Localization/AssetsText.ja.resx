@@ -1489,4 +1489,10 @@ Warrior II 5
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>その後 {0:N0} 行を書き込み</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>マーケット注文 {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>マーケットで購入</value>
+  </data>
 </root>

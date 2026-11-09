@@ -416,6 +416,23 @@ public class AssetSnapshot
     public string AppliedKey { get; set; } = "";
 }
 
+/// <summary>
+/// When an order was first and last seen by an orders poll, as of the time ESI's copy was made.
+///
+/// <para>⚠️ For telling a new sell order from one whose price was changed: ESI gives a changed
+/// order a new issue date, so "issued since the asset copy" alone would take its items out of the
+/// hangar a second time. Only an order first seen after the asset copy is new. See AssetActivity.</para>
+/// </summary>
+public class MarketOrderSighting
+{
+    public long OrderId { get; set; }
+    /// <summary>The first orders copy that listed it; long ago for one already open when the
+    /// app first polled that owner's orders, which is not known to be new.</summary>
+    public DateTimeOffset FirstSeenAt { get; set; }
+    /// <summary>The last orders copy that listed it open.</summary>
+    public DateTimeOffset LastSeenAt  { get; set; }
+}
+
 public class CharacterBlueprint
 {
     public long   ItemId             { get; set; }

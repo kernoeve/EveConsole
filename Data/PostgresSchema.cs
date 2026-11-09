@@ -125,6 +125,15 @@ public static class PostgresSchema
             PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
         )
         """,
+        // When each market order was first and last seen open. An entity that arrived after
+        // databases existed. Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "MarketOrderSightings" (
+            "OrderId"     BIGINT      NOT NULL PRIMARY KEY,
+            "FirstSeenAt" TIMESTAMPTZ NOT NULL,
+            "LastSeenAt"  TIMESTAMPTZ NOT NULL
+        )
+        """,
         // When each owner's assets were current. An entity that arrived after databases existed.
         """
         CREATE TABLE IF NOT EXISTS "AssetSnapshots" (

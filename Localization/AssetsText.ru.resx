@@ -1706,4 +1706,10 @@ Warrior II 5
   <data name="StatusSincePollMany" xml:space="preserve">
     <value>{0:N0} строк записано с тех пор</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>рыночный ордер {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>куплено на рынке</value>
+  </data>
 </root>

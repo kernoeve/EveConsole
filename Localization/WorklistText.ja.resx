@@ -2719,4 +2719,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>キャラクターがレベルを超えて持つ分は、この割合を超えるまでそのまま残し、超えたら余剰を既定のコーポレーションに戻します。0 ならわずかな余剰でも戻します。</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>一部は艦船のカーゴホールドにあります。</value>
+  </data>
 </root>
