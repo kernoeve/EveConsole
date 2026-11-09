@@ -225,12 +225,14 @@ static class Program
         var runtimeVersions = new SortedSet<string>(StringComparer.Ordinal);
         foreach (var (rid, version, dir) in runtimes)
         {
-            runtimeVersions.Add(version);
+            // ⚠️ Major and minor only. The patch is whichever one the building SDK brings (10.0.12 here, 10.0.14 on the CI
+            // runner the day this was written), so printing it made the file differ between machines with no package changed.
+            runtimeVersions.Add(string.Join('.', version.Split('.').Take(2)));
             var license = Path.Combine(dir, "LICENSE.TXT");
             var noticesPath = Path.Combine(dir, "THIRD-PARTY-NOTICES.TXT");
             if (!File.Exists(license) || !File.Exists(noticesPath)) { problems.Add($".NET runtime pack for {rid} has no LICENSE.TXT or notices at {dir}"); continue; }
             runtimeText ??= texts.Add(".NET runtime", File.ReadAllText(license));
-            runtimeNotices.Add(NoticeFile("dotnet-runtime", noticesPath));
+            runtimeNotices.Add(NoticeFile(RuntimeOwner, noticesPath));
         }
         if (runtimes.Count == 0) problems.Add("no .NET runtime pack in the restore: the releases are self-contained, so one is expected");
 
@@ -304,7 +306,7 @@ static class Program
         }
 
         Heading(sb, "The .NET runtime");
-        Entry(sb, ".NET runtime " + string.Join(", ", runtimeVersions), "MIT", runtimeText is null ? [] : [runtimeText],
+        Entry(sb, ".NET " + string.Join(", ", runtimeVersions) + " runtime", "MIT", runtimeText is null ? [] : [runtimeText],
               "Copyright (c) .NET Foundation and Contributors", "https://github.com/dotnet/runtime", null,
               "Every release is self-contained, so it carries the runtime.", [.. runtimeNotices], where: null);
 
@@ -489,6 +491,27 @@ static class Program
         return 0;
     }
 
+    /// <summary>
+    /// The owner name of the runtime's own notice file. ⚠️ Only its presence is checked, not its words: they come with
+    /// whichever runtime patch the building SDK brings, which differs between machines, and a check that failed for a
+    /// developer's SDK being a patch behind the runner's would be ignored before long.
+    /// </summary>
+    private const string RuntimeOwner = "dotnet-runtime";
+
+    private static string? FirstDifference(string committed, string generated)
+    {
+        if (committed == generated) return null;
+        var a = committed.Split('\n');
+        var b = generated.Split('\n');
+        for (var i = 0; i < Math.Max(a.Length, b.Length); i++)
+        {
+            var x = i < a.Length ? a[i] : "(end of file)";
+            var y = i < b.Length ? b[i] : "(end of file)";
+            if (x != y) return $"line {i + 1}:\n    committed: {x}\n    now:       {y}";
+        }
+        return "the end";
+    }
+
     private static int Compare(string repo, Dictionary<string, string> output)
     {
         var stale = new List<string>();
@@ -496,7 +519,9 @@ static class Program
         {
             var path = Path.Combine(repo, name);
             if (!File.Exists(path)) stale.Add(name + " is missing");
-            else if (Normalise(File.ReadAllText(path)) != Normalise(text)) stale.Add(name + " differs from what the packages now say");
+            else if (name.StartsWith($"{LicensesDir}/{RuntimeOwner}-", StringComparison.Ordinal)) { /* see RuntimeOwner */ }
+            else if (FirstDifference(Normalise(File.ReadAllText(path)), Normalise(text)) is { } diff)
+                stale.Add($"{name} differs from what the packages now say, first at {diff}");
         }
 
         var dir = Path.Combine(repo, LicensesDir);

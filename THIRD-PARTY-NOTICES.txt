@@ -344,7 +344,7 @@ PACKAGES
 THE .NET RUNTIME
 ================
 
-* .NET runtime 10.0.12
+* .NET 10.0 runtime
     License: MIT, text [.NET runtime] below
     Copyright (c) .NET Foundation and Contributors
     Source: https://github.com/dotnet/runtime
