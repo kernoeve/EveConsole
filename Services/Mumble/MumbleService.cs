@@ -1519,8 +1519,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         _talkerTimer ??= new Timer(_ =>
         {
-            // Every couple of seconds: a headset unplugged ends its stream without saying so.
-            if (++_talkerTicks % 20 == 0) Devices?.KeepOutputAlive();
+            // Twice a second: a headset unplugged stops its stream without saying so.
+            if (++_talkerTicks % 5 == 0) Devices?.KeepOutputAlive();
 
             var now = string.Join('|', Talkers().Select(t => $"{t.ServerId}:{t.Session}:{t.Mode}"));
             if (now == _lastTalkers) return;
