@@ -87,6 +87,9 @@ public static class UiState
     /// <summary>"1" when this PC connects to that Mumble server by itself on starting; the server's id follows.</summary>
     public const string MumbleAutoConnectPrefix = "mumble.auto_connect.";
 
+    /// <summary>"1" when this PC connects to that IRC server by itself on starting; the server's id follows.</summary>
+    public const string IrcAutoConnectPrefix    = "irc.auto_connect.";
+
     /// <summary>The corporation Corp Activity and Corp Structures were last left on (ids).</summary>
     public const string CorpActivityCorp        = "corpactivity.corp";
     public const string CorpStructuresCorp      = "corpstructures.corp";

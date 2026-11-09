@@ -2769,6 +2769,70 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcServers" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 6697,
+                        "Tls"                INTEGER NOT NULL DEFAULT 1,
+                        "Nickname"           TEXT    NOT NULL DEFAULT '',
+                        "Username"           TEXT    NOT NULL DEFAULT '',
+                        "RealName"           TEXT    NOT NULL DEFAULT '',
+                        "LoginKind"          INTEGER NOT NULL DEFAULT 0,
+                        "Account"            TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AlertWords"         TEXT    NOT NULL DEFAULT '',
+                        "AwayMessage"        TEXT    NOT NULL DEFAULT '',
+                        "OnConnect"          TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcChannels" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"  INTEGER NOT NULL DEFAULT 0,
+                        "Name"      TEXT    NOT NULL DEFAULT '',
+                        "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "Left"      INTEGER NOT NULL DEFAULT 0,
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1,
+                        "RoomType"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcChannels_Name" ON "IrcChannels" ("ServerId", "Name")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcMessages" (
+                        "Id"           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"     INTEGER NOT NULL DEFAULT 0,
+                        "Conversation" TEXT    NOT NULL DEFAULT '',
+                        "IsChannel"    INTEGER NOT NULL DEFAULT 0,
+                        "Sender"       TEXT    NOT NULL DEFAULT '',
+                        "Body"         TEXT    NOT NULL DEFAULT '',
+                        "Kind"         INTEGER NOT NULL DEFAULT 0,
+                        "SentAt"       TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
+                        "IsRead"       INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"      INTEGER NOT NULL DEFAULT 0,
+                        "IsMention"    INTEGER NOT NULL DEFAULT 0,
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+                        "MessageId"    TEXT    NOT NULL DEFAULT '',
+                        "ReplyId"      TEXT    NOT NULL DEFAULT '',
+                        "PeerName"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcMessages_Dedupe" ON "IrcMessages" ("ServerId", "DedupeKey")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Conversation" ON "IrcMessages" ("ServerId", "Conversation", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Unread" ON "IrcMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcReactions" (
+                        "ServerId"     INTEGER NOT NULL,
+                        "Conversation" TEXT    NOT NULL,
+                        "Target"       TEXT    NOT NULL,
+                        "Sender"       TEXT    NOT NULL,
+                        "Emojis"       TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("ServerId", "Conversation", "Target", "Sender")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "Name"               TEXT    NOT NULL DEFAULT '',
