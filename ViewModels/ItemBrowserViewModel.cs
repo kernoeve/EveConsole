@@ -457,9 +457,12 @@ public class ItemDisplayVm : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class ItemBrowserViewModel : ReactiveObject
+public class ItemBrowserViewModel : ReactiveObject, IDisposable
 {
     private readonly AppDbContext _db;
+
+    /// <summary>A copy of the tool closed: its database connection goes.</summary>
+    public void Dispose() => _db.Dispose();
     private readonly AppPreferencesService? _prefs;
 
     /// <summary>

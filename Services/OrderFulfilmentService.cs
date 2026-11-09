@@ -193,23 +193,12 @@ public class OrderFulfilmentService(
             .Select(g => new { TypeId = g.Key, Units = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Units, ct);
 
-        // ⚠️ And what the asset poll has not caught up with. Assets are polled hourly: a contract
-        // written for one order takes the goods out of the hangar at once, and until the next
-        // poll the snapshot still shows them — so the next order in line read "in stock" off a
-        // hull already on its way to someone else, and its buyer was mailed as much. A delivered
-        // job is the other half: it stops counting as in build within minutes, while its output
-        // is in no asset row for up to an hour. Arrivals first, then what left, never below zero
-        // — see ContractLag.
-        bool Ours(string ownerType, long ownerId) => ownerType == "corporation"
-            ? ours.Corporations.Contains(ownerId)
-            : ours.Characters.Contains(ownerId);
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, typeIds))
-            if (Ours(d.OwnerType, d.OwnerId))
-                stock[d.TypeId] = stock.GetValueOrDefault(d.TypeId) + d.Units;
-        // ⚠️ Not what a courier is still carrying: an order is in stock when it can be handed over.
-        foreach (var m in await ContractLag.MovesAsync(db, ct, typeIds))
-            if (!m.InTransit && Ours(m.OwnerType, m.OwnerId))
-                stock[m.TypeId] = Math.Max(0, stock.GetValueOrDefault(m.TypeId) + m.Units);
+        // ⚠️ What the asset poll has not caught up with is in these rows already. Assets are
+        // polled hourly: a contract written for one order takes the goods out of the hangar at
+        // once, and the next order in line read "in stock" off a hull already on its way to
+        // someone else, and its buyer was mailed as much. A delivered job is the other half. Both
+        // are written into the assets as they happen now — see AssetActivity. Not what a courier
+        // is still carrying, which is in no row: an order is in stock when it can be handed over.
 
         // What each store sells from, for the orders that came through one — see StoreShelvesAsync.
         var shelves = await StoreShelvesAsync(db, orders, typeIds, ct);

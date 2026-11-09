@@ -27,7 +27,33 @@ public partial class WorkspaceView : UserControl
         this.GetObservable(DataContextProperty)
             .Select(dc => dc is TabWorkspace ws ? ws.WhenAnyValue(x => x.IsSplit) : Observable.Return(false))
             .Switch()
-            .Subscribe(split => Sides.ColumnDefinitions[1].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0));
+            .Subscribe(split =>
+            {
+                Sides.ColumnDefinitions[1].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+                PlaceToolsButton(split);
+            });
+    }
+
+    /// <summary>A Tool Container with tabs has its tools menu at the right of the strip on the
+    /// right, and that strip leaves room for it.</summary>
+    private void PlaceToolsButton(bool split)
+    {
+        var shows = Workspace is { IsContainer: true, ShowsTabs: true };
+        ToolsButton.IsVisible = shows;
+        LeftSide.ReserveStripRight(shows && !split ? ToolsButton.Width : 0);
+        RightSide.ReserveStripRight(shows && split ? ToolsButton.Width : 0);
+    }
+
+    /// <summary>
+    /// Tools picked here open in these tabs: one already here is shown, wherever else it's open, and
+    /// one that isn't comes here, another copy if it's open somewhere else. Shift always opens another.
+    /// </summary>
+    private void OnToolsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (Workspace is not { } ws || TopLevel.GetTopLevel(this)?.DataContext is not MainWindowViewModel main) return;
+        (TopLevel.GetTopLevel(this) as ClientPanelWindow)?.TakeFocus();
+        ToolMenu.Build(main, item => ws.OpenTabs.Any(t => t.ToolId == item.ToolId),
+            (toolId, copy) => main.OpenToolInContainer(toolId, ws, copy)).Open(ToolsButton);
     }
 
     internal TabWorkspace? Workspace => DataContext as TabWorkspace;

@@ -1462,4 +1462,31 @@
   <data name="ColItemVolume" xml:space="preserve">
     <value>부피</value>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>조회 이후</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>추가됨 ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>변경됨 ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>작업 {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>계약 {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>운송</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>{0} 기준</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>{0}~{1} 기준</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>이후 {0:N0}개 행 기록됨</value>
+  </data>
 </root>

@@ -903,8 +903,10 @@ public class ContractNameResolver
 
 // ── Parent view-model (hosts the two tabs) ──────────────────────────────────────
 
-public class ContractsViewModel : ReactiveObject
+public class ContractsViewModel : ReactiveObject, IDisposable
 {
+    public void Dispose() => Owned.Life.Dispose();
+
     public OwnedContractsViewModel  Owned  { get; }
     public PublicContractsViewModel Public { get; }
 
@@ -956,6 +958,9 @@ public class ContractsViewModel : ReactiveObject
 
 public class OwnedContractsViewModel : ReactiveObject
 {
+    /// <summary>Ended with the tool (<see cref="ContractsViewModel.Dispose"/>).</summary>
+    internal ToolLife Life { get; } = new();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly ContractNameResolver            _names;
@@ -1115,7 +1120,7 @@ public class OwnedContractsViewModel : ReactiveObject
         _errorLogger = errorLogger;
         _names       = names;
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
-        OwnerList.Changed += () => _ = RefreshOwnerScopesAsync();
+        Life.OnOwnersChanged(() => _ = RefreshOwnerScopesAsync());
         _ = LoadAsync();
     }
 

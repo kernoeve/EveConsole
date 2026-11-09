@@ -146,7 +146,10 @@
     <value>Werkzeug-Container</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>Werkzeuge</value>
+    <value>Werkzeuge. Umschalt+Klick öffnet eine weitere Kopie.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Ein Werkzeug in diesen Tabs öffnen. Umschalt+Klick öffnet eine weitere Kopie.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>Öffnet Werkzeuge in</value>

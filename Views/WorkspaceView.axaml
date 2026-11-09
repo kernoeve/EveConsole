@@ -19,6 +19,18 @@
       </Border>
     </Grid>
 
+    <!-- A Tool Container with tabs: the tools menu at the strip's right end, opening into these tabs. -->
+    <Button x:Name="ToolsButton" IsVisible="False"
+            HorizontalAlignment="Right" VerticalAlignment="Top"
+            Height="32" Width="36" Padding="0"
+            Background="Transparent" BorderThickness="0" Cursor="Hand"
+            HorizontalContentAlignment="Center" VerticalContentAlignment="Center"
+            ToolTip.Tip="{x:Static loc:ClientLayoutsText.ContainerMenuTip}"
+            Click="OnToolsClick">
+      <Path Data="M0,1 H16 M0,7 H16 M0,13 H16" StrokeThickness="2" Width="16" Height="14"
+            Stroke="{DynamicResource TextMutedBrush}" />
+    </Button>
+
     <!-- While a tab is dragged well down into its own side: letting go there opens the tool in a
          window of its own. Placed over that side's tool by the drag code. -->
     <Border x:Name="DetachHint" IsVisible="False" IsHitTestVisible="False"

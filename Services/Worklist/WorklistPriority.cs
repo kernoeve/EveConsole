@@ -125,6 +125,20 @@ public static class WorklistPriority
     /// <summary>Puts spare stock where its group lives. Real, but nothing is waiting.</summary>
     public const int HaulSurplus = 25;
 
+    // ── Transfers ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gives a character what its character level keeps with it: the only material an alt outside
+    /// the default corporation can build with, so ranked as job material is.
+    /// </summary>
+    public const int TransferToCharacter = HaulForWork;
+
+    /// <summary>
+    /// Gives the default corporation what a character holds: out of every other alt's reach until
+    /// it does, but nothing is waiting on it in particular.
+    /// </summary>
+    public const int TransferToCorp = 35;
+
     private const int StockFloor = 40;
 
     /// ⚠️ 39, not 40, so an empty shelf tops out at 79 and can never reach ServesOther. An

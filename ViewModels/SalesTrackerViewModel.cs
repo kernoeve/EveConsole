@@ -324,8 +324,11 @@ public class GroupRowVm : ReactiveObject
 
 // Sales Tracker — lists market sales and contract sales with build/market value and build-based
 // profit. Data is loaded by the shared SalesQuery.
-public class SalesTrackerViewModel : ReactiveObject
+public class SalesTrackerViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly CorpActivityService             _names;
@@ -516,12 +519,12 @@ public class SalesTrackerViewModel : ReactiveObject
         _grain         = Grains[0];
         _dateFrom      = DateTime.UtcNow.Date.AddYears(-1).ToString("yyyy-MM-dd");
 
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("SalesTracker.AutoRefresh")
-            .Subscribe(tick => { _ = LoadAsync(); });
+            .Subscribe(tick => { _ = LoadAsync(); }));
 
         // Characters or corporations added or removed: read again now, not at the next tick.
-        OwnerList.Changed += () => _ = LoadAsync();
+        _life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

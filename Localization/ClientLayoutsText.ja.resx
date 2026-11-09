@@ -146,7 +146,10 @@
     <value>ツールコンテナ</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>ツール</value>
+    <value>ツール。Shift+クリックで別のコピーを開きます。</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>これらのタブでツールを開きます。Shift+クリックで別のコピーを開きます。</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>ツールを開く場所</value>

@@ -55,6 +55,8 @@ public class WorklistService(
         // Inside a generator it would run once per generator in parallel, and they would race to
         // insert the same rows.
         await assignment.EnrolMissingAsync(ct);
+        // Who is in which corporation decides whose hangars each character can build from.
+        await assignment.RefreshMembershipAsync(ct);
 
         // A disabled source is skipped rather than filtered afterwards: it should cost no
         // queries at all, not run and have its output thrown away.
@@ -956,6 +958,9 @@ public class WorklistService(
         }
 
         await db.SaveChangesAsync(ct);
+
+        // What was put down, into the assets now — out of one hangar, into the other.
+        AssetActivity.Nudge();
     }
 
     /// <summary>Hides an item until a chosen time. Pass null to un-snooze.</summary>

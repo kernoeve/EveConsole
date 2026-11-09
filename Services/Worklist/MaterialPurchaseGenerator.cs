@@ -182,35 +182,20 @@ public class MaterialPurchaseGenerator(
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        // Plus what delivered jobs have put in a hangar the asset poll has not seen since — a
-        // bought material somebody made anyway, on the shelf whatever the snapshot says.
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, rawIds))
-        {
-            if (scope is not null && !scope.Contains(d.Site)) continue;
-            if (d.OwnerType == "corporation" && corps is not null && !corps.Contains(d.OwnerId)) continue;
-            onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
-        }
-
-        // And what contracts have moved since — a material bought on a contract is on the shelf,
-        // one put on a contract is not. Never below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct, rawIds))
+        // ⚠️ What has happened since the asset poll is in these rows already (AssetActivity): a
+        // bought material somebody made anyway, one bought on a contract, on the shelf; one put
+        // on a contract, or taken by a job that has started, not. Before the rows were written as
+        // it happened, a started job's inputs still counted for up to an hour and covered a
+        // shortfall they no longer could. Only a courier's cargo is in no row. Never below zero.
+        foreach (var m in await ContractLag.InTransitAsync(db, ct, rawIds))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
             onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
         }
 
-        // Less what jobs started since the last asset poll have already taken out of it. The
-        // job generator makes the same correction for the same reason; here it is the mirror
-        // image — inputs still counted as on hand cover a shortfall they no longer can, and for
-        // up to an hour a purchase that is needed goes unraised.
-        var eaten = (await demands.AlreadyConsumedAsync(db, ctx, scope, ct))
-            .GroupBy(kv => kv.Key.TypeId)
-            .ToDictionary(g => g.Key, g => g.Sum(kv => kv.Value));
-
         long Missing(int typeId) =>
-            Math.Max(0, raw[typeId].Units
-                        - Math.Max(0, onHand.GetValueOrDefault(typeId) - eaten.GetValueOrDefault(typeId)));
+            Math.Max(0, raw[typeId].Units - Math.Max(0, onHand.GetValueOrDefault(typeId)));
 
         // Anything a Build rule covers is made, not bought — unless nothing can make it, in which
         // case buying is the only way it ever arrives.
@@ -249,15 +234,18 @@ public class MaterialPurchaseGenerator(
         var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
 
         // And prints contracts have moved since the polls: on a courier, or bought and not seen
-        // yet. Neither table can know of them, and a print bought and on its way was asked for
-        // again the moment it left the hangar. See ContractLag.
+        // yet. A print bought and on its way was asked for again the moment it left the hangar.
+        // See ContractLag. ⚠️ Kept apart: the blueprints table is not written as things happen,
+        // and the assets are (AssetActivity) — so where a type's count comes from the assets,
+        // only a courier's cargo is still missing from it, and the rest would count twice.
         var printIds = queueBpIds.Concat(treeNeed.Keys).Concat(shelfWant.Keys).Distinct().ToList();
-        var printMoves = new Dictionary<int, long>();
+        var printMoves = new Dictionary<int, (long All, long InTransit)>();
         foreach (var m in await ContractLag.MovesAsync(db, ct, printIds))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
-            printMoves[m.TypeId] = printMoves.GetValueOrDefault(m.TypeId) + m.Units;
+            var (all, transit) = printMoves.GetValueOrDefault(m.TypeId);
+            printMoves[m.TypeId] = (all + m.Units, transit + (m.InTransit ? m.Units : 0));
         }
 
         var items = new List<WorklistItem>();
@@ -292,7 +280,7 @@ public class MaterialPurchaseGenerator(
 
             var need     = raw[typeId];
             var have     = onHand.GetValueOrDefault(typeId);
-            var taken    = Math.Min(have, eaten.GetValueOrDefault(typeId));
+            var taken    = 0L;   // a started job's materials are out of the rows already (AssetActivity)
             var missing  = Missing(typeId);
             var ordered  = onOrder.GetValueOrDefault(typeId);
             var building = inFlight.GetValueOrDefault(typeId);
@@ -477,7 +465,7 @@ public class MaterialPurchaseGenerator(
         ProductionContext ctx, List<ProductionQueueEntry> queue,
         List<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, (long Runs, string For)> treeNeed, HashSet<int> inventable,
-        Dictionary<int, int> ownedInAssets, Dictionary<int, long> printMoves, Dictionary<int, long> shelfWant,
+        Dictionary<int, int> ownedInAssets, Dictionary<int, (long All, long InTransit)> printMoves, Dictionary<int, long> shelfWant,
         long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
@@ -536,8 +524,10 @@ public class MaterialPurchaseGenerator(
             if (mine.Count == 0) held = ownedInAssets.GetValueOrDefault(bpTypeId);
 
             // ⚠️ Added whichever table spoke: a print in a courier is in neither. The same floor
-            // of one run apiece, since neither a cargo line nor a contract line carries runs.
-            held = Math.Max(0, held + printMoves.GetValueOrDefault(bpTypeId));
+            // of one run apiece, since neither a cargo line nor a contract line carries runs. The
+            // assets have the rest of what contracts did already; the blueprints table does not.
+            var moved = printMoves.GetValueOrDefault(bpTypeId);
+            held = Math.Max(0, held + (mine.Count == 0 ? moved.InTransit : moved.All));
 
             var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
             var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // runs the stocking rule wants kept
@@ -656,11 +646,11 @@ public class MaterialPurchaseGenerator(
             .GroupBy(a => a.TypeId)
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        // And what contracts have moved since, a courier's cargo included, exactly as the
-        // material's own stock is counted: compressed ore on its way yields as surely as compressed
-        // ore in a hangar, and leaving it out asked for its minerals the moment it left. Never
-        // below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct, sourceIds))
+        // And a courier's cargo, exactly as the material's own stock is counted: compressed ore on
+        // its way yields as surely as compressed ore in a hangar, and leaving it out asked for its
+        // minerals the moment it left. What contracts did otherwise is in the rows already
+        // (AssetActivity). Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.InTransitAsync(db, ct, sourceIds))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;

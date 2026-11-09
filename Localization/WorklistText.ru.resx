@@ -2749,4 +2749,97 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Передачи</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Передача</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Передать предметы другому персонажу или корпорации на станции, где они лежат</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} тип предметов</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} типа предметов</value>
+  </data>
+  <data name="TransferTypesFew" xml:space="preserve">
+    <value>{0:N0} типа предметов</value>
+  </data>
+  <data name="TransferTypesMany" xml:space="preserve">
+    <value>{0:N0} типов предметов</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} — {1}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}: переместите это из своего ангара в ангар {1} на {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} не в {1}: передайте это {1} контрактом на обмен предметами на {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, от имени {1}: передайте это {2} контрактом на обмен предметами на {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}: заберите это из ангара {1} в свой ангар на {2}, как задаёт ваш уровень персонажа.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}: возьмите это из ангара {1} и передайте {2} контрактом на обмен предметами на {3}. {2} не в {1}, поэтому для его работ считается только его собственный ангар.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Уровни персонажей</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Основная корпорация</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>Корпорация, которая должна держать предметы списка дел (из заказов и уровней запасов), чтобы любой её персонаж мог из них строить: персонаж может использовать только свой ангар и ангар своей корпорации. Предмет у персонажа, в его ангаре или в грузовом отсеке пристыкованного корабля, получает задачу передачи этой корпорации на любой станции, где у неё есть ангар, кроме того, что уровень персонажа ниже оставляет этому персонажу. Установленные модули, чертежи и собранные корабли никогда не перемещаются.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Ваши другие корпорации тоже передают свои</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Выкл.: в основную корпорацию переносится только содержимое ангаров и трюмов персонажей. Вкл.: предметы списка дел ваших других корпораций тоже получают задачи передачи; их выполняет ваш персонаж в той корпорации.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Держать уровни группы у одного персонажа на станции, в его собственном ангаре, только для его работ. Так персонаж вне основной корпорации получает материалы для постройки. Перевозка доставляет это количество на станцию сверх уровня станции, если он есть, а задача передачи выдаёт персонажу недостающее из ангара основной корпорации.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Выберите персонажа.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>Уже в основной корпорации</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>Вкл.</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>Уровней персонажей пока нет.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} уровень персонажа</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} уровня персонажей</value>
+  </data>
+  <data name="CharacterLevelsCountFew" xml:space="preserve">
+    <value>{0:N0} уровня персонажей</value>
+  </data>
+  <data name="CharacterLevelsCountMany" xml:space="preserve">
+    <value>{0:N0} уровней персонажей</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>Персонажу ничего не передаётся, пока он не опустится ниже своего уровня на эту долю; тогда он получает столько, чтобы снова заполнить уровень. Ноль — передавать при любой нехватке.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>То, что персонаж держит сверх своего уровня, остаётся у него, пока излишек не превысит эту долю; тогда излишек возвращается корпорации по умолчанию. Ноль — возвращать любой излишек.</value>
+  </data>
 </root>

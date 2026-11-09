@@ -372,8 +372,11 @@ public class MarketItemRow : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
+public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
     public bool AutoRefreshEnabled { get; set; }
@@ -480,10 +483,10 @@ public class MarketLevelViewModel : ReactiveObject, IPeriodicRefresh
             () => { if (_selectedRow is MarketItemRow item) AddToStandingBuyOrders?.Invoke([item.TypeId]); }, hasItem);
 
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
-        Observable.Interval(TimeSpan.FromMinutes(1))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(1))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("MarketLevel.AutoRefresh")
-            .SubscribeAsyncSafe(_ => AutoRefreshAsync(), null, "MarketLevel.AutoRefresh");
+            .SubscribeAsyncSafe(_ => AutoRefreshAsync(), null, "MarketLevel.AutoRefresh"));
 
         _ = InitializeAsync();
     }

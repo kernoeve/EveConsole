@@ -189,10 +189,18 @@ public sealed class ComposeMailResult
 
 // ── Main view-model ───────────────────────────────────────────────────────────
 
-public class EveMailViewModel : ReactiveObject
+public class EveMailViewModel : ReactiveObject, IDisposable
 {
     private readonly EveMailService                  _svc;
     private readonly ObservableCollection<Character> _sourceChars;
+    private readonly DispatcherTimer                 _timer;
+
+    /// <summary>A copy of the tool closed: its clock stops and it stops following the characters.</summary>
+    public void Dispose()
+    {
+        _timer.Stop();
+        _sourceChars.CollectionChanged -= OnSourceCharsChanged;
+    }
 
     public ObservableCollection<EveMailCharacterOption> Characters { get; } = [];
     public ObservableCollection<EveMailFolderVm>        Folders    { get; } = [];
@@ -336,13 +344,13 @@ public class EveMailViewModel : ReactiveObject
         ForwardCommand = ReactiveCommand.CreateFromTask(OpenForwardAsync,
                              this.WhenAnyValue(vm => vm.SelectedMail).Select(m => m is not null));
 
-        var timer = new DispatcherTimer { Interval = UnreadRecount };
-        timer.Tick += (_, _) =>
+        _timer = new DispatcherTimer { Interval = UnreadRecount };
+        _timer.Tick += (_, _) =>
         {
             _ = LoadMailsAsync(quiet: true);
             _ = RecountUnreadAsync();
         };
-        timer.Start();
+        _timer.Start();
         // The first count once startup has settled, so it adds nothing to it.
         _ = AppStartup.WhenSettledAsync().ContinueWith(_ => RecountUnreadAsync(), TaskScheduler.Default);
 

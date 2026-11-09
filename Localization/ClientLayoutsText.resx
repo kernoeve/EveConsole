@@ -74,7 +74,8 @@
   <data name="ChatNoNewMessages" xml:space="preserve"><value>No new direct messages.</value></data>
   <data name="ChatNoNewGroup" xml:space="preserve"><value>Nothing new in group chat.</value></data>
   <data name="AgentOff" xml:space="preserve"><value>The AI companion is turned off. Turn it on in Settings.</value></data>
-  <data name="MenuTip" xml:space="preserve"><value>Tools</value></data>
+  <data name="MenuTip" xml:space="preserve"><value>Tools. Shift-click opens another copy.</value></data>
+  <data name="ContainerMenuTip" xml:space="preserve"><value>Open a tool in these tabs. Shift-click opens another copy.</value></data>
   <data name="LabelMenuTarget" xml:space="preserve"><value>Opens tools in</value></data>
   <data name="MenuTargetNewWindow" xml:space="preserve"><value>A new window</value></data>
   <data name="MenuTargetLastUsed" xml:space="preserve"><value>The window used last</value></data>

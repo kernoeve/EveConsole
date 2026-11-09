@@ -29,8 +29,11 @@ public class IncomeExpenseRowVm
 // characters and personal corporations, over the selected period. Two of these exist: the
 // Overview's section, which follows its period selector, and the Summary tab of the Income &
 // Expense tool, scoped by that tool's owner and dates (see SetScope).
-public class IncomeExpenseViewModel : ReactiveObject
+public class IncomeExpenseViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger _errorLogger;
 
@@ -142,9 +145,9 @@ public class IncomeExpenseViewModel : ReactiveObject
         _dbFactory      = dbFactory;
         _errorLogger    = errorLogger;
 
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("IncomeExpense.AutoRefresh")
-            .Subscribe(tick => { if (!_scoped || _from is not null || _until is not null || _owner is not null) _ = LoadAsync(); });
+            .Subscribe(tick => { if (!_scoped || _from is not null || _until is not null || _owner is not null) _ = LoadAsync(); }));
 
         if (!scoped) _ = LoadAsync();
     }

@@ -1,9 +1,11 @@
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
 using EveConsole.Localization;
 using EveConsole.ViewModels;
+using ReactiveUI;
 
 namespace EveConsole.Views;
 
@@ -22,6 +24,19 @@ public partial class ToolPaneView : UserControl
         {
             if (DataContext is ToolPane { Tabs.Count: > 0, Workspace: { } ws } pane) ws.ActivePane = pane;
         }, RoutingStrategies.Tunnel, handledEventsToo: true);
+
+        // The tool on this side. ⚠️ Not a binding: a view made from a data template is kept for the
+        // next view model of the same kind, only its DataContext changed, and a tool's view isn't
+        // made to be handed another copy of the tool. Emptying it first makes a new one.
+        this.GetObservable(DataContextProperty)
+            .Select(dc => dc is ToolPane pane ? pane.WhenAnyValue(p => p.SelectedTab).Select(t => t?.ViewModel) : Observable.Return<object?>(null))
+            .Switch()
+            .DistinctUntilChanged()
+            .Subscribe(vm =>
+            {
+                PaneContent.Content = null;
+                PaneContent.Content = vm;
+            });
     }
 
     /// <summary>The window that runs tab dragging — the main one, which knows every window.</summary>
@@ -82,6 +97,9 @@ public partial class ToolPaneView : UserControl
     /// <summary><paramref name="control"/>'s bounds in <paramref name="relativeTo"/>'s coordinates.</summary>
     private static Rect BoundsIn(Control control, Visual relativeTo) =>
         control.TranslatePoint(default, relativeTo) is { } at ? new Rect(at, control.Bounds.Size) : default;
+
+    /// <summary>Keeps the tabs clear of something at the strip's right end.</summary>
+    internal void ReserveStripRight(double width) => Strip.Padding = new Thickness(0, 0, width, 0);
 
     internal Rect StripBounds(Visual relativeTo)   => BoundsIn(Strip, relativeTo);
     internal Rect ContentBounds(Visual relativeTo) => BoundsIn(PaneContent, relativeTo);

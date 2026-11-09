@@ -637,7 +637,7 @@ public sealed class AlarmAlertVm : ReactiveObject
     public ReactiveCommand<Unit, Unit>? DismissCommand { get; init; }
 }
 
-public sealed class AlarmsViewModel : ReactiveObject
+public sealed class AlarmsViewModel : ReactiveObject, IDisposable
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AlarmService                    _service;
@@ -663,11 +663,7 @@ public sealed class AlarmsViewModel : ReactiveObject
         AlarmMuteState                  mute)
     {
         _mute = mute;
-        mute.Changed += () =>
-        {
-            this.RaisePropertyChanged(nameof(AlarmsMuted));
-            this.RaisePropertyChanged(nameof(AlarmsMuteText));
-        };
+        mute.Changed += OnMuteChanged;
 
         _dbFactory = dbFactory;
         _service   = service;
@@ -731,6 +727,19 @@ public sealed class AlarmsViewModel : ReactiveObject
         IsStaged ? Stages.SelectMany(s => s.Actions) : Actions;
 
     private void OnFired() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+
+    private void OnMuteChanged()
+    {
+        this.RaisePropertyChanged(nameof(AlarmsMuted));
+        this.RaisePropertyChanged(nameof(AlarmsMuteText));
+    }
+
+    /// <summary>A copy of the tool closed: it stops following the alarms and the mute.</summary>
+    public void Dispose()
+    {
+        _mute.Changed  -= OnMuteChanged;
+        _service.Fired -= OnFired;
+    }
 
     public IReadOnlyList<AlarmConditionChoice> Conditions { get; }
 

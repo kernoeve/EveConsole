@@ -121,9 +121,9 @@
     <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" IsVisible="{Binding Workspace.ShowsTabs, FallbackValue=True}" />
 
     <!-- The tool on this side -->
+    <!-- Content set by the code-behind, so two copies of one tool never share a view. -->
     <ContentControl x:Name="PaneContent"
-                    Grid.Row="2"
-                    Content="{Binding SelectedTab.ViewModel}">
+                    Grid.Row="2">
       <ContentControl.DataTemplates>
         <DataTemplate DataType="vm:OverviewViewModel">
           <views:CharacterView />
