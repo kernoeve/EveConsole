@@ -5144,4 +5144,22 @@ The application will restart.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Only for a shared PostgreSQL database: with SQLite this is the only client, so it always does the work.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Direct Messages</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Removes saved direct messages from Jabber, Mumble and IRC. Unread messages are never removed, however old. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purge direct messages older than</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Removes saved messages from Jabber rooms and IRC channels. Unread messages are never removed, however old. Mumble channel chat is never saved, so there is none of it to remove. Intel already read from an Intel room or channel is kept with the chat messages above. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purge group chat older than</value>
+  </data>
 </root>

@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>留空则使用昵称。</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>在此电脑上启动 EVE Console 时连接</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>仅限此电脑：IRC 中一个昵称只有一个连接，两台电脑同时连接会争抢它。</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>更多设置</value>
   </data>

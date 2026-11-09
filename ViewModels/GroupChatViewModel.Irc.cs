@@ -232,7 +232,7 @@ public sealed partial class GroupChatViewModel
         if (state is null) return;
         ChosenAlert = AlertChoices.FirstOrDefault(c => c.Mode == state.Channel.AlertMode);
 
-        var support = session.Locked(s => s.Client?.Support) ?? new IrcSupport();
+        var support = session.Support;
         var me = session.Fold(session.Nick);
         var people = session.Locked(_ => state.Members.Values.ToList());
         foreach (var p in people.OrderBy(p => p.Ranks.Length > 0 ? support.RankOfMode(p.Ranks[0]) : int.MaxValue)
@@ -273,7 +273,7 @@ public sealed partial class GroupChatViewModel
     public IReadOnlyList<(char Mode, string Give, string Take)> IrcRankChoices()
     {
         if (OpenIrcChannel() is not (IrcSession session, IrcChannelState state) || !IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName))) return [];
-        var support = session.Locked(s => s.Client?.Support) ?? new IrcSupport();
+        var support = session.Support;
         var list = new List<(char, string, string)>();
         if (support.RankOfMode('o') >= 0) list.Add(('o', IrcText.MenuGiveOperator, IrcText.MenuTakeOperator));
         if (support.RankOfMode('h') >= 0) list.Add(('h', IrcText.MenuGiveHalfOperator, IrcText.MenuTakeHalfOperator));

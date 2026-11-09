@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,7 @@ public sealed partial class IrcService
     /// <returns>What to tell the person, if anything (an unknown command); blank when it went.</returns>
     public async Task<string> SendAsync(IrcSession session, string target, string text, string replyTo = "", CancellationToken ct = default)
     {
+        if (!ActsHere) return await AskWorkerAsync(session.Server.Id, "send", new CommandArgs(target, text, ReplyTo: replyTo), ct);
         var client = Connected(session);
         text = text.TrimEnd();
         if (text.Length == 0) return "";
@@ -91,21 +93,30 @@ public sealed partial class IrcService
             }, fromHistory: false, ct);
     }
 
-    public Task SendTypingAsync(IrcSession session, string target, bool typing, CancellationToken ct = default) =>
-        session is { State: IrcState.Connected, Client: { } client } && client.HasTags
+    public Task SendTypingAsync(IrcSession session, string target, bool typing, CancellationToken ct = default)
+    {
+        // A signal alone, as nothing depends on it and a row each key press would be silly.
+        if (!ActsHere)
+        {
+            if (session is { State: IrcState.Connected, HasTags: true }) Tell("typeout", session.Server.Id, conversation: target, on: typing);
+            return Task.CompletedTask;
+        }
+        return session is { State: IrcState.Connected, Client: { } client } && client.HasTags
             ? client.TypingAsync(target, typing ? "active" : "done", ct)
             : Task.CompletedTask;
+    }
 
     /// <summary>Adds this person's reaction to a message, or takes it back if it is theirs already (+draft/unreact).</summary>
     public async Task ReactAsync(IrcSession session, string target, string conversation, string messageId, string emoji, CancellationToken ct = default)
     {
+        if (!ActsHere) { await AskWorkerAsync(session.Server.Id, "react", new CommandArgs(target, emoji, ReplyTo: messageId, Conversation: conversation), ct); return; }
         var client = Connected(session);
         if (!client.HasTags || messageId.Length == 0) return;
         var mine = (await ReactionsAsync(session.Server.Id, conversation, [messageId], client.Nick, ct))
                    .GetValueOrDefault(messageId)?.Any(c => c.Mine && c.Emoji == emoji) == true;
         await client.ReactAsync(target, messageId, emoji, takeBack: mine, ct);
         if (await SetReactionAsync(session.Server.Id, conversation, messageId, client.Nick, emoji, add: !mine, ct))
-            ReactionsChanged?.Invoke(session.Server.Id, conversation);
+            Reacted(session.Server.Id, conversation);
     }
 
     public async Task SetAwayAsync(IrcSession session, string message, CancellationToken ct = default)
@@ -113,6 +124,12 @@ public sealed partial class IrcService
         session.Server.AwayMessage = message;
         await using (var db = await dbFactory.CreateDbContextAsync(ct))
             await db.IrcServers.Where(s => s.Id == session.Server.Id).ExecuteUpdateAsync(u => u.SetProperty(s => s.AwayMessage, message), ct);
+
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Server.Id, "away", new CommandArgs(Text: message), ct);
+            return;
+        }
 
         if (session is { State: IrcState.Connected, Client: { } client })
         {
@@ -122,7 +139,8 @@ public sealed partial class IrcService
         SessionChanged?.Invoke(session);
     }
 
-    public Task ChangeNickAsync(IrcSession session, string nick, CancellationToken ct = default) => Connected(session).NickAsync(nick.Trim(), ct);
+    public Task ChangeNickAsync(IrcSession session, string nick, CancellationToken ct = default) =>
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "nick", new CommandArgs(Nick: nick.Trim()), ct) : Connected(session).NickAsync(nick.Trim(), ct);
 
     // ── Channels ──────────────────────────────────────────────────────────────
 
@@ -143,7 +161,7 @@ public sealed partial class IrcService
             row.AutoJoin = true;
         }
         await db.SaveChangesAsync(ct);
-        if (row.RoomType == JabberRoomType.Intel) IntelRoomsChanged?.Invoke();
+        if (row.RoomType == JabberRoomType.Intel) RoomTypesChanged();
         return row;
     }
 
@@ -166,7 +184,9 @@ public sealed partial class IrcService
             s.InviteMap.Remove(folded);
         });
 
-        if (session is { State: IrcState.Connected, Client: { } client })
+        // ⚠️ The channel and its key are already saved, so the key is never part of what is asked.
+        if (!ActsHere) await AskWorkerAsync(session.Server.Id, "join", new CommandArgs(name), ct);
+        else if (session is { State: IrcState.Connected, Client: { } client })
         {
             var saved = key.Length > 0 ? key : await Task.Run(() => AppConfig.GetServicePassword(ChannelKeyReference(row.Id)), ct) ?? "";
             await client.JoinAsync(name, saved, ct);
@@ -178,25 +198,29 @@ public sealed partial class IrcService
     /// <summary>Leaves a channel, and stops keeping it. What was said there stays saved until it ages out.</summary>
     public async Task LeaveChannelAsync(IrcSession session, string name, CancellationToken ct = default)
     {
+        if (!ActsHere) { await AskWorkerAsync(session.Server.Id, "leave", new CommandArgs(name), ct); return; }
         var folded = session.Fold(name);
         var state = session.Locked(s => s.ChannelMap.GetValueOrDefault(folded));
         if (state is null) return;
 
         if (session is { State: IrcState.Connected, Client: { } client } && state.Joined)
             await client.PartAsync(state.ServerName, "", ct);
+        else session.Locked(s => { if (s.Leaving.Count < 100) s.Leaving.Add(folded); });
 
         await using (var db = await dbFactory.CreateDbContextAsync(ct))
             await db.IrcChannels.Where(c => c.Id == state.Channel.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.Left, true), ct);
 
         session.Locked(s => s.ChannelMap.Remove(folded));
-        if (state.Channel.RoomType == JabberRoomType.Intel) IntelRoomsChanged?.Invoke();
+        if (state.Channel.RoomType == JabberRoomType.Intel) RoomTypesChanged();
         SessionChanged?.Invoke(session);
         UnreadChanged?.Invoke();
+        Tell("unread");
     }
 
     /// <summary>Joins again, after a refusal or being put out.</summary>
     public async Task RejoinAsync(IrcSession session, string name, CancellationToken ct = default)
     {
+        if (!ActsHere) { await AskWorkerAsync(session.Server.Id, "rejoin", new CommandArgs(name), ct); return; }
         var state = session.Locked(s => s.ChannelMap.GetValueOrDefault(s.Fold(name)));
         if (state is null || session is not { State: IrcState.Connected, Client: { } client }) return;
         var key = await Task.Run(() => AppConfig.GetServicePassword(ChannelKeyReference(state.Channel.Id)), ct) ?? "";
@@ -205,6 +229,13 @@ public sealed partial class IrcService
 
     public async Task AnswerInviteAsync(IrcSession session, string channel, bool accept, CancellationToken ct = default)
     {
+        if (!ActsHere)
+        {
+            await AskWorkerAsync(session.Server.Id, "invite", new CommandArgs(channel, On: accept), ct);
+            session.Locked(s => s.InviteMap.Remove(s.Fold(channel)));
+            SessionChanged?.Invoke(session);
+            return;
+        }
         if (accept) await JoinChannelAsync(session, channel, "", null, ct);
         session.Locked(s => s.InviteMap.Remove(s.Fold(channel)));
         SessionChanged?.Invoke(session);
@@ -217,6 +248,7 @@ public sealed partial class IrcService
         state.Channel.AlertMode = mode;
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.IrcChannels.Where(c => c.Id == state.Channel.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.AlertMode, mode), ct);
+        if (!ActsHere) await PostToWorkerAsync(session.Server.Id, "channel", new CommandArgs(channel), ct);
         SessionChanged?.Invoke(session);
     }
 
@@ -227,13 +259,20 @@ public sealed partial class IrcService
         state.Channel.RoomType = type;
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         await db.IrcChannels.Where(c => c.Id == state.Channel.Id).ExecuteUpdateAsync(u => u.SetProperty(c => c.RoomType, type), ct);
-        IntelRoomsChanged?.Invoke();
+        if (ActsHere) RoomTypesChanged();
+        else
+        {
+            IntelRoomsChanged?.Invoke();
+            await PostToWorkerAsync(session.Server.Id, "channel", new CommandArgs(channel), ct);
+        }
         SessionChanged?.Invoke(session);
     }
 
     /// <summary>Every channel the server lists. A big network lists thousands, so this can take a while.</summary>
     public async Task<IReadOnlyList<IrcListEntry>> ListChannelsAsync(IrcSession session, CancellationToken ct = default)
     {
+        if (!ActsHere)
+            return JsonSerializer.Deserialize<List<IrcListEntry>>(await AskWorkerAsync(session.Server.Id, "list", new CommandArgs(), ct)) ?? [];
         var client = Connected(session);
         var done = new TaskCompletionSource<IReadOnlyList<IrcListEntry>>(TaskCreationOptions.RunContinuationsAsynchronously);
         session.Locked(s => { s.ListDone = done; s.ListComing = []; });
@@ -254,7 +293,7 @@ public sealed partial class IrcService
     /// <summary>Whether a rank letter is at or above half-operator, which is what kicking and setting modes take.</summary>
     public static bool IsOperator(IrcSession session, string ranks)
     {
-        var support = session.Client?.Support ?? new IrcSupport();
+        var support = session.Support;
         var halfop = support.RankOfMode('h');
         var op = support.RankOfMode('o');
         var bar = halfop >= 0 ? halfop : op;
@@ -262,14 +301,15 @@ public sealed partial class IrcService
     }
 
     public Task SetTopicAsync(IrcSession session, string channel, string topic, CancellationToken ct = default) =>
-        Connected(session).TopicAsync(channel, topic, ct);
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "topic", new CommandArgs(channel, topic), ct) : Connected(session).TopicAsync(channel, topic, ct);
 
     public Task KickAsync(IrcSession session, string channel, string nick, string reason, CancellationToken ct = default) =>
-        Connected(session).KickAsync(channel, nick, reason, ct);
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "kick", new CommandArgs(channel, reason, nick), ct) : Connected(session).KickAsync(channel, nick, reason, ct);
 
     /// <summary>Bans by host where the server has told it, else by nickname, and puts them out.</summary>
     public async Task BanAsync(IrcSession session, string channel, IrcMember member, string reason, CancellationToken ct = default)
     {
+        if (!ActsHere) { await AskWorkerAsync(session.Server.Id, "ban", new CommandArgs(channel, reason, member.Nick, member.UserHost), ct); return; }
         var client = Connected(session);
         var at = member.UserHost.IndexOf('@');
         var mask = at >= 0 ? "*!*@" + member.UserHost[(at + 1)..] : member.Nick + "!*@*";
@@ -279,11 +319,14 @@ public sealed partial class IrcService
 
     /// <summary>Gives or takes a rank (o, h, v...).</summary>
     public Task SetRankAsync(IrcSession session, string channel, string nick, char mode, bool give) =>
-        Connected(session).ModeAsync(channel, (give ? "+" : "-") + mode, nick);
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "rank", new CommandArgs(channel, Nick: nick, Mode: mode, On: give))
+                  : Connected(session).ModeAsync(channel, (give ? "+" : "-") + mode, nick);
 
     /// <summary>Who a channel bans. Empty when it will not say (not an operator), as the server's refusal says why.</summary>
     public async Task<IReadOnlyList<IrcBan>> BansAsync(IrcSession session, string channel, CancellationToken ct = default)
     {
+        if (!ActsHere)
+            return JsonSerializer.Deserialize<List<IrcBan>>(await AskWorkerAsync(session.Server.Id, "bans", new CommandArgs(channel), ct)) ?? [];
         var client = Connected(session);
         var done = new TaskCompletionSource<IReadOnlyList<IrcBan>>(TaskCreationOptions.RunContinuationsAsynchronously);
         session.Locked(s => s.BansComing[s.Fold(channel)] = ([], done));
@@ -300,10 +343,10 @@ public sealed partial class IrcService
     }
 
     public Task LiftBanAsync(IrcSession session, string channel, string mask, CancellationToken ct = default) =>
-        Connected(session).ModeAsync(channel, "-b", mask);
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "liftban", new CommandArgs(channel, mask), ct) : Connected(session).ModeAsync(channel, "-b", mask);
 
     public Task InviteAsync(IrcSession session, string nick, string channel, CancellationToken ct = default) =>
-        Connected(session).InviteAsync(nick, channel, ct);
+        !ActsHere ? AskWorkerAsync(session.Server.Id, "inviteto", new CommandArgs(channel, Nick: nick), ct) : Connected(session).InviteAsync(nick, channel, ct);
 
     // ── Reading what was saved ────────────────────────────────────────────────
 
@@ -338,7 +381,7 @@ public sealed partial class IrcService
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var changed = await db.IrcMessages.Where(m => m.ServerId == serverId && m.Conversation == conversation && !m.IsRead)
                               .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
-        if (changed > 0) UnreadChanged?.Invoke();
+        if (changed > 0) { UnreadChanged?.Invoke(); Tell("unread"); }
     }
 
     /// <summary>Every direct conversation, with its last line and unread counts.</summary>
@@ -373,28 +416,5 @@ public sealed partial class IrcService
             .Select(e => new Jabber.JabberReactionCount(e.Key, e.Count(), [.. e.Select(x => x.Sender)],
                 e.Any(x => string.Equals(x.Sender, myNick, StringComparison.OrdinalIgnoreCase))))
             .ToList());
-    }
-
-    /// <summary>
-    /// Deletes messages past the kept days, the same setting Jabber and Mumble use. ⚠️ Never an unread one: age is no
-    /// reason to lose what was not seen. Zero days keeps everything.
-    /// </summary>
-    public async Task PurgeOldAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            await using var db = await dbFactory.CreateDbContextAsync(ct);
-            var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == Jabber.JabberService.HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
-            var days = int.TryParse(saved, out var d) ? d : Jabber.JabberService.DefaultHistoryDays;
-            if (days <= 0) return;
-            var cutoff = Stamp(DateTimeOffset.UtcNow.AddDays(-days));
-            await db.IrcMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
-            var kept = db.IrcMessages.Select(m => m.MessageId);
-            await db.IrcReactions.Where(r => !kept.Contains(r.Target)).ExecuteDeleteAsync(ct);
-        }
-        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
-        {
-            errors.Log(nameof(IrcService), "purge old messages", e);
-        }
     }
 }

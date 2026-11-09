@@ -229,9 +229,6 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   <data name="SoundOption" xml:space="preserve">
     <value>Bei wichtigen Nachrichten einen Ton abspielen</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>Gelesene Nachrichten aufbewahren (Tage, 0 = alle)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Nachricht schreiben. Enter sendet, Umschalt+Enter beginnt eine neue Zeile.</value>
   </data>

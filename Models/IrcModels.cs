@@ -6,8 +6,8 @@ namespace EveConsole.Models;
 /// <para>⚠️ The password is not here: it is kept with the other service logins (SharedLogins), by
 /// <c>IrcService.PasswordReference</c>.</para>
 ///
-/// <para>⚠️ Whether it connects when the app starts is per machine, not here: IRC has one nickname per connection, so
-/// two of the owner's machines both connecting would fight over it (one ends up as name_).</para>
+/// <para>Connected by whichever process holds the worker lease, one connection for the whole database, which is the
+/// one connection per nickname IRC wants.</para>
 /// </summary>
 public class IrcServer
 {
@@ -46,6 +46,41 @@ public class IrcServer
 
     /// <summary>Commands sent once connected, one per line, as a network asks of its users (a /mode, a /msg to a bot).</summary>
     public string OnConnect { get; set; } = "";
+
+    /// <summary>Connected when the background process starts, and kept connected.</summary>
+    public bool   AutoConnect { get; set; }
+}
+
+/// <summary>
+/// One piece of how a connection stands, written by whichever process holds the worker lease for the other clients to
+/// show: the server's own state under a blank <see cref="Part"/>, and each channel under its folded name. Nothing here
+/// outlives the worker that wrote it.
+/// </summary>
+public class IrcLiveState
+{
+    public int    ServerId { get; set; }
+    public string Part     { get; set; } = "";
+
+    /// <summary>Rises with every write, so a client reads only what it has not seen.</summary>
+    public long   Version  { get; set; }
+
+    public string Json     { get; set; } = "";
+}
+
+/// <summary>Something a client asks the worker to do, as only the worker has the connection. ⚠️ Never holds a password.</summary>
+public class IrcCommand
+{
+    public long   Id          { get; set; }
+    public int    ServerId    { get; set; }
+    public string Kind        { get; set; } = "";
+    public string Args        { get; set; } = "";
+    public long   CreatedUnix { get; set; }
+
+    /// <summary>Waiting, running or done.</summary>
+    public int    State       { get; set; }
+
+    public string Result      { get; set; } = "";
+    public string Error       { get; set; } = "";
 }
 
 /// <summary>A channel a server login keeps.</summary>

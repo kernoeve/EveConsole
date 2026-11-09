@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>Blank for the nickname.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>Connect when EVE Console starts, on this computer</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>This computer only: on IRC a nickname has one connection, so two computers both connecting would fight over it.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>More settings</value>
   </data>

@@ -220,7 +220,7 @@ try
     var stored = new ConcurrentQueue<IrcStoredMessage>();
     irc.MessageStored += m => stored.Enqueue(m);
 
-    var session = await irc.SaveServerAsync(new IrcServer { Name = "Fake", Host = "127.0.0.1", Port = fake.Port, Tls = false, Nickname = "Ann" }, null, false);
+    var session = await irc.SaveServerAsync(new IrcServer { Name = "Fake", Host = "127.0.0.1", Port = fake.Port, Tls = false, Nickname = "Ann" }, null);
     irc.Connect(session);
     Check("service connects", await Wait(() => session.State == IrcState.Connected), $"{session.State} {session.Detail}");
     await irc.JoinChannelAsync(session, "#fleet", "", null);
@@ -313,7 +313,7 @@ try
 
     {
         await using var throttling = new FakeIrc { ErrorOnFirstLogin = true };
-        var again = await irc.SaveServerAsync(new IrcServer { Name = "Throttled", Host = "127.0.0.1", Port = throttling.Port, Tls = false, Nickname = "Ann" }, null, false);
+        var again = await irc.SaveServerAsync(new IrcServer { Name = "Throttled", Host = "127.0.0.1", Port = throttling.Port, Tls = false, Nickname = "Ann" }, null);
         irc.Connect(again);
         Check("an ERROR while logging in is tried again, not given up on", await Wait(() => again.State == IrcState.Connected, 20000), $"{again.State} {again.Problem} {again.Detail}");
         await irc.DisconnectAsync(again);
@@ -325,6 +325,178 @@ try
 
     await irc.DisconnectAsync(session);
     Check("disconnected on asking, and stays so", session.State == IrcState.Offline && !await Wait(() => session.State != IrcState.Offline, 1500));
+
+    // ── Under the worker lease: one process connects, every other client shows what it wrote and asks it ──────────
+    {
+        var logger = new AppErrorLogger(null!);
+        var signals = new ClientSignals(logger);
+        var spy = new RelaySpy();
+        var relayFactory = new Factory(new DbContextOptionsBuilder<AppDbContext>()
+            .UseSqlite($"Data Source={Path.Combine(profile, "relay.db")}").AddInterceptors(spy).Options);
+        await using (var db = relayFactory.CreateDbContext()) await db.Database.EnsureCreatedAsync();
+
+        var worker = new IrcService(relayFactory, logger, signals) { RelayOnSqlite = true, PickupWait = TimeSpan.FromSeconds(1) };
+        var view   = new IrcService(relayFactory, logger, signals) { RelayOnSqlite = true, PickupWait = TimeSpan.FromSeconds(1) };
+
+        var unreadableSignals = 0;
+        signals.Received += p =>
+        {
+            // An older build's alarm path parses whatever it does not know, and logs an error if that fails.
+            try { using var _ = System.Text.Json.JsonDocument.Parse(p); } catch (System.Text.Json.JsonException) { Interlocked.Increment(ref unreadableSignals); }
+            worker.TryApplySignal(p);
+            view.TryApplySignal(p);
+        };
+        signals.Start();
+
+        await using var relayFake = new FakeIrc();
+        await worker.StartAsync();
+        await view.StartAsync();
+
+        var seen = await view.SaveServerAsync(new IrcServer
+        {
+            Name = "Shared", Host = "127.0.0.1", Port = relayFake.Port, Tls = false, Nickname = "Ann",
+            LoginKind = (int)IrcLoginKind.ServerPassword, AutoConnect = true,
+        }, "login-secret");
+        var id = seen.Server.Id;
+        Check("relay: a login saved by a client is there for the worker", AppConfig.GetServicePassword(IrcService.PasswordReference(id)) == "login-secret");
+
+        var refused = (await Catch(() => view.SendAsync(seen, "#fleet", "nobody home")))?.Message;
+        Check("relay: nobody to ask, and it says so rather than wait for ever", refused?.Contains("not done", StringComparison.Ordinal) == true, refused ?? "none");
+        await using (var db = relayFactory.CreateDbContext())
+            Check("relay: and takes it back, so it is not sent minutes later", !await db.IrcCommands.AnyAsync(c => c.Kind == "send"));
+
+        await worker.BecomeWorkerAsync();
+        var held = worker.SessionOf(id);
+        Check("relay: the worker has the server, and connects it by itself", held is not null && await Wait(() => held.State == IrcState.Connected), held?.State.ToString() ?? "none");
+        Check("relay: the client shows it connected, by its nickname", await Wait(() => seen.State == IrcState.Connected && seen.Nick == "Ann"), $"{seen.State} {seen.Nick}");
+
+        var shown = new ConcurrentQueue<IrcStoredMessage>();
+        var sounds = new ConcurrentQueue<long>();
+        var unreads = 0;
+        view.MessageStored += m => shown.Enqueue(m);
+        view.AlertArrived += m => sounds.Enqueue(m.Id);
+        view.UnreadChanged += () => Interlocked.Increment(ref unreads);
+
+        await view.JoinChannelAsync(seen, "#fleet", "chan-key", JabberRoomType.General);
+        var kept = await relayFactory.CreateDbContext().IrcChannels.AsNoTracking().FirstAsync(c => c.ServerId == id);
+        Check("relay: a channel's key is saved for the worker", AppConfig.GetServicePassword(IrcService.ChannelKeyReference(kept.Id)) == "chan-key");
+        Check("relay: the worker joins it with the key", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Contains("JOIN #fleet chan-key"); }));
+        Check("relay: the client shows it joined, people and ranks", await Wait(() => seen.ChannelOf("#fleet") is { Joined: true } c
+            && c.Members.Values.Any(m => m.Nick == "Bob" && m.Ranks == "ov")), string.Join(",", seen.ChannelOf("#fleet")?.Members.Values.Select(m => m.Ranks + m.Nick) ?? []));
+        Check("relay: and the server's ranks, so an operator is known", IrcService.IsOperator(seen, "o") && !IrcService.IsOperator(seen, "v") && seen.IsChannelName("#x"));
+
+        relayFake.Push(":Bob!b@h PRIVMSG #fleet :Ann are you there");
+        Check("relay: a message the worker saves reaches the client", await Wait(() => shown.Any(m => m.Body == "Ann are you there")));
+        Check("relay: with its sound, once", await Wait(() => sounds.Count == 1) && !await Wait(() => sounds.Count > 1, 600), sounds.Count.ToString());
+        Check("relay: and its count", Volatile.Read(ref unreads) > 0);
+
+        var sent = await view.SendAsync(seen, "#fleet", "from the client");
+        Check("relay: a client's words go out through the worker, and come back saved", sent == "" && await Wait(() => shown.Any(m => m.Body == "from the client" && m.IsOutgoing)));
+        var unknown = await view.SendAsync(seen, "#fleet", "/frobnicate now");
+        Check("relay: what the worker says back is said here", unknown.Contains("/frobnicate", StringComparison.Ordinal), unknown);
+
+        var typing = new ConcurrentQueue<string>();
+        view.TypingChanged += (_, conversation, nick, on) => { if (on) typing.Enqueue(conversation + "|" + nick); };
+        relayFake.Push("@+typing=active :Bo|b!b@h TAGMSG #fleet");
+        Check("relay: someone typing is shown, a nickname with a bar in it whole", await Wait(() => typing.Contains("#fleet|Bo|b")), string.Join(";", typing));
+        await view.SendTypingAsync(seen, "#fleet", true);
+        Check("relay: this person typing goes out through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.Contains("+typing=active") && l.Contains("TAGMSG #fleet")); }));
+
+        var reacted = 0;
+        view.ReactionsChanged += (_, _) => Interlocked.Increment(ref reacted);
+        await view.ReactAsync(seen, "#fleet", "#fleet", "", "👍");
+        Check("relay: a reaction with no id to go to does nothing", Volatile.Read(ref reacted) == 0);
+        relayFake.Push("@msgid=r1;time=2026-11-09T11:00:00.000Z :Bob!b@h PRIVMSG #fleet :react to me");
+        await Wait(() => shown.Any(m => m.MessageId == "r1"));
+        await view.ReactAsync(seen, "#fleet", "#fleet", "r1", "👍");
+        Check("relay: a reaction goes out through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.Contains("+draft/react=👍") && l.Contains("+draft/reply=r1")); }));
+        Check("relay: and the client is told", await Wait(() => Volatile.Read(ref reacted) > 0));
+        Check("relay: and shows it as this person's", (await view.ReactionsAsync(id, "#fleet", ["r1"], seen.Nick)).GetValueOrDefault("r1") is [{ Emoji: "👍", Mine: true }]);
+
+        var workerUnreads = 0;
+        worker.UnreadChanged += () => Interlocked.Increment(ref workerUnreads);
+        await view.MarkReadAsync(id, "#fleet");
+        Check("relay: reading on one client is seen by the others", await Wait(() => Volatile.Read(ref workerUnreads) > 0));
+
+        var askedBans = await view.BansAsync(seen, "#fleet");
+        Check("relay: a channel's bans, asked through the worker", askedBans.Count == 2 && askedBans[0].SetBy == "Bob", askedBans.Count.ToString());
+        var listed = await view.ListChannelsAsync(seen);
+        Check("relay: the server's channels, asked through the worker", listed.Any(l => l.Channel == "#ops" && l.People == 4 && l.Topic == "Ops chat"), listed.Count.ToString());
+
+        await view.SetRoomTypeAsync(seen, "#fleet", JabberRoomType.Intel);
+        Check("relay: a channel's type reaches the connection", await Wait(() => held!.ChannelOf("#fleet")?.Channel.RoomType == JabberRoomType.Intel));
+        await view.SetAlertModeAsync(seen, "#fleet", JabberRoomAlert.All);
+        Check("relay: and its alert setting", await Wait(() => held!.ChannelOf("#fleet")?.Channel.AlertMode == JabberRoomAlert.All));
+
+        await view.SetAwayAsync(seen, "lunch");
+        Check("relay: away, through the worker, and shown", await Wait(() => seen.IsAway) && await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.StartsWith("AWAY") && l.Contains("lunch")); }));
+
+        await view.DisconnectAsync(seen);
+        Check("relay: a client can ask it to disconnect, and sees it", await Wait(() => held!.State == IrcState.Offline && seen.State == IrcState.Offline), $"{held!.State} {seen.State}");
+        view.Connect(seen);
+        Check("relay: and to connect again", await Wait(() => held!.State == IrcState.Connected && seen.State == IrcState.Connected), $"{held!.State} {seen.State}");
+
+        seen.Server.Name = "Renamed";
+        await view.SaveServerAsync(seen.Server, null);
+        Check("relay: a change to a server reaches the worker", await Wait(() => worker.SessionOf(id)?.Server.Name == "Renamed"));
+        var other = await view.SaveServerAsync(new IrcServer { Name = "Second", Host = "127.0.0.1", Port = 1, Tls = false, Nickname = "Ann" }, null);
+        Check("relay: a new server reaches the worker", await Wait(() => worker.SessionOf(other.Server.Id) is not null));
+        await view.DeleteServerAsync(other.Server.Id);
+        Check("relay: and removing one does", await Wait(() => worker.SessionOf(other.Server.Id) is null));
+
+        // ⚠️ Left while still rejoining after the reconnect above: the JOIN on its way kept it again (fixed).
+        await view.LeaveChannelAsync(seen, "#fleet");
+        Check("relay: leaving, through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.StartsWith("PART #fleet")); })
+            && await Wait(() => seen.ChannelOf("#fleet") is null),
+            $"{held!.ChannelOf("#fleet")?.Joined} {seen.ChannelOf("#fleet")?.Joined}");
+        Check("relay: and stays left", !await Wait(() => held!.ChannelOf("#fleet") is not null, 2500)
+            && !relayFactory.CreateDbContext().IrcChannels.AsNoTracking().Any(c => c.ServerId == id && !c.Left));
+
+        Check("relay: something did go through the tables between them", spy.Written.Any(w => w.Contains("#fleet", StringComparison.Ordinal)));
+        Check("relay: no login or channel key went through them", !spy.Written.Any(w => w.Contains("login-secret") || w.Contains("chan-key")));
+        Check("relay: every signal is something an older build can read", Volatile.Read(ref unreadableSignals) == 0);
+
+        await worker.StandDownAsync();
+        await using (var db = relayFactory.CreateDbContext())
+            Check("relay: standing down leaves nothing saying it is connected", !await db.IrcLiveStates.AnyAsync());
+        Check("relay: and the client shows it", await Wait(() => seen.State == IrcState.Offline), seen.State.ToString());
+
+        await view.BecomeWorkerAsync();
+        var mine = view.SessionOf(id)!;
+        Check("relay: the next holder connects it itself", await Wait(() => mine.State == IrcState.Connected, 20000), mine.State.ToString());
+        Check("relay: and the old one now shows that one's", await Wait(() => worker.SessionOf(id)?.State == IrcState.Connected), worker.SessionOf(id)?.State.ToString() ?? "none");
+        var oldShown = new ConcurrentQueue<IrcStoredMessage>();
+        worker.MessageStored += m => oldShown.Enqueue(m);
+        relayFake.Push(":Bob!b@h PRIVMSG Ann :after the hand-over");
+        Check("relay: the old one is told of what the new one saves", await Wait(() => oldShown.Any(m => m.Body == "after the hand-over")));
+
+        await view.StopAsync();
+        await worker.StopAsync();
+        signals.Stop();
+    }
+
+    // ── Settings → Data Retention: IRC's old read messages go by their rule, unread ones stay ──────────────────────
+    await using (var db = factory.CreateDbContext())
+    {
+        db.IrcMessages.AddRange(
+            new IrcStoredMessage { ServerId = 9, Conversation = "dave", SentAt = "2000-01-01T00:00:00.000Z", IsRead = true, DedupeKey = "r-dm", MessageId = "x1" },
+            new IrcStoredMessage { ServerId = 9, Conversation = "dave", SentAt = "2000-01-01T00:00:00.000Z", IsRead = false, DedupeKey = "r-dm-unread" },
+            new IrcStoredMessage { ServerId = 9, Conversation = "#old", IsChannel = true, SentAt = "2000-01-01T00:00:00.000Z", IsRead = true, DedupeKey = "r-ch", MessageId = "x2" });
+        db.IrcReactions.Add(new IrcReaction { ServerId = 9, Conversation = "#old", Target = "x2", Sender = "Bob", Emojis = "👍" });
+        await db.SaveChangesAsync();
+    }
+    await DataRetentionService.PurgeChatAsync(factory, group: false, days: 30);
+    await using (var db = factory.CreateDbContext())
+    {
+        var left = await db.IrcMessages.Where(m => m.ServerId == 9).Select(m => m.DedupeKey).OrderBy(k => k).ToListAsync();
+        Check("retention: an old read direct message goes, unread stays, channels are the other rule's", left.SequenceEqual(["r-ch", "r-dm-unread"]), string.Join(",", left));
+    }
+    await DataRetentionService.PurgeChatAsync(factory, group: true, days: 30);
+    await using (var db = factory.CreateDbContext())
+    {
+        Check("retention: the group rule takes old channel messages", !await db.IrcMessages.AnyAsync(m => m.DedupeKey == "r-ch"));
+        Check("retention: and their reactions", !await db.IrcReactions.AnyAsync(r => r.ServerId == 9));
+    }
 }
 finally
 {
@@ -344,6 +516,23 @@ static async Task<Exception?> Catch(Func<Task> act)
 sealed class Factory(DbContextOptions<AppDbContext> o) : IDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext() => new(o);
+}
+
+/// <summary>Everything either side writes to the tables between them, as it is written: to show no secret goes there.</summary>
+sealed class RelaySpy : Microsoft.EntityFrameworkCore.Diagnostics.SaveChangesInterceptor
+{
+    private readonly ConcurrentQueue<string> _written = new();
+
+    public IEnumerable<string> Written => _written;
+
+    public override ValueTask<Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int>> SavingChangesAsync(
+        Microsoft.EntityFrameworkCore.Diagnostics.DbContextEventData eventData,
+        Microsoft.EntityFrameworkCore.Diagnostics.InterceptionResult<int> result, CancellationToken cancellationToken = default)
+    {
+        foreach (var command in eventData.Context!.ChangeTracker.Entries<IrcCommand>()) _written.Enqueue(command.Entity.Kind + " " + command.Entity.Args);
+        foreach (var live in eventData.Context.ChangeTracker.Entries<IrcLiveState>()) _written.Enqueue(live.Entity.Json);
+        return base.SavingChangesAsync(eventData, result, cancellationToken);
+    }
 }
 
 /// <summary>
@@ -498,6 +687,12 @@ sealed class FakeIrc : IAsyncDisposable
                     Send($"@batch=h1;time=2026-11-08T09:00:01.000Z;msgid=old1 :Carol!c@h PRIVMSG {target} :from history");
                     Send($"@batch=h1;time=2026-11-08T09:00:02.000Z :Carol!c@h PART {target}");
                     Send(":fake.server BATCH -h1");
+                    break;
+                case "LIST":
+                    Send($":fake.server 321 {nick} Channel :Users  Name");
+                    Send($":fake.server 322 {nick} #ops 4 :Ops chat");
+                    Send($":fake.server 322 {nick} #fleet 3 :");
+                    Send($":fake.server 323 {nick} :End of /LIST");
                     break;
                 case "MODE" when m.Params.Count == 2 && m[1] == "+b":
                     Send($":fake.server 367 {nick} {m[0]} *!*@bad.host Bob!b@h 1700000000");

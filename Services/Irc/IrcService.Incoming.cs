@@ -110,6 +110,13 @@ public sealed partial class IrcService
 
         if (client.IsFromMe(m))
         {
+            // Left before this came: out again, and not kept.
+            if (session.Locked(s => s.Leaving.Remove(key)))
+            {
+                await client.PartAsync(channel, "", ct);
+                return false;
+            }
+
             // Joined: kept, if it was not already (a server can put someone in a channel, and an invitation accepted is one).
             var state = session.Locked(s => s.ChannelMap.GetValueOrDefault(key));
             if (state is null)
@@ -183,7 +190,7 @@ public sealed partial class IrcService
         {
             if (s.ChannelMap.GetValueOrDefault(s.Fold(channel)) is not { } c) return;
             c.NamesComing ??= new Dictionary<string, IrcMember>(StringComparer.Ordinal);
-            var support = s.Client?.Support ?? new IrcSupport();
+            var support = s.Support;
             foreach (var entry in m.Last.Split(' ', StringSplitOptions.RemoveEmptyEntries))
             {
                 var at = 0;
@@ -361,7 +368,7 @@ public sealed partial class IrcService
             session.Locked(s => { if (s.PeopleMap.Count < MostPeople) s.PeopleMap.TryAdd(s.Fold(peer), new IrcPerson(peer) { Online = !history }); });
 
         // Someone who said something has stopped typing.
-        if (!fromMe) TypingChanged?.Invoke(session.Server.Id, conversation, m.Nick, false);
+        if (!fromMe) Typed(session.Server.Id, conversation, m.Nick, false);
 
         if (channel?.RoomType == JabberRoomType.Intel) await FeedIntelAsync(channel, saved, ct);
     }
@@ -455,7 +462,7 @@ public sealed partial class IrcService
 
         // Typing is only news now: never from history.
         if (!history && !fromMe && m.Tag("+typing") is { } typing)
-            TypingChanged?.Invoke(session.Server.Id, conversation, m.Nick, typing == "active");
+            Typed(session.Server.Id, conversation, m.Nick, typing == "active");
 
         if ((m.Tag("+draft/reply") ?? m.Tag("+reply")) is not { Length: > 0 } msgid) return;
         var add = (m.Tag("+draft/react") ?? m.Tag("+react")) is { Length: > 0 and <= 64 } added ? added : null;
@@ -464,7 +471,19 @@ public sealed partial class IrcService
 
         // This person's own come back from the server too; saved under their name as when sent.
         if (await SetReactionAsync(session.Server.Id, conversation, msgid, m.Nick, add ?? remove!, add is not null, ct))
-            ReactionsChanged?.Invoke(session.Server.Id, conversation);
+            Reacted(session.Server.Id, conversation);
+    }
+
+    private void Typed(int server, string conversation, string nick, bool typing)
+    {
+        TypingChanged?.Invoke(server, conversation, nick, typing);
+        Tell("typing", server, conversation: conversation, nick: nick, on: typing);
+    }
+
+    private void Reacted(int server, string conversation)
+    {
+        ReactionsChanged?.Invoke(server, conversation);
+        Tell("react", server, conversation: conversation);
     }
 
     private static bool IsHistory(IrcMessage m) => IrcClient.BatchOf(m) is "chathistory" or "draft/chathistory" or "znc.in/playback";
@@ -540,9 +559,11 @@ public sealed partial class IrcService
         try { await db.SaveChangesAsync(ct); }
         catch (DbUpdateException) { return null; }   // the same message, saved by another of the owner's machines just now
 
+        var sound = m is { IsAlert: true, IsRead: false } && !fromHistory;
         MessageStored?.Invoke(m);
         if (!m.IsRead) UnreadChanged?.Invoke();
-        if (m is { IsAlert: true, IsRead: false } && !fromHistory) AlertArrived?.Invoke(m);
+        if (sound) AlertArrived?.Invoke(m);
+        TellMessageSaved(m.Id, sound);
         return m;
     }
 

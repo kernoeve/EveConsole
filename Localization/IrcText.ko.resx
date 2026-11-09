@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>비우면 닉네임을 씁니다.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>EVE Console 시작 시 연결(이 컴퓨터)</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>이 컴퓨터만: IRC에서는 닉네임당 연결이 하나라 두 컴퓨터가 서로 다투게 됩니다.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>추가 설정</value>
   </data>

@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>Leer für den Spitznamen.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>Beim Start von EVE Console verbinden, auf diesem Computer</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>Nur dieser Computer: Bei IRC hat ein Spitzname eine Verbindung, zwei Computer würden sich darum streiten.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>Weitere Einstellungen</value>
   </data>

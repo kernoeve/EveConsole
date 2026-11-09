@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>空欄ならニックネーム。</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>EVE Console の起動時に接続（このコンピューター）</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>このコンピューターのみ：IRC ではニックネームは 1 接続なので、2 台が接続すると取り合いになります。</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>その他の設定</value>
   </data>

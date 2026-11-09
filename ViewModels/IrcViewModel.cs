@@ -76,6 +76,7 @@ public sealed class IrcViewModel : ReactiveObject
         IrcState.Reconnecting => session.NextAttempt is { } next
             ? string.Format(CultureInfo.CurrentCulture, JabberText.StateRetryAt, ChatTime.Clock(next))
             : JabberText.StateConnecting,
+        IrcState.WaitingForWorker => JabberText.StateWaitingForWorker,
         IrcState.Failed => session.Problem switch
         {
             IrcProblem.Password => JabberText.ProblemPassword,
@@ -290,7 +291,7 @@ public sealed class IrcViewModel : ReactiveObject
         EditLogin = LoginChoices.FirstOrDefault(c => (int)c.Kind == server.LoginKind) ?? LoginChoices[0];
         EditAccount = server.Account;
         EditPassword = "";
-        EditAutoConnect = IrcService.AutoConnectsHere(server.Id);
+        EditAutoConnect = server.AutoConnect;
         EditAlertWords = server.AlertWords;
         EditOnConnect = server.OnConnect;
         StatusText = "";
@@ -324,22 +325,20 @@ public sealed class IrcViewModel : ReactiveObject
             // What was accepted before, and the away chosen, stay with the server unless where it is changed.
             TrustedCertificate = existing is not null && existing.Host == host && existing.Port == (int)EditPort ? existing.TrustedCertificate : "",
             AwayMessage = existing?.AwayMessage ?? "",
+            AutoConnect = EditAutoConnect,
         };
 
         // A blank password on an existing server keeps the saved one; no login removes it.
         string? password = !NeedsPassword ? "" : EditPassword.Length > 0 ? EditPassword : null;
-        var session = await _service.SaveServerAsync(server, password, EditAutoConnect);
+        var session = await _service.SaveServerAsync(server, password);
         EditPassword = "";
         IsEditing = false;
         Refresh();
         SelectedRow = Rows.FirstOrDefault(r => r.AccountId == session.Server.Id);
 
         // A server changed while connected takes the change on its next connection: now.
-        if (existing is not null && session.State != IrcState.Offline)
-        {
-            await _service.DisconnectAsync(session);
-            _service.Connect(session);
-        }
+        if (existing is not null && session.State is not (IrcState.Offline or IrcState.WaitingForWorker))
+            await _service.ReconnectAsync(session);
         else if (existing is null && EditAutoConnect) _service.Connect(session);
     }
 

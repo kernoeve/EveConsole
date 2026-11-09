@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>Vide pour le pseudo.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>Se connecter au démarrage d'EVE Console, sur cet ordinateur</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>Cet ordinateur seulement : sur IRC un pseudo a une seule connexion, deux ordinateurs se le disputeraient.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>Plus de réglages</value>
   </data>

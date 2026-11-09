@@ -3895,4 +3895,22 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>共有の PostgreSQL データベースでのみ使えます。SQLite ではこのクライアントが唯一なので、常に処理を行います。</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>ダイレクトメッセージ</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Jabber、Mumble、IRC の保存済みダイレクトメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>次より古いダイレクトメッセージを削除</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>グループチャット</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Jabber のルームと IRC チャンネルの保存済みメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。Mumble のチャンネルチャットは保存されないため、削除するものはありません。インテルのルームやチャンネルから読み取り済みのインテルは、上のチャットメッセージとともに残ります。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>次より古いグループチャットを削除</value>
+  </data>
 </root>

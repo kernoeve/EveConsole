@@ -130,7 +130,6 @@ public sealed class JabberViewModel : ReactiveObject
             new(XmppShow.Away, JabberText.ShowAway), new(XmppShow.ExtendedAway, JabberText.ShowExtendedAway),
             new(XmppShow.DoNotDisturb, JabberText.ShowDoNotDisturb),
         ];
-        HistoryDays = int.TryParse(_prefs.Get(JabberService.HistoryDaysPref), out var days) ? days : JabberService.DefaultHistoryDays;
 
         _service.SessionChanged += _ => QueueRefresh();
         _service.UnreadChanged  += QueueRefresh;
@@ -353,18 +352,6 @@ public sealed class JabberViewModel : ReactiveObject
     public bool HasStatus => StatusText.Length > 0;
 
     // ── Settings for the whole tool ───────────────────────────────────────────
-
-    private int _historyDays;
-    public int HistoryDays
-    {
-        get => _historyDays;
-        set
-        {
-            var days = Math.Max(0, value);
-            this.RaiseAndSetIfChanged(ref _historyDays, days);
-            _ = _prefs.SetAsync(JabberService.HistoryDaysPref, days.ToString(CultureInfo.InvariantCulture));
-        }
-    }
 
     /// <summary>Tells people when their messages have been seen here, as other clients do. On unless switched off.</summary>
     public bool SendReadMarkers

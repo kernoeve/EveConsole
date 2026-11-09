@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Irc;
 
-public enum IrcState { Offline, Connecting, Connected, Reconnecting, Failed }
+public enum IrcState { Offline, Connecting, Connected, Reconnecting, Failed, WaitingForWorker }
 
 public enum IrcProblem { None, Password, Certificate, NoEncryption, Refused, Nickname, Other }
 
@@ -108,6 +108,12 @@ public sealed class IrcSession(IrcServer server)
     internal List<IrcListEntry>? ListComing { get; set; }
     internal TaskCompletionSource<IReadOnlyList<IrcListEntry>>? ListDone { get; set; }
 
+    /// <summary>
+    /// Channels left before the server had said they were joined, by folded name. ⚠️ Their JOIN may already be on its
+    /// way, and arriving it would keep the channel again: it is answered with a PART instead.
+    /// </summary>
+    internal HashSet<string> Leaving { get; } = new(StringComparer.Ordinal);
+
     /// <summary>A channel's ban list being read (367 lines until 368), by folded channel.</summary>
     internal Dictionary<string, (List<IrcBan> Bans, TaskCompletionSource<IReadOnlyList<IrcBan>> Done)> BansComing { get; } = new(StringComparer.Ordinal);
 
@@ -133,7 +139,15 @@ public sealed class IrcSession(IrcServer server)
     /// </remarks>
     public string Fold(string name) => IrcSupport.Fold(name, "rfc1459");
 
-    public bool IsChannelName(string name) => Client?.Support.IsChannel(name) ?? name.StartsWith('#') || name.StartsWith('&');
+    /// <summary>What the server said about itself, as the connection holds it or as the worker last wrote it.</summary>
+    public IrcSupport Support => Client?.Support ?? ShownSupport ?? DefaultSupport;
+
+    /// <summary>On a client that is not the worker: the server's channel marks and ranks, as the worker wrote them.</summary>
+    internal IrcSupport? ShownSupport { get; set; }
+
+    private static readonly IrcSupport DefaultSupport = new();
+
+    public bool IsChannelName(string name) => Support.IsChannel(name);
 
     public string DisplayName => Server.Name.Length > 0 ? Server.Name : Server.Host;
 }
@@ -147,13 +161,13 @@ public sealed record IrcDirectSummary(int ServerId, string Conversation, string 
 /// database, with unread counts, mentions and alerts as Jabber has them.
 /// </summary>
 /// <remarks>
-/// <para>⚠️ Runs in the client, like Mumble, not under the worker lease as Jabber does: IRC has one nickname per
-/// connection, so a connection follows a person's screen. Whether a server connects on starting is per machine
-/// (<see cref="AutoConnectsHere"/>): two of the owner's machines both connecting would fight over the nickname.</para>
-/// <para>What was said while away comes back where the server keeps history (CHATHISTORY); a server without history
-/// has no way to give it, as with any IRC client.</para>
+/// <para>Runs under the worker lease, as Jabber does (see IrcRelay): whichever process holds it keeps the connections,
+/// so what is said is saved while every window is closed, and every client shows the same. That is also the one
+/// connection per nickname IRC wants.</para>
+/// <para>What was said while nothing held the lease comes back where the server keeps history (CHATHISTORY); a server
+/// without history has no way to give it, as with any IRC client.</para>
 /// </remarks>
-public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors)
+public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
 {
     private static readonly int[] BackoffSeconds = [5, 10, 20, 40, 60, 120, 300];
     private static readonly TimeSpan StableAfter = TimeSpan.FromMinutes(2);
@@ -187,9 +201,6 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     public static string PasswordReference(int serverId) => $"irc-{serverId}";
     public static string ChannelKeyReference(int channelId) => $"irc-channel-{channelId}";
 
-    public static bool AutoConnectsHere(int serverId) => UiState.GetBool(UiState.IrcAutoConnectPrefix + serverId, false);
-    public static void SetAutoConnectHere(int serverId, bool on) => UiState.Set(UiState.IrcAutoConnectPrefix + serverId, on ? "1" : null);
-
     public IReadOnlyList<IrcSession> Sessions { get { lock (_gate) return [.. _sessions.Values.OrderBy(s => s.Server.Id)]; } }
 
     public IrcSession? SessionOf(int serverId) { lock (_gate) return _sessions.GetValueOrDefault(serverId); }
@@ -203,27 +214,27 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
+    /// <summary>Lists the saved servers. Connecting is the worker's (<see cref="BecomeWorkerAsync"/>).</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
-        await PurgeOldAsync(ct);
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        foreach (var server in await db.IrcServers.AsNoTracking().OrderBy(s => s.Id).ToListAsync(ct))
-        {
-            var session = Track(server);
-            if (AutoConnectsHere(server.Id)) Connect(session);
-            SessionChanged?.Invoke(session);
-        }
+        await LoadServersAsync(ct);
+        await StartShowingAsync(ct);
     }
 
+    /// <summary>The process is closing: the connections, closed properly, and what said they were up.</summary>
     public async Task StopAsync()
     {
-        foreach (var session in Sessions) await DisconnectAsync(session);
+        _stopping = true;
+        _watchRun?.Cancel();
+
+        if (_isWorker) await StandDownAsync();
+        else await Task.WhenAll(Sessions.Select(DisconnectHereAsync));
     }
 
     // ── Servers ───────────────────────────────────────────────────────────────
 
     /// <summary>Saves a server. A null password keeps the saved one; blank removes it.</summary>
-    public async Task<IrcSession> SaveServerAsync(IrcServer server, string? password, bool autoConnectHere, CancellationToken ct = default)
+    public async Task<IrcSession> SaveServerAsync(IrcServer server, string? password, CancellationToken ct = default)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         if (server.Id == 0) db.IrcServers.Add(server);
@@ -232,17 +243,18 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
 
         if (password is not null)
             await Task.Run(() => AppConfig.SetServicePassword(PasswordReference(server.Id), password.Length > 0 ? password : null), ct);
-        SetAutoConnectHere(server.Id, autoConnectHere);
 
         var session = Track(server);
+        Tell("servers");
         SessionChanged?.Invoke(session);
         return session;
     }
 
     public async Task DeleteServerAsync(int serverId, CancellationToken ct = default)
     {
-        if (SessionOf(serverId) is { } session) await DisconnectAsync(session);
-        lock (_gate) _sessions.Remove(serverId);
+        IrcSession? session;
+        lock (_gate) _sessions.Remove(serverId, out session);
+        if (session is not null && ActsHere) await DisconnectHereAsync(session);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var channelIds = await db.IrcChannels.Where(c => c.ServerId == serverId).Select(c => c.Id).ToListAsync(ct);
@@ -256,10 +268,11 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             AppConfig.SetServicePassword(PasswordReference(serverId), null);
             foreach (var id in channelIds) AppConfig.SetServicePassword(ChannelKeyReference(id), null);
         }, ct);
-        SetAutoConnectHere(serverId, false);
 
+        Tell("servers");
+        Tell("unread");
         UnreadChanged?.Invoke();
-        IntelRoomsChanged?.Invoke();
+        RoomTypesChanged();
     }
 
     /// <summary>Accepts the certificate the server showed last, and tries again with it.</summary>
@@ -267,9 +280,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     {
         if (session.CertificateFingerprint.Length == 0) return;
         session.Server.TrustedCertificate = session.CertificateFingerprint;
-        await SaveServerAsync(session.Server, null, AutoConnectsHere(session.Server.Id), ct);
-        await DisconnectAsync(session);
-        Connect(session);
+        await SaveServerAsync(session.Server, null, ct);
+        await ReconnectAsync(session, ct);
     }
 
     // ── Connecting ────────────────────────────────────────────────────────────
@@ -277,6 +289,12 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     /// <summary>Asks for this server to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(IrcSession session)
     {
+        if (!ActsHere)
+        {
+            PostToWorker(session.Server.Id, "connect", new CommandArgs());
+            return;
+        }
+
         lock (_gate)
         {
             if (session.Loop is { IsCompleted: false }) return;
@@ -286,7 +304,18 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
-    public async Task DisconnectAsync(IrcSession session)
+    public Task DisconnectAsync(IrcSession session) =>
+        ActsHere ? DisconnectHereAsync(session) : PostToWorkerAsync(session.Server.Id, "disconnect", new CommandArgs());
+
+    /// <summary>Connects again, to take a change to the server's settings. One after the other, wherever it runs.</summary>
+    public async Task ReconnectAsync(IrcSession session, CancellationToken ct = default)
+    {
+        if (!ActsHere) { await PostToWorkerAsync(session.Server.Id, "reconnect", new CommandArgs(), ct); return; }
+        await DisconnectHereAsync(session);
+        Connect(session);
+    }
+
+    private async Task DisconnectHereAsync(IrcSession session)
     {
         CancellationTokenSource? run;
         Task? loop;
@@ -476,6 +505,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
 
         foreach (var c in channels.Where(c => c.AutoJoin))
         {
+            // Left while the ones before it were being joined: the sending is paced, so this takes a while.
+            if (session.ChannelOf(c.Name) is null) continue;
             var key = await Task.Run(() => AppConfig.GetServicePassword(ChannelKeyReference(c.Id)), ct) ?? "";
             await client.JoinAsync(c.Name, key, ct);
         }

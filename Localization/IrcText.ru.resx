@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>Пусто — используется ник.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>Подключаться при запуске EVE Console на этом компьютере</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>Только этот компьютер: в IRC у ника одно подключение, и два компьютера будут за него бороться.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>Дополнительно</value>
   </data>

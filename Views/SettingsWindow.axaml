@@ -4090,6 +4090,92 @@
           </Border>
 
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding DirectMessages}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.RetentionDirectMessages}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.RetentionDirectMessagesNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:SettingsText.PurgeDirectMessagesOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeDirectMessagesClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding GroupChat}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.RetentionGroupChat}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.RetentionGroupChatNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:SettingsText.PurgeGroupChatOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeGroupChatClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel DataContext="{Binding AgentTelemetry}" x:DataType="vm:RetentionSectionVm">
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
                 <TextBlock Text="{x:Static loc:SettingsText.AgentActivity}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />

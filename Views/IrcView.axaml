@@ -85,8 +85,8 @@
             <TextBox Text="{Binding EditPassword}" PasswordChar="●" />
             <TextBlock Classes="note" Text="{x:Static loc:JabberText.PasswordKeep}" IsVisible="{Binding EditIsExisting}" />
           </StackPanel>
-          <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:IrcText.LabelAutoConnect}" Margin="0 10 0 0" />
-          <TextBlock Classes="note" Text="{x:Static loc:IrcText.AutoConnectNote}" />
+          <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:JabberText.LabelAutoConnect}" Margin="0 10 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:JabberText.AutoConnectNote}" />
           <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelAlertWords}" />
           <TextBox Text="{Binding EditAlertWords}" />
 

@@ -102,6 +102,8 @@ public class AppDbContext : DbContext
     public DbSet<IrcChannel>            IrcChannels              => Set<IrcChannel>();
     public DbSet<IrcStoredMessage>      IrcMessages              => Set<IrcStoredMessage>();
     public DbSet<IrcReaction>           IrcReactions             => Set<IrcReaction>();
+    public DbSet<IrcLiveState>          IrcLiveStates            => Set<IrcLiveState>();
+    public DbSet<IrcCommand>            IrcCommands              => Set<IrcCommand>();
     public DbSet<MumbleServer>          MumbleServers            => Set<MumbleServer>();
     public DbSet<MumbleUserVolume>      MumbleUserVolumes        => Set<MumbleUserVolume>();
     public DbSet<MumbleDirectMessage>     MumbleDirectMessages       => Set<MumbleDirectMessage>();
@@ -1332,6 +1334,15 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.ServerId, x.Conversation, x.Target, x.Sender });
             e.Property(x => x.ServerId).ValueGeneratedNever();
             e.ToTable("IrcReactions"); });
+
+        mb.Entity<IrcLiveState>(e => {
+            e.HasKey(x => new { x.ServerId, x.Part });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcLiveStates"); });
+
+        mb.Entity<IrcCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcCommands"); });
 
         mb.Entity<JabberEmotePack>(e => {
             e.HasKey(x => new { x.AccountId, x.PackId });

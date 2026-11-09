@@ -3904,4 +3904,22 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Только для общей базы данных PostgreSQL: с SQLite этот клиент единственный, поэтому он всегда выполняет работу.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Личные сообщения</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Удаляет сохранённые личные сообщения Jabber, Mumble и IRC. Непрочитанные сообщения никогда не удаляются, какими бы старыми они ни были. По умолчанию включено, 30 дней, как было в настройке истории Jabber; снимите флажок, чтобы хранить всё.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Удалять личные сообщения старше</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Удаляет сохранённые сообщения из комнат Jabber и каналов IRC. Непрочитанные сообщения никогда не удаляются, какими бы старыми они ни были. Чат каналов Mumble никогда не сохраняется, поэтому удалять нечего. Разведданные, уже прочитанные из разведкомнаты или канала, остаются вместе с сообщениями чата выше. По умолчанию включено, 30 дней, как было в настройке истории Jabber; снимите флажок, чтобы хранить всё.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Удалять групповой чат старше</value>
+  </data>
 </root>

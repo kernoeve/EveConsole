@@ -229,9 +229,6 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   <data name="SoundOption" xml:space="preserve">
     <value>Reproducir un sonido en mensajes que requieren atención</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>Conservar mensajes leídos (días, 0 = todos)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Escribe un mensaje. Intro envía, Mayús+Intro inicia otra línea.</value>
   </data>

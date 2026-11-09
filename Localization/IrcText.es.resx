@@ -49,12 +49,6 @@
   <data name="AccountNote" xml:space="preserve">
     <value>En blanco para el apodo.</value>
   </data>
-  <data name="LabelAutoConnect" xml:space="preserve">
-    <value>Conectar al iniciar EVE Console, en este equipo</value>
-  </data>
-  <data name="AutoConnectNote" xml:space="preserve">
-    <value>Solo este equipo: en IRC un apodo tiene una conexión, así que dos equipos conectándose se lo disputarían.</value>
-  </data>
   <data name="MoreSettings" xml:space="preserve">
     <value>Más ajustes</value>
   </data>
