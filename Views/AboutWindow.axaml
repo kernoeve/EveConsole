@@ -107,6 +107,12 @@
         EVE Console is not affiliated with or endorsed by CCP hf.
       </TextBlock>
 
+      <!-- The licenses of everything the app is built from, as the file that ships beside it. -->
+      <Button Classes="link" HorizontalAlignment="Center" Margin="0 10 0 0" Click="OnNoticesClick"
+              ToolTip.Tip="{x:Static loc:ShellText.TipThirdPartyNotices}">
+        <TextBlock Text="{x:Static loc:ShellText.ThirdPartyNotices}" FontSize="11" Foreground="{DynamicResource AccentBrush}" />
+      </Button>
+
       <!-- Close button -->
       <Button Content="{x:Static loc:ShellText.Close}"
               HorizontalAlignment="Center"

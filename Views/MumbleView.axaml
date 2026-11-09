@@ -16,6 +16,9 @@
     <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
     <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
     <Style Selector="ToggleButton"><Setter Property="FontSize" Value="12" /></Style>
+    <!-- A key that another place listens for too: a warning; one just refused, an error. -->
+    <Style Selector="TextBlock.keyproblem"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBlock.keyproblem.bad"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="*,Auto">
@@ -122,6 +125,7 @@
                                 <Button Content="{Binding KeyText}" Command="{Binding CaptureKeyCommand}" MinWidth="220" />
                                 <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding ClearKeyCommand}" />
                               </StackPanel>
+                              <TextBlock Classes="keyproblem" Classes.bad="{Binding KeyRefused}" Text="{Binding KeyProblem}" IsVisible="{Binding HasKeyProblem}" />
                               <TextBlock Classes="label" Text="{x:Static loc:MumbleText.TargetChannels}" />
                               <ItemsControl ItemsSource="{Binding Channels}">
                                 <ItemsControl.ItemTemplate>
@@ -157,11 +161,13 @@
                           <Button Content="{Binding MuteKey.KeyText}" Command="{Binding MuteKey.CaptureKeyCommand}" MinWidth="220" />
                           <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding MuteKey.ClearKeyCommand}" />
                         </StackPanel>
+                        <TextBlock Classes="keyproblem" Classes.bad="{Binding MuteKey.KeyRefused}" Text="{Binding MuteKey.KeyProblem}" IsVisible="{Binding MuteKey.HasKeyProblem}" />
                         <TextBlock Classes="label" Text="{x:Static loc:MumbleText.DeafenKey}" />
                         <StackPanel Orientation="Horizontal" Spacing="6">
                           <Button Content="{Binding DeafenKey.KeyText}" Command="{Binding DeafenKey.CaptureKeyCommand}" MinWidth="220" />
                           <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding DeafenKey.ClearKeyCommand}" />
                         </StackPanel>
+                        <TextBlock Classes="keyproblem" Classes.bad="{Binding DeafenKey.KeyRefused}" Text="{Binding DeafenKey.KeyProblem}" IsVisible="{Binding DeafenKey.HasKeyProblem}" />
                       </StackPanel>
                     </Border>
 
@@ -174,6 +180,7 @@
                           <Button Content="{Binding PickKey.KeyText}" Command="{Binding PickKey.CaptureKeyCommand}" MinWidth="220" />
                           <Button Content="{x:Static loc:MumbleText.KeyClear}" Command="{Binding PickKey.ClearKeyCommand}" />
                         </StackPanel>
+                        <TextBlock Classes="keyproblem" Classes.bad="{Binding PickKey.KeyRefused}" Text="{Binding PickKey.KeyProblem}" IsVisible="{Binding PickKey.HasKeyProblem}" />
                         <TextBlock Classes="label" Text="{x:Static loc:MumbleText.PickChannelAlso}" />
                         <StackPanel Orientation="Horizontal" Spacing="10">
                           <CheckBox IsChecked="{Binding PickLinks}" FontSize="11" Content="{x:Static loc:MumbleText.TargetLinks}" />

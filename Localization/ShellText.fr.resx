@@ -736,4 +736,17 @@ Cliquez pour voir les limites ESI.</value>
   <data name="ThemeEveSisters" xml:space="preserve">
     <value>EVE Servant Sisters</value>
   </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Cette base de données est en version {0}, et ce client en version {1}.
+
+Ce client est réglé pour ne jamais exécuter les processus en arrière-plan, et seul le client qui les exécute peut modifier le schéma : il ne peut donc pas mettre la base en version {1}.
+
+Démarrez un client {1} autorisé à les exécuter, ou désactivez ce réglage : retirez « neverRunBackgroundWork » de {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Mentions des tiers</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Les licences des logiciels dont EVE Console est fait</value>
+  </data>
 </root>

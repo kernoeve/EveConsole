@@ -364,4 +364,13 @@
   <data name="PrintOriginalName" xml:space="preserve">
     <value>{0}（原件）</value>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} 已用于{1}。请选择其他按键，或先在那里清除它。</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} 也用于{1}，按一次会同时触发两者。请为其中一个选择其他按键。</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
 </root>

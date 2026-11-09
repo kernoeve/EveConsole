@@ -286,6 +286,14 @@ public sealed class AgentPanelViewModel : ReactiveObject
             _hotkey.OnPress   = () => { if (_speech?.BeginCapture() == true) Dispatcher.UIThread.Post(OnCaptureBegan); };
             _hotkey.OnRelease = () => { if (_speech?.EndCapture()   == true) Dispatcher.UIThread.Post(() => _ = FinishCaptureAsync()); };
             ConfigureHotkey(service.Settings.PushToTalkKey);
+
+            // For the other places a key is chosen. Lives as long as the panel does.
+            _ = GlobalKeys.AddSource(() =>
+            [
+                new GlobalKeys.Use(GlobalKeys.AgentOwner, _service.Settings.PushToTalkKey,
+                    string.Format(CommonText.KeyUseWhere, string.Format(SettingsText.KeyUseAgent, AgentName),
+                        $"{SettingsText.WindowTitle} > {SettingsText.TabAiAgent} > {SettingsText.TabSpeechInput}")),
+            ]);
         }
 
         // React when settings are saved — update agent enable state and TTS/speech visibility.

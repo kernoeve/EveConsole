@@ -670,4 +670,10 @@
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
   </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>Mumble 服务器 {1} 上的{0}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>频道目标 {0}</value>
+  </data>
 </root>

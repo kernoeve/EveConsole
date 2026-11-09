@@ -72,6 +72,8 @@ public sealed class MumbleTargetVm : ReactiveObject, IMumbleKeySlot
     private string _name, _people, _group;
     private int _key;
     private bool _capturing;
+    private string _keyProblem = "";
+    private bool _keyRefused;
 
     public MumbleTargetVm(MumbleViewModel owner, MumbleTalkTarget from)
     {
@@ -83,7 +85,7 @@ public sealed class MumbleTargetVm : ReactiveObject, IMumbleKeySlot
         foreach (var channel in from.Channels) Channels.Add(new MumbleTargetChannelVm(this, channel));
 
         CaptureKeyCommand = ReactiveCommand.Create(() => owner.CaptureKeyFor(this));
-        ClearKeyCommand   = ReactiveCommand.Create(() => { owner.CancelKeyCapture(); Key = 0; Touched(); });
+        ClearKeyCommand   = ReactiveCommand.Create(() => { owner.CancelKeyCapture(); Key = 0; owner.KeyCleared(); });
         RemoveCommand     = ReactiveCommand.Create(() => owner.RemoveTarget(this));
         AddChannelCommand = ReactiveCommand.Create(() =>
         {
@@ -132,6 +134,20 @@ public sealed class MumbleTargetVm : ReactiveObject, IMumbleKeySlot
     }
 
     public string KeyText => Capturing ? MumbleText.KeyPressNow : Key == 0 ? MumbleText.KeyNone : GlobalHotkeyService.VkName(Key);
+
+    public string KeyProblem
+    {
+        get => _keyProblem;
+        set { this.RaiseAndSetIfChanged(ref _keyProblem, value); this.RaisePropertyChanged(nameof(HasKeyProblem)); }
+    }
+
+    public bool HasKeyProblem => _keyProblem.Length > 0;
+
+    public bool KeyRefused
+    {
+        get => _keyRefused;
+        set => this.RaiseAndSetIfChanged(ref _keyRefused, value);
+    }
 
     internal void Typed() => _owner.TargetTyped();
     internal void Touched() => _owner.TargetChanged();

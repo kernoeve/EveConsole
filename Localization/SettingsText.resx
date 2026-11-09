@@ -5123,4 +5123,25 @@ The application will restart.</value>
     <value>eveconsole.com answered with an error ({0}).</value>
     <comment>Online Services: an unexpected error. {0} is the HTTP status number.</comment>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>push-to-talk for {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Press a key or mouse button (Esc cancels)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Background work on this computer</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Never run the background work on this client</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>When the client doing the polling and other background work closes, another connected client takes it over. Ticked, this one never does: it only shows what the others collect. Saved on this computer only, not for every client. If no other client is running, nothing polls.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Only for a shared PostgreSQL database: with SQLite this is the only client, so it always does the work.</value>
+  </data>
 </root>
