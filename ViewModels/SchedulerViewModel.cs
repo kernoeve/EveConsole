@@ -1255,7 +1255,7 @@ public sealed class MessageBlockVm : ReactiveObject
 /// The Scheduler tool: a list of tasks, and an editor with the schedule on one side and the
 /// message being composed on the other.
 /// </summary>
-public sealed class SchedulerViewModel : ReactiveObject
+public sealed class SchedulerViewModel : ReactiveObject, IDisposable
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly SchedulerService                _scheduler;
@@ -1354,10 +1354,18 @@ public sealed class SchedulerViewModel : ReactiveObject
         // user going looking for Refresh.
         scheduler.TasksChanged += OnTasksChanged;
 
-        online.AccountChanged += () => Dispatcher.UIThread.Post(() => _ = RefreshOnlineAsync());
+        online.AccountChanged += OnAccountChanged;
     }
 
     private void OnTasksChanged() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+    private void OnAccountChanged() => Dispatcher.UIThread.Post(() => _ = RefreshOnlineAsync());
+
+    /// <summary>A copy of the tool closed: it stops following the tasks and the sign-in.</summary>
+    public void Dispose()
+    {
+        _scheduler.TasksChanged -= OnTasksChanged;
+        _online.AccountChanged  -= OnAccountChanged;
+    }
 
     /// <summary>Whether this database has signed in to the online services, which is whether a
     /// Slack webhook can show a picture. What the sections' warnings and notes are read from.</summary>

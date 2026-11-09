@@ -43,6 +43,7 @@ public class EsiPollingService : ReactiveObject
     private readonly IndyStructureLinkService _indyLink;
     private readonly EveRefStructureService   _eveRefStructures;
     private readonly EveConsole.Services.Pi.PiService _pi;
+    private readonly AssetActivity _assetActivity;
 
     private static readonly HashSet<string> s_netWorthCharEndpoints = [
         "char.wallet.balance", "char.industry.jobs", "char.orders.active", "char.assets", "char.contracts"
@@ -284,7 +285,7 @@ public class EsiPollingService : ReactiveObject
         ["contract.items"]        = DataText.EndpointContractItems,
     };
 
-    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures, EveConsole.Services.Pi.PiService pi)
+    public EsiPollingService(IServiceScopeFactory scopeFactory, EsiClient esi, ApiActivityLog log, AppErrorLogger errorLogger, TimerSettingsService timerSettings, NetWorthService netWorth, KillMailService killMailService, AppPreferencesService prefs, EveMailService mailService, StructureSyncService structureSync, IndyStructureLinkService indyLink, EveRefStructureService eveRefStructures, EveConsole.Services.Pi.PiService pi, AssetActivity assetActivity)
     {
         _scopeFactory       = scopeFactory;
         _esi                = esi;
@@ -299,6 +300,7 @@ public class EsiPollingService : ReactiveObject
         _indyLink           = indyLink;
         _eveRefStructures   = eveRefStructures;
         _pi                 = pi;
+        _assetActivity      = assetActivity;
         _characterEndpoints = BuildEndpoints();
         _corpEndpoints      = BuildCorpEndpoints();
         CharacterEndpointInfos = _characterEndpoints
@@ -1298,6 +1300,10 @@ public class EsiPollingService : ReactiveObject
             r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete && r.TotalPages <= 1);
 
         await db.SaveChangesAsync(ct);
+        // What a job or contract has done to a hangar, into the assets now rather than at the
+        // next asset poll. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -1390,6 +1396,8 @@ public class EsiPollingService : ReactiveObject
         //
         // No extra lock time worth speaking of: the delete and the insert already ran back to
         // back, each taking the write lock in turn. This merges them rather than adding anything.
+        // ⚠️ Held from before the transaction to its commit: see AssetActivity.HoldAsync.
+        using var hold = await _assetActivity.HoldAsync(ct);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
         await db.EsiAssets
@@ -1418,7 +1426,12 @@ public class EsiPollingService : ReactiveObject
             };
         }));
         await db.SaveChangesAsync(ct);
+
+        // Kept as ESI gave it, with when its copy was current, and what has happened in the
+        // game since written on top — in this transaction, so nothing reads the rows without.
+        await _assetActivity.TakePollAsync(db, charId, "character", r.LastModified ?? DateTimeOffset.UtcNow, ct);
         await tx.CommitAsync(ct);
+        hold.Dispose();
 
         // ESI's assets endpoint omits the hull of the character's ACTIVE ship while they are in
         // space in it (a titan a character is logged off in) — though it still lists what is
@@ -1460,6 +1473,7 @@ public class EsiPollingService : ReactiveObject
                         RegionId         = place.RegionId,
                     });
                     await db.SaveChangesAsync(ct);
+                    await AssetActivity.KeepRowAsync(db, charId, "character", ship.ShipItemId, ct);
                 }
             }
         }
@@ -1506,6 +1520,7 @@ public class EsiPollingService : ReactiveObject
             Runs               = b.Runs,
         }));
         await db.SaveChangesAsync(ct);
+        await AssetActivity.RecordBlueprintsAsync(db, charId, "character", r.LastModified, ct);
         return FromResult(r);
     }
 
@@ -1569,6 +1584,10 @@ public class EsiPollingService : ReactiveObject
             }
         }
         await db.SaveChangesAsync(ct);
+        // What a job or contract has done to a hangar, into the assets now rather than at the
+        // next asset poll. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -2973,6 +2992,10 @@ public class EsiPollingService : ReactiveObject
             r.Data!.Select(j => j.JobId).ToHashSet(), r.Complete);
 
         await db.SaveChangesAsync(ct);
+        // What a job or contract has done to a hangar, into the assets now rather than at the
+        // next asset poll. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -3065,6 +3088,8 @@ public class EsiPollingService : ReactiveObject
         // built from these very rows (TypeId 27); a read landing in the gap found no offices,
         // so no delivery config resolved to a station and none of them matched. Nothing was
         // wrong with the projects — the app had briefly lost the ability to recognise them.
+        // ⚠️ Held from before the transaction to its commit: see AssetActivity.HoldAsync.
+        using var hold = await _assetActivity.HoldAsync(ct);
         await using var tx = await db.Database.BeginTransactionAsync(ct);
 
         await db.EsiAssets
@@ -3094,7 +3119,12 @@ public class EsiPollingService : ReactiveObject
             };
         }));
         await db.SaveChangesAsync(ct);
+
+        // Kept as ESI gave it, with when its copy was current, and what has happened in the
+        // game since written on top — in this transaction, so nothing reads the rows without.
+        await _assetActivity.TakePollAsync(db, corpId, "corporation", r.LastModified ?? DateTimeOffset.UtcNow, ct);
         await tx.CommitAsync(ct);
+        hold.Dispose();
 
         // The fuel in the corp's structures, for Corp Structures' burn rates. Every structure the
         // corp owns is read, so one whose bay has run dry loses its rows.
@@ -3161,6 +3191,7 @@ public class EsiPollingService : ReactiveObject
         }));
         await db.SaveChangesAsync(ct);
         await tx.CommitAsync(ct);
+        await AssetActivity.RecordBlueprintsAsync(db, corpId, "corporation", r.LastModified, ct);
         return FromResult(r);
     }
 
@@ -3223,6 +3254,10 @@ public class EsiPollingService : ReactiveObject
             }
         }
         await db.SaveChangesAsync(ct);
+        // What a job or contract has done to a hangar, into the assets now rather than at the
+        // next asset poll. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 

@@ -118,8 +118,11 @@ public class SaleListingRowVm : ReactiveObject
 
 // Sale Listing tool — a focused sales grid (Date / Buyer / Item / Amount / Profit / Profit %) with
 // profit measured against build cost or market value. Two instances are registered (one per basis).
-public class SaleListingViewModel : ReactiveObject
+public class SaleListingViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger      _errorLogger;
     private readonly CorpActivityService _names;
@@ -194,12 +197,12 @@ public class SaleListingViewModel : ReactiveObject
         _selectedType  = SaleTypeOptions[0];
         _dateFrom      = DateTime.UtcNow.AddDays(-90).ToString("yyyy-MM-dd");
 
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("SaleListing.AutoRefresh")
-            .Subscribe(tick => { _ = LoadAsync(); });
+            .Subscribe(tick => { _ = LoadAsync(); }));
 
         // Characters or corporations added or removed: read again now, not at the next tick.
-        OwnerList.Changed += () => _ = LoadAsync();
+        _life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

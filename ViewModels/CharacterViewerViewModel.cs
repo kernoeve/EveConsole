@@ -238,7 +238,7 @@ public record StandingVm(string EntityName, string EntityType, float Standing)
 
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
-public class CharacterViewerViewModel : ReactiveObject
+public class CharacterViewerViewModel : ReactiveObject, IDisposable
 {
     private readonly AppDbContext _db;
     private const int SkillCategoryId = 16;
@@ -489,7 +489,7 @@ public class CharacterViewerViewModel : ReactiveObject
         // Cheap enough to do on a clock: CharacterSummaryService reads local tables, and its only
         // ESI calls resolve alliance and corporation names for ids it has not seen before. In
         // steady state that is none.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _summaryTimer = Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("CharacterViewer.SummaryRefresh")
             .Where(_ => OuterTabIndex == 0 && !SummaryLoading)
             .Subscribe(_ => { var t = LoadSummaryAsync(); });
@@ -498,6 +498,15 @@ public class CharacterViewerViewModel : ReactiveObject
 
         if (characters.Count > 0)
             SelectedCharacter = characters[0];
+    }
+
+    private readonly IDisposable _summaryTimer;
+
+    /// <summary>A copy of the tool closed: its clock stops and its database connection goes.</summary>
+    public void Dispose()
+    {
+        _summaryTimer.Dispose();
+        _db.Dispose();
     }
 
     private async Task LoadCharacterDataAsync(Character character)

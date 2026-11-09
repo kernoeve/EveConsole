@@ -146,7 +146,10 @@
     <value>Contenedor de herramientas</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>Herramientas</value>
+    <value>Herramientas. Mayús+clic abre otra copia.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Abrir una herramienta en estas pestañas. Mayús+clic abre otra copia.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>Abre las herramientas en</value>

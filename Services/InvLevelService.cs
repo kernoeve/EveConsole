@@ -548,7 +548,6 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         List<(long ItemId, int TypeId, int Quantity, long RootLocationId, bool IsSingleton)> assetRows = [];
         Dictionary<long, long> runsByItem = [];
-        List<DeliveredOutput> deliveredItems  = [];
         List<DeliveredPrint>  deliveredPrints = [];
         List<ContractMove>    contractMoves   = [];
         if (anyAssets)
@@ -577,19 +576,14 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 // last has its runs as they are now.
                 : await RunsByItemAsync(db, bpTypeIds, ct);
 
-            // ⚠️ Plus what delivered jobs have put in hangars that the asset and blueprint polls
-            // have not seen yet. A delivered job stops counting under Industry Jobs within
-            // minutes, and for up to an hour its output is in no asset row either — so a level
-            // that was comfortably covered by a running job read as short the moment the job was
-            // collected, and the worklist raised the same job again. Items in units; blueprint
-            // types in runs, as the level is written. See DeliveryLag.
-            deliveredItems = await DeliveryLag.ItemsAsync(db, ct, allTypes);
+            // ⚠️ Plus the copies delivered jobs have made that the blueprint poll has not seen
+            // yet, in runs, as the level is written. See DeliveryLag. Delivered items, and what
+            // contracts and hauls have moved, are in the asset rows already (AssetActivity).
             if (bpTypeIds.Count > 0)
                 deliveredPrints = await DeliveryLag.PrintsAsync(db, ct, bpTypeIds.ToList());
 
-            // And what contracts have moved since the asset poll — out with one made, back with
-            // one deleted, in with one accepted. See ContractLag.
-            contractMoves = await ContractLag.MovesAsync(db, ct, allTypes);
+            // And what is still in a courier: in no asset row, but ours. See ContractLag.
+            contractMoves = await ContractLag.InTransitAsync(db, ct, allTypes);
         }
 
         // ── Industry jobs: active manufacturing (1) and reactions (9, plus legacy 11) ──
@@ -775,13 +769,6 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
                 }
 
-                foreach (var d in deliveredItems)
-                {
-                    if (!wanted.Contains(d.TypeId)) continue;
-                    if (!ownerFilter.Contains(d.OwnerId)) continue;
-                    if (assetFilter != null && !assetFilter.Contains(d.Site)) continue;
-                    assets[d.TypeId] = assets.GetValueOrDefault(d.TypeId) + d.Units;
-                }
                 foreach (var p in deliveredPrints)
                 {
                     if (!wanted.Contains(p.TypeId)) continue;
@@ -790,7 +777,7 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
                 }
 
-                // Contracts last, and never below zero — see ContractLag. The same packaging rule
+                // Couriers' cargo last, and never below zero — see ContractLag. The same packaging rule
                 // as the rows above. ⚠️ Blueprint types are left to the snapshot: they are counted
                 // in runs here, and a contract line says how many copies, never their runs.
                 foreach (var m in contractMoves)

@@ -131,6 +131,9 @@ public sealed class IndyCharRow : ReactiveObject
 /// </summary>
 public class WorklistIndustryViewModel : ReactiveObject
 {
+    /// <summary>Ended with the Worklist it belongs to (<see cref="WorklistViewModel.Dispose"/>).</summary>
+    internal ToolLife Life { get; } = new();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly IndustryAssignmentService       _assignment;
     private readonly WorklistSettings                _settings;
@@ -173,7 +176,7 @@ public class WorklistIndustryViewModel : ReactiveObject
 
         // A character added or removed: enrolled or dropped here, in Settings → Characters,
         // without a restart.
-        OwnerList.Changed += () => _ = LoadAsync();
+        Life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

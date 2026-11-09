@@ -455,13 +455,16 @@ public sealed class KillmailCharacterOption
 }
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
-public class KillmailBrowserViewModel : ReactiveObject
+public class KillmailBrowserViewModel : ReactiveObject, IDisposable
 {
     public const int PersonalTab = 0;
     public const int AllTab      = 1;
 
     private readonly KillmailBrowserService          _service;
     private readonly ObservableCollection<Character> _sourceChars;
+
+    /// <summary>A copy of the tool closed: it stops following the character list.</summary>
+    public void Dispose() => _sourceChars.CollectionChanged -= OnSourceCharsChanged;
 
     // Filters — all run server-side in KillmailBrowserService.GetListAsync, not against
     // whatever page happens to already be loaded (with 100K+ rows total and one page

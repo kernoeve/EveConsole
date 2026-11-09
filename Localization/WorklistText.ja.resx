@@ -2644,4 +2644,79 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}を使用。</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>譲渡</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>譲渡</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>アイテムを、それがあるステーションで別のキャラクターまたはコーポレーションに渡す</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0}種類のアイテム</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{2}で{0}を{1}へ</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}：{2}で、これらを自分のハンガーから{1}のハンガーへ移してください。</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0}は{1}に所属していません。{2}でアイテム交換契約により{1}へ渡してください。</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}（{1}として）：{3}でアイテム交換契約により{2}へ渡してください。</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}：キャラクターレベルに従い、{2}でこれらを{1}のハンガーから自分のハンガーへ移してください。</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}：{1}のハンガーからこれらを取り出し、{3}でアイテム交換契約により{2}へ渡してください。{2}は{1}に所属していないため、その人の製造には自分のハンガーしか使えません。</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>キャラクターレベル</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>既定のコーポレーション</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>ワークリストのアイテム（注文と在庫レベルのもの）を保有すべきコーポレーションです。所属する全キャラクターがそれで製造できます。キャラクターが使えるのは自分のハンガーと所属コーポレーションのハンガーだけです。キャラクターが持つアイテム（ハンガー内やドック中の艦船のカーゴホールド内）は、このコーポレーションがハンガーを持つステーションで、このコーポレーションへの譲渡タスクになります。ただし下のキャラクターレベルでそのキャラクターに残す分は除きます。装備中のモジュール、ブループリント、組み立て済みの艦船は動かしません。</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>他のコーポレーションの分も渡す</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>オフ：既定のコーポレーションへ移すのはキャラクターのハンガーとホールドの分だけです。オン：他のコーポレーションのワークリストのアイテムにも譲渡タスクを作り、そのコーポレーションにいる自分のキャラクターが行います。</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>グループのレベル分を、ステーションで1人のキャラクターの自分のハンガーに、そのキャラクターの製造用だけに置きます。既定のコーポレーションに所属しないキャラクターが製造用の素材を得る方法です。輸送がその量をステーションへ運び（そこのステーションレベルに加算）、譲渡タスクが既定のコーポレーションのハンガーから不足分をそのキャラクターに渡します。</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>キャラクターを選んでください。</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>すでに既定のコーポレーションに所属</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>キャラクターレベルはまだありません。</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>キャラクターレベル {0:N0} 件</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>キャラクターはレベルをこの割合まで下回るまでそのままにし、下回ったらレベルまで満たす分を渡します。0 ならわずかな不足でも渡します。</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>キャラクターがレベルを超えて持つ分は、この割合を超えるまでそのまま残し、超えたら余剰を既定のコーポレーションに戻します。0 ならわずかな余剰でも戻します。</value>
+  </data>
 </root>

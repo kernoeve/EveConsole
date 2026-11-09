@@ -37,6 +37,7 @@ public class AppDbContext : DbContext
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
+    public DbSet<AssetSnapshot>              AssetSnapshots          => Set<AssetSnapshot>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
     public DbSet<CharacterNotification>      EsiNotifications        => Set<CharacterNotification>();
@@ -146,6 +147,7 @@ public class AppDbContext : DbContext
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
     public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
     public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
+    public DbSet<WorklistCharacterLevel>   WorklistCharacterLevels   => Set<WorklistCharacterLevel>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -888,6 +890,14 @@ public class AppDbContext : DbContext
             e.Property(x => x.ItemId).ValueGeneratedNever();
             e.ToTable("EsiAssets"); });
 
+        // When each owner's assets were current, and what has been written on top since. An
+        // entity that arrived after databases existed: created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<AssetSnapshot>(e => {
+            e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Kind });
+            e.Property(x => x.OwnerId).ValueGeneratedNever();
+            e.ToTable("AssetSnapshots"); });
+
         mb.Entity<CharacterBlueprint>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
@@ -1484,6 +1494,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             // One row per group per station; a station may hold several groups.
             e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistCharacterLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per character per station.
+            // The name App.axaml.cs and PostgresSchema give it, so a fresh install builds it once.
+            e.HasIndex(x => new { x.GroupId, x.LocationId, x.CharacterId }).IsUnique()
+             .HasDatabaseName("IX_WorklistCharacterLevels_Group_Location_Character"); });
 
         mb.Entity<WorklistIndyScopeStation>(e => {
             e.HasKey(x => x.Id);

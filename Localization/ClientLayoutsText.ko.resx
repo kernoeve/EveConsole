@@ -146,7 +146,10 @@
     <value>도구 컨테이너</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>도구</value>
+    <value>도구. Shift+클릭하면 사본을 하나 더 엽니다.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>이 탭에서 도구를 엽니다. Shift+클릭하면 사본을 하나 더 엽니다.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>도구를 열 위치</value>

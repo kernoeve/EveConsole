@@ -223,6 +223,7 @@ public class AssetBrowserViewModel : ReactiveObject
         ["Item Count"]        = AssetsText.AssetColItemCount,
         ["Is Singleton"]      = AssetsText.AssetColIsSingleton,
         ["Is Blueprint Copy"] = AssetsText.AssetColIsBlueprintCopy,
+        ["Since Poll"]        = AssetsText.AssetColSincePoll,
     };
 
     /// <summary>What a column is called on screen; a column with no label of its own shows its name.</summary>
@@ -616,8 +617,12 @@ public class AssetBrowserViewModel : ReactiveObject
             newRows.Add(new GridRow(row));
         }
 
+        reader.Close();
+        if (_offset == 0) _asOfText = await AsOfTextAsync(conn, ct);
+
         _offset += newRows.Count;
         var loadedCount = _offset;
+        var asOf        = _asOfText;
 
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -628,10 +633,56 @@ public class AssetBrowserViewModel : ReactiveObject
                 Columns = newColumns;
 
             HasMore    = loadedCount < total;
-            StatusText = total == 0         ? AssetsText.StatusNoAssets
+            var shown  = total == 0         ? AssetsText.StatusNoAssets
                 : loadedCount < total ? Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusShowingAssetsOther), total, loadedCount)
                                       : Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusAssetsTotalOther), total);
+            StatusText = asOf.Length == 0 ? shown : $"{shown}  ·  {asOf}";
         });
+    }
+
+    private string _asOfText = "";
+
+    /// <summary>
+    /// When the asset lists were current — ESI's own time for the copies the polls fetched, the
+    /// oldest and newest of them — and how many rows have been written since by what happened in
+    /// the game (AssetActivity). Empty before any poll has recorded one.
+    /// </summary>
+    private static async Task<string> AsOfTextAsync(DbConnection conn, CancellationToken ct)
+    {
+        try
+        {
+            DateTimeOffset? oldest = null, newest = null;
+            using (var cmd = conn.Command("""SELECT "AsOf" FROM "AssetSnapshots" WHERE "Kind" = 'assets'"""))
+            using (var r = await cmd.ExecuteReaderAsync(ct))
+                while (await r.ReadAsync(ct))
+                {
+                    if (r.IsDBNull(0)) continue;
+                    // ⚠️ TEXT on SQLite, a timestamp on PostgreSQL; read in memory either way.
+                    var at = r.GetValue(0) switch
+                    {
+                        DateTimeOffset o => o,
+                        DateTime d       => new DateTimeOffset(DateTime.SpecifyKind(d, d.Kind == DateTimeKind.Unspecified ? DateTimeKind.Utc : d.Kind)),
+                        var v            => DateTimeOffset.Parse(Convert.ToString(v, CultureInfo.InvariantCulture)!, CultureInfo.InvariantCulture),
+                    };
+                    if (oldest is null || at < oldest) oldest = at;
+                    if (newest is null || at > newest) newest = at;
+                }
+            if (oldest is null) return "";
+
+            long written;
+            using (var cmd = conn.Command("""SELECT COUNT(*) FROM "EsiAssets" WHERE "Pending" IS NOT NULL"""))
+                written = Convert.ToInt64(await cmd.ExecuteScalarAsync(ct) ?? 0);
+
+            string Time(DateTimeOffset t) => t.ToLocalTime().ToString(
+                t.ToLocalTime().Date == DateTime.Today ? "t" : "g", CultureInfo.CurrentCulture);
+            var asOf = oldest == newest || Time(oldest.Value) == Time(newest!.Value)
+                ? string.Format(AssetsText.StatusAsOf, Time(oldest.Value))
+                : string.Format(AssetsText.StatusAsOfRange, Time(oldest.Value), Time(newest!.Value));
+            return written == 0 ? asOf
+                : asOf + "  ·  " + Plurals.Format(AssetsText.ResourceManager, nameof(AssetsText.StatusSincePollOther), written);
+        }
+        catch (OperationCanceledException) { throw; }
+        catch { return ""; }   // a database without the table yet: nothing to say
     }
 
     // ── Markers: what Base writes where it has no name of its own to give ────────
@@ -720,6 +771,26 @@ public class AssetBrowserViewModel : ReactiveObject
         if (row.TryGetValue("Container", out var path) && path.Length > 0
             && row.TryGetValue("Container Type Ids", out var hops) && hops.Length > 0)
             row["Container"] = ContainerTypesShown(path, hops);
+
+        if (row.TryGetValue("Since Poll", out var since) && since.Length > 0)
+            row["Since Poll"] = SincePollShown(since);
+    }
+
+    /// <summary>
+    /// "added|job 123, contract 456" as the screen says it: added or changed since the asset poll,
+    /// and by what. Written in the same words in every language by AssetActivity, so the grid's
+    /// filters see one value whatever the language; put into words only here.
+    /// </summary>
+    private static string SincePollShown(string raw)
+    {
+        var bar  = raw.IndexOf('|');
+        var kind = bar < 0 ? raw : raw[..bar];
+        var by   = bar < 0 ? "" : string.Join(", ", raw[(bar + 1)..].Split(", ", StringSplitOptions.RemoveEmptyEntries).Select(f =>
+            f.StartsWith("job ")      ? string.Format(AssetsText.SincePollJob, f[4..])
+          : f.StartsWith("contract ") ? string.Format(AssetsText.SincePollContract, f[9..])
+          : f == "haul"               ? AssetsText.SincePollHaul
+          : f));
+        return string.Format(kind == "added" ? AssetsText.SincePollAdded : AssetsText.SincePollChanged, by);
     }
 
     private static void Show(Dictionary<string, string> row, string nameColumn, string idColumn,
@@ -1063,7 +1134,11 @@ public class AssetBrowserViewModel : ReactiveObject
                 CAST(a."IsSingleton"     AS INTEGER) AS "Is Singleton",
                 CAST(a."IsBlueprintCopy" AS INTEGER) AS "Is Blueprint Copy",
                 a."OwnerId"         AS "Owner Id",
-                a."RootLocationId"  AS "Root Location Id"
+                a."RootLocationId"  AS "Root Location Id",
+                -- Written since the poll, and by what (AssetActivity): "added|job 123". Put into
+                -- words as rows are read, see SincePollShown.
+                CASE WHEN a."Pending" IS NULL THEN NULL
+                     ELSE a."Pending" || '|' || COALESCE(a."PendingFrom", '') END AS "Since Poll"
             FROM "EsiAssets" a
             LEFT JOIN ContainerJoins  cj     ON cj."ItemId"         = a."ItemId"         AND cj."OwnerId"          = a."OwnerId" AND cj."OwnerType" = a."OwnerType"
             LEFT JOIN "Characters"      ch     ON a."OwnerId"         = ch."Id"            AND a."OwnerType"         = 'character'
@@ -1124,7 +1199,8 @@ public class AssetBrowserViewModel : ReactiveObject
                 0                                                                  AS "Is Singleton",
                 jf.BPIsCopy                                                        AS "Is Blueprint Copy",
                 jf."OwnerId"                                                         AS "Owner Id",
-                jf."FacilityId"                                                      AS "Root Location Id"
+                jf."FacilityId"                                                      AS "Root Location Id",
+                NULL                                                                 AS "Since Poll"
             FROM JobFacilities jf
             LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
             LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'
@@ -1204,7 +1280,8 @@ public class AssetBrowserViewModel : ReactiveObject
                 0                                                                  AS "Is Singleton",
                 CASE WHEN jf."ActivityId" IN (5, 8) THEN 1 ELSE NULL END            AS "Is Blueprint Copy",
                 jf."OwnerId"                                                         AS "Owner Id",
-                jf."FacilityId"                                                      AS "Root Location Id"
+                jf."FacilityId"                                                      AS "Root Location Id",
+                NULL                                                                 AS "Since Poll"
             FROM JobFacilities jf
             LEFT JOIN "Characters"    ch   ON ch."Id"   = jf."OwnerId" AND jf."OwnerType" = 'character'
             LEFT JOIN "Corporations"  co   ON co."Id"   = jf."OwnerId" AND jf."OwnerType" = 'corporation'

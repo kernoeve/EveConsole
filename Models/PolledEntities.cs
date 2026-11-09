@@ -379,6 +379,41 @@ public class CharacterAsset
     // never seen, or a hangar in another player's ship — not "in space", which has a system.
     public int?   SolarSystemId    { get; set; }
     public int?   RegionId         { get; set; }
+
+    /// <summary>
+    /// Null for a row exactly as the owner's asset poll gave it. <c>"added"</c> or
+    /// <c>"changed"</c> for one written since, by something done in the game that the poll has
+    /// not caught up with — a job started or delivered, a contract, a haul ticked off. See
+    /// AssetActivity. The next asset poll replaces every row, these with them.
+    ///
+    /// <para>⚠️ Some of an added row is a default, not the truth: where in the station it is (a
+    /// corporation's first hangar division, a character's hangar) and its item id, which is a
+    /// made-up negative number until the poll gives the real one.</para>
+    /// </summary>
+    public string? Pending      { get; set; }
+
+    /// <summary>What wrote it, when <see cref="Pending"/> is set: "job 123", "contract 456",
+    /// "haul" — several, comma-separated, when more than one touched the same row.</summary>
+    public string? PendingFrom  { get; set; }
+}
+
+/// <summary>
+/// When an owner's asset (or blueprint) list was current: ESI's own time for the copy it
+/// answered with (its Last-Modified header), which can be most of an hour before the poll that
+/// fetched it. What has happened in the game since then is written on top — see AssetActivity.
+/// </summary>
+public class AssetSnapshot
+{
+    public long   OwnerId   { get; set; }
+    public string OwnerType { get; set; } = "";
+    /// <summary>"assets" or "blueprints".</summary>
+    public string Kind      { get; set; } = "";
+    /// <summary>When ESI made the copy; the poll time when it did not say.</summary>
+    public DateTimeOffset AsOf     { get; set; }
+    public DateTimeOffset PolledAt { get; set; }
+    /// <summary>What activity was last written on top of the rows, so it is written again only
+    /// when that changes. Empty when none has been.</summary>
+    public string AppliedKey { get; set; } = "";
 }
 
 public class CharacterBlueprint

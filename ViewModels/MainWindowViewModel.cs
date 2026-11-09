@@ -884,6 +884,7 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>Shows <paramref name="tab"/> in whichever window holds it.</summary>
     public void Show(ToolTab tab)
     {
+        BringOutOfHidden(tab);
         if (WorkspaceOf(tab) is not { } ws) return;
         ws.SelectedTab = tab;
         if (!ws.IsMain || IsMainHidden) ShowWorkspaceRequested?.Invoke(ws);
@@ -944,6 +945,8 @@ public class MainWindowViewModel : ReactiveObject
         public TabWorkspace Workspace { get; } = workspace;
         public string Spec { get; } = spec;
         public int Claims { get; set; } = 1;
+        /// <summary>Tools taken out while the panel was hidden, and whether each was pinned here.</summary>
+        public Dictionary<string, bool> LeftWhileHidden { get; } = [];
     }
 
     /// <summary>By monitor and control id: a layout used on two monitors has a container on each.</summary>
@@ -993,6 +996,8 @@ public class MainWindowViewModel : ReactiveObject
         var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == tab.Id);
         if (navItem is not null) navItem.IsOpen = false;
         if (tab.ViewModel is OverviewViewModel overview && overview != OverviewVm) overview.Dispose();
+        // Another copy of a tool goes with its tab; the app's own stays for next time.
+        else if (tab.IsCopy && tab.ViewModel is IDisposable copy) copy.Dispose();
     }
 
     /// <summary>
@@ -1109,7 +1114,63 @@ public class MainWindowViewModel : ReactiveObject
     /// </summary>
     public bool IsMainHidden { get; set; }
 
-    private bool TakesTools(TabWorkspace ws) => ws.ShowsTabs && !(ws.IsMain && IsMainHidden);
+    private bool TakesTools(TabWorkspace ws) => ws.ShowsTabs && !ws.IsHidden && !(ws.IsMain && IsMainHidden);
+
+    /// <summary>
+    /// A container's panel was hidden or shown again. Hidden, it takes no tools. Shown again, the
+    /// tools that left it while it was hidden come back, as the layout has them there.
+    /// </summary>
+    public void SetContainerShown(TabWorkspace ws, bool shown)
+    {
+        if (ws.IsHidden == !shown) return;
+        ws.IsHidden = !shown;
+        if (!shown || _containers.Values.FirstOrDefault(e => e.Workspace == ws) is not { } entry) return;
+
+        foreach (var (toolId, pinned) in entry.LeftWhileHidden.ToList())
+        {
+            var tab = AllTabs.FirstOrDefault(t => t.Id == toolId);
+            // Another copy closed meanwhile is gone for good.
+            if (tab is null && toolId.Contains('#')) continue;
+            if (tab is null)
+            {
+                OpenToolIn(toolId, ws);
+                tab = ws.OpenTabs.FirstOrDefault(t => t.Id == toolId);
+            }
+            else if (tab.PinnedIn is null && WorkspaceOf(tab) is { } from && from != ws)
+            {
+                from.Remove(tab);
+                ws.Add(tab);
+                DropIfEmpty(from);
+            }
+            if (pinned && tab is not null && ws.Contains(tab)) tab.PinnedIn = ws;
+        }
+        entry.LeftWhileHidden.Clear();
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    /// <summary>
+    /// A tool asked for while its container's panel is hidden goes to a window on screen: the one
+    /// worked in last, or one of its own. Even a pinned one or a container's only tool, since
+    /// otherwise it can't be seen at all.
+    /// </summary>
+    private void BringOutOfHidden(ToolTab tab, bool ownWindow = false)
+    {
+        if (WorkspaceOf(tab) is not { IsHidden: true } from) return;
+        // A container's own Overview has no place anywhere else.
+        if (tab.ToolId == "overview") return;
+        if (_containers.Values.FirstOrDefault(e => e.Workspace == from) is { } entry)
+            entry.LeftWhileHidden[tab.Id] = tab.PinnedIn == from;
+        tab.PinnedIn = null;
+        from.Remove(tab);
+        if ((ownWindow ? null : LastUsedWorkspace) is { } into)
+        {
+            into.Add(tab, into.ActivePane);
+            return;
+        }
+        var ws = new TabWorkspace(isMain: false);
+        ws.Add(tab);
+        Hosts.Add(ws);
+    }
 
     private TabWorkspace? _openInto;
     private bool _openInNewWindow;
@@ -1146,12 +1207,27 @@ public class MainWindowViewModel : ReactiveObject
     /// moves there, unless it's kept where it is (the Overview, a pinned tab), when it's just shown.
     /// A container that isn't on screen falls back to the window worked in last.
     /// </summary>
-    public void OpenToolAt(string toolId, string target, string? monitorKey)
+    public void OpenToolAt(string toolId, string target, string? monitorKey, bool copy = false)
     {
         var existing = AllTabs.FirstOrDefault(t => t.Id == toolId);
+        // Shift: another copy, in the same place a tool not open yet would go; one that has no
+        // copies moves there instead (OpenCopy).
+        if (copy && existing is not null)
+        {
+            var tab = target == Services.ClientLayouts.ToolTargets.NewWindow
+                ? OpenCopy(toolId, ownWindow: true)
+                : OpenCopy(toolId, target == Services.ClientLayouts.ToolTargets.LastUsed ? LastUsedWorkspace : ContainerById(target, monitorKey) ?? LastUsedWorkspace);
+            if (tab is not null) BringForwardWindowOf(tab.Id);
+            return;
+        }
         if (target == Services.ClientLayouts.ToolTargets.NewWindow)
         {
-            if (existing is null)
+            if (existing is not null && WorkspaceOf(existing) is { IsHidden: true })
+            {
+                BringOutOfHidden(existing, ownWindow: true);
+                Show(existing);
+            }
+            else if (existing is null)
             {
                 _openInNewWindow = true;
                 try { OpenTool(toolId); }
@@ -1188,6 +1264,170 @@ public class MainWindowViewModel : ReactiveObject
         BringForwardWindowOf(toolId);
     }
 
+    // ── Copies of a tool ──────────────────────────────────────────────────────
+
+    /// <summary>
+    /// How another copy of each tool is made: with what the app's own was made with, wired the
+    /// same way. A tool not here has only the one: it edits something two copies would both save
+    /// over, or it is the app's own record of something (the background work, chat that plays sounds).
+    /// </summary>
+    private readonly Dictionary<string, Func<object>> _newCopy = [];
+
+    public bool CanCopy(string toolId) => toolId == "overview" || _newCopy.ContainsKey(toolId);
+
+    /// <summary>The app's own of a tool and every open copy of it, for whatever has to reach them all.</summary>
+    public IEnumerable<T> AllOf<T>(T own) where T : class =>
+        AllTabs.Select(t => t.ViewModel).OfType<T>().Prepend(own).Distinct().ToList();
+
+    /// <summary>
+    /// What the app's own tool was given to call, here and by the main window (open the Item
+    /// Browser, add to the buy orders...), a copy is given too, unless it set its own. None of it
+    /// is about the tool it was given to, so a copy uses it as it is.
+    /// <para>⚠️ Only what's still unset on the copy: a tool that sets one of these itself keeps its own.</para>
+    /// </summary>
+    private static void InheritCallbacks(object own, object copy)
+    {
+        foreach (var property in own.GetType().GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance))
+        {
+            if (!typeof(Delegate).IsAssignableFrom(property.PropertyType) || !property.CanRead || property.GetSetMethod() is null
+                || property.GetIndexParameters().Length > 0) continue;
+            if (property.GetValue(copy) is null && property.GetValue(own) is { } given) property.SetValue(copy, given);
+        }
+    }
+
+    /// <summary>
+    /// Parks added, deleted or renamed in Indy Parks, the app's own or a copy. They're chosen in
+    /// Compare, the Production Calculator and the Worklist's Industry tab, which each fill their
+    /// dropdown only once, so every one of them, in every copy, reads them again.
+    /// </summary>
+    private void ParksChanged()
+    {
+        foreach (var parks in AllOf(IndyParksVm)) if (parks.Compare is { } compare) _ = compare.LoadParksAsync();
+        foreach (var calc in AllOf(ProductionCalcVm)) _ = calc.LoadParksAsync();
+        foreach (var worklist in AllOf(WorklistVm)) _ = worklist.IndustryVm.ReloadParksAsync();
+    }
+
+    /// <summary>A copy made by <paramref name="make"/>, given what <paramref name="own"/> was given.</summary>
+    private void CopyOf<T>(string toolId, Func<T> own, Func<T> make, Action<T>? wire = null) where T : class
+    {
+        _newCopy[toolId] = () =>
+        {
+            var copy = make();
+            InheritCallbacks(own(), copy);
+            wire?.Invoke(copy);
+            return copy;
+        };
+    }
+
+    /// <summary>
+    /// Another copy of a tool, in <paramref name="into"/> if given, else where a new tool goes, or in a
+    /// window of its own. A tool not open yet opens the usual way instead, the first of it, as does one
+    /// that can't be copied (shown where it is). Returns its tab.
+    /// </summary>
+    public ToolTab? OpenCopy(string toolId, TabWorkspace? into = null, bool ownWindow = false)
+    {
+        // One that has no copies goes where the copy would have, rather than nothing happening there.
+        if (!CanCopy(toolId) && AllTabs.FirstOrDefault(t => t.Id == toolId) is { } only)
+        {
+            MoveTo(only, into, ownWindow);
+            Show(only);
+            return only;
+        }
+        if (!CanCopy(toolId) || AllTabs.All(t => t.Id != toolId))
+        {
+            if (ownWindow && AllTabs.All(t => t.Id != toolId))
+            {
+                _openInNewWindow = true;
+                try { OpenTool(toolId); }
+                finally { _openInNewWindow = false; }
+            }
+            else if (into is not null && AllTabs.All(t => t.Id != toolId)) OpenToolIn(toolId, into);
+            else OpenTool(toolId);
+            return AllTabs.FirstOrDefault(t => t.Id == toolId);
+        }
+
+        var vm = toolId == "overview" ? _newOverview(null, null) : _newCopy[toolId]();
+        if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
+        var tab = new ToolTab(NewCopyId(toolId), CopyTitle(toolId), vm);
+        if (ownWindow)
+        {
+            var ws = new TabWorkspace(isMain: false);
+            ws.Add(tab);
+            Hosts.Add(ws);
+        }
+        else if (into is not null && Workspaces.Contains(into) && TakesTools(into)) into.Add(tab, into.ActivePane);
+        else PlaceNewTab(tab);
+        LoadOnOpen(vm);
+        Show(tab);
+        return tab;
+    }
+
+    /// <summary>
+    /// A tool picked from a Tool Container's own menu: shown if it's in these tabs already, wherever
+    /// else it's open; otherwise it comes here, another copy if it's open elsewhere. With
+    /// <paramref name="copy"/>, another copy whatever. One that can't be copied moves here.
+    /// </summary>
+    public void OpenToolInContainer(string toolId, TabWorkspace ws, bool copy)
+    {
+        LastUsedWorkspace = ws;
+        // Tabs of the Map and of Settings: they open where they live.
+        if (toolId is "jump_planner" or "route_planner" or "jabber" or "mumble")
+        {
+            OpenTool(toolId);
+            return;
+        }
+        if (!copy && ws.OpenTabs.FirstOrDefault(t => t.ToolId == toolId) is { } here)
+        {
+            Show(here);
+            return;
+        }
+        OpenCopy(toolId, ws);
+    }
+
+    /// <summary>
+    /// Moves a tool that has no copies to where one was asked for: into <paramref name="into"/>,
+    /// a window of its own, or else the window worked in last. Even out of a container it was
+    /// pinned in, or one showing only it, since that is where it was asked to go. Never the main
+    /// window's Overview, nor into a container that shows only one tool.
+    /// </summary>
+    private void MoveTo(ToolTab tab, TabWorkspace? into, bool ownWindow)
+    {
+        if (tab.Id == "overview" || WorkspaceOf(tab) is not { } from) return;
+        var dest = ownWindow ? null
+                 : into is not null && Workspaces.Contains(into) && TakesTools(into) ? into
+                 : LastUsedWorkspace;
+        if (dest == from) return;
+        if (dest is null)
+        {
+            if (!ownWindow || (from.IsFloating && from.OpenTabs.Count() == 1)) return;
+            tab.PinnedIn = null;
+            from.Remove(tab);
+            var ws = new TabWorkspace(isMain: false);
+            ws.Add(tab);
+            Hosts.Add(ws);
+        }
+        else
+        {
+            if (!dest.ShowsTabs) return;
+            tab.PinnedIn = null;
+            from.Remove(tab);
+            dest.Add(tab, dest.ActivePane);
+        }
+        DropIfEmpty(from);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+    }
+
+    private string NewCopyId(string toolId) => toolId + "#" + Interlocked.Increment(ref _containerOverviews);
+
+    /// <summary>"Worklist 2", or the lowest number not showing on another of its tabs.</summary>
+    private string CopyTitle(string toolId)
+    {
+        var title = ToolOf(toolId).Title;
+        var taken = AllTabs.Where(t => t.ToolId == toolId).Select(t => t.Title).ToHashSet();
+        for (var n = 2; ; n++)
+            if (!taken.Contains($"{title} {n}")) return $"{title} {n}";
+    }
+
     private string? _lastOpenedTool;
 
     /// <summary>
@@ -1209,9 +1449,9 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>A container of tabs: one holding a single tool never takes another.</summary>
     private TabWorkspace? ContainerById(string controlId, string? monitorKey)
     {
-        if (monitorKey is not null && _containers.TryGetValue(ContainerKey(monitorKey, controlId), out var here) && here.Workspace.ShowsTabs)
+        if (monitorKey is not null && _containers.TryGetValue(ContainerKey(monitorKey, controlId), out var here) && TakesTools(here.Workspace))
             return here.Workspace;
-        return _containers.Values.Where(e => e.Key.EndsWith("|" + controlId, StringComparison.Ordinal) && e.Workspace.ShowsTabs)
+        return _containers.Values.Where(e => e.Key.EndsWith("|" + controlId, StringComparison.Ordinal) && TakesTools(e.Workspace))
             .Select(e => e.Workspace).FirstOrDefault();
     }
 
@@ -1274,7 +1514,43 @@ public class MainWindowViewModel : ReactiveObject
             return;
         }
 
-        var (title, vm, canClose) = toolId switch
+        var (title, vm, canClose) = ToolOf(toolId);
+
+        // From here the tool is on screen, so its own refresh timer is allowed to run. A latch,
+        // not a visibility check — see IPeriodicRefresh.
+        if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
+        var tab = new ToolTab(toolId, title, vm, canClose);
+        PlaceNewTab(tab);
+        this.RaisePropertyChanged(nameof(SelectedTab));
+        LoadOnOpen(vm);
+
+        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
+        if (navItem is not null) navItem.IsOpen = true;
+    }
+
+    /// <summary>
+    /// What a tool loads as it opens, the first of it or another copy.
+    /// </summary>
+    private void LoadOnOpen(object vm)
+    {
+        // Loaded on open rather than at construction — nothing else needs the alarm list, and
+        // a fresh read also picks up anything the agent created since the tab was last shown.
+        if (vm is AlarmsViewModel alarms)       _ = alarms.LoadAsync();
+        if (vm is SchedulerViewModel scheduler) _ = scheduler.LoadAsync();
+
+        // ⚠️ Same reasoning, and it mattered more here. The error log used to read at application
+        // start, so opening it showed a list from whenever the app was launched — which looks
+        // current and is not. Reading on open means closing the tab and opening it again reads
+        // afresh, which is what somebody doing that is asking for.
+        if (vm is ErrorLogViewModel errorLog)    errorLog.Reload();
+        if (vm is AgentUsageViewModel agentUsage) agentUsage.Reload();
+        if (vm is PlanetaryIndustryViewModel pi) _ = pi.RefreshAsync();
+    }
+
+    /// <summary>The tool the app keeps for an id: its tab's title, its view model, and whether it closes.</summary>
+    private (string Title, object Vm, bool CanClose) ToolOf(string toolId)
+    {
+        return toolId switch
         {
             "overview"   => (ShellText.NavOverview,       (object)OverviewVm,       false),
             "characters" => (ShellText.NavCharacters,      CharacterViewerVm,        true),
@@ -1330,30 +1606,6 @@ public class MainWindowViewModel : ReactiveObject
             "chat_log"       => (ShellText.NavChatLog,       ChatLogViewerVm,   true),
             _                => throw new ArgumentException($"Unknown tool: {toolId}")
         };
-
-
-        // From here the tool is on screen, so its own refresh timer is allowed to run. A latch,
-        // not a visibility check — see IPeriodicRefresh.
-        if (vm is IPeriodicRefresh periodic) periodic.AutoRefreshEnabled = true;
-        var tab = new ToolTab(toolId, title, vm, canClose);
-        PlaceNewTab(tab);
-        this.RaisePropertyChanged(nameof(SelectedTab));
-
-        // Loaded on open rather than at construction — nothing else needs the alarm list, and
-        // a fresh read also picks up anything the agent created since the tab was last shown.
-        if (toolId == "alarms")    _ = AlarmsVm.LoadAsync();
-        if (toolId == "scheduler") _ = SchedulerVm.LoadAsync();
-
-        // ⚠️ Same reasoning, and it mattered more here. The error log used to read at application
-        // start, so opening it showed a list from whenever the app was launched — which looks
-        // current and is not. Reading on open means closing the tab and opening it again reads
-        // afresh, which is what somebody doing that is asking for.
-        if (toolId == "error_log") ErrorLogVm.Reload();
-        if (toolId == "ai_usage")  AgentUsageVm.Reload();
-        if (toolId == "planetary_industry") _ = PlanetaryIndustryVm.RefreshAsync();
-
-        var navItem = _allNavItems.FirstOrDefault(i => i.ToolId == toolId);
-        if (navItem is not null) navItem.IsOpen = true;
     }
 
     /// <summary>
@@ -1620,7 +1872,7 @@ public class MainWindowViewModel : ReactiveObject
         // When an SDE import finishes — by hand, or the one a schema change starts by itself — the
         // fitting tool reads the new game data; one that loaded during the import gets its second try.
         SdeVm.WhenAnyValue(x => x.IsBusy).Skip(1).Where(busy => !busy)
-            .Subscribe(idle => _ = FittingVm.ReloadGameDataAsync());
+            .Subscribe(idle => { foreach (var fitting in AllOf(FittingVm)) _ = fitting.ReloadGameDataAsync(); });
         StartupTrace.Step("new MarketLevelVm");
         MarketLevelVm     = new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
             CharacterVm.Characters, batchAddService, prodCalcService);
@@ -1719,7 +1971,6 @@ public class MainWindowViewModel : ReactiveObject
                                                         indyStructureLink, indyBulkAdd, pollingService);
         // Indy Parks, Compare, and the System Index tool: one record of cost indices for both.
         IndyParksVm.Compare = new ParkComparisonViewModel(parkCompare, costIndexHistory, dbFactory);
-        IndyParksVm.ParksChanged += () => _ = IndyParksVm.Compare.LoadParksAsync();
         StartupTrace.Step("new SystemIndexVm");
         SystemIndexVm       = new SystemIndexViewModel(dbFactory, costIndexHistory);
         StartupTrace.Step("new WalletVm");
@@ -1777,8 +2028,12 @@ public class MainWindowViewModel : ReactiveObject
         // group that no longer exists.
         InvLevelVm.GroupsChanged = async () =>
         {
-            await WorklistVm.RulesVm.LoadAsync();
-            await WorklistVm.StationLevelsVm.LoadAsync();
+            foreach (var worklist in AllOf(WorklistVm))
+            {
+                await worklist.RulesVm.LoadAsync();
+                await worklist.StationLevelsVm.LoadAsync();
+                await worklist.CharacterLevelsVm.LoadAsync();
+            }
         };
 
         StartupTrace.Step("new LpMarketValuesVm");
@@ -1810,7 +2065,8 @@ public class MainWindowViewModel : ReactiveObject
         };
         pollingService.EndpointPolled += key =>
         {
-            if (key == "char.planets.layouts") Dispatcher.UIThread.Post(PlanetaryIndustryVm.EsiPolled);
+            if (key == "char.planets.layouts")
+                Dispatcher.UIThread.Post(() => { foreach (var pi in AllOf(PlanetaryIndustryVm)) pi.EsiPolled(); });
         };
         // The Overview's PI alerts open the colony they are about, or the list for several.
         OverviewVm.Pi                     = piService;
@@ -1848,11 +2104,7 @@ public class MainWindowViewModel : ReactiveObject
                                                         new SlackPictureSearch(entityBrowser, dbFactory));
         // Parks are added, deleted and renamed in Indy Parks but chosen in the Production
         // Calculator and the Worklist's Industry tab, which each fill their dropdown only once.
-        IndyParksVm.ParksChanged += () =>
-        {
-            _ = ProductionCalcVm.LoadParksAsync();
-            _ = WorklistVm.IndustryVm.ReloadParksAsync();
-        };
+        IndyParksVm.ParksChanged += ParksChanged;
 
         // One wiring for every killmail row in the app — browser, corp activity, system
         // page, entity viewers.
@@ -1969,6 +2221,84 @@ public class MainWindowViewModel : ReactiveObject
         TradeOpportunitiesVm = new TradeOpportunitiesViewModel(connString, historyService, batchAddService);
         StartupTrace.Step("new IndustryOpportunitiesVm");
         IndustryOpportunitiesVm = new IndustryOpportunitiesViewModel(connString, historyService, batchAddService);
+
+        // ── Copies: each tool made again as its own was above, given what its own was given ──
+        // A copy is released when its tab closes (Forget), so each of these undoes what it follows.
+        // Not Client Layouts or Indy Parks: two editors would save their own stale copy of the same
+        // layout or park over each other. Not Background Processes, Messages or Group Chat, the
+        // app's one record of what they show (and chat plays its sounds once per copy). Asked for
+        // another of one of these, the one there is moves to where it was asked for (MoveTo).
+        CopyOf("characters", () => CharacterViewerVm, () => new CharacterViewerViewModel(dbFactory.CreateDbContext(), CharacterVm.Characters, characterSummaryService));
+        CopyOf("assets", () => AssetBrowserVm, () => new AssetBrowserViewModel(connString));
+        CopyOf("items", () => ItemBrowserVm, () => new ItemBrowserViewModel(dbFactory.CreateDbContext(), historyService, dbFactory, appPrefs));
+        CopyOf("industry", () => IndustryBrowserVm, () => new IndustryBrowserViewModel(connString, indyFacilityCheck, new Services.Worklist.InventionService(dbFactory)));
+        CopyOf("system_index", () => SystemIndexVm, () => new SystemIndexViewModel(dbFactory, costIndexHistory));
+        CopyOf("prod_calc", () => ProductionCalcVm, () => new ProductionCalculatorViewModel(dbFactory, prodCalcService, appPrefs));
+        CopyOf("fitting", () => FittingVm, () => new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi));
+        CopyOf("price_overrides", () => PriceOverrideVm, () => new PriceOverrideViewModel(new PriceOverrideService(dbFactory), buildCostService));
+        CopyOf("structure_browser", () => StructureBrowserVm,
+            () => new StructureBrowserViewModel(dbFactory, pollingService, esi, new FittingOptionService(dbFactory), appPrefs, indyStructureLink));
+        CopyOf("planetary_industry", () => PlanetaryIndustryVm, () => new PlanetaryIndustryViewModel(piService, errorLogger));
+        // A jump planner of its own too: the map's tabs are its own.
+        CopyOf("universe", () => MapVm, () => new MapToolViewModel(
+            universeMapService, mapStatsService, appPrefs, NewSystemPage,
+            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
+            new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns));
+        CopyOf("alarms", () => AlarmsVm, () => new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute));
+        CopyOf("scheduler", () => SchedulerVm, () => new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
+            corpActivityService, salePostingService, errorLogger, batchAddService, parkCompare, onlineServices,
+            new SlackPictureSearch(entityBrowser, dbFactory)));
+        CopyOf("trade", () => TradeOpportunitiesVm, () => new TradeOpportunitiesViewModel(connString, historyService, batchAddService));
+        CopyOf("industry_opps", () => IndustryOpportunitiesVm, () => new IndustryOpportunitiesViewModel(connString, historyService, batchAddService));
+        CopyOf("market_levels", () => MarketLevelVm, () => new MarketLevelViewModel(marketLevelService, dbFactory, fittingsService,
+            CharacterVm.Characters, batchAddService, prodCalcService));
+        CopyOf("inv_levels", () => InvLevelVm, () => new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
+            batchAddService, prodCalcService, fittingsService, CharacterVm.Characters));
+        CopyOf("sale_posting", () => SalePostingVm, () => new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi));
+        CopyOf("stores", () => StoresVm, () => new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy));
+        CopyOf("net_worth", () => NetWorthVm, () => new NetWorthViewModel(dbFactory));
+        CopyOf("income_expense", () => IncomeExpenseToolVm, () => new IncomeExpenseToolViewModel(dbFactory, errorLogger));
+        CopyOf("wallet", () => WalletVm, () => new WalletViewModel(dbFactory, errorLogger));
+        CopyOf("contracts", () => ContractsVm, () => new ContractsViewModel(dbFactory, esi, errorLogger, contractsService));
+        CopyOf("market_viewer", () => MarketViewerVm, () => new MarketViewerViewModel(dbFactory, errorLogger));
+        CopyOf("sales_tracker", () => SalesTrackerVm, () => new SalesTrackerViewModel(dbFactory, errorLogger, corpActivityService, orderLabels));
+        CopyOf("sale_list_build", () => SaleListingBuildVm, () => new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.BuildCost));
+        CopyOf("sale_list_market", () => SaleListingMarketVm, () => new SaleListingViewModel(dbFactory, errorLogger, corpActivityService, SaleCostBasis.MarketValue));
+        CopyOf("order_tracker", () => OrderTrackerVm, () => new OrderTrackerViewModel(dbFactory, orderLabels, entityBrowser, errorLogger, orderFulfilment));
+        CopyOf("standing_buy_orders", () => StandingBuyOrdersVm, () => new StandingBuyOrdersViewModel(standingBuyOrderService, corpActivityService));
+        CopyOf("worklist", () => WorklistVm, () => new WorklistViewModel(worklistService,
+            new WorklistMarketAltsViewModel(worklistMarketAltService, corpActivityService, dbFactory),
+            new WorklistInvRulesViewModel(dbFactory, corpActivityService, worklistMarketAltService),
+            new WorklistCorpAltsViewModel(dbFactory, worklistCorpAltService),
+            new WorklistIndustryViewModel(dbFactory, industryAssignmentService, worklistSettings, errorLogger, corpActivityService, worklistMarketAltService),
+            new WorklistStationLevelsViewModel(dbFactory, corpActivityService, worklistSettings),
+            new WorklistFinalProductsViewModel(dbFactory, appPrefs, errorLogger),
+            new WorklistHaulingViewModel(dbFactory, worklistSettings, errorLogger),
+            new EveConsole.Services.Worklist.BottleneckService(dbFactory, industryAssignmentService, industryBlueprintService, worklistSettings),
+            new EveConsole.Services.Worklist.ItemContentionService(dbFactory, worklistSettings,
+                worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault()),
+            new EveConsole.Services.Worklist.HaulPressureService(dbFactory, worklistSettings,
+                worklistService.Generators.OfType<EveConsole.Services.Worklist.LogisticsGenerator>().FirstOrDefault())));
+        CopyOf("lp_market_values", () => LpMarketValuesVm, () => new LpMarketValuesViewModel(dbFactory, lpValueService));
+        CopyOf("item_valuation", () => ItemValuationVm, () => new ItemValuationViewModel(dbFactory));
+        CopyOf("player_entities", () => PlayerEntitiesVm, () => new PlayerEntitiesViewModel(entityBrowser, killmailBrowserService,
+            new PlayerActivityService(dbFactory, corpActivityService)));
+        CopyOf("npc_entities", () => NpcEntitiesVm, () => new NpcEntitiesViewModel(entityBrowser, killmailBrowserService));
+        CopyOf("corp_activity", () => CorpActivityVm, () => new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude,
+            corpReportTitles, slackService, exportFormat, errorLogger, discordService));
+        CopyOf("corp_structures", () => CorpStructuresVm, () => new CorpStructuresViewModel(dbFactory, CharacterVm.Corporations, errorLogger));
+        CopyOf("mercenary_dens", () => MercenaryDensVm, () => new MercenaryDensViewModel(dbFactory, errorLogger));
+        CopyOf("killmails", () => KillmailBrowserVm, () => new KillmailBrowserViewModel(killmailBrowserService, CharacterVm.Characters));
+        CopyOf("battle_report", () => BattleReportVm, () => new BattleReportViewModel(battleReportService,
+            ids => corpActivityService.ResolveNamesAsync(ids), zkillboardSettings, dbFactory));
+        CopyOf("eve_mail", () => EveMailVm, () => new EveMailViewModel(eveMailService, CharacterVm.Characters));
+        CopyOf("notifications", () => NotificationsVm, () => new NotificationsViewModel(dbFactory, esi, errorLogger));
+        CopyOf("data", () => ExplorerVm, () => new EsiExplorerViewModel(connString));
+        CopyOf("error_log", () => ErrorLogVm, () => new ErrorLogViewModel(dbFactory, errorLogger));
+        CopyOf("ai_usage", () => AgentUsageVm, () => new AgentUsageViewModel(dbFactory, errorLogger));
+        CopyOf("game_log", () => GameLogViewerVm, () => new GameLogViewerViewModel(dbFactory, errorLogger));
+        CopyOf("chat_log", () => ChatLogViewerVm, () => new ChatLogViewerViewModel(dbFactory, errorLogger, monitoringSettings));
 
         agentService.AlarmToolFactory =
             () => new EveConsole.Agent.Tools.Actions.ManageAlarmsTool(

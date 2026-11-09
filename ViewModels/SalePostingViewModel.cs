@@ -958,8 +958,11 @@ public class SalePostingItemRow : ReactiveObject
 }
 
 // ── Window view-model ───────────────────────────────────────────────────────────
-public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
+public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
     public bool AutoRefreshEnabled { get; set; }
@@ -1094,10 +1097,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh
         _ = InitAsync();
 
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
-        Observable.Interval(TimeSpan.FromMinutes(1))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(1))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("SalePosting.AutoRefresh")
-            .Subscribe(tick => { _ = RefreshAllAsync(); });
+            .Subscribe(tick => { _ = RefreshAllAsync(); }));
     }
 
     public Task<IReadOnlyList<InvTypeResult>>  SearchTypesAsync(string text) => _svc.SearchTypesAsync(text);

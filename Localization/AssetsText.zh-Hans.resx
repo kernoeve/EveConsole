@@ -1462,4 +1462,31 @@ Warrior II 5
   <data name="ColItemVolume" xml:space="preserve">
     <value>体积</value>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>自拉取以来</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>已添加 ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>已更改 ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>任务 {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>合同 {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>运输</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>截至 {0}</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>截至 {0} 至 {1}</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>此后写入 {0:N0} 行</value>
+  </data>
 </root>

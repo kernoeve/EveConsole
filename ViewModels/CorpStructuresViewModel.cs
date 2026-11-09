@@ -223,7 +223,7 @@ public sealed class CorpStructureRowVm : ReactiveObject
 /// Corp Structures: every Upwell structure and starbase the chosen corporation has anchored in
 /// space, with its state, services, fit, fuel, burn and when it runs dry.
 /// </summary>
-public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
+public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
@@ -434,7 +434,8 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
 
         PickRemembered();
-        Corps.CollectionChanged += (_, _) => PickRemembered();
+        System.Collections.Specialized.NotifyCollectionChangedEventHandler onCorps = (_, _) => PickRemembered();
+        _life.Follow(() => Corps.CollectionChanged += onCorps, () => Corps.CollectionChanged -= onCorps);
 
         // Read once the tool has been opened, not at startup for a screen nobody has looked at.
         this.WhenAnyValue(x => x.SelectedCorp)
@@ -443,12 +444,15 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
 
         // The fuel left counts down between polls; a reload every five minutes keeps it honest
         // and picks up whatever the pollers have brought in.
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("CorpStructures.AutoRefresh")
             .Where(_ => SelectedCorp is not null && !IsLoading)
-            .Subscribe(t => { _ = LoadAsync(); });
+            .Subscribe(t => { _ = LoadAsync(); }));
     }
+
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
 
     /// <summary>
     /// Selects the corporation chosen last time on this machine, else the first — when nothing is

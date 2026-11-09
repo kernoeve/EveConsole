@@ -171,6 +171,37 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetIncludeNonPersonalCorpsAsync(bool on) =>
         prefs.SetAsync(IncludeNonPersonalCorpsKey, on ? "1" : "0");
 
+    // ── Who holds the material ────────────────────────────────────────────────
+    //
+    // A character can build only with what is in its own hangars or in the hangars of the
+    // corporation it is in now. Keeping everything in one corporation is what lets every alt in it
+    // use everything; material left in a personal hangar or a ship's hold is out of reach of the
+    // rest, and an alt outside that corporation can reach none of it.
+
+    public const string DefaultCorpKey            = "worklist.transfers.default_corp_id";
+    public const string DefaultCorpFromCorpsKey   = "worklist.transfers.from_other_corps";
+
+    /// <summary>
+    /// The corporation that should hold the Worklist's items: the items of its orders and inventory
+    /// levels. One a character holds is given back to it by a Transfer task, at any station where
+    /// this corporation has a hangar, except what a character level keeps with that character.
+    /// 0 when none is set, and then nothing is transferred to a corporation.
+    /// </summary>
+    public long DefaultCorporationId => prefs.GetLong(DefaultCorpKey, 0) is var id && id > 0 ? id : 0;
+
+    public Task SetDefaultCorporationAsync(long corporationId) =>
+        prefs.SetAsync(DefaultCorpKey, Math.Max(0, corporationId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Whether another of the player's corporations gives its Worklist items to the default one
+    /// too, done by a member of that corporation. Off: only characters' own hangars and holds are
+    /// emptied into it, and another corporation keeps what it holds.
+    /// </summary>
+    public bool DefaultCorpFromOtherCorps => prefs.GetBool(DefaultCorpFromCorpsKey, false);
+
+    public Task SetDefaultCorpFromOtherCorpsAsync(bool on) =>
+        prefs.SetAsync(DefaultCorpFromCorpsKey, on ? "1" : "0");
+
     public async Task SetIndustryScopeAsync(string scope, long? id, string name)
     {
         await prefs.SetAsync(IndustryScopeKey, scope);
@@ -292,6 +323,18 @@ public class WorklistSettings(AppPreferencesService prefs)
 
     /// <summary>How far above its level a station must rise before the excess is swept away.</summary>
     public double SurplusBandPercent => Band(SurplusBandKey);
+
+    // The same two bands for character levels, kept apart: what a character keeps is handed over
+    // by a contract, not hauled, and a contract for a handful is no more worth making than a trip.
+    public const string CharacterRestockBandKey = "worklist.character_levels.restock_band_pct";
+    public const string CharacterSurplusBandKey = "worklist.character_levels.surplus_band_pct";
+
+    /// <summary>How far below its character level a character must fall before it is given more.</summary>
+    public double CharacterRestockBandPercent => Band(CharacterRestockBandKey);
+
+    /// <summary>How far above its character level a character must rise before the excess goes
+    /// back to the default corporation.</summary>
+    public double CharacterSurplusBandPercent => Band(CharacterSurplusBandKey);
 
     public Task SetBandAsync(string key, double percent) =>
         prefs.SetAsync(key, Math.Clamp(percent, 0, 100)
