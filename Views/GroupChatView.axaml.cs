@@ -250,9 +250,24 @@ public partial class GroupChatView : UserControl
                 if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
                     await vm.IrcInviteAsync(who);
             }),
+        };
+        if (vm.IrcCanModerate()) lines.Add(Line(GroupChatText.MenuLiftBan, async () =>
+        {
+            var bans = await vm.IrcBansAsync();
+            if (bans.Count == 0) { if (!vm.HasStatus) vm.SetStatus(Format(GroupChatText.NoBans, room)); return; }
+
+            var shown = bans.Select(b => b.SetBy.Length > 0 ? $"{b.Mask}  ({b.SetBy})" : b.Mask).ToList();
+            if (await AskAsync(Format(GroupChatText.LiftBanTitle, room), "", GroupChatText.LabelBanned, "", shown) is not { Length: > 0 } picked) return;
+
+            var mask = picked.Split("  (")[0].Trim();
+            if (bans.Any(b => b.Mask == mask)) await vm.IrcLiftBanAsync(mask);
+            else vm.SetStatus(GroupChatText.PickBanned);
+        }));
+        lines.AddRange(new List<Control>
+        {
             new Separator(),
             Line(JabberText.LeaveRoom, () => vm.LeaveRoomCommand.Execute().ToTask()),
-        };
+        });
         Show(at, lines);
     }
 

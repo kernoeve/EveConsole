@@ -55,6 +55,17 @@ public sealed partial class IrcService
                 session.Locked(s => { if (s.InviteMap.Count < MostInvites) s.InviteMap[s.Fold(m[1])] = new IrcInvite(m[1], m.Nick); });
                 changed = true;
                 break;
+            case "367":   // me #channel mask [setter [time]]
+                session.Locked(s =>
+                {
+                    if (s.BansComing.GetValueOrDefault(s.Fold(m[1])) is { Bans.Count: < 1000 } coming)
+                        coming.Bans.Add(new IrcBan(m[2], m.Params.Count > 3 ? m[3].Split('!')[0] : ""));
+                });
+                break;
+            case "368":
+                var bans = session.Locked(s => s.BansComing.Remove(s.Fold(m[1]), out var coming) ? coming : default);
+                bans.Done?.TrySetResult(bans.Bans);
+                break;
             case "321": session.Locked(s => s.ListComing = []); break;
             case "322":
                 session.Locked(s =>

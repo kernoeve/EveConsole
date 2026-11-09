@@ -304,6 +304,17 @@ public sealed partial class GroupChatViewModel
 
     public Task IrcSetTopicAsync(string topic) => IrcActAsync((s, channel) => _irc!.SetTopicAsync(s, channel, topic));
 
+    /// <summary>Who the channel open bans. Empty, with what went wrong said, when it will not say.</summary>
+    public async Task<IReadOnlyList<IrcBan>> IrcBansAsync()
+    {
+        StatusText = "";
+        if (OpenIrcChannel() is not (IrcSession session, IrcChannelState state)) return [];
+        try { return await Task.Run(() => _irc!.BansAsync(session, state.ServerName)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; return []; }
+    }
+
+    public Task IrcLiftBanAsync(string mask) => IrcActAsync((s, channel) => _irc!.LiftBanAsync(s, channel, mask));
+
     public Task IrcInviteAsync(string nick) =>
         nick.Trim() is { Length: > 0 } who ? IrcActAsync((s, channel) => _irc!.InviteAsync(s, who, channel)) : Task.CompletedTask;
 

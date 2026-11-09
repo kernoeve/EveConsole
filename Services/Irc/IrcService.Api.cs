@@ -281,6 +281,27 @@ public sealed partial class IrcService
     public Task SetRankAsync(IrcSession session, string channel, string nick, char mode, bool give) =>
         Connected(session).ModeAsync(channel, (give ? "+" : "-") + mode, nick);
 
+    /// <summary>Who a channel bans. Empty when it will not say (not an operator), as the server's refusal says why.</summary>
+    public async Task<IReadOnlyList<IrcBan>> BansAsync(IrcSession session, string channel, CancellationToken ct = default)
+    {
+        var client = Connected(session);
+        var done = new TaskCompletionSource<IReadOnlyList<IrcBan>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        session.Locked(s => s.BansComing[s.Fold(channel)] = ([], done));
+        await client.ModeAsync(channel, "+b");
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        await using (timeout.Token.Register(() =>
+        {
+            session.Locked(s => s.BansComing.Remove(s.Fold(channel)));
+            done.TrySetResult([]);
+        }))
+            return await done.Task;
+    }
+
+    public Task LiftBanAsync(IrcSession session, string channel, string mask, CancellationToken ct = default) =>
+        Connected(session).ModeAsync(channel, "-b", mask);
+
     public Task InviteAsync(IrcSession session, string nick, string channel, CancellationToken ct = default) =>
         Connected(session).InviteAsync(nick, channel, ct);
 

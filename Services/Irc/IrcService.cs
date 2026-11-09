@@ -62,6 +62,9 @@ public sealed record IrcInvite(string Channel, string From);
 /// <summary>One channel a server lists: its name, how many are in it, and its topic.</summary>
 public sealed record IrcListEntry(string Channel, int People, string Topic);
 
+/// <summary>One ban on a channel: who it keeps out (a mask such as *!*@host), and who set it.</summary>
+public sealed record IrcBan(string Mask, string SetBy);
+
 /// <summary>One server login, connected or not.</summary>
 public sealed class IrcSession(IrcServer server)
 {
@@ -104,6 +107,9 @@ public sealed class IrcSession(IrcServer server)
 
     internal List<IrcListEntry>? ListComing { get; set; }
     internal TaskCompletionSource<IReadOnlyList<IrcListEntry>>? ListDone { get; set; }
+
+    /// <summary>A channel's ban list being read (367 lines until 368), by folded channel.</summary>
+    internal Dictionary<string, (List<IrcBan> Bans, TaskCompletionSource<IReadOnlyList<IrcBan>> Done)> BansComing { get; } = new(StringComparer.Ordinal);
 
     /// <summary>The last thing the server refused, for the screen to say (not being an operator, no such nick).</summary>
     public string LastRefusal { get; internal set; } = "";

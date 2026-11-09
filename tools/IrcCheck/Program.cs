@@ -302,6 +302,10 @@ try
     await Wait(() => stored.Any(m => m.Body == "after the typing"));
     Check("typing from history is not news", typingSeen == 1, typingSeen.ToString());
 
+    var bans = await irc.BansAsync(session, "#fleet");
+    Check("a channel's bans read, with who set them", bans.Count == 2 && bans[0] is { Mask: "*!*@bad.host", SetBy: "Bob" } && bans[1].SetBy == "",
+        string.Join(", ", bans.Select(b => b.Mask + "/" + b.SetBy)));
+
     var unread = await irc.UnreadAsync();
     Check("unread by conversation", unread.Any(u => u.Conversation == "#fleet" && u.Mentions == 1) && unread.Any(u => u.Conversation == "bobby" && u.Alerts >= 1));
     await irc.MarkReadAsync(session.Server.Id, "#fleet");
@@ -494,6 +498,11 @@ sealed class FakeIrc : IAsyncDisposable
                     Send($"@batch=h1;time=2026-11-08T09:00:01.000Z;msgid=old1 :Carol!c@h PRIVMSG {target} :from history");
                     Send($"@batch=h1;time=2026-11-08T09:00:02.000Z :Carol!c@h PART {target}");
                     Send(":fake.server BATCH -h1");
+                    break;
+                case "MODE" when m.Params.Count == 2 && m[1] == "+b":
+                    Send($":fake.server 367 {nick} {m[0]} *!*@bad.host Bob!b@h 1700000000");
+                    Send($":fake.server 367 {nick} {m[0]} Spammer!*@*");
+                    Send($":fake.server 368 {nick} {m[0]} :End of channel ban list");
                     break;
                 case "PRIVMSG" or "NOTICE" when echo:
                     Send($"@msgid=e{Interlocked.Increment(ref _msgid)};time={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ} :{nick}!u@h {m.Command} {m[0]} :{m.Last}");
