@@ -498,4 +498,31 @@
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>La sala elegida para este control ya no está en el chat de grupo.</value>
   </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Exportar</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Importar</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Guarda este diseño en un archivo, para conservarlo o compartirlo.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Añade un diseño desde un archivo como diseño nuevo. Los monitores no cambian.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>Diseño de EVE Console</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>Se exportó «{0}».</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>Se importó «{0}». Revisa sus controles de Mumble si viene de otra base de datos.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Ese archivo no es un diseño de EVE Console.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Ese diseño se creó con una versión más reciente de EVE Console. Actualiza para importarlo.</value>
+  </data>
 </root>

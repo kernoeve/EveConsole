@@ -4419,6 +4419,14 @@ public class App : Application
                 var assetActivity = Services.GetRequiredService<AssetActivity>();
                 _ = Task.Run(() => assetActivity.UpgradeAsync());
 
+                // The layout templates that ship with the app, into the person's own folder of them.
+                var startErrors = Services.GetRequiredService<AppErrorLogger>();
+                _ = Task.Run(async () =>
+                {
+                    try { await EveConsole.Services.ClientLayouts.LayoutTemplates.CopyShippedAsync(); }
+                    catch (Exception ex) { startErrors.Log("ClientLayouts", "copying the shipped layout templates", ex); }
+                });
+
                 // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
                 // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
                 // the same pilot are one sighting and nobody is named for reporting. An alarm

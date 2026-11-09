@@ -191,6 +191,15 @@
     </None>
   </ItemGroup>
 
+  <!-- Layout templates, beside the executable in every build and release. The app copies each into
+       the person's own "Layout Templates" folder once (see Services/ClientLayouts/LayoutTemplates.cs). -->
+  <ItemGroup>
+    <None Update="LayoutTemplates\*.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </None>
+  </ItemGroup>
+
   <!-- ═══ Interface text, one class per file ════════════════════════════════
        Localization/ShellText.resx is the English, and becomes the class ShellText: one property
        per string, so XAML reads {x:Static loc:ShellText.NavOverview} and code ShellText.NavOverview,

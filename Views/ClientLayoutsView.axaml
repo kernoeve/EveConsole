@@ -240,9 +240,14 @@
               </ListBox.ItemTemplate>
             </ListBox>
             <WrapPanel Grid.Row="2">
-              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.NewLayout}" Command="{Binding NewLayoutCommand}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.NewLayout}" Click="NewLayout_Click"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipNewLayout}" />
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DuplicateLayout}" Command="{Binding DuplicateLayoutCommand}" IsEnabled="{Binding HasLayout}" />
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DeleteLayout}" Command="{Binding DeleteLayoutCommand}" IsEnabled="{Binding HasLayout}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.ExportLayout}" Click="ExportLayout_Click" IsEnabled="{Binding HasLayout}"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipExportLayout}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.ImportLayout}" Click="ImportLayout_Click"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipImportLayout}" />
             </WrapPanel>
 
             <!-- The layout as a tree: the way to reach what's nested, or covered by what it holds. -->

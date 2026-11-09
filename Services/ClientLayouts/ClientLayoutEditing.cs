@@ -13,6 +13,9 @@ public static class ClientLayoutEditing
         Inside = new LayoutArea { Content = AreaContent.Client },
     };
 
+    /// <summary>A blank layout: one empty panel filling the monitor.</summary>
+    public static LayoutArea BlankRoot() => new() { Content = AreaContent.Panel };
+
     /// <summary>Every area directly below this one: grid cells, docked grids' cells, and the insides of its panels.</summary>
     private static IEnumerable<LayoutArea> Below(LayoutArea area)
     {
