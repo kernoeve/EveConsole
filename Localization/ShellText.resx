@@ -939,4 +939,10 @@ This client is set never to run the background processes, and only the client ru
 
 Start a {1} client that may run them, or turn this off: remove "neverRunBackgroundWork" from {2}.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Third-party notices</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>The licenses of the software EVE Console is built from</value>
+  </data>
 </root>

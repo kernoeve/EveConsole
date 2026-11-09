@@ -743,4 +743,10 @@ Este cliente está configurado para no ejecutar nunca los procesos en segundo pl
 
 Inicia un cliente {1} que pueda ejecutarlos, o desactiva esto: quita "neverRunBackgroundWork" de {2}.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Avisos de terceros</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Las licencias del software con el que está hecho EVE Console</value>
+  </data>
 </root>

@@ -29,5 +29,18 @@ public partial class AboutWindow : Window
         catch { /* no browser configured; nothing an About box can usefully do about that */ }
     }
 
+    /// <summary>
+    /// Opens THIRD-PARTY-NOTICES.txt, which every build and release carries beside the executable, in the system's text
+    /// viewer. Without the file (a build that lost it) the published copy on GitHub opens instead.
+    /// </summary>
+    private void OnNoticesClick(object? sender, RoutedEventArgs e)
+    {
+        var path = Path.Combine(AppContext.BaseDirectory, "THIRD-PARTY-NOTICES.txt");
+        var target = File.Exists(path) ? path : "https://github.com/kernoeve/EveConsole/blob/main/THIRD-PARTY-NOTICES.txt";
+
+        try { Process.Start(new ProcessStartInfo(target) { UseShellExecute = true }); }
+        catch { /* nothing registered to open it; the file is still there beside the app */ }
+    }
+
     private void OnCloseClick(object? sender, RoutedEventArgs e) => Close();
 }

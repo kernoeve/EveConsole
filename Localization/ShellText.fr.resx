@@ -743,4 +743,10 @@ Ce client est réglé pour ne jamais exécuter les processus en arrière-plan, e
 
 Démarrez un client {1} autorisé à les exécuter, ou désactivez ce réglage : retirez « neverRunBackgroundWork » de {2}.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Mentions des tiers</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Les licences des logiciels dont EVE Console est fait</value>
+  </data>
 </root>

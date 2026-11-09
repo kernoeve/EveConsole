@@ -755,4 +755,10 @@ PID: {2}
 
 Запустите клиент {1}, которому это разрешено, или отключите настройку: удалите «neverRunBackgroundWork» из {2}.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Уведомления о сторонних компонентах</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Лицензии программ, из которых состоит EVE Console</value>
+  </data>
 </root>

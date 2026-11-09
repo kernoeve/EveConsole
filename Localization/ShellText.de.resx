@@ -743,4 +743,10 @@ Dieser Client ist so eingestellt, dass er die Hintergrundprozesse nie ausführt,
 
 Starte einen Client {1}, der sie ausführen darf, oder schalte dies ab: Entferne „neverRunBackgroundWork“ aus {2}.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Hinweise zu Drittanbietern</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Die Lizenzen der Software, aus der EVE Console besteht</value>
+  </data>
 </root>

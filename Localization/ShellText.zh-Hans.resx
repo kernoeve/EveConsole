@@ -737,4 +737,10 @@ PID：{2}
 
 请启动一个可以运行它们的 {1} 客户端，或关闭此设置：从 {2} 中删除“neverRunBackgroundWork”。</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>第三方声明</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>构成 EVE Console 的软件的许可证</value>
+  </data>
 </root>

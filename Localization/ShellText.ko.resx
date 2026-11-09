@@ -737,4 +737,10 @@ PID: {2}
 
 실행할 수 있는 {1} 클라이언트를 시작하거나 이 설정을 끄세요: {2}에서 "neverRunBackgroundWork"를 지우세요.</value>
   </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>타사 고지</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>EVE Console를 이루는 소프트웨어의 라이선스</value>
+  </data>
 </root>
