@@ -7,7 +7,7 @@ namespace EveConsole.Services.Irc;
 
 public enum IrcState { Offline, Connecting, Connected, Reconnecting, Failed }
 
-public enum IrcProblem { None, Password, Certificate, NoEncryption, Refused, Other }
+public enum IrcProblem { None, Password, Certificate, NoEncryption, Refused, Nickname, Other }
 
 /// <summary>Someone in a channel: their nickname, ranks there, and what the server says about them.</summary>
 public sealed class IrcMember(string nick)
@@ -119,7 +119,13 @@ public sealed class IrcSession(IrcServer server)
     public IReadOnlyList<IrcPerson> People => Locked(s => (IReadOnlyList<IrcPerson>)[.. s.PeopleMap.Values]);
 
     /// <summary>How the server compares names, or the usual rules before it has said.</summary>
-    public string Fold(string name) => Client?.Support.Fold(name) ?? IrcSupport.Fold(name, "rfc1459");
+    /// <remarks>
+    /// ⚠️ Always the usual rules (rfc1459), whatever the server says, for everything kept by name: what is saved, the
+    /// channels and people here, and what the screens look up. Folding the server's way when connected and the usual
+    /// way when not made a channel with [ ] in its name lose its history and unread while offline on a server that
+    /// compares names otherwise. Two names only those rules tell apart are rarer than that.
+    /// </remarks>
+    public string Fold(string name) => IrcSupport.Fold(name, "rfc1459");
 
     public bool IsChannelName(string name) => Client?.Support.IsChannel(name) ?? name.StartsWith('#') || name.StartsWith('&');
 
@@ -332,6 +338,9 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
                     case IrcFailure.Login:
                         SetState(session, IrcState.Failed, IrcProblem.Password, e.Message);
                         return;
+                    case IrcFailure.Nickname:
+                        SetState(session, IrcState.Failed, IrcProblem.Nickname, e.Message);
+                        return;
                     case IrcFailure.Refused:
                         // A ban or a refusal says the same next time. Encryption missing too.
                         SetState(session, IrcState.Failed, e.Message.Contains("encrypt", StringComparison.OrdinalIgnoreCase) ? IrcProblem.NoEncryption : IrcProblem.Refused, e.Message);
@@ -387,9 +396,11 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             kind, server.Account, password, server.TrustedCertificate));
         session.Client = client;
 
-        var inbox = Channel.CreateUnbounded<IrcMessage>(new UnboundedChannelOptions { SingleReader = true });
+        // ⚠️ Bounded: the reading waits while the lines are handled, so a fast server, or a long history, cannot make
+        // the lines waiting grow without end.
+        var inbox = Channel.CreateBounded<IrcMessage>(new BoundedChannelOptions(MostWaiting) { SingleReader = true, FullMode = BoundedChannelFullMode.Wait });
         session.Inbox = inbox.Writer;
-        client.Received += m => inbox.Writer.TryWrite(m);
+        client.Deliver = m => inbox.Writer.WriteAsync(m, ct);
 
         await client.ConnectAsync(ct);
 
@@ -400,17 +411,31 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.HasTags = client.HasTags;
         SetState(session, IrcState.Connected, IrcProblem.None, "");
 
-        // One reader per connection keeps lines in order, and the database off the reading thread.
-        var worker = Task.Run(() => ProcessInboxAsync(session, client, inbox.Reader, ct), ct);
+        // One reader per connection keeps lines in order, and the database off the reading thread. ⚠️ Stopped with the
+        // connection and waited for: lines of an old connection handled after a new one starts would mark channels
+        // joined, or list people, on a connection that has not joined them.
+        using var workerStop = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        var worker = Task.Run(() => ProcessInboxAsync(session, client, inbox.Reader, workerStop.Token), workerStop.Token);
 
-        await AfterLoginAsync(session, client, ct);
-
-        string why;
-        try { why = await client.RunAsync(ct); }
-        finally { inbox.Writer.TryComplete(); }
-        try { await worker; } catch (OperationCanceledException) { }
-        throw new IrcException(IrcFailure.Network, why);
+        // ⚠️ Reading starts now, alongside what follows logging in: joining many channels at the sending pace takes a
+        // while, and a server whose PING goes unread meanwhile drops the connection.
+        var reading = Task.Run(() => client.RunAsync(ct), ct);
+        try
+        {
+            try { await AfterLoginAsync(session, client, ct); }
+            catch (Exception e) when (e is IrcException or InvalidOperationException) { session.Detail = e.Message; }
+            throw new IrcException(IrcFailure.Network, await reading);
+        }
+        finally
+        {
+            inbox.Writer.TryComplete();
+            await workerStop.CancelAsync();
+            try { await worker; } catch (OperationCanceledException) { }
+        }
     }
+
+    /// <summary>Most lines read and not yet handled: reading waits beyond this.</summary>
+    private const int MostWaiting = 10_000;
 
     /// <summary>What follows logging in: away as it was left, the network's own commands, the channels, and catching up.</summary>
     private async Task AfterLoginAsync(IrcSession session, IrcClient client, CancellationToken ct)
@@ -422,8 +447,14 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             session.IsAway = true;
         }
 
+        // ⚠️ A saved command that looks like it carries a password goes only over encryption, or to this machine, as the
+        // login's own password does: "/msg NickServ IDENTIFY ..." saved here would otherwise cross the network readable.
+        var safe = client.IsEncrypted || IrcClient.IsThisMachine(server.Host.Trim());
         foreach (var line in server.OnConnect.Split('\n', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+        {
+            if (!safe && CarriesSecret(line)) { session.Detail = "A command once connected was not sent: it looks like a password, and the connection is not encrypted."; continue; }
             if (CommandLine(line) is { } m) await client.SendRawAsync(m, ct);
+        }
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var channels = await db.IrcChannels.AsNoTracking().Where(c => c.ServerId == server.Id && !c.Left).ToListAsync(ct);
@@ -457,6 +488,10 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             await client.HistoryTargetsAsync(from, ct);
         }
     }
+
+    private static bool CarriesSecret(string line) =>
+        new[] { "identify", "pass", "login", "auth", "register", "ghost", "recover" }
+            .Any(w => line.Contains(w, StringComparison.OrdinalIgnoreCase));
 
     /// <summary>
     /// A line as a person types it in a client, /command and all, as the IRC line it stands for. Null for nothing to send.

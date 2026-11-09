@@ -96,17 +96,16 @@ public sealed partial class IrcService
             ? client.TypingAsync(target, typing ? "active" : "done", ct)
             : Task.CompletedTask;
 
-    /// <summary>
-    /// Adds this person's reaction to a message, or takes it off again. IRC has no "take back", so it is sent again,
-    /// which is how clients that show reactions treat a second one.
-    /// </summary>
+    /// <summary>Adds this person's reaction to a message, or takes it back if it is theirs already (+draft/unreact).</summary>
     public async Task ReactAsync(IrcSession session, string target, string conversation, string messageId, string emoji, CancellationToken ct = default)
     {
         var client = Connected(session);
         if (!client.HasTags || messageId.Length == 0) return;
-        await client.ReactAsync(target, messageId, emoji, ct);
-        await AddReactionAsync(session.Server.Id, conversation, messageId, client.Nick, emoji, ct);
-        ReactionsChanged?.Invoke(session.Server.Id, conversation);
+        var mine = (await ReactionsAsync(session.Server.Id, conversation, [messageId], client.Nick, ct))
+                   .GetValueOrDefault(messageId)?.Any(c => c.Mine && c.Emoji == emoji) == true;
+        await client.ReactAsync(target, messageId, emoji, takeBack: mine, ct);
+        if (await SetReactionAsync(session.Server.Id, conversation, messageId, client.Nick, emoji, add: !mine, ct))
+            ReactionsChanged?.Invoke(session.Server.Id, conversation);
     }
 
     public async Task SetAwayAsync(IrcSession session, string message, CancellationToken ct = default)

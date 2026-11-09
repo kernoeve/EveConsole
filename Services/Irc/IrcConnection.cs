@@ -17,6 +17,8 @@ public enum IrcFailure
     Refused,
     /// <summary>The server spoke something this client cannot follow.</summary>
     Protocol,
+    /// <summary>The server does not accept the nickname at all: it has to be changed.</summary>
+    Nickname,
 }
 
 public sealed class IrcException(IrcFailure failure, string message, Exception? inner = null) : Exception(message, inner)
@@ -54,6 +56,7 @@ public sealed class IrcConnection : IAsyncDisposable
     private TcpClient? _tcp;
     private Stream? _stream;
     private readonly SemaphoreSlim _writeLock = new(1, 1);
+    private readonly SemaphoreSlim _paceLock = new(1, 1);
     private readonly byte[] _buffer = new byte[16 * 1024];
     private int _start, _end;
 
@@ -179,10 +182,18 @@ public sealed class IrcConnection : IAsyncDisposable
         var line = Fit(message);
         var bytes = Encoding.UTF8.GetBytes(line + "\r\n");
 
+        // ⚠️ The pace is kept apart from writing: waiting for a turn while holding the write lock would put an urgent
+        // answer to the server's PING behind every line queued for its turn.
+        if (!urgent)
+        {
+            await _paceLock.WaitAsync(ct);
+            try { await WaitTurnAsync(ct); }
+            finally { _paceLock.Release(); }
+        }
+
         await _writeLock.WaitAsync(ct);
         try
         {
-            if (!urgent) await WaitTurnAsync(ct);
             var stream = _stream ?? throw new IrcException(IrcFailure.Network, "Not connected.");
             try
             {
@@ -221,11 +232,20 @@ public sealed class IrcConnection : IAsyncDisposable
         var line = message.Serialize();
         var tagEnd = line.StartsWith('@') ? line.IndexOf(' ') + 1 : 0;
         var rest = line[tagEnd..];
-        if (Encoding.UTF8.GetByteCount(rest) <= IrcMessage.MaxOutgoingBytes - 2) return line;
+        const int most = IrcMessage.MaxOutgoingBytes - 2;
+        if (rest.Length <= most / 4 || Encoding.UTF8.GetByteCount(rest) <= most) return line;
 
-        var cut = rest.Length;
-        while (cut > 0 && Encoding.UTF8.GetByteCount(rest.AsSpan(0, cut)) > IrcMessage.MaxOutgoingBytes - 2) cut--;
-        if (cut > 0 && char.IsHighSurrogate(rest[cut - 1])) cut--;
+        // Forward, adding up bytes: one pass however long the text.
+        var bytes = 0;
+        var cut = 0;
+        while (cut < rest.Length)
+        {
+            var width = char.IsHighSurrogate(rest[cut]) && cut + 1 < rest.Length ? 2 : 1;
+            var size = Encoding.UTF8.GetByteCount(rest.AsSpan(cut, width));
+            if (bytes + size > most) break;
+            bytes += size;
+            cut += width;
+        }
         return line[..tagEnd] + rest[..cut];
     }
 

@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>Ник</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>Не подключено: сервер не принимает этот ник. Выберите другой в «Изменить».</value>
+  </data>
 </root>

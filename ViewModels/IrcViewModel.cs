@@ -82,6 +82,7 @@ public sealed class IrcViewModel : ReactiveObject
             IrcProblem.Certificate => JabberText.ProblemCertificate,
             IrcProblem.NoEncryption => IrcText.ProblemNoEncryption,
             IrcProblem.Refused => IrcText.ProblemRefused,
+            IrcProblem.Nickname => IrcText.ProblemNickname,
             _ => JabberText.StateOffline,
         },
         _ => JabberText.StateOffline,

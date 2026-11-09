@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>닉네임</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>연결 안 됨: 서버가 이 닉네임을 받지 않습니다. 편집에서 다른 것을 고르세요.</value>
+  </data>
 </root>

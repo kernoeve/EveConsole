@@ -235,6 +235,9 @@ public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : Reactive
 {
     public string Jid => room.Jid;
 
+    /// <summary>The address under the name, where it says something more: an IRC channel's name is its address.</summary>
+    public bool HasAddressLine => !string.Equals(Jid, Name, StringComparison.OrdinalIgnoreCase);
+
     private bool _isJoined = joined;
     public bool IsJoined { get => _isJoined; set => this.RaiseAndSetIfChanged(ref _isJoined, value); }
 

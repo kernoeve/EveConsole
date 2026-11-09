@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>Pseudo</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>Non connecté : le serveur n'accepte pas ce pseudo. Choisissez-en un autre dans Modifier.</value>
+  </data>
 </root>

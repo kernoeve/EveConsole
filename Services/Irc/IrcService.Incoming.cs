@@ -27,7 +27,9 @@ public sealed partial class IrcService
         // ⚠️ History replays joins, parts and the like as well as messages (event-playback, asked for so they come as
         // events rather than as lines from a "HistServ"). Taken as live, an old JOIN of this person would say a channel
         // was joined: only what was said is read from history.
-        if (IrcClient.BatchOf(m).Length > 0 && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG")) return;
+        // ⚠️ History batches only: a netsplit's batch of QUITs is live, and CHATHISTORY TARGETS arrives in a batch of its own.
+        var history = IsHistory(m);
+        if (history && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG")) return;
 
         var changed = false;
         switch (m.Command)
@@ -49,8 +51,8 @@ public sealed partial class IrcService
             case "CHGHOST": changed = ForEachMember(session, m.Nick, x => x.UserHost = m[0] + "@" + m[1]); break;
             case "730": changed = OnMonitor(session, m.Last, true); break;
             case "731": changed = OnMonitor(session, m.Last, false); break;
-            case "INVITE" when session.Fold(m[0]) == session.Fold(client.Nick):
-                session.Locked(s => s.InviteMap[s.Fold(m[1])] = new IrcInvite(m[1], m.Nick));
+            case "INVITE" when session.Fold(m[0]) == session.Fold(client.Nick) && m[1].Length > 0:
+                session.Locked(s => { if (s.InviteMap.Count < MostInvites) s.InviteMap[s.Fold(m[1])] = new IrcInvite(m[1], m.Nick); });
                 changed = true;
                 break;
             case "321": session.Locked(s => s.ListComing = []); break;
@@ -67,7 +69,7 @@ public sealed partial class IrcService
                 done?.TrySetResult(listed);
                 break;
             case "PRIVMSG" or "NOTICE": await OnSaidAsync(session, client, m, ct); break;
-            case "TAGMSG": await OnTagsAsync(session, client, m, ct); break;
+            case "TAGMSG": await OnTagsAsync(session, client, m, history, ct); break;
             case "CHATHISTORY" when m[0] == "TARGETS": await OnHistoryTargetAsync(session, client, m, ct); break;
             case "NICK" or "001": break;
 
@@ -311,7 +313,7 @@ public sealed partial class IrcService
         // A direct message is filed under the other person: the sender, or, for one of this person's own, who it went to.
         var peer = isChannel ? "" : fromMe ? target : m.Nick;
         var conversation = isChannel ? session.Fold(target) : session.Fold(peer);
-        var history = IrcClient.BatchOf(m) is "chathistory" or "draft/chathistory" or "znc.in/playback";
+        var history = IsHistory(m);
 
         var channel = isChannel ? session.Locked(s => s.ChannelMap.GetValueOrDefault(conversation)?.Channel) : null;
         if (isChannel && channel is null) return;   // a channel not kept: nothing to file it under
@@ -345,7 +347,7 @@ public sealed partial class IrcService
         if (saved is null) return;
 
         if (!isChannel && peer.Length > 0)
-            session.Locked(s => s.PeopleMap.TryAdd(s.Fold(peer), new IrcPerson(peer) { Online = true }));
+            session.Locked(s => { if (s.PeopleMap.Count < MostPeople) s.PeopleMap.TryAdd(s.Fold(peer), new IrcPerson(peer) { Online = !history }); });
 
         // Someone who said something has stopped typing.
         if (!fromMe) TypingChanged?.Invoke(session.Server.Id, conversation, m.Nick, false);
@@ -428,22 +430,36 @@ public sealed partial class IrcService
         return sb.ToString();
     }
 
-    private async Task OnTagsAsync(IrcSession session, IrcClient client, IrcMessage m, CancellationToken ct)
+    /// <summary>
+    /// Typing and reactions. ⚠️ A reaction adds and an unreact takes away, each the same however often it comes: history
+    /// replays them on every reconnect, and a reaction that flipped on each one came and went with every catch-up.
+    /// </summary>
+    private async Task OnTagsAsync(IrcSession session, IrcClient client, IrcMessage m, bool history, CancellationToken ct)
     {
-        if (client.IsFromMe(m)) return;
         var target = m[0];
+        if (target.Length == 0) return;
+        var fromMe = client.IsFromMe(m);
         var isChannel = client.Support.IsChannel(target);
-        var conversation = isChannel ? session.Fold(target) : session.Fold(m.Nick);
+        var conversation = isChannel ? session.Fold(target) : session.Fold(fromMe ? target : m.Nick);
 
-        if (m.Tag("+typing") is { } typing)
+        // Typing is only news now: never from history.
+        if (!history && !fromMe && m.Tag("+typing") is { } typing)
             TypingChanged?.Invoke(session.Server.Id, conversation, m.Nick, typing == "active");
 
-        if ((m.Tag("+draft/react") ?? m.Tag("+react")) is { Length: > 0 and <= 64 } emoji && (m.Tag("+draft/reply") ?? m.Tag("+reply")) is { Length: > 0 } msgid)
-        {
-            await AddReactionAsync(session.Server.Id, conversation, msgid, m.Nick, emoji, ct);
+        if ((m.Tag("+draft/reply") ?? m.Tag("+reply")) is not { Length: > 0 } msgid) return;
+        var add = (m.Tag("+draft/react") ?? m.Tag("+react")) is { Length: > 0 and <= 64 } added ? added : null;
+        var remove = m.Tag("+draft/unreact") is { Length: > 0 and <= 64 } taken ? taken : null;
+        if (add is null && remove is null) return;
+
+        // This person's own come back from the server too; saved under their name as when sent.
+        if (await SetReactionAsync(session.Server.Id, conversation, msgid, m.Nick, add ?? remove!, add is not null, ct))
             ReactionsChanged?.Invoke(session.Server.Id, conversation);
-        }
     }
+
+    private static bool IsHistory(IrcMessage m) => IrcClient.BatchOf(m) is "chathistory" or "draft/chathistory" or "znc.in/playback";
+
+    private const int MostInvites = 100;
+    private const int MostPeople = 5000;
 
     // ── Catching up ───────────────────────────────────────────────────────────
 
@@ -462,7 +478,7 @@ public sealed partial class IrcService
             else
                 await client.HistoryLatestAsync(target, 50, ct);
         }
-        catch (Exception e) when (e is IrcException or OperationCanceledException) { }
+        catch (Exception e) when (e is IrcException or OperationCanceledException or ObjectDisposedException or InvalidOperationException) { }
     }
 
     private async Task OnHistoryTargetAsync(IrcSession session, IrcClient client, IrcMessage m, CancellationToken ct)
@@ -519,24 +535,27 @@ public sealed partial class IrcService
         return m;
     }
 
-    private async Task AddReactionAsync(int serverId, string conversation, string target, string sender, string emoji, CancellationToken ct)
+    /// <summary>Puts an emoji in someone's reactions to a message, or takes it out. True when that changed anything.</summary>
+    internal async Task<bool> SetReactionAsync(int serverId, string conversation, string target, string sender, string emoji, bool add, CancellationToken ct)
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var row = await db.IrcReactions.FirstOrDefaultAsync(r => r.ServerId == serverId && r.Conversation == conversation && r.Target == target && r.Sender == sender, ct);
         var now = DateTimeOffset.UtcNow.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
         if (row is null)
         {
+            if (!add) return false;
             db.IrcReactions.Add(new IrcReaction { ServerId = serverId, Conversation = conversation, Target = target, Sender = sender, Emojis = emoji, UpdatedAt = now });
         }
         else
         {
             var set = row.Emojis.Split(' ', StringSplitOptions.RemoveEmptyEntries).ToList();
-            // IRC has no taking a reaction back: sending the same one again toggles it, as clients that show them do.
-            if (!set.Remove(emoji)) set.Add(emoji);
+            if (add == set.Contains(emoji)) return false;
+            if (add) { if (set.Count >= 20) return false; set.Add(emoji); }
+            else set.Remove(emoji);
             if (set.Count == 0) db.IrcReactions.Remove(row);
-            else { row.Emojis = string.Join(' ', set.Take(20)); row.UpdatedAt = now; }
+            else { row.Emojis = string.Join(' ', set); row.UpdatedAt = now; }
         }
-        try { await db.SaveChangesAsync(ct); }
-        catch (DbUpdateException) { }
+        try { await db.SaveChangesAsync(ct); return true; }
+        catch (DbUpdateException) { return false; }
     }
 }

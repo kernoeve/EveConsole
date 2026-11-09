@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>Nickname</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>Not connected: the server does not accept this nickname. Choose another under Edit.</value>
+  </data>
 </root>

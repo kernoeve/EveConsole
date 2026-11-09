@@ -129,6 +129,7 @@ public sealed class IrcClient : IAsyncDisposable
 
         var negotiating = true;
         var saslWanted = _login.LoginKind == IrcLoginKind.Sasl && _login.Password.Length > 0;
+        var askedSaslAlone = false;
 
         while (true)
         {
@@ -159,6 +160,15 @@ public sealed class IrcClient : IAsyncDisposable
                         foreach (var cap in m.Last.Split(' ', StringSplitOptions.RemoveEmptyEntries))
                             if (cap.StartsWith('-')) _enabled.Remove(cap[1..]); else _enabled.Add(cap);
 
+                    // ⚠️ A NAK refuses the whole request, for one capability the server dislikes. The login matters most:
+                    // asked again on its own before concluding the server cannot do it.
+                    if (m[1] == "NAK" && saslWanted && !askedSaslAlone && _offered.Contains("sasl"))
+                    {
+                        askedSaslAlone = true;
+                        await SendRawAsync(new IrcMessage("CAP", "REQ", "sasl"), ct);
+                        break;
+                    }
+
                     if (saslWanted && _enabled.Contains("sasl"))
                         await SendRawAsync(new IrcMessage("AUTHENTICATE", "PLAIN"), ct);
                     else
@@ -188,10 +198,12 @@ public sealed class IrcClient : IAsyncDisposable
                     throw new IrcException(IrcFailure.Login, "The server's account login does not take a password this way (" + m[1] + ").");
 
                 case "432":
-                    throw new IrcException(IrcFailure.Login, "The server does not accept that nickname: " + m.Last);
+                    // The nickname itself is refused: the same next time, until the person changes it.
+                    throw new IrcException(IrcFailure.Nickname, "The server does not accept that nickname: " + m.Last);
 
                 case "433" or "437":   // nickname in use, or held for a while
-                    if (!nicks.MoveNext()) throw new IrcException(IrcFailure.Login, "Every nickname tried is in use.");
+                    // Every choice taken is worth trying again later: someone's old connection ends in time.
+                    if (!nicks.MoveNext()) throw new IrcException(IrcFailure.Network, "Every nickname tried is in use.");
                     await SendRawAsync(new IrcMessage("NICK", nicks.Current), ct);
                     break;
 
@@ -202,7 +214,9 @@ public sealed class IrcClient : IAsyncDisposable
                     throw new IrcException(IrcFailure.Refused, m.Last.Length > 0 ? m.Last : "The server refused this connection.");
 
                 case "ERROR":
-                    throw new IrcException(IrcFailure.Refused, m.Last.Length > 0 ? m.Last : "The server closed the connection.");
+                    // ⚠️ Not a refusal for good: a server says ERROR when it throttles a quick reconnect, times a login
+                    // out, or restarts. Tried again later. A real ban says 465 first, which stops above.
+                    throw new IrcException(IrcFailure.Network, m.Last.Length > 0 ? m.Last : "The server closed the connection.");
 
                 case "001":
                     Nick = m[0];
@@ -236,18 +250,62 @@ public sealed class IrcClient : IAsyncDisposable
         if (payload.Length % 400 == 0) await SendRawAsync(new IrcMessage("AUTHENTICATE", "+"), ct);
     }
 
-    /// <summary>Reads lines until the connection ends, handing each on. Returns why it ended.</summary>
+    /// <summary>How long the server may say nothing before it is asked whether it is still there, and then how long it has to answer.</summary>
+    public TimeSpan QuietBeforePing { get; init; } = TimeSpan.FromSeconds(90);
+    public TimeSpan PingAnswerTime { get; init; } = TimeSpan.FromSeconds(60);
+
+    /// <summary>Most batches open at once: a server that opens them and never closes them cannot make this hold more.</summary>
+    private const int MostBatches = 100;
+
+    /// <summary>
+    /// Hands each line on and waits while whoever takes them is behind, so a fast server cannot make the lines waiting
+    /// to be handled grow without end. Optional: <see cref="Received"/> is told either way.
+    /// </summary>
+    public Func<IrcMessage, ValueTask>? Deliver { get; set; }
+
+    /// <summary>
+    /// Reads lines until the connection ends, handing each on. Returns why it ended.
+    /// <para>⚠️ A connection can die without a word: a sleeping laptop, a router's timeout, a change of network. A
+    /// server quiet for <see cref="QuietBeforePing"/> is sent a PING, and one that does not answer that in
+    /// <see cref="PingAnswerTime"/> is taken for gone, so the connection is made again.</para>
+    /// </summary>
     public async Task<string> RunAsync(CancellationToken ct)
     {
+        Task<string?>? pending = null;
+        var pinged = false;
+        var deadline = DateTime.UtcNow + QuietBeforePing;
+
         while (true)
         {
-            var m = await ReadAsync(ct);
-            if (m is null) return "The server closed the connection.";
+            pending ??= _connection.ReadLineAsync(ct);
+            var wait = deadline - DateTime.UtcNow;
+            if (wait > TimeSpan.Zero && await Task.WhenAny(pending, Task.Delay(wait, ct)) != pending)
+                ct.ThrowIfCancellationRequested();
+
+            if (!pending.IsCompleted)
+            {
+                if (pinged) throw new IrcException(IrcFailure.Network, "The server stopped answering.");
+                pinged = true;
+                deadline = DateTime.UtcNow + PingAnswerTime;
+                _ = SendQuietlyAsync(new IrcMessage("PING", "alive"), urgent: true, ct);
+                continue;
+            }
+
+            var line = await pending;
+            pending = null;
+            pinged = false;
+            deadline = DateTime.UtcNow + QuietBeforePing;
+            if (line is null) return "The server closed the connection.";
+            Trace?.Invoke(line, false);
+            if (IrcMessage.Parse(line) is not { } m) continue;
 
             switch (m.Command)
             {
                 case "PING":
                     await SendRawAsync(new IrcMessage("PONG", m.Last), ct, urgent: true);
+                    continue;
+
+                case "PONG":
                     continue;
 
                 case "ERROR":
@@ -270,22 +328,24 @@ public sealed class IrcClient : IAsyncDisposable
                     break;
 
                 case "CAP" when m[1] is "NEW" or "DEL" or "ACK":
-                    await OnCapChangeAsync(m, ct);
+                    OnCapChange(m, ct);
                     continue;
 
                 case "BATCH":
                     var reference = m[0];
-                    if (reference.StartsWith('+')) _batches[reference[1..]] = m[1];
+                    if (reference.StartsWith('+') && reference.Length > 1 && _batches.Count < MostBatches) _batches[reference[1..]] = m[1];
                     else if (reference.StartsWith('-')) _batches.Remove(reference[1..]);
                     break;
 
                 case "PRIVMSG" when IsCtcp(m.Last, out var ctcp, out var rest) && ctcp != "ACTION":
-                    await AnswerCtcpAsync(m, ctcp, rest, ct);
+                    AnswerCtcp(m, ctcp, rest, ct);
                     continue;
             }
 
             // ⚠️ Here, as it is read: see IrcMessage.Batch.
             m.Batch = m.Tag("batch") is { } batchId && _batches.TryGetValue(batchId, out var batchKind) ? batchKind : "";
+
+            if (Deliver is { } deliver) await deliver(m);
 
             try { Received?.Invoke(m); }
             catch (Exception e) when (e is InvalidOperationException or ArgumentException or FormatException or KeyNotFoundException)
@@ -296,7 +356,7 @@ public sealed class IrcClient : IAsyncDisposable
         }
     }
 
-    private async Task OnCapChangeAsync(IrcMessage m, CancellationToken ct)
+    private void OnCapChange(IrcMessage m, CancellationToken ct)
     {
         var caps = m.Last.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Split('=')[0]).ToList();
         if (m[1] == "DEL") { foreach (var c in caps) { _offered.Remove(c); _enabled.Remove(c); } return; }
@@ -304,7 +364,17 @@ public sealed class IrcClient : IAsyncDisposable
 
         foreach (var c in caps) _offered.Add(c);
         var ask = caps.Where(c => Wanted.Contains(c) && !_enabled.Contains(c)).ToList();
-        if (ask.Count > 0) await SendRawAsync(new IrcMessage("CAP", "REQ", string.Join(' ', ask)), ct);
+        if (ask.Count > 0) _ = SendQuietlyAsync(new IrcMessage("CAP", "REQ", string.Join(' ', ask)), urgent: false, ct);
+    }
+
+    /// <summary>
+    /// Sends without the reading thread waiting for it. ⚠️ A send can wait its turn for seconds behind a long paste, and
+    /// reading must not stop meanwhile: the server's PINGs would go unanswered and it would drop the connection.
+    /// </summary>
+    private async Task SendQuietlyAsync(IrcMessage m, bool urgent, CancellationToken ct)
+    {
+        try { await SendRawAsync(m, ct, urgent); }
+        catch (Exception e) when (e is IrcException or OperationCanceledException or ObjectDisposedException) { }
     }
 
     // ── What every line needs worked out ──────────────────────────────────────
@@ -332,7 +402,7 @@ public sealed class IrcClient : IAsyncDisposable
         return command.Length > 0;
     }
 
-    private async Task AnswerCtcpAsync(IrcMessage m, string command, string rest, CancellationToken ct)
+    private void AnswerCtcp(IrcMessage m, string command, string rest, CancellationToken ct)
     {
         // Only to a person, and not too often: a channel full of people asking at once is a flood.
         if (Support.IsChannel(m[0]) || DateTime.UtcNow - _lastCtcpReply < TimeSpan.FromSeconds(2)) return;
@@ -345,7 +415,7 @@ public sealed class IrcClient : IAsyncDisposable
         };
         if (answer is null) return;
         _lastCtcpReply = DateTime.UtcNow;
-        await SendRawAsync(new IrcMessage("NOTICE", m.Nick, "\x01" + answer + "\x01"), ct);
+        _ = SendQuietlyAsync(new IrcMessage("NOTICE", m.Nick, "\x01" + answer + "\x01"), urgent: false, ct);
     }
 
     // ── Commands ──────────────────────────────────────────────────────────────
@@ -437,8 +507,9 @@ public sealed class IrcClient : IAsyncDisposable
     public Task TypingAsync(string target, string state, CancellationToken ct) =>
         TagAsync(target, new Dictionary<string, string> { ["+typing"] = state }, ct);
 
-    public Task ReactAsync(string target, string msgid, string emoji, CancellationToken ct) =>
-        TagAsync(target, new Dictionary<string, string> { ["+draft/react"] = emoji, ["+draft/reply"] = msgid }, ct);
+    /// <summary>Adds a reaction to a message, or takes one back (+draft/unreact), as clients that show them do.</summary>
+    public Task ReactAsync(string target, string msgid, string emoji, bool takeBack, CancellationToken ct) =>
+        TagAsync(target, new Dictionary<string, string> { [takeBack ? "+draft/unreact" : "+draft/react"] = emoji, ["+draft/reply"] = msgid }, ct);
 
     public Task TopicAsync(string channel, string topic, CancellationToken ct) => SendRawAsync(new IrcMessage("TOPIC", channel, topic), ct);
 
@@ -476,10 +547,22 @@ public sealed class IrcClient : IAsyncDisposable
             Math.Min(50, Support.ChatHistory).ToString(CultureInfo.InvariantCulture)), ct);
 
     /// <summary>Watches names for coming online and going offline (MONITOR), where the server can.</summary>
-    public Task MonitorAsync(IEnumerable<string> nicks, CancellationToken ct)
+    /// <remarks>⚠️ In lines of a few hundred bytes: one line holding them all would be cut at the line's limit, mid-name.</remarks>
+    public async Task MonitorAsync(IEnumerable<string> nicks, CancellationToken ct)
     {
-        var list = string.Join(',', nicks.Where(n => n.Length > 0).Distinct());
-        return Support.Monitor > 0 && list.Length > 0 ? SendRawAsync(new IrcMessage("MONITOR", "+", list), ct) : Task.CompletedTask;
+        if (Support.Monitor <= 0) return;
+        var line = new StringBuilder();
+        foreach (var nick in nicks.Where(n => n.Length > 0 && !n.Contains(',') && !n.Contains(' ')).Distinct().Take(Support.Monitor))
+        {
+            if (line.Length > 0 && line.Length + nick.Length + 1 > 400)
+            {
+                await SendRawAsync(new IrcMessage("MONITOR", "+", line.ToString()), ct);
+                line.Clear();
+            }
+            if (line.Length > 0) line.Append(',');
+            line.Append(nick);
+        }
+        if (line.Length > 0) await SendRawAsync(new IrcMessage("MONITOR", "+", line.ToString()), ct);
     }
 
     public async Task QuitAsync(string reason)

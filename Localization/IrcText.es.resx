@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>Apodo</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>No conectado: el servidor no acepta este apodo. Elige otro en Editar.</value>
+  </data>
 </root>

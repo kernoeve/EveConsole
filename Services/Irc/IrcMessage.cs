@@ -166,7 +166,7 @@ public sealed class IrcMessage
     {
         var sb = new StringBuilder(value.Length + 8);
         foreach (var c in value)
-            sb.Append(c switch { ';' => "\\:", ' ' => "\\s", '\\' => "\\\\", '\r' => "\\r", '\n' => "\\n", _ => c.ToString() });
+            sb.Append(c switch { ';' => "\\:", ' ' => "\\s", '\\' => "\\\\", '\r' => "\\r", '\n' => "\\n", '\0' => "", _ => c.ToString() });
         return sb.ToString();
     }
 

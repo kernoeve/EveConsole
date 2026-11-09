@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>昵称</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>未连接：服务器不接受此昵称。请在编辑中选择其他昵称。</value>
+  </data>
 </root>

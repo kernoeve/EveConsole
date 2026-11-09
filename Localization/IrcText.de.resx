@@ -175,4 +175,7 @@
   <data name="LabelNick" xml:space="preserve">
     <value>Spitzname</value>
   </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>Nicht verbunden: Der Server akzeptiert diesen Spitznamen nicht. Wähle unter Bearbeiten einen anderen.</value>
+  </data>
 </root>
