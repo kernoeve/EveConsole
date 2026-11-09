@@ -444,6 +444,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.IsEncrypted = client.IsEncrypted;
         session.HasHistory = client.HasChatHistory;
         session.HasTags = client.HasTags;
+        // What was left before this connection: a JOIN of the last one cannot be on its way any more.
+        session.Locked(s => s.Leaving.Clear());
         SetState(session, IrcState.Connected, IrcProblem.None, "");
 
         // One reader per connection keeps lines in order, and the database off the reading thread. ⚠️ Stopped with the

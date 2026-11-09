@@ -20,7 +20,8 @@ public sealed partial class IrcService
     /// <returns>What to tell the person, if anything (an unknown command); blank when it went.</returns>
     public async Task<string> SendAsync(IrcSession session, string target, string text, string replyTo = "", CancellationToken ct = default)
     {
-        if (!ActsHere) return await AskWorkerAsync(session.Server.Id, "send", new CommandArgs(target, text, ReplyTo: replyTo), ct);
+        // ⚠️ What was typed may carry a password (/join #chan key, /msg NickServ IDENTIFY ...): see AskWorkerToSendAsync.
+        if (!ActsHere) return await AskWorkerToSendAsync(session, target, text, replyTo, ct);
         var client = Connected(session);
         text = text.TrimEnd();
         if (text.Length == 0) return "";
@@ -80,7 +81,8 @@ public sealed partial class IrcService
         var sent = await client.SayAsync(target, text, action, replyTo, ct);
 
         // With echo-message the server's copy is what is saved, with its id and time; without, it is saved now.
-        if (client.HasEcho) return;
+        // ⚠️ A password said to a service (NickServ IDENTIFY) is not kept as a message either way.
+        if (client.HasEcho || IsService(target) && CarriesSecret(text)) return;
         var isChannel = client.Support.IsChannel(target);
         var conversation = session.Fold(target);
         foreach (var piece in sent)
@@ -182,6 +184,7 @@ public sealed partial class IrcService
             if (s.ChannelMap.TryGetValue(folded, out var have)) { have.Channel = row; have.Failure = ""; }
             else s.ChannelMap[folded] = new IrcChannelState(row);
             s.InviteMap.Remove(folded);
+            s.Leaving.Remove(folded);
         });
 
         // ⚠️ The channel and its key are already saved, so the key is never part of what is asked.

@@ -208,7 +208,11 @@ public sealed partial class IrcService
     private void ForgetWhatWasShown()
     {
         lock (_seenLive) _seenLive.Clear();
-        foreach (var session in Sessions) ClearShown(session);
+        foreach (var session in Sessions)
+        {
+            ClearShown(session);
+            session.Locked(s => s.ChannelMap.Clear());
+        }
     }
 
     private static void ClearShown(IrcSession session)
@@ -469,9 +473,15 @@ public sealed partial class IrcService
             try { await Task.Delay(LiveEvery, ct); }
             catch (OperationCanceledException) { return; }
 
-            // ⚠️ Not everything that changes raises anything: a topic's setter, for one.
+            // ⚠️ Not everything that changes raises anything: a topic's setter, for one. And a lost "servers" signal
+            // would leave a deleted server connected, saving rows nothing shows: so the servers are read again too.
             if (++passes % 30 == 0)
+            {
+                try { await LoadServersAsync(ct); }
+                catch (OperationCanceledException) { return; }
+                catch (Exception e) { errors.Log(nameof(IrcService), "read the servers again", e); }
                 foreach (var session in Sessions) _liveDirty[session.Server.Id] = 0;
+            }
 
             foreach (var id in _liveDirty.Keys.ToArray())
             {
@@ -626,23 +636,56 @@ public sealed partial class IrcService
     private const int CommandRunning = 1;
     private const int CommandDone    = 2;
 
+    /// <param name="Secret">
+    /// Where the words of a typed line wait for the worker, instead of <paramref name="Text"/>: with the other service
+    /// logins (SharedLogins), read once and removed. ⚠️ A typed line can carry a password ("/msg NickServ IDENTIFY ...",
+    /// "/join #chan key", "/quote PASS ..."), and this row is plain text in a shared table.
+    /// </param>
     private sealed record CommandArgs(
         string Target = "", string Text = "", string Nick = "", string UserHost = "", string ReplyTo = "",
-        string Conversation = "", bool On = false, char Mode = ' ');
+        string Conversation = "", bool On = false, char Mode = ' ', string Secret = "");
+
+    public static string TypedLineReference(string id) => $"irc-line-{id}";
+
+    /// <summary>Asks the worker to send what was typed, the words kept out of the request: see <see cref="CommandArgs"/>.</summary>
+    private async Task<string> AskWorkerToSendAsync(IrcSession session, string target, string text, string replyTo, CancellationToken ct)
+    {
+        var reference = TypedLineReference(Guid.NewGuid().ToString("N"));
+        await Task.Run(() => AppConfig.SetServicePassword(reference, text), ct);
+        try { return await AskWorkerAsync(session.Server.Id, "send", new CommandArgs(target, ReplyTo: replyTo, Secret: reference), ct); }
+        finally { await Task.Run(() => AppConfig.SetServicePassword(reference, null), CancellationToken.None); }
+    }
+
+    /// <summary>The words a client left for the worker, taken so they are read once.</summary>
+    private static async Task<string> TakeTypedLineAsync(string reference, CancellationToken ct)
+    {
+        if (!reference.StartsWith("irc-line-", StringComparison.Ordinal)) return "";
+        var text = await Task.Run(() => AppConfig.GetServicePassword(reference), ct) ?? "";
+        await Task.Run(() => AppConfig.SetServicePassword(reference, null), ct);
+        return text;
+    }
 
     private readonly ConcurrentDictionary<long, TaskCompletionSource> _waiting = new();
 
+    /// <summary>⚠️ One at a time, so the ids follow the order asked: a Connect then a Disconnect must not swap.</summary>
+    private readonly SemaphoreSlim _addGate = new(1, 1);
+
     private async Task<long> AddCommandAsync(int serverId, string kind, CommandArgs args, CancellationToken ct)
     {
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var row = new IrcCommand
+        await _addGate.WaitAsync(ct);
+        try
         {
-            ServerId = serverId, Kind = kind, Args = JsonSerializer.Serialize(args),
-            CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-        };
-        db.IrcCommands.Add(row);
-        await db.SaveChangesAsync(ct);
-        return row.Id;
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var row = new IrcCommand
+            {
+                ServerId = serverId, Kind = kind, Args = JsonSerializer.Serialize(args),
+                CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+            };
+            db.IrcCommands.Add(row);
+            await db.SaveChangesAsync(ct);
+            return row.Id;
+        }
+        finally { _addGate.Release(); }
     }
 
     /// <summary>Asks for something nobody waits on. If it is not done, what comes back from the worker says so.</summary>
@@ -652,11 +695,31 @@ public sealed partial class IrcService
         Tell("cmd");
     }
 
-    private void PostToWorker(int serverId, string kind, CommandArgs args) => _ = Task.Run(async () =>
+    /// <summary>
+    /// The same, from something that cannot wait for it. ⚠️ Its place in the order is taken now, not when a thread gets to
+    /// it: a Disconnect asked just after must come after.
+    /// </summary>
+    private void PostToWorker(int serverId, string kind, CommandArgs args)
     {
-        try { await PostToWorkerAsync(serverId, kind, args); }
-        catch (Exception e) { errors.Log(nameof(IrcService), $"ask for {kind}", e); }
-    });
+        var turn = _addGate.WaitAsync();
+        _ = Task.Run(async () =>
+        {
+            await turn;
+            try
+            {
+                await using var db = await dbFactory.CreateDbContextAsync();
+                db.IrcCommands.Add(new IrcCommand
+                {
+                    ServerId = serverId, Kind = kind, Args = JsonSerializer.Serialize(args),
+                    CreatedUnix = DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                });
+                await db.SaveChangesAsync();
+                Tell("cmd");
+            }
+            catch (Exception e) { errors.Log(nameof(IrcService), $"ask for {kind}", e); }
+            finally { _addGate.Release(); }
+        });
+    }
 
     /// <summary>
     /// Asks the worker and waits for its answer. Fails as if it had been tried here when it fails there.
@@ -788,7 +851,7 @@ public sealed partial class IrcService
             case "connect":    Connect(session); break;
             case "disconnect": await DisconnectHereAsync(session); break;
             case "reconnect":  await DisconnectHereAsync(session); Connect(session); break;
-            case "send":       return await SendAsync(session, a.Target, a.Text, a.ReplyTo, ct);
+            case "send":       return await SendAsync(session, a.Target, a.Secret.Length > 0 ? await TakeTypedLineAsync(a.Secret, ct) : a.Text, a.ReplyTo, ct);
             case "react":      await ReactAsync(session, a.Target, a.Conversation, a.ReplyTo, a.Text, ct); break;
             case "away":       await SetAwayAsync(session, a.Text, ct); break;
             case "nick":       await ChangeNickAsync(session, a.Nick, ct); break;

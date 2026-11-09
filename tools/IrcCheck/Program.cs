@@ -326,6 +326,16 @@ try
     await irc.DisconnectAsync(session);
     Check("disconnected on asking, and stays so", session.State == IrcState.Offline && !await Wait(() => session.State != IrcState.Offline, 1500));
 
+    // A channel left while not joined, and joined again later, stays joined: being left is not remembered for ever.
+    await irc.JoinChannelAsync(session, "#later", "", null);
+    await irc.LeaveChannelAsync(session, "#later");
+    irc.Connect(session);
+    await Wait(() => session.State == IrcState.Connected, 20000);
+    await irc.JoinChannelAsync(session, "#later", "", null);
+    Check("a channel left long ago can be joined again", await Wait(() => session.ChannelOf("#later") is { Joined: true })
+        && !await Wait(() => { lock (fake.Got) return fake.Got.Any(l => l.StartsWith("PART #later")); }, 1500));
+    await irc.DisconnectAsync(session);
+
     // ── Under the worker lease: one process connects, every other client shows what it wrote and asks it ──────────
     {
         var logger = new AppErrorLogger(null!);
@@ -395,6 +405,15 @@ try
         var unknown = await view.SendAsync(seen, "#fleet", "/frobnicate now");
         Check("relay: what the worker says back is said here", unknown.Contains("/frobnicate", StringComparison.Ordinal), unknown);
 
+        // ⚠️ A typed line can carry a password: it reaches the worker through the logins store, not the request row.
+        await view.SendAsync(seen, "#fleet", "/msg NickServ IDENTIFY sekrit-pw");
+        Check("relay: a typed password goes out through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.Contains("IDENTIFY sekrit-pw")); }));
+        await Task.Delay(500);
+        await using (var db = relayFactory.CreateDbContext())
+            Check("relay: and is not kept as a message", !await db.IrcMessages.AnyAsync(m => m.Body.Contains("sekrit-pw")));
+        await view.SendAsync(seen, "#fleet", "/join #keyed chan-key2");
+        Check("relay: /join with a key typed on a client joins with it", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Contains("JOIN #keyed chan-key2"); }));
+
         var typing = new ConcurrentQueue<string>();
         view.TypingChanged += (_, conversation, nick, on) => { if (on) typing.Enqueue(conversation + "|" + nick); };
         relayFake.Push("@+typing=active :Bo|b!b@h TAGMSG #fleet");
@@ -450,10 +469,11 @@ try
             && await Wait(() => seen.ChannelOf("#fleet") is null),
             $"{held!.ChannelOf("#fleet")?.Joined} {seen.ChannelOf("#fleet")?.Joined}");
         Check("relay: and stays left", !await Wait(() => held!.ChannelOf("#fleet") is not null, 2500)
-            && !relayFactory.CreateDbContext().IrcChannels.AsNoTracking().Any(c => c.ServerId == id && !c.Left));
+            && !relayFactory.CreateDbContext().IrcChannels.AsNoTracking().Any(c => c.ServerId == id && c.Name == "#fleet" && !c.Left));
 
         Check("relay: something did go through the tables between them", spy.Written.Any(w => w.Contains("#fleet", StringComparison.Ordinal)));
-        Check("relay: no login or channel key went through them", !spy.Written.Any(w => w.Contains("login-secret") || w.Contains("chan-key")));
+        Check("relay: no login, channel key or typed password went through them",
+            !spy.Written.Any(w => w.Contains("login-secret") || w.Contains("chan-key") || w.Contains("sekrit-pw")));
         Check("relay: every signal is something an older build can read", Volatile.Read(ref unreadableSignals) == 0);
 
         await worker.StandDownAsync();

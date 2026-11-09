@@ -1,3 +1,4 @@
+using System.Globalization;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -612,5 +613,5 @@ public class DataRetentionService
     /// compares greater than "2025-08-01T04:07:02Z", so the purge would silently delete nothing.
     /// </summary>
     private static string IsoCutoff(int days)
-        => DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        => DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 }

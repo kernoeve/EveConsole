@@ -325,6 +325,10 @@ public sealed partial class IrcService
         if (target == "*") return;
 
         var fromMe = client.IsFromMe(m);
+
+        // ⚠️ A password this person said to a service (NickServ IDENTIFY), come back by echo: not kept as a message.
+        if (fromMe && IsService(target) && CarriesSecret(text)) return;
+
         var isChannel = client.Support.IsChannel(target.TrimStart(client.Support.Ranks.Select(r => r.Symbol).ToArray()));
         if (isChannel) target = target.TrimStart(client.Support.Ranks.Select(r => r.Symbol).ToArray());
 
