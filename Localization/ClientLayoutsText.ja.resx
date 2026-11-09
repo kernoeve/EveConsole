@@ -498,4 +498,31 @@
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>このコントロールに設定したルームは、グループチャットにもうありません。</value>
   </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>エクスポート</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>インポート</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>このレイアウトをファイルに保存して、保管や共有に使います。</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>ファイルのレイアウトを新しいレイアウトとして追加します。モニターは変更されません。</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console レイアウト</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>「{0}」をエクスポートしました。</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>「{0}」をインポートしました。別のデータベースからの場合は Mumble コントロールを確認してください。</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>このファイルは EVE Console のレイアウトではありません。</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>このレイアウトは新しい EVE Console で作成されました。インポートするには更新してください。</value>
+  </data>
 </root>

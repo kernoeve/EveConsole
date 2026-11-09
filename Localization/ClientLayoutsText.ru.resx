@@ -498,4 +498,31 @@
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>Комнаты, заданной для этого элемента, больше нет в групповом чате.</value>
   </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Сохранить этот макет в файл, чтобы сохранить его или поделиться им.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Добавить макет из файла как новый. Мониторы не меняются.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>Макет EVE Console</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>«{0}» экспортирован.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>«{0}» импортирован. Если он из другой базы данных, проверьте его элементы Mumble.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Этот файл не является макетом EVE Console.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Этот макет создан в более новой версии EVE Console. Обновитесь, чтобы импортировать его.</value>
+  </data>
 </root>

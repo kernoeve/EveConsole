@@ -498,4 +498,31 @@
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>Der für dieses Steuerelement gewählte Raum ist nicht mehr im Gruppenchat.</value>
   </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Exportieren</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Dieses Layout in eine Datei speichern, um es aufzubewahren oder weiterzugeben.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Ein Layout aus einer Datei als neues Layout hinzufügen. Monitore werden nicht geändert.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console-Layout</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>„{0}“ exportiert.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>„{0}“ importiert. Prüfe die Mumble-Steuerelemente, falls es aus einer anderen Datenbank stammt.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Diese Datei ist kein EVE Console-Layout.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Dieses Layout stammt aus einer neueren EVE Console. Aktualisiere, um es zu importieren.</value>
+  </data>
 </root>

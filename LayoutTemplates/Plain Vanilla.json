@@ -1,0 +1,27 @@
+{
+  "format": "eveconsole-client-layout",
+  "version": 1,
+  "name": "Plain Vanilla",
+  "layout": {
+    "Id": "72307ad72b604ff08a04f2f958db161b",
+    "Docked": [],
+    "Content": "Panel",
+    "Grid": null,
+    "Name": "",
+    "Inside": {
+      "Id": "1490a9aa9a4d441cb937a6aad7ba31f8",
+      "Docked": [],
+      "Content": "Client",
+      "Grid": null,
+      "Name": "",
+      "Inside": null,
+      "Look": null,
+      "Control": null,
+      "Options": null
+    },
+    "Look": null,
+    "Control": null,
+    "Options": null
+  },
+  "mumbleServers": []
+}
