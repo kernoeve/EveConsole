@@ -359,6 +359,22 @@ public static class AppConfig
         Save(c);
     }
 
+    /// <summary>
+    /// Whether this client is set never to take the background work (see <see cref="WorkerLease.StandsAside"/>).
+    /// Per machine, like the alarm mute: it is a fact about this client, not about the data.
+    /// </summary>
+    public static bool GetNeverRunBackgroundWork() => Load().NeverRunBackgroundWork == true;
+
+    public static void SetNeverRunBackgroundWork(bool never)
+    {
+        var c = Load();
+        c.NeverRunBackgroundWork = never ? true : null;   // absent rather than false — keeps the file tidy
+        Save(c);
+    }
+
+    /// <summary>The settings file this process reads, for a message that has to name it.</summary>
+    public static string ConfigFilePath => ConfigPath;
+
     public static void SetAlarmsMuted(bool muted)
     {
         var c = Load();
@@ -1129,6 +1145,9 @@ public static class AppConfig
         // Per client, like the alarm mute: whether closing the main window leaves the app running
         // in the notification area is a fact about this desktop, not about the data.
         [JsonPropertyName("keepRunningInTray")] public bool? KeepRunningInTray { get; set; }
+
+        // Per client too: this one never takes the background work over (WorkerLease.StandsAside).
+        [JsonPropertyName("neverRunBackgroundWork")] public bool? NeverRunBackgroundWork { get; set; }
 
         [JsonPropertyName("restorePending")] public string? RestorePending { get; set; }
         [JsonPropertyName("relocateTo")]   public string? RelocateTo   { get; set; }

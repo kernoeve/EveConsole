@@ -3877,4 +3877,25 @@ Die Anwendung wird neu gestartet.</value>
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Das Schließen des Hauptfensters blendet es dann nur aus: Panels, Alarme und die Hintergrundarbeit laufen weiter. Doppelklicke auf das Symbol oder wähle {0} in seinem Menü, um das Fenster zurückzuholen, und {1}, um EVE Console zu beenden.</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>Push-to-Talk für {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Taste oder Maustaste drücken (Esc bricht ab)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Löschen</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Hintergrundarbeit auf diesem Computer</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Auf diesem Client nie die Hintergrundarbeit ausführen</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Wenn der Client, der abfragt und die übrige Hintergrundarbeit erledigt, beendet wird, übernimmt ein anderer verbundener Client. Ist dies angehakt, übernimmt dieser nie: Er zeigt nur, was die anderen sammeln. Nur auf diesem Computer gespeichert, nicht für alle Clients. Läuft kein anderer Client, fragt niemand ab.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Nur bei einer gemeinsamen PostgreSQL-Datenbank: Mit SQLite ist dies der einzige Client, er erledigt die Arbeit also immer.</value>
+  </data>
 </root>

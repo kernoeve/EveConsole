@@ -74,6 +74,19 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
     /// <summary>Whether this process is currently responsible for background work.</summary>
     public bool IsHolder { get; private set; }
 
+    /// <summary>
+    /// This client is set never to take the background work: a setting of this computer's (Settings, Polling), for a
+    /// client that must never take over when the one doing it stops — a second session beside a development build
+    /// that is being stopped and started, above all. It does not contend at all, so it is never in the queue.
+    ///
+    /// <para>PostgreSQL only: on SQLite this client is the only candidate, and nothing would do the work. Nor for a
+    /// headless worker, which exists to do it and may read the same settings file as a desktop client.</para>
+    /// </summary>
+    public static bool StandsAside => DbEngine.IsPostgres && !AppRuntime.IsHeadless && AppConfig.GetNeverRunBackgroundWork();
+
+    /// <summary>Set once <see cref="Start"/> has run: the setting changed before then is read by it instead.</summary>
+    private bool _started;
+
     /// <summary>Raised when this process becomes responsible. Start leader-only services here.</summary>
     public event Action? Gained;
 
@@ -101,6 +114,9 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
             IsHolder = true;
             return true;
         }
+
+        // Set never to: not asked, so never handed it.
+        if (StandsAside) return false;
 
         // ⚠️ A dead holder first: losing this question to one costs the start its schema step,
         // and every table this build adds goes missing until a later start wins it.
@@ -202,8 +218,27 @@ public sealed class WorkerLease(AppErrorLogger errorLogger)
         // there having quietly won, running none of the work it won the right to do.
         if (IsHolder) Gained?.Invoke();
 
+        _started = true;
+        if (StandsAside) return;
+
         _cts = new CancellationTokenSource();
         _ = RunLoopAsync(_cts.Token);
+    }
+
+    /// <summary>
+    /// The setting changed while running: set never to, a holder hands the work on at once (whoever waits next takes
+    /// it) and a contender leaves the queue; set back, it joins the queue again.
+    /// </summary>
+    public void StandAsideChanged()
+    {
+        if (!_started || !DbEngine.IsPostgres) return;
+
+        if (StandsAside) Stop();
+        else if (_cts is null)
+        {
+            _cts = new CancellationTokenSource();
+            _ = RunLoopAsync(_cts.Token);
+        }
     }
 
     /// <summary>

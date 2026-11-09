@@ -87,6 +87,14 @@ jobs:
       - name: Translations check
         run: dotnet run --project tools/LocCheck/LocCheck.csproj -c Release
 
+      # ⚠️ Do the third-party notices still match what the releases ship? Every package bump or new
+      # package changes them, and nothing else would notice: the app builds and runs the same with
+      # stale notices. This restores the app for each release platform into a scratch folder and
+      # fails when THIRD-PARTY-NOTICES.txt or licenses/ differ from what the packages now say, when
+      # a package names no license, or when a hand-written entry's package has gone.
+      - name: Third-party notices check
+        run: dotnet run --project tools/NoticesCheck/NoticesCheck.csproj -c Release
+
       # ⚠️ Do the Planetary Industry forecasts still add up? ESI shows a colony only as of the
       # last time its owner looked at it, so every "storage full at" and "inputs run out at" is
       # simulated, and a wrong one shows as a confident date, not as an error. Tax learning has no

@@ -577,10 +577,23 @@ public sealed class MumbleAudioDevices : IDisposable
     private PaStream.Callback? _outputCallback;
     private PaStream.Callback? _inputCallback;
 
-    private static bool _initialized;
-    private static readonly object InitGate = new();
+    // What the streams want and when they last called back, to find one that has died without saying so.
+    private bool _wantInput;
+    private bool _suspended;
+    private long _outputOpenedAt, _lastOutputCallback, _inputOpenedAt, _lastInputCallback;
 
-    public MumbleAudioDevices(MumbleMixer mixer) => _mixer = mixer;
+    /// <summary>How long a stream may go without calling back before it counts as dead: it calls every 10 ms.</summary>
+    private const int SilentForMs = 500;
+
+    /// <summary>How long after opening before that is judged: a device takes a moment to start.</summary>
+    private const int StartingMs = 1000;
+
+    public MumbleAudioDevices(MumbleMixer mixer)
+    {
+        _mixer = mixer;
+        PortAudioHost.Refreshing += OnRefreshing;
+        PortAudioHost.Refreshed += OnRefreshed;
+    }
 
     /// <summary>Samples from the microphone, 10 ms at a time, on the sound device's thread. Nothing slow here.</summary>
     public event Action<short[]>? Captured;
@@ -597,20 +610,7 @@ public sealed class MumbleAudioDevices : IDisposable
 
     public double MicrophoneGain { get; set; } = 1.0;
 
-    private static bool EnsureInitialized()
-    {
-        lock (InitGate)
-        {
-            if (_initialized) return true;
-            try
-            {
-                PortAudio.Initialize();
-                _initialized = true;
-                return true;
-            }
-            catch (Exception e) when (e is DllNotFoundException or TypeInitializationException or PortAudioException or InvalidOperationException) { return false; }
-        }
-    }
+    private static bool EnsureInitialized() => PortAudioHost.EnsureInitialized();
 
     /// <summary>
     /// How much a host API is to be trusted, lower being better: the same order speech input uses, for the
@@ -670,6 +670,7 @@ public sealed class MumbleAudioDevices : IDisposable
         {
             _wantOutput = true;
             if (_output is not null) return true;
+            if (_suspended) return false;
             if (!EnsureInitialized()) { LastError = "PortAudio could not start."; return false; }
 
             try
@@ -688,6 +689,7 @@ public sealed class MumbleAudioDevices : IDisposable
                 var stream = new PaStream(null, parameters, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, StreamFlags.ClipOff, _outputCallback, null);
                 stream.Start();
                 _output = stream;
+                _outputOpenedAt = Environment.TickCount64;
                 LastError = null;
                 return true;
             }
@@ -700,22 +702,53 @@ public sealed class MumbleAudioDevices : IDisposable
     }
 
     /// <summary>
-    /// Reopens the speakers if their stream has ended, as unplugging a headset does. Called every couple of seconds.
-    /// ⚠️ Not run against real hardware being unplugged: it tries, and says why if it cannot.
+    /// Finds a stream that has died, as unplugging a headset does, and gets the sound going again. Called twice a second.
+    /// <para>⚠️ Judged by the callbacks stopping, not by IsActive: an unplugged USB headset's stream stopped calling back
+    /// and still said it was active (measured 2026-11-09). The fix is a fresh device list (<see cref="PortAudioHost"/>),
+    /// which reopens on the saved device if it is still there and on the system's default if not; on Windows a device
+    /// plugged back in refreshes the list again by itself, and the saved one is used again.</para>
     /// </summary>
     public void KeepOutputAlive()
     {
+        bool dead;
         lock (_gate)
         {
-            if (!_wantOutput) return;
-            if (_output is not null)
-            {
-                try { if (_output.IsActive) return; }
-                catch (Exception e) when (e is PortAudioException or InvalidOperationException or ObjectDisposedException) { /* gone, then */ }
-                Close(ref _output);
-            }
+            if (_suspended) return;
+            var now = Environment.TickCount64;
+            dead = Dead(_output, _outputOpenedAt, _lastOutputCallback, now) || Dead(_input, _inputOpenedAt, _lastInputCallback, now);
+            if (!dead && (!_wantOutput || _output is not null)) return;
         }
-        StartOutput();
+
+        if (dead) PortAudioHost.Refresh();
+        else StartOutput();   // wanted and closed: a failed open is tried again
+    }
+
+    private static bool Dead(PaStream? stream, long openedAt, long lastCallback, long now) =>
+        stream is not null && now - openedAt > StartingMs && now - Math.Max(openedAt, lastCallback) > SilentForMs;
+
+    private void OnRefreshing()
+    {
+        lock (_gate)
+        {
+            _suspended = true;
+            Abandon(ref _output);
+            Abandon(ref _input);
+        }
+    }
+
+    private void OnRefreshed()
+    {
+        lock (_gate) _suspended = false;
+        if (_wantOutput) StartOutput();
+        if (_wantInput) StartInput();
+    }
+
+    /// <summary>Closes a stream that may be dead: aborted, not drained, since a dead device never drains.</summary>
+    private static void Abandon(ref PaStream? stream)
+    {
+        try { stream?.Abort(); } catch (Exception e) when (e is PortAudioException or InvalidOperationException) { /* dead already */ }
+        try { stream?.Dispose(); } catch (Exception e) when (e is PortAudioException or InvalidOperationException) { /* going anyway */ }
+        stream = null;
     }
 
     private bool _wantOutput;
@@ -735,7 +768,9 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         lock (_gate)
         {
+            _wantInput = true;
             if (_input is not null) return true;
+            if (_suspended) return false;
             if (!EnsureInitialized()) { LastError = "PortAudio could not start."; return false; }
 
             try
@@ -755,6 +790,7 @@ public sealed class MumbleAudioDevices : IDisposable
                 InputOpening?.Invoke();
                 stream.Start();
                 _input = stream;
+                _inputOpenedAt = Environment.TickCount64;
                 LastError = null;
                 return true;
             }
@@ -770,6 +806,7 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         lock (_gate)
         {
+            _wantInput = false;
             Close(ref _input);
             _inputCallback = null;
         }
@@ -784,6 +821,7 @@ public sealed class MumbleAudioDevices : IDisposable
 
     private StreamCallbackResult OnOutput(IntPtr input, IntPtr output, uint frames, ref StreamCallbackTimeInfo time, StreamCallbackFlags flags, IntPtr user)
     {
+        Volatile.Write(ref _lastOutputCallback, Environment.TickCount64);
         unsafe
         {
             _mixer.ReadMix(new Span<short>((void*)output, (int)frames));
@@ -793,6 +831,7 @@ public sealed class MumbleAudioDevices : IDisposable
 
     private StreamCallbackResult OnInput(IntPtr input, IntPtr output, uint frames, ref StreamCallbackTimeInfo time, StreamCallbackFlags flags, IntPtr user)
     {
+        Volatile.Write(ref _lastInputCallback, Environment.TickCount64);
         if (input == IntPtr.Zero) return StreamCallbackResult.Continue;
 
         var samples = new short[frames];
@@ -809,6 +848,8 @@ public sealed class MumbleAudioDevices : IDisposable
 
     public void Dispose()
     {
+        PortAudioHost.Refreshing -= OnRefreshing;
+        PortAudioHost.Refreshed -= OnRefreshed;
         StopInput();
         StopOutput();
     }

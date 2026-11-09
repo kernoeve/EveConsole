@@ -194,6 +194,29 @@ public class PollingSettingsViewModel : ReactiveObject
             ? SettingsText.SvcUpdateReasonUnitCopy
       :       SettingsText.SvcUpdateReasonServiceCopy;
 
+    // ── Never taking the background work over ───────────────────────────────────
+
+    private bool _neverRunBackgroundWork = AppConfig.GetNeverRunBackgroundWork();
+
+    /// <summary>
+    /// This client never takes the background work over when the one doing it stops. Kept on this computer, and applied
+    /// at once: a client doing the work hands it on, and one waiting for it leaves the queue (see WorkerLease.StandsAside).
+    /// </summary>
+    public bool NeverRunBackgroundWork
+    {
+        get => _neverRunBackgroundWork;
+        set
+        {
+            if (_neverRunBackgroundWork == value) return;
+            this.RaiseAndSetIfChanged(ref _neverRunBackgroundWork, value);
+            AppConfig.SetNeverRunBackgroundWork(value);
+            (App.Services?.GetService(typeof(WorkerLease)) as WorkerLease)?.StandAsideChanged();
+        }
+    }
+
+    /// <summary>Only a shared PostgreSQL database has other clients to leave the work to.</summary>
+    public bool CanStandAside => DbEngine.IsPostgres;
+
     // ── The notification-area icon ────────────────────────────────────────────
 
     private bool _keepRunningInTray = AppConfig.GetKeepRunningInTray();

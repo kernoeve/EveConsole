@@ -718,4 +718,10 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
   </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} on Mumble server {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>channel target {0}</value>
+  </data>
 </root>

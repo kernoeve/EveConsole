@@ -3877,4 +3877,25 @@ L'application va redémarrer.</value>
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Fermer la fenêtre principale ne fait alors que la masquer : les panneaux, les alarmes et le travail en arrière-plan continuent. Double-cliquez sur l&apos;icône, ou choisissez {0} dans son menu, pour faire revenir la fenêtre, et {1} pour arrêter EVE Console.</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>touche pour parler de {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Appuyez sur une touche ou un bouton de souris (Échap annule)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Travail en arrière-plan sur cet ordinateur</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Ne jamais exécuter le travail en arrière-plan sur ce client</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Quand le client qui interroge et fait le reste du travail en arrière-plan se ferme, un autre client connecté prend le relais. Coché, celui-ci ne le fait jamais : il affiche seulement ce que les autres recueillent. Enregistré sur cet ordinateur seulement, pas pour tous les clients. Si aucun autre client ne tourne, rien n'interroge.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Seulement avec une base PostgreSQL partagée : avec SQLite, ce client est le seul, il fait donc toujours le travail.</value>
+  </data>
 </root>

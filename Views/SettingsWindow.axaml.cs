@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+        KeyCaptureHook.Attach(AgentSettingsPane);
 
         // Every tab saves as it is changed, and text once typing pauses. Leaving a box saves it
         // now: a pause is no promise the next thing done is not closing the window, or reading
