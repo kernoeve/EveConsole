@@ -89,7 +89,7 @@ PACKAGES
 * LibVLCSharp 3.9.1
     License: LGPL-2.1-or-later, text [LGPL-2.1-or-later] below
     VideoLAN and the LibVLCSharp authors
-    Source: https://code.videolan.org/videolan/LibVLCSharp
+    Source: https://code.videolan.org/videolan/LibVLCSharp/-/tree/3.9.1
 
 * LiveChartsCore, LiveChartsCore.SkiaSharpView, LiveChartsCore.SkiaSharpView.Avalonia 2.0.5
     License: MIT, text [MIT] below
@@ -311,8 +311,7 @@ PACKAGES
     License: LGPL-2.1-or-later (libVLC); some plugins GPL-2.0-or-later, text [LGPL-2.1-or-later] and
       [GPL-2.0-or-later] below
     VideoLAN and the VLC authors
-    Source: https://code.videolan.org/videolan/vlc (each release's source:
-      https://download.videolan.org/pub/videolan/vlc/)
+    Source: VLC 3.0.24, https://download.videolan.org/pub/videolan/vlc/3.0.24/vlc-3.0.24.tar.xz
     macOS only.
     libVLC and its plugins, used for alarm sounds and video. On Linux the system's own libVLC is
       used instead.
@@ -321,8 +320,7 @@ PACKAGES
     License: LGPL-2.1-or-later (libVLC); some plugins GPL-2.0-or-later, text [LGPL-2.1-or-later] and
       [GPL-2.0-or-later] below
     VideoLAN and the VLC authors
-    Source: https://code.videolan.org/videolan/vlc (each release's source:
-      https://download.videolan.org/pub/videolan/vlc/)
+    Source: VLC 3.0.21-1, https://code.videolan.org/videolan/vlc/-/tree/3.0.21-1
     Windows only.
     libVLC and its plugins, used for alarm sounds and video. On Linux the system's own libVLC is
       used instead.
@@ -361,14 +359,14 @@ INSIDE THE PACKAGES, OR ADDED BY THE BUILD
     In the webrtc-apm native library in SoundFlow.Extensions.WebRtc.Apm.
     License: BSD-3-Clause, with WebRTC's patent grant, text [WebRTC] and [WebRTC-PATENTS] below
     Copyright (c) 2011, The WebRTC project authors
-    Source: https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing (PulseAudio's
-      standalone copy of WebRTC's audio code)
+    Source: https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing/-/tree/v2.1
+      (PulseAudio's standalone copy of WebRTC's audio code)
 
 * Abseil 20240722.0
     In the webrtc-apm native library in SoundFlow.Extensions.WebRtc.Apm, built in.
     License: Apache-2.0, text [Apache-2.0] below
     Copyright The Abseil Authors
-    Source: https://github.com/abseil/abseil-cpp
+    Source: https://github.com/abseil/abseil-cpp/tree/20240722.0
 
 * PFFFT
     In the webrtc-apm native library in SoundFlow.Extensions.WebRtc.Apm.
@@ -428,11 +426,11 @@ INSIDE THE PACKAGES, OR ADDED BY THE BUILD
     Copyright (c) 2016 The Inter Project Authors
     Source: https://github.com/rsms/inter
 
-* eSpeak NG (pronunciation for Kokoro speech)
+* eSpeak NG 1.52.0 (pronunciation for Kokoro speech)
     In the espeak folder, from KokoroSharp's content.
     License: GPL-3.0-or-later, text [GPL-3.0-or-later] below
     Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors
-    Source: https://github.com/espeak-ng/espeak-ng
+    Source: https://github.com/espeak-ng/espeak-ng/tree/1.52.0
 
 * Kokoro voices
     In the voices folder, from KokoroSharp's content.
@@ -444,28 +442,28 @@ INSIDE THE PACKAGES, OR ADDED BY THE BUILD
     In the piper folder; the build adds Piper's own release.
     License: MIT, text [Piper] below
     Copyright (c) 2022 Michael Hansen
-    Source: https://github.com/rhasspy/piper
+    Source: https://github.com/rhasspy/piper/tree/2023.11.14-2
     Windows and Linux only.
 
-* piper-phonemize
+* piper-phonemize 2023.11.14-4
     In the piper folder.
     License: MIT, text [piper-phonemize] below
     Copyright (c) 2023 Michael Hansen
-    Source: https://github.com/rhasspy/piper-phonemize
+    Source: https://github.com/rhasspy/piper-phonemize/tree/2023.11.14-4
     Windows and Linux only.
 
-* eSpeak NG, Piper's copy
+* eSpeak NG 1.52.0.1, Piper's copy
     In the piper folder.
     License: GPL-3.0-or-later, text [GPL-3.0-or-later] below
     Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors
-    Source: https://github.com/rhasspy/espeak-ng
+    Source: https://github.com/rhasspy/espeak-ng/tree/0f65aa301e0d6bae5e172cc74197d32a6182200f
     Windows and Linux only.
 
-* ONNX Runtime, Piper's copy
+* ONNX Runtime 1.14.1, Piper's copy
     In the piper folder.
     License: MIT, text [Microsoft.ML.OnnxRuntime] below
     Copyright (c) Microsoft Corporation
-    Source: https://github.com/microsoft/onnxruntime
+    Source: https://github.com/microsoft/onnxruntime/tree/v1.14.1
     Windows and Linux only.
     Its other notices are in the ONNX Runtime package's notice file, listed above.
 

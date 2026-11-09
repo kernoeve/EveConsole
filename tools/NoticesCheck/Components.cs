@@ -3,14 +3,18 @@ namespace EveConsole.Tools.NoticesCheck;
 /// <summary>How a package's license is told when its own metadata says nothing, or too little.</summary>
 /// <param name="Texts">Keys of the license texts: a file name in texts/ without .txt, "GPL-3.0-or-later" for the
 /// repository's own LICENSE, or "pkg:Id" for the license file a package carries.</param>
+/// <param name="Version">The package version a version-specific source link was written for. Another version fails the
+/// check, so a package bump cannot leave the notices pointing at the old version's source.</param>
 sealed record Override(string? License = null, string[]? Texts = null, string? Copyright = null, string? Source = null,
-                       string? Note = null);
+                       string? Note = null, string? Version = null);
 
 /// <summary>Something that ships but is not a package of its own: a native library inside one, a font, the build's own downloads.</summary>
 /// <param name="Requires">A package that must ship for this to be listed. A component whose package has gone fails the check
 /// instead of being listed for something no longer there.</param>
+/// <param name="RequiresVersion">The version of that package this entry's versions and source link were read from. Another
+/// version fails the check until the entry is looked at again.</param>
 sealed record Component(string Name, string Where, string License, string Copyright, string Source, string[] Texts,
-                        string? Platforms = null, string? Note = null, string? Requires = null);
+                        string? Platforms = null, string? Note = null, string? Requires = null, string? RequiresVersion = null);
 
 static class Known
 {
@@ -38,10 +42,13 @@ static class Known
 
     private static readonly Override Npgsql = new("PostgreSQL", ["Npgsql"]);
 
-    private static readonly Override Vlc = new("LGPL-2.1-or-later (libVLC); some plugins GPL-2.0-or-later",
-        ["LGPL-2.1-or-later", "GPL-2.0-or-later"], "VideoLAN and the VLC authors",
-        "https://code.videolan.org/videolan/vlc (each release's source: https://download.videolan.org/pub/videolan/vlc/)",
-        "libVLC and its plugins, used for alarm sounds and video. On Linux the system's own libVLC is used instead.");
+    // ⚠️ The source links name the exact version each package carries, read from its libvlccore's own version string: the
+    // package version is not the VLC version (the Windows package's 3.0.21 is VLC's 3.0.21-1 tag; the Mac package's
+    // 3.1.3.2 is VLC 3.0.24). Copyleft code is passed on with its source, and linking upstream is enough only when the
+    // link leads to the source of what ships.
+    private static Override Vlc(string source, string version) => new("LGPL-2.1-or-later (libVLC); some plugins GPL-2.0-or-later",
+        ["LGPL-2.1-or-later", "GPL-2.0-or-later"], "VideoLAN and the VLC authors", source,
+        "libVLC and its plugins, used for alarm sounds and video. On Linux the system's own libVLC is used instead.", version);
 
     public static readonly Dictionary<string, Override> Overrides = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -53,9 +60,10 @@ static class Known
         // The PostgreSQL license names its holder in its first line, so the generic text would credit the wrong one.
         ["Npgsql"] = Npgsql,
         ["Npgsql.EntityFrameworkCore.PostgreSQL"] = Npgsql,
-        ["LibVLCSharp"] = new(Copyright: "VideoLAN and the LibVLCSharp authors", Source: "https://code.videolan.org/videolan/LibVLCSharp"),
-        ["VideoLAN.LibVLC.Windows"] = Vlc,
-        ["VideoLAN.LibVLC.Mac"] = Vlc,
+        ["LibVLCSharp"] = new(Copyright: "VideoLAN and the LibVLCSharp authors",
+            Source: "https://code.videolan.org/videolan/LibVLCSharp/-/tree/3.9.1", Version: "3.9.1"),
+        ["VideoLAN.LibVLC.Windows"] = Vlc("VLC 3.0.21-1, https://code.videolan.org/videolan/vlc/-/tree/3.0.21-1", "3.0.21"),
+        ["VideoLAN.LibVLC.Mac"] = Vlc("VLC 3.0.24, https://download.videolan.org/pub/videolan/vlc/3.0.24/vlc-3.0.24.tar.xz", "3.1.3.2"),
         ["SoundFlow.Extensions.WebRtc.Apm"] = new(Note: "The .NET wrapper and its C layer. The native library is WebRTC's audio processing, listed under \"Inside the packages\"."),
     };
 
@@ -66,10 +74,10 @@ static class Known
     [
         new("WebRTC audio processing 2.1 (echo cancelling for Mumble voice)", WebRtcWhere, "BSD-3-Clause, with WebRTC's patent grant",
             "Copyright (c) 2011, The WebRTC project authors",
-            "https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing (PulseAudio's standalone copy of WebRTC's audio code)",
-            ["WebRTC", "WebRTC-PATENTS"], Requires: WebRtcPackage),
+            "https://gitlab.freedesktop.org/pulseaudio/webrtc-audio-processing/-/tree/v2.1 (PulseAudio's standalone copy of WebRTC's audio code)",
+            ["WebRTC", "WebRTC-PATENTS"], Requires: WebRtcPackage, RequiresVersion: "1.4.2"),
         new("Abseil 20240722.0", WebRtcWhere + ", built in", "Apache-2.0", "Copyright The Abseil Authors",
-            "https://github.com/abseil/abseil-cpp", ["Apache-2.0"], Requires: WebRtcPackage),
+            "https://github.com/abseil/abseil-cpp/tree/20240722.0", ["Apache-2.0"], Requires: WebRtcPackage, RequiresVersion: "1.4.2"),
         new("PFFFT", WebRtcWhere, "FFTPACK license (BSD-style)", "Copyright (c) 2013 Julien Pommier; (c) 2004 UCAR",
             "https://webrtc.googlesource.com/src/+/refs/heads/main/third_party/pffft", ["PFFFT"], Requires: WebRtcPackage),
         new("RNNoise", WebRtcWhere, "BSD-3-Clause", "Copyright (c) 2017 Mozilla; (c) 2007-2017 Jean-Marc Valin; (c) 2005-2017 Xiph.Org Foundation; (c) 2003-2004 Mark Borgerding",
@@ -93,20 +101,24 @@ static class Known
         new("Inter typeface", "Avalonia.Fonts.Inter", "SIL Open Font License 1.1", "Copyright (c) 2016 The Inter Project Authors",
             "https://github.com/rsms/inter", ["OFL-1.1-Inter"], Requires: "Avalonia.Fonts.Inter"),
 
-        new("eSpeak NG (pronunciation for Kokoro speech)", "the espeak folder, from KokoroSharp's content", "GPL-3.0-or-later",
-            "Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors", "https://github.com/espeak-ng/espeak-ng", ["GPL-3.0-or-later"],
-            Requires: "KokoroSharp"),
+        // The version is read from the libraries themselves: KokoroSharp does not say which eSpeak NG it carries.
+        new("eSpeak NG 1.52.0 (pronunciation for Kokoro speech)", "the espeak folder, from KokoroSharp's content", "GPL-3.0-or-later",
+            "Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors", "https://github.com/espeak-ng/espeak-ng/tree/1.52.0",
+            ["GPL-3.0-or-later"], Requires: "KokoroSharp", RequiresVersion: "0.6.7"),
         new("Kokoro voices", "the voices folder, from KokoroSharp's content", "Apache-2.0", "hexgrad (Kokoro-82M)",
             "https://huggingface.co/hexgrad/Kokoro-82M", ["Apache-2.0"], Requires: "KokoroSharp"),
 
         new("Piper 2023.11.14-2 (local speech)", "the piper folder; the build adds Piper's own release", "MIT", "Copyright (c) 2022 Michael Hansen",
-            "https://github.com/rhasspy/piper", ["Piper"], Platforms: "Windows and Linux"),
-        new("piper-phonemize", "the piper folder", "MIT", "Copyright (c) 2023 Michael Hansen",
-            "https://github.com/rhasspy/piper-phonemize", ["piper-phonemize"], Platforms: "Windows and Linux"),
-        new("eSpeak NG, Piper's copy", "the piper folder", "GPL-3.0-or-later", "Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors",
-            "https://github.com/rhasspy/espeak-ng", ["GPL-3.0-or-later"], Platforms: "Windows and Linux"),
-        new("ONNX Runtime, Piper's copy", "the piper folder", "MIT", "Copyright (c) Microsoft Corporation",
-            "https://github.com/microsoft/onnxruntime", ["pkg:Microsoft.ML.OnnxRuntime"], Platforms: "Windows and Linux",
+            "https://github.com/rhasspy/piper/tree/2023.11.14-2", ["Piper"], Platforms: "Windows and Linux"),
+        // ⚠️ Piper's release built its dependencies from their master branches on the day (2023-11-14), so these are
+        // the commits those branches were at then. The version strings in Piper's own libraries agree.
+        new("piper-phonemize 2023.11.14-4", "the piper folder", "MIT", "Copyright (c) 2023 Michael Hansen",
+            "https://github.com/rhasspy/piper-phonemize/tree/2023.11.14-4", ["piper-phonemize"], Platforms: "Windows and Linux"),
+        new("eSpeak NG 1.52.0.1, Piper's copy", "the piper folder", "GPL-3.0-or-later", "Jonathan Duddington, Reece H. Dunn and the eSpeak NG authors",
+            "https://github.com/rhasspy/espeak-ng/tree/0f65aa301e0d6bae5e172cc74197d32a6182200f", ["GPL-3.0-or-later"],
+            Platforms: "Windows and Linux"),
+        new("ONNX Runtime 1.14.1, Piper's copy", "the piper folder", "MIT", "Copyright (c) Microsoft Corporation",
+            "https://github.com/microsoft/onnxruntime/tree/v1.14.1", ["pkg:Microsoft.ML.OnnxRuntime"], Platforms: "Windows and Linux",
             Note: "Its other notices are in the ONNX Runtime package's notice file, listed above."),
         new("libtashkeel model", "the piper folder", "MIT", "Copyright (c) 2023 Musharraf",
             "https://github.com/mush42/libtashkeel", ["libtashkeel"], Platforms: "Windows and Linux"),

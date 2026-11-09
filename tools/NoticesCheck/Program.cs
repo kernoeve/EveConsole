@@ -256,6 +256,9 @@ static class Program
                 problems.Add($"\"{c.Name}\" is listed as inside {c.Requires}, which no longer ships: update Components.cs");
                 continue;
             }
+            if (c.RequiresVersion is not null && packages[c.Requires!].Version != c.RequiresVersion)
+                problems.Add($"\"{c.Name}\" was read from {c.Requires} {c.RequiresVersion}, and {packages[c.Requires!].Version} ships now: " +
+                             "check its version and source link, then update Components.cs");
             var keys = new List<string>();
             foreach (var t in c.Texts)
             {
@@ -266,9 +269,11 @@ static class Program
             components.Add((c, [.. keys]));
         }
 
-        foreach (var id in Known.Overrides.Keys)
-            if (!packages.ContainsKey(id))
+        foreach (var (id, over) in Known.Overrides)
+            if (!packages.TryGetValue(id, out var shipped))
                 problems.Add($"Components.cs has an override for {id}, which no longer ships: remove it");
+            else if (over.Version is not null && shipped.Version != over.Version)
+                problems.Add($"Components.cs's source link for {id} is for {over.Version}, and {shipped.Version} ships now: update it");
 
         // ── The notices file ──
         var sb = new StringBuilder();
