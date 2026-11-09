@@ -3043,6 +3043,10 @@
     <views:MumbleView DataContext="{Binding MumbleVm}" />
   </TabItem>
 
+  <TabItem Header="{x:Static loc:ShellText.NavIrc}">
+    <views:IrcView DataContext="{Binding IrcVm}" />
+  </TabItem>
+
   <TabItem Header="{x:Static loc:SettingsText.TabOnlineServices}">
     <ScrollViewer>
       <StackPanel Spacing="16" Margin="24 16">

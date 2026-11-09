@@ -128,6 +128,7 @@ public partial class GroupChatView : UserControl
     {
         if (sender is not Control { DataContext: JabberOccupantVm person } at || _vm is not { } vm) return;
         e.Handled = true;
+        if (person.IrcMember is not null) { ShowIrcPersonMenu(at, vm, person); return; }
 
         var rights = vm.RightsOver(person);
         var room = vm.RoomName;
@@ -166,6 +167,7 @@ public partial class GroupChatView : UserControl
         if (sender is not Control { DataContext: GroupChatRowVm { IsRoom: true } row } at || _vm is not { } vm) return;
         e.Handled = true;
         vm.SelectedRow = row;
+        if (row.IsIrc) { ShowIrcChannelMenu(at, vm, row); return; }
 
         var rights = vm.RoomRights();
         var room = row.ShownText;
@@ -194,6 +196,63 @@ public partial class GroupChatView : UserControl
         }));
         if (lines.Count > 0) lines.Add(new Separator());
         lines.Add(Line(JabberText.LeaveRoom, () => vm.LeaveRoomCommand.Execute().ToTask()));
+        Show(at, lines);
+    }
+
+    /// <summary>
+    /// Someone in an IRC channel: Direct Message, then what this person's rank there lets them do. ⚠️ Ranks on IRC are
+    /// modes; a server may still refuse, and says so in the status line.
+    /// </summary>
+    private void ShowIrcPersonMenu(Control at, GroupChatViewModel vm, JabberOccupantVm person)
+    {
+        var member = person.IrcMember!;
+        var lines = new List<Control>();
+        if (!person.IsSelf) lines.Add(Line(GroupChatText.MenuDirectMessage, () => { vm.MessageOccupant(person); return Task.CompletedTask; }));
+
+        var admin = new List<Control>();
+        foreach (var (mode, give, take) in vm.IrcRankChoices())
+            admin.Add(member.Ranks.Contains(mode)
+                ? Line(take, () => vm.IrcSetRankAsync(person, mode, false))
+                : Line(give, () => vm.IrcSetRankAsync(person, mode, true)));
+        if (vm.IrcCanModerate() && !person.IsSelf)
+        {
+            admin.Add(Line(GroupChatText.MenuKick, async () =>
+            {
+                if (await AskAsync(Format(GroupChatText.KickTitle, member.Nick), "", GroupChatText.LabelReason, "", null) is { } reason)
+                    await vm.IrcKickAsync(person, reason);
+            }));
+            admin.Add(Line(GroupChatText.MenuBan, async () =>
+            {
+                if (await AskAsync(Format(GroupChatText.BanTitle, member.Nick), "", GroupChatText.LabelReason, "", null) is not { } reason) return;
+                if (await ConfirmAsync(Format(IrcText.ConfirmBan, member.Nick, member.UserHost.Length > 0 ? member.UserHost : member.Nick, vm.RoomName)))
+                    await vm.IrcBanAsync(person, reason);
+            }));
+        }
+
+        if (lines.Count > 0 && admin.Count > 0) lines.Add(new Separator());
+        lines.AddRange(admin);
+        Show(at, lines);
+    }
+
+    /// <summary>An IRC channel's own menu: its topic, inviting someone, leaving.</summary>
+    private void ShowIrcChannelMenu(Control at, GroupChatViewModel vm, GroupChatRowVm row)
+    {
+        var room = row.ShownText;
+        var lines = new List<Control>
+        {
+            Line(GroupChatText.MenuChangeTopic, async () =>
+            {
+                if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
+                    await vm.IrcSetTopicAsync(topic);
+            }),
+            Line(GroupChatText.MenuInvite, async () =>
+            {
+                if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
+                    await vm.IrcInviteAsync(who);
+            }),
+            new Separator(),
+            Line(JabberText.LeaveRoom, () => vm.LeaveRoomCommand.Execute().ToTask()),
+        };
         Show(at, lines);
     }
 

@@ -399,6 +399,25 @@ public class App : Application
             };
             jabberRooms.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
 
+            // An IRC channel marked Intel, the same way.
+            var ircChannels = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>();
+            ircChannels.IntelLinesSaved += () =>
+            {
+                if (Interlocked.Exchange(ref intelPassQueued, 1) == 1) return;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(300));
+                    Interlocked.Exchange(ref intelPassQueued, 0);
+                    try
+                    {
+                        if (await intel.ProcessNewAsync(waitForTurn: true) > 0)
+                            await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+                    }
+                    catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after an IRC channel", ex); }
+                });
+            };
+            ircChannels.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
+
             // An undock, likewise: the location poll is what knows, and it says so the moment
             // the character's pass is done, so the undock alarms are evaluated then — seconds
             // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
@@ -575,6 +594,7 @@ public class App : Application
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StopAsync());
                 _mumbleOverlay?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
@@ -4611,6 +4631,7 @@ public class App : Application
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
         _ = Services.GetRequiredService<IntelService>().RefreshRoomChannelsAsync();   // ⚠️ Here: it reads a column the upgrade adds.
         _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
+        _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StartAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
@@ -5349,6 +5370,8 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.JabberDmSource>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.MumbleDmSource>();
+        services.AddSingleton<EveConsole.Services.Irc.IrcService>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.IrcDmSource>();
         services.AddSingleton<EveConsole.Services.Messages.DirectMessagesService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();

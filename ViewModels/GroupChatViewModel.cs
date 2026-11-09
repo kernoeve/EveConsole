@@ -11,7 +11,7 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-public enum GroupRowKind { JabberServer, Room, Invite, MumbleServer }
+public enum GroupRowKind { JabberServer, Room, Invite, MumbleServer, IrcServer, IrcChannel, IrcInvite }
 
 /// <summary>
 /// A line on the left: a server, or a room under one.
@@ -42,9 +42,15 @@ public sealed class GroupChatRowVm : ReactiveObject
 
     public string Identity => $"{Kind}:{ServerId}:{Key}";
 
-    public bool IsServer => Kind is GroupRowKind.JabberServer or GroupRowKind.MumbleServer;
-    public bool IsRoom => Kind == GroupRowKind.Room;
+    public bool IsServer => Kind is GroupRowKind.JabberServer or GroupRowKind.MumbleServer or GroupRowKind.IrcServer;
+
+    /// <summary>A room with saved conversation: a Jabber room or an IRC channel.</summary>
+    public bool IsRoom => Kind is GroupRowKind.Room or GroupRowKind.IrcChannel;
     public bool IsMumble => Kind == GroupRowKind.MumbleServer;
+
+    /// <summary>⚠️ Which service a row is: server ids are each service's own, so a Jabber server and an IRC server can share one.</summary>
+    public bool IsJabber => Kind is GroupRowKind.JabberServer or GroupRowKind.Room or GroupRowKind.Invite;
+    public bool IsIrc => Kind is GroupRowKind.IrcServer or GroupRowKind.IrcChannel or GroupRowKind.IrcInvite;
 
     public Avalonia.Thickness Indent => new(IsServer ? 0 : 14, IsServer ? 4 : 0, 0, 0);
 
@@ -206,10 +212,16 @@ public sealed record GroupRoomSortChoice(int Sort, string Label);
 
 public sealed record JabberOccupantVm(string Nick, string Dot, string Role)
 {
+    /// <summary>For someone in an IRC channel: what the server says about them. Null for a Jabber room's.</summary>
+    public EveConsole.Services.Irc.IrcMember? IrcMember { get; init; }
+
+    /// <summary>For an IRC channel: this person is the one using the app.</summary>
+    public bool IrcSelf { get; init; }
+
     /// <summary>All the room says about them: affiliation, real address, whether it is the person themselves.</summary>
     public XmppOccupant? Person { get; init; }
 
-    public bool IsSelf => Person?.Self ?? false;
+    public bool IsSelf => Person?.Self ?? IrcSelf;
 
     public AvatarRef? Avatar { get; init; }
 
@@ -284,7 +296,7 @@ public sealed class GroupRoomChoiceVm(XmppRoomInfo room, bool joined) : Reactive
 /// <para>⚠️ Reading is what clears a count. A message in what is open only counts as read while the tool is actually
 /// in front of the person.</para>
 /// </summary>
-public sealed class GroupChatViewModel : ReactiveObject
+public sealed partial class GroupChatViewModel : ReactiveObject
 {
     public const string SoundPref = "group_chat.alert_sound";
 
@@ -312,8 +324,10 @@ public sealed class GroupChatViewModel : ReactiveObject
     private bool _refreshAgain;
     private bool _loadingDetail;
 
-    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null)
+    public GroupChatViewModel(JabberService jabber, MumbleService mumble, AppPreferencesService prefs, AlarmSoundService sound, AlarmMuteState mute, EmoteService? emotes = null,
+        EveConsole.Services.Irc.IrcService? irc = null)
     {
+        _irc = irc;
         _emotes = emotes;
         _jabber = jabber;
         _mumble = mumble;
@@ -376,6 +390,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         });
         _mumble.SessionChanged += _ => QueueRefresh();
         _mumble.ChatReceived += (session, line) => Dispatcher.UIThread.Post(() => { OnMumbleChat(session, line); RaisePanelLine(session, line); });
+        HookIrc();
 
         QueueRefresh();
     }
@@ -498,6 +513,8 @@ public sealed class GroupChatViewModel : ReactiveObject
         foreach (var session in _jabber.Sessions.OrderBy(s => NameOf(s), StringComparer.CurrentCultureIgnoreCase))
             AddJabberRows(rows, session, rooms);
 
+        await AddIrcRowsAsync(rows);
+
         foreach (var session in _mumble.Sessions.OrderBy(s => NameOf(s), StringComparer.CurrentCultureIgnoreCase))
         {
             var count = _mumbleUnread.GetValueOrDefault(session.Server.Id);
@@ -605,14 +622,14 @@ public sealed class GroupChatViewModel : ReactiveObject
 
     public bool ShowWelcome => !HasServers;
     public bool ShowNothing => HasServers && SelectedRow is null && !IsAddingRooms;
-    public bool ShowConversation => SelectedRow is { Kind: GroupRowKind.Room or GroupRowKind.MumbleServer } && !IsAddingRooms;
+    public bool ShowConversation => SelectedRow is { Kind: GroupRowKind.Room or GroupRowKind.MumbleServer or GroupRowKind.IrcChannel } && !IsAddingRooms;
     public bool ShowOccupants => SelectedRow is { IsRoom: true } && !IsAddingRooms;
     public bool ShowRoomControls => SelectedRow is { IsRoom: true };
     public bool ShowSubchannels => SelectedRow is { IsMumble: true };
-    public bool ShowJabberServer => SelectedRow is { Kind: GroupRowKind.JabberServer } && !IsAddingRooms;
-    public bool ShowInvite => SelectedRow is { Kind: GroupRowKind.Invite };
+    public bool ShowJabberServer => SelectedRow is { Kind: GroupRowKind.JabberServer or GroupRowKind.IrcServer } && !IsAddingRooms;
+    public bool ShowInvite => SelectedRow is { Kind: GroupRowKind.Invite or GroupRowKind.IrcInvite };
 
-    private JabberSession? JabberOf(GroupChatRowVm? row) => row is { IsMumble: false } ? _jabber.SessionOf(row.ServerId) : null;
+    private JabberSession? JabberOf(GroupChatRowVm? row) => row is { IsJabber: true } ? _jabber.SessionOf(row.ServerId) : null;
     private MumbleSession? MumbleOf(GroupChatRowVm? row) => row is { IsMumble: true } ? _mumble.SessionOf(row.ServerId) : null;
 
     public ObservableCollection<GroupLineVm> Lines { get; } = [];
@@ -695,6 +712,10 @@ public sealed class GroupChatViewModel : ReactiveObject
         {
             if (MumbleOf(row) is { } session)
                 foreach (var line in session.Chat) Lines.Add(ToLine(session, line));
+        }
+        else if (row is { IsIrc: true, IsRoom: true })
+        {
+            if (!await OpenIrcChannelAsync(row)) return;
         }
         else if (row is { IsRoom: true })
         {
@@ -847,6 +868,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         {
             if (_mumbleUnread.Remove(row.ServerId)) QueueRefresh();
         }
+        else if (row is { IsIrc: true, IsRoom: true } && _irc is { } irc) await Task.Run(() => irc.MarkReadAsync(row.ServerId, row.Key));
         else if (row.IsRoom) await Task.Run(() => _jabber.MarkReadAsync(row.ServerId, row.Key));
     }
 
@@ -897,7 +919,7 @@ public sealed class GroupChatViewModel : ReactiveObject
         var server = "";
         foreach (var row in Rows)
         {
-            if (row.Kind == GroupRowKind.JabberServer) { server = row.ShownText; continue; }
+            if (row.Kind is GroupRowKind.JabberServer or GroupRowKind.IrcServer) { server = row.ShownText; continue; }
             if (row.IsRoom) list.Add((row.Identity, $"{row.ShownText} · {server}"));
             else if (row.IsMumble) list.Add((row.Identity, $"{row.ShownText} · Mumble"));
         }
@@ -911,6 +933,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     {
         if (row.IsMumble)
             return (MumbleOf(row) is { } session ? [.. session.Chat.Select(l => ToLine(session, l))] : [], false);
+        if (row.IsIrc) return await IrcPanelLinesAsync(row);
         var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, limit: PageSize));
         return ([.. page.Select(ToLine)], page.Count == PageSize);
     }
@@ -930,6 +953,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     public async Task PanelSendAsync(GroupChatRowVm row, string text)
     {
         if (MumbleOf(row) is { } mumble) await Task.Run(() => _mumble.SendTextAsync(mumble, text, null, false));
+        else if (IrcOf(row) is { } irc) await IrcSendAsync(irc, row, text, "");
         else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text));
         else throw new InvalidOperationException(string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected,
             row.IsMumble ? row.ShownText : PanelRooms().FirstOrDefault(r => r.Id == row.Identity).Name ?? row.ShownText));
@@ -939,12 +963,14 @@ public sealed class GroupChatViewModel : ReactiveObject
     public async Task PanelMarkReadAsync(GroupChatRowVm row)
     {
         if (row.IsMumble) { if (_mumbleUnread.Remove(row.ServerId)) QueueRefresh(); }
+        else if (row is { IsIrc: true, IsRoom: true } && _irc is { } irc) await Task.Run(() => irc.MarkReadAsync(row.ServerId, row.Key));
         else if (row.IsRoom) await Task.Run(() => _jabber.MarkReadAsync(row.ServerId, row.Key));
     }
 
     private async Task LoadEarlierAsync()
     {
         if (SelectedRow is not { IsRoom: true } row || Lines.Count == 0) return;
+        if (row.IsIrc) { await IrcLoadEarlierAsync(row); return; }
 
         var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, Lines[0].Id, PageSize));
         for (var i = page.Count - 1; i >= 0; i--) Lines.Insert(0, ToLine(page[i]));
@@ -955,6 +981,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>The reactions to every message showing, as they stand now.</summary>
     private async Task LoadReactionsAsync()
     {
+        if (SelectedRow is { IsIrc: true, IsRoom: true } ircRow) { await IrcLoadReactionsAsync(ircRow); return; }
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         var lines = Lines.Where(l => l.ReactTarget.Length > 0).ToList();
@@ -969,6 +996,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>Adds an emoji to this person's reactions to a message, or takes it back if it is theirs already.</summary>
     public async Task ToggleReactionAsync(GroupLineVm line, string emoji)
     {
+        if (line.CanReact && SelectedRow is { IsIrc: true, IsRoom: true } ircRow) { await IrcReactAsync(ircRow, line, emoji); return; }
         if (!line.CanReact || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         var mine = line.Reactions.Where(c => c.Mine).Select(c => c.Emoji).ToList();
@@ -997,6 +1025,7 @@ public sealed class GroupChatViewModel : ReactiveObject
                 // ⚠️ Not left on: the next message should not reach a whole tree of channels because this one did.
                 IncludeSubchannels = false;
             }
+            else if (IrcOf(row) is { } irc) await IrcSendAsync(irc, row, text, extras?.ReplyId ?? "");
             else if (JabberOf(row) is { } jabber) await Task.Run(() => _jabber.SendAsync(jabber, row.Key, true, text, default, extras));
         }
         catch
@@ -1084,7 +1113,9 @@ public sealed class GroupChatViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _chosenAlert, value);
-            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
+            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } ircRow && IrcOf(ircRow) is { } irc)
+                _ = _irc!.SetAlertModeAsync(irc, ircRow.Key, value.Mode);
+            else if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
                 _ = _jabber.SetRoomAlertAsync(session, row.Key, value.Mode);
         }
     }
@@ -1100,7 +1131,9 @@ public sealed class GroupChatViewModel : ReactiveObject
         set
         {
             this.RaiseAndSetIfChanged(ref _chosenRoomType, value);
-            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
+            if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } ircRow && IrcOf(ircRow) is { } irc)
+                _ = _irc!.SetRoomTypeAsync(irc, ircRow.Key, value.Type);
+            else if (value is not null && !_loadingDetail && SelectedRow is { IsRoom: true } row && JabberOf(row) is { } session)
                 _ = _jabber.SetRoomTypeAsync(session, row.Key, value.Type);
         }
     }
@@ -1108,7 +1141,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private void RefreshDetail()
     {
         this.RaisePropertyChanged(nameof(ShowNothing));
-        CanAddRooms = _jabber.Sessions.Any(s => s.State == JabberState.Connected);
+        CanAddRooms = _jabber.Sessions.Any(s => s.State == JabberState.Connected) || IrcConnected().Any();
 
         if (SelectedRow is not { } row) return;
 
@@ -1120,6 +1153,7 @@ public sealed class GroupChatViewModel : ReactiveObject
             RoomProblem = "";
 
             if (MumbleOf(row) is { } mumble) ShowMumble(mumble);
+            else if (IrcOf(row) is { } irc) ShowIrc(row, irc);
             else if (JabberOf(row) is { } session)
             {
                 ServerState = JabberViewModel.StateText(session);
@@ -1206,6 +1240,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// </summary>
     public void MessageOccupant(JabberOccupantVm person)
     {
+        if (SelectedRow is { IsIrc: true } && person.IrcMember is { } member && !person.IsSelf) { OpenIrcDirect?.Invoke(SelectedRow.ServerId, member.Nick); return; }
         if (SelectedRow is not { IsRoom: true } row || person.IsSelf) return;
         var real = XmppAddress.Parse(person.Person?.RealJid).Bare;
         OpenDirect?.Invoke(row.ServerId, real.Length > 0 ? real : $"{row.Key}/{person.Nick}", person.Nick);
@@ -1271,11 +1306,19 @@ public sealed class GroupChatViewModel : ReactiveObject
     private void Connect()
     {
         if (MumbleOf(SelectedRow) is { } mumble) _mumble.Connect(mumble);
+        else if (IrcOf(SelectedRow) is { } irc) _irc!.Connect(irc);
         else if (JabberOf(SelectedRow) is { } jabber) _jabber.Connect(jabber);
     }
 
     private async Task LeaveRoomAsync()
     {
+        if (SelectedRow is { IsIrc: true, IsRoom: true } ircRow && IrcOf(ircRow) is { } irc)
+        {
+            await _irc!.LeaveChannelAsync(irc, ircRow.Key);
+            SelectedRow = null;
+            await RefreshAsync();
+            return;
+        }
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         await _jabber.LeaveRoomAsync(session, row.Key);
@@ -1285,6 +1328,13 @@ public sealed class GroupChatViewModel : ReactiveObject
 
     private async Task AnswerInviteAsync(bool accept)
     {
+        if (SelectedRow is { Kind: GroupRowKind.IrcInvite } ircRow && IrcOf(ircRow) is { } irc)
+        {
+            await Task.Run(() => _irc!.AnswerInviteAsync(irc, ircRow.Key, accept));
+            await RefreshAsync();
+            if (accept) SelectedRow = Rows.FirstOrDefault(r => r.Kind == GroupRowKind.IrcChannel && r.ServerId == ircRow.ServerId && r.Key == irc.Fold(ircRow.Key));
+            return;
+        }
         if (SelectedRow is not { Kind: GroupRowKind.Invite } row || JabberOf(row) is not { } session) return;
 
         await Task.Run(() => _jabber.AnswerInviteAsync(session, row.Key, accept));
@@ -1382,6 +1432,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>The type of a room already kept, so joining it again does not quietly change it. The usual type for any other.</summary>
     private JabberRoomTypeChoice TypeOfKept(string room)
     {
+        if (_addingIrc) return IrcTypeOfKept(room);
         var type = _jabber.SessionOf(_addingAccount)?.Locked(s => s.RoomMap.GetValueOrDefault(room)?.Room.RoomType) ?? JabberRoomType.General;
         return RoomTypeChoices.FirstOrDefault(c => c.Type == type) ?? RoomTypeChoices[0];
     }
@@ -1400,6 +1451,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>Keeps the list of rooms honest while it stays open: which are joined, and why the last one tried would not have this person.</summary>
     private void SyncAddingRooms()
     {
+        if (IsAddingRooms && _addingIrc) { IrcSyncAddingRooms(); return; }
         if (!IsAddingRooms || _jabber.SessionOf(_addingAccount) is not { } session) return;
 
         var joined = session.Locked(s => s.RoomMap.Values.Where(r => r.Joined).Select(r => r.Room.RoomJid).ToHashSet(StringComparer.Ordinal));
@@ -1415,6 +1467,14 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>Lists what the server open offers, or the first one connected when something else is open.</summary>
     private async Task AddRoomsAsync()
     {
+        // IRC when an IRC server or channel is open, or when no Jabber server is connected to add rooms on.
+        if (IrcOf(SelectedRow) is { State: EveConsole.Services.Irc.IrcState.Connected } ircHere) { await BrowseIrcAsync(ircHere); return; }
+        if (SelectedRow is not { IsJabber: true } && !_jabber.Sessions.Any(s => s.State == JabberState.Connected) && IrcConnected().FirstOrDefault() is { } anyIrc)
+        {
+            await BrowseIrcAsync(anyIrc);
+            return;
+        }
+
         var session = JabberOf(SelectedRow) is { State: JabberState.Connected } here
             ? here
             : _jabber.Sessions.FirstOrDefault(s => s.State == JabberState.Connected);
@@ -1426,6 +1486,12 @@ public sealed class GroupChatViewModel : ReactiveObject
     /// <summary>Brings a room that would not take this person back up with its name filled in, to fix what stopped it.</summary>
     private async Task JoinAgainAsync()
     {
+        if (SelectedRow is { IsIrc: true, IsRoom: true } ircRow && IrcOf(ircRow) is { } irc)
+        {
+            StatusText = "";
+            await Task.Run(() => _irc!.RejoinAsync(irc, ircRow.Key));
+            return;
+        }
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         var key = row.Key;
@@ -1437,6 +1503,7 @@ public sealed class GroupChatViewModel : ReactiveObject
     private async Task BrowseAsync(JabberSession session)
     {
         var stamp = ++_browseStamp;
+        IsAddingIrc = false;
 
         _addingAccount = session.Account.Id;
         AddingTo = string.Format(CultureInfo.CurrentCulture, GroupChatText.AddingTo, NameOf(session));
@@ -1520,6 +1587,7 @@ public sealed class GroupChatViewModel : ReactiveObject
 
     private async Task JoinRoomAsync()
     {
+        if (_addingIrc) { await IrcJoinRoomAsync(); return; }
         if (_jabber.SessionOf(_addingAccount) is not { } session) return;
 
         // A bare name joins on the server's own conference service, as nobody should have to know its name.

@@ -761,4 +761,7 @@ PID: {2}
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>Лицензии программ, из которых состоит EVE Console</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

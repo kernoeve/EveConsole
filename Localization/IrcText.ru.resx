@@ -7,4 +7,172 @@
   <data name="UnknownCommand" xml:space="preserve">
     <value>{0} — здесь не команда. Начните строку с //, чтобы отправить её как текст.</value>
   </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Добавить IRC-сервер</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добавьте IRC-сервер, чтобы общаться в его каналах через групповой чат и с людьми через «Сообщения».</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>Выберите сервер слева.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Адрес сервера</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>Шифрование (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>Без шифрования всё может прочитать любой на пути, и пароль не отправляется (кроме этого компьютера).</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>Если он занят, пробуется тот же с _ или цифрой в конце.</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>Вход через</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>Без пароля</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>Учётная запись (SASL), как в большинстве сетей</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>NickServ после подключения</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>Пароль сервера</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>Имя учётной записи</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>Пусто — используется ник.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Подключаться при запуске EVE Console на этом компьютере</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Только этот компьютер: в IRC у ника одно подключение, и два компьютера будут за него бороться.</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>Дополнительно</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Имя пользователя</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>Настоящее имя</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>Команды после подключения</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>По одной в строке, как просит сеть: /msg, /mode и т. п.</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>Отошёл</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>Причина (необязательно)</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>Отошёл</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>Отметить «отошёл»</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>Вернулся</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>Сменить ник сейчас</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>Сменить</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>Каналы — в групповом чате, разговоры с людьми — в «Сообщениях».</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>Подключён, отошёл</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Не подключено: пароль отправляется только по шифрованному соединению. Включите TLS для этого сервера.</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>Не подключено: сервер отклонил подключение.</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>Подключён как {0} к {1}.</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>Это соединение не зашифровано.</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>Сервер хранит историю: сказанное в ваше отсутствие придёт при переподключении.</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>Сервер не хранит историю: сказанное, пока вы не подключены, здесь не появится.</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Сообщение в {0} (/me — действие)</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>Сейчас вы не в этом канале.</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>Сервер не показал каналы. Введите имя канала, чтобы войти.</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>Основатель</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>Администратор</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>Оператор</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>Полуоператор</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>Голос</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>Отошёл: {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>Сделать оператором</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>Снять оператора</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>Сделать полуоператором</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>Снять полуоператора</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Забанить {0} в {2}? Будет забанен {1}, и человек будет выгнан.</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>Ник</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>Введите адрес сервера.</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>Введите ник: одно слово, не начинается с # или :.</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>Введите пароль для этого способа входа.</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Удалить {0}? Его каналы и сохранённые сообщения тоже удалятся.</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>Ник</value>
+  </data>
 </root>

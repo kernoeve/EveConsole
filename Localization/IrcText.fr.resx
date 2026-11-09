@@ -7,4 +7,172 @@
   <data name="UnknownCommand" xml:space="preserve">
     <value>{0} n'est pas une commande ici. Commencez la ligne par // pour l'envoyer comme texte.</value>
   </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Ajouter un serveur IRC</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Ajoutez un serveur IRC pour discuter dans ses canaux depuis le Chat de groupe et avec ses membres depuis Messages.</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>Choisissez un serveur à gauche.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Adresse du serveur</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>Chiffré (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>Sans chiffrement, n'importe qui sur le trajet peut tout lire, et aucun mot de passe n'est envoyé (sauf à cet ordinateur).</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>S'il est pris, le même suivi de _ ou d'un chiffre est essayé.</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>Connexion avec</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>Pas de mot de passe</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>Compte (SASL), comme la plupart des réseaux</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>NickServ, une fois connecté</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>Mot de passe du serveur</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>Nom du compte</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>Vide pour le pseudo.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Se connecter au démarrage d'EVE Console, sur cet ordinateur</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Cet ordinateur seulement : sur IRC un pseudo a une seule connexion, deux ordinateurs se le disputeraient.</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>Plus de réglages</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Nom d'utilisateur</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>Nom réel</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>Commandes une fois connecté</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>Une par ligne, comme le réseau le demande : /msg, /mode, etc.</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>Pourquoi vous êtes absent (facultatif)</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>Se mettre absent</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>De retour</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>Changer de pseudo maintenant</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>Changer</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>Les canaux sont dans le Chat de groupe, les conversations avec les gens dans Messages.</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>Connecté, absent</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Non connecté : un mot de passe n'est envoyé que chiffré. Activez TLS pour ce serveur.</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>Non connecté : le serveur a refusé la connexion.</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>Connecté en tant que {0} sur {1}.</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>Cette connexion n'est pas chiffrée.</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>Ce serveur garde l'historique : ce qui est dit en votre absence revient à la reconnexion.</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>Ce serveur ne garde pas d'historique : ce qui est dit quand vous n'êtes pas connecté n'apparaît pas ici.</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Message à {0} (/me pour une action)</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>Pas dans ce canal pour le moment.</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>Le serveur n'a listé aucun canal. Tapez le nom d'un canal pour le rejoindre.</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>Fondateur</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>Opérateur</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>Demi-opérateur</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>Voix</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>Absent : {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>Nommer opérateur</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>Retirer opérateur</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>Nommer demi-opérateur</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>Retirer demi-opérateur</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Bannir {0} de {2} ? Cela bannit {1} et l'expulse.</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>Pseudo</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>Tapez l'adresse du serveur.</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>Tapez un pseudo : un mot, sans # ni : au début.</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>Tapez le mot de passe pour ce mode de connexion.</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Supprimer {0} ? Ses canaux et messages enregistrés partent avec.</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>Pseudo</value>
+  </data>
 </root>

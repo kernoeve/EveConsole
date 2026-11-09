@@ -355,28 +355,6 @@ public sealed partial class IrcService
             .ToList());
     }
 
-    /// <summary>Lines from intel channels after a message id, for the intel reader.</summary>
-    public async Task<List<(IrcStoredMessage Message, string Channel, string ServerName)>> IntelLinesAfterAsync(long afterId, CancellationToken ct = default)
-    {
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var channels = await db.IrcChannels.AsNoTracking().Where(c => c.RoomType == JabberRoomType.Intel && !c.Left).ToListAsync(ct);
-        if (channels.Count == 0) return [];
-        var servers = await db.IrcServers.AsNoTracking().ToDictionaryAsync(s => s.Id, ct);
-        var result = new List<(IrcStoredMessage, string, string)>();
-        foreach (var group in channels.GroupBy(c => c.ServerId))
-        {
-            var names = group.ToDictionary(c => IrcSupport.Fold(c.Name, "rfc1459"), c => c.Name);
-            var keys = names.Keys.ToList();
-            var lines = await db.IrcMessages.AsNoTracking()
-                                .Where(m => m.ServerId == group.Key && m.IsChannel && m.Id > afterId && keys.Contains(m.Conversation))
-                                .OrderBy(m => m.Id).Take(500).ToListAsync(ct);
-            var server = servers.GetValueOrDefault(group.Key);
-            result.AddRange(lines.Select(l => (l, names.GetValueOrDefault(l.Conversation, l.Conversation),
-                server is null ? "" : server.Name.Length > 0 ? server.Name : server.Host)));
-        }
-        return [.. result.OrderBy(r => r.Item1.Id)];
-    }
-
     /// <summary>
     /// Deletes messages past the kept days, the same setting Jabber and Mumble use. ⚠️ Never an unread one: age is no
     /// reason to lose what was not seen. Zero days keeps everything.

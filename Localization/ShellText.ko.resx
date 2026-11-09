@@ -743,4 +743,7 @@ PID: {2}
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>EVE Console를 이루는 소프트웨어의 라이선스</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

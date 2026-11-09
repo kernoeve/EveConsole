@@ -749,4 +749,7 @@ Inicia un cliente {1} que pueda ejecutarlos, o desactiva esto: quita "neverRunBa
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>Las licencias del software con el que está hecho EVE Console</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

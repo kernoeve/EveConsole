@@ -31,6 +31,17 @@ public sealed class IrcMessage
 
     public IReadOnlyList<string> Params { get; init; } = [];
 
+    /// <summary>
+    /// The kind of batch this line came in ("chathistory"...), worked out by <see cref="IrcClient"/> as it read the line.
+    /// Blank for a line not in one.
+    /// </summary>
+    /// <remarks>
+    /// ⚠️ Set on the reading thread, before the line is handed on. Lines are handled later, off that thread, by when
+    /// the batch's end has been read and the batch forgotten: an old JOIN from history was then taken as live, and
+    /// emptied the channel's list of people.
+    /// </remarks>
+    public string Batch { get; internal set; } = "";
+
     private static readonly Dictionary<string, string> Empty = [];
 
     public IrcMessage() { }

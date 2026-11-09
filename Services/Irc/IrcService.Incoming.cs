@@ -27,7 +27,7 @@ public sealed partial class IrcService
         // ⚠️ History replays joins, parts and the like as well as messages (event-playback, asked for so they come as
         // events rather than as lines from a "HistServ"). Taken as live, an old JOIN of this person would say a channel
         // was joined: only what was said is read from history.
-        if (client.BatchOf(m).Length > 0 && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG")) return;
+        if (IrcClient.BatchOf(m).Length > 0 && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG")) return;
 
         var changed = false;
         switch (m.Command)
@@ -311,7 +311,7 @@ public sealed partial class IrcService
         // A direct message is filed under the other person: the sender, or, for one of this person's own, who it went to.
         var peer = isChannel ? "" : fromMe ? target : m.Nick;
         var conversation = isChannel ? session.Fold(target) : session.Fold(peer);
-        var history = client.BatchOf(m) is "chathistory" or "draft/chathistory" or "znc.in/playback";
+        var history = IrcClient.BatchOf(m) is "chathistory" or "draft/chathistory" or "znc.in/playback";
 
         var channel = isChannel ? session.Locked(s => s.ChannelMap.GetValueOrDefault(conversation)?.Channel) : null;
         if (isChannel && channel is null) return;   // a channel not kept: nothing to file it under
@@ -350,7 +350,7 @@ public sealed partial class IrcService
         // Someone who said something has stopped typing.
         if (!fromMe) TypingChanged?.Invoke(session.Server.Id, conversation, m.Nick, false);
 
-        if (channel?.RoomType == JabberRoomType.Intel) IntelLinesSaved?.Invoke();
+        if (channel?.RoomType == JabberRoomType.Intel) await FeedIntelAsync(channel, saved, ct);
     }
 
     /// <summary>NickServ, ChanServ and the like: their notices answer what was asked, and are no alarm.</summary>
@@ -471,6 +471,24 @@ public sealed partial class IrcService
         var target = m[1];
         if (target.Length == 0 || client.Support.IsChannel(target)) return;
         await CatchUpAsync(session, client, target, ct);
+    }
+
+    /// <summary>Hands an intel channel's message to the intel parser. A failure here is the parser's loss, not the message's: that is saved.</summary>
+    private async Task FeedIntelAsync(IrcChannel channel, IrcStoredMessage row, CancellationToken ct)
+    {
+        var lines = Monitoring.IntelRooms.ToChatLines(channel, row);
+        if (lines.Count == 0) return;
+        try
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            db.ChatMessages.AddRange(lines);
+            await db.SaveChangesAsync(ct);
+            IntelLinesSaved?.Invoke();
+        }
+        catch (Exception e) when (e is not OperationCanceledException)
+        {
+            errors.Log(nameof(IrcService), "saving a channel's intel", e);
+        }
     }
 
     // ── Saving ────────────────────────────────────────────────────────────────

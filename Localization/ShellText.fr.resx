@@ -749,4 +749,7 @@ Démarrez un client {1} autorisé à les exécuter, ou désactivez ce réglage :
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>Les licences des logiciels dont EVE Console est fait</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

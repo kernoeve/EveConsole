@@ -284,6 +284,9 @@ public sealed class IrcClient : IAsyncDisposable
                     continue;
             }
 
+            // ⚠️ Here, as it is read: see IrcMessage.Batch.
+            m.Batch = m.Tag("batch") is { } batchId && _batches.TryGetValue(batchId, out var batchKind) ? batchKind : "";
+
             try { Received?.Invoke(m); }
             catch (Exception e) when (e is InvalidOperationException or ArgumentException or FormatException or KeyNotFoundException)
             {
@@ -307,8 +310,7 @@ public sealed class IrcClient : IAsyncDisposable
     // ── What every line needs worked out ──────────────────────────────────────
 
     /// <summary>The kind of history batch a line belongs to ("chathistory", "znc.in/playback"...), or blank.</summary>
-    public string BatchOf(IrcMessage m) =>
-        m.Tag("batch") is { } id && _batches.TryGetValue(id, out var kind) ? kind : "";
+    public static string BatchOf(IrcMessage m) => m.Batch;
 
     /// <summary>When it was said: the server's time where it gives one, otherwise now.</summary>
     public static DateTimeOffset TimeOf(IrcMessage m) =>
