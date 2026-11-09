@@ -93,6 +93,9 @@ public sealed class MarketAltRow : ReactiveObject
 /// </summary>
 public class WorklistMarketAltsViewModel : ReactiveObject
 {
+    /// <summary>Ended with the Worklist it belongs to (<see cref="WorklistViewModel.Dispose"/>).</summary>
+    internal ToolLife Life { get; } = new();
+
     private readonly WorklistMarketAltService             _marketAlts;
     private readonly CorpActivityService             _stations;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
@@ -118,7 +121,7 @@ public class WorklistMarketAltsViewModel : ReactiveObject
         });
 
         // Characters added or removed: the combo's list follows without a restart.
-        OwnerList.Changed += () => _ = LoadAsync();
+        Life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

@@ -1946,7 +1946,46 @@ public class App : Application
                         "RootLocationType" TEXT    NOT NULL DEFAULT '',
                         "SolarSystemId"    INTEGER NULL,
                         "RegionId"         INTEGER NULL,
+                        "Pending"          TEXT    NULL,
+                        "PendingFrom"      TEXT    NULL,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
+                    )
+                    """);
+
+                // The asset poll as ESI gave it, kept so that what has happened since can be
+                // written on top of EsiAssets again whenever it changes — see AssetActivity. The
+                // same columns as EsiAssets, less the two that mark what was written on top.
+                // Not an entity: only AssetActivity reads it, in SQL. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiAssetsPolled" (
+                        "OwnerId"          INTEGER NOT NULL,
+                        "OwnerType"        TEXT    NOT NULL,
+                        "ItemId"           INTEGER NOT NULL,
+                        "TypeId"           INTEGER NOT NULL DEFAULT 0,
+                        "LocationId"       INTEGER NOT NULL DEFAULT 0,
+                        "LocationType"     TEXT    NOT NULL DEFAULT '',
+                        "LocationFlag"     TEXT    NOT NULL DEFAULT '',
+                        "Quantity"         INTEGER NOT NULL DEFAULT 0,
+                        "IsSingleton"      INTEGER NOT NULL DEFAULT 0,
+                        "IsBlueprintCopy"  INTEGER,
+                        "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
+                        "RootLocationType" TEXT    NOT NULL DEFAULT '',
+                        "SolarSystemId"    INTEGER NULL,
+                        "RegionId"         INTEGER NULL,
+                        PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
+                    )
+                    """);
+
+                // When each owner's assets were current. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "AssetSnapshots" (
+                        "OwnerId"    INTEGER NOT NULL,
+                        "OwnerType"  TEXT    NOT NULL,
+                        "Kind"       TEXT    NOT NULL,
+                        "AsOf"       TEXT    NOT NULL,
+                        "PolledAt"   TEXT    NOT NULL,
+                        "AppliedKey" TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("OwnerId", "OwnerType", "Kind")
                     )
                     """);
 
@@ -3437,6 +3476,22 @@ public class App : Application
                     """);
 
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "WorklistCharacterLevels" (
+                        "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistCharacterLevels" PRIMARY KEY AUTOINCREMENT,
+                        "GroupId"       INTEGER NOT NULL DEFAULT 0,
+                        "LocationId"    INTEGER NOT NULL DEFAULT 0,
+                        "LocationName"  TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                        "CharacterName" TEXT    NOT NULL DEFAULT '',
+                        "Enabled"       INTEGER NOT NULL DEFAULT 1
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistCharacterLevels_Group_Location_Character"
+                    ON "WorklistCharacterLevels" ("GroupId", "LocationId", "CharacterId")
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "WorklistIndyScopeStations" (
                         "Id"           INTEGER NOT NULL CONSTRAINT "PK_WorklistIndyScopeStations" PRIMARY KEY AUTOINCREMENT,
                         "LocationId"   INTEGER NOT NULL DEFAULT 0,
@@ -4099,6 +4154,11 @@ public class App : Application
                     """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
                     """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
 
+                    // ── Assets: what was written on top since the poll ─────────────────
+                    // Null for a row as the poll gave it. See AssetActivity.
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "Pending" TEXT NULL""",
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "PendingFrom" TEXT NULL""",
+
                     // ── Alarms: the hours an alarm is on ────────────────────────────────
                     """ALTER TABLE "Alarms" ADD COLUMN "ActiveFrom" TEXT NULL""",
                     """ALTER TABLE "Alarms" ADD COLUMN "ActiveThru" TEXT NULL""",
@@ -4337,6 +4397,12 @@ public class App : Application
 
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
+
+                // Each owner's assets kept as polled, and what has happened since written on top
+                // (see AssetActivity). In the background: the first start after this upgrade copies
+                // every owner's rows, and nothing on screen should wait for that. Logs its own errors.
+                var assetActivity = Services.GetRequiredService<AssetActivity>();
+                _ = Task.Run(() => assetActivity.UpgradeAsync());
 
                 // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
                 // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
@@ -5099,6 +5165,7 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
+        services.AddSingleton<AssetActivity>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
         services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();
         services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
@@ -5114,6 +5181,8 @@ public class App : Application
                               EveConsole.Services.Worklist.SkillQueueGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.TransferGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.PiGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,

@@ -27,7 +27,7 @@ public sealed record DeliveredPrint(
 /// "in build" — but for up to an hour the asset snapshot still shows nothing of it. In that
 /// window the output is nowhere the planner can see: a component just delivered reads as
 /// missing, the job that made it reads as gone, and the list raises a job to build it again.
-/// The mirror image of the started-job correction (IndustryDemandService.AlreadyConsumedAsync),
+/// The mirror image of a started job's materials (written into the assets by AssetActivity),
 /// and settled the same way — measured against the snapshot clock of the job's OWN owner, since
 /// a corp job's output lands in the corp hangar and it is the corporation's poll that would show
 /// it.</para>
@@ -241,14 +241,10 @@ public static class DeliveryLag
     }
 
     /// <summary>When each owner's copy of the given resource was last read — the clock a delivery is measured against.</summary>
-    private static async Task<Dictionary<long, DateTimeOffset>> SnapshotAsync(
+    /// <summary>When each owner's list was current — see AssetClock.</summary>
+    private static Task<Dictionary<long, DateTimeOffset>> SnapshotAsync(
         AppDbContext db, string characterEndpoint, string corporationEndpoint, CancellationToken ct) =>
-        (await db.EsiCallRecords.AsNoTracking()
-            .Where(r => r.Endpoint == characterEndpoint || r.Endpoint == corporationEndpoint)
-            .Select(r => new { r.OwnerId, r.LastCalledAt })
-            .ToListAsync(ct))
-        .GroupBy(r => r.OwnerId)
-        .ToDictionary(g => g.Key, g => g.Max(r => r.LastCalledAt));
+        AssetClock.TimesAsync(db, characterEndpoint == "char.blueprints" ? "blueprints" : "assets", ct);
 
     /// <summary>Units one run of each blueprint yields of each product; one where the SDE says nothing.</summary>
     private static async Task<Dictionary<(int Blueprint, int Product), long>> YieldAsync(

@@ -179,8 +179,11 @@ public class StoreSenderRowVm(StoreSender s)
 /// always have — a store order is an ordinary tracked order with a reference on it — and a second
 /// screen that edited them would be a second set of rules about what an order is.</para>
 /// </summary>
-public class StoresViewModel : ReactiveObject
+public class StoresViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly SalePostingService              _postings;
     private readonly StoreMailService                _storeMail;
@@ -360,11 +363,11 @@ public class StoresViewModel : ReactiveObject
 
         // The log is the only sign the shop is doing anything, and it changes without anyone
         // touching this screen.
-        Observable.Interval(TimeSpan.FromSeconds(30))
+        _life.Keep(Observable.Interval(TimeSpan.FromSeconds(30))
             .ObserveOnUi("Stores.AutoRefresh")
-            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh"));
 
-        OwnerList.Changed += () => _ = RefreshCharacterOptionsAsync();
+        _life.OnOwnersChanged(() => _ = RefreshCharacterOptionsAsync());
 
         _ = LoadAsync();
     }

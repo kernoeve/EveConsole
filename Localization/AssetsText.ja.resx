@@ -1462,4 +1462,31 @@ Warrior II 5
   <data name="ColItemVolume" xml:space="preserve">
     <value>体積</value>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>取得以降</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>追加 ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>変更 ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>ジョブ {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>契約 {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>輸送</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>{0} 時点</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>{0}～{1} 時点</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>その後 {0:N0} 行を書き込み</value>
+  </data>
 </root>

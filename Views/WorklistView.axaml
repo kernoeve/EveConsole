@@ -2431,6 +2431,103 @@
       </Grid>
     </TabItem>
 
+    <!-- Who should hold the material: the default corporation, and what each character keeps of a
+         group at a station. Both raise Transfer tasks. -->
+    <TabItem Header="{x:Static loc:WorklistText.TabCharacterLevels}">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding CharacterLevelsVm}" x:DataType="vm:WorklistCharacterLevelsViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                   Text="{x:Static loc:WorklistText.DefaultCorpTitle}" Margin="0 0 0 4"/>
+        <TextBlock Grid.Row="1" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Margin="0 0 0 6" MaxWidth="760" HorizontalAlignment="Left"
+                   Text="{x:Static loc:WorklistText.DefaultCorpNote}"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" Margin="0 0 0 16">
+          <ComboBox Width="260" FontSize="11"
+                    ItemsSource="{Binding Corporations}" SelectedItem="{Binding DefaultCorp}"/>
+          <CheckBox Content="{x:Static loc:WorklistText.DefaultCorpFromOtherCorps}" FontSize="11"
+                    IsChecked="{Binding FromOtherCorps}"
+                    ToolTip.Tip="{x:Static loc:WorklistText.DefaultCorpFromOtherCorpsTip}"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Margin="0 0 0 10" MaxWidth="760" HorizontalAlignment="Left"
+                   Text="{x:Static loc:WorklistText.CharacterLevelsNote}"/>
+
+        <Grid Grid.Row="4" ColumnDefinitions="220,*,200,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:WorklistText.InventoryGroup}"     Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static loc:WorklistText.StationOrStructure}" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:WorklistText.ColCharacter}"       Classes="fieldLabel"/>
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+                    PlaceholderText="{x:Static loc:WorklistText.HintGroup}" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" Classes="selectall" x:CompileBindings="False"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           ValueMemberBinding="{Binding DisplayName}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="{x:Static loc:WorklistText.HintTypeTwoCharacters}"/>
+          <ComboBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
+                    HorizontalAlignment="Stretch"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="{x:Static loc:WorklistText.Add}" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <!-- How far off its level a character may be before a Transfer task gives or takes back:
+             the station levels' two bands, for characters. -->
+        <StackPanel Grid.Row="5">
+          <Grid ColumnDefinitions="Auto,Auto,20,Auto,Auto,*" Margin="0 0 0 8">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:WorklistText.RestockWhenBelowLevelBy}" Classes="fieldLabel"
+                       VerticalAlignment="Center" Margin="0 0 6 0"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding RestockBand, Mode=TwoWay}"
+                           Minimum="0" Maximum="100" Increment="5" FormatString="0.#"
+                           ShowButtonSpinner="False" Width="70" FontSize="11"
+                           ToolTip.Tip="{x:Static loc:WorklistText.CharacterRestockBandTip}"/>
+            <TextBlock Grid.Column="3" Text="{x:Static loc:WorklistText.SweepSurplusWhenAboveLevel}" Classes="fieldLabel"
+                       VerticalAlignment="Center" Margin="0 0 6 0"/>
+            <NumericUpDown Grid.Column="4" Value="{Binding SurplusBand, Mode=TwoWay}"
+                           Minimum="0" Maximum="100" Increment="5" FormatString="0.#"
+                           ShowButtonSpinner="False" Width="70" FontSize="11"
+                           ToolTip.Tip="{x:Static loc:WorklistText.CharacterSurplusBandTip}"/>
+          </Grid>
+          <TextBlock Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" Margin="0 0 0 8"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="6" ItemsSource="{Binding Levels}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.CharacterLevelColOn}" Width="50" SortMemberPath="Enabled" ClipboardContentBinding="{Binding Enabled}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:CharacterLevelRow">
+                  <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColCharacter}" Width="180" Binding="{Binding CharacterName}"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColStation}" Width="*" Binding="{Binding LocationShown}"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColInventoryGroup}" Width="220" Binding="{Binding GroupName}"/>
+            <DataGridTextColumn Header="" Width="220" Binding="{Binding Note}" Foreground="{DynamicResource TextFaintBrush}"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:CharacterLevelRow">
+                  <Button Content="{x:Static loc:WorklistText.Remove}"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CharacterLevelsVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <!-- Last: the settings here are set once and then left, unlike the tabs above them. Which
          characters may be given jobs lives on Settings → Characters. -->
     <!-- How each kind of trip is made, and by whom. Saved as it is changed; the list rebuilds a

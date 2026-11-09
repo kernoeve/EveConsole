@@ -65,8 +65,52 @@ public sealed class IndustryCandidate
 /// </summary>
 public class IndustryAssignmentService(
     IDbContextFactory<AppDbContext> dbFactory,
-    AppErrorLogger                  errorLogger)
+    AppErrorLogger                  errorLogger,
+    EveConsole.Api.EsiClient?       esi = null)
 {
+    /// <summary>How often each character's corporation is asked of ESI again.</summary>
+    private static readonly TimeSpan MembershipRefresh = TimeSpan.FromHours(1);
+    private DateTimeOffset _membershipAsOf = DateTimeOffset.MinValue;
+
+    /// <summary>
+    /// Brings each character's corporation up to date, at most once an hour.
+    ///
+    /// <para>⚠️ The corporation was only recorded when a character was authorised, so an alt that
+    /// changed corporation since went on being treated as able to use its old corporation's
+    /// hangars and prints, and unable to use its new one's. What a character can build with is
+    /// decided by the corporation it's in now (see <see cref="WorklistIndyCharReach"/>), so it's
+    /// asked again here, before a build. The public affiliation call, no sign-in needed.</para>
+    ///
+    /// <para>Failures are logged and swallowed: the corporation on record is kept.</para>
+    /// </summary>
+    public async Task RefreshMembershipAsync(CancellationToken ct = default)
+    {
+        if (esi is null || DateTimeOffset.UtcNow - _membershipAsOf < MembershipRefresh) return;
+        await _enrolGate.WaitAsync(ct);
+        try
+        {
+            if (DateTimeOffset.UtcNow - _membershipAsOf < MembershipRefresh) return;
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            var characters = await db.Characters.ToListAsync(ct);
+            if (characters.Count == 0) return;
+
+            var found = await esi.GetAffiliationsAsync([.. characters.Select(c => c.Id)], ct);
+            if (found.Count == 0) return;   // ESI not answering: try again next build
+
+            var corpOf = found.ToDictionary(f => f.CharacterId, f => f.CorporationId);
+            foreach (var c in characters)
+                if (corpOf.TryGetValue(c.Id, out var corp) && corp != c.CorporationId) c.CorporationId = (int)corp;
+            await db.SaveChangesAsync(ct);
+            _membershipAsOf = DateTimeOffset.UtcNow;
+        }
+        catch (OperationCanceledException) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IndustryAssignmentService), nameof(RefreshMembershipAsync), ex);
+        }
+        finally { _enrolGate.Release(); }
+    }
+
     // Each level of these adds one slot to its pool, on top of the one every character has.
     private const int MassProduction         = 3387;
     private const int AdvancedMassProduction = 24625;

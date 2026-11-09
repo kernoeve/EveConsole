@@ -416,7 +416,7 @@
       <Border Grid.Column="0" Width="190" Background="{DynamicResource SurfaceBaseBrush}" IsVisible="{Binding IsNavVisible}">
         <ScrollViewer VerticalScrollBarVisibility="Auto"
                       HorizontalScrollBarVisibility="Disabled">
-          <ItemsControl x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
+          <ItemsControl x:Name="NavList" x:CompileBindings="False" ItemsSource="{Binding NavGroups}"
                         Margin="0 10 0 10">
             <ItemsControl.ItemTemplate>
               <DataTemplate>
@@ -458,8 +458,7 @@
                     <ItemsControl.ItemTemplate>
                       <DataTemplate>
                         <Button x:CompileBindings="False"
-                                Command="{Binding $parent[Window].DataContext.OpenToolCommand}"
-                                CommandParameter="{Binding ToolId}"
+                                Click="OnNavToolClick"
                                 Background="Transparent" BorderThickness="0"
                                 HorizontalAlignment="Stretch"
                                 HorizontalContentAlignment="Left"

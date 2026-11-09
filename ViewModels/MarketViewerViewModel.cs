@@ -149,8 +149,11 @@ public class MarketOrderByTypeVm
 
 // Region-level market views. Orders map to a region via the order's solar system, or — for player
 // structures (null-sec), where the order has no system id — via the structure's system.
-public class MarketViewerViewModel : ReactiveObject
+public class MarketViewerViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private bool _initialized;
@@ -307,9 +310,9 @@ public class MarketViewerViewModel : ReactiveObject
         _selectedPeriod = Periods[3];   // Last 30 Days
 
         // Auto-refresh the active tab every 5 minutes.
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("MarketViewer.AutoRefresh")
-            .Subscribe(tick => { _ = LoadActiveAsync(); });
+            .Subscribe(tick => { _ = LoadActiveAsync(); }));
 
         _ = InitAsync();
     }

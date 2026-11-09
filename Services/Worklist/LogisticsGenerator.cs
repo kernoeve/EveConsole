@@ -1127,27 +1127,18 @@ public class LogisticsGenerator(
             .GroupBy(a => (Station: a.RootLocationId, a.TypeId))
             .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
 
-        // Plus what delivered jobs have put in a hangar the asset poll has not seen: stock at the
-        // station the job ran in, so nothing is hauled there to replace it. See DeliveryLag.
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
-        {
-            if (scope is not null && !scope.Contains(d.Site)) continue;
-            if (d.OwnerType == "corporation" && corps is not null && !corps.Contains(d.OwnerId)) continue;
-            stock[(d.Site, d.TypeId)] = stock.GetValueOrDefault((d.Site, d.TypeId)) + d.Units;
-        }
-
-        // And what contracts have moved since: nothing is hauled from a station for goods already
-        // on a contract, and goods a courier has just delivered are not hauled there again. Never
-        // below zero. See ContractLag.
+        // What delivered jobs, contracts and hauls have done since the asset poll is in the rows
+        // already (AssetActivity): output at the station its job ran in, nothing at a station for
+        // goods already on a contract, goods a courier has just delivered where it delivered them.
         //
-        // ⚠️ A courier's cargo still on the way is stock at a place of its own beside where it is
-        // going (InTransitTo): it covers wants there — nothing is bought or hauled for it again —
-        // but nothing is ever picked up from it. See CourierCargoLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        // ⚠️ A courier's cargo still on the way is in no row: stock at a place of its own beside
+        // where it is going (InTransitTo). It covers wants there — nothing is bought or hauled for
+        // it again — but nothing is ever picked up from it. Never below zero. See CourierCargoLag.
+        foreach (var m in await ContractLag.InTransitAsync(db, ct))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
-            var site = m.InTransit ? InTransitTo(m.Site) : m.Site;
+            var site = InTransitTo(m.Site);
             stock[(site, m.TypeId)] = Math.Max(0, stock.GetValueOrDefault((site, m.TypeId)) + m.Units);
         }
 
@@ -1212,6 +1203,7 @@ public class LogisticsGenerator(
         await AddJobDemandAsync(db, ctx, meMap, allPrints, owned, printsInAssets,
                                 scope, wrapped, corps, inScope, Need, printsForBuilds, printsForCopies, ct);
         await AddStationLevelDemandAsync(db, Need, ct);
+        await AddCharacterLevelDemandAsync(db, Need, ct);
 
         var copyLabSite = (await InventionService.LabsAsync(db, parkId, ct)).Copying?.Site;
         if (copyLabSite is { } copyLab)
@@ -1827,6 +1819,18 @@ public class LogisticsGenerator(
                      driverKind: NeedDriverKind.StationLevel);
             }
         }
+    }
+
+    /// <summary>
+    /// A character level is a station level as far as hauling goes: what it keeps with its
+    /// character has to be at that station first, on top of any level the station has. Handing it
+    /// over there is a Transfer task's (see <see cref="TransferGenerator"/>).
+    /// </summary>
+    private static async Task AddCharacterLevelDemandAsync(
+        AppDbContext db, NeedFn need, CancellationToken ct)
+    {
+        foreach (var ((_, station, typeId), qty) in await CharacterLevelTargets.LoadAsync(db, ct))
+            need(station, typeId, qty, HaulReason.Restock, level: qty, driverKind: NeedDriverKind.StationLevel);
     }
 
     /// <summary>

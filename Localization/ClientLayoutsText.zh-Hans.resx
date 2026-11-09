@@ -146,7 +146,10 @@
     <value>工具容器</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>工具</value>
+    <value>工具。按住 Shift 单击可再打开一个副本。</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>在这些标签页中打开工具。按住 Shift 单击可再打开一个副本。</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>工具打开位置</value>

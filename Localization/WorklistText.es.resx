@@ -2683,4 +2683,85 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Transferencias</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Transferencia</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Entregar objetos a otro personaje o corporación, en la estación donde están</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} tipo de objeto</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} tipos de objetos</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} a {1} en {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}: mueve esto de tu propio hangar al hangar de {1} en {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} no está en {1}: entrégalo a {1} con un contrato de intercambio de objetos en {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, por {1}: entrégalo a {2} con un contrato de intercambio de objetos en {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}: pasa esto del hangar de {1} al tuyo en {2}, como indica tu nivel de personaje.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}: saca esto del hangar de {1} y entrégalo a {2} con un contrato de intercambio de objetos en {3}. {2} no está en {1}, así que para sus trabajos solo cuenta su propio hangar.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Niveles de personaje</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Corporación predeterminada</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>La corporación que debe guardar los objetos de la lista de trabajo (los de pedidos y niveles de inventario), para que todo personaje en ella pueda fabricar con ellos: un personaje solo puede usar su propio hangar y el de su corporación. Un objeto que tenga un personaje, en su hangar o en la bodega de una nave atracada, recibe una transferencia a esta corporación en cualquier estación donde tenga hangar, salvo lo que un nivel de personaje de abajo reserve a ese personaje. Los módulos equipados, los planos y las naves ensambladas nunca se mueven.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>Ninguna</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Tus otras corporaciones también entregan las suyas</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Desactivado: solo se vacían en la corporación predeterminada los hangares y bodegas de los personajes. Activado: los objetos de la lista de trabajo de tus otras corporaciones también reciben transferencias, que hace uno de tus personajes en esa corporación.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Mantén los niveles de un grupo con un personaje en una estación, en su propio hangar, solo para sus trabajos. Así consigue material para fabricar un personaje que no está en la corporación predeterminada. El transporte lleva la cantidad a la estación, sumada a cualquier nivel de estación que haya, y una transferencia le da al personaje lo que le falta desde el hangar de la corporación predeterminada.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Elige un personaje.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>Ya está en la corporación predeterminada</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>Activo</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>Aún no hay niveles de personaje.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} nivel de personaje</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} niveles de personaje</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>A un personaje no se le da nada hasta que cae este porcentaje por debajo de su nivel; entonces recibe lo necesario para volver a llenarlo. Cero entrega ante cualquier falta.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>Lo que un personaje tiene por encima de su nivel se queda con él hasta superarlo en este porcentaje; entonces el exceso vuelve a la corporación predeterminada. Cero devuelve cualquier exceso.</value>
+  </data>
 </root>

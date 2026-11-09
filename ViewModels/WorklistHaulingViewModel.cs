@@ -363,6 +363,9 @@ public sealed class HaulLaneVm : ReactiveObject
 /// </summary>
 public sealed class WorklistHaulingViewModel : ReactiveObject
 {
+    /// <summary>Ended with the Worklist it belongs to (<see cref="WorklistViewModel.Dispose"/>).</summary>
+    internal ToolLife Life { get; } = new();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly WorklistSettings                _settings;
     private readonly AppErrorLogger                  _errorLogger;
@@ -408,7 +411,7 @@ public sealed class WorklistHaulingViewModel : ReactiveObject
         _nearJumps = settings.HaulNearJumps;
 
         // A character added or removed: in the pilot boxes without a restart.
-        OwnerList.Changed += () => _ = LoadAsync();
+        Life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

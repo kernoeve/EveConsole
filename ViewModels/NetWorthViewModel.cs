@@ -20,8 +20,11 @@ public record NetWorthOwnerOption(string DisplayName, bool IsPersonal, long? Cor
 public enum NetWorthTimeframe { Days90, Days365, YearToDate, PriorYear, Custom }
 public record TimeframeOption(string Label, NetWorthTimeframe Kind);
 
-public class NetWorthViewModel : ReactiveObject
+public class NetWorthViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
 
     // ── Owner dropdown ────────────────────────────────────────────────────────
@@ -199,7 +202,7 @@ public class NetWorthViewModel : ReactiveObject
 
     public async Task InitializeAsync()
     {
-        OwnerList.Changed += () => _ = LoadOwnerOptionsAsync();
+        _life.OnOwnersChanged(() => _ = LoadOwnerOptionsAsync());
         await LoadOwnerOptionsAsync();
         await LoadDataAsync();
     }

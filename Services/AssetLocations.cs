@@ -124,6 +124,14 @@ public sealed class AssetLocations
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(a => a.SolarSystemId, system)
                     .SetProperty(a => a.RegionId,      region), ct);
+
+            // And the kept copy of the poll they are rewritten from (see AssetActivity), or the
+            // next rewrite would put the gap back.
+            await db.Database.ExecuteSqlRawAsync(
+                """
+                UPDATE "EsiAssetsPolled" SET "SolarSystemId" = {0}, "RegionId" = {1}
+                WHERE "OwnerId" = {2} AND "OwnerType" = {3} AND "RootLocationId" = {4} AND "SolarSystemId" IS NULL
+                """, [system, (object?)region ?? DBNull.Value, ownerId, ownerType, root], ct);
         }
     }
 

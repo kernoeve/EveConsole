@@ -246,21 +246,10 @@ public sealed record ScopeStock(
         var personalStock = rows.Where(a => a.OwnerType != "corporation")
             .GroupBy(a => (a.TypeId, a.OwnerId)).ToDictionary(g => g.Key, g => g.Sum(a => a.Qty));
 
-        // And what delivered jobs have put in hangars that the asset poll has not seen yet —
-        // counted as the stock it is, under the owner whose hangar it landed in. Without it a
-        // delivered component is in no asset row and no running job for up to an hour, and the
-        // list plans it again. See DeliveryLag.
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
-        {
-            if (scope is not null && !scope.Contains(d.Site)) continue;
-            if (!Ours(d.OwnerType, d.OwnerId)) continue;
-            var pile = d.OwnerType == "corporation" ? corpStock : personalStock;
-            pile[(d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.TypeId, d.OwnerId)) + d.Units;
-        }
-
-        // And what contracts have moved since, the same way: out with one made, back with one
-        // deleted, in with one accepted. Never below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct))
+        // What delivered jobs, contracts and hauls have done since the asset poll is in the rows
+        // already (AssetActivity). Only a courier's cargo is not — on no shelf, and still ours,
+        // so it exists. Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.InTransitAsync(db, ct))
         {
             if (scope is not null && !scope.Contains(m.Site)) continue;
             if (!Ours(m.OwnerType, m.OwnerId)) continue;
@@ -887,19 +876,16 @@ public class IndustryDemandService(
             .GroupBy(j => j.ProductTypeId!.Value)
             .ToDictionary(g => g.Key, g => (long)g.Sum(j => j.Runs));
 
-        // Delivered since the asset poll is on hand, for the same reason it is everywhere else.
+        // ⚠️ What was delivered since the asset poll is on hand, and what a contract took since
+        // is not, in the rows themselves now (AssetActivity). The order a contract was made for
+        // stops being demand the moment the contract is linked — see above — and before the
+        // rows were written as it happened, the hull it took stayed on hand for up to an hour,
+        // where it covered the next order in line and nothing was built for it. A courier's
+        // cargo is in no row and still on hand. Never below zero. See ContractLag.
         bool Counts(long site, string ownerType, long ownerId) =>
             (scope is null || scope.Contains(site))
             && (ownerType != "corporation" || corps is null || corps.Contains(ownerId));
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct, wanted))
-            if (Counts(d.Site, d.OwnerType, d.OwnerId))
-                onHand[d.TypeId] = onHand.GetValueOrDefault(d.TypeId) + d.Units;
-
-        // ⚠️ And what a contract took since is not. The order it was made for stops being demand
-        // the moment the contract is linked — see above — while the hull it took stays in the
-        // snapshot for up to an hour, where it covered the next order in line and nothing was
-        // built for it. Never below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct, wanted))
+        foreach (var m in await ContractLag.InTransitAsync(db, ct, wanted))
             if (Counts(m.Site, m.OwnerType, m.OwnerId))
                 onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
 
@@ -972,102 +958,19 @@ public class IndustryDemandService(
     }
 
     /// <summary>
-    /// Materials that jobs already running have consumed but the asset snapshot has yet to
-    /// notice, by the facility the job runs in.
-    ///
-    /// <para>⚠️ Assets are polled hourly; industry jobs every five minutes. Starting a job
-    /// takes its inputs out of the hangar at once, so for up to an hour a plan is built
-    /// against a pile that includes material already gone — and since the plan is rebuilt
-    /// every few minutes, it offers that same material to the next job, and the next. Run
-    /// exactly the runs the list asks for and you still run out, which is what this is for.
-    /// Purchasing has the mirror image: for that hour the inputs still count as on hand, so
-    /// a shortfall they no longer cover goes unbought until the poll catches up.</para>
-    ///
-    /// <para>⚠️ Each job is measured against the snapshot for its OWN owner. A corp job's
-    /// inputs come out of the corp hangar, so it is the corporation's asset poll that would
-    /// have seen it; deducting against somebody else's clock would double-count a job the
-    /// snapshot already reflects and hide stock that is really there.</para>
+    /// What a job of so many runs of an item takes, by type: its own inputs at the print's ME
+    /// (the park's default when it is not known) and the park's bonuses. What a started job
+    /// took out of the hangar, as near as can be said — ESI does not list it. See AssetActivity.
     /// </summary>
-    /// <param name="facilities">Facilities whose jobs count, or null for every job.</param>
-    public async Task<Dictionary<(long Site, int TypeId), long>> AlreadyConsumedAsync(
-        AppDbContext db, ProductionContext ctx, IReadOnlySet<long>? facilities, CancellationToken ct)
+    public async Task<Dictionary<int, long>> JobMaterialsAsync(
+        ProductionContext ctx, int productTypeId, int runs, int? me, CancellationToken ct)
     {
-        var consumed = new Dictionary<(long Site, int TypeId), long>();
-        if (facilities is { Count: 0 }) return consumed;
-
-        // When each owner's hangar was last read.
-        //
-        // ⚠️ Compared in memory. EF Core on SQLite cannot translate a DateTimeOffset
-        // comparison and throws rather than saying so, which is how a background loop dies
-        // without leaving a mark.
-        var snapshot = (await db.EsiCallRecords.AsNoTracking()
-                .Where(r => r.Endpoint == "char.assets" || r.Endpoint == "corp.assets")
-                .Select(r => new { r.OwnerId, r.LastCalledAt })
-                .ToListAsync(ct))
-            .GroupBy(r => r.OwnerId)
-            .ToDictionary(g => g.Key, g => g.Max(r => r.LastCalledAt));
-
-        if (snapshot.Count == 0) return consumed;   // nothing polled yet; nothing to correct
-
-        // ⚠️ Deduped by JobId. A corp job comes back from the corporation's endpoint and from
-        // the installer's under one id, and counted twice it would deduct its materials twice.
-        //
-        // Manufacturing (1) and reactions (9, and the legacy 11) only: research, copying and
-        // invention consume the blueprint's time rather than a bill of materials.
-        var started = (await db.EsiIndustryJobs.AsNoTracking()
-                .Where(j => j.Status == "active"
-                         && (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
-                         && j.ProductTypeId != null)
-                .Select(j => new { j.JobId, j.OwnerId, j.FacilityId, j.BlueprintId,
-                                   j.ProductTypeId, j.Runs, j.StartDate })
-                .ToListAsync(ct))
-            .GroupBy(j => j.JobId)
-            .Select(g => g.First())
-            .Where(j => facilities is null || facilities.Contains(j.FacilityId))
-            .Where(j => snapshot.TryGetValue(j.OwnerId, out var taken) && j.StartDate > taken)
-            .ToList();
-
-        if (started.Count == 0) return consumed;
-
-        // The ME of the print each job is actually running, so the deduction matches what the
-        // job took rather than what a default print would have taken.
-        var printIds = started.Select(j => j.BlueprintId).Distinct().ToList();
-        var printMe  = await db.EsiBlueprints.AsNoTracking()
-            .Where(b => printIds.Contains(b.ItemId))
-            .GroupBy(b => b.ItemId)
-            .Select(g => new { ItemId = g.Key, Me = g.Max(b => b.MaterialEfficiency) })
-            .ToDictionaryAsync(x => x.ItemId, x => x.Me, ct);
-
-        // Two jobs off the same print at the same size are common in a split, and planning is
-        // pure given the context.
-        var cache = new Dictionary<(int TypeId, long Qty, int? Me), Dictionary<int, long>>();
-
-        foreach (var j in started)
-        {
-            var typeId  = j.ProductTypeId!.Value;
-            var product = ctx.BlueprintByProduct.GetValueOrDefault(typeId);
-            if (product is null) continue;   // nothing in the SDE makes it; nothing to deduct
-
-            var me  = printMe.TryGetValue(j.BlueprintId, out var m) ? m : (int?)null;
-            var qty = (long)j.Runs * Math.Max(1, product.Quantity);
-            var key = (typeId, qty, me);
-
-            if (!cache.TryGetValue(key, out var mats))
-            {
-                var root = await RootJobAsync(ctx, typeId, qty, me, null, ct);
-                cache[key] = mats = root is null
-                    ? []
-                    : root.Materials
-                          .GroupBy(x => x.MaterialTypeId)
-                          .ToDictionary(g => g.Key, g => (long)g.Sum(x => x.TotalQty));
-            }
-
-            foreach (var (matId, amount) in mats)
-                consumed[(j.FacilityId, matId)] =
-                    consumed.GetValueOrDefault((j.FacilityId, matId)) + amount;
-        }
-
-        return consumed;
+        var product = ctx.BlueprintByProduct.GetValueOrDefault(productTypeId);
+        if (product is null) return [];   // nothing in the SDE makes it
+        var root = await RootJobAsync(ctx, productTypeId, (long)runs * Math.Max(1, product.Quantity), me, null, ct);
+        return root is null ? [] : root.Materials
+            .GroupBy(x => x.MaterialTypeId)
+            .ToDictionary(g => g.Key, g => (long)g.Sum(x => x.TotalQty));
     }
 
     /// <summary>

@@ -1047,6 +1047,7 @@ public class EsiClient
                 ErrorLimitRemain   = firstPage.ErrorLimitRemain,
                 ErrorLimitReset    = firstPage.ErrorLimitReset,
                 Expires            = firstPage.Expires,
+                LastModified       = firstPage.LastModified,
                 RetryAfterSeconds  = firstPage.RetryAfterSeconds,
                 Error              = firstPage.Error,
             };
@@ -1095,6 +1096,7 @@ public class EsiClient
             ErrorLimitReset    = latest.ErrorLimitReset    ?? firstPage.ErrorLimitReset,
             RetryAfterSeconds  = latest.RetryAfterSeconds  ?? firstPage.RetryAfterSeconds,
             Expires            = firstPage.Expires,
+            LastModified       = firstPage.LastModified,
         };
     }
 
@@ -1174,6 +1176,7 @@ public class EsiClient
                 // and response.Headers does not carry it. Missing here, every corporation
                 // endpoint lost its cache expiry and fell back to a fixed interval.
                 Expires            = response.Content.Headers.Expires,
+                LastModified       = response.Content.Headers.LastModified,
                 ETag               = headers.ETag?.Tag,
                 Error              = error,
             };
@@ -1229,6 +1232,7 @@ public class EsiClient
                 ErrorLimitRemain   = firstPage.ErrorLimitRemain,
                 ErrorLimitReset    = firstPage.ErrorLimitReset,
                 Expires            = firstPage.Expires,
+                LastModified       = firstPage.LastModified,
                 RetryAfterSeconds  = firstPage.RetryAfterSeconds,
                 Error              = firstPage.Error,
             };
@@ -1283,6 +1287,7 @@ public class EsiClient
             ErrorLimitReset    = latest.ErrorLimitReset    ?? firstPage.ErrorLimitReset,
             RetryAfterSeconds  = latest.RetryAfterSeconds  ?? firstPage.RetryAfterSeconds,
             Expires            = firstPage.Expires,
+            LastModified       = firstPage.LastModified,
         };
     }
 

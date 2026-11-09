@@ -19,6 +19,12 @@ public class TabWorkspace : ReactiveObject
     /// </summary>
     public bool IsContainer { get; }
 
+    /// <summary>
+    /// A container whose panel is hidden, its client gone: kept, so it comes back as it was, but it
+    /// takes no tools, and a tool asked for while it's in here leaves for a window on screen.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
     /// <summary>A window of its own, which closes when its last tab leaves.</summary>
     public bool IsFloating => !IsMain && !IsContainer;
 
