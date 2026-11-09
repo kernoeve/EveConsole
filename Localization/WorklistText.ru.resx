@@ -2842,4 +2842,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>То, что персонаж держит сверх своего уровня, остаётся у него, пока излишек не превысит эту долю; тогда излишек возвращается корпорации по умолчанию. Ноль — возвращать любой излишек.</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Часть лежит в грузовом отсеке корабля.</value>
+  </data>
 </root>

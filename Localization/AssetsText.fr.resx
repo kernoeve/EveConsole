@@ -1561,4 +1561,10 @@ Modifier la liste la fait réapparaître.</value>
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>{0:N0} lignes écrites depuis</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>ordre de marché {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>acheté sur le marché</value>
+  </data>
 </root>

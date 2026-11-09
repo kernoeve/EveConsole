@@ -2719,4 +2719,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>角色持有的超出等级部分在超出这个比例之前保留，之后将多余部分还给默认军团。为零时任何多余都归还。</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>部分在舰船的货舱中。</value>
+  </data>
 </root>

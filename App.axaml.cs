@@ -1976,6 +1976,15 @@ public class App : Application
                     )
                     """);
 
+                // When each market order was first and last seen open. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MarketOrderSightings" (
+                        "OrderId"     INTEGER NOT NULL PRIMARY KEY,
+                        "FirstSeenAt" TEXT    NOT NULL,
+                        "LastSeenAt"  TEXT    NOT NULL
+                    )
+                    """);
+
                 // When each owner's assets were current. Mirrored in PostgresSchema.
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "AssetSnapshots" (

@@ -2719,4 +2719,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>캐릭터가 레벨을 넘어 가진 몫은 이만큼 넘을 때까지 그대로 두고, 그러면 초과분을 기본 코퍼레이션에 돌려줍니다. 0이면 조금만 넘어도 돌려줍니다.</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>일부는 함선의 화물칸에 있습니다.</value>
+  </data>
 </root>
