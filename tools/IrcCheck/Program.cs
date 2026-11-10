@@ -452,6 +452,8 @@ try
 
         await view.DisconnectAsync(seen);
         Check("relay: a client can ask it to disconnect, and sees it", await Wait(() => held!.State == IrcState.Offline && seen.State == IrcState.Offline), $"{held!.State} {seen.State}");
+        int gotAtReconnect;
+        lock (relayFake.Got) gotAtReconnect = relayFake.Got.Count;
         view.Connect(seen);
         Check("relay: and to connect again", await Wait(() => held!.State == IrcState.Connected && seen.State == IrcState.Connected), $"{held!.State} {seen.State}");
 
@@ -463,11 +465,20 @@ try
         await view.DeleteServerAsync(other.Server.Id);
         Check("relay: and removing one does", await Wait(() => worker.SessionOf(other.Server.Id) is null));
 
-        // ⚠️ Left while still rejoining after the reconnect above: the JOIN on its way kept it again (fixed).
+        // ⚠️ Left while still rejoining after the reconnect above: the JOIN on its way kept it again (fixed). Which comes
+        // first is timing: the JOIN already sent is answered with a PART, or the JOIN not yet sent is never sent.
         await view.LeaveChannelAsync(seen, "#fleet");
-        Check("relay: leaving, through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.StartsWith("PART #fleet")); })
-            && await Wait(() => seen.ChannelOf("#fleet") is null),
-            $"{held!.ChannelOf("#fleet")?.Joined} {seen.ChannelOf("#fleet")?.Joined}");
+        bool OutOfFleet()
+        {
+            lock (relayFake.Got)
+            {
+                var since = relayFake.Got.Skip(gotAtReconnect).ToList();
+                return since.FindLastIndex(l => l.StartsWith("PART #fleet")) >= since.FindLastIndex(l => l.StartsWith("JOIN #fleet"));
+            }
+        }
+        await Task.Delay(1500);
+        Check("relay: leaving, through the worker", await Wait(() => seen.ChannelOf("#fleet") is null) && await Wait(OutOfFleet),
+            $"{held!.ChannelOf("#fleet")?.Joined} {seen.ChannelOf("#fleet")?.Joined} | " + string.Join(" / ", relayFake.Got.Skip(gotAtReconnect).Where(l => l.Contains("#fleet"))));
         Check("relay: and stays left", !await Wait(() => held!.ChannelOf("#fleet") is not null, 2500)
             && !relayFactory.CreateDbContext().IrcChannels.AsNoTracking().Any(c => c.ServerId == id && c.Name == "#fleet" && !c.Left));
 
