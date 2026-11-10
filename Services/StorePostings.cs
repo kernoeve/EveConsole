@@ -56,6 +56,7 @@ public static class StorePostings
                 Ordinal   = i,
                 Side      = listings[i].Side == StorePosting.Buy ? StorePosting.Buy : StorePosting.Sell,
                 Title     = listings[i].Title.Trim(),
+                TrackNeed = listings[i].IsBuy && listings[i].TrackNeed,
             });
 
         var firstSell = listings.FirstOrDefault(l => !l.IsBuy)?.PostingId ?? 0;

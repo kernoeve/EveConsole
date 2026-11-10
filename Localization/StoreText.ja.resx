@@ -403,4 +403,25 @@
   <data name="WebDeclined" xml:space="preserve">
     <value>ストアが拒否しました。</value>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0}はもう必要ないため、オファーは受け付けられませんでした。</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>{2}はあと{0:N0}個だけ必要なため、{1:N0}個のオファーは受け付けられませんでした。その数以下でお申し出ください。</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>不要になりました</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>あと{0:N0}個必要</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0}または{1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0}、または{1}</value>
+  </data>
 </root>

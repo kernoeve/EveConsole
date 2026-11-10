@@ -416,6 +416,9 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// <summary>The kind of doing, as its own scannable column.</summary>
     public string KindText => KindLabel(_item);
 
+    /// <summary>The kind as a short tag, for a panel's list: a haul is a haul there, whatever its lane.</summary>
+    public string KindTag => _item.Kind == WorklistKind.Haul ? WorklistText.KindHaul : KindLabel(_item);
+
     public static string KindLabel(WorklistItem item) => item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,

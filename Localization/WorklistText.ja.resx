@@ -2722,4 +2722,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>一部は艦船のカーゴホールドにあります。</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>そのうち{0:N0}はストアへのオファーで、到着予定として数えています。</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>コピー実行数が {0:N0} 不足しています。</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>さらに在庫レベルまたは注文用に {0:N0} コピー実行。</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} 保留中の注文用</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>製造できるものはありません。手持ち {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>インダストリー計画が設定されていません</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} 件の製造ルールと {1:N0} 件の保留中の注文が待機中です。</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>ワークリスト用のインダストリーパークが選択されておらず、インダストリーパークで星付きのものもありません。</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>インダストリー作業を実行できるキャラクターが有効になっていません。</value>
+  </data>
 </root>

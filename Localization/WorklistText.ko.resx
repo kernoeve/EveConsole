@@ -2722,4 +2722,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>일부는 함선의 화물칸에 있습니다.</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>그중 {0:N0}개는 상점 제안이며, 들어올 것으로 계산합니다.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>복사 실행 수가 {0:N0} 부족합니다.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>재고 수준 또는 주문용으로 복사 실행 {0:N0}회 추가.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>대기 중인 주문용 {0:N0}</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>제조 가능한 것이 없음, 보유 {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>인더스트리 계획이 설정되지 않았습니다</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>제작 규칙 {0:N0}개와 대기 중인 주문 {1:N0}건이 기다리고 있습니다.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>작업 목록에 선택된 인더스트리 파크가 없고 인더스트리 파크에 별표된 파크도 없습니다.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>인더스트리 작업을 실행하도록 활성화된 캐릭터가 없습니다.</value>
+  </data>
 </root>

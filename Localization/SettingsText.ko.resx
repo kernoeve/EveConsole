@@ -3895,6 +3895,18 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>공유 PostgreSQL 데이터베이스에서만 해당됩니다. SQLite에서는 이 클라이언트가 유일하므로 항상 작업을 합니다.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>인더스트리 파크</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>기본값</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>기본값 ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>저장된 제작 비용을 계산할 때 사용하는 인더스트리 파크(구조물, 리그, 성계)입니다. 판매 게시물 등 제작 비용을 기준으로 하는 모든 가격에 영향을 줍니다. &quot;기본값&quot;은 인더스트리 파크에서 기본으로 지정된 파크를 따릅니다. 작업 목록과 계산기는 각자의 파크를 그대로 사용합니다. 변경을 적용하려면 재계산을 누르거나 다음 시장 갱신을 기다리십시오.</value>
+  </data>
   <data name="RetentionDirectMessages" xml:space="preserve">
     <value>다이렉트 메시지</value>
   </data>

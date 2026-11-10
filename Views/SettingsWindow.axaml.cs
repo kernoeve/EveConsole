@@ -69,6 +69,9 @@ public partial class SettingsWindow : Window
         // one that lies about a thing the user is about to act on.
         vm.PollingVm.RefreshServiceState();
 
+        // The parks build costs can be worked out at: a park added or renamed since last time shows.
+        _ = vm.MarketVm.LoadBuildCostParksAsync();
+
         var scopeHandler = vm.CharacterVm.ScopeSelectionInteraction.RegisterHandler(async ctx =>
         {
             var dialog = new ScopeSelectionDialog(ctx.Input) { DataContext = vm.CharacterVm };

@@ -5144,6 +5144,18 @@ The application will restart.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Only for a shared PostgreSQL database: with SQLite this is the only client, so it always does the work.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Indy park</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Default ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>The Indy Park whose structures, rigs and systems stored build costs are worked out at — and with them every price set from build cost, such as a sale posting&apos;s. Default follows the park marked default in Indy Parks. The Worklist and the calculators keep their own park. Press Recalculate, or wait for the next market refresh, for a change to take effect.</value>
+  </data>
   <data name="RetentionDirectMessages" xml:space="preserve">
     <value>Direct Messages</value>
   </data>

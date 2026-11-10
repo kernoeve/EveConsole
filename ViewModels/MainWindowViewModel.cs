@@ -1703,6 +1703,7 @@ public class MainWindowViewModel : ReactiveObject
         MarketLevelService              marketLevelService,
         InvLevelService                 invLevelService,
         SalePostingService              salePostingService,
+        StoreNeedService                storeNeeds,
         StoreMailService                storeMailService,
         EveConsole.Services.WebStore.WebStoreSyncService webStoreSync,
         EveConsole.Services.WebStore.CloudflareDeployService cloudflareDeploy,
@@ -1867,7 +1868,7 @@ public class MainWindowViewModel : ReactiveObject
         StartupTrace.Step("new IncomeExpenseToolVm");
         IncomeExpenseToolVm = new IncomeExpenseToolViewModel(dbFactory, errorLogger);
         StartupTrace.Step("new MarketVm");
-        MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService);
+        MarketVm          = new MarketSettingsViewModel(dbFactory.CreateDbContext(), dbFactory, marketPricing, esi, CharacterVm.Characters, buildCostService, appPrefs);
         var fittingsService = new FittingsService(esi);
         StartupTrace.Step("new FittingVm");
         FittingVm         = new FittingViewModel(dbFactory, fittingsService, CharacterVm.Characters, esi);
@@ -1885,9 +1886,9 @@ public class MainWindowViewModel : ReactiveObject
             batchAddService, prodCalcService, fittingsService,
             CharacterVm.Characters);
         StartupTrace.Step("new SalePostingVm");
-        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi);
+        SalePostingVm     = new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi, storeNeeds);
         StartupTrace.Step("new StoresVm");
-        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy);
+        StoresVm          = new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy, esi);
 
         StartupTrace.Step("new CorpActivityVm");
         CorpActivityVm    = new CorpActivityViewModel(corpActivityService, CharacterVm.Corporations, corpTop10Exclude, corpReportTitles, slackService, exportFormat, errorLogger, discordService);
@@ -2261,8 +2262,8 @@ public class MainWindowViewModel : ReactiveObject
             CharacterVm.Characters, batchAddService, prodCalcService));
         CopyOf("inv_levels", () => InvLevelVm, () => new InvLevelViewModel(invLevelService, dbFactory, appPrefs,
             batchAddService, prodCalcService, fittingsService, CharacterVm.Characters));
-        CopyOf("sale_posting", () => SalePostingVm, () => new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi));
-        CopyOf("stores", () => StoresVm, () => new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy));
+        CopyOf("sale_posting", () => SalePostingVm, () => new SalePostingViewModel(salePostingService, dbFactory, batchAddService, slackService, exportFormat, discordService, esi, storeNeeds));
+        CopyOf("stores", () => StoresVm, () => new StoresViewModel(dbFactory, salePostingService, storeMailService, orderLabels, errorLogger, webStoreSync, workerLease, cloudflareDeploy, esi));
         CopyOf("net_worth", () => NetWorthVm, () => new NetWorthViewModel(dbFactory));
         CopyOf("income_expense", () => IncomeExpenseToolVm, () => new IncomeExpenseToolViewModel(dbFactory, errorLogger));
         CopyOf("wallet", () => WalletVm, () => new WalletViewModel(dbFactory, errorLogger));

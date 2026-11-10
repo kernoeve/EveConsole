@@ -540,4 +540,25 @@
     <value>Declined by the store.</value>
     <comment>A store's web site, shown to the buyer: why their order was turned down, when the store's owner declined it on the Stores screen without giving a reason of their own.</comment>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0} is no longer needed, so your offer was not taken.</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>We need only {0:N0} more {2}, so your offer of {1:N0} was not taken. Offer that many or fewer.</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>no longer needed</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>{0:N0} still needed</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0} or {1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0}, or {1}</value>
+  </data>
 </root>

@@ -124,6 +124,9 @@ public sealed class StoreInfoDto
     /// <summary>Where sellers are asked to create those contracts, named in the store's language;
     /// null when the store does not say (site 0.2.0+ shows it).</summary>
     public PlaceDto? BuyLocation { get; set; }
+    /// <summary>Every place sellers may create those contracts, in order (site 0.3.0+, which
+    /// shows them all; an older site shows <see cref="BuyLocation"/>, the first). Null for none.</summary>
+    public List<PlaceDto>? BuyLocations { get; set; }
 }
 
 public sealed class PlaceDto
@@ -223,7 +226,32 @@ public sealed class CatalogueDto
     public string ColourInBuild  { get; set; } = "";
     public string ColourNone     { get; set; } = "";
 
+    /// <summary>
+    /// A Buy listing that tracks need (site 0.3.0+): whether sellers see the figures in each
+    /// item's <see cref="CatalogueItemDto.Need"/>. The cap applies either way. Null elsewhere.
+    /// </summary>
+    public bool? ShowNeed { get; set; }
+
     public List<CatalogueSectionDto> Sections { get; set; } = [];
+}
+
+/// <summary>
+/// How much of an item a Buy listing still wants (site 0.3.0+). <see cref="Needed"/> is net of
+/// every offer the app has booked; the site takes its own unanswered offers off it too, takes no
+/// offer when nothing is left, and none for more than is left.
+/// </summary>
+public sealed class NeedDto
+{
+    public long Needed  { get; set; }
+    public long Wanted  { get; set; }
+    public long OnHand  { get; set; }
+    public long InBuild { get; set; }
+    public long OnOrder { get; set; }
+
+    public static NeedDto Of(ItemNeed n) => new()
+    {
+        Needed = n.Needed, Wanted = n.Wanted, OnHand = n.OnHand, InBuild = n.InBuild, OnOrder = n.OnOrder,
+    };
 }
 
 public sealed class CatalogueSectionDto
@@ -270,6 +298,9 @@ public sealed class CatalogueItemDto
     public long    Reserved  { get; set; }
     public DateTimeOffset? EarliestJobEnd { get; set; }
     public string? Colour    { get; set; }
+
+    /// <summary>On a Buy listing that tracks need; null everywhere else, which is no cap.</summary>
+    public NeedDto? Need     { get; set; }
 }
 
 /// <summary>

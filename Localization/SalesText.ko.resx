@@ -2002,4 +2002,43 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>"{0}" 블록의 Discord 게시 실패: {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>필요한 만큼만</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>매입 목록: 각 아이템에 대해 작업 목록이 아직 필요로 하는 만큼만 받습니다(필요한 수량에서 보유량, 제작 중인 수량, 이 상점에 이미 제안된 수량을 뺀 만큼). 더 이상 필요 없는 아이템은 제안을 받지 않으며, 필요한 수량을 넘는 제안도 받지 않습니다.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>아직 필요한 수량 표시</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>필요한 만큼만 받는 매입 목록에서 각 아이템이 아직 몇 개 필요한지, 얼마나 확보되었는지를 판매자에게 보여 줍니다. 끄면 한도는 그대로 적용되고 수치만 공개하지 않습니다.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>{2} {1:N0}개가 제안되었지만 아직 필요한 수량은 {0:N0}개뿐입니다.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>남은 수량</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>필요 {0:N0} · 보유 {1:N0} · 제작 중 {2:N0} · 제안됨 {3:N0} → 남은 필요 {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>게시물 &quot;{0}&quot;을(를) 모든 섹션, 아이템, 장소와 함께 삭제하시겠습니까? 이를 목록에 올린 상점에서도 더 이상 표시되지 않습니다. 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>섹션 &quot;{1}&quot;과(와) 그 안의 아이템 {0:N0}개를 삭제하시겠습니까? 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>이 게시물에서 {0}을(를) 제거하시겠습니까?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>선택한 아이템 {0:N0}개를 게시물에서 제거하시겠습니까?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>{0}에 있는 것의 목록 게시를 중단하시겠습니까?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>아이템 {0:N0}개 삭제</value>
+  </data>
 </root>

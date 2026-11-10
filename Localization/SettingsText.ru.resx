@@ -3904,6 +3904,18 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Только для общей базы данных PostgreSQL: с SQLite этот клиент единственный, поэтому он всегда выполняет работу.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Промпарк</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>По умолчанию ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>Промпарк, по структурам, ригам и системам которого считается сохранённая стоимость производства, а с ней и любая цена от стоимости производства, например в объявлении о продаже. «По умолчанию» следует за парком, отмеченным как основной в промпарках. Список задач и калькуляторы используют свои парки. Чтобы изменение вступило в силу, нажмите «Пересчитать» или дождитесь следующего обновления рынка.</value>
+  </data>
   <data name="RetentionDirectMessages" xml:space="preserve">
     <value>Личные сообщения</value>
   </data>

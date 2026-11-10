@@ -3898,6 +3898,18 @@ L'application va redémarrer.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Seulement avec une base PostgreSQL partagée : avec SQLite, ce client est le seul, il fait donc toujours le travail.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Parc industriel</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Par défaut ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>Le parc industriel dont les structures, rigs et systèmes servent au calcul des coûts de fabrication enregistrés, et donc de tout prix fondé sur ce coût, comme celui d&apos;une annonce de vente. « Par défaut » suit le parc marqué par défaut dans les parcs industriels. La Liste de tâches et les calculateurs gardent leur propre parc. Cliquez sur Recalculer, ou attendez la prochaine actualisation du marché, pour appliquer un changement.</value>
+  </data>
   <data name="RetentionDirectMessages" xml:space="preserve">
     <value>Messages directs</value>
   </data>

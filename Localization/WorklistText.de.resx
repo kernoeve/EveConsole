@@ -2767,4 +2767,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>Einige liegen im Frachtraum eines Schiffs.</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Davon sind {0:N0} in Ladenangeboten und werden als unterwegs gezählt.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Es fehlen {0:N0} Kopierläufe.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Dazu {0:N0} Kopierläufe für den Lagerbestand oder Aufträge.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} für offene Aufträge</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nichts stellt es her; {0:N0} vorrätig</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Industrieplanung ist nicht eingerichtet</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} Bauregel(n) und {1:N0} offene(r) Auftrag/Aufträge warten.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>Für die Arbeitsliste ist kein Industriepark gewählt und in den Industrieparks ist keiner markiert.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Kein Charakter ist für Industriejobs aktiviert.</value>
+  </data>
 </root>

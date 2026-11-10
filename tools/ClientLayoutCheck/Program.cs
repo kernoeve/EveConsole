@@ -1087,6 +1087,42 @@ LayoutArea TwoClients(out string first, out string second)
     Check(splits.ShowSplitDropZone, "one that can does");
 }
 
+// ---- Groups when a monitor changes layout ----
+{
+    EveConsole.Models.ClientLayoutCharacter Row(int id, int monitor, string area, string name) =>
+        new() { Id = id, MonitorId = monitor, AreaId = area, CharacterName = name };
+
+    var one = new LayoutArea { Content = AreaContent.Client };
+    var two = TwoClients(out var twoFirst, out var twoSecond);
+
+    // The new layout has none here: client 1's group comes along to client 1, as copies.
+    var rows = new[] { Row(1, 5, one.Id, "Alpha"), Row(2, 5, one.Id, "Bravo"), Row(3, 6, twoFirst, "Echo") };
+    var carried = ClientLayoutStore.CarriedCharacters(5, rows, one, two);
+    Same(carried.Count, 2, "both of client 1's characters come along");
+    Check(carried.All(r => r.MonitorId == 5 && r.AreaId == twoFirst && r.Id == 0), "as new rows, into the new client 1");
+    Check(carried.Select(r => r.CharacterName).Order().SequenceEqual(["Alpha", "Bravo"]), "with their names");
+
+    // Back to one client: client 1 comes back, and the second client's group has nowhere to go.
+    rows = [Row(1, 5, twoFirst, "Alpha"), Row(2, 5, twoSecond, "Bravo")];
+    carried = ClientLayoutStore.CarriedCharacters(5, rows, two, one);
+    Same(carried.Single().AreaId, one.Id, "client 1 to client 1");
+    Same(carried.Single().CharacterName, "Alpha", "only client 1's");
+
+    // A layout with groups of its own on this monitor keeps exactly those.
+    rows = [Row(1, 5, one.Id, "Alpha"), Row(2, 5, twoSecond, "Bravo")];
+    Same(ClientLayoutStore.CarriedCharacters(5, rows, one, two).Count, 0, "the new layout's own groups are left as they are");
+
+    // Another monitor's groups are never carried.
+    rows = [Row(1, 6, one.Id, "Alpha")];
+    Same(ClientLayoutStore.CarriedCharacters(5, rows, one, two).Count, 0, "only this monitor's groups");
+
+    // Joining a group: it leaves its group in this layout and on other monitors, but not this
+    // monitor's groups for its other layouts.
+    rows = [Row(1, 5, one.Id, "Alpha"), Row(2, 5, twoSecond, "alpha"), Row(3, 6, twoFirst, "ALPHA"), Row(4, 5, twoFirst, "Bravo")];
+    var gone = ClientLayoutStore.Displaced(rows, 5, new HashSet<string> { twoFirst, twoSecond }, "Alpha").Select(r => r.Id).Order().ToList();
+    Check(gone.SequenceEqual([2, 3]), $"this layout's and another monitor's, ignoring case: got {string.Join(",", gone)}");
+}
+
 // ---- The placement rules ----
 var now =new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 var opening = new LayoutRect(10, 10, 1000, 800);
@@ -1143,7 +1179,7 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
 
     // One that was at the login screen isn't being flown, so its login is a normal login.
     step = e.Step([At(1, "EVE - Alpha", opening), At(2, "EVE - Bravo", opening)], now.AddSeconds(2));
-    Same(step.Notices.Single().Character, "Bravo", "a client that was at login is handled when it logs in");
+    Same(step.Moves.Single(), new ClientMove(2, c1), "a client that was at login is placed when it logs in");
 }
 {
     // A starting client takes an empty cell on its own monitor.
@@ -1229,12 +1265,35 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     Same(e.Step([At(1, "EVE", c1)], now.AddSeconds(2)).Moves.Count, 0, "logging out doesn't move it");
 }
 {
-    // A character in no group stays, and the app offers to add it.
+    // A character in no group keeps the cell its client took at login, and nothing is said.
     var e = Engine(out var c1, out _, out _);
     e.Step([], now);
     e.Step([At(1, "EVE", opening)], now);
     var step = e.Step([At(1, "EVE - Echo", c1)], now.AddSeconds(5));
-    Same(step.Moves.Count, 0, "no position, it stays");
+    Same(step.Moves.Count, 0, "no group, it keeps its cell");
+    Same(step.Notices.Count, 0, "and that's no problem");
+}
+{
+    // A character in no group with no cell takes a free one, one no group is set for first.
+    var e = Engine(out var c1, out var c2, out _, ("Alpha", 1));
+    e.Step([], now);
+    Same(e.Step([At(1, "EVE - Echo", opening)], now).Moves.Single(), new ClientMove(1, c2), "an ungrouped cell first");
+
+    // With only a grouped cell free, it takes that rather than staying out.
+    e = Engine(out c1, out c2, out _, ("Alpha", 2));
+    e.Step([], now);
+    e.Step([At(2, "EVE", opening)], now);
+    var step = e.Step([At(2, "EVE", c1), At(1, "EVE - Echo", opening)], now.AddSeconds(1));
+    Same(step.Moves.Single(), new ClientMove(1, c2), "the free one, grouped or not");
+}
+{
+    // No free cell at all: it stays, and the app says so.
+    var e = Engine(out var c1, out var c2, out _);
+    e.Step([], now);
+    e.Step([At(1, "EVE", opening)], now);
+    e.Step([At(1, "EVE", c1), At(2, "EVE", opening)], now.AddSeconds(1));
+    var step = e.Step([At(1, "EVE", c1), At(2, "EVE", c2), At(3, "EVE - Echo", opening)], now.AddSeconds(2));
+    Same(step.Moves.Count, 0, "nowhere to go");
     Same(step.Notices.Single().Kind, PlacementNoticeKind.CharacterHasNoPosition, "and it's reported");
 }
 {
@@ -1313,13 +1372,13 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     var step = e.Apply([w1, w2, w3, w4, w5], now.AddSeconds(1));
     Check(step.Moves.Contains(new ClientMove(2, c2)), "a character goes to its position");
     Check(step.Moves.Contains(new ClientMove(3, far)), "on any monitor");
-    Check(step.Moves.Contains(new ClientMove(1, c1)), "a client at login takes what's left");
-    Check(!step.Moves.Any(m => m.Handle == 4), "a character with no position stays");
+    Check(step.Moves.Contains(new ClientMove(4, c1)), "a character in no group takes a free cell");
+    Check(!step.Moves.Any(m => m.Handle == 1), "before a client at login, which finds none left");
     Check(!step.Moves.Any(m => m.Handle == 5), "a framed client is not placed");
-    Check(step.Notices.Any(n => n.Kind == PlacementNoticeKind.CharacterHasNoPosition && n.Character == "Echo"), "the unplaced character is mentioned");
+    Check(!step.Notices.Any(n => n.Kind == PlacementNoticeKind.CharacterHasNoPosition), "nobody is left without a place");
 
     // Applying again with everything in place moves nothing.
-    var settled = new[] { At(1, "EVE", c1), At(2, "EVE - Alpha", c2), At(3, "EVE - Bravo", far), w4, w5 };
+    var settled = new[] { w1, At(2, "EVE - Alpha", c2), At(3, "EVE - Bravo", far), At(4, "EVE - Echo", c1), w5 };
     e.Step(settled, now.AddSeconds(2));
     Same(e.Apply(settled, now.AddSeconds(3)).Moves.Count, 0, "nothing to do the second time");
 }

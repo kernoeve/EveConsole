@@ -59,7 +59,7 @@ public record PostingDialogResult(
     bool ShowInStock, bool ShowInBuild, bool ShowReserved, bool IncludeCompletionDate,
     bool OnlyPackaged,
     bool ColorByState, string ColorInStock, string ColorInBuild, string ColorNone,
-    IReadOnlyList<PostBlockDraft> Posts);
+    IReadOnlyList<PostBlockDraft> Posts, bool ShowNeed = true);
 
 // ── Shared display helpers ──────────────────────────────────────────────────────
 internal static class SalePostFmt
@@ -71,11 +71,14 @@ internal static class SalePostFmt
     public static string Isk(double? v)
     {
         if (v is not double d) return "—";
+        // ⚠️ The tiers MarketFmt.RoundToDisplay stores prices at, so a price list shows exactly
+        // the number an order is booked at: under 10,000 the ISK to the cent, then two places.
         double a = Math.Abs(d);
-        return a >= 1_000_000_000 ? (d / 1_000_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "B"
-             : a >= 1_000_000     ? (d / 1_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "M"
-             : a >= 1_000         ? (d / 1_000).ToString("0.0", CultureInfo.InvariantCulture) + "K"
-             :                      d.ToString("N0", CultureInfo.InvariantCulture);
+        return a >= 1_000_000_000_000 ? (d / 1_000_000_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "T"
+             : a >= 1_000_000_000     ? (d / 1_000_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "B"
+             : a >= 1_000_000         ? (d / 1_000_000).ToString("0.00", CultureInfo.InvariantCulture) + "M"
+             : a >= 10_000            ? (d / 1_000).ToString("0.00", CultureInfo.InvariantCulture) + "K"
+             :                          d.ToString("#,##0.##", CultureInfo.InvariantCulture);
     }
 
     public static string Qty(long v) => v.ToString("N0", CultureInfo.InvariantCulture);
@@ -942,6 +945,22 @@ public class SalePostingItemRow : ReactiveObject
         this.RaisePropertyChanged(nameof(ProfitColor));
     }
 
+    // ── Need: on a posting a store buys into "only what's needed" ──
+    private ItemNeed? _need;
+    /// <summary>What is still needed, or blank where the posting tracks no need.</summary>
+    public string NeededText => _need is { } n ? SalePostFmt.Qty(n.Needed) : "";
+    /// <summary>How the need is made up, as the store works it out.</summary>
+    public string NeedTip => _need is { } n
+        ? string.Format(SalesText.NeedBreakdown, n.Wanted, n.OnHand, n.InBuild, n.OnOrder, n.Needed)
+        : "";
+
+    public void ApplyNeed(ItemNeed? need)
+    {
+        _need = need;
+        this.RaisePropertyChanged(nameof(NeededText));
+        this.RaisePropertyChanged(nameof(NeedTip));
+    }
+
     // ── Exposed for posting-level totals ──
     private double? _currentCost;
     public long    EffectiveInStock  => _inStockOverride ?? _inStock;
@@ -969,6 +988,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
 
     private readonly SalePostingService _svc;
     private readonly BatchAddService?   _batchSvc;
+    private readonly StoreNeedService?  _needs;
     private readonly SlackService?      _slack;
     private readonly ExportFormatSettings? _exportFormat;
 
@@ -980,7 +1000,13 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
     public object? SelectedRow
     {
         get => _selectedRow;
-        set { this.RaiseAndSetIfChanged(ref _selectedRow, value); this.RaisePropertyChanged(nameof(IsItemRowSelected)); }
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _selectedRow, value);
+            this.RaisePropertyChanged(nameof(IsItemRowSelected));
+            this.RaisePropertyChanged(nameof(HasItemRowsSelected));
+            this.RaisePropertyChanged(nameof(DeleteItemsHeader));
+        }
     }
     public bool IsItemRowSelected => _selectedRow is SalePostingItemRow;
 
@@ -1070,9 +1096,11 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
 
     public SalePostingViewModel(SalePostingService svc, IDbContextFactory<AppDbContext> dbFactory,
         BatchAddService? batchSvc = null, SlackService? slack = null,
-        ExportFormatSettings? exportFormat = null, DiscordService? discord = null, EsiClient? esi = null)
+        ExportFormatSettings? exportFormat = null, DiscordService? discord = null, EsiClient? esi = null,
+        StoreNeedService? needs = null)
     {
         _svc          = svc;
+        _needs        = needs;
         _dbFactory    = dbFactory;
         _esi          = esi;
         _batchSvc     = batchSvc;
@@ -1206,6 +1234,17 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
             foreach (var it in s.AllItems)
                 if (calc.TryGetValue(it.TypeId, out var c))
                     it.ApplyCalc(c, _selectedProfitBasis, pr.Model.IncludeCompletionDate);
+        }
+
+        // A posting a store buys into "only what's needed": what each item still needs, as the
+        // store asks for it. Blank for every other posting.
+        if (_needs is not null)
+        {
+            var items = pr.Sections.SelectMany(s => s.AllItems).ToList();
+            Dictionary<int, ItemNeed>? needs = null;
+            try { needs = await _needs.ForPostingAsync(pr.PostingId, [.. items.Select(i => i.TypeId).Distinct()]); }
+            catch (Exception ex) { StatusText = ex.Message; }   // the figures stay blank; prices still show
+            foreach (var it in items) it.ApplyNeed(needs?.GetValueOrDefault(it.TypeId));
         }
         pr.RecomputeTotals();
     }
@@ -1496,7 +1535,10 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
         row = new SalePostingRow(p,
             toggle:     () => { row.IsExpanded = !row.IsExpanded; RebuildGridRows(); },
             edit:       () => EditPostingAsync(row),
-            delete:     () => DeletePostingAsync(row),
+            delete:     async () =>
+            {
+                if (await SureAsync(string.Format(SalesText.ConfirmDeletePosting, row.PostingName))) await DeletePostingAsync(row);
+            },
             addSection: () => AddSectionAsync(row),
             places:     () => EditPlacesAsync(row));
         return row;
@@ -1508,7 +1550,11 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
         SalePostingLocationRow row = null!;
         row = new SalePostingLocationRow(l,
             saveTitle: title => _svc.UpdateLocationTitleAsync(l.Id, title),
-            delete:    () => SavePlacesAsync(parent, parent.Locations.Where(x => x != row).Select(x => x.Model).ToList()));
+            delete:    async () =>
+            {
+                if (await SureAsync(string.Format(SalesText.ConfirmRemovePlace, row.Path)))
+                    await SavePlacesAsync(parent, parent.Locations.Where(x => x != row).Select(x => x.Model).ToList());
+            });
         return row;
     }
 
@@ -1564,6 +1610,7 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
         // copied here saves correctly and then appears not to have.
         m.ColorByState = r.ColorByState; m.ColorInStock = r.ColorInStock;
         m.ColorInBuild = r.ColorInBuild; m.ColorNone     = r.ColorNone;
+        m.ShowNeed = r.ShowNeed;
         row.ApplyData(m);
 
         await ComputePostingAsync(row);
@@ -1586,7 +1633,12 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
         row = new SalePostingSectionRow(s,
             toggle:  () => { row.IsExpanded = !row.IsExpanded; RebuildGridRows(); },
             edit:    () => EditSectionAsync(parent, row),
-            delete:  () => DeleteSectionAsync(parent, row),
+            delete:  async () =>
+            {
+                if (await SureAsync(Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ConfirmDeleteSectionOther),
+                                                   row.AllItems.Count, row.SectionName)))
+                    await DeleteSectionAsync(parent, row);
+            },
             addItem: () => AddItemToSectionAsync(parent, row));
         return row;
     }
@@ -1685,15 +1737,55 @@ public class SalePostingViewModel : ReactiveObject, IPeriodicRefresh, IDisposabl
         StatusText = string.Format(SalesText.AddedItems, added);
     }
 
+    // ── Selection and asking first ──────────────────────────────────────────────
+
+    /// <summary>Asks before anything is deleted; true goes ahead. Set by the view.</summary>
+    public Func<string, Task<bool>>? ConfirmDelete { get; set; }
+
+    private async Task<bool> SureAsync(string message) => ConfirmDelete is null || await ConfirmDelete(message);
+
+    private List<SalePostingItemRow> _selectedItems = [];
+
+    /// <summary>Every item row selected in the grid, set by the view as the selection changes
+    /// (the grid's selection list cannot be bound). The one row <see cref="SelectedRow"/> names
+    /// is the current one; this is all of them.</summary>
+    public void SetSelectedRows(IEnumerable<object> rows)
+    {
+        _selectedItems = [.. rows.OfType<SalePostingItemRow>()];
+        this.RaisePropertyChanged(nameof(HasItemRowsSelected));
+        this.RaisePropertyChanged(nameof(DeleteItemsHeader));
+    }
+
+    /// <summary>The items a delete takes: the selection, or the current row on its own.</summary>
+    private List<SalePostingItemRow> ItemsToDelete() =>
+        _selectedItems.Count > 0 ? _selectedItems
+        : _selectedRow is SalePostingItemRow one ? [one] : [];
+
+    public bool HasItemRowsSelected => ItemsToDelete().Count > 0;
+
+    public string DeleteItemsHeader => ItemsToDelete().Count is var n and > 1
+        ? Plurals.Format(SalesText.ResourceManager, nameof(SalesText.MenuDeleteItemsOther), n)
+        : SalesText.MenuDeleteItem;
+
     private async Task DeleteSelectedItemAsync()
     {
-        if (_selectedRow is not SalePostingItemRow item) return;
-        await _svc.DeleteItemAsync(item.ItemId);
+        var items = ItemsToDelete();
+        if (items.Count == 0) return;
+        var message = items.Count == 1
+            ? string.Format(SalesText.ConfirmDeleteItem, items[0].DisplayName)
+            : Plurals.Format(SalesText.ResourceManager, nameof(SalesText.ConfirmDeleteItemsOther), items.Count);
+        if (!await SureAsync(message)) return;
+
+        foreach (var item in items) await _svc.DeleteItemAsync(item.ItemId);
+        var gone = items.Select(i => i.ItemId).ToHashSet();
         foreach (var pr in _allPostings)
             foreach (var s in pr.Sections)
-                if (s.AllItems.Any(i => i.ItemId == item.ItemId))
-                    s.AllItems = s.AllItems.Where(i => i.ItemId != item.ItemId).ToList();
+                if (s.AllItems.Any(i => gone.Contains(i.ItemId)))
+                    s.AllItems = s.AllItems.Where(i => !gone.Contains(i.ItemId)).ToList();
+        _selectedItems = [];
         RebuildGridRows();
+        this.RaisePropertyChanged(nameof(HasItemRowsSelected));
+        this.RaisePropertyChanged(nameof(DeleteItemsHeader));
     }
 
     /// <summary>Opens a new standing buy order on an item, the item filled in. Wired by the main window.</summary>

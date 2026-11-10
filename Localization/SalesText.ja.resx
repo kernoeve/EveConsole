@@ -2002,4 +2002,43 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>「{0}」のDiscordへの投稿に失敗しました：{1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>必要分のみ</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>買取リスト：各アイテムについて、ワークリストがまだ必要とする分だけを受け付けます（必要数から、所持数・製造中の数・このストアですでに提示された数を差し引いた分）。不要になったアイテムはオファーを受け付けず、必要数を超えるオファーも受け付けません。</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>あと何個必要かを表示</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>必要分のみを受け付ける買取リストで、各アイテムがあと何個必要か、どれだけ確保済みかを売り手に表示します。オフにしても上限は適用され、数値だけが非公開になります。</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>{2}を{1:N0}個提示されましたが、まだ必要なのは{0:N0}個だけです。</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>必要 {0:N0} ・ 所持 {1:N0} ・ 製造中 {2:N0} ・ オファー中 {3:N0} → 残り必要 {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>掲載「{0}」を、すべてのセクション・アイテム・場所ごと削除しますか？これを掲載しているストアには表示されなくなります。元に戻せません。</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>セクション「{1}」と、その中の{0:N0}個のアイテムを削除しますか？元に戻せません。</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>{0}をこの掲載から削除しますか？</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>選択した{0:N0}個のアイテムを掲載から削除しますか？</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>{0}にあるものの掲載をやめますか？</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>{0:N0}個のアイテムを削除</value>
+  </data>
 </root>

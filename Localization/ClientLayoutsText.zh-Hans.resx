@@ -325,7 +325,7 @@
     <value>{0}：其位置已被另一个已登录的角色占用，因此保持原位。</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} 已登录，但不在任何分组中。请将其添加到某个客户端位置。</value>
+    <value>{0} 已登录，但不在任何分组中，且其所在显示器上没有空闲的客户端位置。请将其添加到某个客户端位置。</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} 被手动移动过，因此在你按下“应用”之前不会再调整。</value>

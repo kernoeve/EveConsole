@@ -82,6 +82,13 @@ public class MaterialPurchaseGenerator(
             ? await InventionService.InventedBlueprintIdsAsync(db, ct)
             : [];
 
+        // ⚠️ The same stand-down for T1 copies a Build rule's level or an order wants: the
+        // invention generator copies them from an owned original, when the park has said where
+        // copying happens and somebody can run it. Otherwise they are bought, here.
+        var canCopy = candidates.Any(c => c.Runs(IndustryPool.Science))
+                   && await InventionService.LabAsync(db, parkId, InventionService.CopyingCategory, ct) is not null;
+        var copyable = await InventionGenerator.CopyablePrintsAsync(db, ctx, ct);
+
         var scope   = await ScopeAsync(db, parkId, ct);
         var wrapped = await AssetExclusions.UnusableItemIdsAsync(db, ct);
         var reach   = new ProductionCalculatorService.AssetReach(scope, wrapped, corps);
@@ -116,7 +123,14 @@ public class MaterialPurchaseGenerator(
             ? await InventionNeedsAsync(db, ctx, demand, allPrints, owned, candidates, ct)
             : [];
 
-        if (demand.Count == 0 && inventionNeeds.Count == 0) return [];
+        // What the shelves want of each print, and what customer orders want of things no job
+        // makes — prints, and items nothing manufactures. Neither is build demand, so neither
+        // may be lost to an empty one.
+        var shelfWant  = await BlueprintShelfWantAsync(db, ctx, ct);
+        var orderWants = await OrderWantsAsync(db, ctx, ct);
+
+        if (demand.Count == 0 && inventionNeeds.Count == 0
+            && shelfWant.Buy.Count == 0 && shelfWant.Build.Count == 0 && orderWants.Count == 0) return [];
 
         // What those builds consume that is bought: each item's own inputs, for the units the
         // cascade left to build. Its sub-assemblies are rows of the demand in their own right.
@@ -229,16 +243,19 @@ public class MaterialPurchaseGenerator(
         var queueBpIds = queue
             .Select(q => ctx.BlueprintByProduct.TryGetValue(q.TypeId, out var b) ? b.TypeId : 0)
             .Where(id => id > 0).Distinct().ToList();
-        var inAssets = await blueprints.OwnedInAssetsAsync(queueBpIds, owned, ct);
+        // Prints ordered by customers, in runs: each copy at the print's full licensed runs.
+        var orderPrints = await OrderPrintRunsAsync(db, ctx, orderWants, ct);
 
-        var shelfWant = await BlueprintShelfWantAsync(db, ctx, ct);
+        var inAssets = await blueprints.OwnedInAssetsAsync(
+            queueBpIds.Concat(shelfWant.Build.Keys).Concat(orderPrints.Keys).Distinct().ToList(), owned, ct);
 
         // And prints contracts have moved since the polls: on a courier, or bought and not seen
         // yet. A print bought and on its way was asked for again the moment it left the hangar.
         // See ContractLag. ⚠️ Kept apart: the blueprints table is not written as things happen,
         // and the assets are (AssetActivity) — so where a type's count comes from the assets,
         // only a courier's cargo is still missing from it, and the rest would count twice.
-        var printIds = queueBpIds.Concat(treeNeed.Keys).Concat(shelfWant.Keys).Distinct().ToList();
+        var printIds = queueBpIds.Concat(treeNeed.Keys).Concat(shelfWant.Buy.Keys)
+            .Concat(shelfWant.Build.Keys).Concat(orderPrints.Keys).Distinct().ToList();
         var printMoves = new Dictionary<int, (long All, long InTransit)>();
         foreach (var m in await ContractLag.MovesAsync(db, ct, printIds))
         {
@@ -249,8 +266,12 @@ public class MaterialPurchaseGenerator(
         }
 
         var items = new List<WorklistItem>();
-        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, printMoves, shelfWant,
+        items.AddRange(PrintTasks(ctx, queue, allPrints, owned, treeNeed, inventable, inAssets, printMoves, shelfWant.Buy,
+                                  new MadePrints(shelfWant.Build, orderPrints, copyable, canCopy),
                                   buyAt, buyName, alt));
+
+        // Customer orders for items nothing manufactures: bought, like any material.
+        items.AddRange(await OrderBuyTasksAsync(db, ctx, orderWants, reach, scope, corps, buyAt, buyName, alt, ct));
 
         var shortIds = rawIds.Where(t => Missing(t) > 0).ToList();
 
@@ -409,16 +430,20 @@ public class MaterialPurchaseGenerator(
     ///
     /// <para>Rules at different stations take the larger target rather than the sum: a print is
     /// bought once and moved, so two stations each wanting one is one print to acquire, not two.</para>
+    ///
+    /// <para>Buy and Build rules apart. A Build rule's print is made — copied or invented — and is
+    /// only bought here when it cannot be; see <see cref="MadePrints"/>.</para>
     /// </summary>
-    private async Task<Dictionary<int, long>> BlueprintShelfWantAsync(
+    private async Task<(Dictionary<int, long> Buy, Dictionary<int, long> Build)> BlueprintShelfWantAsync(
         AppDbContext db, ProductionContext ctx, CancellationToken ct)
     {
-        var want = new Dictionary<int, long>();
+        var buy   = new Dictionary<int, long>();
+        var build = new Dictionary<int, long>();
 
         var rules = await db.WorklistInvRules.AsNoTracking()
-            .Where(r => r.Enabled && r.Action != "Build")
+            .Where(r => r.Enabled)
             .ToListAsync(ct);
-        if (rules.Count == 0) return want;
+        if (rules.Count == 0) return (buy, build);
 
         var groupIds = rules.Select(r => r.GroupId).Distinct().ToList();
         var groups = await db.InvLevelGroups.AsNoTracking()
@@ -437,12 +462,147 @@ public class MaterialPurchaseGenerator(
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                 if (target <= 0) continue;
 
+                var want   = rule.Action == "Build" ? build : buy;
                 var wanted = InvRuleShortfall.FillLevel(target, rule.FillTargetPercent);
                 if (wanted > want.GetValueOrDefault(gi.TypeId)) want[gi.TypeId] = wanted;
             }
         }
 
-        return want;
+        return (buy, build);
+    }
+
+    /// <summary>
+    /// Prints that would be made rather than bought, and when they cannot be.
+    ///
+    /// <para>A T2 print is invented — <c>inventable</c> already stands this generator down on it
+    /// whenever invention can run. A T1 print is copied from an owned original by the invention
+    /// generator (its CopyAsksAsync), when the park has a copy lab and somebody can run science.
+    /// When neither holds there is no job that will ever answer the level or the order, and the
+    /// print is bought.</para>
+    /// </summary>
+    /// <param name="Shelf">Copy runs Build rules want kept, gross.</param>
+    /// <param name="Orders">Copy runs customer orders want: copies at full licensed runs.</param>
+    private sealed record MadePrints(
+        Dictionary<int, long> Shelf, Dictionary<int, long> Orders, HashSet<int> Copyable, bool CanCopy)
+    {
+        public bool Copied(int bpTypeId, bool anyOriginal) => anyOriginal && CanCopy && Copyable.Contains(bpTypeId);
+    }
+
+    /// <summary>
+    /// Pending customer orders for things no job makes: prints, and items nothing manufactures.
+    /// Units still to supply, how many orders, keyed by type. Empty when orders are not planned.
+    ///
+    /// <para>⚠️ The build side drops these as bought-not-built (IndustryDemandService skips any
+    /// order no blueprint produces), so without this an order for a faction module, a mineral or
+    /// a copy produced no task at all.</para>
+    /// </summary>
+    private async Task<Dictionary<int, (long Units, int Count, int Rank)>> OrderWantsAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct)
+    {
+        if (!settings.PlanCustomerOrders) return [];
+
+        var orders = (await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
+            .Where(o => OrderContractLinks.StillToSupply(o) > 0)
+            .ToList();
+
+        // Ranked among every order, as the build side ranks them, so the due-first order's
+        // purchase outranks the next one's.
+        var rankOf = IndustryDemandService.Ranked(orders)
+            .Select((o, i) => (o.Id, Rank: i)).ToDictionary(x => x.Id, x => x.Rank);
+
+        return orders
+            .Where(o => !ctx.BlueprintByProduct.ContainsKey(o.TypeId))
+            .GroupBy(o => o.TypeId)
+            .ToDictionary(g => g.Key, g => (g.Sum(o => (long)OrderContractLinks.StillToSupply(o)), g.Count(),
+                                            g.Min(o => rankOf.GetValueOrDefault(o.Id, int.MaxValue))));
+    }
+
+    /// <summary>The ordered prints, in copy runs: a copy ordered is a copy at full licensed runs.</summary>
+    private static async Task<Dictionary<int, long>> OrderPrintRunsAsync(
+        AppDbContext db, ProductionContext ctx, Dictionary<int, (long Units, int Count, int Rank)> orderWants,
+        CancellationToken ct)
+    {
+        var prints = orderWants.Keys.Where(ctx.BpTypeIds.Contains).ToList();
+        if (prints.Count == 0) return [];
+
+        var maxRuns = await db.SdeBlueprints.AsNoTracking()
+            .Where(b => prints.Contains(b.TypeId))
+            .ToDictionaryAsync(b => b.TypeId, b => Math.Max(1, b.MaxProductionLimit), ct);
+        return prints.ToDictionary(p => p, p => orderWants[p].Units * maxRuns.GetValueOrDefault(p, 1));
+    }
+
+    /// <summary>
+    /// A purchase for each customer order of an item nothing manufactures, netted against what
+    /// is on hand in reach and already on order.
+    ///
+    /// <para>Merged by station and type with any other purchase of the same thing — a build's
+    /// material, an inventory rule — so the shared stock is netted once (GrossDemand and
+    /// SupplyCredited).</para>
+    /// </summary>
+    private static async Task<List<WorklistItem>> OrderBuyTasksAsync(
+        AppDbContext db, ProductionContext ctx, Dictionary<int, (long Units, int Count, int Rank)> orderWants,
+        ProductionCalculatorService.AssetReach reach, IReadOnlySet<long>? scope, IReadOnlySet<long>? corps,
+        long buyAt, string buyName, WorklistMarketAlt? alt, CancellationToken ct)
+    {
+        var typeIds = orderWants.Keys.Where(t => !ctx.BpTypeIds.Contains(t)).ToList();
+        if (typeIds.Count == 0) return [];
+
+        var onHand = (await db.EsiAssets.AsNoTracking()
+                .Where(a => typeIds.Contains(a.TypeId))
+                .Select(a => new { a.ItemId, a.TypeId, a.RootLocationId, a.OwnerType, a.OwnerId, a.Quantity })
+                .ToListAsync(ct))
+            .Where(a => reach.Counts(a.ItemId, a.RootLocationId, a.OwnerType, a.OwnerId))
+            .GroupBy(a => a.TypeId)
+            .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity));
+        foreach (var m in await ContractLag.InTransitAsync(db, ct, typeIds))
+        {
+            if (scope is not null && !scope.Contains(m.Site)) continue;
+            if (m.OwnerType == "corporation" && corps is not null && !corps.Contains(m.OwnerId)) continue;
+            onHand[m.TypeId] = Math.Max(0, onHand.GetValueOrDefault(m.TypeId) + m.Units);
+        }
+
+        var onOrder = await OnOrderAsync(db, typeIds, ct);
+
+        var items = new List<WorklistItem>();
+        foreach (var typeId in typeIds.OrderBy(t => ctx.TypeNames.GetValueOrDefault(t, "")))
+        {
+            var (units, count, rank) = orderWants[typeId];
+            var have    = onHand.GetValueOrDefault(typeId);
+            var ordered = onOrder.GetValueOrDefault(typeId);
+            var short_  = units - have - ordered;
+            if (short_ <= 0) continue;
+
+            var typeName = ctx.TypeNames.GetValueOrDefault(typeId, string.Format(WorklistText.TypeWithId, typeId));
+            items.Add(new WorklistItem
+            {
+                Key            = $"order_buy:{typeId}",
+                Source         = "material_purchases",
+                Kind           = WorklistKind.Buy,
+                Title          = $"{SdeNames.Type(typeId, typeName)} × {short_:N0}",
+                Quantity       = short_,
+                MergeKey       = WorklistItem.BuyMergeKey(buyAt, typeId),
+                GrossDemand    = units,
+                SupplyCredited = have + ordered,
+                Detail         = string.Format(WorklistText.ReasonPendingOrders, count, units) + " "
+                               + string.Format(WorklistText.OrderNothingMakesIt, have)
+                               + (ordered > 0 ? CommonText.ClauseSeparator + string.Format(WorklistText.OnOrder, ordered) : "")
+                               + " — " + string.Format(WorklistText.ShortByTail, short_),
+                Readiness      = alt is null ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
+                BlockedBy      = alt is null
+                    ? (buyAt > 0 ? string.Format(WorklistText.BlockedNoMarketAltAt, buyName)
+                                 : WorklistText.BlockedNoBuyLocation)
+                    : "",
+                CharacterId    = alt?.CharacterId   ?? 0,
+                CharacterName  = alt?.CharacterName ?? "",
+                LocationId     = buyAt,
+                LocationName   = buyName,
+                TypeId         = typeId,
+                TypeName       = typeName,
+                Priority       = WorklistPriority.ForOrder(rank),
+            });
+        }
+        return items;
     }
 
     /// <summary>
@@ -466,7 +626,7 @@ public class MaterialPurchaseGenerator(
         List<BlueprintStock> allPrints, PrintOwnership owned,
         Dictionary<int, (long Runs, string For)> treeNeed, HashSet<int> inventable,
         Dictionary<int, int> ownedInAssets, Dictionary<int, (long All, long InTransit)> printMoves, Dictionary<int, long> shelfWant,
-        long buyAt, string buyName, WorklistMarketAlt? alt)
+        MadePrints made, long buyAt, string buyName, WorklistMarketAlt? alt)
     {
         var items = new List<WorklistItem>();
 
@@ -498,9 +658,13 @@ public class MaterialPurchaseGenerator(
         // The union, so a blueprint that is only stocked — nothing queued to build with it — is
         // still acquired. Iterating the queue alone would lose it the moment this became the one
         // place the demand is totalled.
-        foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Distinct().OrderBy(id => id))
+        foreach (var bpTypeId in jobNeed.Keys.Concat(shelfWant.Keys).Concat(made.Shelf.Keys).Concat(made.Orders.Keys)
+                                             .Distinct().OrderBy(id => id))
         {
-            if (inventable.Contains(bpTypeId)) continue;   // invented, not bought
+            // Invented, not bought — except what a customer ordered. Invention plans from build
+            // demand and levels, never from an order for the print itself, so that is still bought.
+            var invented = inventable.Contains(bpTypeId);
+            if (invented && !made.Orders.ContainsKey(bpTypeId)) continue;
 
             // Supply from both tables. The blueprints table does not cover every structure the
             // assets table does — this corporation has 5,518 blueprint rows and none at the staging structure,
@@ -529,14 +693,22 @@ public class MaterialPurchaseGenerator(
             var moved = printMoves.GetValueOrDefault(bpTypeId);
             held = Math.Max(0, held + (mine.Count == 0 ? moved.InTransit : moved.All));
 
-            var jobs  = jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
-            var shelf = shelfWant.GetValueOrDefault(bpTypeId);  // runs the stocking rule wants kept
+            var jobs  = invented ? 0 : jobNeed.GetValueOrDefault(bpTypeId);    // runs the queued builds spend
+
+            // A Build rule's level and a customer order are copied when they can be — the
+            // invention generator raises that job — and bought only when they cannot.
+            var copied = made.Copied(bpTypeId, anyOriginal);
+
+            // Runs the stocking rules want kept. Two rules are two statements of one shelf.
+            var shelf  = invented ? 0 : Math.Max(shelfWant.GetValueOrDefault(bpTypeId),
+                                                 copied ? 0 : made.Shelf.GetValueOrDefault(bpTypeId));
+            var orders = copied ? 0 : made.Orders.GetValueOrDefault(bpTypeId);   // runs customers ordered
 
             // An original is never spent by the job it runs, so one covers every run there will
             // ever be — but it does not fill a shelf target, which asks for copies to be there.
             // Invention is the reason that distinction matters: it runs off a copy and cannot
             // touch the original, however many runs the original is good for.
-            var demand = (anyOriginal ? 0 : jobs) + shelf;
+            var demand = (anyOriginal ? 0 : jobs) + shelf + orders;
 
             var stillNeeded = Math.Max(0, demand - held);
             if (stillNeeded <= 0) continue;
@@ -553,6 +725,7 @@ public class MaterialPurchaseGenerator(
                                          ? string.Format(WorklistText.PrintRunsFor, jobs, usedFor)
                                          : string.Format(WorklistText.PrintRunsForQueued, jobs));
             if (shelf > 0) parts.Add(string.Format(WorklistText.PrintRunsToStock, shelf));
+            if (orders > 0) parts.Add(string.Format(WorklistText.PrintRunsForOrders, orders));
 
             // Runs are bought as copies: the copy's picture and "(Copy)". A reaction formula is
             // always an original, and is neither labelled nor drawn as a copy.

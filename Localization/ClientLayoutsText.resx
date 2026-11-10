@@ -150,7 +150,7 @@
   <data name="NoticeAClient" xml:space="preserve"><value>A client</value><comment>Used in place of a character's name while a game client is at the login screen.</comment></data>
   <data name="NoticeNotFixed" xml:space="preserve"><value>{0} isn't in Fixed Window mode, so it was left alone. Change its window mode in the game's settings.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="NoticeInUse" xml:space="preserve"><value>{0}: its position is in use by another logged-in character, so it stayed where it is.</value><comment>{0} is a character's name.</comment></data>
-  <data name="NoticeNoPosition" xml:space="preserve"><value>{0} is logged in but isn't in any group. Add it to a client position.</value><comment>{0} is a character's name.</comment></data>
+  <data name="NoticeNoPosition" xml:space="preserve"><value>{0} is logged in but isn't in any group, and no client position on its monitor is free. Add it to a client position.</value><comment>{0} is a character's name.</comment></data>
   <data name="NoticeMovedByHand" xml:space="preserve"><value>{0} was moved by hand, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="NoticeDidNotHold" xml:space="preserve"><value>{0} didn't stay where it was placed, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="OtherDesktops" xml:space="preserve"><value>Other desktops</value></data>

@@ -403,4 +403,25 @@
   <data name="WebDeclined" xml:space="preserve">
     <value>商店拒绝了此订单。</value>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0} 已不再需要，因此你的报价未被接受。</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>{2} 只还需要 {0:N0} 个，因此你提供 {1:N0} 个的报价未被接受。请提供不超过该数量的报价。</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>已不再需要</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>仍需 {0:N0} 个</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0}或{1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>、</value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0}或{1}</value>
+  </data>
 </root>

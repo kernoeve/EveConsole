@@ -294,6 +294,9 @@
                               <TextBox Text="{Binding Title, UpdateSourceTrigger=LostFocus}" Width="180" FontSize="11"
                                        Watermark="{x:Static loc:SalesText.ListingTitleWatermark}"
                                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextPrimaryBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}" />
+                              <CheckBox IsChecked="{Binding TrackNeed}" IsVisible="{Binding IsBuy}" FontSize="11"
+                                        Content="{x:Static loc:SalesText.ListingTrackNeed}"
+                                        ToolTip.Tip="{x:Static loc:SalesText.TipListingTrackNeed}" />
                               <Button Click="OnListingUp" Content="▲" ToolTip.Tip="{x:Static loc:SalesText.MoveUp}"
                                       Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
                                       BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="6 1" FontSize="10" Cursor="Hand" />
@@ -360,9 +363,23 @@
                             </Border>
                           </StackPanel>
                         </StackPanel>
+                        <!-- Every place named, each removable; a pick above adds another. -->
+                        <ItemsControl ItemsSource="{Binding BuyLocations}" IsVisible="{Binding HasBuyLocation}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:StoresViewModel+BuyLocationRowVm">
+                              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 0 0 2">
+                                <TextBlock Text="{Binding Shown}" FontSize="11" TextWrapping="Wrap" MaxWidth="520"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                <Button Click="OnRemoveBuyLocation" Content="{x:Static loc:SalesText.Remove}"
+                                        Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 1" FontSize="10" />
+                              </StackPanel>
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                         <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasBuyLocation}">
                           <TextBlock Text="{Binding BuyLocationChosenText}" FontSize="11" TextWrapping="Wrap" MaxWidth="560"
-                                     Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                                     Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
                           <Button Command="{Binding ClearBuyLocationCommand}" Content="{x:Static loc:SalesText.BuyLocationClear}"
                                   Background="{DynamicResource SurfaceBaseBrush}" Foreground="{DynamicResource TextMutedBrush}"
                                   BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Padding="8 1" FontSize="10" />

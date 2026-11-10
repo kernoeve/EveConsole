@@ -3898,6 +3898,18 @@ La aplicación se reiniciará.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Solo con una base de datos PostgreSQL compartida: con SQLite este es el único cliente, así que siempre hace el trabajo.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Parque industrial</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Predeterminado ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>El parque industrial con cuyas estructuras, rigs y sistemas se calculan los costes de fabricación guardados, y con ellos todo precio basado en el coste de fabricación, como el de una publicación de venta. «Predeterminado» sigue al parque marcado como predeterminado en Parques industriales. La Lista de tareas y las calculadoras mantienen su propio parque. Pulsa Recalcular, o espera a la siguiente actualización del mercado, para que el cambio surta efecto.</value>
+  </data>
   <data name="RetentionDirectMessages" xml:space="preserve">
     <value>Mensajes directos</value>
   </data>

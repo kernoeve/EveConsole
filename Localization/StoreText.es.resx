@@ -442,4 +442,28 @@
   <data name="WebDeclined" xml:space="preserve">
     <value>Rechazado por la tienda.</value>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0} ya no se necesita, así que tu oferta no se ha aceptado.</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>Solo necesitamos {0:N0} más de {2}, así que tu oferta de {1:N0} no se ha aceptado. Ofrece esa cantidad o menos.</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>ya no se necesita</value>
+  </data>
+  <data name="PriceListStillNeededOne" xml:space="preserve">
+    <value>se necesita {0:N0} más</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>se necesitan {0:N0} más</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0} o {1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0} o {1}</value>
+  </data>
 </root>

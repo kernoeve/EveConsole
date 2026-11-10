@@ -325,7 +325,7 @@
     <value>{0}：その位置はログイン中の別のキャラクターが使用しているため、今の場所に留めました。</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0}はログイン中ですが、どのグループにも入っていません。クライアントの位置に追加してください。</value>
+    <value>{0}はログイン中ですが、どのグループにも入っておらず、そのモニターに空いているクライアントの位置もありません。クライアントの位置に追加してください。</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0}は手動で移動されたため、「適用」を押すまでそのままにします。</value>

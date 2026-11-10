@@ -1316,7 +1316,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
                 string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasClient, i + 1),
                 string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasSize, client.Rect.Width, client.Rect.Height),
                 result.Problems.Any(p => p.Kind == LayoutProblemKind.SmallClient && p.AreaId == client.AreaId),
-                names, AddCharacterAsync, RemoveCharacterAsync)
+                names, AddCharacterAsync, name => RemoveCharacterAsync(row?.Id, client.AreaId, name))
             { Candidates = candidates });
         }
         foreach (var warning in Describe(result, MonitorLabel(monitor, number))) Warnings.Add(warning);
@@ -1429,6 +1429,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         await _store.SaveMonitorAsync(_deviceId, _profileId, _selectedMonitorKey, _monitorLayout?.Id, _monitorFull,
             _monitorPanelStart?.Value ?? PanelStart.WithConsole);
         _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
+        _characters = await _store.ListCharactersAsync(_deviceId, _profileId);   // a new layout takes over the groups
         ShowMonitor();
         ShowLayoutWarnings();
         await ShowPendingAsync();
@@ -1445,9 +1446,9 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         await ReloadAssignmentsAsync();
     }
 
-    private async Task RemoveCharacterAsync(string name)
+    private async Task RemoveCharacterAsync(int? monitorId, string areaId, string name)
     {
-        await _store.UnassignCharacterAsync(_deviceId, _profileId, name);
+        if (monitorId is { } id) await _store.UnassignCharacterAsync(id, areaId, name);
         await ReloadAssignmentsAsync();
     }
 
