@@ -39,7 +39,8 @@ public class StoreMailService(
     OrderFulfilmentService          fulfilment,
     MailBudget                      budget,
     OrderLabelService               labels,
-    AppErrorLogger                  errorLogger)
+    AppErrorLogger                  errorLogger,
+    StoreNeedService                needs)
 {
     private static readonly TimeSpan Interval = TimeSpan.FromMinutes(1);
 
@@ -854,23 +855,36 @@ public class StoreMailService(
     /// up in the store's language, and the sentences that name it are static and synchronous, so
     /// the pass looks it up on the way in and they read it here.
     /// </summary>
-    private static readonly ConcurrentDictionary<int, string> BuyPlaces = new();
+    private static readonly ConcurrentDictionary<int, List<string>> BuyPlaces = new();
 
     private static async Task RememberBuyPlaceAsync(AppDbContext db, Store store, CancellationToken ct)
     {
-        if (store.BuyLocationId == 0) BuyPlaces.TryRemove(store.Id, out _);
-        else BuyPlaces[store.Id] = await BuyPlaceInLanguageAsync(db, store, ct);
+        var places = await BuyPlacesInLanguageAsync(db, store, ct);
+        if (places.Count == 0) BuyPlaces.TryRemove(store.Id, out _);
+        else BuyPlaces[store.Id] = [.. places.Select(p => p.Name)];
     }
 
-    /// <summary>The place, or "" when the store names none. English if the pass did not look it up.</summary>
-    private static string BuyPlace(Store store) =>
-        store.BuyLocationId == 0 ? "" : BuyPlaces.TryGetValue(store.Id, out var name) ? name : store.BuyLocationName;
+    /// <summary>
+    /// The places, as one phrase — "A", "A or B", "A, B or C" — or "" when the store names none.
+    /// English if the pass did not look them up. Joined here rather than when they are looked up,
+    /// because this is read inside the store's language and the joining words are its own.
+    /// </summary>
+    private static string BuyPlace(Store store)
+    {
+        var names = BuyPlaces.TryGetValue(store.Id, out var looked) ? looked
+                  : StoreBuyLocations.Of(store).Select(p => p.Name).ToList();
+        return StoreBuyLocations.Phrase(names);
+    }
 
-    /// <summary>The store's contract place in the store's language: an NPC station as its buyers'
-    /// client names it, a structure by its own name.</summary>
-    internal static async Task<string> BuyPlaceInLanguageAsync(AppDbContext db, Store store, CancellationToken ct) =>
-        (await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Station, [store.BuyLocationId], ct))
-            .GetValueOrDefault(store.BuyLocationId) ?? store.BuyLocationName;
+    /// <summary>The store's contract places in the store's language, in its order: an NPC station
+    /// as its buyers' client names it, a structure by its own name.</summary>
+    internal static async Task<List<BuyLocation>> BuyPlacesInLanguageAsync(AppDbContext db, Store store, CancellationToken ct)
+    {
+        var places = StoreBuyLocations.Of(store);
+        if (places.Count == 0) return places;
+        var names = await SdeNames.InLanguageAsync(db, store.Language, SdeNameKind.Station, places.Select(p => p.Id), ct);
+        return [.. places.Select(p => p with { Name = names.GetValueOrDefault(p.Id) ?? p.Name })];
+    }
 
     private static List<string> PriceListBlocks(IReadOnlyList<RenderedPost> blocks) =>
         blocks.Select(b => b.Text).Where(t => t.Length > 0)
@@ -903,7 +917,8 @@ public class StoreMailService(
             }
 
             var blocks = await postings.RenderAsync(listing.PostingId, "EVE Mail", ct, blocked, store.Language,
-                                                    buying: listing.IsBuy);
+                                                    buying: listing.IsBuy,
+                                                    needs: listing.CapsAtNeed ? ids => needs.NeedsAsync(store.Id, ids, ct) : null);
             if (blocks.Count == 0) continue;
 
             // Every block, in order, in as few mails as it takes. They exist as separate posts
@@ -1103,6 +1118,34 @@ public class StoreMailService(
                 Esc(PurchaseLimit.Describe(store)) + Gap +
                 await UsageAsync(db, store, ct), ct);
             return;
+        }
+
+        // A Buy listing that takes only what is still needed, as the site does: an offer for
+        // more than is left, or for something no longer wanted, is turned down with how much is.
+        if (buying)
+        {
+            var capped = listings.Where(l => l.CapsAtNeed).Select(l => l.PostingId).ToHashSet();
+            var cappedLines = parsed.Lines.Where(l => capped.Contains(postingOf.GetValueOrDefault(l.Item.TypeId))).ToList();
+            if (cappedLines.Count > 0)
+            {
+                var need = await needs.NeedsAsync(store.Id, [.. cappedLines.Select(l => l.Item.TypeId).Distinct()], ct);
+                var overNeed = cappedLines
+                    .GroupBy(l => l.Item.TypeId)
+                    .Select(g => (Item: g.First().Item, Units: g.Sum(l => l.Units), Left: need[g.Key].Needed))
+                    .FirstOrDefault(x => x.Units > x.Left);
+                if (overNeed.Item is not null)
+                {
+                    string Words(string name) => overNeed.Left <= 0
+                        ? string.Format(StoreText.OfferNotNeeded, name)
+                        : Plurals.Format(StoreText.ResourceManager, nameof(StoreText.OfferOverNeedOther), overNeed.Left, overNeed.Units, name);
+                    log.Outcome = "rejected";
+                    log.Detail  = Owner(() => Words(overNeed.Item.TypeName));
+                    await ReplyAsync(store, log, string.Format(StoreText.SubjectOfferNotTaken, store.Name),
+                        Warn(Esc(Words(overNeed.Item.Shown))) + Gap +
+                        await UsageAsync(db, store, ct), ct);
+                    return;
+                }
+            }
         }
 
         var reference = await OrderReference.NewAsync(db, ct);
@@ -2088,11 +2131,13 @@ public class StoreMailService(
     /// are unchecked — and that number then flowed into the order, the profit sums and the
     /// worklist's demand. Nothing about the mail looked wrong afterwards.</para>
     ///
-    /// <para>Generous on purpose: it exists to keep arithmetic honest, not to tell a buyer what
-    /// they may order. Anything above it is a typo or an attack, and either way is worth a person
-    /// reading the mail.</para>
+    /// <para>A full stack: the most of one item the game holds in one place, and the most an
+    /// item exchange contract can carry. It was 10,000, which kept arithmetic honest but turned
+    /// away an offer of ore, ice or minerals sold by the hundred thousand. Anything above a stack
+    /// cannot be delivered in one contract anyway. Totals over several orders are summed as
+    /// <c>long</c>, so a few stack-sized lines do not wrap either.</para>
     /// </summary>
-    internal const int MaxUnitsPerLine = 10_000;
+    internal const int MaxUnitsPerLine = int.MaxValue;
 
     /// <summary>
     /// The most lines one mailed order may create.

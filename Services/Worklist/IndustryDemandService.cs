@@ -138,6 +138,14 @@ public sealed record BuildDemand(int TypeId, long Units, int Priority, List<stri
     }
 }
 
+/// <summary>
+/// One item's whole demand before netting: what the plan wants of it in all (shelf levels, orders
+/// and what parent builds eat, or what they eat of it where it is bought), and what exists of it
+/// in scope. <paramref name="Have"/> includes <paramref name="InBuild"/>, the units still coming
+/// out of running jobs, and <paramref name="Incoming"/>, those on open store offers.
+/// </summary>
+public sealed record DemandTotal(long Wanted, long Have, long InBuild, long Incoming = 0);
+
 /// <summary>Everything in scope, wherever it sits and whoever owns it.</summary>
 /// <param name="Corp">Keyed by owning corporation as well as type, because which corporation
 /// holds a pile decides who can take from it.</param>
@@ -146,7 +154,15 @@ public sealed record ScopeStock(
     Dictionary<(int TypeId, long OwnerId), long> Personal,
 
     /// <summary>Units already coming out of a running job, by what the job makes.</summary>
-    Dictionary<int, long>? InBuild = null)
+    Dictionary<int, long>? InBuild = null,
+
+    /// <summary>
+    /// Units sellers have offered to a store's Buy listing and not yet delivered, by item: on
+    /// their way, like a running job's output. Counted from the moment an offer is taken, as the
+    /// store's own need counts it, so the Worklist does not build what a seller is bringing.
+    /// Never in <see cref="Reachable"/>: nothing of it is in a hangar a job can draw on yet.
+    /// </summary>
+    Dictionary<int, long>? Incoming = null)
 {
     /// <summary>
     /// What one character's job could actually draw on: their own hangar, plus the hangars of the
@@ -177,7 +193,11 @@ public sealed record ScopeStock(
     public long Anywhere(int typeId) =>
         Corp.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
         + Personal.Where(kv => kv.Key.TypeId == typeId).Sum(kv => kv.Value)
-        + (InBuild?.GetValueOrDefault(typeId) ?? 0);
+        + (InBuild?.GetValueOrDefault(typeId) ?? 0)
+        + OnOffer(typeId);
+
+    /// <summary>Units on open store offers for this item; see <see cref="Incoming"/>.</summary>
+    public long OnOffer(int typeId) => Incoming?.GetValueOrDefault(typeId) ?? 0;
 
     /// <summary>
     /// Everything in scope: assets by owner, what running jobs will deliver, and what delivered
@@ -257,7 +277,14 @@ public sealed record ScopeStock(
             pile[(m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.TypeId, m.OwnerId)) + m.Units);
         }
 
-        return new ScopeStock(corpStock, personalStock, inBuild);
+        // What sellers have offered to the stores and not yet delivered: on its way. Every store,
+        // wherever the contract will be made — an offer names no place it has to come to.
+        var incoming = StoreNeedService.Offered(
+            await db.TrackedOrders.AsNoTracking()
+                .Where(o => o.Side == StorePosting.Buy && o.Status == "pending")
+                .ToListAsync(ct));
+
+        return new ScopeStock(corpStock, personalStock, inBuild, incoming);
     }
 }
 
@@ -421,9 +448,12 @@ public class IndustryDemandService(
         AppDbContext db, ProductionContext ctx, List<WorklistInvRule> rules,
         Dictionary<int, InvLevelGroup> groups, HashSet<long>? scope, HashSet<long> wrapped,
         HashSet<long>? corps, ScopeStock inScope, CancellationToken ct,
-        IReadOnlyDictionary<int, int>? meOverrides = null)
+        IReadOnlyDictionary<int, int>? meOverrides = null,
+        Dictionary<int, DemandTotal>? totals = null)
     {
         var gross = new Dictionary<int, Gross>();
+        // What the builds will eat that is bought rather than built, for totals only.
+        var bought = new Dictionary<int, long>();
 
         // Hulls by where they stand, assets and jobs running there, for the demand tied to a site.
         var docking = await CapitalDocking.LoadAsync(db, ct);
@@ -526,7 +556,8 @@ public class IndustryDemandService(
                 if (rule.IsFinalProduct) At(gi.TypeId).IsFinal = true;
 
                 avail.TryGetValue(gi.TypeId, out var av);
-                var have   = (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0);
+                // What sellers are bringing counts as what jobs are bringing: see ScopeStock.Incoming.
+                var have   = (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0) + inScope.OnOffer(gi.TypeId);
                 var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
                 if (target <= 0) continue;
 
@@ -662,10 +693,15 @@ public class IndustryDemandService(
 
             foreach (var m in root.Materials)
             {
-                // Bought materials are Material Purchases' business, not a job.
-                if (m.IsBought || !ctx.BlueprintByProduct.ContainsKey(m.MaterialTypeId)) continue;
-
                 var qty = (long)Math.Ceiling(m.TotalQty * portion);
+
+                // Bought materials are Material Purchases' business, not a job.
+                if (m.IsBought || !ctx.BlueprintByProduct.ContainsKey(m.MaterialTypeId))
+                {
+                    if (totals is not null && qty > 0)
+                        bought[m.MaterialTypeId] = bought.GetValueOrDefault(m.MaterialTypeId) + qty;
+                    continue;
+                }
                 if (qty <= 0) continue;
 
                 var child = At(m.MaterialTypeId);
@@ -740,6 +776,26 @@ public class IndustryDemandService(
 
         // ── Net once ──────────────────────────────────────────────────────────
 
+        // Everything wanted, covered or not, for a caller that shows how much is still to come:
+        // a covered item raises no demand below, but its total is still what was wanted.
+        if (totals is not null)
+        {
+            foreach (var (typeId, g) in gross)
+            {
+                var wanted = g.Level + g.Consumed;
+                if (wanted <= 0) continue;
+                var have = g.Have > 0 ? g.Have : inScope.Anywhere(typeId);
+                totals[typeId] = new DemandTotal(wanted, have, inScope.InBuild?.GetValueOrDefault(typeId) ?? 0, inScope.OnOffer(typeId));
+            }
+            foreach (var (typeId, units) in bought)
+            {
+                var had = totals.GetValueOrDefault(typeId);
+                totals[typeId] = had is null
+                    ? new DemandTotal(units, inScope.Anywhere(typeId), inScope.InBuild?.GetValueOrDefault(typeId) ?? 0, inScope.OnOffer(typeId))
+                    : had with { Wanted = had.Wanted + units };
+            }
+        }
+
         var result = new Dictionary<int, BuildDemand>();
 
         foreach (var (typeId, g) in gross)
@@ -755,7 +811,7 @@ public class IndustryDemandService(
 
             result[typeId] = new BuildDemand(
                 typeId, units, g.Priority,
-                [.. Summarise(g, have)],
+                [.. Summarise(g, have, inScope.OnOffer(typeId))],
                 g.OrderUnits, g.Level, g.ParentUnits,
                 ShelfLevel: g.Level, ShelfHave: have)
             {
@@ -796,7 +852,7 @@ public class IndustryDemandService(
     /// The row's opening line. Says what the total is for, since a pooled figure that only
     /// showed the shortfall would leave the reader unable to check it.
     /// </summary>
-    private static IEnumerable<string> Summarise(Gross g, long have)
+    private static IEnumerable<string> Summarise(Gross g, long have, long onOffer)
     {
         // Contributors first, in the order they were added, then the arithmetic.
         foreach (var r in g.Reasons.Take(3)) yield return r;
@@ -804,6 +860,9 @@ public class IndustryDemandService(
 
         if (g.Consumed > 0)
             yield return string.Format(WorklistText.ReasonKeepingConsuming, g.Level, g.Consumed, have);
+        // What "on hand" holds that is not in a hangar yet: a seller's offer, counted as coming.
+        if (onOffer > 0)
+            yield return string.Format(WorklistText.ReasonOnStoreOffers, onOffer);
     }
 
     /// <summary>Pending orders: gross units, what is still outstanding, and how many orders.</summary>

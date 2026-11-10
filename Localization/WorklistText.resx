@@ -3652,4 +3652,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>Some are in a ship&apos;s cargo hold.</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Of that, {0:N0} is on store offers, counted as coming.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Short {0:N0} copy run(s).</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Plus {0:N0} copy run(s) for its inventory level or orders.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} for pending orders</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nothing manufactures it; {0:N0} on hand</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Industry planning is not set up</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} Build rule(s) and {1:N0} pending order(s) are waiting.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>No Indy Park is picked for the Worklist and none is starred in Indy Parks.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>No character is enabled to run industry jobs.</value>
+  </data>
 </root>

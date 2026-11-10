@@ -3895,4 +3895,16 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>仅适用于共享的 PostgreSQL 数据库：使用 SQLite 时此客户端是唯一的客户端，因此始终执行工作。</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>工业园区</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>默认（{0}）</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>用于计算已存储制造成本的工业园区（建筑、改装件和星系），也决定所有按制造成本定价的价格，例如出售帖子。“默认”跟随在工业园区中标记为默认的园区。工作清单和计算器仍使用各自的园区。按“重新计算”或等待下一次市场刷新，更改才会生效。</value>
+  </data>
 </root>

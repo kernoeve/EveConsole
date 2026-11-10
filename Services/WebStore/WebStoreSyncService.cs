@@ -41,7 +41,8 @@ public class WebStoreSyncService(
     OrderFulfilmentService          fulfilment,
     OrderLabelService               labels,
     EsiClient                       esi,
-    AppErrorLogger                  errorLogger)
+    AppErrorLogger                  errorLogger,
+    StoreNeedService                needs)
 {
     /// <summary>Minutes between calls to a site unless the store says otherwise, and the bounds
     /// an owner may set on the Stores screen. What a buyer waits, at most, for a confirmation;
@@ -516,6 +517,9 @@ public class WebStoreSyncService(
             .Select(a => new BannerDto { Sha256 = a.Sha256, ContentType = a.ContentType })
             .FirstOrDefaultAsync(ct);
 
+        var buyPlaces = (await StoreMailService.BuyPlacesInLanguageAsync(db, store, ct))
+            .Select(p => new PlaceDto { Id = p.Id, Name = p.Name }).ToList();
+
         var request = new SyncRequest
         {
             AppVersion = AppVersion.Number,
@@ -551,11 +555,10 @@ public class WebStoreSyncService(
                     Kind = store.BuyAssigneeType,
                     Name = store.BuyAssigneeName,
                 },
-                BuyLocation   = store.BuyLocationId == 0 ? null : new PlaceDto
-                {
-                    Id   = store.BuyLocationId,
-                    Name = await StoreMailService.BuyPlaceInLanguageAsync(db, store, ct),
-                },
+                // Every place for a site that lists them all, and the first alone for one that
+                // shows a single place.
+                BuyLocation   = buyPlaces.Count == 0 ? null : buyPlaces[0],
+                BuyLocations  = buyPlaces.Count == 0 ? null : buyPlaces,
             },
             Catalogue = catalogue,
             Listings  = listings,
@@ -857,6 +860,27 @@ public class WebStoreSyncService(
             && await PurchaseLimit.OverLimitAsync(db, store, ev.Buyer.Id, lines.Select(l => (l.TypeId, (long)l.Units)).ToList(), ct)
                 is { } over)
             return Review(() => over.Words(byTypeId[over.TypeId].TypeName));
+
+        // ⚠️ A listing that takes only what is still needed, checked again here: the site caps
+        // offers at the need it was last pushed, which can be a poll old, and two sellers can
+        // both take the last of it before the next. Over the need is the owner's call, as a
+        // limit is, and approving it books it anyway.
+        if (!force && buying)
+        {
+            var capped = listings.Where(l => l.CapsAtNeed).Select(l => l.PostingId).ToHashSet();
+            var cappedLines = lines.Where(l => l.PostingId is int p && capped.Contains(p)).ToList();
+            if (cappedLines.Count > 0)
+            {
+                var need = await needs.NeedsAsync(store.Id, [.. cappedLines.Select(l => l.TypeId)], ct);
+                foreach (var (typeId, units, _, _) in cappedLines)
+                    if (need[typeId].Needed < units)
+                    {
+                        var left = need[typeId].Needed;
+                        return Review(() => Plurals.Format(SalesText.ResourceManager, nameof(SalesText.WebSyncOverNeedOther),
+                            left, units, byTypeId[typeId].TypeName));
+                    }
+            }
+        }
 
         var reference = await OrderReference.NewAsync(db, ct);
         var now       = DateTimeOffset.UtcNow;

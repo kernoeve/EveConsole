@@ -53,6 +53,12 @@ public class BuildCostService
 
     public string StatusText { get; private set; } = SettingsText.BuildCostNotCalculated;
 
+    /// <summary>
+    /// The Indy Park stored build costs are worked out at, by id; 0 (the default) follows whichever
+    /// park is marked default. Only build costs: the Worklist and the calculators keep their own.
+    /// </summary>
+    public const string ParkKey = "buildcost.park_id";
+
     // Fired after each RecalculateAllAsync completes; MarketPricingService subscribes to
     // re-run the price-gap fill so fresh build costs are immediately reflected in prices.
     public event Func<CancellationToken, Task>? AfterRecalculate;
@@ -179,9 +185,14 @@ public class BuildCostService
         using var scope = _scopeFactory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-        // Need a default park to know which structures/rigs/systems to use.
-        var defaultPark = await db.IndyParks.AsNoTracking()
-            .FirstOrDefaultAsync(p => p.IsDefault, ct);
+        // A park to know which structures, rigs and systems to use: the one chosen for build costs
+        // on the Industry settings tab, or the park marked default when that says Default (or the
+        // chosen park is gone). Named defaultPark below because that is what it almost always is.
+        var chosen = (int)(scope.ServiceProvider.GetService<AppPreferencesService>()?.GetLong(ParkKey, 0) ?? 0);
+        var defaultPark = (chosen > 0
+                ? await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.Id == chosen, ct)
+                : null)
+            ?? await db.IndyParks.AsNoTracking().FirstOrDefaultAsync(p => p.IsDefault, ct);
         if (defaultPark is null)
         {
             StatusText = SettingsText.BuildCostNoDefaultPark;

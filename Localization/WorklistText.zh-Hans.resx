@@ -2722,4 +2722,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>部分在舰船的货舱中。</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>其中 {0:N0} 来自商店报价，按即将到货计算。</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>复制流程数缺少 {0:N0}。</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>另加 {0:N0} 个复制流程，用于其库存水平或订单。</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} 用于待处理订单</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>无法制造；现有 {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>工业计划尚未设置</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>有 {0:N0} 条制造规则和 {1:N0} 个待处理订单在等待。</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>工作清单未选择工业园区，工业园区中也没有标星的园区。</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>没有启用任何角色来运行工业任务。</value>
+  </data>
 </root>

@@ -62,6 +62,13 @@ public class SalePosting
 
     /// <summary>Neither — a build-to-order line.</summary>
     public string ColorNone    { get; set; } = "#888899";
+
+    /// <summary>
+    /// On a Buy listing that tracks need (<see cref="StorePosting.TrackNeed"/>): show sellers how
+    /// many of each item are still wanted, and how much of the plan is covered. Off, the need
+    /// still caps what is taken; only the figures are kept to ourselves.
+    /// </summary>
+    public bool ShowNeed { get; set; } = true;
 }
 
 public class SalePostingSection

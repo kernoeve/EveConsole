@@ -2845,4 +2845,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>Часть лежит в грузовом отсеке корабля.</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Из них {0:N0} шт. в предложениях магазину, учтены как поступающие.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Не хватает прогонов копий: {0:N0}.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Плюс {0:N0} прогонов копий для уровня запасов или заказов.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} для ожидающих заказов</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Не производится; в наличии {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Планирование производства не настроено</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>Ожидают правил производства: {0:N0}, заказов: {1:N0}.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>Для списка задач не выбран промпарк, и ни один не отмечен звёздочкой в промпарках.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Ни один персонаж не включён для производственных работ.</value>
+  </data>
 </root>

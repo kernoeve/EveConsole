@@ -10,7 +10,7 @@ namespace EveConsole.ViewModels;
 /// </summary>
 public sealed class StoreListingRowVm(
     StoresViewModel.PostingOption? posting, string side, string title, Action changed,
-    IReadOnlyList<StoresViewModel.PostingOption> postingOptions) : ReactiveObject
+    IReadOnlyList<StoresViewModel.PostingOption> postingOptions, bool trackNeed = false) : ReactiveObject
 {
     /// <summary>
     /// The postings to pick from: the screen's own list, carried by the row.
@@ -65,6 +65,19 @@ public sealed class StoreListingRowVm(
             var trimmed = (value ?? "").Trim();
             if (trimmed == _title) return;
             this.RaiseAndSetIfChanged(ref _title, trimmed);
+            changed();
+        }
+    }
+
+    private bool _trackNeed = trackNeed;
+    /// <summary>Buy only: take only what the worklist still needs. See <see cref="StorePosting.TrackNeed"/>.</summary>
+    public bool TrackNeed
+    {
+        get => _trackNeed;
+        set
+        {
+            if (value == _trackNeed) return;
+            this.RaiseAndSetIfChanged(ref _trackNeed, value);
             changed();
         }
     }

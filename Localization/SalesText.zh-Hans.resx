@@ -2002,4 +2002,43 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>帖子块“{0}”发布到 Discord 失败：{1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>仅收所需</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>收购清单：每件物品只接收工作清单仍需要的数量，即其需求减去已持有、制造中和已在本商店报价的数量。不再需要的物品不接受报价，超出需求的报价也不予接受。</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>显示仍需数量</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>对于仅收所需的收购清单：向卖家显示每件物品仍需多少，以及已覆盖多少。关闭时上限仍然生效，只是不公开数字。</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>提供了 {1:N0} 个{2}，但仍需要的只有 {0:N0} 个。</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>剩余</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>需求 {0:N0} · 持有 {1:N0} · 制造中 {2:N0} · 已报价 {3:N0} → 仍需 {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>删除帖子“{0}”及其所有分区、物品和地点？列出它的商店将不再显示它。此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>删除分区“{1}”及其中的 {0:N0} 件物品？此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>从此帖子中移除 {0}？</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>从帖子中移除所选的 {0:N0} 件物品？</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>不再列出 {0} 中的物品？</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>删除 {0:N0} 件物品</value>
+  </data>
 </root>

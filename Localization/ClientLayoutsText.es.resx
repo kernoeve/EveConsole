@@ -325,7 +325,7 @@
     <value>{0}: otro personaje con sesión iniciada usa su posición, así que se ha quedado donde está.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} ha iniciado sesión pero no está en ningún grupo. Añádelo a una posición de cliente.</value>
+    <value>{0} ha iniciado sesión pero no está en ningún grupo, y no queda ninguna posición de cliente libre en su monitor. Añádelo a una posición de cliente.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} se ha movido a mano, así que no se toca hasta que pulses Aplicar.</value>

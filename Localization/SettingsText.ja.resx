@@ -3895,4 +3895,16 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>共有の PostgreSQL データベースでのみ使えます。SQLite ではこのクライアントが唯一なので、常に処理を行います。</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>インダストリーパーク</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>既定（{0}）</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>保存される製造コストの計算に使うインダストリーパーク（ストラクチャー、リグ、星系）。販売掲載など、製造コストから決まるすべての価格に影響します。「既定」はインダストリーパークで既定に設定されたパークに従います。ワークリストと計算ツールはそれぞれのパークを使い続けます。変更を反映するには「再計算」を押すか、次の市場更新を待ってください。</value>
+  </data>
 </root>

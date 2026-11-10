@@ -2041,4 +2041,49 @@ No se destruye nada: sus encargos se quedan en Seguimiento de encargos, y se con
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>Error al publicar en Discord en «{0}»: {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Solo lo necesario</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Listas de compra: aceptar solo lo que la Lista de tareas aún necesita de cada artículo, es decir, lo que pide menos lo que se tiene, lo que está en fabricación y lo ya ofrecido en esta tienda. Un artículo que ya no se necesita no acepta ofertas, y no se acepta una oferta por más de lo necesario.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Mostrar cuántos se necesitan aún</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>En una lista de compra que solo acepta lo necesario: mostrar a los vendedores cuántos se buscan aún de cada artículo y cuánto está cubierto. Desactivado, el límite sigue aplicándose; solo las cifras quedan para la tienda.</value>
+  </data>
+  <data name="WebSyncOverNeedOne" xml:space="preserve">
+    <value>Se ofrecen {1:N0} {2}, pero solo se necesita {0:N0} más.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>Se ofrecen {1:N0} {2}, pero solo se necesitan {0:N0} más.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Restante</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Requerido {0:N0} · en mano {1:N0} · en fabricación {2:N0} · ofrecido {3:N0} → aún necesario {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>¿Eliminar la publicación «{0}», con todas sus secciones, artículos y lugares? Las tiendas que la listan dejarán de mostrarla. No se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>¿Eliminar la sección «{1}» y el {0:N0} artículo que contiene? No se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>¿Eliminar la sección «{1}» y los {0:N0} artículos que contiene? No se puede deshacer.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>¿Quitar {0} de esta publicación?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>¿Quitar los {0:N0} artículos seleccionados de sus publicaciones?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>¿Dejar de listar lo que hay en {0}?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Eliminar {0:N0} artículos</value>
+  </data>
 </root>

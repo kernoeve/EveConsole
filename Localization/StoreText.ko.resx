@@ -403,4 +403,25 @@
   <data name="WebDeclined" xml:space="preserve">
     <value>상점에서 거절했습니다.</value>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0}은(는) 더 이상 필요하지 않아 제안을 받지 않았습니다.</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>{2}은(는) {0:N0}개만 더 필요하므로 {1:N0}개 제안은 받지 않았습니다. 그 수량 이하로 제안해 주십시오.</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>더 이상 필요 없음</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>{0:N0}개 더 필요</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0} 또는 {1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0} 또는 {1}</value>
+  </data>
 </root>

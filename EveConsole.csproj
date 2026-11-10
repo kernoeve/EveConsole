@@ -22,6 +22,8 @@
   <!-- The Jabber check sets up a session's rooms as a connection would, to test what a room may and may not do. -->
   <ItemGroup>
     <InternalsVisibleTo Include="JabberCheck" />
+    <!-- The store need check renders a price list line and builds the site's catalogue item. -->
+    <InternalsVisibleTo Include="StoreNeedCheck" />
   </ItemGroup>
 
   <!--

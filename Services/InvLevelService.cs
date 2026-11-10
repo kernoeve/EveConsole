@@ -591,19 +591,25 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // consistent with asset quantities. Reactions and multi-output blueprints (e.g.
         // capital components, ammo) produce many units per run, so counting runs alone
         // undercounts — and reactions were previously excluded entirely.
-        List<(int BlueprintTypeId, int ProductTypeId, int Runs, long FacilityId)> jobRows = [];
+        //
+        // ⚠️ And copying (5), in copy RUNS: a level of a blueprint counts runs, and a copy job of
+        // one copy at 600 runs is 600 runs on their way. Left out, a copy job raised for a short
+        // level was raised again on the next refresh, for the same shortfall, while it ran.
+        List<(int BlueprintTypeId, int ProductTypeId, int Runs, long FacilityId, int CopyRuns)> jobRows = [];
         Dictionary<(int, int), int> qtyMap = [];
         if (anyJobs)
         {
             jobRows = (await db.EsiIndustryJobs
-                .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
+                .Where(j => (j.ActivityId == 1 || j.ActivityId == 5 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
                          && allTypes.Contains(j.ProductTypeId!.Value)
                          && ownerFilter.Contains(j.OwnerId))
-                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId })
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId,
+                                   j.ActivityId, j.LicensedRuns })
                 .ToListAsync(ct))
-                .Select(j => (j.BlueprintTypeId, j.ProductTypeId, j.Runs, j.FacilityId))
+                .Select(j => (j.BlueprintTypeId, j.ProductTypeId, j.Runs, j.FacilityId,
+                              CopyRuns: j.ActivityId == 5 ? Math.Max(1, j.LicensedRuns ?? 1) : 0))
                 .ToList();
 
             if (jobRows.Count > 0)
@@ -800,8 +806,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     if (!wanted.Contains(j.ProductTypeId)) continue;
                     if (stationFilter != null && !stationFilter.Contains(j.FacilityId)) continue;
 
-                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
-                        ? Math.Max(1, qy) : 1;
+                    // A copy job's Runs is how many copies it makes; each carries CopyRuns.
+                    long perRun = j.CopyRuns > 0 ? j.CopyRuns
+                        : qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
+                            ? Math.Max(1, qy) : 1;
                     long units = (long)j.Runs * perRun;
                     jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
                 }

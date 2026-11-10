@@ -2119,4 +2119,52 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>Не удалось опубликовать в Discord блок «{0}»: {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Только нужное</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Списки закупки: принимать только то, что ещё нужно Списку задач по каждому предмету, то есть его потребность за вычетом запасов, производимого и уже предложенного в этом магазине. Ненужный предмет не принимает предложений, а предложение сверх потребности не принимается.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Показывать, сколько ещё нужно</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>Для списка закупки, принимающего только нужное: показывать продавцам, сколько ещё нужно каждого предмета и какая часть уже покрыта. Если выключено, ограничение всё равно действует, скрываются только цифры.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>Предложено {1:N0} шт. «{2}», но нужно ещё только {0:N0} шт.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Нужно всего {0:N0} · в наличии {1:N0} · в производстве {2:N0} · предложено {3:N0} → ещё нужно {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Удалить объявление «{0}» со всеми разделами, предметами и местами? Магазины, где оно выставлено, перестанут его показывать. Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмет в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionFew" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмета в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionMany" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предметов в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмета в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Убрать {0} из этого объявления?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Убрать выбранные предметы ({0:N0} шт.) из их объявлений?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Перестать выставлять то, что находится в {0}?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Удалить предметы ({0:N0} шт.)</value>
+  </data>
 </root>

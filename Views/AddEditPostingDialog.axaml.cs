@@ -96,6 +96,7 @@ public partial class AddEditPostingDialog : Window
             ShowReservedBox.IsChecked     = existing.ShowReserved;
             IncludeCompletionBox.IsChecked = existing.IncludeCompletionDate;
             OnlyPackagedBox.IsChecked     = existing.OnlyPackaged;
+            ShowNeedBox.IsChecked         = existing.ShowNeed;
             ColorByStateBox.IsChecked     = existing.ColorByState;
             ColorInStockField.Value       = existing.ColorInStock;
             ColorInBuildField.Value       = existing.ColorInBuild;
@@ -212,7 +213,8 @@ public partial class AddEditPostingDialog : Window
             Hex(ColorInStockField.Value, "#4a9a5a"),
             Hex(ColorInBuildField.Value, "#c8a84b"),
             Hex(ColorNoneField.Value,    "#888899"),
-            _postsVm.ToDrafts()));
+            _postsVm.ToDrafts(),
+            ShowNeedBox.IsChecked == true));
     }
 
     /// <summary>A hex colour, or the default when the box is empty or not one.</summary>

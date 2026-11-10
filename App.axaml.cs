@@ -1226,6 +1226,8 @@ public class App : Application
                 // Where those contracts are to be made, when the store says.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Every place, since a store can name several; empty reads as the one above.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocations" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "StorePostings" (
                         "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1233,12 +1235,15 @@ public class App : Application
                         "PostingId" INTEGER NOT NULL DEFAULT 0,
                         "Ordinal"   INTEGER NOT NULL DEFAULT 0,
                         "Side"      TEXT    NOT NULL DEFAULT 'sell',
-                        "Title"     TEXT    NOT NULL DEFAULT ''
+                        "Title"     TEXT    NOT NULL DEFAULT '',
+                        "TrackNeed" INTEGER NOT NULL DEFAULT 0
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")
                     """);
+                // A Buy listing that takes only what the worklist still needs. In the CREATE too.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "StorePostings" ADD COLUMN "TrackNeed" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
 
                 db.Database.ExecuteSqlRaw("""
@@ -1335,7 +1340,8 @@ public class App : Application
                         "ColorByState"      INTEGER NOT NULL DEFAULT 0,
                         "ColorInStock"      TEXT    NOT NULL DEFAULT '#4a9a5a',
                         "ColorInBuild"      TEXT    NOT NULL DEFAULT '#c8a84b',
-                        "ColorNone"         TEXT    NOT NULL DEFAULT '#888899'
+                        "ColorNone"         TEXT    NOT NULL DEFAULT '#888899',
+                        "ShowNeed"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs created before the Market-basis reworked to station pricing.
@@ -1351,6 +1357,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInStock" TEXT NOT NULL DEFAULT '#4a9a5a'"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInBuild" TEXT NOT NULL DEFAULT '#c8a84b'"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorNone" TEXT NOT NULL DEFAULT '#888899'"""); } catch { }
+                // Whether a Buy listing that tracks need shows sellers how much is still wanted.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ShowNeed" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // One colour became two: the heading and the rows under it. The old single value was
                 // the heading's, so it moves there. Guarded on HeaderColor being empty so it runs
@@ -5188,6 +5196,7 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
+        services.AddSingleton<StoreNeedService>();
         services.AddSingleton<AssetActivity>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
         services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();

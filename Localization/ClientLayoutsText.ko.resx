@@ -325,7 +325,7 @@
     <value>{0}: 로그인한 다른 캐릭터가 이 위치를 사용 중이라 제자리에 두었습니다.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0}은(는) 로그인했지만 어느 그룹에도 없습니다. 클라이언트 위치에 추가하십시오.</value>
+    <value>{0}은(는) 로그인했지만 어느 그룹에도 없고, 해당 모니터에 비어 있는 클라이언트 위치도 없습니다. 클라이언트 위치에 추가하십시오.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0}은(는) 직접 옮겨졌으므로 적용을 누를 때까지 그대로 둡니다.</value>

@@ -36,14 +36,17 @@ internal static class MarketFmt
     /// <para>To nearest, not up: this is a price somebody pays, and always rounding it in the
     /// seller's favour is a thumb on the scale.</para>
     /// </summary>
+    /// <para>⚠️ Nothing under 10,000 is rounded but to the cent. It was to the hundred from 1,000
+    /// up, which priced every reaction and composite between 2,350 and 2,449 at 2,400 — on stock
+    /// bought by the hundred thousand, a difference that is the whole margin.</para>
     public static double RoundToDisplay(double v)
     {
         var a = Math.Abs(v);
+        if (a < 1e4) return Math.Round(v, 2, MidpointRounding.AwayFromZero);   // the ISK, to the cent
         var step = a >= 1e12 ? 1e10    // 2dp of trillions
                  : a >= 1e9  ? 1e7     // 2dp of billions
                  : a >= 1e6  ? 1e4     // 2dp of millions
-                 : a >= 1e3  ? 1e2     // 1dp of thousands
-                 :             1;      // whole ISK
+                 :             10;     // 2dp of thousands
         return Math.Round(v / step, MidpointRounding.AwayFromZero) * step;
     }
     public static string Num(double v)
@@ -52,8 +55,8 @@ internal static class MarketFmt
         if (a >= 1e12) return $"{v / 1e12:N2}T";
         if (a >= 1e9)  return $"{v / 1e9:N2}B";
         if (a >= 1e6)  return $"{v / 1e6:N2}M";
-        if (a >= 1e3)  return $"{v / 1e3:N1}K";
-        return v.ToString("N0");
+        if (a >= 1e4)  return $"{v / 1e3:N2}K";
+        return v.ToString("#,##0.##");   // whole, with the cents when there are any
     }
 }
 

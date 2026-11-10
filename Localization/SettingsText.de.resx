@@ -3898,4 +3898,16 @@ Die Anwendung wird neu gestartet.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Nur bei einer gemeinsamen PostgreSQL-Datenbank: Mit SQLite ist dies der einzige Client, er erledigt die Arbeit also immer.</value>
   </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Industriepark</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Standard ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>Der Industriepark, mit dessen Strukturen, Rigs und Systemen die gespeicherten Baukosten berechnet werden – und damit jeder Preis, der sich nach den Baukosten richtet, etwa der eines Verkaufsaushangs. „Standard“ folgt dem in den Industrieparks als Standard markierten Park. Die Arbeitsliste und die Rechner behalten ihren eigenen Park. Drücken Sie „Neu berechnen“ oder warten Sie auf die nächste Marktaktualisierung, damit eine Änderung wirkt.</value>
+  </data>
 </root>

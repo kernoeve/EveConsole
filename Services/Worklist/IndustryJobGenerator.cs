@@ -58,7 +58,6 @@ public class IndustryJobGenerator(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
-        if (parkId <= 0) return [];
 
         // No early exit on an empty rule set: customer orders are demand in their own right, so
         // a player who tracks orders and keeps no inventory targets still gets jobs.
@@ -66,8 +65,13 @@ public class IndustryJobGenerator(
             .Where(r => r.Enabled && r.Action == "Build")
             .ToListAsync(ct);
 
+        // ⚠️ Without a park or anyone to run jobs, every industry generator stands down — jobs,
+        // purchases, invention, copies — and Build rules and orders that are waiting got no row at
+        // all. One row says why, so a silent list is never the answer to a missing setting.
+        if (parkId <= 0) return await SetupMissingAsync(db, rules.Count, WorklistText.IndustrySetupNoPark, ct);
+
         var candidates = await assignment.LoadCandidatesAsync(ct);
-        if (candidates.Count == 0) return [];
+        if (candidates.Count == 0) return await SetupMissingAsync(db, rules.Count, WorklistText.IndustrySetupNoCharacters, ct);
 
         // Loaded once per run and passed down. Calculate() is pure given a context, so each item
         // costs only arithmetic — and a field would race, since generators run in parallel and
@@ -1617,6 +1621,35 @@ public class IndustryJobGenerator(
     /// <summary>What is on hand at the park's facilities, indexed by who can reach it. Materials
     /// in a corp hangar serve every alt in that corporation; personal stock serves only its
     /// owner.</summary>
+    /// <summary>
+    /// The one row for industry that cannot plan at all, when there is something to plan: Build
+    /// rules, or customer orders the Worklist is set to plan. Nothing when there is neither — an
+    /// unused feature is not a fault.
+    /// </summary>
+    private async Task<List<WorklistItem>> SetupMissingAsync(
+        AppDbContext db, int buildRules, string reason, CancellationToken ct)
+    {
+        var orders = settings.PlanCustomerOrders
+            ? (await db.TrackedOrders.AsNoTracking()
+                   .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
+              .Count(o => OrderContractLinks.StillToSupply(o) > 0)
+            : 0;
+        if (buildRules == 0 && orders == 0) return [];
+
+        return [new WorklistItem
+        {
+            Key       = "industry_setup",
+            Source    = Id,
+            Kind      = WorklistKind.Job,
+            Pool      = IndustryPool.Manufacturing,
+            Title     = WorklistText.IndustrySetupTitle,
+            Detail    = string.Format(WorklistText.IndustrySetupDetail, buildRules, orders) + " " + reason,
+            Readiness = WorklistReadiness.Blocked,
+            BlockedBy = reason,
+            Priority  = WorklistPriority.ServesOther,
+        }];
+    }
+
     private sealed record SiteStock(
         Dictionary<(long Site, int TypeId, long OwnerId), long> Corp,
         Dictionary<(long Site, int TypeId, long OwnerId), long> Personal)

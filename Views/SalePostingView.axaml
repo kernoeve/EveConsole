@@ -83,6 +83,8 @@
               x:Name="MainGrid"
               ItemsSource="{Binding GridRows}"
               SelectedItem="{Binding SelectedRow}"
+              SelectionMode="Extended"
+              SelectionChanged="OnGridSelectionChanged"
               AutoGenerateColumns="False"
               CanUserReorderColumns="True"
               CanUserResizeColumns="True"
@@ -110,9 +112,10 @@
           <MenuItem Header="{x:Static loc:SalesText.MenuAddItemsFromMarketGroup}"
                     Command="{Binding AddFromMarketGroupCommand}" />
           <Separator />
-          <MenuItem Header="{x:Static loc:SalesText.MenuDeleteItem}"
+          <!-- Every selected item, after asking. -->
+          <MenuItem Header="{Binding DeleteItemsHeader}"
                     Command="{Binding DeleteSelectedItemCommand}"
-                    IsEnabled="{Binding IsItemRowSelected}" />
+                    IsEnabled="{Binding HasItemRowsSelected}" />
         </ContextMenu>
       </DataGrid.ContextMenu>
 
@@ -369,6 +372,18 @@
               <TextBox x:CompileBindings="False" Classes="cell" TextAlignment="Right"
                        IsVisible="{Binding IsItem}" Watermark="—"
                        Text="{Binding ReservedOverrideText, Mode=TwoWay, UpdateSourceTrigger=LostFocus}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <!-- NEEDED: on a posting a store buys into "only what's needed", what each item still needs,
+             as the store asks for it. Blank on every other posting. -->
+        <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColNeeded}" Width="94" MinWidth="80" IsReadOnly="True" ClipboardContentBinding="{Binding NeededText}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <TextBlock x:CompileBindings="False" IsVisible="{Binding IsItem}" Text="{Binding NeededText}"
+                         ToolTip.Tip="{Binding NeedTip}"
+                         Foreground="{DynamicResource InfoBrush}" HorizontalAlignment="Right" VerticalAlignment="Center" Padding="4 0" />
             </DataTemplate>
           </DataGridTemplateColumn.CellTemplate>
         </DataGridTemplateColumn>

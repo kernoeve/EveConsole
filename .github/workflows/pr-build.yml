@@ -118,6 +118,12 @@ jobs:
       - name: Worklist buy list check
         run: dotnet run --project tools/WorklistBuyListCheck/WorklistBuyListCheck.csproj -c Release
 
+      # ⚠️ Does a Buy listing that takes only what is needed still ask for the right amount? Open
+      # offers left out of the need, the figures shown when the posting hides them, or a change of
+      # need the site never hears of. Constructed figures: no database, no site, no mail.
+      - name: Store need check
+        run: dotnet run --project tools/StoreNeedCheck/StoreNeedCheck.csproj -c Release
+
       # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
       # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
       # picks up all look like a finished report. This builds battles whose answers are known, on

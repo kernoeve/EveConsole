@@ -2041,4 +2041,49 @@ Nichts wird vernichtet: Seine Bestellungen bleiben in der Bestellverfolgung, und
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>Posten in Discord bei „{0}“ fehlgeschlagen: {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Nur Benötigtes</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Ankaufslisten: nur annehmen, was die Arbeitsliste von jedem Artikel noch braucht – ihr Bedarf abzüglich Bestand, laufender Produktion und bereits in diesem Laden angebotener Mengen. Ein nicht mehr benötigter Artikel nimmt keine Angebote an, und ein Angebot über den Bedarf hinaus wird nicht angenommen.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Anzeigen, wie viele noch benötigt werden</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>Bei einer Ankaufsliste, die nur Benötigtes annimmt: Verkäufern zeigen, wie viele von jedem Artikel noch gesucht werden und wie viel bereits gedeckt ist. Ausgeschaltet gilt die Obergrenze weiterhin; nur die Zahlen bleiben beim Laden.</value>
+  </data>
+  <data name="WebSyncOverNeedOne" xml:space="preserve">
+    <value>{1:N0} {2} angeboten, aber nur noch {0:N0} benötigt.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>{1:N0} {2} angeboten, aber nur noch {0:N0} benötigt.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Verbleibend</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Bedarf {0:N0} · vorrätig {1:N0} · in Produktion {2:N0} · angeboten {3:N0} → noch benötigt {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Den Aushang „{0}“ mit allen Abschnitten, Artikeln und Orten löschen? Jeder Laden, der ihn listet, zeigt ihn nicht mehr. Dies kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Den Abschnitt „{1}“ und den {0:N0} Artikel darin löschen? Dies kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Den Abschnitt „{1}“ und die {0:N0} Artikel darin löschen? Dies kann nicht rückgängig gemacht werden.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>{0} aus diesem Aushang entfernen?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Die {0:N0} ausgewählten Artikel aus ihren Aushängen entfernen?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Nicht mehr auflisten, was sich in {0} befindet?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>{0:N0} Artikel löschen</value>
+  </data>
 </root>

@@ -2767,4 +2767,31 @@
   <data name="TransferSomeInHold" xml:space="preserve">
     <value>Algunos están en la bodega de carga de una nave.</value>
   </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>De eso, {0:N0} está en ofertas de la tienda y se cuenta como en camino.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Faltan {0:N0} ejecuciones de copia.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Más {0:N0} ejecuciones de copia para su nivel de inventario o pedidos.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} para pedidos pendientes</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nada lo fabrica; {0:N0} disponibles</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>La planificación industrial no está configurada</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} regla(s) de fabricación y {1:N0} pedido(s) pendiente(s) están en espera.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>No hay ningún parque industrial elegido para la Lista de tareas ni ninguno marcado en Parques industriales.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Ningún personaje está habilitado para trabajos industriales.</value>
+  </data>
 </root>

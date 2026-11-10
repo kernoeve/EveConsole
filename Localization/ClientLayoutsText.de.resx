@@ -325,7 +325,7 @@
     <value>{0}: Die Position ist von einem anderen eingeloggten Charakter belegt, daher bleibt der Client, wo er ist.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} ist eingeloggt, aber in keiner Gruppe. Fügen Sie den Charakter einer Client-Position hinzu.</value>
+    <value>{0} ist eingeloggt, aber in keiner Gruppe, und auf seinem Monitor ist keine Client-Position frei. Fügen Sie den Charakter einer Client-Position hinzu.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} wurde von Hand verschoben und bleibt daher unverändert, bis Sie auf „Anwenden“ klicken.</value>

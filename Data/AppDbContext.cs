@@ -1446,6 +1446,7 @@ public class AppDbContext : DbContext
         mb.Entity<StorePosting>(e => {
             e.HasKey(x => x.Id);
             e.Ignore(x => x.IsBuy);
+            e.Ignore(x => x.CapsAtNeed);
             e.HasIndex(x => x.StoreId);
             e.ToTable("StorePostings"); });
 

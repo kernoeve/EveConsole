@@ -325,7 +325,7 @@
     <value>{0} : sa position est occupée par un autre personnage connecté, il est donc resté où il était.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} est connecté mais n'appartient à aucun groupe. Ajoutez-le à une position de client.</value>
+    <value>{0} est connecté mais n'appartient à aucun groupe, et aucune position de client n'est libre sur son écran. Ajoutez-le à une position de client.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} a été déplacé à la main : il n'est plus touché tant que vous n'appuyez pas sur Appliquer.</value>

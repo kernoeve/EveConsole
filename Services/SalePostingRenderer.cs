@@ -29,8 +29,12 @@ internal sealed record PostingItemView(
     int? ReservedOverride,
     double? SalePrice,
     DateTimeOffset? EarliestJobEnd,
-    string? ShownName = null)
+    string? ShownName = null,
+    ItemNeed? Need = null)
 {
+    /// <summary>On a Buy listing that tracks need: none of this is wanted any more.</summary>
+    public bool NotNeeded => Need is { Needed: <= 0 };
+
     /// <summary>The item's name in the language the post is written in, which a line prints
     /// unless the owner gave the item a name of their own. <see cref="TypeName"/> stays English,
     /// for matching what buyers write back.</summary>
@@ -51,10 +55,24 @@ internal sealed record PostingSectionView(
 /// <param name="ColorByState">Colour each item line by whether it is on the shelf, being built,
 /// or neither — the one colouring rule that cannot go stale, because stock moves and a colour set
 /// by hand does not move with it.</param>
+/// <param name="ShowNeed">A Buy listing's: show sellers how much of each item is still wanted,
+/// where the items carry a need (<see cref="PostingItemView.Need"/>).</param>
 internal sealed record PostingView(
     bool ShowInStock, bool ShowInBuild, bool ShowReserved, bool IncludeCompletionDate,
     bool ColorByState, string ColorInStock, string ColorInBuild, string ColorNone,
-    IReadOnlyList<PostingSectionView> Sections);
+    IReadOnlyList<PostingSectionView> Sections, bool ShowNeed = false)
+{
+    /// <summary>Every item given its need, for a listing that tracks it. Items not in <paramref name="needs"/> want nothing.</summary>
+    public PostingView WithNeeds(IReadOnlyDictionary<int, ItemNeed> needs) => this with
+    {
+        Sections = [.. Sections.Select(s => s with
+        {
+            Items = [.. s.Items.Select(i => i with { Need = needs.GetValueOrDefault(i.TypeId) ?? ItemNeed.None })],
+        })],
+    };
+
+    public IEnumerable<int> TypeIds => Sections.SelectMany(s => s.Items).Select(i => i.TypeId).Distinct();
+}
 
 /// <summary>One post block, rendered.</summary>
 internal sealed record RenderedPost(string Name, string PostType, string Text);
@@ -204,6 +222,15 @@ internal static class SalePostingRenderer
         // would give it. The site greys such a row out; a mail can only tell — in the store's
         // language, since only a store's mail to one buyer marks rows.
         if (blocked) return fmt.Color(BlockedColor, sb.Append(" - ").Append(StoreText.PriceListLimitReached).ToString());
+
+        // A Buy listing that takes only what is still needed: an item no longer wanted is dimmed
+        // as the site greys it out, and, where the posting shows need, the rest say how many more.
+        if (it.Need is { } need)
+        {
+            if (need.Needed <= 0) return fmt.Color(BlockedColor, sb.Append(" - ").Append(StoreText.PriceListNotNeeded).ToString());
+            if (v.ShowNeed)
+                sb.Append(" - ").Append(Plurals.Format(StoreText.ResourceManager, nameof(StoreText.PriceListStillNeededOther), need.Needed));
+        }
 
         // The whole line, so the price and counts carry the colour too — a coloured name beside
         // uncoloured numbers reads as a link rather than as a state.
