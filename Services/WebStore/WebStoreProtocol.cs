@@ -410,6 +410,9 @@ public sealed class SiteEventDto
     public bool?  MailUpdates { get; set; }
     /// <summary>"buy" for an offer to sell to a Buy listing; absent, or "sell", for an order.</summary>
     public string? Side { get; set; }
+    /// <summary>An offer only: when the seller expects to make the contract, "yyyy-MM-dd"; absent when
+    /// they left it blank (site 0.3.0+). Booked as the order's estimated date.</summary>
+    public string? ExpectedDate { get; set; }
 
     // A cancellation, of an order the site knows by the app's id:
     public int?   OrderId { get; set; }
