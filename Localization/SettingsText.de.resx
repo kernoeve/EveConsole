@@ -3910,4 +3910,22 @@ Die Anwendung wird neu gestartet.</value>
   <data name="TipBuildCostPark" xml:space="preserve">
     <value>Der Industriepark, mit dessen Strukturen, Rigs und Systemen die gespeicherten Baukosten berechnet werden – und damit jeder Preis, der sich nach den Baukosten richtet, etwa der eines Verkaufsaushangs. „Standard“ folgt dem in den Industrieparks als Standard markierten Park. Die Arbeitsliste und die Rechner behalten ihren eigenen Park. Drücken Sie „Neu berechnen“ oder warten Sie auf die nächste Marktaktualisierung, damit eine Änderung wirkt.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Direktnachrichten</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Entfernt gespeicherte Direktnachrichten aus Jabber, Mumble und IRC. Ungelesene Nachrichten werden nie entfernt, egal wie alt. Standardmäßig an mit 30 Tagen, wie es die Verlaufseinstellung von Jabber war; abwählen, um alles zu behalten.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Direktnachrichten löschen, die älter sind als</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Gruppenchat</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Entfernt gespeicherte Nachrichten aus Jabber-Räumen und IRC-Kanälen. Ungelesene Nachrichten werden nie entfernt, egal wie alt. Mumble-Kanalchat wird nie gespeichert, daher gibt es davon nichts zu entfernen. Bereits aus einem Intel-Raum oder -Kanal gelesenes Intel bleibt bei den Chatnachrichten oben. Standardmäßig an mit 30 Tagen, wie es die Verlaufseinstellung von Jabber war; abwählen, um alles zu behalten.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Gruppenchat löschen, der älter ist als</value>
+  </data>
 </root>

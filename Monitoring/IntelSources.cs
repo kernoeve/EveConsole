@@ -5,8 +5,8 @@ using EveConsole.Models;
 namespace EveConsole.Monitoring;
 
 /// <summary>
-/// What a Jabber room marked Intel adds to the intel channels of the chat logs. Its messages go through the same
-/// table and the same parser, so the map, the alarms and a re-parse need to know nothing about where a line came from.
+/// What a Jabber room or IRC channel marked Intel adds to the intel channels of the chat logs. Its messages go through
+/// the same table and the same parser, so the map, the alarms and a re-parse need to know nothing about where a line came from.
 /// </summary>
 public static class IntelRooms
 {
@@ -24,36 +24,47 @@ public static class IntelRooms
     /// A room message as chat lines, one per line of it. A line that is a chat log line relayed whole is read as what
     /// it was: who really said it and when, or the relay would be taken for the reporter and its name for a pilot.
     /// </summary>
-    public static List<ChatMessage> ToChatLines(JabberRoom room, JabberStoredMessage message)
+    public static List<ChatMessage> ToChatLines(JabberRoom room, JabberStoredMessage message) =>
+        !message.IsRoom ? [] : ToChatLines(ChannelOf(room), $"jabber:{room.AccountId}:{room.RoomJid}", message.Id, message.Sender, message.SentAt, message.Body);
+
+    /// <summary>The name an IRC channel's reports go under.</summary>
+    public static string ChannelOf(IrcChannel channel) => "IRC: " + channel.Name;
+
+    /// <summary>An IRC channel's message as chat lines, as a Jabber room's: a relayed chat log line is read as what it was.</summary>
+    public static List<ChatMessage> ToChatLines(IrcChannel channel, IrcStoredMessage message) =>
+        !message.IsChannel || message.Kind == IrcMessageKind.Notice ? [] :
+        ToChatLines(ChannelOf(channel), $"irc:{channel.ServerId}:{channel.Name.ToLowerInvariant()}", message.Id, message.Sender, message.SentAt, message.Body);
+
+    private static List<ChatMessage> ToChatLines(string channelName, string sourceFile, long id, string messageSender, string sentAt, string body)
     {
         var lines = new List<ChatMessage>();
-        if (!message.IsRoom || message.Sender.Length == 0) return lines;
+        if (messageSender.Length == 0) return lines;
 
         var number = 0L;
-        foreach (var line in message.Body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Take(MostLines))
+        foreach (var line in body.Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries).Take(MostLines))
         {
             number++;
-            var (at, sender, text) = (message.SentAt, message.Sender, line);
+            var (at, sender, text) = (sentAt, messageSender, line);
 
             if (ChatLogRules.TryParseMessage(line) is { } relayed)
             {
                 if (relayed.IsSystem) continue;
 
                 (sender, text) = (relayed.Sender, relayed.Text);
-                if (relayed.Timestamp is { } said && Parse(message.SentAt) is { } arrived && (said - arrived).Duration() <= MostRelayDelay)
+                if (relayed.Timestamp is { } said && Parse(sentAt) is { } arrived && (said - arrived).Duration() <= MostRelayDelay)
                     at = ChatLogRules.FormatTimestamp(said);
             }
 
             lines.Add(new ChatMessage
             {
                 OccurredAt  = at,
-                ChannelName = ChannelOf(room),
+                ChannelName = channelName,
                 SenderName  = sender,
                 Message     = text,
-                SourceFile  = $"jabber:{room.AccountId}:{room.RoomJid}",
+                SourceFile  = sourceFile,
 
                 // ⚠️ Unique with the source, so room for each line of each message.
-                LineNumber  = (long)message.Id * (MostLines + 1) + number,
+                LineNumber  = id * (MostLines + 1) + number,
             });
         }
 

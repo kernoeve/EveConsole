@@ -609,8 +609,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             : await LastSeenInAsync(room.AccountId, room.RoomJid, ct);
         if (from is null) return null;
 
-        var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
-        var days  = int.TryParse(saved, out var d) ? d : DefaultHistoryDays;
+        var days   = await DataRetentionService.ChatKeepDaysAsync(db, group: true, ct);
         var oldest = DateTimeOffset.UtcNow.AddDays(-days);
 
         return days > 0 && from < oldest ? oldest : from;
@@ -1829,8 +1828,6 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     // ── History ───────────────────────────────────────────────────────────────
 
-    public const string HistoryDaysPref = "jabber.history_days";
-    public const int DefaultHistoryDays = 30;
 
     /// <summary>A page of a conversation, oldest first, ending before a message or at the newest.</summary>
     public async Task<List<JabberStoredMessage>> LoadConversationAsync(
@@ -1899,26 +1896,5 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
             Tell("unread");
         }
         await SendDisplayedAsync(db, accountId, conversation, ct);
-    }
-
-    /// <summary>Deletes messages past the kept days. ⚠️ Never an unread one: age is no reason to lose what was not seen.</summary>
-    public async Task PurgeOldAsync(CancellationToken ct = default)
-    {
-        try
-        {
-            await using var db = await dbFactory.CreateDbContextAsync(ct);
-            var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
-            var days  = int.TryParse(saved, out var d) ? d : DefaultHistoryDays;
-            if (days > 0)   // none keeps it all
-            {
-                var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss'Z'", CultureInfo.InvariantCulture);
-                await db.JabberMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
-            }
-            await DeleteOrphanReactionsAsync(db, ct);
-        }
-        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
-        {
-            errors.Log(nameof(JabberService), "purge old messages", e);
-        }
     }
 }

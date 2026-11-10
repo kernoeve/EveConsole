@@ -159,6 +159,13 @@ jobs:
       - name: Mumble check
         run: dotnet run --project tools/MumbleCheck/MumbleCheck.csproj -c Release
 
+      # ⚠️ Does IRC still read what servers send, and keep what it should? The wire format and its tags, the
+      # server's own rules (case, ranks, modes), logging in with CAP and SASL, long lines split to fit, and the
+      # service against a scripted server: history that must not undo a join, the same message saved once, and
+      # a run of malformed lines that must not end the connection. None of it shows until a real server sends it.
+      - name: IRC check
+        run: dotnet run --project tools/IrcCheck/IrcCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no

@@ -749,4 +749,7 @@ Starte einen Client {1}, der sie ausführen darf, oder schalte dies ab: Entferne
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>Die Lizenzen der Software, aus der EVE Console besteht</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

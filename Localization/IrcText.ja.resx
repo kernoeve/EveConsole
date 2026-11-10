@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} はここでは使えないコマンドです。文字として送るには行頭を // にしてください。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>IRC サーバーを追加</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>IRC サーバーを追加すると、グループチャットでチャンネルに、メッセージで人と話せます。</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>左のサーバーを選んでください。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>サーバーのアドレス</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>暗号化 (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>暗号化なしでは途中の誰でもすべて読めます。パスワードは送られません（このコンピューターを除く）。</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>使われている場合は、後ろに _ や数字を付けて試します。</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>ログイン方法</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>パスワードなし</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>アカウント (SASL)。多くのネットワークで使用</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>接続後に NickServ</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>サーバーのパスワード</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>アカウント名</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>空欄ならニックネーム。</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>その他の設定</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>ユーザー名</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>本名</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>接続後のコマンド</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>1 行に 1 つ。ネットワークが求める /msg や /mode など。</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>離席</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>離席の理由（任意）</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>離席中</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>離席にする</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>戻る</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>今すぐニックネームを変更</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>変更</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>チャンネルはグループチャット、人との会話はメッセージにあります。</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>接続中・離席</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>未接続：パスワードは暗号化接続でのみ送られます。このサーバーで TLS を有効にしてください。</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>未接続：サーバーが接続を拒否しました。</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>{1} に {0} として接続中。</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>この接続は暗号化されていません。</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>このサーバーは履歴を保持します。離れている間の発言は再接続時に届きます。</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>このサーバーは履歴を保持しません。未接続中の発言はここに表示されません。</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>{0} へのメッセージ（/me で動作）</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>現在このチャンネルにいません。</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>サーバーはチャンネルを返しませんでした。参加するにはチャンネル名を入力してください。</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>創設者</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>管理者</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>オペレーター</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>ハーフオペレーター</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>ボイス</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>離席: {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>オペレーターにする</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>オペレーターを外す</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>ハーフオペレーターにする</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>ハーフオペレーターを外す</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{0} を {2} から追放しますか？{1} を禁止し、退出させます。</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>ニックネーム</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>サーバーのアドレスを入力してください。</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>ニックネームを入力してください（1 語、# や : で始めない）。</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>このログイン方法のパスワードを入力してください。</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>{0} を削除しますか？チャンネルと保存メッセージも消えます。</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>ニックネーム</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>未接続：サーバーがこのニックネームを受け付けません。編集で別のものを選んでください。</value>
+  </data>
+</root>

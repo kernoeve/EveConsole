@@ -142,8 +142,8 @@ public sealed partial class JabberService
         }
     }
 
-    /// <summary>Reactions to messages no longer kept. Part of what clears old messages away.</summary>
-    private static Task DeleteOrphanReactionsAsync(AppDbContext db, CancellationToken ct) =>
+    /// <summary>Reactions to messages no longer kept. Part of what clears old messages away (Settings → Data Retention).</summary>
+    internal static Task DeleteOrphanReactionsAsync(AppDbContext db, CancellationToken ct) =>
         db.JabberReactions.Where(r => !db.JabberMessages.Any(m => m.AccountId == r.AccountId && m.Conversation == r.Conversation
                                                                 && (m.StanzaId == r.Target || m.MessageId == r.Target)))
           .ExecuteDeleteAsync(ct);

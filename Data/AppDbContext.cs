@@ -99,6 +99,12 @@ public class AppDbContext : DbContext
     public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
     public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
     public DbSet<JabberAccount>         JabberAccounts           => Set<JabberAccount>();
+    public DbSet<IrcServer>             IrcServers               => Set<IrcServer>();
+    public DbSet<IrcChannel>            IrcChannels              => Set<IrcChannel>();
+    public DbSet<IrcStoredMessage>      IrcMessages              => Set<IrcStoredMessage>();
+    public DbSet<IrcReaction>           IrcReactions             => Set<IrcReaction>();
+    public DbSet<IrcLiveState>          IrcLiveStates            => Set<IrcLiveState>();
+    public DbSet<IrcCommand>            IrcCommands              => Set<IrcCommand>();
     public DbSet<MumbleServer>          MumbleServers            => Set<MumbleServer>();
     public DbSet<MumbleUserVolume>      MumbleUserVolumes        => Set<MumbleUserVolume>();
     public DbSet<MumbleDirectMessage>     MumbleDirectMessages       => Set<MumbleDirectMessage>();
@@ -1315,6 +1321,36 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.Service, x.ServerId, x.Person });
             e.Property(x => x.ServerId).ValueGeneratedNever();
             e.ToTable("ChatAvatarOwners"); });
+
+        mb.Entity<IrcServer>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcServers"); });
+
+        mb.Entity<IrcChannel>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.Name }).IsUnique().HasDatabaseName("IX_IrcChannels_Name");
+            e.ToTable("IrcChannels"); });
+
+        mb.Entity<IrcStoredMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.DedupeKey }).IsUnique().HasDatabaseName("IX_IrcMessages_Dedupe");
+            e.HasIndex(x => new { x.ServerId, x.Conversation, x.Id }).HasDatabaseName("IX_IrcMessages_Conversation");
+            e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_IrcMessages_Unread");
+            e.ToTable("IrcMessages"); });
+
+        mb.Entity<IrcReaction>(e => {
+            e.HasKey(x => new { x.ServerId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcReactions"); });
+
+        mb.Entity<IrcLiveState>(e => {
+            e.HasKey(x => new { x.ServerId, x.Part });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcLiveStates"); });
+
+        mb.Entity<IrcCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcCommands"); });
 
         mb.Entity<JabberEmotePack>(e => {
             e.HasKey(x => new { x.AccountId, x.PackId });

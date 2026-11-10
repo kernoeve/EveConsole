@@ -945,4 +945,7 @@ Start a {1} client that may run them, or turn this off: remove "neverRunBackgrou
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>The licenses of the software EVE Console is built from</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

@@ -132,10 +132,15 @@ public sealed class IntelService(
         try
         {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
-            RoomChannels = (await db.JabberRooms.AsNoTracking()
+            var jabber = (await db.JabberRooms.AsNoTracking()
                     .Where(r => r.RoomType == JabberRoomType.Intel && !r.Left)
                     .ToListAsync(ct))
-                .Select(IntelRooms.ChannelOf).Distinct().ToList();
+                .Select(IntelRooms.ChannelOf);
+            var irc = (await db.IrcChannels.AsNoTracking()
+                    .Where(c => c.RoomType == JabberRoomType.Intel && !c.Left)
+                    .ToListAsync(ct))
+                .Select(IntelRooms.ChannelOf);
+            RoomChannels = jabber.Concat(irc).Distinct().ToList();
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {

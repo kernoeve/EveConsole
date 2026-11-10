@@ -5156,4 +5156,22 @@ The application will restart.</value>
   <data name="TipBuildCostPark" xml:space="preserve">
     <value>The Indy Park whose structures, rigs and systems stored build costs are worked out at — and with them every price set from build cost, such as a sale posting&apos;s. Default follows the park marked default in Indy Parks. The Worklist and the calculators keep their own park. Press Recalculate, or wait for the next market refresh, for a change to take effect.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Direct Messages</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Removes saved direct messages from Jabber, Mumble and IRC. Unread messages are never removed, however old. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purge direct messages older than</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Removes saved messages from Jabber rooms and IRC channels. Unread messages are never removed, however old. Mumble channel chat is never saved, so there is none of it to remove. Intel already read from an Intel room or channel is kept with the chat messages above. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purge group chat older than</value>
+  </data>
 </root>

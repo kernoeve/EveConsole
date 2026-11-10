@@ -3907,4 +3907,22 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="TipBuildCostPark" xml:space="preserve">
     <value>저장된 제작 비용을 계산할 때 사용하는 인더스트리 파크(구조물, 리그, 성계)입니다. 판매 게시물 등 제작 비용을 기준으로 하는 모든 가격에 영향을 줍니다. &quot;기본값&quot;은 인더스트리 파크에서 기본으로 지정된 파크를 따릅니다. 작업 목록과 계산기는 각자의 파크를 그대로 사용합니다. 변경을 적용하려면 재계산을 누르거나 다음 시장 갱신을 기다리십시오.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>다이렉트 메시지</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Jabber, Mumble, IRC에 저장된 다이렉트 메시지를 삭제합니다. 읽지 않은 메시지는 아무리 오래되어도 삭제되지 않습니다. 이전 Jabber 기록 설정처럼 기본값은 30일로 켜져 있으며, 모두 보관하려면 선택을 해제하세요.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>다음보다 오래된 다이렉트 메시지 삭제</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>그룹 채팅</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Jabber 방과 IRC 채널에 저장된 메시지를 삭제합니다. 읽지 않은 메시지는 아무리 오래되어도 삭제되지 않습니다. Mumble 채널 채팅은 저장되지 않으므로 삭제할 것이 없습니다. 인텔 방이나 채널에서 이미 읽은 인텔은 위의 채팅 메시지와 함께 유지됩니다. 이전 Jabber 기록 설정처럼 기본값은 30일로 켜져 있으며, 모두 보관하려면 선택을 해제하세요.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>다음보다 오래된 그룹 채팅 삭제</value>
+  </data>
 </root>

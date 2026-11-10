@@ -3907,4 +3907,22 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="TipBuildCostPark" xml:space="preserve">
     <value>用于计算已存储制造成本的工业园区（建筑、改装件和星系），也决定所有按制造成本定价的价格，例如出售帖子。“默认”跟随在工业园区中标记为默认的园区。工作清单和计算器仍使用各自的园区。按“重新计算”或等待下一次市场刷新，更改才会生效。</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>私信</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>删除已保存的 Jabber、Mumble 和 IRC 私信。未读消息无论多旧都不会删除。默认开启，保留 30 天，与原先 Jabber 的历史设置相同；取消勾选即可全部保留。</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>清除早于以下天数的私信</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>群聊</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>删除已保存的 Jabber 房间和 IRC 频道消息。未读消息无论多旧都不会删除。Mumble 频道聊天从不保存，因此没有可删除的内容。已从情报房间或频道读取的情报会随上方的聊天消息一起保留。默认开启，保留 30 天，与原先 Jabber 的历史设置相同；取消勾选即可全部保留。</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>清除早于以下天数的群聊</value>
+  </data>
 </root>

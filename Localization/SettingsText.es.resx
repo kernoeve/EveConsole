@@ -3910,4 +3910,22 @@ La aplicación se reiniciará.</value>
   <data name="TipBuildCostPark" xml:space="preserve">
     <value>El parque industrial con cuyas estructuras, rigs y sistemas se calculan los costes de fabricación guardados, y con ellos todo precio basado en el coste de fabricación, como el de una publicación de venta. «Predeterminado» sigue al parque marcado como predeterminado en Parques industriales. La Lista de tareas y las calculadoras mantienen su propio parque. Pulsa Recalcular, o espera a la siguiente actualización del mercado, para que el cambio surta efecto.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Mensajes directos</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Elimina los mensajes directos guardados de Jabber, Mumble e IRC. Los mensajes sin leer nunca se eliminan, por antiguos que sean. Activado por defecto a 30 días, como lo estaba el ajuste de historial de Jabber; desmárcalo para conservarlo todo.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purgar mensajes directos anteriores a</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Chat de grupo</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Elimina los mensajes guardados de las salas de Jabber y los canales de IRC. Los mensajes sin leer nunca se eliminan, por antiguos que sean. El chat de los canales de Mumble nunca se guarda, así que no hay nada que eliminar. La inteligencia ya leída de una sala o canal de inteligencia se conserva con los mensajes de chat de arriba. Activado por defecto a 30 días, como lo estaba el ajuste de historial de Jabber; desmárcalo para conservarlo todo.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purgar chat de grupo anterior a</value>
+  </data>
 </root>

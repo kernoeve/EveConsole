@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} is not a command here. Start the line with // to send it as words.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Add IRC server</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Add an IRC server to chat in its channels from Group Chat and with its people from Messages.</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>Pick a server on the left.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Server address</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>Encrypted (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>Without encryption anyone on the way can read everything, and no password is sent (except to this computer).</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>If it is taken, the same with _ or a number after it is tried.</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>Log in with</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>No password</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>Account (SASL), as most networks use</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>NickServ, once connected</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>Server password</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>Account name</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>Blank for the nickname.</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>More settings</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>User name</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>Real name</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>Commands once connected</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>One per line, as a network asks of its users: /msg, /mode and the like.</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>Away</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>Why you are away (optional)</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>Away</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>Set away</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>Back</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>Change nickname now</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>Change</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>Channels are in Group Chat, and conversations with people in Messages.</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>Connected, away</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Not connected: a password is only sent over an encrypted connection. Turn on TLS for this server.</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>Not connected: the server turned the connection away.</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>Connected as {0} on {1}.</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>This connection is not encrypted.</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>This server keeps history: what is said while you are away comes back when you reconnect.</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>This server keeps no history: what is said while you are not connected is not seen here.</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Message {0} (/me for an action)</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>Not in this channel right now.</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>The server listed no channels. Type a channel's name to join it.</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>Founder</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>Operator</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>Half-operator</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>Voice</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>Away: {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>Make operator</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>Remove operator</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>Make half-operator</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>Remove half-operator</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Ban {0} from {2}? This bans {1}, and puts them out.</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>Nickname</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>Type the server's address.</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>Type a nickname: one word, not starting with # or :.</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>Type the password for this way of logging in.</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Remove {0}? Its channels and saved messages go with it.</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>Nickname</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>Not connected: the server does not accept this nickname. Choose another under Edit.</value>
+  </data>
+</root>

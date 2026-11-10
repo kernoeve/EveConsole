@@ -399,6 +399,25 @@ public class App : Application
             };
             jabberRooms.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
 
+            // An IRC channel marked Intel, the same way.
+            var ircChannels = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>();
+            ircChannels.IntelLinesSaved += () =>
+            {
+                if (Interlocked.Exchange(ref intelPassQueued, 1) == 1) return;
+                _ = Task.Run(async () =>
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(300));
+                    Interlocked.Exchange(ref intelPassQueued, 0);
+                    try
+                    {
+                        if (await intel.ProcessNewAsync(waitForTurn: true) > 0)
+                            await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+                    }
+                    catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after an IRC channel", ex); }
+                });
+            };
+            ircChannels.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
+
             // An undock, likewise: the location poll is what knows, and it says so the moment
             // the character's pass is done, so the undock alarms are evaluated then — seconds
             // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
@@ -575,6 +594,7 @@ public class App : Application
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
                 tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StopAsync());
                 _mumbleOverlay?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
@@ -2786,6 +2806,93 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcServers" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 6697,
+                        "Tls"                INTEGER NOT NULL DEFAULT 1,
+                        "Nickname"           TEXT    NOT NULL DEFAULT '',
+                        "Username"           TEXT    NOT NULL DEFAULT '',
+                        "RealName"           TEXT    NOT NULL DEFAULT '',
+                        "LoginKind"          INTEGER NOT NULL DEFAULT 0,
+                        "Account"            TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AlertWords"         TEXT    NOT NULL DEFAULT '',
+                        "AwayMessage"        TEXT    NOT NULL DEFAULT '',
+                        "OnConnect"          TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "AutoConnect" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcChannels" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"  INTEGER NOT NULL DEFAULT 0,
+                        "Name"      TEXT    NOT NULL DEFAULT '',
+                        "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "Left"      INTEGER NOT NULL DEFAULT 0,
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1,
+                        "RoomType"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcChannels_Name" ON "IrcChannels" ("ServerId", "Name")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcMessages" (
+                        "Id"           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"     INTEGER NOT NULL DEFAULT 0,
+                        "Conversation" TEXT    NOT NULL DEFAULT '',
+                        "IsChannel"    INTEGER NOT NULL DEFAULT 0,
+                        "Sender"       TEXT    NOT NULL DEFAULT '',
+                        "Body"         TEXT    NOT NULL DEFAULT '',
+                        "Kind"         INTEGER NOT NULL DEFAULT 0,
+                        "SentAt"       TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
+                        "IsRead"       INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"      INTEGER NOT NULL DEFAULT 0,
+                        "IsMention"    INTEGER NOT NULL DEFAULT 0,
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+                        "MessageId"    TEXT    NOT NULL DEFAULT '',
+                        "ReplyId"      TEXT    NOT NULL DEFAULT '',
+                        "PeerName"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcMessages_Dedupe" ON "IrcMessages" ("ServerId", "DedupeKey")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Conversation" ON "IrcMessages" ("ServerId", "Conversation", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Unread" ON "IrcMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcReactions" (
+                        "ServerId"     INTEGER NOT NULL,
+                        "Conversation" TEXT    NOT NULL,
+                        "Target"       TEXT    NOT NULL,
+                        "Sender"       TEXT    NOT NULL,
+                        "Emojis"       TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("ServerId", "Conversation", "Target", "Sender")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcLiveStates" (
+                        "ServerId" INTEGER NOT NULL,
+                        "Part"     TEXT    NOT NULL,
+                        "Version"  INTEGER NOT NULL DEFAULT 0,
+                        "Json"     TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("ServerId", "Part")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcCommands" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"    INTEGER NOT NULL DEFAULT 0,
+                        "Kind"        TEXT    NOT NULL DEFAULT '',
+                        "Args"        TEXT    NOT NULL DEFAULT '',
+                        "CreatedUnix" INTEGER NOT NULL DEFAULT 0,
+                        "State"       INTEGER NOT NULL DEFAULT 0,
+                        "Result"      TEXT    NOT NULL DEFAULT '',
+                        "Error"       TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "JabberAccounts" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                         "Name"               TEXT    NOT NULL DEFAULT '',
@@ -4514,6 +4621,7 @@ public class App : Application
             AppStartup.Settled();   // no window to wait for
             StartBackgroundServices();
             _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
+            _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StartAsync();
 
             var db     = DbEngine.IsPostgres ? "PostgreSQL" : "SQLite";
             var holder = Services.GetRequiredService<WorkerLease>().IsHolder;
@@ -4572,6 +4680,7 @@ public class App : Application
         _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
         _ = Services.GetRequiredService<IntelService>().RefreshRoomChannelsAsync();   // ⚠️ Here: it reads a column the upgrade adds.
         _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
+        _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StartAsync();
         Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
@@ -4667,6 +4776,7 @@ public class App : Application
                     if (OwnerList.TryApplySignal(payload)) return;
                     if (SdeNames.TryApplySignal(payload)) return;
                     if (Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().TryApplySignal(payload)) return;
+                    if (Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();
@@ -4728,6 +4838,7 @@ public class App : Application
         void StartLeaderServices()
         {
             Start("Jabber",             () => _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().BecomeWorkerAsync());
+            Start("IRC",                () => _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().BecomeWorkerAsync());
             Start("ESI polling",        () => polling?.Start());
             Start("market pricing",     () => marketPricing?.Start());
             Start("market history",     () => marketHistory?.Start());
@@ -4804,6 +4915,7 @@ public class App : Application
 
             await Task.WhenAll(
                 Halt("Jabber",              Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>(), s => s.StandDownAsync()),
+                Halt("IRC",                 Services.GetRequiredService<EveConsole.Services.Irc.IrcService>(),       s => s.StandDownAsync()),
                 Halt("ESI polling",         polling,       s => s.StopAsync()),
                 Halt("market pricing",      marketPricing, s => s.StopAsync()),
                 Halt("market history",      marketHistory, s => s.StopAsync()),
@@ -5311,6 +5423,8 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.JabberDmSource>();
         services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.MumbleDmSource>();
+        services.AddSingleton<EveConsole.Services.Irc.IrcService>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.IrcDmSource>();
         services.AddSingleton<EveConsole.Services.Messages.DirectMessagesService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();

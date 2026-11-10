@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} no es un comando aquí. Empieza la línea con // para enviarla como texto.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Añadir servidor IRC</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Añade un servidor IRC para chatear en sus canales desde el Chat de grupo y con su gente desde Mensajes.</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>Elige un servidor a la izquierda.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Dirección del servidor</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>Cifrado (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>Sin cifrado, cualquiera en el camino puede leerlo todo, y no se envía ninguna contraseña (salvo a este equipo).</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>Si está ocupado, se prueba el mismo con _ o un número detrás.</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>Iniciar sesión con</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>Sin contraseña</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>Cuenta (SASL), como la mayoría de redes</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>NickServ, tras conectar</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>Contraseña del servidor</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>Nombre de la cuenta</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>En blanco para el apodo.</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>Más ajustes</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Nombre de usuario</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>Nombre real</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>Comandos al conectar</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>Uno por línea, como pida la red: /msg, /mode y similares.</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>Ausente</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>Por qué estás ausente (opcional)</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>Ausente</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>Marcar ausente</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>De vuelta</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>Cambiar apodo ahora</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>Los canales están en el Chat de grupo y las conversaciones con personas en Mensajes.</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>Conectado, ausente</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>No conectado: la contraseña solo se envía cifrada. Activa TLS para este servidor.</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>No conectado: el servidor rechazó la conexión.</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>Conectado como {0} en {1}.</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>Esta conexión no está cifrada.</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>Este servidor guarda historial: lo dicho mientras no estás llega al reconectar.</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>Este servidor no guarda historial: lo dicho mientras no estás conectado no se ve aquí.</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Mensaje a {0} (/me para una acción)</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>Ahora no estás en este canal.</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>El servidor no listó canales. Escribe el nombre de un canal para unirte.</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>Fundador</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>Operador</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>Semioperador</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>Voz</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>Ausente: {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>Hacer operador</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>Quitar operador</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>Hacer semioperador</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>Quitar semioperador</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>¿Vetar a {0} de {2}? Esto veta {1} y lo expulsa.</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>Apodo</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>Escribe la dirección del servidor.</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>Escribe un apodo: una palabra que no empiece por # ni :.</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>Escribe la contraseña de este modo de inicio.</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>¿Quitar {0}? Sus canales y mensajes guardados se borran también.</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>Apodo</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>No conectado: el servidor no acepta este apodo. Elige otro en Editar.</value>
+  </data>
+</root>
