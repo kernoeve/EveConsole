@@ -848,30 +848,40 @@ try
     await service.MarkReadAsync(1, "bot@example");
     Check("read: nothing changed, nothing announced", unreadChanges == before);
 
-    // Old read messages go. Unread ones stay, however old.
+    // Old read messages go (Settings → Data Retention). Unread ones stay, however old; a room's are the other rule's.
     await using (var db = factory.CreateDbContext())
     {
         db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = true, DedupeKey = "old-read" });
         db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = false, DedupeKey = "old-unread" });
+        db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "oldroom@rooms.example", IsRoom = true, SentAt = "2000-01-01T00:00:00Z", IsRead = true, DedupeKey = "old-room" });
         await db.SaveChangesAsync();
     }
-    await service.PurgeOldAsync();
+    await DataRetentionService.PurgeChatAsync(factory, group: false, days: 30);
     await using (var db = factory.CreateDbContext())
     {
         var left = await db.JabberMessages.Where(m => m.Conversation == "old@example").Select(m => m.DedupeKey).ToListAsync();
         Check("purge: old read goes, old unread stays", left.SequenceEqual(["old-unread"]), string.Join(",", left));
         Check("purge: recent stays", await db.JabberMessages.CountAsync(m => m.Conversation == "bot@example") == 2);
+        Check("purge: direct messages' rule leaves rooms alone", await db.JabberMessages.AnyAsync(m => m.DedupeKey == "old-room"));
     }
+    await DataRetentionService.PurgeChatAsync(factory, group: true, days: 30);
+    await using (var db = factory.CreateDbContext())
+        Check("purge: group chat's rule takes the old room message", !await db.JabberMessages.AnyAsync(m => m.DedupeKey == "old-room"));
 
+    // The old Jabber setting carries over until the new rules are written: zero kept everything, so zero it stays.
     await using (var db = factory.CreateDbContext())
     {
-        db.AppPreferences.Add(new AppPreference { Key = JabberService.HistoryDaysPref, Value = "0" });
-        db.JabberMessages.Add(new JabberStoredMessage { AccountId = 1, Conversation = "old@example", SentAt = "2000-01-01T00:00:00Z", IsRead = true, DedupeKey = "old-kept" });
+        Check("retention: nothing said keeps 30 days, as Jabber did", await DataRetentionService.ChatKeepDaysAsync(db, group: true) == 30);
+        db.AppPreferences.Add(new AppPreference { Key = "jabber.history_days", Value = "0" });
         await db.SaveChangesAsync();
+        Check("retention: the old setting's zero keeps everything", await DataRetentionService.ChatKeepDaysAsync(db, group: true) == 0);
+        db.AppPreferences.Add(new AppPreference { Key = "retention.groupchat.enabled", Value = "1" });
+        db.AppPreferences.Add(new AppPreference { Key = "retention.groupchat.days", Value = "12" });
+        await db.SaveChangesAsync();
+        Check("retention: the new rule wins once written", await DataRetentionService.ChatKeepDaysAsync(db, group: true) == 12
+                                                          && await DataRetentionService.ChatKeepDaysAsync(db, group: false) == 0);
+        await db.AppPreferences.Where(p => p.Key.StartsWith("retention.") || p.Key == "jabber.history_days").ExecuteDeleteAsync();
     }
-    await service.PurgeOldAsync();
-    await using (var db = factory.CreateDbContext())
-        Check("purge: zero keeps everything", await db.JabberMessages.AnyAsync(m => m.DedupeKey == "old-kept"));
 
     // What the archive holds is often already here, known by whatever it carried when delivered.
     {
@@ -942,7 +952,7 @@ try
 
         await using (var db = factory.CreateDbContext())
             await db.JabberMessages.Where(m => m.Conversation == Hall || m.Conversation == "fan@example").ExecuteDeleteAsync();
-        await service.PurgeOldAsync();
+        await DataRetentionService.PurgeChatAsync(factory, group: true, days: 30);
         await using (var db = factory.CreateDbContext())
             Check("reactions: go with the messages they react to", !await db.JabberReactions.AnyAsync(r => r.Conversation == Hall));
         session.Locked(s => s.RoomMap.Remove(Hall));

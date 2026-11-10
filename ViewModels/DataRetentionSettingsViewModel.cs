@@ -180,6 +180,14 @@ public class DataRetentionSettingsViewModel : ReactiveObject
         AgentTelemetry = new RetentionSectionVm(
             retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d),
             SettingsText.RetentionRemovedAgent);
+
+        DirectMessages = new RetentionSectionVm(
+            retention.DirectMessages, d => retention.PurgeDirectMessagesAsync(d),
+            SettingsText.RetentionRemovedChat);
+
+        GroupChat = new RetentionSectionVm(
+            retention.GroupChat, d => retention.PurgeGroupChatAsync(d),
+            SettingsText.RetentionRemovedChat);
     }
 
     public RetentionSectionVm ErrorLog       { get; }
@@ -189,4 +197,6 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     public RetentionSectionVm GameLog        { get; }
     public RetentionSectionVm ChatMessages   { get; }
     public RetentionSectionVm AgentTelemetry { get; }
+    public RetentionSectionVm DirectMessages { get; }
+    public RetentionSectionVm GroupChat      { get; }
 }

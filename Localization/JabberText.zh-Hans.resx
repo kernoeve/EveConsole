@@ -229,9 +229,6 @@
   <data name="SoundOption" xml:space="preserve">
     <value>需要注意的消息播放提示音</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>已读消息保留天数（0 表示全部保留）</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>输入消息。Enter 发送，Shift+Enter 换行。</value>
   </data>

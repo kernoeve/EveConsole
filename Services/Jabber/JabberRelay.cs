@@ -111,7 +111,6 @@ public sealed partial class JabberService
             }
 
             foreach (var session in Sessions.Where(s => s.Account.AutoConnect)) Connect(session);
-            await PurgeOldAsync(ct);
         }
         catch (Exception e) when (e is not OperationCanceledException)
         {

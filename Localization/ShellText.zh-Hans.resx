@@ -743,4 +743,7 @@ PID：{2}
   <data name="TipThirdPartyNotices" xml:space="preserve">
     <value>构成 EVE Console 的软件的许可证</value>
   </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
 </root>

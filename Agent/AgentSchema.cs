@@ -118,6 +118,7 @@ public sealed class AgentSchema
             // provider because a question happened to reach for a table. The same for who the owner talks to,
             // and for the emote packs their groups pass around, which are pictures and nothing to ask about.
             if (table.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)
+                || table.StartsWith("Irc", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)) continue;
 

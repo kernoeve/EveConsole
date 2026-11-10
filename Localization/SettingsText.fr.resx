@@ -3898,4 +3898,22 @@ L'application va redémarrer.</value>
   <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
     <value>Seulement avec une base PostgreSQL partagée : avec SQLite, ce client est le seul, il fait donc toujours le travail.</value>
   </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Messages directs</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Supprime les messages directs enregistrés de Jabber, Mumble et IRC. Les messages non lus ne sont jamais supprimés, quel que soit leur âge. Activé par défaut à 30 jours, comme l’était le réglage d’historique de Jabber ; décochez pour tout conserver.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purger les messages directs de plus de</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Discussions de groupe</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Supprime les messages enregistrés des salons Jabber et des canaux IRC. Les messages non lus ne sont jamais supprimés, quel que soit leur âge. Le chat des canaux Mumble n’est jamais enregistré, il n’y a donc rien à supprimer. Les renseignements déjà lus d’un salon ou canal de renseignement sont conservés avec les messages de chat ci-dessus. Activé par défaut à 30 jours, comme l’était le réglage d’historique de Jabber ; décochez pour tout conserver.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purger les discussions de groupe de plus de</value>
+  </data>
 </root>

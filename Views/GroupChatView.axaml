@@ -123,7 +123,7 @@
                     <TextBlock Text="{Binding Name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <TextBlock Text="{x:Static loc:GroupChatText.AlreadyJoined}" IsVisible="{Binding IsJoined}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource GoodBrush}" />
                   </StackPanel>
-                  <TextBlock Text="{Binding Jid}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" />
+                  <TextBlock Text="{Binding Jid}" IsVisible="{Binding HasAddressLine}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" />
                   <TextBlock Text="{Binding Description}" IsVisible="{Binding HasDescription}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
                   <TextBlock Text="{Binding Topic}" IsVisible="{Binding HasTopic}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
                   <TextBlock Text="{Binding Flags}" IsVisible="{Binding HasFlags}" FontSize="10" Foreground="{DynamicResource WarnBrush}" />
@@ -137,8 +137,8 @@
         <Grid Grid.Row="2" ColumnDefinitions="2*,8,*,8,*,8,Auto" RowDefinitions="Auto,Auto,Auto" Margin="14 8">
           <TextBlock Grid.Row="0" Grid.Column="0" Classes="label" Text="{x:Static loc:GroupChatText.LabelRoomToJoin}" />
           <TextBox Grid.Row="1" Grid.Column="0" Text="{Binding JoinRoom}" />
-          <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="{x:Static loc:JabberText.LabelNickname}" />
-          <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding JoinNick}" />
+          <TextBlock Grid.Row="0" Grid.Column="2" Classes="label" Text="{x:Static loc:JabberText.LabelNickname}" IsVisible="{Binding ShowJoinNick}" />
+          <TextBox Grid.Row="1" Grid.Column="2" Text="{Binding JoinNick}" IsVisible="{Binding ShowJoinNick}" />
           <TextBlock Grid.Row="0" Grid.Column="4" Classes="label" Text="{x:Static loc:JabberText.LabelPassword}" />
           <TextBox Grid.Row="1" Grid.Column="4" Text="{Binding JoinPassword}" PasswordChar="●" />
           <TextBlock Grid.Row="0" Grid.Column="6" Classes="label" Text="{x:Static loc:GroupChatText.LabelRoomType}" />

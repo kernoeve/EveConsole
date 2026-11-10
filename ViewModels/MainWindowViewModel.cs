@@ -277,6 +277,7 @@ public class MainWindowViewModel : ReactiveObject
     public SystemIndexViewModel           SystemIndexVm          { get; }
     public JabberViewModel                JabberVm               { get; }
     public MumbleViewModel                MumbleVm               { get; }
+    public IrcViewModel                   IrcVm                  { get; }
     public MessagesViewModel              MessagesVm             { get; }
     public GroupChatViewModel             GroupChatVm            { get; }
 
@@ -1727,6 +1728,7 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Jabber.JabberService jabberService,
         EveConsole.Services.Jabber.EmoteService emoteService,
         EveConsole.Services.Mumble.MumbleService mumbleService,
+        EveConsole.Services.Irc.IrcService ircService,
         EveConsole.Services.Messages.DirectMessagesService directMessages,
         IServiceScopeFactory            scopeFactory,
         TimerSettingsService            timerSettings,
@@ -1912,16 +1914,20 @@ public class MainWindowViewModel : ReactiveObject
         JabberVm          = new JabberViewModel(jabberService, appPrefs, emoteService);
         StartupTrace.Step("new MumbleVm");
         MumbleVm          = new MumbleViewModel(mumbleService, appPrefs);
+        StartupTrace.Step("new IrcVm");
+        IrcVm             = new IrcViewModel(ircService);
         StartupTrace.Step("new MessagesVm");
         MessagesVm        = new MessagesViewModel(directMessages, appPrefs, alarmSounds, alarmMute, emoteService);
         StartupTrace.Step("new GroupChatVm");
-        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService);
+        GroupChatVm       = new GroupChatViewModel(jabberService, mumbleService, appPrefs, alarmSounds, alarmMute, emoteService, ircService);
         OpenMessagesCommand = ReactiveCommand.CreateFromTask(OpenMessagesAsync);
         OpenGroupChatCommand = ReactiveCommand.CreateFromTask(OpenGroupChatAsync);
         OpenEveMailCommand = ReactiveCommand.Create(OpenEveMail);
         MessagesVm.ShowRequested += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => OpenTool("messages"));
         GroupChatVm.OpenDirect = (account, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.JabberDmSource.Name, account, peer), name);
         MumbleVm.OpenDirect = (server, peer, name) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.MumbleDmSource.Name, server, peer), name);
+        GroupChatVm.OpenIrcDirect = (server, nick) => MessagesVm.Open(new EveConsole.Services.Messages.DmKey(EveConsole.Services.Messages.IrcDmSource.Name, server,
+            ircService.SessionOf(server)?.Fold(nick) ?? EveConsole.Services.Irc.IrcSupport.Fold(nick, "rfc1459")), nick);
         CorpActivityVm.RequestOpenKillmail = killMailId =>
         {
             OpenTool("killmails");

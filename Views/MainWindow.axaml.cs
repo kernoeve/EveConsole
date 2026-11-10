@@ -797,7 +797,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                    // Over the shared preferences, which are already in memory.
                                                    new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
                                                    vm.JabberVm, vm.MumbleVm,
-                                                   vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
+                                                   vm.TtsService, vm.SpeechInputService, vm.HotkeyService, vm.IrcVm);
             // Not awaited: it asks the web, and the window should not wait for that to open.
             _ = vm.OnlineServicesSettingsVm.RefreshAsync();
             settingsWin = new SettingsWindow { DataContext = settingsVm };

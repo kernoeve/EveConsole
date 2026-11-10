@@ -229,9 +229,6 @@
   <data name="SoundOption" xml:space="preserve">
     <value>Звук для сообщений, требующих внимания</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>Хранить прочитанные сообщения (дней, 0 — все)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Введите сообщение. Enter — отправить, Shift+Enter — новая строка.</value>
   </data>
