@@ -2764,4 +2764,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>Was ein Charakter über seinem Level hält, bleibt bei ihm, bis er so weit darüber liegt; dann geht der Überschuss an die Standard-Corporation zurück. Null gibt jeden Überschuss zurück.</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Einige liegen im Frachtraum eines Schiffs.</value>
+  </data>
 </root>

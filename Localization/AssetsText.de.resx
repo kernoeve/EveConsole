@@ -1562,4 +1562,10 @@ holt sie zurück.</value>
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>{0:N0} Zeilen seitdem geschrieben</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>Marktauftrag {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>auf dem Markt gekauft</value>
+  </data>
 </root>

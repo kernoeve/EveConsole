@@ -3649,4 +3649,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>What a character holds over its level stays with it until it is this far over, then the excess goes back to the default corporation. Zero sweeps any excess at all.</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Some are in a ship&apos;s cargo hold.</value>
+  </data>
 </root>

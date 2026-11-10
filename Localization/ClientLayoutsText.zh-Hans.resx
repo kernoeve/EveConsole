@@ -498,4 +498,31 @@
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>为此控件设置的房间已不在群聊中。</value>
   </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>将此布局保存为文件，以便保留或分享。</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>将文件中的布局添加为新布局。显示器不会改变。</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console 布局</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>已导出“{0}”。</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>已导入“{0}”。如果来自其他数据库，请检查其 Mumble 控件。</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>该文件不是 EVE Console 布局。</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>该布局由较新版本的 EVE Console 创建。请更新后再导入。</value>
+  </data>
 </root>

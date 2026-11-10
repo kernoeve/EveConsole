@@ -65,6 +65,10 @@ public static class AssetClock
 /// from the print's ME — ESI does not say), and its blueprint, by its own item id.</item>
 /// <item>A job delivered: what it made into the hangar — items, or copies — and its blueprint
 /// back, unless a copy's runs are spent.</item>
+/// <item>A sell order placed: what it lists, out of the hangar. Cancelled or expired: what was left
+/// on it, back. Bought on the market (wallet transactions): into the hangar where it was bought.
+/// ⚠️ An item sold straight into a buy order is not: its transaction cannot be told from a sell
+/// order filling, whose items left the hangar when the order was placed.</item>
 /// <item>A contract made, deleted or accepted, a haul ticked off, a courier's cargo delivered:
 /// <see cref="ContractLag.MovesAsync"/>, as every count read them before this existed. ⚠️ Not
 /// cargo still in a courier, which is on no shelf.</item>
@@ -213,6 +217,50 @@ public sealed class AssetActivity(
         snap.AsOf     = asOf;
         snap.PolledAt = now;
         await db.SaveChangesAsync(ct);
+    }
+
+    /// <summary>
+    /// What an orders poll saw open: each order's first and last sighting, as of the time ESI made
+    /// the copy. Called by the active-orders polls, before the rewrite they trigger.
+    ///
+    /// <para>⚠️ The first poll of an owner's orders knows nothing of which are new: what it finds
+    /// is recorded as seen long ago, so a recently repriced order is not taken for a new one.</para>
+    /// </summary>
+    public static async Task SeeOrdersAsync(AppDbContext db, long ownerId, string ownerType,
+        IReadOnlyCollection<long> orderIds, DateTimeOffset? lastModified, CancellationToken ct)
+    {
+        var now  = DateTimeOffset.UtcNow;
+        var seen = lastModified is { } at && at < now ? at : now;
+
+        var first = await db.AssetSnapshots.FirstOrDefaultAsync(
+            s => s.OwnerId == ownerId && s.OwnerType == ownerType && s.Kind == "orders", ct);
+        var longAgo = new DateTimeOffset(2000, 1, 1, 0, 0, 0, TimeSpan.Zero);
+
+        var ids   = orderIds.Distinct().ToList();
+        var known = await db.MarketOrderSightings.Where(o => ids.Contains(o.OrderId)).ToDictionaryAsync(o => o.OrderId, ct);
+        foreach (var id in ids)
+        {
+            if (known.TryGetValue(id, out var o)) { if (seen > o.LastSeenAt) o.LastSeenAt = seen; }
+            else db.MarketOrderSightings.Add(new MarketOrderSighting
+            {
+                OrderId = id, FirstSeenAt = first is null ? longAgo : seen, LastSeenAt = seen,
+            });
+        }
+
+        if (first is null)
+            db.AssetSnapshots.Add(first = new AssetSnapshot { OwnerId = ownerId, OwnerType = ownerType, Kind = "orders" });
+        first.AsOf     = seen;
+        first.PolledAt = now;
+        await db.SaveChangesAsync(ct);
+
+        // Not kept for ever: an order closed a fortnight ago is long past any asset poll.
+        // ⚠️ Compared in memory: a DateTimeOffset does not translate on SQLite.
+        var stale = (await db.MarketOrderSightings.ToListAsync(ct)).Where(o => now - o.LastSeenAt > TimeSpan.FromDays(14)).ToList();
+        if (stale.Count > 0)
+        {
+            db.MarketOrderSightings.RemoveRange(stale);
+            await db.SaveChangesAsync(ct);
+        }
     }
 
     /// <summary>
@@ -483,10 +531,11 @@ public sealed class AssetActivity(
             var candidates = rows
                 .Where(r => r.TypeId == c.TypeId && r.RootLocationId == c.Site && r.IsSingleton == c.IsSingleton
                          && r.Quantity > 0 && !InShip(r))
-                // What the activity names first, then what was itself written since the poll,
-                // then the hangar floor before containers.
+                // What the activity names first, then the poll's own stacks before anything written
+                // since — so what arrived stays visible as arrived, marked with what brought it —
+                // then the hangar floor before containers. The totals come out the same either way.
                 .OrderByDescending(r => c.Near != 0 && r.LocationId == c.Near)
-                .ThenByDescending(r => r.Pending == "added")
+                .ThenBy(r => r.Pending == "added")
                 .ThenByDescending(r => r.LocationType != "item" || (byId.TryGetValue(r.LocationId, out var p) && p.TypeId == OfficeFolder))
                 .ThenBy(r => r.ItemId)
                 .ToList();
@@ -549,6 +598,8 @@ public sealed class AssetActivity(
             var from = m.ContractId != 0 ? $"contract {m.ContractId}" : "haul";
             all.Add(new Change(from, m.OwnerId, m.OwnerType, m.Site, m.TypeId, m.Units, m.IsSingleton, At: m.At));
         }
+
+        await AddMarketAsync(db, clocks, all, ct);
 
         // ── Jobs ──────────────────────────────────────────────────────────────
         // ⚠️ A corp job is listed under the corporation and under its installer, by one id: the
@@ -624,6 +675,91 @@ public sealed class AssetActivity(
             .Where(c => c.TypeId != 0 && c.Site > 0 && clocks.TryGetValue(c.OwnerId, out var clock) && clock.Type == c.OwnerType)
             .GroupBy(c => (c.OwnerId, c.OwnerType))
             .ToDictionary(g => g.Key, g => g.ToList());
+    }
+
+    /// <summary>A purchase, as the wallet transactions record it.</summary>
+    private sealed class Bought
+    {
+        public long OwnerId { get; set; }
+        public string OwnerType { get; set; } = "";
+        public long LocationId { get; set; }
+        public int TypeId { get; set; }
+        public int Quantity { get; set; }
+        public bool IsPersonal { get; set; }
+        public DateTimeOffset Date { get; set; }
+    }
+
+    /// <summary>
+    /// Sell orders placed, cancelled or expired, and purchases, since each owner's list was current.
+    /// </summary>
+    private static async Task AddMarketAsync(
+        AppDbContext db, Dictionary<long, (string Type, DateTimeOffset At)> clocks, List<Change> all, CancellationToken ct)
+    {
+        var corpOf = (await db.Characters.AsNoTracking().Select(c => new { c.Id, c.CorporationId }).ToListAsync(ct))
+            .ToDictionary(c => c.Id, c => (long)c.CorporationId);
+
+        // Whose hangar: the corporation's for a corp order — listed under the corporation and
+        // again under the character who placed it — the character's otherwise.
+        bool OwnerOf(long ownerId, string ownerType, bool forCorp, out long owner, out string type)
+        {
+            (owner, type) = ownerType == "corporation" ? (ownerId, "corporation")
+                : forCorp ? (corpOf.GetValueOrDefault(ownerId), "corporation")
+                : (ownerId, "character");
+            return owner != 0 && clocks.TryGetValue(owner, out var clock) && clock.Type == type;
+        }
+
+        // ── Sell orders ───────────────────────────────────────────────────────
+        var sightings = (await db.MarketOrderSightings.AsNoTracking().ToListAsync(ct)).ToDictionary(s => s.OrderId);
+        if (sightings.Count > 0)
+        {
+            var rows = (await db.EsiMarketOrders.AsNoTracking()
+                    .Where(o => !o.IsBuyOrder)
+                    .Select(o => new { o.OrderId, o.OwnerId, o.OwnerType, o.IsCorporation, o.TypeId, o.LocationId,
+                                       o.VolumeTotal, o.VolumeRemain, o.Issued, o.State, o.IsHistory })
+                    .ToListAsync(ct))
+                .Where(o => sightings.ContainsKey(o.OrderId));
+
+            foreach (var g in rows.GroupBy(o => o.OrderId))
+            {
+                var row = g.FirstOrDefault(o => o.OwnerType == "corporation") ?? g.First();
+                if (!OwnerOf(row.OwnerId, row.OwnerType, g.Any(o => o.IsCorporation == true), out var owner, out var type)) continue;
+                var at   = clocks[owner].At;
+                var seen = sightings[g.Key];
+                var from = $"order {g.Key}";
+
+                // ⚠️ Placed since, and first seen since: a repriced order is issued again, but was
+                // seen before. Its whole volume left the hangar when it was placed.
+                var issued = g.Max(o => o.Issued);
+                if (issued > at && seen.FirstSeenAt > at)
+                    all.Add(new Change(from, owner, type, row.LocationId, row.TypeId, -g.Max(o => o.VolumeTotal), false, At: issued));
+
+                // Closed with some left on it, and still open in a copy made since: what was left is
+                // back in the hangar. A sold-out order leaves nothing; one closed before the copy,
+                // the copy already has.
+                if (g.FirstOrDefault(o => o.IsHistory) is { State: "cancelled" or "expired" } closed
+                    && closed.VolumeRemain > 0 && seen.LastSeenAt > at)
+                    all.Add(new Change(from, owner, type, row.LocationId, row.TypeId, closed.VolumeRemain, false, At: seen.LastSeenAt));
+            }
+        }
+
+        // ── Purchases ─────────────────────────────────────────────────────────
+        // Into the hangar where it was bought. ⚠️ Raw SQL for the date: a DateTimeOffset in a LINQ
+        // Where does not translate on SQLite. A character's purchase for the corporation is in the
+        // corporation's own transactions as well, and counted there.
+        var floor = clocks.Values.Min(c => c.At).ToUniversalTime();
+        var bought = await db.Database.SqlQueryRaw<Bought>(
+                """
+                SELECT "OwnerId", "OwnerType", "LocationId", "TypeId", "Quantity", "IsPersonal", "Date"
+                FROM "EsiWalletTransactions" WHERE "IsBuy" = {0} AND "Date" > {1}
+                """, true, floor)
+            .ToListAsync(ct);
+        foreach (var b in bought)
+        {
+            if (b.OwnerType != "corporation" && !b.IsPersonal) continue;
+            if (!OwnerOf(b.OwnerId, b.OwnerType, false, out var owner, out var type)) continue;
+            if (b.Date <= clocks[owner].At || b.Quantity <= 0) continue;
+            all.Add(new Change("bought", owner, type, b.LocationId, b.TypeId, b.Quantity, false, At: b.Date));
+        }
     }
 
     /// <summary>What a started job took, by the print's ME and the park's bonuses. Kept per job.</summary>

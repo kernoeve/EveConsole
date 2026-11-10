@@ -191,6 +191,13 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
             Dispatcher.UIThread.Post(ShowNote);
     }
 
+    // Ticking a stop off from here: the worklist this list is cut from records it and rebuilds,
+    // and the rebuilt rows come back through PoolRows.
+    public Task MarkHauledAsync(WorklistRowVm stopRow) => _worklist.MarkHauledAsync(stopRow);
+    public ContractedCargoVm? ContractedEditor(WorklistRowVm stopRow) => _worklist.ContractedEditor(stopRow);
+    public Task MarkContractedAsync(WorklistRowVm stopRow, IReadOnlyList<(int TypeId, long Quantity)> cargo) =>
+        _worklist.MarkContractedAsync(stopRow, cargo);
+
     private void OnExpansionChanged(WorklistRowVm row)
     {
         FamilyRows.Toggle(Rows, row, row.IsExpanded, row.Children);

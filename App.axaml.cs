@@ -2002,6 +2002,15 @@ public class App : Application
                     )
                     """);
 
+                // When each market order was first and last seen open. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MarketOrderSightings" (
+                        "OrderId"     INTEGER NOT NULL PRIMARY KEY,
+                        "FirstSeenAt" TEXT    NOT NULL,
+                        "LastSeenAt"  TEXT    NOT NULL
+                    )
+                    """);
+
                 // When each owner's assets were current. Mirrored in PostgresSchema.
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "AssetSnapshots" (
@@ -4516,6 +4525,14 @@ public class App : Application
                 // every owner's rows, and nothing on screen should wait for that. Logs its own errors.
                 var assetActivity = Services.GetRequiredService<AssetActivity>();
                 _ = Task.Run(() => assetActivity.UpgradeAsync());
+
+                // The layout templates that ship with the app, into the person's own folder of them.
+                var startErrors = Services.GetRequiredService<AppErrorLogger>();
+                _ = Task.Run(async () =>
+                {
+                    try { await EveConsole.Services.ClientLayouts.LayoutTemplates.CopyShippedAsync(); }
+                    catch (Exception ex) { startErrors.Log("ClientLayouts", "copying the shipped layout templates", ex); }
+                });
 
                 // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
                 // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling

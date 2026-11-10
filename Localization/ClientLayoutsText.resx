@@ -183,4 +183,40 @@
   <data name="WarnSmall" xml:space="preserve"><value>{0}: client {1} is only {2} × {3}, small for playing.</value><comment>{0} is a monitor's label, {1} a client position's number, {2} and {3} its width and height.</comment></data>
   <data name="WarnNoFit" xml:space="preserve"><value>{0}: the panels here don't fit, so something has no room.</value><comment>{0} is a monitor's label.</comment></data>
   <data name="WarnBroken" xml:space="preserve"><value>{0}: part of this layout can't be used as saved. It may have come from a newer version.</value><comment>{0} is a monitor's label.</comment></data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Save this layout to a file, to keep it or share it.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Add a layout from a file as a new layout. Monitors are not changed.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console layout</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>Exported &quot;{0}&quot;.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>Imported &quot;{0}&quot;. Check its Mumble controls if it came from another database.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>That file isn&apos;t an EVE Console layout.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>That layout was made by a newer EVE Console. Update to import it.</value>
+  </data>
+  <data name="NewBlankLayout" xml:space="preserve">
+    <value>Blank</value>
+  </data>
+  <data name="OpenTemplatesFolder" xml:space="preserve">
+    <value>Open templates folder</value>
+  </data>
+  <data name="TipNewLayout" xml:space="preserve">
+    <value>Start a new layout blank or from a template. A layout exported to the templates folder becomes a template.</value>
+  </data>
 </root>

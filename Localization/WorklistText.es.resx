@@ -2764,4 +2764,7 @@
   <data name="CharacterSurplusBandTip" xml:space="preserve">
     <value>Lo que un personaje tiene por encima de su nivel se queda con él hasta superarlo en este porcentaje; entonces el exceso vuelve a la corporación predeterminada. Cero devuelve cualquier exceso.</value>
   </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Algunos están en la bodega de carga de una nave.</value>
+  </data>
 </root>

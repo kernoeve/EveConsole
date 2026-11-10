@@ -1,8 +1,12 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
+using Avalonia.Platform.Storage;
 using Avalonia.VisualTree;
+using EveConsole.Localization;
+using EveConsole.Services.ClientLayouts;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -197,5 +201,87 @@ public partial class ClientLayoutsView : UserControl
             if (i == count - 1 && y >= row.Bounds.Height) return i;
         }
         return -1;
+    }
+
+    // ---- A new layout: blank or from a template ----
+
+    /// <summary>
+    /// What a new layout starts from: blank, or one of the templates, read from their folder each
+    /// time so one just exported there is offered. Last, the folder itself, to add to it.
+    /// </summary>
+    private async void NewLayout_Click(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm || sender is not Control button) return;
+        var templates = await vm.TemplatesAsync();
+        var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedLeft };
+        var blank = new MenuItem { Header = ClientLayoutsText.NewBlankLayout };
+        blank.Click += (_, _) => _ = vm.NewLayoutAsync(null);
+        menu.Items.Add(blank);
+        if (templates.Count > 0)
+        {
+            menu.Items.Add(new Separator());
+            foreach (var template in templates)
+            {
+                var item = new MenuItem { Header = template.Name };
+                item.Click += (_, _) => _ = vm.NewLayoutAsync(template);
+                menu.Items.Add(item);
+            }
+        }
+        menu.Items.Add(new Separator());
+        var folder = new MenuItem { Header = ClientLayoutsText.OpenTemplatesFolder };
+        folder.Click += async (_, _) =>
+        {
+            Directory.CreateDirectory(LayoutTemplates.Folder);
+            if (TopLevel.GetTopLevel(this) is { } top) await top.Launcher.LaunchDirectoryInfoAsync(new DirectoryInfo(LayoutTemplates.Folder));
+        };
+        menu.Items.Add(folder);
+        menu.ShowAt(button);
+    }
+
+    // ---- A layout to and from a file ----
+
+    private static readonly FilePickerFileType LayoutFiles = new(ClientLayoutsText.LayoutFileType) { Patterns = ["*.json"] };
+
+    private async void ExportLayout_Click(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { SelectedLayout: { } layout } vm || TopLevel.GetTopLevel(this) is not { } top) return;
+        var name = string.Concat(layout.Name.Select(c => Path.GetInvalidFileNameChars().Contains(c) ? '_' : c)).Trim();
+        var file = await top.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
+        {
+            Title = ClientLayoutsText.ExportLayout,
+            SuggestedFileName = $"{(name.Length > 0 ? name : "layout")}.json",
+            // Exports are mostly for sharing; the templates folder is a click away under New.
+            SuggestedStartLocation = await DownloadsAsync(top),
+            DefaultExtension = "json",
+            FileTypeChoices = [LayoutFiles],
+        });
+        if (file is null) return;
+        await vm.ExportLayoutAsync(file.OpenWriteAsync);
+    }
+
+    private static async Task<IStorageFolder?> DownloadsAsync(TopLevel top)
+    {
+        try
+        {
+            return await top.StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Downloads);
+        }
+        catch (Exception e) when (e is IOException or UnauthorizedAccessException)
+        {
+            return null;
+        }
+    }
+
+    private async void ImportLayout_Click(object? sender, RoutedEventArgs e)
+    {
+        if (Vm is not { } vm || TopLevel.GetTopLevel(this) is not { } top) return;
+        var files = await top.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
+        {
+            Title = ClientLayoutsText.ImportLayout,
+            AllowMultiple = false,
+            SuggestedStartLocation = await DownloadsAsync(top),
+            FileTypeFilter = [LayoutFiles],
+        });
+        if (files.Count == 0) return;
+        await vm.ImportLayoutAsync(files[0].OpenReadAsync);
     }
 }

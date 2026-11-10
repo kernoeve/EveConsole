@@ -788,7 +788,9 @@ public class AssetBrowserViewModel : ReactiveObject
         var by   = bar < 0 ? "" : string.Join(", ", raw[(bar + 1)..].Split(", ", StringSplitOptions.RemoveEmptyEntries).Select(f =>
             f.StartsWith("job ")      ? string.Format(AssetsText.SincePollJob, f[4..])
           : f.StartsWith("contract ") ? string.Format(AssetsText.SincePollContract, f[9..])
+          : f.StartsWith("order ")    ? string.Format(AssetsText.SincePollOrder, f[6..])
           : f == "haul"               ? AssetsText.SincePollHaul
+          : f == "bought"             ? AssetsText.SincePollBought
           : f));
         return string.Format(kind == "added" ? AssetsText.SincePollAdded : AssetsText.SincePollChanged, by);
     }

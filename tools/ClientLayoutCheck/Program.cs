@@ -1386,6 +1386,85 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     Check(!e.ClientHandlesOn(smallBounds).Any(), "and nothing to cover with");
 }
 
+{
+    // A layout to a file and back, as another database would read it.
+    // Controls go inside a panel: the root is one, holding a client.
+    var root = ClientLayoutEditing.NewRoot();
+    var inside = root.Inside!;
+    inside.Docked.Add(new DockedPanel
+    {
+        Edge = DockEdge.Top, Size = 40, Name = "Voice", Control = "Mumble",
+        Options = new ControlOptions { MumbleServerId = 7, MumbleMode = "Wide" },
+    });
+    inside.Docked.Add(new DockedPanel { Edge = DockEdge.Left, Control = "Mumble", Options = new ControlOptions { MumbleServerId = 9 } });
+    var here = new List<EveConsole.Models.MumbleServer>
+    {
+        new() { Id = 7, Name = "Fleet", Host = "voice.example.org", Port = 64738 },
+        new() { Id = 9, Name = "Other", Host = "other.example.org", Port = 64738 },
+    };
+    using var file = new MemoryStream();
+    ClientLayoutFile.WriteAsync(file, "Main screen", root, here).GetAwaiter().GetResult();
+    var written = System.Text.Encoding.UTF8.GetString(file.ToArray());
+    Check(written.Contains("voice.example.org") && written.Contains("other.example.org"), "the file names each Mumble server a control uses by address");
+
+    // Elsewhere the same server has another id, and the second isn't known.
+    var there = new List<EveConsole.Models.MumbleServer> { new() { Id = 3, Host = "VOICE.example.org ", Port = 64738 } };
+    file.Position = 0;
+    var (name, back) = ClientLayoutFile.ReadAsync(file, there).GetAwaiter().GetResult();
+    Same(name, "Main screen", "the name comes back");
+    var sent = ClientLayoutEditing.Controls(root).ToList();
+    var got = ClientLayoutEditing.Controls(back).ToList();
+    Same(got.Count, 2, "both docked controls come back");
+    Check(got.Select(c => c.Id).SequenceEqual(sent.Select(c => c.Id)), "ids are kept, as a menu names a Tool Container by its id");
+    Same(got[0].Options?.MumbleServerId, (int?)3, "a Mumble control is tied to the server at the same address here");
+    Same(got[0].Options?.MumbleMode, "Wide", "and keeps its other choices");
+    Same(got[1].Options?.MumbleServerId, (int?)null, "one whose server isn't here is left to be picked");
+    sent[0].Options!.MumbleServerId = 3;
+    sent[1].Options!.MumbleServerId = null;
+    Same(ClientLayoutJson.Write(back), ClientLayoutJson.Write(root), "apart from that, the layout is unchanged");
+
+    bool Refused(string text, bool newer)
+    {
+        try { ClientLayoutFile.ReadAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text)), here).GetAwaiter().GetResult(); return false; }
+        catch (LayoutFileException e) { return e.Newer == newer; }
+    }
+    Check(Refused("not json at all", newer: false), "a file that isn't JSON is refused as not a layout");
+    Check(Refused("""{"name":"x","layout":{}}""", newer: false), "JSON without the format mark is refused");
+    Check(Refused("""{"format":"eveconsole-client-layout","version":"one","layout":{}}""", newer: false), "a version that isn't a number is refused");
+    Check(Refused("""{"format":"eveconsole-client-layout","version":99,"layout":{}}""", newer: true), "a newer version says so");
+}
+
+{
+    // The templates that ship with the app: each one a layout, and nothing in it from one person's setup.
+    var repo = new DirectoryInfo(Directory.GetCurrentDirectory());
+    while (repo != null && !File.Exists(Path.Combine(repo.FullName, "EveConsole.csproj"))) repo = repo.Parent;
+    var folder = repo is null ? null : Path.Combine(repo.FullName, "LayoutTemplates");
+    var files = folder != null && Directory.Exists(folder) ? Directory.GetFiles(folder, "*.json") : [];
+    Check(files.Length > 0, "the shipped layout templates are found (run from the repository)");
+    foreach (var path in files)
+    {
+        var shown = Path.GetFileName(path);
+        try
+        {
+            using var stream = File.OpenRead(path);
+            var (name, root) = ClientLayoutFile.ReadAsync(stream, []).GetAwaiter().GetResult();
+            Check(name.Length > 0, $"{shown}: has a name");
+            Check(root.Content == AreaContent.Panel || root.Docked.Count > 0, $"{shown}: holds a layout");
+            var text = File.ReadAllText(path);
+            Check(!System.Text.RegularExpressions.Regex.IsMatch(text, "\"MumbleServerId\":\\s*\\d") && text.Contains("\"mumbleServers\": []"),
+                  $"{shown}: names no Mumble server, which is one person's");
+            Check(ClientLayoutEditing.Controls(root).All(c => string.IsNullOrEmpty(c.Options?.GroupChatRoom)), $"{shown}: names no chat room, which is one person's");
+        }
+        catch (LayoutFileException)
+        {
+            Check(false, $"{shown}: is a layout file");
+        }
+    }
+
+    var blank = ClientLayoutEditing.BlankRoot();
+    Check(blank.Content == AreaContent.Panel && blank.Inside is null && blank.Docked.Count == 0, "a blank layout is one empty panel");
+}
+
 Console.WriteLine(failures == 0
     ? $"PASSED: client layout check: all {passes} passed."
     : $"FAILED: client layout check: {failures} failed, {passes} passed.");

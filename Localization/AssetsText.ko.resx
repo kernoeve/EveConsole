@@ -1489,4 +1489,10 @@
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>이후 {0:N0}개 행 기록됨</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>마켓 주문 {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>마켓에서 구매</value>
+  </data>
 </root>

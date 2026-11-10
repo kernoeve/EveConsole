@@ -1212,6 +1212,9 @@ public class EsiPollingService : ReactiveObject
         else if (reachedEnd && fullScan)
             await SetBackfillCompleteAsync(db, charId, "character", "transactions", 0, true, ct);
 
+        // An order closed, or something bought: into the assets now. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return lastResult ?? new PollingResult(true, 200);
     }
 
@@ -1339,6 +1342,11 @@ public class EsiPollingService : ReactiveObject
             IsHistory    = false,
         }));
         await db.SaveChangesAsync(ct);
+        // When each order was first and last seen, and what placing or closing one has done to a
+        // hangar, into the assets now. See AssetActivity.
+        await AssetActivity.SeeOrdersAsync(db, charId, "character", r.Data!.Select(o => o.OrderId).ToList(), r.LastModified, ct);
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -1376,6 +1384,9 @@ public class EsiPollingService : ReactiveObject
 
         db.EsiMarketOrders.AddRange(newOrders);
         await db.SaveChangesAsync(ct);
+        // An order closed, or something bought: into the assets now. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -2932,6 +2943,9 @@ public class EsiPollingService : ReactiveObject
                 await SetBackfillCompleteAsync(db, corpId, "corporation", "transactions", division, true, ct);
         }
 
+        // An order closed, or something bought: into the assets now. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return lastResult ?? new PollingResult(true, 200);
     }
 
@@ -3031,6 +3045,11 @@ public class EsiPollingService : ReactiveObject
             IsHistory    = false,
         }));
         await db.SaveChangesAsync(ct);
+        // When each order was first and last seen, and what placing or closing one has done to a
+        // hangar, into the assets now. See AssetActivity.
+        await AssetActivity.SeeOrdersAsync(db, corpId, "corporation", r.Data!.Select(o => o.OrderId).ToList(), r.LastModified, ct);
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 
@@ -3066,6 +3085,9 @@ public class EsiPollingService : ReactiveObject
                 IsHistory    = true,
             }));
         await db.SaveChangesAsync(ct);
+        // An order closed, or something bought: into the assets now. See AssetActivity.
+        await _assetActivity.RefreshAsync(ct);
+
         return FromResult(r);
     }
 

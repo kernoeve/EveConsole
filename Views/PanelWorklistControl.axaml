@@ -56,6 +56,11 @@
                   <TextBlock Text="{Binding ChildLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
                              TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
                   <TextBlock Text="{Binding ChildTotals}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                  <!-- Ticked off here as in the Worklist tool: a stop flown, a trip hauled or contracted.
+                       This is where the pilot flying the loop is looking. -->
+                  <Button Content="{Binding MarkHauledText}" Click="OnMarkHauled" IsVisible="{Binding CanMarkHauled}"
+                          FontSize="9" Padding="6 0" MinHeight="0" VerticalAlignment="Center"
+                          ToolTip.Tip="{Binding MarkHauledTip}" />
                 </StackPanel>
                 <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding IsChildText}" FontSize="9"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"

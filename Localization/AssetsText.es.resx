@@ -1561,4 +1561,10 @@ con Enter. Una vez valorada, la lista se pliega:
   <data name="StatusSincePollOther" xml:space="preserve">
     <value>{0:N0} filas escritas desde entonces</value>
   </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>orden de mercado {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>comprado en el mercado</value>
+  </data>
 </root>

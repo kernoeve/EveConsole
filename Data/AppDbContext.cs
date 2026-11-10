@@ -38,6 +38,7 @@ public class AppDbContext : DbContext
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
     public DbSet<AssetSnapshot>              AssetSnapshots          => Set<AssetSnapshot>();
+    public DbSet<MarketOrderSighting>        MarketOrderSightings    => Set<MarketOrderSighting>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
     public DbSet<CharacterNotification>      EsiNotifications        => Set<CharacterNotification>();
@@ -903,6 +904,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Kind });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
             e.ToTable("AssetSnapshots"); });
+
+        // When each order was first and last seen open. Created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<MarketOrderSighting>(e => {
+            e.HasKey(x => x.OrderId);
+            e.Property(x => x.OrderId).ValueGeneratedNever();
+            e.ToTable("MarketOrderSightings"); });
 
         mb.Entity<CharacterBlueprint>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });
