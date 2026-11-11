@@ -434,7 +434,7 @@ Most Mumble servers use their own certificate. Trust it only if you expect this 
     <value>Only members of this server group, in those channels (optional)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>The channel I'm in</value>
+    <value>&lt;Current Channel&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>New target</value>

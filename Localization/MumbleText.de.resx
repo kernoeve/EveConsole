@@ -386,7 +386,7 @@ Die meisten Mumble-Server nutzen ein eigenes Zertifikat. Vertraue ihm nur, wenn 
     <value>Nur Mitglieder dieser Servergruppe in diesen Kanälen (optional)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>Mein aktueller Kanal</value>
+    <value>&lt;Aktueller Kanal&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>Neues Ziel</value>

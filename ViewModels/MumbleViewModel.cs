@@ -1212,7 +1212,7 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
                             string.Join(' ', session.CertificateFingerprint.Chunk(4).Select(c => new string(c))))
             : "";
         ReachText = ReachOf(session);
-        FillChannelChoices(session);
+        FillChannelChoices();
     }
 
     private readonly AutoSave _autoSave;
@@ -1270,6 +1270,7 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
             EditVoiceActivated = s.VoiceActivated;
             foreach (var target in MumbleTargets.Read(s)) Targets.Add(new MumbleTargetVm(this, target));
         }
+        FillChannelChoices();
         RefreshKeyProblems();
     }
 
@@ -1324,15 +1325,26 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
     /// <summary>The targets of the server showing.</summary>
     public ObservableCollection<MumbleTargetVm> Targets { get; } = [];
 
-    /// <summary>What a target's channel box offers: where this client is, the root, and every channel when connected.</summary>
+    /// <summary>
+    /// What a target's channel list offers: the current channel first, the root, then every channel when connected.
+    /// ⚠️ The channels already picked are offered too, so they still show while not connected or once gone from the server.
+    /// </summary>
     public ObservableCollection<string> TargetChannelChoices { get; } = [];
 
-    private void FillChannelChoices(MumbleSession session)
+    private void FillChannelChoices()
     {
-        var paths = session.Client is { } client && session.State == MumbleState.Connected
-            ? client.Channels.Select(c => MumbleService.PathOf(client, c.Id)).Where(p => p.Length > 0).Order(StringComparer.CurrentCultureIgnoreCase)
-            : Enumerable.Empty<string>();
-        ListSync.Sync(TargetChannelChoices, [MumbleText.TargetWhereIAm, MumbleText.RootChannel, .. paths], c => c);
+        var picked = Targets.SelectMany(t => t.Channels).Select(c => c.Text);
+        var live = EditSession is { Client: { } client, State: MumbleState.Connected }
+            ? client.Channels.Select(c => MumbleService.PathOf(client, c.Id))
+            : [];
+        var paths = live.Concat(picked)
+            .Where(p => p.Length > 0 && p != MumbleText.TargetWhereIAm && p != MumbleText.RootChannel)
+            .Distinct().Order(StringComparer.CurrentCultureIgnoreCase);
+        string[] wanted = [MumbleText.TargetWhereIAm, MumbleText.RootChannel, .. paths];
+        if (TargetChannelChoices.SequenceEqual(wanted)) return;
+
+        ListSync.Sync(TargetChannelChoices, wanted, c => c);
+        foreach (var channel in Targets.SelectMany(t => t.Channels)) channel.Reshow();
     }
 
     internal void TargetTyped() => _autoSave.Typed();
