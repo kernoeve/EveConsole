@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Security.Cryptography;
@@ -765,6 +766,16 @@ public class WebStoreSyncService(
     // ── Booking a web order ───────────────────────────────────────────────────
 
     /// <summary>
+    /// An offer's expected contract date as the site sent it, normalised to "yyyy-MM-dd", or null
+    /// when it is blank or not a real calendar date. The site already refuses past dates; one that
+    /// slips through is still the seller's word, so it is kept rather than second-guessed here.
+    /// </summary>
+    internal static string? OfferDate(string? value) =>
+        DateOnly.TryParseExact(value?.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var d)
+            ? d.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : null;
+
+    /// <summary>
     /// Turns a web order into tracked orders — or says why it cannot.
     /// </summary>
     /// <param name="force">The owner has looked and said yes: the price and sender checks are
@@ -890,6 +901,10 @@ public class WebStoreSyncService(
         var toName = ev.ContractTo?.Name is { Length: > 0 } n ? n : buying ? "" : ev.Buyer.Name;
         var toKind = ev.ContractTo?.Kind is { Length: > 0 } k ? k : buying ? "" : "character";
 
+        // The seller's own date for their contract, when they gave one: the order's expected date
+        // until someone changes it. Fulfilment never dates an offer, so it stays.
+        var expected = buying ? OfferDate(ev.ExpectedDate) : null;
+
         var created = new List<TrackedOrder>();
         foreach (var (typeId, units, unitPrice, postingId) in lines)
         {
@@ -919,6 +934,7 @@ public class WebStoreSyncService(
                 ContractToType = toKind,
                 Side           = buying ? StorePosting.Buy : StorePosting.Sell,
                 PostingId      = postingId ?? 0,
+                EstimatedDate  = expected,
                 CreatedAt      = now,
             });
         }

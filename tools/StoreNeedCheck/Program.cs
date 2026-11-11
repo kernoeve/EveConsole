@@ -197,6 +197,16 @@ string Lines(PostingView v) =>
     Check(!new StorePosting { Side = StorePosting.Buy }.CapsAtNeed, "nor a Buy listing that doesn't track it");
 }
 
+// ---- An offer's expected contract date ----
+{
+    Same(WebStoreSyncService.OfferDate("2026-12-01"), "2026-12-01", "a picked date is the order's expected date");
+    Same(WebStoreSyncService.OfferDate(" 2026-12-01 "), "2026-12-01", "trimmed");
+    Same(WebStoreSyncService.OfferDate(null), null, "none sent, none set");
+    Same(WebStoreSyncService.OfferDate(""), null, "blank, none set");
+    Same(WebStoreSyncService.OfferDate("2026-02-30"), null, "not a real date");
+    Same(WebStoreSyncService.OfferDate("12/01/2026"), null, "only the site's own form");
+}
+
 Console.WriteLine(failures == 0
     ? $"PASSED: store need check: all {passes} passed."
     : $"FAILED: store need check: {failures} failed, {passes} passed.");
