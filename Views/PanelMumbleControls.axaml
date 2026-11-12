@@ -22,7 +22,7 @@
               Stroke="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
       </Button>
       <Panel VerticalAlignment="Center">
-        <views:MumbleServerBar x:Name="Bar" ShowsWhere="True" ShowsConnected="True" IsVisible="False" VerticalAlignment="Center" />
+        <views:MumbleServerBar x:Name="Bar" ShowsWhere="True" IsVisible="False" VerticalAlignment="Center" />
         <TextBlock x:Name="LineState" FontSize="11" VerticalAlignment="Center" Margin="4 0"
                    TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextDimBrush}" />
       </Panel>
