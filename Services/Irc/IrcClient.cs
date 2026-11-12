@@ -298,6 +298,10 @@ public sealed class IrcClient : IAsyncDisposable
                     if (negotiating) { await SendRawAsync(new IrcMessage("CAP", "END"), ct); negotiating = false; }
                     break;
 
+                case "004" when m.Params.Count > 2:   // nick, server, program and version, then mode letters
+                    Support.Software = m[2];
+                    break;
+
                 case "005":
                     Support.Apply(m.Params.Skip(1).Take(Math.Max(0, m.Params.Count - 2)).ToList());
                     break;

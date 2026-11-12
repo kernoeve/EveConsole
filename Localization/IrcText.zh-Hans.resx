@@ -290,10 +290,10 @@
     <value>只有受邀者或在邀请例外中的人可以加入。</value>
   </data>
   <data name="ModeModerated" xml:space="preserve">
-    <value>受控</value>
+    <value>仅有发言权的人和管理员可发言</value>
   </data>
   <data name="ModeModeratedTip" xml:space="preserve">
-    <value>只有操作员和有发言权的人可以发言。</value>
+    <value>其他人可以阅读频道，但不能发送消息。</value>
   </data>
   <data name="ModeNoOutside" xml:space="preserve">
     <value>禁止外部消息</value>
@@ -308,40 +308,40 @@
     <value>其他人无法更改频道主题。</value>
   </data>
   <data name="ModeSecret" xml:space="preserve">
-    <value>秘密</value>
+    <value>在频道列表中隐藏</value>
   </data>
   <data name="ModeSecretTip" xml:space="preserve">
-    <value>不会显示在服务器的频道列表中，也不对外部人员显示。</value>
+    <value>频道不会出现在服务器的频道列表中，也不会出现在其成员的信息中。</value>
   </data>
   <data name="ModePrivate" xml:space="preserve">
-    <value>私密</value>
+    <value>私密：列出但不显示详情</value>
   </data>
   <data name="ModePrivateTip" xml:space="preserve">
-    <value>较旧的秘密方式：会显示在列表中，但不显示成员。</value>
+    <value>较旧的隐藏方式：频道可能会被列出，但外部人员看不到其主题和成员。</value>
   </data>
   <data name="ModeRegisteredOnly" xml:space="preserve">
-    <value>仅限注册账号</value>
+    <value>仅已登录账户可加入</value>
   </data>
   <data name="ModeRegisteredOnlyTip" xml:space="preserve">
-    <value>只有登录账号的人可以加入。</value>
+    <value>未登录此网络账户的人无法加入。</value>
   </data>
   <data name="ModeRegisteredSpeak" xml:space="preserve">
-    <value>仅注册账号可发言</value>
+    <value>仅已登录账户可发言</value>
   </data>
   <data name="ModeRegisteredSpeakTip" xml:space="preserve">
-    <value>未登录账号的人可以加入但不能发言。</value>
+    <value>未登录的人可以加入并阅读，但除非获得发言权，否则不能发言。</value>
   </data>
   <data name="ModeNoCtcp" xml:space="preserve">
-    <value>禁止 CTCP</value>
+    <value>阻止程序请求（版本、ping）</value>
   </data>
   <data name="ModeNoCtcpTip" xml:space="preserve">
-    <value>阻止发往频道的客户端请求（版本、ping）。/me 仍可用。</value>
+    <value>频道中拒绝一个 IRC 程序发给所有人程序的请求（CTCP）。/me 仍可使用。</value>
   </data>
   <data name="ModeNoColour" xml:space="preserve">
-    <value>禁止颜色</value>
+    <value>阻止带颜色的消息</value>
   </data>
   <data name="ModeNoColourTip" xml:space="preserve">
-    <value>带颜色代码的消息会被阻止或去除颜色。</value>
+    <value>含有颜色或格式代码的消息会被拒绝。</value>
   </data>
   <data name="ModeLimit" xml:space="preserve">
     <value>最多人数</value>
@@ -349,10 +349,232 @@
   <data name="ModeLimitTip" xml:space="preserve">
     <value>达到此人数后，其他人无法加入。</value>
   </data>
-  <data name="ModeOther" xml:space="preserve">
-    <value>模式 +{0}</value>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>数字，例如 50</value>
   </data>
-  <data name="ModeOtherTip" xml:space="preserve">
-    <value>此服务器独有的设置。其含义见服务器自身的帮助。</value>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#频道</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>秒数，例如 30</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>移除消息中的颜色</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>颜色和格式代码会被移除，文字照常发送。</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>允许角色扮演命令</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>成员可以以角色身份发言或叙述场景（服务器的 NPC 和 SCENE 命令）。</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>让听众彼此不可见</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>像礼堂一样：没有发言权的人在成员列表中只能看到管理员和有发言权的人，也看不到谁进出。</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>无发言权者的消息只发给管理员</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>没有发言权的人发送的内容只显示给频道管理员，管理员可以转达；其他人只能看到管理员和有发言权的人的发言。</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>频道中任何人都可以邀请</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>没有管理员等级的成员也可以邀请他人。</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>仅限加密连接</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>只有通过 TLS 连接到服务器的人才能加入。</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>阻止发往频道的通知</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>发往整个频道的 NOTICE 消息会被拒绝。</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>其他频道可以把人转到这里</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>任何频道都可以把无法加入它的人转到这里，而不仅限于本频道管理员管理的频道。</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>拒绝从别处转来的人</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>被其他频道转到这里的人不会被放入。</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>更长的列表</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>由网络管理员设置：频道的封禁和例外列表可以容纳更多条目。</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>永久</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>由网络管理员设置：即使所有人离开，频道及其设置仍会保留。</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>仅限网络管理员</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>由网络管理员设置：只有他们可以加入。</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>在发言前隐藏成员</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>加入的人在第一次发言前不会显示在成员列表中。</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>禁止更改昵称</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>在频道中时无法更改昵称。</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>无法踢出任何人</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>频道管理员不能踢人；只有网络管理员或服务可以。</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>禁止请求进入</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>外部人员不能通过 KNOCK 请求管理员放行。</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>禁止邀请</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>任何人都不能邀请他人加入频道。</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>阻止全大写喊话</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>大部分用大写字母写的消息会被拒绝。</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>屏蔽不良词语</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>服务器列表中的词语会被阻止或替换。</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>已在网络服务中注册</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>由网络服务设置：频道已注册到某个所有者名下。</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>此处所有人都已加密</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>由服务器设置：频道中的每个人都通过 TLS 连接。</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>无法加入者转往</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>当有人无法加入（已满、仅限邀请、被封禁等）时，服务器会把他们转到这个频道。</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>满员时转往</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>达到最多人数后，新来的人会被转到这个频道。</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>限制加入速度</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>在给定秒数内加入达到此人数后，一段时间内拒绝更多加入（防刷入）。</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>人数:秒，例如 5:10</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>刷屏即踢出</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>在给定秒数内发送超过此行数的人会被踢出。前面加 * 则同时封禁。</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>行数:秒，例如 10:5</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>防刷屏规则</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>UnrealIRCd 的规则：冒号后的秒数内允许的加入 (j)、消息 (m)、改昵称 (n) 等次数。</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>例如 [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>防刷屏级别</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>服务器命名的级别之一，例如 relaxed、normal 或 strict。</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>例如 normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>限制更改昵称速度</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>在给定秒数内改昵称达到此次数后，一段时间内阻止更多更改。</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>次数:秒，例如 3:60</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>被踢后等待</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>被踢的人在这么多秒内不能回来。</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>新来者需等待才能发言</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>加入的人在这么多秒内不能发言。</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>向新来者显示最近消息</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>加入的人会收到给定时间内最多这么多行的最近消息。</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>行数:时间，例如 50:1d</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>其他模式（供熟悉 IRC 的人使用）</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>此服务器上方未列出的设置。按 MODE 的格式输入，例如 +E、-U 或 +j 5:10，保存时一并发送。</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+字母 或 -字母，然后是值</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>其他模式：以 + 或 - 加模式字母开头，值放在空格之后。</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>频道上另外设置了：{0}</value>
   </data>
 </root>

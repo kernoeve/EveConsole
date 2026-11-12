@@ -8,6 +8,9 @@ public sealed class IrcSupport
 {
     public string Network { get; private set; } = "";
 
+    /// <summary>The server's program and version from 004 (e.g. "ergo-2.19.1"): what its mode letters mean depends on it.</summary>
+    public string Software { get; set; } = "";
+
     /// <summary>"rfc1459" (the default), "ascii" or "rfc1459-strict".</summary>
     public string CaseMapping { get; private set; } = "rfc1459";
 

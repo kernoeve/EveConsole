@@ -8,7 +8,8 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 /// <summary>One of a channel's on-or-off settings (a mode letter without a value), as a box to tick.</summary>
-public sealed class IrcModeFlagVm(char letter, string label, string tip, bool on) : ReactiveObject
+/// <param name="canChange">False for one only the network's operators or services set: shown, never sent.</param>
+public sealed class IrcModeFlagVm(char letter, string label, string tip, bool on, bool canChange = true) : ReactiveObject
 {
     private bool _isOn = on;
 
@@ -16,11 +17,12 @@ public sealed class IrcModeFlagVm(char letter, string label, string tip, bool on
     public string Label { get; } = label;
     public string Tip { get; } = tip;
     public bool WasOn { get; } = on;
+    public bool CanChange { get; } = canChange;
     public bool IsOn { get => _isOn; set => this.RaiseAndSetIfChanged(ref _isOn, value); }
 }
 
 /// <summary>A setting that holds a value when on (the most people, or a letter only this server has), as a box and a field.</summary>
-public sealed class IrcModeValueVm(char letter, string label, string tip, bool on, string value, bool always) : ReactiveObject
+public sealed class IrcModeValueVm(char letter, string label, string tip, string hint, bool on, string value, bool always) : ReactiveObject
 {
     private bool _isOn = on;
     private string _value = value;
@@ -28,6 +30,9 @@ public sealed class IrcModeValueVm(char letter, string label, string tip, bool o
     public char Letter { get; } = letter;
     public string Label { get; } = label;
     public string Tip { get; } = tip;
+
+    /// <summary>What to type, e.g. "joins:seconds, e.g. 5:10".</summary>
+    public string Hint { get; } = hint;
     public bool WasOn { get; } = on;
     public string WasValue { get; } = value;
 
@@ -99,7 +104,8 @@ public sealed class IrcModeListEntryVm(IrcModeListVm list, string mask, string s
 
 /// <summary>
 /// A channel's settings (its modes) and lists, for an operator to change. Only what the server says it has (CHANMODES)
-/// is offered: the usual letters with words, and any other as its letter.
+/// is offered, each in words (<see cref="IrcModeMeanings"/>). A letter with no known meaning on this server is not
+/// a box: it can be set from the command line below them, and is listed there when set.
 /// </summary>
 /// <remarks>
 /// ⚠️ A key is a password to join, and is never shown: whether there is one, and a field for a new one.
@@ -110,7 +116,7 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
     private readonly IrcSession _session;
     private readonly bool _hadKey;
     private bool _keyOn, _busy;
-    private string _newKey = "", _status = "";
+    private string _newKey = "", _status = "", _otherModes = "";
 
     public IrcChannelSettingsVm(IrcService irc, IrcSession session, string channel, IrcSupport support, IReadOnlyDictionary<char, string> modes, bool known)
     {
@@ -118,20 +124,36 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
         _session = session;
         Channel = channel;
         Known = known;
+        var kind = IrcModeMeanings.KindOf(support.Software);
+        var unnamed = new List<string>();
 
         foreach (var letter in support.ModesD.Distinct())
         {
-            var (label, tip) = Describe(letter);
-            Flags.Add(new IrcModeFlagVm(letter, label, tip, modes.ContainsKey(letter)));
+            var on = modes.ContainsKey(letter);
+            if (IrcModeMeanings.Of(letter, kind) is not { } meaning) { if (on) unnamed.Add("+" + letter); continue; }
+            if (meaning.ServerOnly && !on) continue;
+            Flags.Add(new IrcModeFlagVm(letter, meaning.Label, meaning.Tip, on, !meaning.ServerOnly));
         }
 
         // Taking a value when set (type C), or always (type B): the most people (l), the key (k), and any the server adds.
         foreach (var letter in support.ModesC.Concat(support.ModesB).Distinct())
         {
             if (letter == 'k') continue;
-            var (label, tip) = Describe(letter);
-            Values.Add(new IrcModeValueVm(letter, label, tip, modes.ContainsKey(letter), modes.GetValueOrDefault(letter) ?? "", support.ModesB.Contains(letter)));
+            var on = modes.ContainsKey(letter);
+            var value = modes.GetValueOrDefault(letter) ?? "";
+            if (IrcModeMeanings.Of(letter, kind) is not { ServerOnly: false } meaning)
+            {
+                if (on) unnamed.Add(value.Length > 0 ? $"+{letter} {value}" : "+" + letter);
+                continue;
+            }
+            Values.Add(new IrcModeValueVm(letter, meaning.Label, meaning.Tip, meaning.Hint, on, value, support.ModesB.Contains(letter)));
         }
+
+        // Set but neither a box nor a field (another server's letter, or one only its operators know).
+        foreach (var (letter, value) in modes)
+            if (letter != 'k' && !support.ModesD.Contains(letter) && !support.ModesC.Contains(letter) && !support.ModesB.Contains(letter))
+                unnamed.Add(value.Length > 0 ? $"+{letter} {value}" : "+" + letter);
+        AlsoSet = unnamed.Count > 0 ? string.Format(CultureInfo.CurrentCulture, IrcText.ModeAlsoSet, string.Join("  ", unnamed)) : "";
 
         HasKeyMode = support.ModesB.Contains('k');
         _hadKey = _keyOn = modes.ContainsKey('k');
@@ -178,22 +200,26 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
     public string StatusText { get => _status; set => this.RaiseAndSetIfChanged(ref _status, value); }
     public bool IsBusy { get => _busy; private set => this.RaiseAndSetIfChanged(ref _busy, value); }
 
-    /// <summary>The usual letters in words; any other as itself. The same letter means different things on some servers: these are the common ones.</summary>
-    public static (string Label, string Tip) Describe(char letter) => letter switch
+    /// <summary>Modes set on the channel that this window does not name, as "+E  +X value"; empty when none.</summary>
+    public string AlsoSet { get; }
+    public bool HasAlsoSet => AlsoSet.Length > 0;
+
+    /// <summary>
+    /// For those who know IRC: mode changes typed as MODE takes them ("+E", "-U", "+j 5:10"), sent after the rest on Save.
+    /// </summary>
+    public string OtherModes { get => _otherModes; set => this.RaiseAndSetIfChanged(ref _otherModes, value); }
+
+    /// <summary>The command line split into its letters and values; null when it is not a mode change.</summary>
+    private (string Changes, IReadOnlyList<string> Values)? OtherChange()
     {
-        'i' => (IrcText.ModeInviteOnly, IrcText.ModeInviteOnlyTip),
-        'm' => (IrcText.ModeModerated, IrcText.ModeModeratedTip),
-        'n' => (IrcText.ModeNoOutside, IrcText.ModeNoOutsideTip),
-        't' => (IrcText.ModeTopicLock, IrcText.ModeTopicLockTip),
-        's' => (IrcText.ModeSecret, IrcText.ModeSecretTip),
-        'p' => (IrcText.ModePrivate, IrcText.ModePrivateTip),
-        'R' => (IrcText.ModeRegisteredOnly, IrcText.ModeRegisteredOnlyTip),
-        'M' => (IrcText.ModeRegisteredSpeak, IrcText.ModeRegisteredSpeakTip),
-        'C' => (IrcText.ModeNoCtcp, IrcText.ModeNoCtcpTip),
-        'c' => (IrcText.ModeNoColour, IrcText.ModeNoColourTip),
-        'l' => (IrcText.ModeLimit, IrcText.ModeLimitTip),
-        _ => (string.Format(CultureInfo.CurrentCulture, IrcText.ModeOther, letter), IrcText.ModeOtherTip),
-    };
+        var parts = OtherModes.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        if (parts.Length == 0) return ("", []);
+        var letters = parts[0];
+        if (letters.Length < 2 || letters[0] is not ('+' or '-') || letters.Any(c => c is not ('+' or '-') && !char.IsAsciiLetter(c))
+            || !letters.Any(char.IsAsciiLetter))
+            return null;
+        return (letters, parts[1..]);
+    }
 
     /// <summary>
     /// What would change, as MODE wants it: the letters on and off with a value for each that takes one, in order.
@@ -205,7 +231,7 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
 
         var on = new StringBuilder();
         var off = new StringBuilder();
-        foreach (var f in Flags.Where(f => f.IsOn != f.WasOn)) (f.IsOn ? on : off).Append(f.Letter);
+        foreach (var f in Flags.Where(f => f.CanChange && f.IsOn != f.WasOn)) (f.IsOn ? on : off).Append(f.Letter);
         if (on.Length + off.Length > 0)
             list.Add(((on.Length > 0 ? "+" + on : "") + (off.Length > 0 ? "-" + off : ""), []));
 
@@ -223,6 +249,8 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
             // ⚠️ Taking a key off takes a value, which servers do not check: the key itself is never held here.
             else if (!KeyOn && _hadKey) list.Add(("-k", ["*"]));
         }
+
+        if (OtherChange() is { Changes.Length: > 0 } other) list.Add(other);
         return list;
     }
 
@@ -235,6 +263,7 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
             return string.Format(CultureInfo.CurrentCulture, IrcText.ModeNeedsNumber, limit.Label);
         if (HasKeyMode && KeyOn && !_hadKey && NewKey.Trim().Length == 0) return IrcText.ModeKeyNeeded;
         if (NewKey.Trim().Contains(' ')) return IrcText.ModeKeyNoSpaces;
+        if (OtherChange() is null) return IrcText.ModeCommandBad;
         return null;
     }
 
@@ -251,6 +280,7 @@ public sealed class IrcChannelSettingsVm : ReactiveObject
         {
             foreach (var (letters, values) in changes)
                 await Task.Run(() => _irc.SetModesAsync(_session, Channel, letters, values));
+            OtherModes = "";
             return true;
         }
         catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; return false; }

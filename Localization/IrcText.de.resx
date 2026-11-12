@@ -290,10 +290,10 @@
     <value>Nur Eingeladene oder Personen auf den Einladungs-Ausnahmen können beitreten.</value>
   </data>
   <data name="ModeModerated" xml:space="preserve">
-    <value>Moderiert</value>
+    <value>Nur Leute mit Stimme und Operatoren sprechen</value>
   </data>
   <data name="ModeModeratedTip" xml:space="preserve">
-    <value>Nur Operatoren und Personen mit Voice dürfen sprechen.</value>
+    <value>Alle anderen können mitlesen, aber nichts senden.</value>
   </data>
   <data name="ModeNoOutside" xml:space="preserve">
     <value>Keine Nachrichten von außen</value>
@@ -308,51 +308,273 @@
     <value>Andere können das Thema des Kanals nicht ändern.</value>
   </data>
   <data name="ModeSecret" xml:space="preserve">
-    <value>Geheim</value>
+    <value>In der Kanalliste versteckt</value>
   </data>
   <data name="ModeSecretTip" xml:space="preserve">
-    <value>Nicht in der Kanalliste des Servers und nicht für Außenstehende sichtbar.</value>
+    <value>Der Kanal erscheint weder in der Kanalliste des Servers noch in den Angaben zu den Leuten darin.</value>
   </data>
   <data name="ModePrivate" xml:space="preserve">
-    <value>Privat</value>
+    <value>Privat: gelistet, aber ohne Angaben</value>
   </data>
   <data name="ModePrivateTip" xml:space="preserve">
-    <value>Eine ältere Form von geheim: in Listen sichtbar, aber nicht, wer darin ist.</value>
+    <value>Eine ältere Art des Versteckens: Der Kanal kann gelistet sein, aber Außenstehende sehen weder Thema noch Mitglieder.</value>
   </data>
   <data name="ModeRegisteredOnly" xml:space="preserve">
-    <value>Nur registrierte Konten</value>
+    <value>Nur angemeldete Konten können beitreten</value>
   </data>
   <data name="ModeRegisteredOnlyTip" xml:space="preserve">
-    <value>Nur Personen, die mit einem Konto angemeldet sind, können beitreten.</value>
+    <value>Wer nicht bei einem Konto in diesem Netzwerk angemeldet ist, kann nicht beitreten.</value>
   </data>
   <data name="ModeRegisteredSpeak" xml:space="preserve">
-    <value>Nur registrierte Konten sprechen</value>
+    <value>Nur angemeldete Konten können sprechen</value>
   </data>
   <data name="ModeRegisteredSpeakTip" xml:space="preserve">
-    <value>Wer nicht mit einem Konto angemeldet ist, kann beitreten, aber nicht sprechen.</value>
+    <value>Wer nicht angemeldet ist, kann beitreten und mitlesen, aber ohne Stimme nicht sprechen.</value>
   </data>
   <data name="ModeNoCtcp" xml:space="preserve">
-    <value>Kein CTCP</value>
+    <value>Programmanfragen sperren (Version, Ping)</value>
   </data>
   <data name="ModeNoCtcpTip" xml:space="preserve">
-    <value>Client-Anfragen (Version, Ping) an den Kanal werden blockiert. /me funktioniert weiter.</value>
+    <value>Anfragen, die ein IRC-Programm an alle anderen schickt (CTCP), werden im Kanal abgelehnt. /me geht weiterhin.</value>
   </data>
   <data name="ModeNoColour" xml:space="preserve">
-    <value>Keine Farben</value>
+    <value>Nachrichten mit Farben sperren</value>
   </data>
   <data name="ModeNoColourTip" xml:space="preserve">
-    <value>Nachrichten mit Farbcodes werden blockiert oder bereinigt.</value>
+    <value>Nachrichten mit Farb- oder Formatierungscodes werden abgelehnt.</value>
   </data>
   <data name="ModeLimit" xml:space="preserve">
-    <value>Höchstzahl an Personen</value>
+    <value>Höchstzahl an Leuten</value>
   </data>
   <data name="ModeLimitTip" xml:space="preserve">
     <value>Sind so viele drin, kann niemand mehr beitreten.</value>
   </data>
-  <data name="ModeOther" xml:space="preserve">
-    <value>Modus +{0}</value>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>eine Zahl, z. B. 50</value>
   </data>
-  <data name="ModeOtherTip" xml:space="preserve">
-    <value>Eine Einstellung, die nur dieser Server hat. Ihre Bedeutung steht in der Hilfe des Servers.</value>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#kanal</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>Sekunden, z. B. 30</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>Farben aus Nachrichten entfernen</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>Farb- und Formatierungscodes werden entfernt; der Text kommt trotzdem an.</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>Rollenspiel-Befehle erlauben</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>Mitglieder können als Figur sprechen oder eine Szene erzählen (die Befehle NPC und SCENE des Servers).</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>Publikum voreinander verbergen</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>Wie ein Hörsaal: Wer keine Stimme hat, sieht in der Mitgliederliste nur Operatoren und Leute mit Stimme und nicht, wer kommt und geht.</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>Nachrichten ohne Stimme nur an Operatoren</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>Was Leute ohne Stimme senden, sehen nur die Operatoren des Kanals, die es weitergeben können; alle anderen sehen nur Operatoren und Leute mit Stimme.</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>Jeder im Kanal kann einladen</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>Auch Mitglieder ohne Operator-Rang dürfen Leute einladen.</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>Nur verschlüsselte Verbindungen</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>Nur wer per TLS mit dem Server verbunden ist, kann beitreten.</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>Hinweise (Notices) an den Kanal sperren</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>NOTICE-Nachrichten an den ganzen Kanal werden abgelehnt.</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>Andere Kanäle dürfen Leute hierher schicken</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>Jeder Kanal darf Leute, die dort nicht beitreten können, hierher weiterleiten, nicht nur Kanäle der hiesigen Operatoren.</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>Von anderswo weitergeleitete Leute abweisen</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>Leute, die ein anderer Kanal hierher weiterleitet, werden nicht hereingelassen.</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>Längere Listen</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>Von den Netzwerk-Operatoren gesetzt: Die Sperr- und Ausnahmelisten des Kanals dürfen mehr Einträge haben.</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>Dauerhaft</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>Von den Netzwerk-Operatoren gesetzt: Kanal und Einstellungen bleiben, auch wenn alle gehen.</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>Nur Netzwerk-Operatoren</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>Von den Netzwerk-Operatoren gesetzt: Nur sie können beitreten.</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>Leute verbergen, bis sie sprechen</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>Wer beitritt, erscheint erst in der Mitgliederliste, wenn er etwas sagt.</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>Keine Nickname-Änderungen</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>Leute im Kanal können ihren Nickname nicht ändern, solange sie darin sind.</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>Niemand kann hinausgeworfen werden</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>Kanal-Operatoren können niemanden hinauswerfen; nur die Operatoren oder Dienste des Netzwerks.</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>Kein Anklopfen</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>Leute draußen können nicht anklopfen (KNOCK), um einen Operator um Einlass zu bitten.</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>Keine Einladungen</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>Niemand kann Leute in den Kanal einladen.</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>Schreien in Großbuchstaben sperren</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>Nachrichten, die größtenteils in Großbuchstaben geschrieben sind, werden abgelehnt.</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>Schimpfwörter zensieren</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>Wörter auf der Liste des Servers werden gesperrt oder ersetzt.</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>Bei den Netzwerk-Diensten registriert</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>Von den Diensten des Netzwerks gesetzt: Der Kanal ist auf einen Besitzer registriert.</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>Alle hier sind verschlüsselt</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>Vom Server gesetzt: Jede Person im Kanal ist per TLS verbunden.</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>Wer nicht beitreten kann, geht nach</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>Wenn jemand nicht beitreten kann (voll, nur mit Einladung, gesperrt usw.), schickt der Server ihn stattdessen in diesen Kanal.</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>Wenn voll, Leute schicken nach</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>Sobald die Höchstzahl erreicht ist, werden Neue stattdessen in diesen Kanal geschickt.</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>Beitritte bremsen</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>Wenn so viele Leute innerhalb der Sekunden beitreten, werden weitere eine Weile abgelehnt (gegen Beitrittsfluten).</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>Beitritte:Sekunden, z. B. 5:10</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>Bei Fluten hinauswerfen</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>Wer innerhalb der Sekunden mehr Zeilen sendet, wird hinausgeworfen. Ein * davor sperrt ihn zusätzlich.</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>Zeilen:Sekunden, z. B. 10:5</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>Regeln gegen Fluten</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>Die Regeln von UnrealIRCd: wie viele Beitritte (j), Nachrichten (m), Nickwechsel (n) usw. in den Sekunden nach dem Doppelpunkt erlaubt sind.</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>z. B. [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>Schutzstufe gegen Fluten</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>Eine der benannten Stufen des Servers, etwa relaxed, normal oder strict.</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>z. B. normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>Nickwechsel bremsen</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>Wenn so viele Nickwechsel innerhalb der Sekunden passieren, werden weitere eine Weile gesperrt.</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>Wechsel:Sekunden, z. B. 3:60</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>Wartezeit nach Rauswurf</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>Wer hinausgeworfen wurde, kann so viele Sekunden lang nicht zurück.</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>Neue warten, bevor sie sprechen</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>Wer beitritt, kann so viele Sekunden lang nicht sprechen.</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>Neuen die letzten Zeilen zeigen</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>Wer beitritt, bekommt bis zu so viele letzte Zeilen aus der angegebenen Zeit.</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>Zeilen:Zeit, z. B. 50:1d</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>Weitere Modi, für IRC-Kundige</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>Einstellungen dieses Servers, die oben nicht genannt sind. So eingeben, wie MODE sie nimmt, z. B. +E, -U oder +j 5:10; sie gehen beim Speichern mit.</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+Buchstaben oder -Buchstaben, dann Werte</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>Weitere Modi: mit + oder - und Modusbuchstaben beginnen, Werte nach einem Leerzeichen.</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>Außerdem am Kanal gesetzt: {0}</value>
   </data>
 </root>

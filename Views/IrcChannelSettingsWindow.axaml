@@ -61,7 +61,7 @@
             <ItemsControl ItemsSource="{Binding Flags}">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:IrcModeFlagVm">
-                  <CheckBox IsChecked="{Binding IsOn}" ToolTip.Tip="{Binding Tip}" Margin="0 1">
+                  <CheckBox IsChecked="{Binding IsOn}" IsEnabled="{Binding CanChange}" ToolTip.Tip="{Binding Tip}" ToolTip.ShowOnDisabled="True" Margin="0 1">
                     <StackPanel Orientation="Horizontal" Spacing="6">
                       <TextBlock Text="{Binding Label}" />
                       <TextBlock Text="{Binding Letter, StringFormat='+{0}'}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" VerticalAlignment="Center" />
@@ -74,14 +74,14 @@
             <ItemsControl ItemsSource="{Binding Values}" IsVisible="{Binding HasValues}" Margin="0 8 0 0">
               <ItemsControl.ItemTemplate>
                 <DataTemplate x:DataType="vm:IrcModeValueVm">
-                  <Grid ColumnDefinitions="*,140" Margin="0 2">
+                  <Grid ColumnDefinitions="*,170" Margin="0 2">
                     <CheckBox IsChecked="{Binding IsOn}" ToolTip.Tip="{Binding Tip}">
                       <StackPanel Orientation="Horizontal" Spacing="6">
                         <TextBlock Text="{Binding Label}" />
                         <TextBlock Text="{Binding Letter, StringFormat='+{0}'}" Foreground="{DynamicResource TextFaintBrush}" FontSize="11" VerticalAlignment="Center" />
                       </StackPanel>
                     </CheckBox>
-                    <TextBox Grid.Column="1" Text="{Binding Value}" IsEnabled="{Binding IsOn}" MinHeight="26" Padding="6 3" />
+                    <TextBox Grid.Column="1" Text="{Binding Value}" IsEnabled="{Binding IsOn}" Watermark="{Binding Hint}" ToolTip.Tip="{Binding Hint}" MinHeight="26" Padding="6 3" />
                   </Grid>
                 </DataTemplate>
               </ItemsControl.ItemTemplate>
@@ -102,6 +102,14 @@
                 <TextBlock Classes="note" Text="{Binding KeyNote}" />
                 <CheckBox x:Name="ShowKey" Grid.Column="1" Content="{x:Static loc:IrcText.ModeKeyShow}" FontSize="11" />
               </Grid>
+            </StackPanel>
+
+            <!-- For those who know IRC: any other mode, typed as MODE takes it. -->
+            <StackPanel Margin="0 14 0 0" Spacing="4">
+              <TextBlock Text="{x:Static loc:IrcText.ModeCommand}" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Classes="note" Text="{x:Static loc:IrcText.ModeCommandTip}" />
+              <TextBox Text="{Binding OtherModes}" Watermark="{x:Static loc:IrcText.ModeCommandHint}" FontFamily="Consolas, Menlo, DejaVu Sans Mono, Liberation Mono, monospace" MinHeight="26" Padding="6 3" />
+              <TextBlock Classes="note" Text="{Binding AlsoSet}" IsVisible="{Binding HasAlsoSet}" />
             </StackPanel>
           </StackPanel>
         </ScrollViewer>

@@ -290,10 +290,10 @@
     <value>Only people invited, or on the invite exceptions, can join.</value>
   </data>
   <data name="ModeModerated" xml:space="preserve">
-    <value>Moderated</value>
+    <value>Only voiced people and operators speak</value>
   </data>
   <data name="ModeModeratedTip" xml:space="preserve">
-    <value>Only operators and people with voice can speak.</value>
+    <value>Everyone else can read the channel but not send to it.</value>
   </data>
   <data name="ModeNoOutside" xml:space="preserve">
     <value>No messages from outside</value>
@@ -308,51 +308,273 @@
     <value>Others cannot change the channel's topic.</value>
   </data>
   <data name="ModeSecret" xml:space="preserve">
-    <value>Secret</value>
+    <value>Hidden from the channel list</value>
   </data>
   <data name="ModeSecretTip" xml:space="preserve">
-    <value>Not shown in the server's channel list, nor to people outside it.</value>
+    <value>The channel does not show in the server's channel list, nor in what is shown about the people in it.</value>
   </data>
   <data name="ModePrivate" xml:space="preserve">
-    <value>Private</value>
+    <value>Private: listed without its details</value>
   </data>
   <data name="ModePrivateTip" xml:space="preserve">
-    <value>An older kind of secret: shown in lists, but not who is in it.</value>
+    <value>An older kind of hidden: the channel may be listed, but outsiders do not see its topic or who is in it.</value>
   </data>
   <data name="ModeRegisteredOnly" xml:space="preserve">
-    <value>Registered accounts only</value>
+    <value>Only logged-in accounts can join</value>
   </data>
   <data name="ModeRegisteredOnlyTip" xml:space="preserve">
-    <value>Only people logged in to an account can join.</value>
+    <value>People not logged in to an account on this network cannot join.</value>
   </data>
   <data name="ModeRegisteredSpeak" xml:space="preserve">
-    <value>Only registered accounts speak</value>
+    <value>Only logged-in accounts can speak</value>
   </data>
   <data name="ModeRegisteredSpeakTip" xml:space="preserve">
-    <value>People not logged in to an account can join but not speak.</value>
+    <value>People not logged in to an account can join and read, but not speak unless given voice.</value>
   </data>
   <data name="ModeNoCtcp" xml:space="preserve">
-    <value>No CTCP</value>
+    <value>Block program requests (version, ping)</value>
   </data>
   <data name="ModeNoCtcpTip" xml:space="preserve">
-    <value>Client requests (version, ping) to the channel are blocked. /me still works.</value>
+    <value>Requests one IRC program sends to everyone's (CTCP) are refused in the channel. /me still works.</value>
   </data>
   <data name="ModeNoColour" xml:space="preserve">
-    <value>No colours</value>
+    <value>Block messages with colours</value>
   </data>
   <data name="ModeNoColourTip" xml:space="preserve">
-    <value>Messages with colour codes are blocked or stripped.</value>
+    <value>Messages with colour or formatting codes are refused.</value>
   </data>
   <data name="ModeLimit" xml:space="preserve">
-    <value>Most people</value>
+    <value>Most people allowed in</value>
   </data>
   <data name="ModeLimitTip" xml:space="preserve">
     <value>Once this many are in, nobody else can join.</value>
   </data>
-  <data name="ModeOther" xml:space="preserve">
-    <value>Mode +{0}</value>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>a number, e.g. 50</value>
   </data>
-  <data name="ModeOtherTip" xml:space="preserve">
-    <value>A setting only this server has. Its meaning is in the server's own help.</value>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#channel</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>seconds, e.g. 30</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>Remove colours from messages</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>Colour and formatting codes are taken out; the text still goes through.</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>Allow role-play commands</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>Members can speak as a character or narrate a scene (the server's NPC and SCENE commands).</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>Hide the audience from each other</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>Like an auditorium: people without voice see only operators and voiced people in the member list, and not who comes and goes.</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>Messages without voice go to operators only</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>What people without voice send is shown to the channel's operators only, who can pass it on; everyone else sees only operators and voiced people.</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>Anyone in the channel can invite</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>Members without operator rank may invite people too.</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>Encrypted connections only</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>Only people connected to the server with TLS can join.</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>Block notices to the channel</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>NOTICE messages sent to the whole channel are refused.</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>Other channels may send people here</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>Any channel may forward people who cannot join it to this one, not only channels run by this channel's operators.</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>Refuse people sent on from elsewhere</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>People forwarded here by another channel are not let in.</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>Longer lists</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>Set by the network's operators: the channel's ban and exception lists may hold more entries.</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>Permanent</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>Set by the network's operators: the channel and its settings stay even when everyone leaves.</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>Network operators only</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>Set by the network's operators: only they can join.</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>Hide people until they speak</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>Someone who joins is not shown in the member list until they first say something.</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>No nickname changes</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>People in the channel cannot change their nickname while in it.</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>Nobody can be kicked</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>Channel operators cannot kick people out; only the network's own operators or services can.</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>No asking to be let in</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>People outside cannot knock (KNOCK) to ask an operator to let them in.</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>No invitations</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>Nobody can invite people to the channel.</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>Block shouting in capitals</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>Messages written mostly in capital letters are refused.</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>Censor bad words</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>Words on the server's list are blocked or replaced.</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>Registered with the network's services</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>Set by the network's services: the channel is registered to an owner, who keeps it.</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>Everyone here is encrypted</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>Set by the server: every person in the channel is connected with TLS.</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>Send those who cannot join to</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>When someone cannot join (full, invite only, banned and so on), the server sends them to this channel instead.</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>When full, send people to</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>Once the most people allowed are in, newcomers are sent to this channel instead.</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>Slow down joins</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>Once this many people join within the seconds given, more joins are refused for a while (against join floods).</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>joins:seconds, e.g. 5:10</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>Kick for flooding</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>Someone who sends more lines than this within the seconds given is kicked. Put * in front to ban them as well.</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>lines:seconds, e.g. 10:5</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>Flood protection rules</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>UnrealIRCd's rules: counts of joins (j), messages (m), nick changes (n) and so on allowed in the seconds after the colon.</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>e.g. [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>Flood protection level</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>One of the server's named levels, such as relaxed, normal or strict.</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>e.g. normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>Slow down nickname changes</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>Once this many nickname changes happen within the seconds given, more are blocked for a while.</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>changes:seconds, e.g. 3:60</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>Wait after a kick</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>Someone kicked cannot come back for this many seconds.</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>Newcomers wait before speaking</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>Someone who joins cannot speak for this many seconds.</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>Show recent lines to newcomers</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>People who join are given up to this many recent lines from within the time given.</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>lines:time, e.g. 50:1d</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>Other modes, for those who know IRC</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>Settings this server has that are not named above. Typed as MODE takes them, e.g. +E, -U or +j 5:10, and sent with the rest on Save.</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+letters or -letters, then any values</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>Other modes: start with + or - and mode letters, then any values after a space.</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>Also set on the channel: {0}</value>
   </data>
 </root>

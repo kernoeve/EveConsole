@@ -290,10 +290,10 @@
     <value>招待された人、または招待の例外にある人だけが参加できます。</value>
   </data>
   <data name="ModeModerated" xml:space="preserve">
-    <value>発言制限</value>
+    <value>発言権のある人とオペレーターだけが発言</value>
   </data>
   <data name="ModeModeratedTip" xml:space="preserve">
-    <value>オペレーターと発言権のある人だけが発言できます。</value>
+    <value>それ以外の人は読めますが、送信はできません。</value>
   </data>
   <data name="ModeNoOutside" xml:space="preserve">
     <value>外部からのメッセージ禁止</value>
@@ -308,51 +308,273 @@
     <value>他の人はチャンネルのトピックを変更できません。</value>
   </data>
   <data name="ModeSecret" xml:space="preserve">
-    <value>秘密</value>
+    <value>チャンネル一覧に表示しない</value>
   </data>
   <data name="ModeSecretTip" xml:space="preserve">
-    <value>サーバーのチャンネル一覧にも、外部の人にも表示されません。</value>
+    <value>サーバーのチャンネル一覧にも、参加者の情報にも表示されません。</value>
   </data>
   <data name="ModePrivate" xml:space="preserve">
-    <value>非公開</value>
+    <value>非公開: 一覧には出るが詳細は隠す</value>
   </data>
   <data name="ModePrivateTip" xml:space="preserve">
-    <value>古い形式の秘密: 一覧には出ますが、誰がいるかは出ません。</value>
+    <value>古い形の非表示です。一覧に出ることはありますが、外部の人にはトピックも参加者も見えません。</value>
   </data>
   <data name="ModeRegisteredOnly" xml:space="preserve">
-    <value>登録アカウントのみ</value>
+    <value>アカウントにログインした人だけ参加可能</value>
   </data>
   <data name="ModeRegisteredOnlyTip" xml:space="preserve">
-    <value>アカウントにログインしている人だけが参加できます。</value>
+    <value>このネットワークのアカウントにログインしていない人は参加できません。</value>
   </data>
   <data name="ModeRegisteredSpeak" xml:space="preserve">
-    <value>発言は登録アカウントのみ</value>
+    <value>アカウントにログインした人だけ発言可能</value>
   </data>
   <data name="ModeRegisteredSpeakTip" xml:space="preserve">
-    <value>アカウントにログインしていない人は参加できますが発言できません。</value>
+    <value>ログインしていない人も参加して読めますが、発言権がなければ発言できません。</value>
   </data>
   <data name="ModeNoCtcp" xml:space="preserve">
-    <value>CTCP 禁止</value>
+    <value>プログラム間の要求をブロック (バージョン、ping)</value>
   </data>
   <data name="ModeNoCtcpTip" xml:space="preserve">
-    <value>チャンネルへのクライアント要求（バージョン、ping）を止めます。/me は使えます。</value>
+    <value>IRC プログラムが全員のプログラムに送る要求 (CTCP) をチャンネルで拒否します。/me は使えます。</value>
   </data>
   <data name="ModeNoColour" xml:space="preserve">
-    <value>色禁止</value>
+    <value>色付きのメッセージをブロック</value>
   </data>
   <data name="ModeNoColourTip" xml:space="preserve">
-    <value>色コード付きのメッセージは止められるか、色が外されます。</value>
+    <value>色や書式のコードを含むメッセージは拒否されます。</value>
   </data>
   <data name="ModeLimit" xml:space="preserve">
-    <value>最大人数</value>
+    <value>参加できる最大人数</value>
   </data>
   <data name="ModeLimitTip" xml:space="preserve">
     <value>この人数に達すると、それ以上は参加できません。</value>
   </data>
-  <data name="ModeOther" xml:space="preserve">
-    <value>モード +{0}</value>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>数値 (例: 50)</value>
   </data>
-  <data name="ModeOtherTip" xml:space="preserve">
-    <value>このサーバー独自の設定です。意味はサーバーのヘルプにあります。</value>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#チャンネル</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>秒数 (例: 30)</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>メッセージから色を取り除く</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>色や書式のコードは取り除かれ、本文はそのまま届きます。</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>ロールプレイ用コマンドを許可</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>メンバーがキャラクターとして話したり、場面を語ったりできます (サーバーの NPC・SCENE コマンド)。</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>参加者同士を見えなくする</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>講堂のように、発言権のない人にはメンバー一覧でオペレーターと発言権のある人しか見えず、出入りも見えません。</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>発言権のない人のメッセージはオペレーターにだけ届く</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>発言権のない人の送信はチャンネルのオペレーターにだけ表示され、オペレーターが伝えることができます。他の人にはオペレーターと発言権のある人の発言だけが見えます。</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>チャンネルの誰でも招待できる</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>オペレーターでないメンバーも招待できます。</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>暗号化された接続のみ</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>TLS でサーバーに接続している人だけが参加できます。</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>チャンネルへの通知 (NOTICE) をブロック</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>チャンネル全体に送られる NOTICE メッセージは拒否されます。</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>他のチャンネルから人を転送してよい</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>このチャンネルのオペレーターが管理していないチャンネルも、参加できなかった人をここへ転送できます。</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>他から転送されてきた人を拒否</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>他のチャンネルからここへ転送された人は入れません。</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>長いリスト</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>ネットワークのオペレーターが設定: チャンネルの BAN・例外リストにより多く登録できます。</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>常設</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>ネットワークのオペレーターが設定: 全員が退出してもチャンネルと設定が残ります。</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>ネットワークのオペレーターのみ</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>ネットワークのオペレーターが設定: オペレーターだけが参加できます。</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>発言するまで参加者を隠す</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>参加した人は、最初に発言するまでメンバー一覧に表示されません。</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>ニックネームの変更を禁止</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>チャンネルにいる間はニックネームを変更できません。</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>誰もキックできない</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>チャンネルのオペレーターはキックできません。できるのはネットワークのオペレーターやサービスだけです。</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>入室の依頼 (ノック) を禁止</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>外部の人は KNOCK でオペレーターに入室を頼めません。</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>招待を禁止</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>誰もこのチャンネルに招待できません。</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>大文字ばかりの発言をブロック</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>ほとんど大文字で書かれたメッセージは拒否されます。</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>不適切な言葉を検閲</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>サーバーのリストにある言葉はブロックまたは置き換えられます。</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>ネットワークのサービスに登録済み</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>ネットワークのサービスが設定: チャンネルは所有者に登録されています。</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>全員が暗号化接続</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>サーバーが設定: チャンネルの全員が TLS で接続しています。</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>参加できない人の転送先</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>参加できないとき (満員、招待制、BAN など)、サーバーは代わりにこのチャンネルへ送ります。</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>満員のときの転送先</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>最大人数に達すると、新しく来た人はこのチャンネルへ送られます。</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>参加の急増を抑える</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>指定の秒数内にこの人数が参加すると、しばらく参加を拒否します (大量参加対策)。</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>人数:秒 (例: 5:10)</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>連投した人をキック</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>指定の秒数内にこの行数を超えて送った人はキックされます。先頭に * を付けると BAN もします。</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>行数:秒 (例: 10:5)</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>連投対策のルール</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>UnrealIRCd のルール: コロンの後の秒数内に許す参加 (j)、メッセージ (m)、ニック変更 (n) などの数。</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>例: [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>連投対策のレベル</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>サーバーが名前を付けたレベルの一つ (relaxed、normal、strict など)。</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>例: normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>ニック変更の急増を抑える</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>指定の秒数内にこの回数のニック変更があると、しばらく変更を止めます。</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>回数:秒 (例: 3:60)</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>キック後の再参加待ち</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>キックされた人はこの秒数の間戻れません。</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>新しく来た人は発言まで待つ</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>参加した人はこの秒数の間発言できません。</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>新しく来た人に最近の発言を見せる</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>参加した人には、指定の時間内の最近の発言がこの行数まで送られます。</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>行数:時間 (例: 50:1d)</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>その他のモード (IRC に詳しい人向け)</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>上に名前のない、このサーバーの設定です。MODE の形式 (例: +E、-U、+j 5:10) で入力すると、保存時に一緒に送られます。</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+文字 または -文字、続けて値</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>その他のモード: + または - とモード文字で始め、値は空白の後に続けてください。</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>チャンネルにはほかに設定あり: {0}</value>
   </data>
 </root>

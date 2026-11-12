@@ -5,6 +5,7 @@ using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using EveConsole.Data;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Irc;
@@ -276,6 +277,52 @@ try
         vm.NewKey = "two words";
         Check("a key with a space in it is refused before sending", vm.Problem() is { Length: > 0 });
     }
+    Check("the server's program is read from 004", session.Support.Software == "ergo-2.19.1", session.Support.Software);
+
+    // ── Every setting in words, by the server's program ──
+    Check("server programs told apart by their 004 name",
+        IrcModeMeanings.KindOf("ergo-2.19.1") == IrcServerKind.Ergo && IrcModeMeanings.KindOf("InspIRCd-4.2.0") == IrcServerKind.InspIrcd
+        && IrcModeMeanings.KindOf("UnrealIRCd-6.1.7") == IrcServerKind.Unreal && IrcModeMeanings.KindOf("solanum-1.0-dev") == IrcServerKind.Solanum
+        && IrcModeMeanings.KindOf("ircd-hybrid-8.2.43") == IrcServerKind.Hybrid && IrcModeMeanings.KindOf("ngircd-27") == IrcServerKind.NgIrcd
+        && IrcModeMeanings.KindOf("someircd-1.0") == IrcServerKind.Unknown);
+    Check("a letter means what its server says: u, r and z differ",
+        IrcModeMeanings.Of('u', IrcServerKind.Ergo)?.Label == IrcText.ModeAuditorium && IrcModeMeanings.Of('u', IrcServerKind.Solanum) is null
+        && IrcModeMeanings.Of('r', IrcServerKind.Solanum)?.Label == IrcText.ModeRegisteredOnly && IrcModeMeanings.Of('r', IrcServerKind.InspIrcd) is { ServerOnly: true }
+        && IrcModeMeanings.Of('z', IrcServerKind.Solanum)?.Label == IrcText.ModeOpModerated && IrcModeMeanings.Of('z', IrcServerKind.Unreal)?.Label == IrcText.ModeTlsOnly);
+    Check("on an unknown server only the letters every server shares are named",
+        IrcModeMeanings.Of('n', IrcServerKind.Unknown) is not null && IrcModeMeanings.Of('C', IrcServerKind.Unknown) is null);
+    var ergoLetters = "CEMRUimnstu";
+    Check("every Ergo setting has words (its HELP CMODES)", ergoLetters.All(c => IrcModeMeanings.Of(c, IrcServerKind.Ergo) is not null)
+        && IrcModeMeanings.Of('f', IrcServerKind.Ergo) is { Hint.Length: > 0 },
+        new string([.. ergoLetters.Where(c => IrcModeMeanings.Of(c, IrcServerKind.Ergo) is null)]));
+    {
+        var ergo = new IrcSupport { Software = "ergo-2.19.1" };
+        ergo.Apply(["CHANMODES=Ibe,k,fl,CEMRUXimnstu"]);
+        var vm = new IrcChannelSettingsVm(irc, session, "#fleet", ergo, new Dictionary<char, string> { ['n'] = "", ['X'] = "", ['l'] = "9" }, true);
+        Check("the window names every box; a letter it cannot name is not a box",
+            vm.Flags.Count == 11 && vm.Flags.All(f => f.Label.Length > 2 && !f.Label.Contains("+" + f.Letter)) && vm.Flags.All(f => f.Letter != 'X')
+            && vm.Values.Select(v => v.Letter).SequenceEqual(['f', 'l']) && vm.Values.All(v => v.Hint.Length > 0),
+            string.Join(",", vm.Flags.Select(f => f.Letter + "=" + f.Label)));
+        Check("and one set is shown as set, for those who know it", vm.AlsoSet.Contains("+X") && vm.HasAlsoSet, vm.AlsoSet);
+        vm.OtherModes = " +X-U ";
+        Check("the command line goes after the rest, as typed", vm.Problem() is null && vm.Changes() is [.., ("+X-U", [])],
+            string.Join(" | ", vm.Changes().Select(c => c.Changes + " " + string.Join(",", c.Values))));
+        vm.OtherModes = "+j 5:10";
+        Check("with its values", vm.Changes() is [.., ("+j", ["5:10"])]);
+        vm.OtherModes = "frobnicate";
+        Check("something that is not a mode change is refused before sending", vm.Problem() == IrcText.ModeCommandBad && vm.Changes().All(c => c.Changes != "frobnicate"));
+        vm.OtherModes = "";
+        Check("an empty command line sends nothing", vm.Problem() is null && vm.Changes().Count == 0);
+
+        var insp = new IrcSupport { Software = "InspIRCd-4.2.0" };
+        insp.Apply(["CHANMODES=Ibe,k,Ll,PQimnrstz"]);
+        var vmInsp = new IrcChannelSettingsVm(irc, session, "#fleet", insp, new Dictionary<char, string> { ['r'] = "" }, true);
+        Check("one only the network sets is shown when set, and cannot be changed; when not set, not shown",
+            vmInsp.Flags.FirstOrDefault(f => f.Letter == 'r') is { CanChange: false, IsOn: true } && vmInsp.Flags.All(f => f.Letter != 'P'),
+            string.Join(",", vmInsp.Flags.Select(f => f.Letter + ":" + f.CanChange)));
+        vmInsp.Flags.First(f => f.Letter == 'r').IsOn = false;
+        Check("and is never sent", vmInsp.Changes().Count == 0);
+    }
 
     // ── Taking a message back (REDACT) ──
     var changedSeen = 0;
@@ -543,7 +590,7 @@ try
 
         // The new ones: settings, lists, taking back, read markers.
         Check("relay: the client shows the channel's settings, and that messages can be taken back", await Wait(() => seen.ChannelOf("#fleet") is { ModesKnown: true } c
-            && c.Modes.GetValueOrDefault('l') == "25") && seen.CanRedact && seen.Support.ModesA.Contains('e'),
+            && c.Modes.GetValueOrDefault('l') == "25") && seen.CanRedact && seen.Support.ModesA.Contains('e') && seen.Support.Software == "ergo-2.19.1",
             string.Join(",", seen.ChannelOf("#fleet")?.Modes.Select(x => x.Key + "=" + x.Value) ?? []));
         await view.SetModesAsync(seen, "#fleet", "+k", ["relay-key"]);
         Check("relay: a key set through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Contains("MODE #fleet +k relay-key"); }));
@@ -762,6 +809,7 @@ sealed class FakeIrc : IAsyncDisposable
             if (welcomed || nick.Length == 0 || user.Length == 0 || capping) return;
             welcomed = true;
             Send($":fake.server 001 {nick} :Welcome");
+            Send($":fake.server 004 {nick} fake.server ergo-2.19.1 iow beIiklmnst beIklov");
             // Logged in to an account, as a certificate would: what read markers are kept under.
             if (!NoCaps) Send($":fake.server 900 {nick} {nick}!u@h ann :You are now logged in as ann");
             Send($":fake.server 005 {nick} PREFIX=(ov)@+ CHANTYPES=# CASEMAPPING=rfc1459 NETWORK=Fake CHATHISTORY=100 MONITOR=10 CHANMODES=beI,k,l,imnst :are supported");
