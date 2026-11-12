@@ -386,7 +386,7 @@ La mayoría de servidores Mumble usan su propio certificado. Confía en él solo
     <value>Solo miembros de este grupo del servidor en esos canales (opcional)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>El canal en el que estoy</value>
+    <value>&lt;Canal actual&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>Destino nuevo</value>
