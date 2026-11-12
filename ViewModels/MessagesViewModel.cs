@@ -37,7 +37,8 @@ public sealed class MessagesConversationVm(DmSummary summary)
     public bool DotAmber => summary.Presence == DmPresence.Away;
 }
 
-public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null, string replyText = "", bool editable = false) : ReactiveObject
+public sealed partial class MessagesLineVm(DmLine line, string shownSender, EmoteSet emotes, AvatarRef? avatar = null, string replyText = "", bool editable = false,
+    bool deletable = false) : ReactiveObject
 {
     public string MessageId => line.Target;
 
@@ -49,7 +50,7 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender, Emot
 
     /// <summary>This account's latest message here, the only one the protocol lets it correct.</summary>
     public bool CanEdit { get => _canEdit; set => this.RaiseAndSetIfChanged(ref _canEdit, value); }
-    public bool CanDelete => editable && IsOutgoing && !IsDeleted && MessageId.Length > 0;
+    public bool CanDelete => (editable || deletable) && IsOutgoing && !IsDeleted && MessageId.Length > 0;
     public bool CanReply => editable && CanReact;
 
     /// <summary>The latest of this account's that the person has seen, which says so.</summary>
@@ -228,7 +229,7 @@ public sealed class MessagesTabVm : ReactiveObject
         var sender = line.IsOutgoing ? JabberText.SenderYou : Name;
         var reply = GroupChatViewModel.ReplyTextFor(line.ReplyId, line.ReplyQuote, Lines, l => l.MessageId, l => l.Sender, l => l.Body);
         return new(line, sender, Emotes, new AvatarRef(Key.Source, Key.ServerId, line.IsOutgoing ? "me" : Key.Peer, line.IsOutgoing ? MyName : Name),
-            reply, _source.CanEditMessages);
+            reply, _source.CanEditMessages, _source.CanDeleteIn(Key));
     }
 
     /// <summary>Which line can be corrected, and which says it was seen: both only ever the latest of their kind.</summary>

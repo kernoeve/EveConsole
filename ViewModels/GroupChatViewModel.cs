@@ -154,8 +154,11 @@ public sealed partial class GroupLineVm : ReactiveObject
     /// <summary>This account's latest message here, the only one the protocol lets it correct.</summary>
     public bool CanEdit { get => _canEdit; set => this.RaiseAndSetIfChanged(ref _canEdit, value); }
 
+    /// <summary>An IRC line this person said, on a server that lets it be taken back (REDACT).</summary>
+    public bool Redactable { get; init; }
+
     /// <summary>One of this account's, which it can take back.</summary>
-    public bool CanDelete => IsOutgoing && !IsDeleted && ReactTarget.Length > 0 && MessageId.Length > 0;
+    public bool CanDelete => !IsDeleted && (Redactable || IsOutgoing && ReactTarget.Length > 0 && MessageId.Length > 0);
 
     public bool CanReply => CanReact;
 
@@ -836,7 +839,9 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     /// <summary>Takes back one of this account's messages, for everyone. The room's copy back says it is gone.</summary>
     public async Task DeleteOwnAsync(GroupLineVm line)
     {
-        if (!line.CanDelete || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+        if (!line.CanDelete || SelectedRow is not { IsRoom: true } row) return;
+        if (row.IsIrc) { await IrcDeleteAsync(row, line); return; }
+        if (JabberOf(row) is not { } session) return;
 
         StatusText = "";
         try { await Task.Run(() => _jabber.DeleteOwnAsync(session, row.Key, true, line.ReactTarget, line.MessageId)); }

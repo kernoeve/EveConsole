@@ -95,6 +95,9 @@ public interface IDmSource
     /// <summary>Takes back one of this account's messages, for everyone.</summary>
     Task DeleteOwnAsync(DmKey key, string ownId, CancellationToken ct = default) => Task.CompletedTask;
 
+    /// <summary>Whether this account's messages in a conversation can be taken back, where they cannot be corrected (IRC).</summary>
+    bool CanDeleteIn(DmKey key) => CanEditMessages;
+
     /// <summary>Sends this person's whole set of reactions to one message.</summary>
     Task ReactAsync(DmKey key, string target, IReadOnlyList<string> emojis, CancellationToken ct = default) => Task.CompletedTask;
 

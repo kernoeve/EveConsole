@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>Not connected: the server does not accept this nickname. Choose another under Edit.</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>This server does not let messages be taken back.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>Make founder</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>Take away founder</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>Make admin</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>Take away admin</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>Give +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>Take away +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>Channel settings…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} settings</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>The channel's modes, as this server has them. Changes are sent when you press Save; the lists change as soon as you add or remove a line. The server refuses what your rank does not allow, and says so in Group Chat.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>The server has not said yet how this channel is set, so what is ticked may be short of it.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>Settings</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>Save</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>Close</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>set by {0}</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>Bans</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>Whoever matches one of these cannot join (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>Ban exceptions</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>Whoever matches one of these can join even if a ban matches them too (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>Invite exceptions</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>Whoever matches one of these can join an invite-only channel without an invitation (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>Remove</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>Add</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>Asking the server…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>Nothing on this list.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — * matches anything</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>Password to join</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>The channel key: only people who give it can join.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>New password</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>Show</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>The channel has a password, which is never shown. Type a new one to change it.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>Saving sets this as the password to join.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>Saving takes the password off: anyone can join.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>Type the password people will need to join.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>A channel password cannot have spaces in it.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: give a value, or untick it.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: give a whole number.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>Invite only</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>Only people invited, or on the invite exceptions, can join.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>Moderated</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>Only operators and people with voice can speak.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>No messages from outside</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>Only people in the channel can send messages to it.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>Only operators change the topic</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>Others cannot change the channel's topic.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>Not shown in the server's channel list, nor to people outside it.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>Private</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>An older kind of secret: shown in lists, but not who is in it.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>Registered accounts only</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>Only people logged in to an account can join.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>Only registered accounts speak</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>People not logged in to an account can join but not speak.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>No CTCP</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>Client requests (version, ping) to the channel are blocked. /me still works.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>No colours</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>Messages with colour codes are blocked or stripped.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>Most people</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>Once this many are in, nobody else can join.</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>Mode +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>A setting only this server has. Its meaning is in the server's own help.</value>
+  </data>
 </root>

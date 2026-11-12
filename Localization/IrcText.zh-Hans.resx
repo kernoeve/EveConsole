@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>未连接：服务器不接受此昵称。请在编辑中选择其他昵称。</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>此服务器不允许撤回消息。</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>设为创始人</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>撤销创始人</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>设为管理员</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>撤销管理员</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>给予 +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>撤销 +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>频道设置…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} 设置</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>此服务器上该频道的模式。点击“保存”时发送更改；列表在添加或删除一行时立即更改。你的等级不允许的更改会被服务器拒绝，并在群聊中说明。</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>服务器尚未告知此频道的设置，因此勾选的内容可能不完整。</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>由 {0} 设置</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>匹配其中任意一项的人无法加入 (+b)。</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>封禁例外</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>匹配其中任意一项的人即使也匹配封禁，仍可加入 (+e)。</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>邀请例外</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>匹配其中任意一项的人无需邀请即可加入仅限邀请的频道 (+I)。</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>此列表为空。</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — * 匹配任意内容</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>加入密码</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>频道密钥：只有提供它的人才能加入。</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>频道已有密码，不会显示。输入新密码即可更改。</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>保存后，这将成为加入密码。</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>保存后将移除密码：任何人都可以加入。</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>请输入加入所需的密码。</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>频道密码不能包含空格。</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}：请填写值，或取消勾选。</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}：请填写整数。</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>仅限邀请</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>只有受邀者或在邀请例外中的人可以加入。</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>受控</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>只有操作员和有发言权的人可以发言。</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>禁止外部消息</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>只有频道内的人可以向其发送消息。</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>只有操作员可更改主题</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>其他人无法更改频道主题。</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>秘密</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>不会显示在服务器的频道列表中，也不对外部人员显示。</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>私密</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>较旧的秘密方式：会显示在列表中，但不显示成员。</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>仅限注册账号</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>只有登录账号的人可以加入。</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>仅注册账号可发言</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>未登录账号的人可以加入但不能发言。</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>禁止 CTCP</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>阻止发往频道的客户端请求（版本、ping）。/me 仍可用。</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>禁止颜色</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>带颜色代码的消息会被阻止或去除颜色。</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>最多人数</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>达到此人数后，其他人无法加入。</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>模式 +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>此服务器独有的设置。其含义见服务器自身的帮助。</value>
+  </data>
 </root>

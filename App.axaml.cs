@@ -2854,9 +2854,13 @@ public class App : Application
                         "DedupeKey"    TEXT    NOT NULL DEFAULT '',
                         "MessageId"    TEXT    NOT NULL DEFAULT '',
                         "ReplyId"      TEXT    NOT NULL DEFAULT '',
-                        "PeerName"     TEXT    NOT NULL DEFAULT ''
+                        "PeerName"     TEXT    NOT NULL DEFAULT '',
+                        "Deleted"      INTEGER NOT NULL DEFAULT 0,
+                        "DeletedReason" TEXT   NOT NULL DEFAULT ''
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "DeletedReason" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcMessages_Dedupe" ON "IrcMessages" ("ServerId", "DedupeKey")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Conversation" ON "IrcMessages" ("ServerId", "Conversation", "Id")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Unread" ON "IrcMessages" ("IsRead", "IsAlert")""");

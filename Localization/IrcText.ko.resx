@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>연결 안 됨: 서버가 이 닉네임을 받지 않습니다. 편집에서 다른 것을 고르세요.</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>이 서버에서는 메시지를 취소할 수 없습니다.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>창설자로 지정</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>창설자 해제</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>관리자로 지정</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>관리자 해제</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>+{0} 부여</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>+{0} 해제</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>채널 설정…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} 설정</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>이 서버에 있는 채널 모드입니다. 변경 사항은 저장을 누를 때 전송되며, 목록은 줄을 추가하거나 제거하는 즉시 바뀝니다. 권한으로 허용되지 않는 변경은 서버가 거부하고 그룹 채팅에 표시합니다.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>서버가 아직 이 채널의 설정을 알려주지 않아 체크가 빠져 있을 수 있습니다.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>{0} 님이 설정</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>차단</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>이 중 하나와 일치하는 사람은 참여할 수 없습니다 (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>차단 예외</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>이 중 하나와 일치하면 차단에 걸려도 참여할 수 있습니다 (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>초대 예외</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>이 중 하나와 일치하면 초대 전용 채널에 초대 없이 참여할 수 있습니다 (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>서버에 묻는 중…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>이 목록은 비어 있습니다.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — *는 모든 것과 일치</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>참여 비밀번호</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>채널 키: 이를 입력한 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>새 비밀번호</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>표시</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>채널에 비밀번호가 있으며 표시되지 않습니다. 바꾸려면 새 비밀번호를 입력하세요.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>저장하면 이것이 참여 비밀번호가 됩니다.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>저장하면 비밀번호가 해제되어 누구나 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>참여에 필요한 비밀번호를 입력하세요.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>채널 비밀번호에는 공백을 넣을 수 없습니다.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: 값을 입력하거나 체크를 해제하세요.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: 정수를 입력하세요.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>초대 전용</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>초대받은 사람이나 초대 예외에 있는 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>발언 제한</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>운영자와 발언권이 있는 사람만 말할 수 있습니다.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>외부 메시지 금지</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>채널에 있는 사람만 메시지를 보낼 수 있습니다.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>운영자만 주제 변경</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>다른 사람은 채널 주제를 바꿀 수 없습니다.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>비밀</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>서버 채널 목록과 외부 사람에게 표시되지 않습니다.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>비공개</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>예전 방식의 비밀: 목록에는 나오지만 누가 있는지는 나오지 않습니다.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>등록 계정만</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>계정에 로그인한 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>등록 계정만 발언</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>계정에 로그인하지 않은 사람은 참여할 수 있지만 말할 수 없습니다.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>CTCP 금지</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>채널로 가는 클라이언트 요청(버전, 핑)을 막습니다. /me는 계속 됩니다.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>색상 금지</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>색상 코드가 있는 메시지는 막히거나 색이 제거됩니다.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>최대 인원</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>이 인원이 차면 더 이상 참여할 수 없습니다.</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>모드 +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>이 서버에만 있는 설정입니다. 의미는 서버 도움말에 있습니다.</value>
+  </data>
 </root>

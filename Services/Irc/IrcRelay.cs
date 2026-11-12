@@ -219,7 +219,7 @@ public sealed partial class IrcService
     {
         session.Locked(s =>
         {
-            foreach (var c in s.ChannelMap.Values) { c.Joined = false; c.Members.Clear(); c.Topic = ""; c.TopicBy = ""; c.Failure = ""; }
+            foreach (var c in s.ChannelMap.Values) { c.Joined = false; c.Members.Clear(); c.Modes.Clear(); c.ModesKnown = false; c.Topic = ""; c.TopicBy = ""; c.Failure = ""; }
             s.PeopleMap.Clear();
             s.InviteMap.Clear();
             s.ShownSupport = null;
@@ -287,6 +287,10 @@ public sealed partial class IrcService
 
                 case "react" when !_isWorker:
                     ReactionsChanged?.Invoke(signal.Server, signal.Conversation);
+                    break;
+
+                case "edited" when !_isWorker:
+                    MessagesChanged?.Invoke(signal.Server, signal.Conversation);
                     break;
 
                 case "typing" when !_isWorker:
@@ -425,11 +429,14 @@ public sealed partial class IrcService
     private sealed record LiveServer(
         IrcState State, IrcProblem Problem, string Detail, string CertificateFingerprint, string CertificateSubject,
         DateTimeOffset? NextAttempt, string Nick, string Network, bool IsAway, bool HasHistory, bool HasTags, bool IsEncrypted,
-        string LastRefusal, string ChannelTypes, string RankModes, string RankSymbols, List<IrcPerson> People, List<IrcInvite> Invites);
+        string LastRefusal, string ChannelTypes, string RankModes, string RankSymbols, List<IrcPerson> People, List<IrcInvite> Invites,
+        string ChannelModes = "", bool CanRedact = false, bool LoggedIn = false);
 
     private sealed record LiveMember(string Nick, string UserHost, string Account, string Ranks, bool Away, string AwayMessage);
 
-    private sealed record LiveChannel(IrcChannel Channel, bool Joined, string ServerName, string Topic, string TopicBy, string Failure, List<LiveMember> Members);
+    /// <param name="Modes">The channel's settings by mode letter, with their values. ⚠️ Never a key's value: see <see cref="IrcChannelState.Modes"/>.</param>
+    private sealed record LiveChannel(IrcChannel Channel, bool Joined, string ServerName, string Topic, string TopicBy, string Failure, List<LiveMember> Members,
+        Dictionary<string, string>? Modes = null, bool ModesKnown = false);
 
     private readonly ConcurrentDictionary<int, byte> _liveDirty = new();
     private readonly Dictionary<int, Dictionary<string, string>> _written = [];
@@ -453,13 +460,15 @@ public sealed partial class IrcService
                 s.State, s.Problem, s.Detail, s.CertificateFingerprint, s.CertificateSubject, s.NextAttempt, s.Nick, s.Network,
                 s.IsAway, s.HasHistory, s.HasTags, s.IsEncrypted, s.LastRefusal,
                 support.ChannelTypes, new string([.. support.Ranks.Select(r => r.Mode)]), new string([.. support.Ranks.Select(r => r.Symbol)]),
-                [.. s.PeopleMap.Values], [.. s.InviteMap.Values])),
+                [.. s.PeopleMap.Values], [.. s.InviteMap.Values],
+                $"{support.ModesA},{support.ModesB},{support.ModesC},{support.ModesD}", s.CanRedact, s.LoggedIn)),
         };
 
         foreach (var (key, c) in s.ChannelMap)
             parts[key] = JsonSerializer.Serialize(new LiveChannel(
                 c.Channel, c.Joined, c.ServerName, c.Topic, c.TopicBy, c.Failure,
-                [.. c.Members.Values.Select(m => new LiveMember(m.Nick, m.UserHost, m.Account, m.Ranks, m.Away, m.AwayMessage))]));
+                [.. c.Members.Values.Select(m => new LiveMember(m.Nick, m.UserHost, m.Account, m.Ranks, m.Away, m.AwayMessage))],
+                c.Modes.ToDictionary(x => x.Key.ToString(), x => x.Key == 'k' ? "" : x.Value), c.ModesKnown));
 
         return parts;
     });
@@ -603,6 +612,9 @@ public sealed partial class IrcService
                     if (!s.ChannelMap.TryGetValue(row.Part, out var state)) s.ChannelMap[row.Part] = state = new IrcChannelState(c.Channel);
                     state.Channel = c.Channel; state.Joined = c.Joined; state.ServerName = c.ServerName;
                     state.Topic = c.Topic; state.TopicBy = c.TopicBy; state.Failure = c.Failure;
+                    state.Modes.Clear();
+                    foreach (var (letter, value) in c.Modes ?? []) if (letter.Length == 1) state.Modes[letter[0]] = value;
+                    state.ModesKnown = c.ModesKnown;
                     state.Members.Clear();
                     foreach (var m in c.Members)
                         state.Members[s.Fold(m.Nick)] = new IrcMember(m.Nick) { UserHost = m.UserHost, Account = m.Account, Ranks = m.Ranks, Away = m.Away, AwayMessage = m.AwayMessage };
@@ -619,9 +631,10 @@ public sealed partial class IrcService
         s.CertificateFingerprint = a.CertificateFingerprint; s.CertificateSubject = a.CertificateSubject;
         s.NextAttempt = a.NextAttempt; s.Nick = a.Nick; s.Network = a.Network; s.IsAway = a.IsAway;
         s.HasHistory = a.HasHistory; s.HasTags = a.HasTags; s.IsEncrypted = a.IsEncrypted; s.LastRefusal = a.LastRefusal;
+        s.CanRedact = a.CanRedact; s.LoggedIn = a.LoggedIn;
 
         var support = new IrcSupport();
-        support.Apply([$"CHANTYPES={a.ChannelTypes}", $"PREFIX=({a.RankModes}){a.RankSymbols}"]);
+        support.Apply([$"CHANTYPES={a.ChannelTypes}", $"PREFIX=({a.RankModes}){a.RankSymbols}", .. a.ChannelModes.Length > 0 ? [$"CHANMODES={a.ChannelModes}"] : Array.Empty<string>()]);
         s.ShownSupport = support;
 
         s.PeopleMap.Clear();
@@ -868,6 +881,13 @@ public sealed partial class IrcService
             case "bans":       return JsonSerializer.Serialize(await BansAsync(session, a.Target, ct));
             case "liftban":    await LiftBanAsync(session, a.Target, a.Text, ct); break;
             case "inviteto":   await InviteAsync(session, a.Nick, a.Target, ct); break;
+            case "markread":   await TellServerReadAsync(session.Server.Id, a.Target, ct); break;
+            case "redact":     await RedactAsync(session, a.Target, a.ReplyTo, a.Text, ct); break;
+            case "modes":
+                var values = JsonSerializer.Deserialize<List<string>>(a.Secret.Length > 0 ? await TakeTypedLineAsync(a.Secret, ct) is { Length: > 0 } json ? json : "[]" : "[]") ?? [];
+                await SetModesAsync(session, a.Target, a.Text, values, ct);
+                break;
+            case "modelist":   return JsonSerializer.Serialize(await ModeListAsync(session, a.Target, a.Mode, ct));
             default:           throw new InvalidOperationException($"Nothing knows how to do {command.Kind}.");
         }
 

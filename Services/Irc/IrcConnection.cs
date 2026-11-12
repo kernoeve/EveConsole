@@ -209,6 +209,39 @@ public sealed class IrcConnection : IAsyncDisposable
         finally { _writeLock.Release(); }
     }
 
+    /// <summary>
+    /// Sends lines that belong together (a message of several lines: its BATCH and every line in it) in one go, after one
+    /// turn of the pace. ⚠️ Not a line a second: a server gives up on a batch left open that long ("Corrupt BATCH"), and
+    /// one that takes such batches counts them as one message.
+    /// </summary>
+    public async Task SendAllAsync(IReadOnlyList<IrcMessage> messages, CancellationToken ct)
+    {
+        if (messages.Count == 0) return;
+        var lines = messages.Select(Fit).ToList();
+        var bytes = Encoding.UTF8.GetBytes(string.Concat(lines.Select(l => l + "\r\n")));
+
+        await _paceLock.WaitAsync(ct);
+        try { await WaitTurnAsync(ct); }
+        finally { _paceLock.Release(); }
+
+        await _writeLock.WaitAsync(ct);
+        try
+        {
+            var stream = _stream ?? throw new IrcException(IrcFailure.Network, "Not connected.");
+            try
+            {
+                await stream.WriteAsync(bytes, ct);
+                await stream.FlushAsync(ct);
+            }
+            catch (Exception e) when (e is IOException or ObjectDisposedException or SocketException)
+            {
+                throw new IrcException(IrcFailure.Network, e.Message, e);
+            }
+            foreach (var line in lines) Sent?.Invoke(line);
+        }
+        finally { _writeLock.Release(); }
+    }
+
     private async Task WaitTurnAsync(CancellationToken ct)
     {
         var now = DateTime.UtcNow;

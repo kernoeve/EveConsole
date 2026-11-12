@@ -263,6 +263,9 @@ public partial class GroupChatView : UserControl
             if (bans.Any(b => b.Mask == mask)) await vm.IrcLiftBanAsync(mask);
             else vm.SetStatus(GroupChatText.PickBanned);
         }));
+        // Its settings and lists, for an operator: a window of their own, as there are many.
+        if (vm.IrcChannelSettings() is { } settings && TopLevel.GetTopLevel(this) is Window host)
+            lines.Add(Line(IrcText.MenuChannelSettings, () => { IrcChannelSettingsWindow.ShowFor(settings, host); return Task.CompletedTask; }));
         lines.AddRange(new List<Control>
         {
             new Separator(),

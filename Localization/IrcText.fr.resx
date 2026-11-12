@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>Non connecté : le serveur n'accepte pas ce pseudo. Choisissez-en un autre dans Modifier.</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>Ce serveur ne permet pas de retirer des messages.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>Nommer fondateur</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>Retirer fondateur</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>Nommer administrateur</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>Retirer administrateur</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>Donner +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>Retirer +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>Paramètres du canal…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>Paramètres de {0}</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>Les modes du canal, tels que ce serveur les connaît. Les modifications partent quand vous appuyez sur Enregistrer ; les listes changent dès que vous ajoutez ou retirez une ligne. Le serveur refuse ce que votre rang ne permet pas et l’indique dans la discussion de groupe.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>Le serveur n’a pas encore indiqué comment ce canal est réglé : les cases cochées peuvent être incomplètes.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>Fermer</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>posé par {0}</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>Bannissements</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>Qui correspond à l’un de ceux-ci ne peut pas entrer (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>Exceptions de bannissement</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>Qui correspond à l’un de ceux-ci peut entrer même si un bannissement correspond aussi (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>Exceptions d’invitation</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>Qui correspond à l’un de ceux-ci peut entrer dans un canal sur invitation sans être invité (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>Interrogation du serveur…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>Rien dans cette liste.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@hôte — * correspond à tout</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>Mot de passe pour entrer</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>La clé du canal : seuls ceux qui la donnent peuvent entrer.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>Nouveau mot de passe</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>Afficher</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>Le canal a un mot de passe, jamais affiché. Tapez-en un nouveau pour le changer.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>L’enregistrement en fera le mot de passe pour entrer.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>L’enregistrement retire le mot de passe : tout le monde pourra entrer.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>Tapez le mot de passe nécessaire pour entrer.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>Un mot de passe de canal ne peut pas contenir d’espaces.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0} : donnez une valeur ou décochez-le.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0} : donnez un nombre entier.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>Sur invitation</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>Seuls les invités, ou ceux des exceptions d’invitation, peuvent entrer.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>Modéré</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>Seuls les opérateurs et ceux qui ont la parole peuvent parler.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>Pas de messages extérieurs</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>Seuls ceux qui sont dans le canal peuvent y envoyer des messages.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>Seuls les opérateurs changent le sujet</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>Les autres ne peuvent pas changer le sujet du canal.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>Secret</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>N’apparaît pas dans la liste des canaux du serveur, ni pour ceux de l’extérieur.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>Privé</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>Une forme ancienne de secret : visible dans les listes, mais pas qui s’y trouve.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>Comptes enregistrés seulement</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>Seuls ceux connectés à un compte peuvent entrer.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>Seuls les comptes enregistrés parlent</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>Ceux qui ne sont pas connectés à un compte peuvent entrer mais pas parler.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>Pas de CTCP</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>Les requêtes client (version, ping) vers le canal sont bloquées. /me fonctionne toujours.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>Pas de couleurs</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>Les messages avec des codes couleur sont bloqués ou nettoyés.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>Nombre maximal de personnes</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>Une fois ce nombre atteint, personne d’autre ne peut entrer.</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>Mode +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>Un réglage propre à ce serveur. Sa signification est dans l’aide du serveur.</value>
+  </data>
 </root>

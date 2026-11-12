@@ -326,24 +326,8 @@ public sealed partial class IrcService
                   : Connected(session).ModeAsync(channel, (give ? "+" : "-") + mode, nick);
 
     /// <summary>Who a channel bans. Empty when it will not say (not an operator), as the server's refusal says why.</summary>
-    public async Task<IReadOnlyList<IrcBan>> BansAsync(IrcSession session, string channel, CancellationToken ct = default)
-    {
-        if (!ActsHere)
-            return JsonSerializer.Deserialize<List<IrcBan>>(await AskWorkerAsync(session.Server.Id, "bans", new CommandArgs(channel), ct)) ?? [];
-        var client = Connected(session);
-        var done = new TaskCompletionSource<IReadOnlyList<IrcBan>>(TaskCreationOptions.RunContinuationsAsynchronously);
-        session.Locked(s => s.BansComing[s.Fold(channel)] = ([], done));
-        await client.ModeAsync(channel, "+b");
-
-        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
-        timeout.CancelAfter(TimeSpan.FromSeconds(15));
-        await using (timeout.Token.Register(() =>
-        {
-            session.Locked(s => s.BansComing.Remove(s.Fold(channel)));
-            done.TrySetResult([]);
-        }))
-            return await done.Task;
-    }
+    public Task<IReadOnlyList<IrcBan>> BansAsync(IrcSession session, string channel, CancellationToken ct = default) =>
+        ModeListAsync(session, channel, 'b', ct);
 
     public Task LiftBanAsync(IrcSession session, string channel, string mask, CancellationToken ct = default) =>
         !ActsHere ? AskWorkerAsync(session.Server.Id, "liftban", new CommandArgs(channel, mask), ct) : Connected(session).ModeAsync(channel, "-b", mask);
@@ -384,8 +368,87 @@ public sealed partial class IrcService
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         var changed = await db.IrcMessages.Where(m => m.ServerId == serverId && m.Conversation == conversation && !m.IsRead)
                               .ExecuteUpdateAsync(u => u.SetProperty(m => m.IsRead, true), ct);
-        if (changed > 0) { UnreadChanged?.Invoke(); Tell("unread"); }
+        if (changed == 0) return;
+        UnreadChanged?.Invoke();
+        Tell("unread");
+
+        // And the server, where it keeps read markers, so the account's other IRC clients (a phone) know too.
+        if (!ActsHere) await PostToWorkerAsync(serverId, "markread", new CommandArgs(conversation), ct);
+        else await TellServerReadAsync(serverId, conversation, ct);
     }
+
+    /// <summary>Tells the server a conversation is read up to its newest saved message. Nothing where it keeps no markers.</summary>
+    private async Task TellServerReadAsync(int serverId, string conversation, CancellationToken ct)
+    {
+        if (SessionOf(serverId) is not { State: IrcState.Connected, Client: { HasReadMarker: true } client }) return;
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var newest = await db.IrcMessages.AsNoTracking().Where(m => m.ServerId == serverId && m.Conversation == conversation)
+                             .OrderByDescending(m => m.Id).Select(m => m.SentAt).FirstOrDefaultAsync(ct);
+        if (newest is { Length: > 0 } && DateTimeOffset.TryParse(newest, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var at))
+            await client.MarkReadAsync(conversation, at, ct);
+    }
+
+    // ── Taking a message back ─────────────────────────────────────────────────
+
+    /// <summary>
+    /// Takes one of this person's messages back, for everyone (REDACT), where the server lets them. The server's echo of
+    /// it is what marks it taken back here, as for anyone else's.
+    /// </summary>
+    public async Task RedactAsync(IrcSession session, string target, string messageId, string reason = "", CancellationToken ct = default)
+    {
+        if (!ActsHere) { await AskWorkerAsync(session.Server.Id, "redact", new CommandArgs(target, reason, ReplyTo: messageId), ct); return; }
+        var client = Connected(session);
+        if (!client.HasRedact) throw new InvalidOperationException(Localization.IrcText.CannotRedact);
+        await client.RedactAsync(target, messageId, reason, ct);
+    }
+
+    // ── A channel's settings ──────────────────────────────────────────────────
+
+    /// <summary>
+    /// Changes a channel's settings in one go, as "+mi-t" with a value for each letter that takes one, in order. ⚠️ A
+    /// key is a password to join: asked of the worker apart from the request, as typed lines are.
+    /// </summary>
+    public async Task SetModesAsync(IrcSession session, string channel, string changes, IReadOnlyList<string> values, CancellationToken ct = default)
+    {
+        if (changes.Trim('+', '-').Length == 0) return;
+        if (!ActsHere)
+        {
+            var reference = TypedLineReference(Guid.NewGuid().ToString("N"));
+            await Task.Run(() => AppConfig.SetServicePassword(reference, JsonSerializer.Serialize(values)), ct);
+            try { await AskWorkerAsync(session.Server.Id, "modes", new CommandArgs(channel, changes, Secret: reference), ct); }
+            finally { await Task.Run(() => AppConfig.SetServicePassword(reference, null), CancellationToken.None); }
+            return;
+        }
+        await Connected(session).ModeAsync(channel, changes, [.. values]);
+    }
+
+    /// <summary>
+    /// One of a channel's lists: bans (b), ban exceptions (e), invite exceptions (I). Empty when the server will not say
+    /// (not an operator), as its refusal then says why.
+    /// </summary>
+    public async Task<IReadOnlyList<IrcBan>> ModeListAsync(IrcSession session, string channel, char list, CancellationToken ct = default)
+    {
+        if (!ActsHere)
+            return JsonSerializer.Deserialize<List<IrcBan>>(await AskWorkerAsync(session.Server.Id, "modelist", new CommandArgs(channel, Mode: list), ct)) ?? [];
+        var client = Connected(session);
+        var done = new TaskCompletionSource<IReadOnlyList<IrcBan>>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var key = ListKey(session, channel, list);
+        session.Locked(s => s.BansComing[key] = ([], done));
+        await client.ModeAsync(channel, "+" + list);
+
+        using var timeout = CancellationTokenSource.CreateLinkedTokenSource(ct);
+        timeout.CancelAfter(TimeSpan.FromSeconds(15));
+        await using (timeout.Token.Register(() =>
+        {
+            session.Locked(s => s.BansComing.Remove(key));
+            done.TrySetResult([]);
+        }))
+            return await done.Task;
+    }
+
+    /// <summary>Adds a mask to one of a channel's lists, or takes it off.</summary>
+    public Task SetListEntryAsync(IrcSession session, string channel, char list, string mask, bool add, CancellationToken ct = default) =>
+        SetModesAsync(session, channel, (add ? "+" : "-") + list, [mask], ct);
 
     /// <summary>Every direct conversation, with its last line and unread counts.</summary>
     public async Task<List<IrcDirectSummary>> DirectSummariesAsync(CancellationToken ct = default)

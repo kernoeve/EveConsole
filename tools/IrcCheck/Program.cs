@@ -8,6 +8,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Irc;
+using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
 var checks = 0;
@@ -242,6 +243,92 @@ try
     var said = await irc.SendAsync(session, "#fleet", "hello all");
     Check("my words come back from the server and are saved once, as mine", said == "" && await Wait(() => stored.Count(m => m.Body == "hello all" && m.IsOutgoing && m.MessageId.Length > 0) == 1));
 
+    // ── Channel settings (modes) ──
+    Check("a channel's settings are asked for on joining, and held", await Wait(() => session.ChannelOf("#fleet") is { ModesKnown: true } c
+        && c.Modes.ContainsKey('n') && c.Modes.ContainsKey('t') && c.Modes.GetValueOrDefault('l') == "25"),
+        string.Join(",", session.ChannelOf("#fleet")?.Modes.Select(x => x.Key + "=" + x.Value) ?? []));
+    fake.Push(":Bob!b@h MODE #fleet +mk-t sesame");
+    fake.Push(":Bob!b@h MODE #fleet +b-l *!*@spam.host");
+    Check("settings follow what is changed, lists and ranks apart", await Wait(() => session.ChannelOf("#fleet") is { } c
+        && c.Modes.ContainsKey('m') && !c.Modes.ContainsKey('t') && !c.Modes.ContainsKey('l') && !c.Modes.ContainsKey('b')),
+        string.Join(",", session.ChannelOf("#fleet")?.Modes.Select(x => x.Key + "=" + x.Value) ?? []));
+    Check("a key is held without its value: it is a password", session.ChannelOf("#fleet")!.Modes.GetValueOrDefault('k') == "");
+    var exceptions = await irc.ModeListAsync(session, "#fleet", 'e');
+    Check("a channel's ban exceptions read", exceptions is [{ Mask: "*!*@friend.host", SetBy: "Bob" }], string.Join(",", exceptions.Select(e => e.Mask)));
+    Check("an empty list is empty, and comes back", (await irc.ModeListAsync(session, "#fleet", 'I')).Count == 0);
+    await irc.SetModesAsync(session, "#fleet", "+i-m", []);
+    await irc.SetModesAsync(session, "#fleet", "+l", ["30"]);
+    await irc.SetListEntryAsync(session, "#fleet", 'e', "*!*@good.host", add: true);
+    Check("settings sent as MODE, values after the letters", await Wait(() => fake.Got.Contains("MODE #fleet +i-m") && fake.Got.Contains("MODE #fleet +l 30")
+        && fake.Got.Contains("MODE #fleet +e *!*@good.host")), string.Join(" | ", fake.Got.Where(l => l.StartsWith("MODE"))));
+    {
+        var vm = new IrcChannelSettingsVm(irc, session, "#fleet", session.Support, new Dictionary<char, string> { ['n'] = "", ['k'] = "", ['l'] = "25" }, true);
+        vm.Flags.First(f => f.Letter == 'i').IsOn = true;
+        vm.Flags.First(f => f.Letter == 'n').IsOn = false;
+        vm.Values.First(v => v.Letter == 'l').Value = "40";
+        vm.KeyOn = false;
+        var changes = vm.Changes();
+        Check("the settings window sends only what changed: flags together, each value on its own, a key taken off with a stand-in",
+            changes.Count == 3 && changes[0].Changes == "+i-n" && changes[0].Values.Count == 0 && changes[1].Changes == "+l" && changes[1].Values[0] == "40"
+            && changes[2].Changes == "-k" && changes[2].Values[0] == "*",
+            string.Join(" | ", changes.Select(c => c.Changes + " " + string.Join(",", c.Values))));
+        vm.KeyOn = true;
+        vm.NewKey = "two words";
+        Check("a key with a space in it is refused before sending", vm.Problem() is { Length: > 0 });
+    }
+
+    // ── Taking a message back (REDACT) ──
+    var changedSeen = 0;
+    irc.MessagesChanged += (_, conversation) => { if (conversation == "#fleet") changedSeen++; };
+    fake.Push("@msgid=r1;time=2026-11-09T11:00:00.000Z :Bob!b@h PRIVMSG #fleet :to be taken back");
+    fake.Push("@msgid=r2;time=2026-11-09T11:00:01.000Z :Carol!c@h PRIVMSG #fleet :removed by an operator");
+    await Wait(() => stored.Any(m => m.MessageId == "r2"));
+    fake.Push(":Bob!b@h REDACT #fleet r1");
+    fake.Push(":Bob!b@h REDACT #fleet r2 :off topic");
+    async Task<IrcStoredMessage?> Saved(string id) => (await irc.LoadConversationAsync(session.Server.Id, "#fleet")).FirstOrDefault(m => m.MessageId == id);
+    Check("taken back by who said it: words gone, place kept", await Wait(() => Saved("r1").Result is { Deleted: JabberDeleted.BySender, Body: "", IsRead: true }));
+    Check("taken back by an operator, with why", await Wait(() => Saved("r2").Result is { Deleted: JabberDeleted.ByModerator, DeletedReason: "off topic" }));
+    Check("the screens are told a conversation changed", changedSeen >= 2, changedSeen.ToString());
+    var myLine = stored.First(m => m.Body == "hello all" && m.IsOutgoing);
+    Check("this server lets messages be taken back", session.CanRedact);
+    await irc.RedactAsync(session, "#fleet", myLine.MessageId);
+    Check("taking one's own back sends REDACT, and the echo marks it", fake.Got.Contains("REDACT #fleet " + myLine.MessageId)
+        && await Wait(() => Saved(myLine.MessageId).Result is { Deleted: JabberDeleted.BySender }));
+    fake.Push("@batch=nosuch :Bob!b@h REDACT #fleet nosuchid");
+    fake.Push(":Bob!b@h REDACT #fleet");
+
+    // ── Several lines as one message (draft/multiline) ──
+    fake.Push("@msgid=ml1;time=2026-11-09T11:01:00.000Z :Bob!b@h BATCH +mb draft/multiline #fleet");
+    fake.Push("@batch=mb :Bob!b@h PRIVMSG #fleet :line one");
+    fake.Push("@batch=mb :Bob!b@h PRIVMSG #fleet :line two");
+    fake.Push("@batch=mb;draft/multiline-concat :Bob!b@h PRIVMSG #fleet : and on");
+    fake.Push(":Bob!b@h BATCH -mb");
+    Check("a message of several lines arrives as one, joined lines kept joined", await Wait(() => stored.Any(m => m is { MessageId: "ml1", Conversation: "#fleet", IsChannel: true } && m.Body == "line one\nline two and on")),
+        string.Join(" | ", stored.Where(m => m.Body.Contains("line")).Select(m => m.MessageId + ":" + m.Body.Replace("\n", "/"))));
+    Check("its lines are not saved one by one", !stored.Any(m => m.Body == "line one"));
+    fake.Push(":fake.server BATCH +hm chathistory #fleet");
+    fake.Push("@batch=hm;msgid=ml2;time=2026-11-08T08:00:00.000Z :Carol!c@h BATCH +in draft/multiline #fleet");
+    fake.Push("@batch=in :Carol!c@h PRIVMSG #fleet :old a");
+    fake.Push("@batch=in :Carol!c@h PRIVMSG #fleet :old b");
+    fake.Push("@batch=hm :fake.server BATCH -in");
+    fake.Push(":fake.server BATCH -hm");
+    Check("one inside history is history", await Wait(() => stored.Any(m => m is { MessageId: "ml2", Conversation: "#fleet" } && m.Body == "old a\nold b" && !m.IsAlert)));
+    var longLine = new string('x', 700);
+    await irc.SendAsync(session, "#fleet", "first\n\nsecond\n" + longLine);
+    Check("several lines sent as one batch, a long line in joined pieces",
+        fake.Got.Any(l => l.StartsWith("BATCH +") && l.EndsWith("draft/multiline #fleet")) && fake.Got.Any(l => l.Contains("draft/multiline-concat") && l.Contains("PRIVMSG #fleet"))
+        && fake.Got.Any(l => l.StartsWith("BATCH -")), string.Join(" | ", fake.Got.Where(l => l.Contains("BATCH") || l.Contains("batch=")).Take(8)));
+    Check("and saved once, as written", await Wait(() => stored.Count(m => m.IsOutgoing && m.Conversation == "#fleet" && m.Body == "first\n\nsecond\n" + longLine) == 1),
+        string.Join(" | ", stored.Where(m => m.IsOutgoing && m.Body.StartsWith("first")).Select(m => m.Body.Length + ":" + m.Body[..Math.Min(20, m.Body.Length)].Replace("\n", "/"))));
+    // ⚠️ A long line of words, cut between them: the pieces are joined again without a break, so each keeps its space.
+    var longWords = string.Join(' ', Enumerable.Range(1, 150).Select(i => "w" + i));
+    await irc.SendAsync(session, "#fleet", "start\n" + longWords);
+    Check("a long line among several comes back whole, no two words run together", await Wait(() => stored.Any(m => m.IsOutgoing && m.Body == "start\n" + longWords)),
+        string.Join(" | ", stored.Where(m => m.IsOutgoing && m.Body.StartsWith("start")).Select(m => m.Body.Length.ToString())));
+    var paced = System.Diagnostics.Stopwatch.StartNew();
+    await irc.SendAsync(session, "#fleet", string.Join('\n', Enumerable.Range(1, 20).Select(i => "row " + i)));
+    Check("a batch goes in one go, not a line a second: a server gives up on one left open", paced.Elapsed < TimeSpan.FromSeconds(4), paced.Elapsed.ToString());
+
     fake.Push(":Bob!b@h MODE #fleet -o+v Ann Ann");
     Check("modes applied", await Wait(() => session.ChannelOf("#fleet")!.Members.Values.Any(m => m.Nick == "Ann" && m.Ranks == "v")));
     fake.Push(":Bob!b@h NICK :Bobby");
@@ -310,6 +397,18 @@ try
     Check("unread by conversation", unread.Any(u => u.Conversation == "#fleet" && u.Mentions == 1) && unread.Any(u => u.Conversation == "bobby" && u.Alerts >= 1));
     await irc.MarkReadAsync(session.Server.Id, "#fleet");
     Check("read clears", !(await irc.UnreadAsync()).Any(u => u.Conversation == "#fleet"));
+    Check("and the server is told where it was read up to", await Wait(() => fake.Got.Any(l => l.StartsWith("MARKREAD #fleet timestamp="))),
+        string.Join(" | ", fake.Got.Where(l => l.StartsWith("MARKREAD"))));
+
+    // Read on another of the account's clients: the server says so, and it is read here.
+    fake.Push("@time=2026-11-09T12:00:00.000Z;msgid=rm1 :Eve!e@h PRIVMSG Ann :read elsewhere");
+    fake.Push("@time=2026-11-09T12:00:05.000Z;msgid=rm2 :Eve!e@h PRIVMSG Ann :not yet");
+    await Wait(() => stored.Any(m => m.MessageId == "rm2"));
+    fake.Push(":fake.server MARKREAD Eve timestamp=2026-11-09T12:00:00.000Z");
+    Check("a read marker from the server reads up to it, no further", await Wait(() => irc.LoadConversationAsync(session.Server.Id, "eve").Result is var eve
+        && eve.Any(m => m is { MessageId: "rm1", IsRead: true }) && eve.Any(m => m is { MessageId: "rm2", IsRead: false })));
+    fake.Push(":fake.server MARKREAD Eve *");
+    fake.Push(":fake.server MARKREAD Eve timestamp=not-a-time");
 
     {
         await using var throttling = new FakeIrc { ErrorOnFirstLogin = true };
@@ -442,6 +541,27 @@ try
         var listed = await view.ListChannelsAsync(seen);
         Check("relay: the server's channels, asked through the worker", listed.Any(l => l.Channel == "#ops" && l.People == 4 && l.Topic == "Ops chat"), listed.Count.ToString());
 
+        // The new ones: settings, lists, taking back, read markers.
+        Check("relay: the client shows the channel's settings, and that messages can be taken back", await Wait(() => seen.ChannelOf("#fleet") is { ModesKnown: true } c
+            && c.Modes.GetValueOrDefault('l') == "25") && seen.CanRedact && seen.Support.ModesA.Contains('e'),
+            string.Join(",", seen.ChannelOf("#fleet")?.Modes.Select(x => x.Key + "=" + x.Value) ?? []));
+        await view.SetModesAsync(seen, "#fleet", "+k", ["relay-key"]);
+        Check("relay: a key set through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Contains("MODE #fleet +k relay-key"); }));
+        relayFake.Push(":Ann!u@h MODE #fleet +k relay-key");
+        Check("relay: the client sees a key, never its value", await Wait(() => seen.ChannelOf("#fleet")?.Modes.ContainsKey('k') == true) && seen.ChannelOf("#fleet")!.Modes['k'] == "");
+        var relayExceptions = await view.ModeListAsync(seen, "#fleet", 'e');
+        Check("relay: a list asked through the worker", relayExceptions is [{ Mask: "*!*@friend.host" }], relayExceptions.Count.ToString());
+        var edited = 0;
+        view.MessagesChanged += (_, _) => Interlocked.Increment(ref edited);
+        await view.RedactAsync(seen, "#fleet", "r1");
+        Check("relay: taking a message back goes through the worker, and the client is told", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Contains("REDACT #fleet r1"); })
+            && await Wait(() => Volatile.Read(ref edited) > 0));
+        relayFake.Push("@msgid=mr1;time=2026-11-09T11:30:00.000Z :Bob!b@h PRIVMSG #fleet :read me");
+        await Wait(() => shown.Any(m => m.MessageId == "mr1"));
+        await view.MarkReadAsync(id, "#fleet");
+        Check("relay: reading on a client tells the server, through the worker", await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => l.StartsWith("MARKREAD #fleet timestamp=2026-11-09T11:30:00")); }),
+            string.Join(" | ", relayFake.Got.Where(l => l.StartsWith("MARKREAD"))));
+
         await view.SetRoomTypeAsync(seen, "#fleet", JabberRoomType.Intel);
         Check("relay: a channel's type reaches the connection", await Wait(() => held!.ChannelOf("#fleet")?.Channel.RoomType == JabberRoomType.Intel));
         await view.SetAlertModeAsync(seen, "#fleet", JabberRoomAlert.All);
@@ -484,7 +604,7 @@ try
 
         Check("relay: something did go through the tables between them", spy.Written.Any(w => w.Contains("#fleet", StringComparison.Ordinal)));
         Check("relay: no login, channel key or typed password went through them",
-            !spy.Written.Any(w => w.Contains("login-secret") || w.Contains("chan-key") || w.Contains("sekrit-pw")));
+            !spy.Written.Any(w => w.Contains("login-secret") || w.Contains("chan-key") || w.Contains("sekrit-pw") || w.Contains("relay-key")));
         Check("relay: every signal is something an older build can read", Volatile.Read(ref unreadableSignals) == 0);
 
         await worker.StandDownAsync();
@@ -584,6 +704,9 @@ sealed class FakeIrc : IAsyncDisposable
     public bool NoCaps { get; init; }
     public HashSet<string> Taken { get; init; } = [];
 
+    /// <summary>Where each conversation was read up to, as MARKREAD set it.</summary>
+    public System.Collections.Concurrent.ConcurrentDictionary<string, string> ReadMarks { get; } = new();
+
     /// <summary>The first connection is told ERROR while logging in, as a server throttling a quick reconnect does.</summary>
     public bool ErrorOnFirstLogin { get; init; }
 
@@ -639,7 +762,9 @@ sealed class FakeIrc : IAsyncDisposable
             if (welcomed || nick.Length == 0 || user.Length == 0 || capping) return;
             welcomed = true;
             Send($":fake.server 001 {nick} :Welcome");
-            Send($":fake.server 005 {nick} PREFIX=(ov)@+ CHANTYPES=# CASEMAPPING=rfc1459 NETWORK=Fake CHATHISTORY=100 MONITOR=10 :are supported");
+            // Logged in to an account, as a certificate would: what read markers are kept under.
+            if (!NoCaps) Send($":fake.server 900 {nick} {nick}!u@h ann :You are now logged in as ann");
+            Send($":fake.server 005 {nick} PREFIX=(ov)@+ CHANTYPES=# CASEMAPPING=rfc1459 NETWORK=Fake CHATHISTORY=100 MONITOR=10 CHANMODES=beI,k,l,imnst :are supported");
             Send($":fake.server 376 {nick} :End of MOTD");
         }
 
@@ -659,7 +784,7 @@ sealed class FakeIrc : IAsyncDisposable
                     if (NoCaps) { Send($":fake.server 421 * CAP :Unknown command"); break; }
                     capping = true;
                     Send(":fake.server CAP * LS * :server-time message-tags echo-message batch");
-                    Send(":fake.server CAP * LS :sasl=PLAIN draft/chathistory multi-prefix away-notify");
+                    Send(":fake.server CAP * LS :sasl=PLAIN draft/chathistory multi-prefix away-notify draft/message-redaction draft/read-marker draft/multiline=max-bytes=4096,max-lines=100");
                     break;
                 case "CAP" when m[0] == "REQ":
                     if (NakFirstRequest && !_nakked) { _nakked = true; Send($":fake.server CAP * NAK :{m.Last}"); break; }
@@ -729,6 +854,32 @@ sealed class FakeIrc : IAsyncDisposable
                     Send($":fake.server 367 {nick} {m[0]} *!*@bad.host Bob!b@h 1700000000");
                     Send($":fake.server 367 {nick} {m[0]} Spammer!*@*");
                     Send($":fake.server 368 {nick} {m[0]} :End of channel ban list");
+                    break;
+                case "MODE" when m.Params.Count == 1 && m[0].StartsWith('#'):
+                    Send($":fake.server 324 {nick} {m[0]} +ntl 25");
+                    break;
+                case "MODE" when m.Params.Count == 2 && m[1] == "+e":
+                    Send($":fake.server 348 {nick} {m[0]} *!*@friend.host Bob!b@h 1700000000");
+                    Send($":fake.server 349 {nick} {m[0]} :End of channel exception list");
+                    break;
+                case "MODE" when m.Params.Count == 2 && m[1] == "+I":
+                    Send($":fake.server 347 {nick} {m[0]} :End of channel invite list");
+                    break;
+                case "REDACT" when m.Params.Count >= 2:
+                    Send($":{nick}!u@h REDACT {m[0]} {m[1]}" + (m.Params.Count > 2 ? $" :{m[2]}" : ""));
+                    break;
+                case "MARKREAD":
+                    if (m.Params.Count > 1) ReadMarks[m[0]] = m[1];
+                    Send($":fake.server MARKREAD {m[0]} {ReadMarks.GetValueOrDefault(m[0], "*")}");
+                    break;
+                case "BATCH" when echo && m[0].StartsWith('+'):
+                    Send($"@msgid=e{Interlocked.Increment(ref _msgid)};time={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ} :{nick}!u@h BATCH {m[0]} {m[1]} {m[2]}");
+                    break;
+                case "BATCH" when echo:
+                    Send($":fake.server BATCH {m[0]}");
+                    break;
+                case "PRIVMSG" when echo && m.Tag("batch") is { } inBatch:
+                    Send($"@batch={inBatch}{(m.Tag("draft/multiline-concat") is null ? "" : ";draft/multiline-concat")} :{nick}!u@h PRIVMSG {m[0]} :{m.Last}");
                     break;
                 case "PRIVMSG" or "NOTICE" when echo:
                     Send($"@msgid=e{Interlocked.Increment(ref _msgid)};time={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ} :{nick}!u@h {m.Command} {m[0]} :{m.Last}");

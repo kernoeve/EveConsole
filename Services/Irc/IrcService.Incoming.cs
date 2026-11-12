@@ -28,8 +28,9 @@ public sealed partial class IrcService
         // events rather than as lines from a "HistServ"). Taken as live, an old JOIN of this person would say a channel
         // was joined: only what was said is read from history.
         // ⚠️ History batches only: a netsplit's batch of QUITs is live, and CHATHISTORY TARGETS arrives in a batch of its own.
+        // A message taken back while away is news from history too.
         var history = IsHistory(m);
-        if (history && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG")) return;
+        if (history && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG" or "REDACT")) return;
 
         var changed = false;
         switch (m.Command)
@@ -55,17 +56,23 @@ public sealed partial class IrcService
                 session.Locked(s => { if (s.InviteMap.Count < MostInvites) s.InviteMap[s.Fold(m[1])] = new IrcInvite(m[1], m.Nick); });
                 changed = true;
                 break;
-            case "367":   // me #channel mask [setter [time]]
+            // A channel's lists, a line each: me #channel mask [setter [time]]. Bans, ban exceptions, invite exceptions.
+            case "367" or "348" or "346":
+                var list = m.Command switch { "367" => 'b', "348" => 'e', _ => 'I' };
                 session.Locked(s =>
                 {
-                    if (s.BansComing.GetValueOrDefault(s.Fold(m[1])) is { Bans.Count: < 1000 } coming)
+                    if (s.BansComing.GetValueOrDefault(ListKey(s, m[1], list)) is { Bans.Count: < 1000 } coming)
                         coming.Bans.Add(new IrcBan(m[2], m.Params.Count > 3 ? m[3].Split('!')[0] : ""));
                 });
                 break;
-            case "368":
-                var bans = session.Locked(s => s.BansComing.Remove(s.Fold(m[1]), out var coming) ? coming : default);
+            case "368" or "349" or "347":
+                var ended = m.Command switch { "368" => 'b', "349" => 'e', _ => 'I' };
+                var bans = session.Locked(s => s.BansComing.Remove(ListKey(s, m[1], ended), out var coming) ? coming : default);
                 bans.Done?.TrySetResult(bans.Bans);
                 break;
+            case "324": changed = OnModesRead(session, client, m); break;
+            case "REDACT": await OnRedactAsync(session, client, m, ct); break;
+            case "MARKREAD" when m.Params.Count > 1: await OnReadMarkerAsync(session, client, m[0], m[1], ct); break;
             case "321": session.Locked(s => s.ListComing = []); break;
             case "322":
                 session.Locked(s =>
@@ -83,6 +90,8 @@ public sealed partial class IrcService
             case "TAGMSG": await OnTagsAsync(session, client, m, history, ct); break;
             case "CHATHISTORY" when m[0] == "TARGETS": await OnHistoryTargetAsync(session, client, m, ct); break;
             case "NICK" or "001": break;
+            case "900": session.LoggedIn = true; changed = true; break;
+            case "901": session.LoggedIn = false; changed = true; break;
 
             // Refusals: shown where they were asked for.
             case "403" or "405" or "471" or "473" or "474" or "475" or "476" or "477" or "489":
@@ -91,6 +100,9 @@ public sealed partial class IrcService
             case "401" or "404" or "406" or "441" or "442" or "443" or "481" or "482":
                 session.LastRefusal = (m.Params.Count > 2 ? m[1] + ": " : "") + m.Last;
                 changed = true;
+                break;
+            // A read marker refused is nothing to tell anyone: reading here goes on all the same.
+            case "FAIL" when m[0] == "MARKREAD":
                 break;
             case "FAIL":
                 session.LastRefusal = m.Last;
@@ -130,8 +142,14 @@ public sealed partial class IrcService
                 state.ServerName = channel;
                 state.Failure = "";
                 state.Members.Clear();
+                state.Modes.Clear();
+                state.ModesKnown = false;
                 s.InviteMap.Remove(key);
             });
+
+            // Its settings, which no server sends unasked: the answer is a 324. ⚠️ Not waited for: sending keeps a pace, and
+            // the lines after this one (who is in the channel) must not wait behind it.
+            _ = AskModesAsync(client, channel, ct);
             return true;
         }
 
@@ -146,6 +164,12 @@ public sealed partial class IrcService
         });
     }
 
+    private static async Task AskModesAsync(IrcClient client, string channel, CancellationToken ct)
+    {
+        try { await client.SendRawAsync(new IrcMessage("MODE", channel), ct); }
+        catch (Exception e) when (e is IrcException or OperationCanceledException or ObjectDisposedException) { }
+    }
+
     private bool OnLeave(IrcSession session, IrcClient client, string channel, string nick, (string By, string Reason)? kicked)
     {
         var key = session.Fold(channel);
@@ -157,6 +181,8 @@ public sealed partial class IrcService
             {
                 c.Joined = false;
                 c.Members.Clear();
+                c.Modes.Clear();
+                c.ModesKnown = false;
                 if (kicked is { } k) c.Failure = k.Reason.Length > 0 ? $"Kicked by {k.By}: {k.Reason}" : $"Kicked by {k.By}";
             }
             else c.Members.Remove(s.Fold(nick));
@@ -247,10 +273,43 @@ public sealed partial class IrcService
             {
                 if (ch is '+' or '-') { adding = ch == '+'; continue; }
                 var value = support.TakesValue(ch, adding) && next < m.Params.Count ? m.Params[next++] : "";
-                if (support.RankOfMode(ch) < 0 || value.Length == 0) continue;
-                if (c.Members.GetValueOrDefault(s.Fold(value)) is not { } member) continue;
-                member.Ranks = adding ? SortRanks(support, member.Ranks + ch) : member.Ranks.Replace(ch.ToString(), "");
+                if (support.RankOfMode(ch) >= 0)
+                {
+                    if (value.Length == 0 || c.Members.GetValueOrDefault(s.Fold(value)) is not { } member) continue;
+                    member.Ranks = adding ? SortRanks(support, member.Ranks + ch) : member.Ranks.Replace(ch.ToString(), "");
+                    continue;
+                }
+                SetMode(support, c, ch, adding, value);
             }
+            return true;
+        });
+    }
+
+    /// <summary>One setting of a channel set or taken off. Lists (bans and the like) are not held: they are read when asked for.</summary>
+    private static void SetMode(IrcSupport support, IrcChannelState c, char mode, bool adding, string value)
+    {
+        if (support.ModesA.Contains(mode)) return;
+        if (!adding) { c.Modes.Remove(mode); return; }
+        if (c.Modes.Count >= 64 && !c.Modes.ContainsKey(mode)) return;
+        c.Modes[mode] = mode == 'k' ? "" : value.Length > 200 ? value[..200] : value;
+    }
+
+    /// <summary>A channel's settings as the server holds them (324 me #channel +modes values...): all of them, replacing what was held.</summary>
+    private static bool OnModesRead(IrcSession session, IrcClient client, IrcMessage m)
+    {
+        var support = client.Support;
+        return session.Locked(s =>
+        {
+            if (s.ChannelMap.GetValueOrDefault(s.Fold(m[1])) is not { } c) return false;
+            c.Modes.Clear();
+            var next = 3;
+            foreach (var ch in m[2])
+            {
+                if (ch is '+' or '-') continue;
+                var value = support.TakesValue(ch, true) && next < m.Params.Count ? m.Params[next++] : "";
+                if (support.RankOfMode(ch) < 0) SetMode(support, c, ch, true, value);
+            }
+            c.ModesKnown = true;
             return true;
         });
     }
@@ -478,6 +537,65 @@ public sealed partial class IrcService
             Reacted(session.Server.Id, conversation);
     }
 
+    /// <summary>
+    /// A message taken back (REDACT target msgid [reason]): its words gone, its place kept, saying who took it back, as
+    /// Jabber's are. Taken back while still unread, it no longer asks to be read.
+    /// </summary>
+    private async Task OnRedactAsync(IrcSession session, IrcClient client, IrcMessage m, CancellationToken ct)
+    {
+        var target = m[0];
+        var msgid = m[1];
+        if (target.Length == 0 || msgid.Length == 0) return;
+        var isChannel = client.Support.IsChannel(target);
+        var conversation = isChannel ? session.Fold(target) : session.Fold(client.IsFromMe(m) ? target : m.Nick);
+        var reason = m.Params.Count > 2 ? StripFormatting(m[2]) : "";
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var row = await db.IrcMessages.FirstOrDefaultAsync(x => x.ServerId == session.Server.Id && x.Conversation == conversation && x.MessageId == msgid, ct);
+        if (row is null || row.Deleted != JabberDeleted.No) return;
+
+        var wasUnread = !row.IsRead;
+        row.Deleted = client.Support.Same(row.Sender, m.Nick) ? JabberDeleted.BySender : JabberDeleted.ByModerator;
+        row.DeletedReason = reason.Length > 200 ? reason[..200] : reason;
+        row.Body = "";
+        row.IsRead = true;
+        row.IsAlert = false;
+        row.IsMention = false;
+        await db.SaveChangesAsync(ct);
+
+        Changed(session.Server.Id, conversation);
+        if (wasUnread) { UnreadChanged?.Invoke(); Tell("unread"); }
+    }
+
+    /// <summary>Saved messages of a conversation changed in place, here and on every client.</summary>
+    private void Changed(int server, string conversation)
+    {
+        MessagesChanged?.Invoke(server, conversation);
+        Tell("edited", server, conversation: conversation);
+    }
+
+    /// <summary>
+    /// Where a conversation was read up to (MARKREAD target timestamp=...), as the server keeps it for the account: read
+    /// on another client, so read here too. "*" means it has never been read anywhere, which changes nothing here.
+    /// </summary>
+    private async Task OnReadMarkerAsync(IrcSession session, IrcClient client, string target, string marker, CancellationToken ct)
+    {
+        if (!marker.StartsWith("timestamp=", StringComparison.Ordinal)) return;
+        if (!DateTimeOffset.TryParse(marker["timestamp=".Length..], CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out var upTo)) return;
+
+        var conversation = session.Fold(target);
+        var stamp = Stamp(upTo);
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var changed = await db.IrcMessages
+            .Where(x => x.ServerId == session.Server.Id && x.Conversation == conversation && !x.IsRead && string.Compare(x.SentAt, stamp) <= 0)
+            .ExecuteUpdateAsync(u => u.SetProperty(x => x.IsRead, true), ct);
+        if (changed > 0) { UnreadChanged?.Invoke(); Tell("unread"); }
+    }
+
+    /// <summary>A channel's list being read, by folded channel and the list's mode letter.</summary>
+    internal static string ListKey(IrcSession session, string channel, char list) => session.Fold(channel) + "\u0001" + list;
+
     private void Typed(int server, string conversation, string nick, bool typing)
     {
         TypingChanged?.Invoke(server, conversation, nick, typing);
@@ -521,6 +639,10 @@ public sealed partial class IrcService
         var target = m[1];
         if (target.Length == 0 || client.Support.IsChannel(target)) return;
         await CatchUpAsync(session, client, target, ct);
+
+        // And how far it was read on the account's other clients. A channel's comes by itself on joining.
+        try { await client.AskReadMarkerAsync(target, ct); }
+        catch (Exception e) when (e is IrcException or ObjectDisposedException) { }
     }
 
     /// <summary>Hands an intel channel's message to the intel parser. A failure here is the parser's loss, not the message's: that is saved.</summary>

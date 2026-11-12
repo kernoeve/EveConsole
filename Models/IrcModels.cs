@@ -149,6 +149,12 @@ public class IrcStoredMessage
 
     /// <summary>The nickname a direct message conversation is shown under, as last written.</summary>
     public string PeerName     { get; set; } = "";
+
+    /// <summary>See <see cref="JabberDeleted"/>: taken back (REDACT) by who said it, or by an operator. Its words are gone.</summary>
+    public int    Deleted      { get; set; }
+
+    /// <summary>Why it was taken back, where the one who did it said.</summary>
+    public string DeletedReason { get; set; } = "";
 }
 
 /// <summary>What sort of line: said, said as an action (/me), or a notice. Stored as the number: never renumber.</summary>

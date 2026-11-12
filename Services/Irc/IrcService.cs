@@ -35,6 +35,15 @@ public sealed class IrcChannelState(IrcChannel channel)
     public string Topic { get; set; } = "";
     public string TopicBy { get; set; } = "";
 
+    /// <summary>
+    /// The channel's settings as mode letters, sorted, with the value of each that has one (l: the most people). Not the
+    /// lists (bans and the like), nor ranks. ⚠️ A key (k) is held without its value: it is a password to join.
+    /// </summary>
+    public SortedDictionary<char, string> Modes { get; } = new();
+
+    /// <summary>The modes have been read from the server since joining (324), so what is held is all of them.</summary>
+    public bool ModesKnown { get; set; }
+
     /// <summary>Why the last join failed, or why this person was put out. Blank when nothing went wrong.</summary>
     public string Failure { get; set; } = "";
 
@@ -114,8 +123,20 @@ public sealed class IrcSession(IrcServer server)
     /// </summary>
     internal HashSet<string> Leaving { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>A channel's ban list being read (367 lines until 368), by folded channel.</summary>
+    /// <summary>
+    /// A channel's list being read, by folded channel and the list's mode letter (<see cref="IrcService.ListKey"/>): bans
+    /// (367 lines until 368), ban exceptions (348, 349) and invite exceptions (346, 347).
+    /// </summary>
     internal Dictionary<string, (List<IrcBan> Bans, TaskCompletionSource<IReadOnlyList<IrcBan>> Done)> BansComing { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>The server lets messages be taken back (REDACT): see <see cref="IrcClient.HasRedact"/>.</summary>
+    public bool CanRedact { get; internal set; }
+
+    /// <summary>
+    /// Logged in to an account. ⚠️ What a server goes by to know a message was this person's: one may refuse taking back
+    /// a message from someone not logged in, unless they are the channel's operator.
+    /// </summary>
+    public bool LoggedIn { get; internal set; }
 
     /// <summary>The last thing the server refused, for the screen to say (not being an operator, no such nick).</summary>
     public string LastRefusal { get; internal set; } = "";
@@ -192,6 +213,9 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     public event Action<int, string, string, bool>? TypingChanged;
 
     public event Action<int, string>? ReactionsChanged;
+
+    /// <summary>Saved messages of a conversation changed in place (one was taken back): server, conversation.</summary>
+    public event Action<int, string>? MessagesChanged;
 
     /// <summary>A line from an intel channel was saved, for the intel reader.</summary>
     public event Action? IntelLinesSaved;
@@ -444,6 +468,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.IsEncrypted = client.IsEncrypted;
         session.HasHistory = client.HasChatHistory;
         session.HasTags = client.HasTags;
+        session.CanRedact = client.HasRedact;
+        session.LoggedIn = client.LoggedInAs.Length > 0;
         // What was left before this connection: a JOIN of the last one cannot be on its way any more.
         session.Locked(s => s.Leaving.Clear());
         SetState(session, IrcState.Connected, IrcProblem.None, "");

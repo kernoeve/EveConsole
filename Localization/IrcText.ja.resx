@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>未接続：サーバーがこのニックネームを受け付けません。編集で別のものを選んでください。</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>このサーバーではメッセージを取り消せません。</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>創設者にする</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>創設者を外す</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>管理者にする</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>管理者を外す</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>+{0} を付ける</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>+{0} を外す</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>チャンネル設定…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} の設定</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>このサーバーにあるチャンネルのモードです。変更は「保存」を押したときに送信されます。リストは行を追加・削除した時点で変わります。権限で許されない変更はサーバーが拒否し、グループチャットに表示されます。</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>このチャンネルの設定はまだサーバーから届いていないため、チェックが足りない場合があります。</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>設定</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>閉じる</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>{0} が設定</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>BAN</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>いずれかに一致する人は参加できません (+b)。</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>BAN の例外</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>いずれかに一致する人は、BAN に一致していても参加できます (+e)。</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>招待の例外</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>いずれかに一致する人は、招待制のチャンネルに招待なしで参加できます (+I)。</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>サーバーに問い合わせ中…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>このリストは空です。</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — * は何にでも一致</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>参加用パスワード</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>チャンネルキー: これを入力した人だけが参加できます。</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>新しいパスワード</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>表示</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>このチャンネルにはパスワードがあります（表示はされません）。変更するには新しいものを入力してください。</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>保存すると、これが参加用パスワードになります。</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>保存するとパスワードが外れ、誰でも参加できます。</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>参加に必要なパスワードを入力してください。</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>チャンネルのパスワードに空白は使えません。</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: 値を入力するか、チェックを外してください。</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: 整数を入力してください。</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>招待制</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>招待された人、または招待の例外にある人だけが参加できます。</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>発言制限</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>オペレーターと発言権のある人だけが発言できます。</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>外部からのメッセージ禁止</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>チャンネルにいる人だけがメッセージを送れます。</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>トピック変更はオペレーターのみ</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>他の人はチャンネルのトピックを変更できません。</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>秘密</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>サーバーのチャンネル一覧にも、外部の人にも表示されません。</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>非公開</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>古い形式の秘密: 一覧には出ますが、誰がいるかは出ません。</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>登録アカウントのみ</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>アカウントにログインしている人だけが参加できます。</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>発言は登録アカウントのみ</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>アカウントにログインしていない人は参加できますが発言できません。</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>CTCP 禁止</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>チャンネルへのクライアント要求（バージョン、ping）を止めます。/me は使えます。</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>色禁止</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>色コード付きのメッセージは止められるか、色が外されます。</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>最大人数</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>この人数に達すると、それ以上は参加できません。</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>モード +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>このサーバー独自の設定です。意味はサーバーのヘルプにあります。</value>
+  </data>
 </root>

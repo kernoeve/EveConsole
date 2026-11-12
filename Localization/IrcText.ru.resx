@@ -172,4 +172,187 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>Не подключено: сервер не принимает этот ник. Выберите другой в «Изменить».</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>Этот сервер не позволяет отзывать сообщения.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>Сделать основателем</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>Снять основателя</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>Сделать администратором</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>Снять администратора</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>Дать +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>Снять +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>Настройки канала…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>Настройки {0}</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>Режимы канала в том виде, в каком они есть на этом сервере. Изменения отправляются по кнопке «Сохранить»; списки меняются сразу при добавлении или удалении строки. То, что не позволяет ваш ранг, сервер отклонит и сообщит об этом в групповом чате.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>Сервер ещё не сообщил настройки канала, поэтому отмеченное может быть неполным.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>установил {0}</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>Баны</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>Тот, кто подходит под одну из этих масок, не может войти (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>Исключения из банов</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>Тот, кто подходит под одну из этих масок, может войти, даже если подходит и под бан (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>Исключения приглашений</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>Тот, кто подходит под одну из этих масок, может войти в канал только по приглашению без приглашения (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>Запрос к серверу…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>Список пуст.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — * подходит подо что угодно</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>Пароль для входа</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>Ключ канала: войти может только тот, кто его укажет.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>Новый пароль</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>Показать</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>У канала есть пароль, он никогда не показывается. Введите новый, чтобы изменить.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>После сохранения это станет паролем для входа.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>После сохранения пароль будет снят: войти сможет любой.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>Введите пароль, который понадобится для входа.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>Пароль канала не может содержать пробелы.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: укажите значение или снимите отметку.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: укажите целое число.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>Только по приглашению</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>Войти могут только приглашённые или те, кто в исключениях приглашений.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>Модерируемый</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>Говорить могут только операторы и те, у кого есть голос.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>Без сообщений извне</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>Писать в канал могут только находящиеся в нём.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>Тему меняют только операторы</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>Остальные не могут менять тему канала.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>Секретный</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>Не показывается в списке каналов сервера и посторонним.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>Частный</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>Старый вид секретности: виден в списках, но не видно, кто внутри.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>Только зарегистрированные</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>Войти могут только вошедшие в учётную запись.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>Говорят только зарегистрированные</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>Не вошедшие в учётную запись могут войти, но не говорить.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>Без CTCP</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>Запросы клиентов (версия, ping) в канал блокируются. /me работает.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>Без цветов</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>Сообщения с цветовыми кодами блокируются или очищаются.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>Наибольшее число людей</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>Когда внутри столько людей, больше никто не войдёт.</value>
+  </data>
+  <data name="ModeOther" xml:space="preserve">
+    <value>Режим +{0}</value>
+  </data>
+  <data name="ModeOtherTip" xml:space="preserve">
+    <value>Настройка, которая есть только на этом сервере. Её смысл — в справке сервера.</value>
+  </data>
 </root>
