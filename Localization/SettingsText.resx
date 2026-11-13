@@ -5174,4 +5174,120 @@ The application will restart.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purge group chat older than</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connector</value>
+    <comment>Settings window, tab header for the connector settings.</comment>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connector</value>
+    <comment>Settings, Connector tab, section title.</comment>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Optional. A connector is a separate program that links EVE Console to services your corporation or alliance runs, such as the site where members register their characters. You run it yourself, usually on this PC, or your corporation may host one for its members. Without one, EVE Console works as it always has.</value>
+    <comment>Settings, Connector tab, explanation under the title.</comment>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>On a database shared by several PCs, the background worker refreshes from the connector every half hour. Run the connector where the worker runs, or where every PC can reach it. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, second note: where to run the connector on a shared database.</comment>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Connector address</value>
+    <comment>Settings, Connector tab, label above the address box.</comment>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Connect with EVE</value>
+    <comment>Settings, Connector tab, button that opens EVE's sign-in to connect.</comment>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Refresh Now</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Not connected.</value>
+    <comment>Settings, Connector tab, status.</comment>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Connected to {0} as {1}.</value>
+    <comment>Settings, Connector tab, status. {0} is the connector's name, {1} the character's name.</comment>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Connected.</value>
+    <comment>Settings, Connector tab, status after connecting.</comment>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Linked characters: {0:N0} accounts, {1:N0} characters, last updated {2}.</value>
+    <comment>Settings, Connector tab, what is stored. {0} accounts, {1} characters, {2} the date and time of the last update.</comment>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>This connector offers nothing this version of EVE Console uses.</value>
+    <comment>Settings, Connector tab, the connector answered but offers nothing this build uses.</comment>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Updated.</value>
+    <comment>Settings, Connector tab, after Refresh Now stored new data.</comment>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Already up to date.</value>
+    <comment>Settings, Connector tab, after Refresh Now found nothing new.</comment>
+  </data>
+  <data name="ConnectorPageConnectedBody" xml:space="preserve">
+    <value>{0} is now connected to {1}.</value>
+    <comment>Browser page after connecting. {0} is the character's name, {1} the connector's name.</comment>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Enter the connector's full address, starting with http:// or https://.</value>
+    <comment>Settings, Connector tab, the address typed is not a web address.</comment>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Use https:// for a connector on another device. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, http:// was used for another device.</comment>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>The connector at {0} could not be reached.</value>
+    <comment>Settings, Connector tab, error. {0} is the connector's host and port.</comment>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} did not answer as a connector.</value>
+    <comment>Settings, Connector tab, error. {0} is the host and port that answered.</comment>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>This connector needs a newer version of EVE Console.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrNotAvailable" xml:space="preserve">
+    <value>Connecting to a connector is not available in this build of EVE Console.</value>
+    <comment>Settings, Connector tab, error: this build cannot connect yet.</comment>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>The connector does not allow this character.</value>
+    <comment>Settings, Connector tab, error: the connector refused the character.</comment>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>The connector could not confirm your EVE sign-in. Try again.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>The connector could not reach the service it reads from. It will be tried again.</value>
+    <comment>Settings, Connector tab, error: the connector's own source is down.</comment>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>The connector no longer accepts this connection. Connect again.</value>
+    <comment>Settings, Connector tab, error: the connector no longer knows the key.</comment>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>The connector's linked characters were not stored: {0}</value>
+    <comment>Settings, Connector tab, error. {0} is the reason, in English.</comment>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>The connector answered with an error ({0}).</value>
+    <comment>Settings, Connector tab, error. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>The connector did not understand EVE Console's request. One of them may need updating.</value>
+    <comment>Settings, Connector tab, error: the connector did not understand the request.</comment>
+  </data>
 </root>

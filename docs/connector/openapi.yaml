@@ -1,0 +1,186 @@
+openapi: 3.0.3
+info:
+  title: EVE Console connector interface
+  version: "1"
+  description: |
+    What EVE Console asks of a connector. See README.md beside this file for connecting, checking the
+    EVE token, keys, and errors.
+servers:
+  - url: http://localhost:5054
+    description: A connector on the same PC (suggested default port)
+security:
+  - connectorKey: []
+paths:
+  /v1/info:
+    get:
+      summary: What this is, and which interface versions it speaks
+      security: []
+      responses:
+        "200":
+          description: A connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Info"
+  /v1/auth/eve:
+    post:
+      summary: Trade an EVE token from EVE Console's connector application for a key
+      description: |
+        The token has no scopes. Check it as README.md says, use it once, and never store it.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [accessToken]
+              properties:
+                accessToken:
+                  type: string
+                  description: The EVE SSO access token (a JWT)
+      responses:
+        "200":
+          description: Connected
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SignedIn"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/auth/sign-out:
+    post:
+      summary: End the key this call was made with
+      responses:
+        "204":
+          description: Ended
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/me:
+    get:
+      summary: Who the key is for, and what this connector offers them
+      responses:
+        "200":
+          description: The character and the capabilities it may use
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+  /v1/linked-characters:
+    get:
+      summary: Every account and its characters, as the connector's source has them
+      description: Capability `linked-characters`. The whole set; EVE Console replaces what it had for the source.
+      responses:
+        "200":
+          description: The links
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkedCharacters"
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    connectorKey:
+      type: http
+      scheme: bearer
+      description: The key from /v1/auth/eve
+  responses:
+    Error:
+      description: Refused
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+  schemas:
+    Info:
+      type: object
+      required: [interface, versions]
+      properties:
+        interface:
+          type: string
+          enum: [eveconsole.connector]
+        versions:
+          type: array
+          items: { type: integer }
+          example: [1]
+        name:
+          type: string
+          description: Shown to the user, e.g. "Example Corp Connector"
+    Character:
+      type: object
+      required: [id]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    SignedIn:
+      type: object
+      required: [key, character]
+      properties:
+        key:
+          type: string
+          description: At least 256 random bits. Shown once; the connector keeps only a hash.
+        character:
+          $ref: "#/components/schemas/Character"
+    Me:
+      type: object
+      required: [character, capabilities]
+      properties:
+        character:
+          $ref: "#/components/schemas/Character"
+        capabilities:
+          type: array
+          items: { type: string }
+          example: [linked-characters]
+    LinkedCharacters:
+      type: object
+      required: [format, version, source, generatedAt, accounts]
+      properties:
+        format:
+          type: string
+          enum: [eveconsole.linked-characters]
+        version:
+          type: integer
+          example: 1
+        source:
+          type: string
+          maxLength: 64
+        generatedAt:
+          type: string
+          format: date-time
+          description: When the connector read the links, not when it answered
+        accounts:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: integer, format: int64, minimum: 1 }
+              name: { type: string }
+              characters:
+                type: array
+                items:
+                  type: object
+                  required: [id]
+                  properties:
+                    id: { type: integer, format: int64, minimum: 1 }
+                    name: { type: string }
+                    main: { type: boolean, default: false }
+                    corporationId: { type: integer, format: int32, minimum: 0 }
+                    allianceId: { type: integer, format: int32, description: 0 or missing for none }
+                    tokenValid: { type: boolean }
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum: [bad_request, eve_token_invalid, not_signed_in, not_allowed, not_offered, eve_unavailable, source_unavailable]
+        message:
+          type: string
+          description: English, shown only for a code EVE Console does not know

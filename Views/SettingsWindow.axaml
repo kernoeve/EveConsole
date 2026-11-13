@@ -3103,6 +3103,61 @@
     </ScrollViewer>
   </TabItem>
 
+  <!-- ── Connector ─────────────────────────────────────────────────────── -->
+  <TabItem Header="{x:Static loc:SettingsText.TabConnector}" IsVisible="{Binding ConnectorVm, Converter={x:Static ObjectConverters.IsNotNull}}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.ConnectorTitle}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorNote}" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorSharedNote}" />
+
+        <StackPanel Spacing="8">
+          <TextBlock Text="{x:Static loc:SettingsText.ConnectorUrl}" FontSize="12" />
+          <TextBox Text="{Binding ConnectorVm.Url}" IsEnabled="{Binding ConnectorVm.CanEditUrl}"
+                   Watermark="http://localhost:5054/" MaxWidth="420" HorizontalAlignment="Left" Width="420" />
+
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{x:Static loc:SettingsText.ConnectorConnect}"
+                    Command="{Binding ConnectorVm.ConnectCommand}"
+                    IsVisible="{Binding ConnectorVm.CanConnect}"
+                    Padding="14 5" FontSize="12"
+                    Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.Cancel}"
+                    Command="{Binding ConnectorVm.CancelCommand}"
+                    IsVisible="{Binding ConnectorVm.IsConnecting}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.ConnectorRefreshNow}"
+                    Command="{Binding ConnectorVm.RefreshNowCommand}"
+                    IsVisible="{Binding ConnectorVm.CanRefresh}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                    BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.ConnectorDisconnect}"
+                    Command="{Binding ConnectorVm.DisconnectCommand}"
+                    IsVisible="{Binding ConnectorVm.CanDisconnect}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+          </StackPanel>
+          <TextBlock Text="{Binding ConnectorVm.Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" />
+          <TextBlock Text="{Binding ConnectorVm.Detail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding ConnectorVm.Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
   <!-- ── Alerts ────────────────────────────────────────────────────────── -->
   <TabItem Header="{x:Static loc:SettingsText.TabAlerts}">
     <ScrollViewer>

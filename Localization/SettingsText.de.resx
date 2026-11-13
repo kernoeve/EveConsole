@@ -3928,4 +3928,91 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Gruppenchat löschen, der älter ist als</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connector</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connector</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Optional. Ein Connector ist ein eigenes Programm, das EVE Console mit Diensten deiner Corporation oder Allianz verbindet, etwa der Seite, auf der Mitglieder ihre Charaktere registrieren. Du betreibst ihn selbst, meist auf diesem PC, oder deine Corporation stellt einen für ihre Mitglieder bereit. Ohne Connector funktioniert EVE Console wie bisher.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Bei einer Datenbank, die mehrere PCs teilen, aktualisiert der Hintergrund-Worker alle 30 Minuten aus dem Connector. Betreibe den Connector dort, wo der Worker läuft, oder dort, wo jeder PC ihn erreicht. Unverschlüsseltes http:// ist nur für einen Connector auf diesem PC erlaubt.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Connector-Adresse</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Mit EVE verbinden</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Nicht verbunden.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Mit {0} verbunden als {1}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Verbunden.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Verknüpfte Charaktere: {0:N0} Konten, {1:N0} Charaktere, zuletzt aktualisiert {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Dieser Connector bietet nichts an, was diese Version von EVE Console nutzt.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Aktualisiert.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Bereits aktuell.</value>
+  </data>
+  <data name="ConnectorPageConnectedBody" xml:space="preserve">
+    <value>{0} ist jetzt mit {1} verbunden.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Gib die vollständige Adresse des Connectors ein, beginnend mit http:// oder https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Verwende https:// für einen Connector auf einem anderen Gerät. Unverschlüsseltes http:// ist nur für einen Connector auf diesem PC erlaubt.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Der Connector unter {0} ist nicht erreichbar.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} hat nicht als Connector geantwortet.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Dieser Connector benötigt eine neuere Version von EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAvailable" xml:space="preserve">
+    <value>Die Verbindung zu einem Connector ist in diesem Build von EVE Console nicht verfügbar.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Der Connector lässt diesen Charakter nicht zu.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Der Connector konnte deine EVE-Anmeldung nicht bestätigen. Versuche es erneut.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Der Connector konnte den Dienst, aus dem er liest, nicht erreichen. Es wird erneut versucht.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Der Connector akzeptiert diese Verbindung nicht mehr. Verbinde dich erneut.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Die verknüpften Charaktere des Connectors wurden nicht gespeichert: {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Der Connector hat mit einem Fehler geantwortet ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Der Connector hat die Anfrage von EVE Console nicht verstanden. Eines von beiden muss vielleicht aktualisiert werden.</value>
+  </data>
 </root>

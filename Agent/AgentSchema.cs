@@ -105,6 +105,12 @@ public sealed class AgentSchema
     /// schema without standing up the application's container — a guard that needs the app running
     /// is a guard that does not run in CI.
     /// </summary>
+    /// <summary>
+    /// The shared preferences, never shown and refused by name (<see cref="Tools.Data.ReadOnlySql"/>): they hold
+    /// the keys for the online services and for a connector. What the agent needs from them it reads in code.
+    /// </summary>
+    public const string PreferencesTable = "AppPreferences";
+
     public static AgentSchema Build(AppDbContext db)
     {
         var tables = new Dictionary<string, List<Column>>(StringComparer.OrdinalIgnoreCase);
@@ -123,7 +129,8 @@ public sealed class AgentSchema
                 || table.StartsWith("Irc", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)
-                || table.StartsWith("Linked", StringComparison.OrdinalIgnoreCase)) continue;
+                || table.StartsWith("Linked", StringComparison.OrdinalIgnoreCase)
+                || table.Equals(PreferencesTable, StringComparison.OrdinalIgnoreCase)) continue;
 
             var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
             var columns = new List<Column>();

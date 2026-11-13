@@ -3934,4 +3934,91 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Удалять групповой чат старше</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Коннектор</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Коннектор</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Необязательно. Коннектор — это отдельная программа, которая связывает EVE Console со службами вашей корпорации или альянса, например с сайтом, где участники регистрируют своих персонажей. Вы запускаете его сами, обычно на этом ПК, или ваша корпорация может развернуть его для своих участников. Без коннектора EVE Console работает как прежде.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Если базу данных используют несколько ПК, фоновый обработчик обновляет данные из коннектора каждые полчаса. Запускайте коннектор там, где работает обработчик, или там, где до него может достучаться каждый ПК. Обычный http:// разрешён только для коннектора на этом ПК.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Адрес коннектора</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Подключиться через EVE</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Не подключено.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Подключено к {0} как {1}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Подключено.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Связанные персонажи: аккаунтов {0:N0}, персонажей {1:N0}, обновлено {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Этот коннектор не предлагает ничего, что использует эта версия EVE Console.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Обновлено.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Уже актуально.</value>
+  </data>
+  <data name="ConnectorPageConnectedBody" xml:space="preserve">
+    <value>{0} теперь подключён к {1}.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Введите полный адрес коннектора, начиная с http:// или https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Для коннектора на другом устройстве используйте https://. Обычный http:// разрешён только для коннектора на этом ПК.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с коннектором по адресу {0}.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} не ответил как коннектор.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Этому коннектору нужна более новая версия EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAvailable" xml:space="preserve">
+    <value>Подключение к коннектору недоступно в этой сборке EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Коннектор не допускает этого персонажа.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Коннектор не смог подтвердить ваш вход в EVE. Попробуйте ещё раз.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Коннектор не смог связаться со службой, из которой читает данные. Попытка будет повторена.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Коннектор больше не принимает это подключение. Подключитесь снова.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Связанные персонажи коннектора не сохранены: {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Коннектор ответил ошибкой ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Коннектор не понял запрос EVE Console. Возможно, одно из них нужно обновить.</value>
+  </data>
 </root>

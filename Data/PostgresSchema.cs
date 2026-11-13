@@ -1265,7 +1265,7 @@ public static class PostgresSchema
             CONSTRAINT "PK_MumbleDirectMessages" PRIMARY KEY ("Id")
         )
         """,
-        // Which characters are one player's, imported from a file: see LinkedCharacterImportService.
+        // Which characters are one player's, as a connector last gave them: see LinkedCharacterStore.
         """
         CREATE TABLE IF NOT EXISTS "LinkedSources" (
             "Source"      TEXT        NOT NULL,

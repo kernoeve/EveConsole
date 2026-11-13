@@ -3928,4 +3928,91 @@ L'application va redémarrer.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purger les discussions de groupe de plus de</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connecteur</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connecteur</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Facultatif. Un connecteur est un programme distinct qui relie EVE Console aux services gérés par votre corporation ou alliance, comme le site où les membres enregistrent leurs personnages. Vous l'exécutez vous-même, généralement sur ce PC, ou votre corporation peut en héberger un pour ses membres. Sans connecteur, EVE Console fonctionne comme avant.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Sur une base de données partagée par plusieurs PC, le processus d'arrière-plan se met à jour depuis le connecteur toutes les demi-heures. Exécutez le connecteur là où tourne ce processus, ou là où chaque PC peut l'atteindre. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Adresse du connecteur</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Se connecter avec EVE</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Déconnecter</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Actualiser maintenant</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Non connecté.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Connecté à {0} en tant que {1}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Connecté.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Personnages liés : {0:N0} comptes, {1:N0} personnages, dernière mise à jour {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose rien que cette version d'EVE Console utilise.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Mis à jour.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Déjà à jour.</value>
+  </data>
+  <data name="ConnectorPageConnectedBody" xml:space="preserve">
+    <value>{0} est maintenant connecté à {1}.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Saisissez l'adresse complète du connecteur, commençant par http:// ou https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Utilisez https:// pour un connecteur sur un autre appareil. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Le connecteur à l'adresse {0} est injoignable.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} n'a pas répondu comme un connecteur.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Ce connecteur nécessite une version plus récente d'EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAvailable" xml:space="preserve">
+    <value>La connexion à un connecteur n'est pas disponible dans cette version d'EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Le connecteur n'autorise pas ce personnage.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Le connecteur n'a pas pu confirmer votre connexion EVE. Réessayez.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Le connecteur n'a pas pu joindre le service qu'il lit. Une nouvelle tentative aura lieu.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Le connecteur n'accepte plus cette connexion. Reconnectez-vous.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Les personnages liés du connecteur n'ont pas été enregistrés : {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Le connecteur a répondu par une erreur ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Le connecteur n'a pas compris la requête d'EVE Console. L'un des deux doit peut-être être mis à jour.</value>
+  </data>
 </root>

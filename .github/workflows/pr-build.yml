@@ -131,9 +131,10 @@ jobs:
       - name: Battle report check
         run: dotnet run --project tools/BattleReportCheck/BattleReportCheck.csproj -c Release
 
-      # ⚠️ Does a file of linked characters import exactly what it says, and nothing for an install
-      # without one? An import that keeps a character the file dropped, lets an older copy put back
-      # old links, or takes half of a file it should refuse all leave tables that look fine.
+      # ⚠️ Does a connector's answer store exactly what it says, and nothing for an install that never
+      # connects? A store that keeps a character the answer dropped, lets an older answer put back old
+      # links, or drops the cache when the connector blinks leaves tables that look fine. Also: the EVE
+      # token sent once and never again, and plain http refused for anything but this PC.
       - name: Linked characters check
         run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release
 
@@ -278,10 +279,10 @@ jobs:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSchemaCheck/PgSchemaCheck.csproj -c Release
 
-      # The same import on PostgreSQL, where its tables come from PostgresSchema's own statements
+      # The same check on PostgreSQL, where its tables come from PostgresSchema's own statements
       # and its times are TIMESTAMPTZ. It makes a database of its own on the worker's server and
       # drops it after; --require-pg makes a server it cannot use a failure, not a skip.
-      - name: Linked characters import on PostgreSQL
+      - name: Linked characters on PostgreSQL
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release -- --require-pg

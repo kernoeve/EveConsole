@@ -3,8 +3,8 @@ namespace EveConsole.Models;
 // ─────────────────────────────────────────────────────────────────────────────
 //  Linked characters: which characters belong to the same player, and which of them is the
 //  main. EVE has no such link, so it can only come from somewhere players register their
-//  characters, read by a tool outside EVE Console and handed over as a file — see
-//  LinkedCharacterImportService for the file and how it is read.
+//  characters, asked by a connector the user runs — see ConnectorService for asking, and
+//  LinkedCharacterStore for what is kept.
 //
 //  ⚠️ Only the CURRENT links. Each import replaces everything one source said before, so a
 //  character moved to another account is simply under that account now, and a character the

@@ -3925,4 +3925,91 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>清除早于以下天数的群聊</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>连接器</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>连接器</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>可选。连接器是一个独立程序，用于把 EVE Console 连接到你的军团或联盟运行的服务，例如成员登记角色的网站。通常由你自己在这台电脑上运行，也可以由军团为成员托管。没有连接器时，EVE Console 照常工作。</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>当数据库由多台电脑共享时，后台工作进程每半小时从连接器刷新一次。请在后台工作进程所在的电脑上运行连接器，或放在每台电脑都能访问的位置。未加密的 http:// 只允许用于本机上的连接器。</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>连接器地址</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>通过 EVE 连接</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>断开连接</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>立即刷新</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>未连接。</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>已以 {1} 的身份连接到 {0}。</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>已连接。</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>关联角色：{0:N0} 个账户，{1:N0} 个角色，最后更新于 {2}。</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>此连接器不提供此版本 EVE Console 使用的任何功能。</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>已更新。</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>已是最新。</value>
+  </data>
+  <data name="ConnectorPageConnectedBody" xml:space="preserve">
+    <value>{0} 现已连接到 {1}。</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>请输入连接器的完整地址，以 http:// 或 https:// 开头。</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>其他设备上的连接器请使用 https://。未加密的 http:// 只允许用于本机上的连接器。</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>无法访问位于 {0} 的连接器。</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} 没有以连接器身份响应。</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>此连接器需要更新版本的 EVE Console。</value>
+  </data>
+  <data name="ConnectorErrNotAvailable" xml:space="preserve">
+    <value>此版本的 EVE Console 构建不支持连接到连接器。</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>连接器不允许此角色。</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>连接器无法确认你的 EVE 登录。请重试。</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>连接器无法访问其读取数据的服务。稍后会重试。</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>连接器不再接受此连接。请重新连接。</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>未保存连接器提供的关联角色：{0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>连接器返回了错误（{0}）。</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>连接器无法理解 EVE Console 的请求。两者之一可能需要更新。</value>
+  </data>
 </root>
