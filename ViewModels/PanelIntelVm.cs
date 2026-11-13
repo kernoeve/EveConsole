@@ -249,6 +249,16 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         _shownId = id;
         _shownSystem = own?.SystemId;
 
+        // No client on this monitor, or one whose character isn't in the app: there is nobody to measure
+        // from, so every row would be from anywhere, past any range. None is shown; the note says why.
+        // (A character whose system isn't known yet still lists the newest anywhere, as its footer says.)
+        if (id is null)
+        {
+            Interlocked.Increment(ref _projection);
+            Show(snapshot, IntelView.Empty, name, null, null, Clock());
+            return;
+        }
+
         var viewer = new IntelViewer
         {
             Origins = own is null ? [] : [new IntelOrigin(own.CharacterId, own.SystemId)],
@@ -324,17 +334,17 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
             ? (id is null ? "" : IntelText.PanelWhereUnknown)
             : string.Format(culture, IntelText.PanelIn, snapshot.SystemName(own.SystemId));
 
-        // Why the list is empty, when it is.
+        // Why the list is empty, only when it is.
         NoteOpensChatLogs = false;
         string note;
-        if (name is null) note = IntelText.PanelNoClient;
+        if (fresh.Count > 0) note = "";
+        else if (name is null) note = IntelText.PanelNoClient;
         else if (id is null) note = string.Format(culture, IntelText.PanelNotInApp, name);
-        else if (!snapshot.Settings.HasIntelChannels && fresh.Count == 0)
+        else if (!snapshot.Settings.HasIntelChannels)
         {
             note = IntelText.PanelNoChannels;
             NoteOpensChatLogs = OpenChatLogSettings is not null;
         }
-        else if (fresh.Count > 0) note = "";
         else if (snapshot.Version == 0) note = IntelText.PanelReading;
         else if (own is null) note = string.Format(culture, IntelText.PanelNothingAnywhere, name);
         else note = string.Format(culture, IntelText.PanelNothingWithin, Range, name);

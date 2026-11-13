@@ -3,8 +3,10 @@
 // report's words without the system's name it starts with; a camp as new as its last kill; the jump bands, the
 // "…" while a walk is not ready, and what lights a row. Every name and id here is invented.
 using System.Globalization;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using EveConsole.Services.ClientLayouts;
 using EveConsole.Services.Intel;
 using EveConsole.ViewModels;
 
@@ -132,6 +134,25 @@ namespace EveConsole.Tools.IntelCheck
                 string.Join(",", camp.Pictures.Select(p => p.Text)));
             c.Check("panel: a camp says which gate", camp.TailText == "near the QZ-X77 gate", camp.TailText);
 
+            // The camp's line spans the camp: from its last kill to the camp's end, not from when it formed.
+            var gateCamp = snapshot.Camps.Single();
+            var campEvent = snapshot.Feed.Single(e => e.Kind == IntelEventKind.CampFormed);
+            c.Check("panel: a camp's line is dated by its last kill and ends with the camp",
+                campEvent.At == gateCamp.LastKill && campEvent.ExpiresAt == gateCamp.ExpiresAt && gateCamp.FormedAt < gateCamp.LastKill,
+                $"at {campEvent.At:HH:mm} ends {campEvent.ExpiresAt:HH:mm}, camp formed {gateCamp.FormedAt:HH:mm} ends {gateCamp.ExpiresAt:HH:mm}");
+            // Past the camp lifetime after it formed, but not after its last kill: the camp is still on.
+            var life = gateCamp.ExpiresAt - gateCamp.LastKill;
+            var stillOn = gateCamp.FormedAt + life + TimeSpan.FromMinutes(1);
+            var lateView = IntelLens.Project(snapshot, viewer, stillOn, _ => hops);
+            c.Check("panel: a camp still on is still one row, past the lifetime from when it formed",
+                stillOn < gateCamp.ExpiresAt && lateView.Feed.Any(r => r.Event.Kind == IntelEventKind.CampFormed));
+            var lateCamp = new IntelEventRowVm(lateView.Feed.First(r => r.Event.Kind == IntelEventKind.CampFormed), snapshot, stillOn, false);
+            c.Check("panel: and it fades from its last kill, not from when it formed",
+                lateCamp.Opacity == IntelLens.Opacity(gateCamp.LastKill, life, stillOn) && lateCamp.Opacity > IntelLens.ExpiredOpacity,
+                lateCamp.Opacity.ToString(CultureInfo.InvariantCulture));
+            var afterEnd = IntelLens.Project(snapshot, viewer, gateCamp.ExpiresAt, _ => hops);
+            c.Check("panel: and gone when the camp ends", afterEnd.Feed.All(r => r.Event.Kind != IntelEventKind.CampFormed));
+
             c.Check("panel: nothing past the range (30 jumps)", view.Feed.All(r => r.Event.SystemId != Gone));
             var waiting = Row(r => r.Event.ReportId == two.Id, pending: true);
             c.Check("panel: a walk not ready yet shows its jumps as they were given", waiting.JumpsText == "0");
@@ -147,6 +168,20 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("panel: ages read as now, seconds, minutes, hours",
                 IntelWords.Age(Now, Now) == "now" && IntelWords.Age(Ago(0.75), Now) == "45 s"
                 && IntelWords.Age(Ago(65), Now) == "1 h 5 min", IntelWords.Age(Ago(65), Now));
+
+            // Nobody to measure from: no rows from anywhere, just the note saying why.
+            var focus = new MonitorFocus();
+            var panel = new PanelIntelVm(null, null, [], focus, "M1", null) { Clock = () => Now };
+            panel.Apply(snapshot);
+            c.Check("panel: with no client on the monitor, no rows, only the note",
+                panel.Rows.Count == 0 && panel.Note == IntelText.PanelNoClient && !panel.HasNearest,
+                $"rows={panel.Rows.Count} note={panel.Note}");
+            focus.Update([new ClientOnMonitor(1, "M1", false, "Pilot Z")]);
+            panel.Start();
+            c.Check("panel: with a client whose character is not in the app, no rows, only the note",
+                panel.Rows.Count == 0 && panel.Note == string.Format(CultureInfo.CurrentCulture, IntelText.PanelNotInApp, "Pilot Z"),
+                $"rows={panel.Rows.Count} note={panel.Note}");
+            panel.Dispose();
         }
     }
 }

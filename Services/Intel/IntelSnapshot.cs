@@ -413,8 +413,11 @@ public static class IntelSnapshotBuilder
         {
             var attackers = c.Attackers.Select(a => new IntelEventPilot(
                 a.CharacterId, NameOf(a.CharacterId, null), a.ShipTypeId, ShipOf(a.ShipTypeId, null), a.CorporationId, a.AllianceId)).ToList();
+            // The camp's line spans the camp: as new as its last kill, lasting until the camp ends (the
+            // camp lifetime after that kill), so it sorts, ages, fades and goes with the camp rather than
+            // with when it formed. The key keeps the camp's identity.
             feed.Add(new IntelEvent(
-                "c" + c.Key, IntelEventKind.CampFormed, c.FormedAt, s.Camp, c.SystemId, IntelSnapshot.SourceKills,
+                "c" + c.Key, IntelEventKind.CampFormed, c.LastKill, c.ExpiresAt - c.LastKill, c.SystemId, IntelSnapshot.SourceKills,
                 attackers, 0, (int)IntelRules.IntelFlags.Camp, false, false,
                 AttackerCount: attackers.Count, TopHullTypeIds: [.. c.AttackerShipTypeIds.Take(3)],
                 NearGate: new IntelGateNear(c.StargateId, c.GateSystemId, 0), CampKey: c.Key));
