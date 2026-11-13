@@ -249,7 +249,10 @@ public sealed class IntelCampRegister
             foreach (var list in _byGate.Values)
                 foreach (var e in list) e.Seen = false;
 
-            var camps = new List<GateCamp>();
+            // ⚠️ One camp per episode. Two clusters on one gate (the detector splits kills a quiet spell
+            // apart) can both continue the same episode; read as two camps they shared one key, and every
+            // view keyed by it failed on the duplicate. They are one camp, so they are joined.
+            var seen = new List<(Episode Episode, List<IntelCampCluster> Clusters)>();
             foreach (var c in clusters.OrderBy(c => c.FirstKill))
             {
                 if (!_byGate.TryGetValue(c.StargateId, out var episodes)) _byGate[c.StargateId] = episodes = [];
@@ -261,15 +264,17 @@ public sealed class IntelCampRegister
                 }
                 if (c.LastKill > episode.LastKill) episode.LastKill = c.LastKill;
                 if (c.FirstKill < episode.Start)   episode.Start    = c.FirstKill;
-                if (!episode.Seen) episode.Last = [];
                 episode.Seen = true;
+                var at = seen.FindIndex(s => ReferenceEquals(s.Episode, episode));
+                if (at < 0) seen.Add((episode, [c]));
+                else seen[at].Clusters.Add(c);
+            }
 
-                var camp = new GateCamp(
-                    KeyOf(c.StargateId, episode.Start), c.SystemId, c.StargateId, c.GateSystemId, episode.Start,
-                    [.. c.Kills.Select(k => k.KillMailId)], c.VictimIds,
-                    c.FirstKill, c.LastKill, c.FormedAt, c.LastKill + lifetime,
-                    c.Attackers, c.AttackerShipTypeIds, c.Smartbomb, c.Interdictor, c.Hic, c.Bubble);
-                episode.Last.Add(camp);
+            var camps = new List<GateCamp>();
+            foreach (var (episode, parts) in seen)
+            {
+                var camp = Join(parts, episode.Start, lifetime);
+                episode.Last = [camp];
                 camps.Add(camp);
             }
 
@@ -283,6 +288,21 @@ public sealed class IntelCampRegister
             }
             return [.. camps.OrderBy(c => c.FirstKill).ThenBy(c => c.StargateId)];
         }
+    }
+
+    /// <summary>The clusters of one episode as one camp: every kill, victim and attacker once, the flags of any.</summary>
+    private static GateCamp Join(List<IntelCampCluster> parts, DateTimeOffset start, TimeSpan lifetime)
+    {
+        var first = parts[0];
+        var lastKill = parts.Max(p => p.LastKill);
+        return new GateCamp(
+            KeyOf(first.StargateId, start), first.SystemId, first.StargateId, first.GateSystemId, start,
+            [.. parts.SelectMany(p => p.Kills).OrderBy(k => k.At).Select(k => k.KillMailId).Distinct()],
+            [.. parts.SelectMany(p => p.VictimIds).Distinct()],
+            parts.Min(p => p.FirstKill), lastKill, parts.Min(p => p.FormedAt), lastKill + lifetime,
+            [.. parts.SelectMany(p => p.Attackers).DistinctBy(a => a.CharacterId)],
+            [.. parts.SelectMany(p => p.AttackerShipTypeIds).Distinct()],
+            parts.Any(p => p.Smartbomb), parts.Any(p => p.Interdictor), parts.Any(p => p.Hic), parts.Any(p => p.Bubble));
     }
 
     public static string KeyOf(long stargateId, DateTimeOffset start) =>

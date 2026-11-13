@@ -196,7 +196,7 @@ public sealed partial class IntelViewModel
     {
         var search = _searchText.Trim();
         var actions = Actions;
-        var held = CampRows.ToDictionary(r => r.Key);
+        var held = CampRows.DistinctBy(r => r.Key).ToDictionary(r => r.Key);
         var rows = camps
             .Select(c => new IntelCampRowVm(c, snapshot, pending, actions, now))
             .Where(r => search.Length == 0 || Matches(r.SystemName) || Matches(r.GateText) || Matches(_regions.GetValueOrDefault(r.SystemId)))

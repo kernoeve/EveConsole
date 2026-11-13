@@ -309,7 +309,7 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         var pending = view.Pending;
 
         // Kept where the row reads the same, so its pictures stay and nothing blinks.
-        var held = Rows.ToDictionary(r => r.Key);
+        var held = Rows.DistinctBy(r => r.Key).ToDictionary(r => r.Key);
         // A camp is one row, as new as its last kill: its kills are not each a row of their own beside it.
         var camps = view.Feed.Where(r => r.Event.Kind == IntelEventKind.CampFormed).Select(r => r.Event.CampKey).ToHashSet();
         var fresh = view.Feed

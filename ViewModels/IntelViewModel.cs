@@ -796,7 +796,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
         CampsText = Plurals.Format(IntelText.ResourceManager, nameof(IntelText.StatusCampsOther), boardView.Systems.Sum(s => s.Camps.Count));
 
         // ── The Feed ──
-        var heldLines = FeedRows.OfType<IntelFeedLineVm>().ToDictionary(l => l.Key);
+        var heldLines = FeedRows.OfType<IntelFeedLineVm>().DistinctBy(l => l.Key).ToDictionary(l => l.Key);
         var lines = new List<(DateTimeOffset At, object Line)>();
         foreach (var r in feedView.Feed)
         {

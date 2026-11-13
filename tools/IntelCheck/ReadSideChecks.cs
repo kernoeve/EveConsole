@@ -237,6 +237,21 @@ namespace EveConsole.Tools.IntelCheck
             var fresh = register.Apply(camps, Now.AddHours(2), life, TimeSpan.FromMinutes(30), kept).Single();
             c.Check("camps: a camp read after that is keyed by its own first kill",
                 fresh.Key == IntelCampRegister.KeyOf(G1, t0) && fresh.ExpiresAt == t0.AddMinutes(11) + life);
+
+            // Two clusters on one gate within the window are one episode: one camp, one key, everything of both.
+            // Read as two camps they shared a key, and the Feed failed on the duplicate every refresh.
+            var tail = camp with
+            {
+                Kills = [Kill(31, t0.AddMinutes(25), P10, 10_000, [Attacker(P7)])], VictimIds = [P10],
+                FirstKill = t0.AddMinutes(25), LastKill = t0.AddMinutes(26), FormedAt = t0.AddMinutes(26),
+                Attackers = [.. camp.Attackers.Take(1)], Smartbomb = false, Interdictor = false, Bubble = true,
+            };
+            var joined = new IntelCampRegister().Apply([camp, tail], Now, life, TimeSpan.FromMinutes(30), kept);
+            c.Check("camps: two clusters of one episode on a gate are one camp, with the kills, victims and flags of both",
+                joined.Count == 1 && joined[0].KillMailIds.SequenceEqual([1, 2, 3, 31]) && joined[0].VictimIds.SequenceEqual([P1, P2, P10])
+                && joined[0].LastKill == t0.AddMinutes(26) && joined[0].ExpiresAt == t0.AddMinutes(26) + life
+                && joined[0].Smartbomb && joined[0].Bubble && joined[0].Attackers.Count == camp.Attackers.Count,
+                string.Join(" | ", joined.Select(x => $"{x.Key} {string.Join(",", x.KillMailIds)}")));
         }
 
         // ── Distances ───────────────────────────────────────────────────────────────────────────────────────
