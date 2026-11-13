@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>Dieses Layout stammt aus einer neueren EVE Console. Aktualisiere, um es zu importieren.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Anzeige als</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>Die laufende Liste der Bedrohungen</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>Eine Zeile mit der nächsten Bedrohung; ein Klick klappt die Liste auf</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Reichweite</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} Sprünge</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>Wie weit das Element nach Intel sucht, in Sprüngen über Sternentore und offene Thera- oder Turnur-Löcher, vom Charakter im Client dieses Monitors aus. Sprungbrücken zählen nicht.</value>
+  </data>
 </root>

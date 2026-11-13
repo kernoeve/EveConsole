@@ -130,4 +130,178 @@
   <data name="RetentionRemoved" xml:space="preserve">
     <value>{1:N0} 日より古いインテルの行を {0:N0} 件削除しました。</value>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>今</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{1}から{0}ジャンプ</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{1}から{0}ジャンプ（TheraまたはTurnur経由）</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>{0}のスタンディングによる色</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>全キャラクターの色：どれかが友好なら友好</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>スマートボム</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>インターディクター</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>ヘビーインターディクター</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>このパイロットを開く</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>この船体をアイテムブラウザーで開く</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>{0}の報告</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>ゲートでのキル</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>撃墜者:</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>{0}ゲート付近</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>ゲートキャンプ · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>ローカルに{0}</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>Dスキャンに{0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>報告あり</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} 目視なし</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>敵{0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} 名前なし</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} 続報</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>{0}が喪失、攻撃者{1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>{0}が貼り付け</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>{1}で{0}が報告</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>続報:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0}J</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>ログイン中なし</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>{1}J以内にさらに{0}</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{1}J以内に{0}</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>{0}にいます</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>位置不明</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>位置不明：一覧で最新のインテルを表示</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>このモニターではログイン中のキャラクターがいません。</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0}はEVE Consoleのキャラクターではありません。</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0}はEVE Consoleにいません</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>インテルチャンネルが設定されていないため、ここにはキルのみ表示されます。</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>設定 → チャットログで設定</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>インテルを読み込み中…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>{1}から{0}ジャンプ以内に報告はありません。</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>{0}J以内に何もなし</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>最近の報告はありません。{0}の位置はまだ不明です。</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>青・水色は非表示 · 距離はゲートとThera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>{0}の位置が不明のため、最新のインテルをジャンプ数なしで表示</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>個人コンタクト不明：コーポとアライアンスのコンタクトで色分け</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>星系のページを開く</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>マップに表示</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>星系名をコピー</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>インテルツールで開く</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>この要素が見る範囲（ゲートとThera・Turnur経由のジャンプ数）。レイアウトエディターで設定。</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>ローカルまたはDスキャンを貼り付け</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>インテルツールで開く</value>
+  </data>
 </root>

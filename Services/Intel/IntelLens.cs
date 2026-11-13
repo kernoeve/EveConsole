@@ -22,6 +22,10 @@ public sealed record IntelViewer
     /// <summary>The sources shown, by <see cref="IntelEvent.SourceKey"/>; null for every source.</summary>
     public IReadOnlySet<string>? Sources { get; init; }
 
+    /// <summary>Whose standings colour a row that has no nearest origin: a panel's own character
+    /// while where it is is not known. Null for the rule with no viewer.</summary>
+    public long? StandingsCharacterId { get; init; }
+
     public bool IncludeClear      { get; init; } = true;
     public bool IncludeKills      { get; init; } = true;
 
@@ -145,8 +149,9 @@ public static class IntelLens
             return (best, via, from, drop);
         }
 
-        StandingTier Tier(long? viewerId, long pilot, long corp, long alliance) =>
-            standings.TierFor(viewerId, pilot, corp, alliance);
+        // The row's nearest origin views it; with none, the character the viewer names, if any.
+        StandingTier Tier(long? origin, long pilot, long corp, long alliance) =>
+            standings.TierFor(origin ?? viewer.StandingsCharacterId, pilot, corp, alliance);
 
         bool Fresh(DateTimeOffset newest, int? jumps) =>
             jumps is int j && j <= IntelViewer.FreshJumps && now - newest <= TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds);
@@ -157,7 +162,7 @@ public static class IntelLens
         {
             var (jumps, via, origin, drop) = Distance(sys.SystemId);
             if (drop) continue;
-            var viewerId = standings.EffectiveViewer(origin);
+            var viewerId = standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId);
 
             var pilots = sys.PilotIds
                 .Select(id => snapshot.Pilots.GetValueOrDefault(id))
@@ -256,7 +261,7 @@ public static class IntelLens
             var tier = shown.Count > 0 ? shown.Min(p => p.Tier) : StandingTier.Neutral;
             if (e.Count > 0 && tier > StandingTier.Neutral) tier = StandingTier.Neutral;
             rows.Add(new IntelFeedRow(
-                e, jumps, via, origin, standings.EffectiveViewer(origin), tier, shown,
+                e, jumps, via, origin, standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId), tier, shown,
                 Freshness(e.At, e.Lifetime, now), expired ? ExpiredOpacity : Opacity(e.At, e.Lifetime, now), expired,
                 !expired && e.Kind != IntelEventKind.Clear && Fresh(e.At, jumps), []));
         }

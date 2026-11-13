@@ -13,6 +13,7 @@ public enum PanelControlKind
     Theme, UiScale, Alarms, Scheduler, Alerts, EveMail,
     Orders, SalesBuildCost, SalesMarket, Notifications, EveNews, Killmails,
     GroupChatRoom, DirectMessageChat,
+    Intel,
 }
 
 /// <summary>How a Mumble control shows: one line with who is talking beside it, or the whole channel as a list.</summary>
@@ -20,6 +21,9 @@ public enum MumbleControlMode { SingleLine, List }
 
 /// <summary>How a Worklist control shows: the list itself, or one line of counts that drops the list down when clicked.</summary>
 public enum WorklistControlMode { List, SingleLine }
+
+/// <summary>How an Intel control shows: the live list, or one line with the nearest threat that drops the list down when clicked.</summary>
+public enum IntelControlMode { List, SingleLine }
 
 /// <summary>
 /// A panel's edge treatment. <see cref="Card"/> is the Overview's own look: a lighter, rounded box
@@ -48,7 +52,8 @@ public static class PanelControls
             return kind switch
             {
                 PanelControlKind.Client => 600,
-                PanelControlKind.Worklist or PanelControlKind.Alerts or PanelControlKind.GroupChatRoom or PanelControlKind.DirectMessageChat => 300,
+                PanelControlKind.Worklist or PanelControlKind.Alerts or PanelControlKind.GroupChatRoom or PanelControlKind.DirectMessageChat
+                    or PanelControlKind.Intel => 300,
                 _ when OverviewSectionOf(kind) is not null => 320,
                 PanelControlKind.ToolContainer or PanelControlKind.Agent => 400,
                 _ => 28,
@@ -66,7 +71,7 @@ public static class PanelControls
             PanelControlKind.LocalTime => 120,
             PanelControlKind.UiScale => 90,
             PanelControlKind.Mumble => 340,
-            PanelControlKind.Worklist => 420,
+            PanelControlKind.Worklist or PanelControlKind.Intel => 420,
             PanelControlKind.Agent or PanelControlKind.Alerts or PanelControlKind.GroupChatRoom => 360,
             PanelControlKind.DirectMessageChat => 460,
             _ when OverviewSectionOf(kind) is not null => 480,
@@ -94,6 +99,21 @@ public static class PanelControls
     /// <summary>Saved before there was a choice, a Worklist control is the list.</summary>
     public static WorklistControlMode WorklistModeOf(ControlOptions? options) =>
         Enum.TryParse<WorklistControlMode>(options?.WorklistMode, out var mode) && Enum.IsDefined(mode) ? mode : WorklistControlMode.List;
+
+    /// <summary>Saved before there was a choice, or by a newer copy with a mode this one doesn't know, an Intel control is the list.</summary>
+    public static IntelControlMode IntelModeOf(ControlOptions? options) =>
+        Enum.TryParse<IntelControlMode>(options?.IntelMode, out var mode) && Enum.IsDefined(mode) ? mode : IntelControlMode.List;
+
+    /// <summary>The ranges an Intel control offers, in jumps by stargate and Thera or Turnur.</summary>
+    public static IReadOnlyList<int> IntelRanges { get; } = [3, 5, 10, 15, 20];
+
+    /// <summary>Ten jumps: a roaming gang's approach, without filling a small panel.</summary>
+    public const int DefaultIntelRange = 10;
+
+    /// <summary>The range an Intel control looks out to: one of <see cref="IntelRanges"/>, ten when none is saved
+    /// or a saved one isn't offered.</summary>
+    public static int IntelRangeOf(ControlOptions? options) =>
+        options?.IntelMaxJumps is int jumps && IntelRanges.Contains(jumps) ? jumps : DefaultIntelRange;
 
     public static bool HoldsTabs(ControlOptions? options) => options?.ContainerTabs == true;
 

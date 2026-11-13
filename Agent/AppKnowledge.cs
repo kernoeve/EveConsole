@@ -307,6 +307,9 @@ public static class AppKnowledge
         Windows only. Shares monitors between game clients and panels, placing clients as they log
         in. Profiles set each monitor's layout and who goes where. It only sizes, places and raises
         clients.
+        An Intel control on a panel shows live intel near the character in that monitor's client:
+        jumps (gates and Thera/Turnur), standings colour, age; threats only, within 3–20 jumps (10 by
+        default), as a list or one line that drops the list down when clicked.
 
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,

@@ -127,6 +127,17 @@ public sealed record IntelSnapshot(
     public const string SourceKills = "Kills";
     public const string SourcePaste = "Paste";
 
+    /// <summary>Every system's English name, by id, read once with the stargates: a view shows one
+    /// in the interface language through SdeNames.SolarSystem, and names a kill's gate by the system
+    /// it leads to.</summary>
+    public IReadOnlyDictionary<int, string> SystemNames { get; init; } = new Dictionary<int, string>();
+
+    /// <summary>A system's name in the interface language; its id when the names are not loaded.</summary>
+    public string SystemName(int systemId) =>
+        SystemNames.TryGetValue(systemId, out var english)
+            ? EveConsole.Localization.SdeNames.SolarSystem(systemId, english)
+            : systemId.ToString(CultureInfo.InvariantCulture);
+
     public static readonly IntelSnapshot Empty = new(
         DateTimeOffset.MinValue, 0, IntelSettings.MinimumWindow, new IntelSettingsValues(),
         new Dictionary<int, SystemIntel>(), new Dictionary<long, PilotIntel>(), [],
@@ -412,7 +423,7 @@ public static class IntelSnapshotBuilder
 
         return new IntelSnapshot(
             now, version, s.Window, s, systems, pilots, input.Own, input.Officers, feed, camps,
-            IntelFeedStatus.From(s), input.Standings);
+            IntelFeedStatus.From(s), input.Standings) { SystemNames = input.SystemNames };
     }
 
     /// <summary>How long a report's line lasts in the feed: as long as the longest thing it said.</summary>

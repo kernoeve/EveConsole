@@ -130,4 +130,178 @@
   <data name="RetentionRemoved" xml:space="preserve">
     <value>Удалено {0:N0} строк разведки старше {1:N0} дн.</value>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0} пр. от {1}</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0} пр. от {1}, через Thera или Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Цвет по репутации {0}</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Цвет по всем вашим персонажам: дружественный, если таков хоть для одного</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>смартбомбы</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>диктор</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>тяжёлый диктор</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Открыть пилота</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Открыть корпус в обозревателе предметов</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>чисто</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>сообщил {0}</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>убийство</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>убийство на вратах</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>уничтожен:</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>у врат в {0}</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>кемп на вратах · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>в Local: {0}</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>на д-скане: {0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>сообщение</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>без визуала: {0}</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>враждебных: {0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} без имени</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} позже</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Потерял {0}; атакующих: {1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Вставил {0}</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Сообщил {0} в {1}</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Позже:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} пр.</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>Никто не вошёл</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} ещё в {1} пр.</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} в {1} пр.</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>в {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>местоположение неизвестно</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Местоположение неизвестно: откройте список для свежих данных</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>На этом мониторе никто не вошёл в игру.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} — не персонаж EVE Console.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} нет в EVE Console</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>Каналы разведки не настроены, поэтому здесь видны только убийства.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>Задать в Настройки → Журналы чата</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Чтение разведданных…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>В пределах {0} пр. от {1} ничего не сообщалось.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Ничего в {0} пр.</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>В последнее время ничего не сообщалось. Где {0}, пока неизвестно.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Синие и голубые скрыты · расстояния по вратам и Thera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>где {0}, неизвестно, поэтому свежие данные показаны без прыжков</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>личные контакты неизвестны: цвета по контактам корпорации и альянса</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Открыть страницу системы</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Показать на карте</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Копировать название системы</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Открыть в инструменте «Разведка»</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>Как далеко смотрит элемент, в прыжках через врата и Thera или Turnur. Задаётся в редакторе раскладок.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Вставить Local или д-скан</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Открыть в инструменте «Разведка»</value>
+  </data>
 </root>

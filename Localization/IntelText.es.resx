@@ -130,4 +130,178 @@
   <data name="RetentionRemoved" xml:space="preserve">
     <value>Eliminadas {0:N0} filas de intel de más de {1:N0} días.</value>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>ahora</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0} saltos desde {1}</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0} saltos desde {1}, por Thera o Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Color según la reputación de {0}</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Color según todos tus personajes: amistoso si alguno lo es</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>bombas inteligentes</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>dictor</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>dictor pesado</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Abrir este piloto</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Abrir este casco en el explorador de objetos</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>despejado</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>avisado por {0}</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>derribo</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>derribo en portal</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>perdido ante</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>cerca del portal de {0}</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>campeo de portal · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>{0} en Local</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>{0} en d-scan</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>avisado</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} sin visual</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>hostiles: {0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} sin nombre</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} después</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Perdido por {0}, ante {1} atacantes</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Pegado por {0}</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Avisado por {0} en {1}</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Después:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>Nadie conectado</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} más a {1} saltos</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} a {1} saltos</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>en {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>ubicación desconocida</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Ubicación desconocida: abre la lista para lo más reciente</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>No hay nadie conectado en este monitor.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} no es un personaje de EVE Console.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} no está en EVE Console</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>No hay canales de inteligencia configurados, así que aquí solo aparecen derribos.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>Configúralos en Ajustes → Registros de chat</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Leyendo inteligencia…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>Nada avisado a menos de {0} saltos de {1}.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Nada a {0} saltos</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>Nada avisado últimamente. Aún no se sabe dónde está {0}.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Azul y azul claro ocultos · distancias por portal y Thera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>no se sabe dónde está {0}; lo más reciente se muestra sin saltos</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>contactos personales desconocidos: colores de contactos de corporación y alianza</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Abrir la página del sistema</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Mostrar en el mapa</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Copiar el nombre del sistema</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Abrir en la herramienta de inteligencia</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>Hasta dónde mira este control, en saltos por portal y Thera o Turnur. Se ajusta en el editor de diseños.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Pegar Local o d-scan</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Abrir en la herramienta de inteligencia</value>
+  </data>
 </root>

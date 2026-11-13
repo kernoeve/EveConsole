@@ -906,6 +906,40 @@ LayoutArea TwoClients(out string first, out string second)
     Same(PanelControls.WorklistModeOf(new ControlOptions { WorklistMode = "SingleLine" }), WorklistControlMode.SingleLine, "and can be one line");
     Same(PanelControls.WorklistModeOf(new ControlOptions { WorklistMode = "FromANewerVersion" }), WorklistControlMode.List, "a mode this copy doesn't know is the list");
 
+    // The Intel control: its mode and its range, saved and read back.
+    Same(PanelControls.IntelModeOf(null), IntelControlMode.List, "an Intel control saved before the choice is the list");
+    Same(PanelControls.IntelModeOf(new ControlOptions { IntelMode = "SingleLine" }), IntelControlMode.SingleLine, "and can be one line");
+    Same(PanelControls.IntelModeOf(new ControlOptions { IntelMode = "FromANewerVersion" }), IntelControlMode.List, "an Intel mode this copy doesn't know is the list");
+    Same(PanelControls.IntelRangeOf(null), 10, "an Intel control looks ten jumps out unless told otherwise");
+    Same(PanelControls.IntelRangeOf(new ControlOptions { IntelMaxJumps = 5 }), 5, "or as far as chosen");
+    Same(PanelControls.IntelRangeOf(new ControlOptions { IntelMaxJumps = 7 }), 10, "a range not offered is ten");
+    Same(string.Join(",", PanelControls.IntelRanges), "3,5,10,15,20", "the ranges offered");
+    Same(PanelControls.DefaultSize(PanelControlKind.Intel, DockEdge.Top), 300, "an Intel control docks at the top tall enough for its list");
+    Same(PanelControls.DefaultSize(PanelControlKind.Intel, DockEdge.Right), 420, "and at the side wide enough for a row");
+    {
+        var intelRoot = new LayoutArea { Content = AreaContent.Client };
+        var intelSide = ClientLayoutEditing.InsideOf(ClientLayoutEditing.Dock(intelRoot, DockEdge.Right, 420, "Side"));
+        var intel = ClientLayoutEditing.DockControl(intelSide, PanelControlKind.Intel, DockEdge.Top);
+        intel.Options = new ControlOptions { IntelMode = "SingleLine", IntelMaxJumps = 15 };
+        var back = ClientLayoutEditing.Controls(ClientLayoutJson.Read(ClientLayoutJson.Write(intelRoot))).Single();
+        Same(back.Control, "Intel", "an Intel control is saved by its name");
+        Same(PanelControls.IntelModeOf(back.Options), IntelControlMode.SingleLine, "with its mode");
+        Same(PanelControls.IntelRangeOf(back.Options), 15, "and its range");
+        var shown = ClientLayoutCalculator.Calculate(intelRoot, monitor4K).Panels.SelectMany(p => p.Parts ?? []).Single(p => p.Id == intel.Id);
+        Same(PanelControls.IntelRangeOf(shown.Options), 15, "what's chosen reaches the screen");
+
+        // A copy of the app that doesn't know a control, as one from before the Intel control reads this
+        // layout: it shows nothing there, but keeps the control by its saved name when it saves the layout.
+        var older = ClientLayoutJson.Write(intelRoot).Replace("\"Intel\"", "\"IntelFromANewerVersion\"", StringComparison.Ordinal);
+        var kept = ClientLayoutEditing.Controls(ClientLayoutJson.Read(older)).Single();
+        Same(kept.Control, "IntelFromANewerVersion", "a control this copy doesn't know is kept by its saved name");
+        Same(PanelControls.Parse(kept.Control), null, "and isn't built");
+        var resaved = ClientLayoutEditing.Controls(ClientLayoutJson.Read(ClientLayoutJson.Write(ClientLayoutJson.Read(older)))).Single();
+        Same(resaved.Control, "IntelFromANewerVersion", "saved again, it's still there");
+        Check(ClientLayoutCalculator.Calculate(ClientLayoutJson.Read(older), monitor4K).Panels.SelectMany(p => p.Parts ?? [])
+                  .Any(p => p.Control == "IntelFromANewerVersion"), "and still has its place on the screen, empty");
+    }
+
     Same(ToolTargets.Of(null), ToolTargets.LastUsed, "a menu opens tools in the window used last unless told otherwise");
     Same(ToolTargets.Of(new ControlOptions { MenuTarget = "abc" }), "abc", "or in the container chosen");
     Same(PanelControls.DefaultSize(PanelControlKind.Menu, DockEdge.Left), 40, "a menu docks as narrow as the settings gear");

@@ -335,6 +335,10 @@ public class MainWindowViewModel : ReactiveObject
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
     public IntelSettingsViewModel         IntelSettingsVm        { get; }
+
+    /// <summary>The one shared read side of intel, and the jumps it is measured in: for the panels' Intel controls.</summary>
+    public EveConsole.Services.Intel.IntelSnapshotService IntelSnapshots { get; }
+    public EveConsole.Services.Intel.IntelDistanceService IntelDistances { get; }
     public MapStatsSettingsViewModel      MapStatsSettingsVm     { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
@@ -1789,7 +1793,8 @@ public class MainWindowViewModel : ReactiveObject
         LiveIntelService                liveIntel,
         JumpBridgeService               jumpBridges,
         EveConsole.Services.Intel.IntelSettings        intelSettings,
-        EveConsole.Services.Intel.IntelSnapshotService intelSnapshots)
+        EveConsole.Services.Intel.IntelSnapshotService intelSnapshots,
+        EveConsole.Services.Intel.IntelDistanceService intelDistances)
     {
         StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
@@ -1819,6 +1824,8 @@ public class MainWindowViewModel : ReactiveObject
         StartupTrace.Step("new ZkbSettingsVm");
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
         IntelSettingsVm   = new IntelSettingsViewModel(intelSettings, intelSnapshots, dbFactory);
+        IntelSnapshots    = intelSnapshots;
+        IntelDistances    = intelDistances;
         StartupTrace.Step("new MapStatsSettingsVm");
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         StartupTrace.Step("new AlertSettingsVm");

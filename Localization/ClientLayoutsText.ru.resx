@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>Этот макет создан в более новой версии EVE Console. Обновитесь, чтобы импортировать его.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Вид</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>Живой список угроз</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>Одна строка с ближайшей угрозой; по щелчку раскрывается список</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Дальность</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>Прыжков: {0}</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>Как далеко элемент ищет разведданные — в прыжках через звёздные врата и открытые дыры Thera и Turnur от персонажа в клиенте этого монитора. Прыжковые мосты не учитываются.</value>
+  </data>
 </root>

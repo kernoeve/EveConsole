@@ -130,4 +130,178 @@
   <data name="RetentionRemoved" xml:space="preserve">
     <value>{0:N0} Intel-Zeilen älter als {1:N0} Tage entfernt.</value>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>jetzt</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} Min.</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0} Sprünge von {1}</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0} Sprünge von {1}, über Thera oder Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Farbe nach den Ansehen von {0}</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Farbe aus allen deinen Charakteren: freundlich, wenn es einer ist</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>Smartbombs</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>Dictor</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>schwerer Dictor</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Diesen Piloten öffnen</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Diesen Rumpf im Gegenstandsbrowser öffnen</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>frei</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>gemeldet von {0}</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>Abschuss</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>Abschuss am Tor</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>verloren an</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>am Tor nach {0}</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>Torcamp · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>{0} im Local</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>{0} im D-Scan</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>gemeldet</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} ohne Sicht</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>{0} feindlich</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} ohne Namen</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} später</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Verloren von {0}, an {1} Angreifer</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Eingefügt von {0}</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Gemeldet von {0} in {1}</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Später:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} Spr.</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>Niemand eingeloggt</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} weitere in {1} Spr.</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} in {1} Spr.</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>Ort unbekannt</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Ort unbekannt: Liste öffnen für das neueste Intel</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>Auf diesem Monitor ist niemand eingeloggt.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} ist kein Charakter in EVE Console.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} ist nicht in EVE Console</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>Es sind keine Intel-Kanäle eingerichtet; hier erscheinen nur Abschüsse.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>In Einstellungen → Chat-Logs festlegen</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Intel wird gelesen…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>Nichts gemeldet innerhalb von {0} Sprüngen um {1}.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Nichts in {0} Spr.</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>Zuletzt nichts gemeldet. Wo {0} ist, ist noch unbekannt.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Blau und Hellblau ausgeblendet · Entfernungen über Tore und Thera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>wo {0} ist, ist unbekannt; das neueste Intel erscheint ohne Sprünge</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>persönliche Kontakte unbekannt: Farben aus Corp- und Allianzkontakten</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Seite des Systems öffnen</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Auf der Karte zeigen</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Systemnamen kopieren</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Im Intel-Werkzeug öffnen</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>Wie weit dieses Element schaut, in Sprüngen über Tore und Thera oder Turnur. Im Layout-Editor einstellbar.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Local oder D-Scan einfügen</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Im Intel-Werkzeug öffnen</value>
+  </data>
 </root>

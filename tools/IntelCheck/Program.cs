@@ -100,6 +100,10 @@ try
     await ReadSideChecks.DistanceChecks(c);
     ReadSideChecks.SnapshotChecks(c);
     ReadSideChecks.LensChecks(c);
+
+    // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
+    PanelChecks.Rows(c);
+
     var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
     await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
     await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);

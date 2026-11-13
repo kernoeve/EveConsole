@@ -130,4 +130,178 @@
   <data name="RetentionRemoved" xml:space="preserve">
     <value>{1:N0}일보다 오래된 인텔 행 {0:N0}개를 삭제했습니다.</value>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>방금</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0}시간 {1}분</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{1}에서 {0}점프</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{1}에서 {0}점프 (Thera 또는 Turnur 경유)</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>{0}의 평판 기준 색</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>모든 캐릭터 기준 색: 하나라도 우호면 우호</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>스마트밤</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>인터딕터</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>헤비 인터딕터</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>이 파일럿 열기</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>이 선체를 아이템 브라우저에서 열기</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>클리어</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>{0} 보고</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>게이트 킬</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>격추:</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>{0} 게이트 근처</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>게이트 캠프 · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>로컬 {0}명</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>D-스캔 {0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>보고됨</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} 시야 없음</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>적 {0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} 이름 없음</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} 후속</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>{0} 손실, 공격자 {1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>{0} 붙여넣음</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>{1}에서 {0} 보고</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>후속:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0}점프</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>로그인한 캐릭터 없음</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>{1}점프 안에 {0} 더</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{1}점프 안에 {0}</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>{0}에 있음</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>위치 모름</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>위치 모름: 목록에서 최신 정보 보기</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>이 모니터에 로그인한 캐릭터가 없습니다.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0}은(는) EVE Console의 캐릭터가 아닙니다.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0}은(는) EVE Console에 없음</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>정보 채널이 설정되지 않아 여기에는 킬만 표시됩니다.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>설정 → 채팅 로그에서 지정</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>정보를 읽는 중…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>{1}에서 {0}점프 안에 보고 없음.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>{0}점프 안에 없음</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>최근 보고 없음. {0}의 위치는 아직 모릅니다.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>파랑·하늘색 숨김 · 거리는 게이트와 Thera 기준</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>{0}의 위치를 몰라 최신 정보를 점프 수 없이 표시</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>개인 연락처 모름: 코퍼레이션·얼라이언스 연락처로 색 지정</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>성계 페이지 열기</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>지도에 표시</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>성계 이름 복사</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>정보 도구에서 열기</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>이 요소가 보는 범위(게이트와 Thera·Turnur 경유 점프 수). 레이아웃 편집기에서 설정.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>로컬 또는 D-스캔 붙여넣기</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>정보 도구에서 열기</value>
+  </data>
 </root>

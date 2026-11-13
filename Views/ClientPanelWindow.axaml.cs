@@ -213,6 +213,9 @@ public partial class ClientPanelWindow : Window
                     ? new PanelWorklistLine(worklist)
                     : new PanelWorklistControl { DataContext = worklist };
 
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Intel:
+                return _around?.MainScreen is not { } intelMain ? null : BuildIntel(intelMain, part.Options, _around);
+
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Menu:
                 return _around?.MainScreen is not { } menuMain ? null : new PanelMenuControl(menuMain, part.Options, _around.MonitorKey);
 
@@ -260,6 +263,40 @@ public partial class ClientPanelWindow : Window
             default:
                 return null;
         }
+    }
+
+    /// <summary>
+    /// An Intel control: live intel with jumps from the character in this monitor's client, as a
+    /// list or as one line that drops the list down. Its links open where any tool opens and bring
+    /// that window forward over the clients, putting the dropped list away. Opening the Intel tool,
+    /// and its paste, are offered once there is a tool to open; until then they are not shown.
+    /// </summary>
+    private Control BuildIntel(MainWindowViewModel main, ControlOptions? options, PanelSurroundings around)
+    {
+        var vm = new PanelIntelVm(main.IntelSnapshots, main.IntelDistances, main.CharacterVm.Characters,
+                                  around.Focus, around.MonitorKey, options);
+        PanelIntelLine? line = null;
+        vm.Actions = new IntelRowActions
+        {
+            ShowOnMap = id =>
+            {
+                main.ShowTool("universe");
+                main.MapVm.ShowUniverseTab().Map.FocusSystems([id]);
+            },
+            AfterNavigate = () =>
+            {
+                line?.PutAway();
+                Avalonia.Threading.Dispatcher.UIThread.Post(main.BringForwardLastOpened, Avalonia.Threading.DispatcherPriority.Background);
+            },
+        };
+        vm.OpenChatLogSettings = () =>
+        {
+            line?.PutAway();
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen != null) main.OpenSettingsOnMonitor?.Invoke(screen.WorkingArea, SettingsText.TabChatLogs);
+        };
+        if (PanelControls.IntelModeOf(options) == IntelControlMode.SingleLine) return line = new PanelIntelLine(vm);
+        return new PanelIntelControl { DataContext = vm };
     }
 
     /// <summary>Name and size, on one line if the panel is too thin for two.</summary>

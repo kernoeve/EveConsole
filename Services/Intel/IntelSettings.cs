@@ -55,6 +55,10 @@ public sealed record IntelSettingsValues
     public bool     ZkbEnabled  { get; init; } = true;
     public ZkbScope ZkbScope    { get; init; } = ZkbScope.MineAndCorp;
 
+    /// <summary>Whether any intel channel is set on Settings → Chat Logs: without one, a panel says why
+    /// it is empty. True until read, so nothing says so before the first reading.</summary>
+    public bool     HasIntelChannels { get; init; } = true;
+
     /// <summary>The longest any sighting, flag or clear lasts.</summary>
     public TimeSpan LongestLifetime =>
         new[] { Named, Unnamed, Clear, Camp, Cyno, KillAttacker, KillVictim }.Max();
@@ -150,6 +154,7 @@ public sealed class IntelSettings(AppPreferencesService prefs)
         KeyNamed, KeyUnnamed, KeyClear, KeyCamp, KeyCyno, KeyKillAttacker, KeyKillVictim, KeyFollowUp,
         KeyCampGateKm, KeyCampWindow, KeyCampVictims, KeyStandings, KeyBridges, KeyFeedWarning,
         KeyWakeCooldown, KeyFresh, ZkillboardSettings.KeyEnabled, ZkillboardSettings.KeyScope,
+        EveConsole.Monitoring.MonitoringSettings.KeyChatIntelChannels,
     ];
 
     /// <summary>Every intel setting as the database holds it now, in one query.</summary>
@@ -198,6 +203,8 @@ public sealed class IntelSettings(AppPreferencesService prefs)
             FreshSeconds         = (int)Long(KeyFresh, DefaultFreshSeconds, MinFreshSeconds, MaxFreshSeconds),
             ZkbEnabled = Bool(ZkillboardSettings.KeyEnabled, true),
             ZkbScope   = raw.TryGetValue(ZkillboardSettings.KeyScope, out var scope) && scope == "All" ? ZkbScope.All : ZkbScope.MineAndCorp,
+            HasIntelChannels = raw.TryGetValue(EveConsole.Monitoring.MonitoringSettings.KeyChatIntelChannels, out var channels)
+                               && !string.IsNullOrWhiteSpace(channels),
         };
     }
 

@@ -172,4 +172,236 @@
     <value>Removed {0:N0} intel rows older than {1:N0} days.</value>
     <comment>Settings → Data Retention status after a purge. {0} the rows removed, {1} the days.</comment>
   </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>now</value>
+    <comment>An intel row&apos;s age: just now.</comment>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} s</value>
+    <comment>An intel row&apos;s age in seconds. {0} is the seconds.</comment>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} min</value>
+    <comment>An intel row&apos;s age in minutes. {0} is the minutes.</comment>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+    <comment>An intel row&apos;s age past an hour. {0} is the hours, {1} the minutes.</comment>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0}j from {1}</value>
+    <comment>Tooltip on an intel row&apos;s jumps badge. {0} is the jumps, {1} the character they are counted from.</comment>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0}j from {1}, through Thera or Turnur</value>
+    <comment>Tooltip on an intel row&apos;s jumps badge when the shortest way uses a wormhole. {0} is the jumps, {1} the character.</comment>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Colour from {0}&apos;s standings</value>
+    <comment>Tooltip on an intel row&apos;s standings stripe. {0} is the character whose contacts gave the colour.</comment>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Colour from all your characters: friendly if any of them is</value>
+    <comment>Tooltip on an intel row&apos;s standings stripe when no single character views it.</comment>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>smartbombs</value>
+    <comment>A gate camp flag: an attacker fitted a smartbomb.</comment>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>dictor</value>
+    <comment>A gate camp flag: an interdictor is among the attackers.</comment>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>heavy dictor</value>
+    <comment>A gate camp flag: a heavy interdiction cruiser is among the attackers.</comment>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Open this pilot</value>
+    <comment>Tooltip on a pilot&apos;s name on an intel row.</comment>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Open this hull in the Item Browser</value>
+    <comment>Tooltip on a hull&apos;s name on an intel row.</comment>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+    <comment>A hull flown by several: {0} is the hull&apos;s name, {1} how many.</comment>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>clear</value>
+    <comment>An intel row&apos;s state: the system was called clear.</comment>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>called by {0}</value>
+    <comment>Under a clear row: who called it. {0} is the reporter.</comment>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>kill</value>
+    <comment>An intel row&apos;s state: a kill in the system.</comment>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>gate kill</value>
+    <comment>An intel row&apos;s state: a kill on a stargate.</comment>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>lost to</value>
+    <comment>On a kill row, between the victim&apos;s hull and the attackers&apos; hulls.</comment>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>near the {0} gate</value>
+    <comment>Where a kill or camp was. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>gate camp · {0}</value>
+    <comment>An intel row&apos;s state: a gate camp found from kills. {0} is the number of kills.</comment>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>{0} in Local</value>
+    <comment>An intel row&apos;s state: a pasted Local list. {0} is the pilots in it.</comment>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>{0} on d-scan</value>
+    <comment>An intel row&apos;s state: a pasted directional scan. {0} is the ships on it.</comment>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>reported</value>
+    <comment>An intel row&apos;s state: a report naming nobody and no flag.</comment>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} no visual</value>
+    <comment>An intel row&apos;s state: pilots in Local but not seen. {0} is how many.</comment>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>{0} hostile</value>
+    <comment>An intel row&apos;s state: pilots reported. {0} is how many.</comment>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} unnamed</value>
+    <comment>After the named pilots on an intel row: how many more were counted without names. {0} is the count.</comment>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} later</value>
+    <comment>On an intel row: later lines of the same report thread. {0} is how many; they are in the tooltip.</comment>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Lost by {0}, to {1} attackers</value>
+    <comment>Tooltip on a kill row. {0} is the victim, {1} the number of player attackers.</comment>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Pasted by {0}</value>
+    <comment>Tooltip on a pasted Local or d-scan row. {0} is the character it was pasted for.</comment>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Reported by {0} in {1}</value>
+    <comment>Tooltip on an intel report row. {0} is the reporter, {1} the channel.</comment>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Later:</value>
+    <comment>Tooltip on an intel row, heading the later lines of the same report thread.</comment>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0}j</value>
+    <comment>An Intel control&apos;s range, short. {0} is the jumps.</comment>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>No one logged in</value>
+    <comment>An Intel control&apos;s single line when no game client is logged in on its monitor.</comment>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} more within {1}j</value>
+    <comment>An Intel control&apos;s single line, after the nearest threat. {0} is how many other systems have threats, {1} the range in jumps.</comment>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} within {1}j</value>
+    <comment>An Intel control&apos;s header: how many systems have threats within its range. {0} is the systems, {1} the jumps.</comment>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>in {0}</value>
+    <comment>An Intel control&apos;s header, after the character: the system they are in. {0} is the system.</comment>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>location unknown</value>
+    <comment>An Intel control&apos;s header, after the character, when where they are is not known.</comment>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Location unknown: open the list for the newest intel</value>
+    <comment>An Intel control&apos;s single line when the character&apos;s system is not known.</comment>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>No one is logged in on this monitor.</value>
+    <comment>An Intel control&apos;s note when no game client on its monitor is logged in.</comment>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} isn&apos;t a character in EVE Console.</value>
+    <comment>An Intel control&apos;s note when the client&apos;s character is not added to the app. {0} is the character.</comment>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} isn&apos;t in EVE Console</value>
+    <comment>An Intel control&apos;s single line when the client&apos;s character is not added to the app. {0} is the character.</comment>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>No intel channels are set up, so nothing is reported here but kills.</value>
+    <comment>An Intel control&apos;s note when no intel channel is chosen in Settings → Chat Logs.</comment>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>Set them in Settings → Chat Logs</value>
+    <comment>Link under the note about missing intel channels; opens Settings at the Chat Logs tab.</comment>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Reading intel…</value>
+    <comment>An Intel control&apos;s note before the first intel has been read.</comment>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>Nothing reported within {0} jumps of {1}.</value>
+    <comment>An Intel control&apos;s note when there is nothing in range. {0} is the range in jumps, {1} the character.</comment>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Nothing within {0}j</value>
+    <comment>An Intel control&apos;s single line when there is nothing in range. {0} is the range in jumps.</comment>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>Nothing reported lately. Where {0} is isn&apos;t known yet.</value>
+    <comment>An Intel control&apos;s note when there is no intel at all and the character&apos;s system is not known. {0} is the character.</comment>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Blue and light blue hidden · distances by gate and Thera</value>
+    <comment>Foot of an Intel control: what it leaves out and how it counts jumps.</comment>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>where {0} is isn&apos;t known, so the newest intel shows without jumps</value>
+    <comment>Foot of an Intel control when the character&apos;s system is not known. {0} is the character.</comment>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>personal contacts unknown: colours from corporation and alliance contacts</value>
+    <comment>Foot of an Intel control when the character&apos;s own contacts are not readable (no contacts scope).</comment>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Open the system&apos;s page</value>
+    <comment>Tooltip on a system&apos;s name on an intel row.</comment>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Show on map</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Copy system name</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Open in the Intel tool</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>How far this control looks, in jumps by stargate and Thera or Turnur. Set in the layout editor.</value>
+    <comment>Tooltip on an Intel control&apos;s range.</comment>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Paste Local or d-scan</value>
+    <comment>Tooltip on an Intel control&apos;s paste icon; opens the Intel tool&apos;s Paste tab.</comment>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Open in the Intel tool</value>
+    <comment>Tooltip on an Intel control&apos;s open-tool icon.</comment>
+  </data>
 </root>

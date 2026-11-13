@@ -1,0 +1,117 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:loc="using:EveConsole.Localization"
+             x:Class="EveConsole.Views.PanelIntelLineContent"
+             x:DataType="vm:PanelIntelVm">
+  <UserControl.Styles>
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
+    </Style>
+    <Style Selector="Border.badge > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Border.badge.here">
+      <Setter Property="Background" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Border.badge.here > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" />
+    </Style>
+    <Style Selector="Border.badge.near">
+      <Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.badge.near > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Border.badge.mid">
+      <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.badge.mid > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+    <Style Selector="Border.badge.far > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+    <Style Selector="Border.chip">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+    </Style>
+    <!-- Fresh news within five jumps lights the line up. A look only: sound is the alarms' job. -->
+    <Style Selector="Border.chip.fresh">
+      <Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Button.icon">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="4 2" />
+      <Setter Property="MinHeight"       Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+  </UserControl.Styles>
+
+  <!-- The character, then the nearest live threat to them, then how many more; clicked, the full
+       list drops down. The two icons are buttons, so clicking them doesn't drop it. -->
+  <DockPanel LastChildFill="True" Background="Transparent">
+    <TextBlock DockPanel.Dock="Left" Text="{Binding LineName}" FontSize="11" FontWeight="SemiBold" Margin="0 0 10 0"
+               VerticalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="160"
+               Foreground="{DynamicResource TextBrightBrush}" />
+    <Button DockPanel.Dock="Right" Classes="icon" Command="{Binding OpenToolCommand}" IsVisible="{Binding CanOpenTool}"
+            ToolTip.Tip="{x:Static loc:IntelText.TipOpenTool}">
+      <Path Data="M7 1h4v4M11 1L5.5 6.5M9 7v4H1V3h4" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.2" Width="12" Height="12" />
+    </Button>
+    <Button DockPanel.Dock="Right" Classes="icon" Command="{Binding PasteCommand}" IsVisible="{Binding CanPaste}"
+            ToolTip.Tip="{x:Static loc:IntelText.TipPaste}">
+      <Path Data="M4,1 H10 A1,1 0 0 1 11,2 V9 A1,1 0 0 1 10,10 H4 A1,1 0 0 1 3,9 V2 A1,1 0 0 1 4,1 Z M1,3 V11 A1,1 0 0 0 2,12 H8"
+            Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.2" Width="12" Height="13" />
+    </Button>
+    <!-- Drawn, not a ▾ character: not every font has one. -->
+    <Path DockPanel.Dock="Right" Data="M0,0 L8,0 L4,5 Z" Width="8" Height="5" Margin="8 0 4 0" VerticalAlignment="Center"
+          Fill="{DynamicResource TextMutedBrush}" />
+
+    <Panel ClipToBounds="True">
+      <TextBlock Text="{Binding LineEmptyText}" IsVisible="{Binding !HasNearest}" FontSize="11" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
+      <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HasNearest}">
+        <Border Classes="chip" Classes.fresh="{Binding IsFresh}" BorderThickness="1"
+                CornerRadius="3" Padding="3 1 8 1" HorizontalAlignment="Left" VerticalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="7" DataContext="{Binding Nearest}" x:DataType="vm:IntelNearestVm">
+            <Border Width="3" Background="{Binding TierBrush}" Margin="0 1" />
+            <Border Classes="badge" CornerRadius="3" Padding="5 0" MinWidth="20" VerticalAlignment="Center"
+                    Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}" Classes.far="{Binding IsFar}">
+              <TextBlock Text="{Binding JumpsText}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+            </Border>
+            <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextBrightBrush}" />
+            <TextBlock Text="{Binding StateText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource BadBrush}" />
+            <ItemsControl ItemsSource="{Binding Pictures}" VerticalAlignment="Center">
+              <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                  <StackPanel Orientation="Horizontal" Spacing="6" />
+                </ItemsPanelTemplate>
+              </ItemsControl.ItemsPanel>
+              <ItemsControl.ItemTemplate>
+                <DataTemplate x:DataType="vm:IntelPictureVm">
+                  <StackPanel Orientation="Horizontal" Spacing="3">
+                    <Border Width="16" Height="16" CornerRadius="2" ClipToBounds="True" VerticalAlignment="Center"
+                            Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Picture}" Width="16" Height="16" />
+                    </Border>
+                    <TextBlock Text="{Binding Text}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </StackPanel>
+                </DataTemplate>
+              </ItemsControl.ItemTemplate>
+            </ItemsControl>
+            <TextBlock Text="{Binding MoreHulls}" IsVisible="{Binding HasMoreHulls}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource TextMutedBrush}" />
+            <TextBlock Text="{Binding FlagsText}" IsVisible="{Binding HasFlags}" FontSize="11" VerticalAlignment="Center"
+                       Foreground="{DynamicResource WarnBrush}" />
+            <TextBlock Text="{Binding AgeText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+          </StackPanel>
+        </Border>
+        <TextBlock Text="{Binding MoreText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+      </StackPanel>
+    </Panel>
+  </DockPanel>
+</UserControl>
