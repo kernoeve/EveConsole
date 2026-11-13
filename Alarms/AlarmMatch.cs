@@ -20,4 +20,11 @@ public sealed record AlarmMatch(string Key, string Summary)
     /// banked silently so the next evaluation does not announce them again as changes.
     /// </summary>
     public bool Silent { get; init; }
+
+    /// <summary>
+    /// Too close to wait: said before everything else in its firing, and never held back by a wake
+    /// cooldown shared between alarms. A kill within a jump of a watched character is one. A check
+    /// sets it; it changes nothing about whether the match is news.
+    /// </summary>
+    public bool Urgent { get; init; }
 }

@@ -947,7 +947,7 @@
     <value>Срабатывает, когда кто-то сообщает о пилоте рядом с тем, что вы отслеживаете: вашими персонажами вне дока, вашими персонажами где угодно или списком систем — каждый с радиусом в прыжках. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Учитываются и победы там, где среди атакующих есть пилоты противника: победа показывает, что атакующие были в этой системе.</value>
+    <value>Уничтожение там, где среди атакующих есть пилоты противника, срабатывает всегда и объявляется как уничтожение: что потеряно и кем. В пределах одного прыжка оно объявляется первым. Его атакующие не объявляются ещё раз как замеченные.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Выход корабля из дока</value>
@@ -1001,13 +1001,13 @@
     <value>Прыжки</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>На сколько прыжков через врата от каждого персонажа или системы вести наблюдение. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
+    <value>На сколько прыжков от каждого персонажа или системы вести наблюдение — через звёздные врата и открытые червоточины Thera и Turnur. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Мин. пилотов</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Срабатывать, только если в сообщении названо не меньше стольких пилотов. По умолчанию 1.</value>
+    <value>Срабатывать, только если в системе не меньше стольких противников. По умолчанию 1. Уничтожения и сообщения только с пометками срабатывают при любом числе.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Пропускать NV (нет визуала)</value>
@@ -2100,5 +2100,35 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Индексы на сегодня</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Изменено: сигнал теперь исходит из текущей обстановки, поэтому пилот, замеченный с тех пор в другом месте, или система, объявленная чистой, его больше не вызывают. Каждый пилот объявляется один раз, пока остаётся в системе, число неназванных пилотов — снова только когда оно превышает 1, 4, 9 или 19, а сообщение только о кемпе на гейте, бубликах, цино, хотдропе, всплеске в локале или боевых зондах тоже срабатывает (Сообщения только с пометками, ниже).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Сообщения только с пометками</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Срабатывать и на сообщение, где никто не посчитан, но сказано о кемпе на гейте, бубликах, цино, хотдропе, всплеске в локале или боевых зондах. Каждое объявляется один раз, пока действует.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Уничтожение в {0}: потерян {1}, атакующие — {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Уничтожение в {0}, {1}: потерян {2}, атакующие — {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>противник</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>В {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>В {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Уничтожение</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Уничтожения</value>
   </data>
 </root>

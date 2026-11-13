@@ -141,7 +141,7 @@ namespace EveConsole.Tools.IntelCheck
             var condition = File.ReadAllText(Path.Combine(root, "Alarms", "Conditions", "IntelCondition.cs"));
             var zone      = File.ReadAllText(Path.Combine(root, "Services", "Intel", "IntelZoneService.cs"));
             c.Check("zone: the alarm's check matches against WatchedSystemsAsync",
-                condition.Contains("await WatchedSystemsAsync(config, _graph, ctx.DbFactory, ct)", StringComparison.Ordinal)
+                condition.Contains("await WatchedSystemsAsync(config, _graph, ctx.DbFactory, _distances, OwnOf(snapshot), ct)", StringComparison.Ordinal)
                 && !condition.Contains("_graph.DistancesWithinAsync", StringComparison.Ordinal));
             c.Check("zone: the map's outline is drawn through the same function",
                 zone.Contains("IntelCondition.WatchedSystemsAsync(", StringComparison.Ordinal));

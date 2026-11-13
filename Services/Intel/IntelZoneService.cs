@@ -16,7 +16,9 @@ namespace EveConsole.Services.Intel;
 /// <para>Read off the UI thread, on the map's own slow cadence and when a character moves: it walks the
 /// gate graph once per alarm.</para>
 /// </summary>
-public sealed class IntelZoneService(IDbContextFactory<AppDbContext> dbFactory, SystemGraph graph, AppErrorLogger? errors = null)
+public sealed class IntelZoneService(
+    IDbContextFactory<AppDbContext> dbFactory, SystemGraph graph, AppErrorLogger? errors = null,
+    IntelDistanceService? distances = null, IntelSnapshotService? snapshots = null)
 {
     public const string IntelConditionType = "intel";
 
@@ -34,12 +36,17 @@ public sealed class IntelZoneService(IDbContextFactory<AppDbContext> dbFactory, 
             alarms = [.. rows.Where(a => a.IsActiveAt(now)).Select(a => (a.Id, a.ConditionJson))];
         }
 
+        // Where the characters are as the alarm sees them: the snapshot's own positions, once it has read.
+        var snapshot = snapshots?.Current;
+        var own = snapshot is { } s && s.At != DateTimeOffset.MinValue ? s.Own : null;
+
         foreach (var (id, json) in alarms)
         {
             try
             {
                 using var doc = JsonDocument.Parse(string.IsNullOrWhiteSpace(json) ? "{}" : json);
-                var watched = await IntelCondition.WatchedSystemsAsync(doc.RootElement, graph, dbFactory, ct).ConfigureAwait(false);
+                var watched = await IntelCondition.WatchedSystemsAsync(doc.RootElement, graph, dbFactory, distances, own, ct)
+                    .ConfigureAwait(false);
                 zone.UnionWith(watched.Systems);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }

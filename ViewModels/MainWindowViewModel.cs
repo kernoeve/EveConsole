@@ -2142,7 +2142,8 @@ public class MainWindowViewModel : ReactiveObject
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         StartupTrace.Step("new MapVm");
         // The intel alarms' reach, for the map's alert zone outline: one for every copy of the map.
-        var intelZones         = new EveConsole.Services.Intel.IntelZoneService(dbFactory, systemGraph, errorLogger);
+        var intelZones         = new EveConsole.Services.Intel.IntelZoneService(dbFactory, systemGraph, errorLogger,
+                                                                                intelDistances, intelSnapshots);
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             liveIntel, errorLogger, jumpBridges,

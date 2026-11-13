@@ -11,7 +11,7 @@ namespace EveConsole.Services.Intel;
 /// <see cref="IntelSnapshot"/> that the panels, the Intel tool, the map and the alarms all take.
 ///
 /// <para><b>When it reads.</b> Every five seconds while anything is subscribed (a panel, the tool,
-/// the map) or <see cref="KeepWarm"/> is set (the worker, while an intel alarm is on), and at once
+/// the map) or kept warm (<see cref="KeepWarmFor"/>: the worker, while an intel alarm is on), and at once
 /// when intel is written anywhere (<see cref="IntelSignals.Changed"/>, which reaches this PC too).
 /// Idle otherwise. Readers never wait: they take <see cref="Current"/>.</para>
 ///
@@ -55,7 +55,8 @@ public sealed class IntelSnapshotService : IDisposable
     private readonly IntelCampRegister _register = new();
     private readonly object _loopLock = new();
     private int _subscribers;
-    private bool _keepWarm;
+    private DateTimeOffset _warmUntil = DateTimeOffset.MinValue;
+    private Dictionary<long, int>? _ownWas;
     private Task? _loop;
     private long _version;
     private string? _lastError;
@@ -124,12 +125,26 @@ public sealed class IntelSnapshotService : IDisposable
     /// <summary>Raised after each new snapshot, on a background thread: a view posts to its own.</summary>
     public event Action<IntelSnapshot>? Changed;
 
-    /// <summary>Kept reading while no view is open: set by the worker while an intel alarm is on.</summary>
-    public bool KeepWarm
+    /// <summary>
+    /// Kept reading while no view is open, for <paramref name="span"/> from now: each intel alarm
+    /// evaluation on the worker renews it, so the snapshot stays warm while an intel alarm is on and
+    /// goes idle by itself soon after the last one stops (disabled, or this PC no longer the worker).
+    /// </summary>
+    public void KeepWarmFor(TimeSpan span)
     {
-        get => _keepWarm;
-        set { _keepWarm = value; if (value) EnsureLoop(); }
+        var until = DateTimeOffset.UtcNow + span;
+        lock (_loopLock)
+            if (until > _warmUntil) _warmUntil = until;
+        EnsureLoop();
     }
+
+    /// <summary>
+    /// Raised after a snapshot in which one of the user's characters is in another system than in the
+    /// one before, or newly online or gone: what an intel alarm around characters watches has moved.
+    /// On a background thread. The chat log's "Channel changed to Local" line moves a character
+    /// seconds before ESI's location does, and this is how an alarm hears of it.
+    /// </summary>
+    public event Action? OwnMoved;
 
     /// <summary>Keeps the snapshot refreshing until the returned handle is disposed.</summary>
     public IDisposable Subscribe()
@@ -172,6 +187,14 @@ public sealed class IntelSnapshotService : IDisposable
             _lastError = null;
             try { Changed?.Invoke(snapshot); }
             catch (Exception ex) { _errors?.Log(nameof(IntelSnapshotService), "a snapshot subscriber", ex); }
+
+            // The first read only notes where everyone is: nothing has moved yet.
+            var own = snapshot.Own.GroupBy(o => o.CharacterId).ToDictionary(g => g.Key, g => g.First().SystemId);
+            var moved = _ownWas is { } was && (was.Count != own.Count || own.Any(o => !was.TryGetValue(o.Key, out var s) || s != o.Value));
+            _ownWas = own;
+            if (moved)
+                try { OwnMoved?.Invoke(); }
+                catch (Exception ex) { _errors?.Log(nameof(IntelSnapshotService), "a character moved", ex); }
             await WarmDistancesAsync(snapshot, ct).ConfigureAwait(false);
             return snapshot;
         }
@@ -220,7 +243,8 @@ public sealed class IntelSnapshotService : IDisposable
         }
     }
 
-    private bool Wanted => Volatile.Read(ref _subscribers) > 0 || _keepWarm;
+    /// <summary>Read under <see cref="_loopLock"/>.</summary>
+    private bool Wanted => Volatile.Read(ref _subscribers) > 0 || DateTimeOffset.UtcNow < _warmUntil;
 
     private async Task LoopAsync()
     {

@@ -117,6 +117,14 @@ try
     // ── The Universe Map and the route planner ──────────────────────────────────────────────────────────────
     MapChecks.Run(c, root);
 
+    // ── The intel alarm on intel as it stands ───────────────────────────────────────────────────────────────
+    AlarmChecks.Run(c);
+    DbContextOptions<AppDbContext> Scratch(string name) =>
+        new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, name)}").Options;
+    await AlarmChecks.WatchedAsync(c, Scratch("alarmwatch.db"));
+    await AlarmChecks.EvaluateAsync(c, Scratch("alarmeval.db"));
+    await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
+
     var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
     await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
     await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
@@ -700,6 +708,7 @@ namespace EveConsole.Tools.IntelCheck
                 await ReadSideChecks.WatchTableAsync(c, "PG", options);
                 await ReadSideChecks.PilotSearchAsync(c, "PG", options);
                 await PasteChecks.DatabaseAsync(c, "PG", options);
+                await AlarmChecks.RePrimeAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);

@@ -416,6 +416,14 @@ public class App : Application
             polling.CharacterMoved += characterId =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
 
+            // And when the chat log moves one first ("Channel changed to Local", seconds before ESI's
+            // location does), as the intel snapshot sees it. On the worker only: every PC reads its
+            // own snapshot, and one nudge is enough.
+            Services.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>().OwnMoved += () =>
+            {
+                if (intel.IsWorker) _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+            };
+
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
             // The web sites do NOT follow the pass: it runs every half minute and after every
@@ -4569,6 +4577,15 @@ public class App : Application
                     db.Database.ExecuteSqlRaw("""DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:____-__-__T%'""");
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
+
+                // And again when intel alarms began matching on intel as it stands now, keyed by
+                // episode (a pilot's stay, a count's band, a flag's episode, a kill): once per
+                // database, so the first evaluation of each banks what is live instead of saying it.
+                try
+                {
+                    EveConsole.Alarms.Conditions.IntelCondition.RePrimeForEpisodeKeys(db);
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel episode key migration", ex); }
             }
 
             // Did the pass grow the SDE or Hobo tables? Then the new columns are empty until the
@@ -5499,8 +5516,11 @@ public class App : Application
 
         services.AddSingleton<AlarmSoundService>();
         services.AddSingleton<SystemGraph>();
+        // The intel check reads the shared intel snapshot and measures threat distances.
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
-            sp.GetRequiredService<SystemGraph>()));
+            sp.GetRequiredService<SystemGraph>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelDistanceService>()));
         services.AddSingleton<AlarmMuteState>();
         services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
         services.AddSingleton<EveConsole.Services.Jabber.EmoteService>();

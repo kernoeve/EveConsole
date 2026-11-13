@@ -935,7 +935,7 @@
     <value>Löst aus, wenn jemand einen Piloten in der Nähe dessen meldet, was Sie überwachen: Ihre Charaktere, solange sie abgedockt sind, Ihre Charaktere, wo immer sie sind, oder eine Liste von Systemen, jeweils mit einer Reichweite in Sprüngen. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Abschüsse dort mit feindlichen Piloten unter den Angreifern zählen ebenfalls: Ein Abschuss verortet seine Angreifer in diesem System.</value>
+    <value>Ein Abschuss dort mit feindlichen Piloten unter den Angreifern löst immer aus und wird als Abschuss angesagt: was verloren ging und wogegen. Innerhalb eines Sprungs wird er zuerst angesagt. Seine Angreifer werden nicht noch einmal als Sichtung angesagt.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Schiff dockt ab</value>
@@ -989,13 +989,13 @@
     <value>Sprünge</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Wie viele Torsprünge rund um jeden Charakter bzw. jedes System überwacht werden. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
+    <value>Wie viele Sprünge rund um jeden Charakter bzw. jedes System überwacht werden, über Stargates und die offenen Wurmlöcher von Thera und Turnur. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min. Spieler</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Nur auslösen, wenn die Meldung mindestens so viele Piloten nennt. Standard: 1.</value>
+    <value>Nur auslösen, wenn mindestens so viele Feinde im System sind. Standard: 1. Abschüsse und Nur-Hinweis-Meldungen lösen unabhängig von der Zahl aus.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>„Kein Sichtkontakt“ ignorieren</value>
@@ -2028,5 +2028,35 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Heutige Indizes</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Geändert: Der Alarm richtet sich jetzt nach dem aktuellen Stand der Aufklärung; ein Pilot, der inzwischen anderswo gesehen oder als frei gemeldet wurde, löst nicht mehr aus. Jeder Pilot wird einmal angesagt, solange er in einem System bleibt, eine Zahl ungenannter Piloten erst wieder, wenn sie über 1, 4, 9 oder 19 steigt, und auch eine Meldung nur eines Gate-Camps, von Bubbles, eines Cynos, eines Hotdrops, eines Spikes oder von Kampfsonden löst aus (Nur-Hinweis-Meldungen, unten).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Nur-Hinweis-Meldungen</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Auch bei einer Meldung auslösen, die niemanden zählt, aber ein Gate-Camp, Bubbles, ein Cyno, einen Hotdrop, einen Spike oder Kampfsonden nennt. Jedes wird einmal angesagt, solange es gilt.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Abschuss in {0}: {1} verloren gegen {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Abschuss in {0}, {1}: {2} verloren gegen {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>In {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>In {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Abschuss gemeldet</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Abschüsse gemeldet</value>
   </data>
 </root>

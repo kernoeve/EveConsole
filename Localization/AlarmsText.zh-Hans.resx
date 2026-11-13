@@ -929,7 +929,7 @@
     <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>攻击者中有敌对飞行员的击毁也会计入：一次击毁说明其攻击者当时就在该星系。</value>
+    <value>攻击者中有敌对飞行员的击毁总会触发，并作为击毁播报：损失了什么、被什么击毁。在一跳以内时最先播报。其攻击者不会再作为目击重复播报。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>舰船出站</value>
@@ -983,13 +983,13 @@
     <value>跳数</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>从每个角色或星系向外经星门监视的跳数。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
+    <value>从每个角色或星系向外监视的跳数，经由星门以及 Thera 和 Turnur 的开放虫洞。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>仅当报告中的飞行员人数不少于此值时才触发。默认为 1。</value>
+    <value>仅当星系中的敌对人数不少于此值时才触发。默认为 1。击毁和仅含标记的报告无论人数都会触发。</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>忽略无目视</value>
@@ -1992,5 +1992,35 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>今日指数</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>已更改：警报现在依据当前的情报状况，因此之后在别处出现的飞行员、或被报告为清空的星系，不再触发。每名飞行员在留在某个星系期间只播报一次，未具名的人数只有在超过 1、4、9 或 19 时才会再次播报；仅提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针的报告也会触发（见下方“仅含标记的报告”）。</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>仅含标记的报告</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>报告中没有计入人数、但提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针时也会触发。每一项在有效期内只播报一次。</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>{0}发生击毁：{1}被{2}击毁。</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>{0}（{1}）发生击毁：{2}被{3}击毁。</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>敌对方</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>{0}（{1}）：{2}。</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>发生击毁</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>发生多起击毁</value>
   </data>
 </root>

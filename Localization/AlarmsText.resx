@@ -1245,8 +1245,8 @@
     <comment>Alarm editor, under the Check pick list when Intel report is picked. "Settings → Chat Logs" names the place in the Settings window.</comment>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Kills there with hostile pilots among the attackers count too: a kill places its attackers in that system.</value>
-    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentence. A kill (a killmail) whose attackers include hostile pilots counts as a sighting of them. Hostile = not yours and not at positive standing.</comment>
+    <value>A kill there with hostile pilots among the attackers always fires, said as a kill: what was lost, and to what. Within a jump it is said first. Its attackers are not said again as a sighting.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentences. A kill (a killmail) whose attackers include hostile pilots fires the alarm by itself, worded as a kill. Hostile = not yours and not at positive standing.</comment>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Ship undocks</value>
@@ -1317,16 +1317,16 @@
     <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around each character or system.</comment>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>How many gate jumps out from each character or system to watch. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
-    <comment>Alarm editor, Intel report check, under Jumps.</comment>
+    <value>How many jumps out from each character or system to watch, through stargates and Thera's and Turnur's open wormholes. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
+    <comment>Alarm editor, intel alarm: the description under the Jumps field. Thera and Turnur are EVE system names; keep them as they are.</comment>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min players</value>
     <comment>Alarm editor, Intel report check: label of the least number of pilots a report must name.</comment>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Only fire when the report is of at least this many pilots. Default 1.</value>
-    <comment>Alarm editor, Intel report check, under Min players.</comment>
+    <value>Only fire when at least this many hostiles are in the system. Default 1. Kills and flag-only reports fire whatever the number.</value>
+    <comment>Alarm editor, intel alarm: the description under the Min players field.</comment>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Ignore no visual</value>
@@ -2640,5 +2640,45 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Today's indices</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Changed: the alarm now goes by intel as it stands, so a pilot seen since somewhere else, or called clear, no longer fires. Each pilot is said once while they stay in a system, a count of unnamed pilots again only when it grows past 1, 4, 9 or 19, and a report of only a gate camp, bubbles, a cyno, a hot drop, a spike or combat probes fires too (Flag-only reports, below).</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelKillsNote. Tells people who already use intel alarms how they now behave by default. 'Flag-only reports' must match IntelFlagReportsLabel. 'Called clear' = a report saying a system is empty.</comment>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Flag-only reports</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default. A 'flag-only report' says something about a system (a gate camp, bubbles, a cyno) without counting or naming anyone.</comment>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Also fire for a report that counts nobody but says a gate camp, bubbles, a cyno, a hot drop, a spike or combat probes. Each is said once while it lasts.</value>
+    <comment>Alarm editor, intel alarm: the description under the Flag-only reports switch.</comment>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Kill in {0}: {1} lost to {2}.</value>
+    <comment>Spoken by an intel alarm: a kill near what it watches. {0} is the system; {1} the lost ship's hull name from the game (or HullShip); {2} the attackers' hull names as a list (ListAnd), or IntelSaidKillHostiles.</comment>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Kill in {0}, {1}: {2} lost to {3}.</value>
+    <comment>Spoken by an intel alarm: a kill near what it watches, with how far. {0} is the system; {1} how far (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other, IntelSaidHere, IntelSaidLyFrom or IntelSaidLyOut); {2} the lost ship's hull name (or HullShip); {3} the attackers' hull names as a list (ListAnd), or IntelSaidKillHostiles.</comment>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>hostiles</value>
+    <comment>Spoken: in IntelSaidKill and IntelSaidKillAt in place of the attackers' hull names, when none is known.</comment>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>In {0}: {1}.</value>
+    <comment>Spoken by an intel alarm: something said about a system with nobody counted. {0} is the system; {1} what was said (the map's intel flag words, and the gate: e.g. "bubbles, gate camp · on the QZ-X77 gate").</comment>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>In {0}, {1}: {2}.</value>
+    <comment>Spoken by an intel alarm: something said about a system with nobody counted, with how far. {0} is the system; {1} how far (as in IntelSaidKillAt); {2} what was said (as in IntelSaidFlags).</comment>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Kill reported</value>
+    <comment>Title of an intel alarm's alert or dialog when what fired is one kill; the systems follow after a dash.</comment>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Kills reported</value>
+    <comment>Title of an intel alarm's alert or dialog when what fired is several kills and nothing else; the systems follow after a dash.</comment>
   </data>
 </root>

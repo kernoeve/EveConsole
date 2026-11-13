@@ -935,7 +935,7 @@
     <value>Se déclenche quand quelqu'un signale un pilote près de ce que vous surveillez : vos personnages quand ils sont appareillés, vos personnages où qu'ils soient, ou une liste de systèmes, chacun avec une portée en sauts. Lit les canaux de renseignements déjà analysés dans Paramètres → Journaux de discussion.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Les destructions qui y comptent des pilotes hostiles parmi les attaquants comptent aussi : une destruction place ses attaquants dans ce système.</value>
+    <value>Une destruction qui compte des pilotes hostiles parmi les attaquants déclenche toujours l'alarme et est annoncée comme une destruction : ce qui a été perdu, et face à quoi. À un saut ou moins, elle est annoncée en premier. Ses attaquants ne sont pas annoncés une seconde fois comme une observation.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Appareillage d'un vaisseau</value>
@@ -989,13 +989,13 @@
     <value>Sauts</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Nombre de sauts par portail stellaire à surveiller autour de chaque personnage ou système. 0 signifie leur propre système uniquement. Limité à 15 — au-delà, ce n'est plus un voisinage.</value>
+    <value>Nombre de sauts à surveiller autour de chaque personnage ou système, par les portails stellaires et les trous de ver ouverts de Thera et Turnur. 0 signifie leur propre système uniquement. Limité à 15 — au-delà, ce n'est plus un voisinage.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Joueurs min.</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Ne se déclencher que si le signalement concerne au moins ce nombre de pilotes. 1 par défaut.</value>
+    <value>Ne se déclencher que s'il y a au moins ce nombre d'hostiles dans le système. 1 par défaut. Les destructions et les signalements d'alerte seuls se déclenchent quel que soit le nombre.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Ignorer « pas de visuel »</value>
@@ -2028,5 +2028,35 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Indices du jour</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Changement : l'alarme suit désormais les renseignements tels qu'ils sont, si bien qu'un pilote vu depuis ailleurs, ou un système signalé vide, ne la déclenche plus. Chaque pilote est annoncé une fois tant qu'il reste dans un système, un nombre de pilotes non nommés de nouveau seulement quand il dépasse 1, 4, 9 ou 19, et un signalement qui ne mentionne qu'un camp de portail, des bulles, un cyno, un hotdrop, un pic en local ou des sondes de combat la déclenche aussi (Signalements d'alerte seuls, ci-dessous).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Signalements d'alerte seuls</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Se déclencher aussi pour un signalement qui ne compte personne mais mentionne un camp de portail, des bulles, un cyno, un hotdrop, un pic en local ou des sondes de combat. Chacun est annoncé une fois tant qu'il dure.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Destruction à {0} : {1} perdu face à {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Destruction à {0}, {1} : {2} perdu face à {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>des hostiles</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>À {0} : {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>À {0}, {1} : {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Destruction signalée</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Destructions signalées</value>
   </data>
 </root>
