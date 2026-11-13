@@ -752,4 +752,7 @@ Démarrez un client {1} autorisé à les exécuter, ou désactivez ce réglage :
   <data name="NavIrc" xml:space="preserve">
     <value>IRC</value>
   </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
 </root>

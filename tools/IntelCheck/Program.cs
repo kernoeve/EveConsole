@@ -109,6 +109,14 @@ try
     await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
     await ReadSideChecks.RetentionAsync(c, "SQLite", rsOptions);
 
+    // ── Pasted Local and d-scan ──────────────────────────────────────────────────────────────────────────────
+    PasteChecks.Classification(c);
+    PasteChecks.Dscan(c);
+    PasteChecks.Preview(c);
+    var pasteOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "paste.db")}").Options;
+    await using (var db = new AppDbContext(pasteOptions)) await db.Database.EnsureCreatedAsync();
+    await PasteChecks.DatabaseAsync(c, "SQLite", pasteOptions);
+
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
     if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
@@ -664,6 +672,7 @@ namespace EveConsole.Tools.IntelCheck
                 await FollowUpChecks.DatabaseAsync(c, "PG threads", options);
                 await ReadSideChecks.ServiceAsync(c, "PG", options);
                 await ReadSideChecks.RetentionAsync(c, "PG", options);
+                await PasteChecks.DatabaseAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);

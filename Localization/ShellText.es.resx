@@ -752,4 +752,7 @@ Inicia un cliente {1} que pueda ejecutarlos, o desactiva esto: quita "neverRunBa
   <data name="NavIrc" xml:space="preserve">
     <value>IRC</value>
   </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
 </root>

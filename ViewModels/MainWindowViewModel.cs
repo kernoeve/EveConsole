@@ -293,6 +293,31 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>Planetary Industry's one door to the data, for the Settings window's PI boxes.</summary>
     public EveConsole.Services.Pi.PiService Pi                   { get; }
     public MapToolViewModel                MapVm                  { get; }
+
+    /// <summary>The Intel tool: live intel by system, the feed, and pastes.</summary>
+    public IntelViewModel                  IntelVm                { get; }
+
+    /// <summary>
+    /// What the Intel tool is given to reach beyond itself: Settings (the kill-feed warning's link), the
+    /// map, and who parses intel. A copy inherits the same.
+    /// </summary>
+    private IntelViewModel WireIntel(IntelViewModel intel)
+    {
+        intel.OpenSettingsTab = tab => OpenSettingsTab?.Invoke(tab);
+        intel.ShowOnMap = id =>
+        {
+            ShowTool("universe");
+            MapVm.ShowUniverseTab().Map.FocusSystems([id]);
+        };
+        intel.WorkerLine = () => WorkerState switch
+        {
+            WorkerOwnership.Mine  => IntelText.WorkerHere,
+            WorkerOwnership.Other => string.Format(System.Globalization.CultureInfo.CurrentCulture, IntelText.WorkerOn, WorkerOwner),
+            WorkerOwnership.None  => IntelText.WorkerNone,
+            _                     => "",
+        };
+        return intel;
+    }
     public AlarmsViewModel                AlarmsVm               { get; }
     public SchedulerViewModel             SchedulerVm            { get; }
     public JumpPlannerViewModel           JumpPlannerVm          { get; }
@@ -1571,6 +1596,7 @@ public class MainWindowViewModel : ReactiveObject
             "structure_browser" => (ShellText.NavStructureBrowser, StructureBrowserVm, true),
             "planetary_industry" => (ShellText.NavPlanetaryIndustry, PlanetaryIndustryVm, true),
             "universe"        => (ShellText.TabUniverse,        MapVm,             true),
+            "intel"           => (ShellText.NavIntel,           IntelVm,           true),
             "alarms"          => (ShellText.TabAlarms,          AlarmsVm,          true),
             "scheduler"       => (ShellText.TabScheduler,       SchedulerVm,       true),
             "trade"           => (ShellText.TabTrade,           TradeOpportunitiesVm,     true),
@@ -1794,7 +1820,8 @@ public class MainWindowViewModel : ReactiveObject
         JumpBridgeService               jumpBridges,
         EveConsole.Services.Intel.IntelSettings        intelSettings,
         EveConsole.Services.Intel.IntelSnapshotService intelSnapshots,
-        EveConsole.Services.Intel.IntelDistanceService intelDistances)
+        EveConsole.Services.Intel.IntelDistanceService intelDistances,
+        EveConsole.Services.Intel.IntelPasteService    intelPaste)
     {
         StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
@@ -2114,6 +2141,9 @@ public class MainWindowViewModel : ReactiveObject
             liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
+        StartupTrace.Step("new IntelVm");
+        IntelVm                = WireIntel(new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
+                                                              dbFactory, CharacterVm.Characters));
         StartupTrace.Step("new AlarmsVm");
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         StartupTrace.Step("new SchedulerVm");
@@ -2264,6 +2294,9 @@ public class MainWindowViewModel : ReactiveObject
             liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns));
+        // Another Intel tool, on another monitor perhaps: it opens with the filters kept on this PC.
+        CopyOf("intel", () => IntelVm, () => new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
+                                                               dbFactory, CharacterVm.Characters));
         CopyOf("alarms", () => AlarmsVm, () => new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute));
         CopyOf("scheduler", () => SchedulerVm, () => new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
             corpActivityService, salePostingService, errorLogger, batchAddService, parkCompare, onlineServices,
@@ -2393,6 +2426,7 @@ public class MainWindowViewModel : ReactiveObject
             [
                 new NavItem("structure_browser", ShellText.NavStructureBrowser),
                 new NavItem("universe",          ShellText.NavUniverseMap),
+                new NavItem("intel",             ShellText.NavIntel),
             ]),
             new("industry", ShellText.NavGroupIndustry,
             [

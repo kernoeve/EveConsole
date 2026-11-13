@@ -304,4 +304,379 @@
   <data name="TipOpenTool" xml:space="preserve">
     <value>정보 도구에서 열기</value>
   </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>보드</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>피드</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>붙여넣기</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>정보가 불완전합니다. zKillboard 전체 피드가 꺼져 있어 근처 다른 파일럿 간의 킬이 빠져 있습니다.</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>킬메일 설정 열기</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>전체 피드를 다시 켰다 끌 때까지 모든 PC에서 숨기기</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>거리 기준</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>가장 가까운 접속 캐릭터</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0} (오프라인)</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>범위</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} 점프</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>거리 제한 없음</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>내 점프 브리지</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>내 점프 브리지를 포함합니다(이동 거리). 위협 거리에는 쓰지 않습니다.</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>스탠딩</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>빨강</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>주황</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>중립</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>하늘색</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>파랑</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>내 캐릭터</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>모든 채널, 킬, 붙여넣기</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>출처 없음</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>출처 {1}개 중 {0}개</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>킬 (zKillboard 및 ESI)</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>붙여넣은 로컬과 D-스캔</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>성계 또는 파일럿 찾기…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>{0} 전 갱신</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>정보 분석: 이 PC</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>정보 분석: {0}의 워커</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>정보 분석: 워커 없음</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>정렬</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>가까운 순</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>최신 순</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>적이 많은 순</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>한도 초과 {0}개 더</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>점프</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>성계</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>적</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>함선</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>표시</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>이동</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>경과</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>가장 가까운</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>적</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>시야 없음</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>캠프</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>표시</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>클리어</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>{0}에서</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>{0} 방향</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>붙여넣기</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>이 거리 안에 실시간 정보가 없습니다.</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>이 시간 동안 이 거리 안에서 보고된 것이 없습니다.</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>검색과 일치하는 항목이 없습니다.</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>정보 채널이 설정되지 않았습니다. 설정 → 채팅 로그에서 체크하거나 Jabber 또는 IRC 방을 정보로 지정하세요. 킬과 붙여넣기는 계속 표시됩니다.</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>접속한 캐릭터가 없어 점프를 셀 기준이 없습니다. 모두 표시하며, 누군가 접속하면 가까운 순으로 정렬합니다.</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>거리 기준으로 고른 캐릭터가 접속해 있지 않습니다. 접속하거나 다른 캐릭터를 고를 때까지 점프가 표시되지 않습니다.</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>최근</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>킬 표시</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>연결되지 않은 대화</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>정보가 되지 않은 정보 채널의 줄(대화, 질문, 연결할 곳이 없는 후속 보고). 흐리게 표시하며 정보로 저장하지 않습니다.</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>EVE 시간</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>보고</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>후속</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>클리어</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>로컬 붙여넣기</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>D-스캔</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>캠프</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>대화</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>붙여넣기</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>붙여넣기 · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>{0}에서 옴</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>{0}(으)로 향함</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>대체됨</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>만료됨</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>성계 페이지 열기</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>파일럿 열기</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>성계</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>성계 선택</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0} ({1} 있음)</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>또는 다른 성계…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>붙여넣은 캐릭터</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>로컬(한 줄에 한 이름) 또는 D-스캔을 붙여넣기</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>게임의 로컬 멤버 목록이나 D-스캔 창에서 모두 선택해 복사한 뒤 여기에 Ctrl+V로 붙여넣으세요.</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>앱은 클립보드를 직접 읽지 않습니다. 상자에 붙여넣은 내용만 사용합니다.</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>감지: 로컬 목록</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>감지: D-스캔</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>로컬 목록도 D-스캔도 아닙니다. 로컬은 한 줄에 한 이름, D-스캔은 탭으로 구분된 열입니다.</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>어느 성계의 것인지 선택하세요.</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>그곳에 보고된 {0}개를 대체</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>붙여넣은 로컬은 전체 명단입니다. 성계에 보고된 모두를 빼고 목록의 모두를 배치합니다. 일부만 붙여넣어도 똑같이 지웁니다.</value>
+  </data>
+  <data name="PasteOwnNotCounted" xml:space="preserve">
+    <value>내 캐릭터 {0}명 포함, 위협으로 세지 않음</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → 버블</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → 사이노</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>D-스캔은 이름 없는 함선 수만 더하고 성계를 지우지 않습니다. D-스캔으로는 모두를 볼 수 없습니다.</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>상자에 붙여넣으면 저장하기 전에 저장될 내용이 여기에 표시됩니다.</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>저장 (Ctrl+Enter)</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>내 캐릭터</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>확인 안 됨</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>얼라이언스 없음</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>이름 없음으로 셈</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>최근 붙여넣기</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>실시간 정보가 있는 성계 {0}개</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>적 {0}명</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>게이트 캠프 {0}개</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>알 수 없는 이름 {0}개를 이름 없음으로 셈</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>이름 {0}개</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>함선 {0}</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>함선 {0}</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>{1}에 파일럿 {0}명 배치</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>최신 순 · {0}줄</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>저장됨: {1}의 로컬, 이름 {0}개.</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>저장됨: {1}의 D-스캔, 함선 {0}.</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>이름 {0}개 · 확인 {1} · 불명 {2}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>함선 {0} · 알 수 없는 종류 {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>방금 갱신</value>
+  </data>
 </root>

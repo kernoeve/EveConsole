@@ -304,4 +304,418 @@
   <data name="TipOpenTool" xml:space="preserve">
     <value>Abrir en la herramienta de inteligencia</value>
   </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>Tablero</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>Flujo</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>Pegar</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>La inteligencia está incompleta: el flujo completo de zKillboard está desactivado, así que faltan las muertes entre otros pilotos cerca de ti.</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>Abrir los ajustes de Kill Mails</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>Ocultar en todos los PC hasta que el flujo completo se active y desactive de nuevo</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>Distancia desde</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>Personaje en línea más cercano</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0} (no conectado)</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>Hasta</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} saltos</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>Cualquier distancia</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>Mis puentes de salto</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>Cuenta tus propios puentes de salto: la distancia para viajar. La distancia de una amenaza nunca los usa.</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>Reputación</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>Rojo</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>Naranja</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>Azul claro</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>Azul</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>Personaje propio</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Fuentes</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>Todos los canales, muertes y pegados</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>Ninguna fuente</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{0} de {1} fuentes</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>Muertes (zKillboard y ESI)</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>Local y d-scan pegados</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Buscar sistema o piloto…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>Actualizado hace {0}</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>Análisis de inteligencia: este PC</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>Análisis de inteligencia: trabajador en {0}</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>Análisis de inteligencia: sin trabajador</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Ordenar</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>Más cercano</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Más reciente</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>Más hostiles</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>{0} más por encima del límite</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>Saltos</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Estado</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Hostiles</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>Naves</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>Indicadores</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>Movimiento</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>Antigüedad</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Más cercano</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>Fuentes</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>Hostil</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>Sin visual</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>Campeo</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>Indicadores</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>Despejado</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>desde {0}</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>hacia {0}</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>muertes</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>pegado</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>No hay inteligencia activa a esta distancia.</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>No se ha informado nada en este tiempo a esta distancia.</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>Nada coincide con la búsqueda.</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>No hay canales de inteligencia: márcalos en Ajustes → Registros de chat, o marca una sala de Jabber o IRC como Inteligencia. Las muertes y los pegados se siguen mostrando.</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>Ninguno de tus personajes está conectado, así que no hay desde dónde contar saltos: se lista todo, y por cercanía en cuanto alguien se conecte.</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>El personaje elegido en Distancia desde no está conectado: no hay saltos hasta que se conecte, o elige otro.</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Últimos</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} minutos</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>Mostrar muertes</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>Charla sin enlazar</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>Líneas de los canales de inteligencia que no dieron inteligencia: charla, preguntas, un seguimiento sin nada a lo que unirse. Se muestran atenuadas y nunca se guardan como inteligencia.</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>Hora de EVE</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>Informe</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>Seguimiento</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>Despejado</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>Local pegado</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>D-scan</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>Muerte</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>Campeo</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>Charla</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>Pegado</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>Pegado · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>vino de {0}</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>rumbo a {0}</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>reemplazado</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>caducado</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>Abrir la página del sistema</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>Abrir piloto</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>Elige un sistema</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0} ({1} aquí)</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>u otro sistema…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>Pegado por</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>Pega Local (nombres, uno por línea) o un d-scan</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>En el juego, selecciona todo en la lista de miembros de Local o en la ventana de d-scan, copia y pega aquí con Ctrl+V.</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>La aplicación nunca lee el portapapeles por su cuenta: solo se usa lo que pegas en el cuadro.</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>Detectado: lista de Local</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>Detectado: d-scan</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>No es una lista de Local ni un d-scan: Local tiene un nombre por línea; un d-scan, columnas separadas por tabuladores.</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>Elige el sistema del que procede.</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>Reemplaza {0} informados allí</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>Un Local pegado es la lista completa: se quita a todos los informados en el sistema y luego se sitúa a todos los de la lista. Un pegado parcial limpia igual.</value>
+  </data>
+  <data name="PasteOwnNotCounted" xml:space="preserve">
+    <value>{0} tuyos en ella, nunca contados como amenaza</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → burbujas</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → cyno</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>Un d-scan solo añade un recuento de naves sin nombre y nunca limpia el sistema: el d-scan no ve a todos.</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>Pega en el cuadro: lo que se guardaría aparece aquí antes de guardar nada.</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>Guardar (Ctrl+Intro)</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>Tuyos</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>Sin resolver</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>Sin alianza</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>Contados sin nombre</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>Pegados recientes</value>
+  </data>
+  <data name="StatusSystemsOne" xml:space="preserve">
+    <value>{0} sistema con inteligencia activa</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>{0} sistemas con inteligencia activa</value>
+  </data>
+  <data name="StatusHostilesOne" xml:space="preserve">
+    <value>{0} hostil</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>{0} hostiles</value>
+  </data>
+  <data name="StatusCampsOne" xml:space="preserve">
+    <value>{0} campeo de portal</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>{0} campeos de portal</value>
+  </data>
+  <data name="PasteUnknownNamesOne" xml:space="preserve">
+    <value>{0} nombre desconocido contado sin nombre</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>{0} nombres desconocidos contados sin nombre</value>
+  </data>
+  <data name="RecentPilotsOne" xml:space="preserve">
+    <value>{0} nombre</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} nombres</value>
+  </data>
+  <data name="RecentShipsOne" xml:space="preserve">
+    <value>{0} nave</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>{0} naves</value>
+  </data>
+  <data name="PasteDscanShipsOne" xml:space="preserve">
+    <value>{0} nave</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>{0} naves</value>
+  </data>
+  <data name="PastePlacesOne" xml:space="preserve">
+    <value>Sitúa {0} piloto en {1}</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>Sitúa {0} pilotos en {1}</value>
+  </data>
+  <data name="FeedCountOne" xml:space="preserve">
+    <value>Más recientes primero · {0} línea</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>Más recientes primero · {0} líneas</value>
+  </data>
+  <data name="PasteSavedLocalOne" xml:space="preserve">
+    <value>Guardado: Local de {1}, {0} nombre.</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>Guardado: Local de {1}, {0} nombres.</value>
+  </data>
+  <data name="PasteSavedDscanOne" xml:space="preserve">
+    <value>Guardado: d-scan de {1}, {0} nave.</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>Guardado: d-scan de {1}, {0} naves.</value>
+  </data>
+  <data name="PasteNamesCountOne" xml:space="preserve">
+    <value>{0} nombre · resueltos: {1} · desconocidos: {2}</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} nombres · resueltos: {1} · desconocidos: {2}</value>
+  </data>
+  <data name="PasteDscanCountOne" xml:space="preserve">
+    <value>{0} nave · tipos desconocidos: {1}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>{0} naves · tipos desconocidos: {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>Actualizado ahora mismo</value>
+  </data>
 </root>

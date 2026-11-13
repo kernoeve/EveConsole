@@ -159,6 +159,17 @@ public static class IntelWords
             ? string.Format(CultureInfo.CurrentCulture, IntelText.StandingsAs, own.Name)
             : IntelText.StandingsAnyCharacter;
 
+    /// <summary>A standings tier as the game names it.</summary>
+    public static string TierName(StandingTier tier) => tier switch
+    {
+        StandingTier.Red       => IntelText.TierRed,
+        StandingTier.Orange    => IntelText.TierOrange,
+        StandingTier.LightBlue => IntelText.TierLightBlue,
+        StandingTier.Blue      => IntelText.TierBlue,
+        StandingTier.Own       => IntelText.TierOwn,
+        _                      => IntelText.TierNeutral,
+    };
+
     /// <summary>The flags as words, most pressing first, and a camp's own.</summary>
     public static string Flags(int flags, GateCamp? camp = null)
     {
@@ -390,19 +401,80 @@ public sealed class IntelEventRowVm : ReactiveObject
             }
         }
 
+        _superseded = e.Superseded;
+        Kind = e.Kind;
+        KindText = e.Kind switch
+        {
+            IntelEventKind.FollowUp   => IntelText.KindFollowUp,
+            IntelEventKind.Clear      => IntelText.KindClear,
+            IntelEventKind.LocalPaste => IntelText.KindLocalPaste,
+            IntelEventKind.Dscan      => IntelText.KindDscan,
+            IntelEventKind.Kill       => IntelText.KindKill,
+            IntelEventKind.CampFormed => IntelText.KindCamp,
+            _                         => IntelText.KindReport,
+        };
+        // EVE time is UTC.
+        TimeText = e.At.UtcDateTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
+        SourceText = e.Kind switch
+        {
+            IntelEventKind.Kill or IntelEventKind.CampFormed => IntelText.SourceKillboard,
+            IntelEventKind.LocalPaste or IntelEventKind.Dscan =>
+                e.Reporter is { Length: > 0 } paster ? string.Format(culture, IntelText.SourcePasteBy, paster) : IntelText.SourcePaste,
+            _ => e.Reporter is { Length: > 0 } reporter && e.Channel is { Length: > 0 } channel
+                    ? string.Format(culture, IntelText.SourceChannelBy, channel, reporter)
+                    : e.Channel ?? "",
+        };
+        ReporterId = e.Kind is IntelEventKind.Kill or IntelEventKind.CampFormed ? 0 : e.ReporterId ?? 0;
+        // Where they came from or are heading: the solid and the dashed arrow on the map, in words.
+        var direction = new List<string>();
+        if (e.FromSystemId is int fromSystem && fromSystem != e.SystemId)
+            direction.Add(string.Format(culture, IntelText.CameFrom, snapshot.SystemName(fromSystem)));
+        if (e.HeadingSystemId is int heading && heading != e.SystemId)
+            direction.Add(string.Format(culture, IntelText.HeadingTo, snapshot.SystemName(heading)));
+        DirectionText = string.Join(" · ", direction);
+
         Pictures = pictures;
         MoreText = more > 0 ? "+" + more.ToString(culture) : "";
         TailText = tail;
         DetailText = detail ?? "";
         FollowUpText = row.FollowUps.Count > 0 ? string.Format(culture, IntelText.FollowUps, row.FollowUps.Count) : "";
         ToolTip = TipOf(row, culture);
-        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText,
+        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, e.Superseded,
                                 string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text)));
         Tick(now, snapshot.Settings.FreshSeconds);
     }
 
     public IntelRowActions Actions { get; }
     public string Key { get; }
+
+    public IntelEventKind Kind { get; }
+
+    /// <summary>"Report", "Follow-up", "Kill"…: what the Feed labels the line.</summary>
+    public string KindText { get; }
+
+    /// <summary>When it was said, in EVE time (UTC): the Feed shows it under the age.</summary>
+    public string TimeText { get; }
+
+    /// <summary>Where it came from: "channel · reporter", "zKillboard", "Paste · who pasted".</summary>
+    public string SourceText { get; }
+
+    /// <summary>Who reported or pasted it, for their portrait beside the source; 0 for a kill.</summary>
+    public long ReporterId { get; }
+    public bool HasReporter => ReporterId > 0;
+
+    /// <summary>"came from X", "heading to Y".</summary>
+    public string DirectionText { get; }
+    public bool HasDirection => DirectionText.Length > 0;
+
+    private readonly bool _superseded;
+
+    /// <summary>A later line restated or replaced it: the Feed keeps it, faded, and says so.</summary>
+    public bool IsSuperseded => _superseded;
+
+    private string _statusText = "";
+    /// <summary>"superseded" or "expired", or nothing while it stands.</summary>
+    public string StatusText { get => _statusText; private set { this.RaiseAndSetIfChanged(ref _statusText, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
+    public bool HasStatus => StatusText.Length > 0;
 
     /// <summary>What the row shows, less its age: a row built again from a new snapshot that reads
     /// the same keeps the one already on screen, pictures and all.</summary>
@@ -467,12 +539,27 @@ public sealed class IntelEventRowVm : ReactiveObject
     public void Tick(DateTimeOffset now, int freshSeconds)
     {
         AgeText = IntelWords.Age(_newest, now);
-        Opacity = IntelLens.Opacity(_at, _lifetime, now);
+        Opacity = _superseded ? IntelLens.ExpiredOpacity : IntelLens.Opacity(_at, _lifetime, now);
+        StatusText = _superseded ? IntelText.StatusSuperseded : now >= _at + _lifetime ? IntelText.StatusExpired : "";
         IsFresh = _canBeFresh && _jumps is int j && j <= IntelViewer.FreshJumps
                   && now - _newest <= TimeSpan.FromSeconds(freshSeconds) && now < _at + _lifetime;
     }
 
-    public Task LoadPicturesAsync() => Task.WhenAll(Pictures.Select(p => p.LoadAsync()));
+    private Bitmap? _reporterPicture;
+    /// <summary>The reporter's portrait, beside the source in the tool's Feed.</summary>
+    public Bitmap? ReporterPicture { get => _reporterPicture; private set => this.RaiseAndSetIfChanged(ref _reporterPicture, value); }
+
+    public Task LoadPicturesAsync() => Task.WhenAll(Pictures.Select(p => p.LoadAsync()).Append(LoadReporterAsync()));
+
+    private async Task LoadReporterAsync()
+    {
+        if (ReporterId <= 0 || ReporterPicture is not null) return;
+        var bitmap = await EveImageCache.GetAsync($"https://images.evetech.net/characters/{ReporterId}/portrait?size=32").ConfigureAwait(false);
+        if (bitmap is not null) Dispatcher.UIThread.Post(() => ReporterPicture = bitmap);
+    }
+
+    /// <summary>For a check with no network: the reporter's picture given rather than fetched.</summary>
+    public void ShowReporter(Bitmap? picture) => ReporterPicture = picture;
 
     public void OpenSystem()
     {

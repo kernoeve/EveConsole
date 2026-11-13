@@ -309,7 +309,8 @@ public static class AppKnowledge
         clients.
         An Intel control on a panel shows live intel near the character in that monitor's client:
         jumps (gates and Thera/Turnur), standings colour, age; threats only, within 3–20 jumps (10 by
-        default), as a list or one line that drops the list down when clicked.
+        default), as a list or one line that drops the list down when clicked. Its paste icon opens
+        the Intel tool's Paste tab with that character and its system chosen.
 
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,
@@ -360,6 +361,21 @@ public static class AppKnowledge
         intel. Live marks show hostiles placed in the last 5 minutes by intel or killmails, and
         the user's online characters. A system page has tabs for its celestials, kills, industry
         indices, graphs and intel.
+
+        ### Intel
+        Live intel from the intel chat channels, Jabber and IRC rooms marked Intel, the kill feed
+        and pastes, measured in jumps (gates and Thera/Turnur) from the nearest online character or
+        one chosen, and coloured by that character's standings. Top bar: Distance from, Within N
+        jumps (15 by default), My jump bridges, standings chips (Red, Orange, Neutral on), Sources
+        and a search. A yellow bar says when the full zKillboard feed is off (Settings > Kill
+        Mails); dismissing it hides it on every PC until the feed is switched on and off again.
+        Tabs: Board (one row per system: state, hostiles, hulls, flags, moving, age, nearest
+        character, sources; a row opens to its reports, follow-ups and kills), Feed (every line
+        newest first, 15/30/60 minutes, expired and superseded lines faded, Show kills, Unlinked
+        chatter) and Paste (the Local member list or a d-scan pasted into a box for a chosen
+        system; a Local clears the system and places everyone on it, saying first how many it
+        replaces; a d-scan adds an unnamed count of ships, with bubbles and cynos from what is on
+        scan; Save or Ctrl+Enter). The app never reads the clipboard itself.
 
         ### Route Planner
         A Universe Map tab. Plans a route from system to system through gates, the jump bridges
@@ -465,6 +481,7 @@ public static class AppKnowledge
         ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
         ("structure_browser",   "Structure Browser",      "Structure Browser"),
         ("universe",            "Universe Map",           "Universe Map"),
+        ("intel",               "Intel",                  "Intel"),
         ("route_planner",       "Route Planner",          "Route Planner"),
         ("jump_planner",        "Jump Planner",           "Jump Planner"),
         ("industry",            "Industry Jobs",          "Industry Jobs"),

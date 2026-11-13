@@ -5404,6 +5404,21 @@ public class App : Application
             sp.GetRequiredService<CorpActivityService>(),
             sp.GetRequiredService<AppPreferencesService>(),
             sp.GetRequiredService<AppErrorLogger>()));
+        // A pasted Local or d-scan, stored by the PC where it was pasted. Names through the parser's own
+        // resolver (the name cache, then ESI), and every PC told when it is written.
+        services.AddSingleton(sp =>
+        {
+            var intel = sp.GetRequiredService<IntelService>();
+            var names = sp.GetRequiredService<CorpActivityService>();
+            return new EveConsole.Services.Intel.IntelPasteService(
+                sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+                intel.ResolveCharactersAsync,
+                intel.FetchAffiliationsAsync,
+                async (ids, ct) => await names.ResolveNamesAsync(ids, ct),
+                sp.GetRequiredService<ClientSignals>(),
+                sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+                sp.GetRequiredService<AppErrorLogger>());
+        });
         // The map's long-standing reader, now an adapter over the snapshot.
         services.AddSingleton(sp => new LiveIntelService(
             sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),

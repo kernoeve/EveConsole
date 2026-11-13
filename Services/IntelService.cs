@@ -1197,6 +1197,72 @@ public sealed class IntelService(
         foreach (var id in ids) _onKillmail[id] = seen.Contains(id);
     }
 
+    /// <summary>
+    /// Pasted names as characters, by name: the local name cache and the user's own characters first,
+    /// then ESI's /universe/ids in batches for the rest. What ESI finds goes into the shared name cache,
+    /// and what it says is no character is remembered as a miss, as in a pass.
+    ///
+    /// <para>⚠️ Its own lookups, never the pass's session cache: a paste is resolved on whichever PC it
+    /// is made, on its own thread, while the worker's pass may be reading that cache.</para>
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, long>> ResolveCharactersAsync(
+        IReadOnlyCollection<string> names, CancellationToken ct = default)
+    {
+        var found = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        var wanted = names.Select(n => n.Trim()).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (wanted.Count == 0) return found;
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        foreach (var chunk in wanted.Chunk(500))
+        {
+            foreach (var c in await db.Characters.AsNoTracking().Where(c => chunk.Contains(c.Name))
+                         .Select(c => new { c.Name, c.Id }).ToListAsync(ct))
+                found.TryAdd(c.Name, c.Id);
+            foreach (var k in await db.UniverseNames.AsNoTracking().Where(n => n.Category == "character" && chunk.Contains(n.Name))
+                         .Select(n => new { n.Name, n.EntityId }).ToListAsync(ct))
+                found.TryAdd(k.Name, k.EntityId);
+        }
+
+        // Names already found to be nobody, recently: not asked about again.
+        // ⚠️ The age is checked in memory: a DateTimeOffset comparison does not translate on SQLite.
+        var left = wanted.Where(n => !found.ContainsKey(n)).ToList();
+        var recheck = DateTimeOffset.UtcNow - MissRecheck;
+        var misses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var chunk in left.Chunk(500))
+            foreach (var m in await db.NameLookupMisses.AsNoTracking().Where(m => chunk.Contains(m.Name))
+                         .Select(m => new { m.Name, m.CheckedAt }).ToListAsync(ct))
+                if (m.CheckedAt >= recheck) misses.Add(m.Name);
+        left = [.. left.Where(n => !misses.Contains(n))];
+
+        foreach (var slice in left.Chunk(LookupBatch))
+        {
+            try
+            {
+                var got = await esi.LookupEntityIdsAsync([.. slice], ct);
+                foreach (var (id, name, category) in got)
+                    if (category == "character") found.TryAdd(name, id);
+                await CacheNamesAsync(db, got, ct);
+                await RecordMissesAsync(db, [.. slice.Where(s => !found.ContainsKey(s))], ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                // The rest stay unresolved, counted as unnamed, rather than hammering a failing endpoint.
+                errorLogger.Log(nameof(IntelService), nameof(ResolveCharactersAsync), ex);
+                break;
+            }
+        }
+        return found;
+    }
+
+    /// <summary>The corporation and alliance of each pilot not yet held, from ESI, into the shared
+    /// affiliation cache: for a paste, whose pilots no pass has seen.</summary>
+    public async Task FetchAffiliationsAsync(IReadOnlyCollection<long> characterIds, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        await EnsureAffiliationsAsync(db, [.. characterIds], ct);
+    }
+
     /// <summary>Fills <see cref="_nameCache"/> for every candidate not already known: the local
     /// name cache first, then ESI for whatever is left.</summary>
     private async Task ResolveAsync(

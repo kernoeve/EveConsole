@@ -59,6 +59,10 @@ public sealed record IntelSettingsValues
     /// it is empty. True until read, so nothing says so before the first reading.</summary>
     public bool     HasIntelChannels { get; init; } = true;
 
+    /// <summary>The chat channels set as intel on Settings → Chat Logs (Jabber and IRC rooms are not
+    /// among them: they are marked on their own pages).</summary>
+    public IReadOnlyList<string> IntelChannels { get; init; } = [];
+
     /// <summary>The longest any sighting, flag or clear lasts.</summary>
     public TimeSpan LongestLifetime =>
         new[] { Named, Unnamed, Clear, Camp, Cyno, KillAttacker, KillVictim }.Max();
@@ -182,6 +186,9 @@ public sealed class IntelSettings(AppPreferencesService prefs)
         TimeSpan Life(string key, int fallback) =>
             TimeSpan.FromMinutes(Long(key, fallback, MinLifetimeMinutes, MaxLifetimeMinutes));
 
+        var channels = (raw.GetValueOrDefault(EveConsole.Monitoring.MonitoringSettings.KeyChatIntelChannels) ?? "")
+            .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+
         return new IntelSettingsValues
         {
             Named        = Life(KeyNamed,        DefaultNamedMinutes),
@@ -203,8 +210,8 @@ public sealed class IntelSettings(AppPreferencesService prefs)
             FreshSeconds         = (int)Long(KeyFresh, DefaultFreshSeconds, MinFreshSeconds, MaxFreshSeconds),
             ZkbEnabled = Bool(ZkillboardSettings.KeyEnabled, true),
             ZkbScope   = raw.TryGetValue(ZkillboardSettings.KeyScope, out var scope) && scope == "All" ? ZkbScope.All : ZkbScope.MineAndCorp,
-            HasIntelChannels = raw.TryGetValue(EveConsole.Monitoring.MonitoringSettings.KeyChatIntelChannels, out var channels)
-                               && !string.IsNullOrWhiteSpace(channels),
+            HasIntelChannels = channels.Length > 0,
+            IntelChannels    = channels,
         };
     }
 

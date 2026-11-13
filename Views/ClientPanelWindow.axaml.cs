@@ -268,8 +268,8 @@ public partial class ClientPanelWindow : Window
     /// <summary>
     /// An Intel control: live intel with jumps from the character in this monitor's client, as a
     /// list or as one line that drops the list down. Its links open where any tool opens and bring
-    /// that window forward over the clients, putting the dropped list away. Opening the Intel tool,
-    /// and its paste, are offered once there is a tool to open; until then they are not shown.
+    /// that window forward over the clients, putting the dropped list away. Its icons open the Intel
+    /// tool, and the tool's Paste tab with this panel's character and system chosen.
     /// </summary>
     private Control BuildIntel(MainWindowViewModel main, ControlOptions? options, PanelSurroundings around)
     {
@@ -288,6 +288,25 @@ public partial class ClientPanelWindow : Window
                 line?.PutAway();
                 Avalonia.Threading.Dispatcher.UIThread.Post(main.BringForwardLastOpened, Avalonia.Threading.DispatcherPriority.Background);
             },
+            OpenInTool = id =>
+            {
+                line?.PutAway();
+                main.ShowTool("intel");
+                main.IntelVm.ShowSystem(id);
+            },
+        };
+        vm.OpenTool = () =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+        };
+        // The panel never takes keyboard input: its paste icon opens the tool's Paste tab, with this
+        // panel's character and the system it is in already chosen, and the pasting happens there.
+        vm.OpenPaste = (characterId, systemId) =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+            main.IntelVm.ShowPaste(characterId, systemId);
         };
         vm.OpenChatLogSettings = () =>
         {

@@ -99,6 +99,12 @@ public sealed record IntelEvent(
     public DateTimeOffset ExpiresAt => At + Lifetime;
 }
 
+/// <summary>
+/// A line in an intel channel that gave no intel: talk, a question, or a follow-up with nothing to
+/// attach to. Not intel and never stored as such; the tool's Feed can show it, muted, for context.
+/// </summary>
+public sealed record IntelChatter(int ChatMessageId, DateTimeOffset At, string Channel, string Sender, string Message);
+
 /// <summary>One of the user's characters and where it is, the newer of ESI's location and the chat
 /// log's "Channel changed to Local" line.</summary>
 /// <param name="SystemSince">When it came into this system, as near as is known.</param>
@@ -131,6 +137,13 @@ public sealed record IntelSnapshot(
     /// in the interface language through SdeNames.SolarSystem, and names a kill's gate by the system
     /// it leads to.</summary>
     public IReadOnlyDictionary<int, string> SystemNames { get; init; } = new Dictionary<int, string>();
+
+    /// <summary>The intel channels' lines in the window that gave no intel, newest first.</summary>
+    public IReadOnlyList<IntelChatter> Chatter { get; init; } = [];
+
+    /// <summary>The intel channels set, chat and rooms: what the sources filter lists besides the
+    /// channels the feed happens to hold.</summary>
+    public IReadOnlyList<string> Channels { get; init; } = [];
 
     /// <summary>A system's name in the interface language; its id when the names are not loaded.</summary>
     public string SystemName(int systemId) =>
@@ -175,6 +188,9 @@ public sealed record IntelSnapshotInput
         new Dictionary<int, IReadOnlyList<OfficerSighting>>();
 
     public IntelStandings Standings { get; init; } = IntelStandings.Empty;
+
+    public IReadOnlyList<IntelChatter> Chatter { get; init; } = [];
+    public IReadOnlyList<string> Channels { get; init; } = [];
 }
 
 /// <summary>
@@ -426,7 +442,12 @@ public static class IntelSnapshotBuilder
 
         return new IntelSnapshot(
             now, version, s.Window, s, systems, pilots, input.Own, input.Officers, feed, camps,
-            IntelFeedStatus.From(s), input.Standings) { SystemNames = input.SystemNames };
+            IntelFeedStatus.From(s), input.Standings)
+        {
+            SystemNames = input.SystemNames,
+            Chatter = [.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
+            Channels = input.Channels,
+        };
     }
 
     /// <summary>How long a report's line lasts in the feed: as long as the longest thing it said.</summary>

@@ -274,9 +274,13 @@ public sealed class IntelSnapshotService : IDisposable
             .Where(t => t > 0).ToHashSet();
         await TypeNamesAsync(db, typeIds, ct).ConfigureAwait(false);
 
+        var channels = settings.IntelChannels.Concat(_intel?.RoomChannels ?? [])
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        var chatter = await ReadChatterAsync(db, channels, fromText, ct).ConfigureAwait(false);
+
         var input = new IntelSnapshotInput
         {
-            Now = now, Settings = settings,
+            Now = now, Settings = settings, Chatter = chatter, Channels = channels,
             Reports = reports, ReportPilots = reportPilots,
             LastSeen = [.. _lastSeen.Values],
             Kills = [.. _kills.Values],
@@ -304,6 +308,39 @@ public sealed class IntelSnapshotService : IDisposable
         _settingsAt = now;
         return read;
     }
+
+    /// <summary>
+    /// The intel channels' lines in the window that gave no report: talk, and follow-ups with nothing to
+    /// attach to. Only lines the parser has already been past (its watermark): a line it has yet to read is
+    /// not chatter, only not read yet. The newest <see cref="MaxChatter"/>.
+    /// </summary>
+    private static async Task<IReadOnlyList<IntelChatter>> ReadChatterAsync(
+        AppDbContext db, IReadOnlyList<string> channels, string fromText, CancellationToken ct)
+    {
+        if (channels.Count == 0) return [];
+        var mark = await db.AppPreferences.AsNoTracking()
+            .Where(p => p.Key == EveConsole.Monitoring.MonitoringSettings.KeyIntelWatermark).Select(p => p.Value)
+            .FirstOrDefaultAsync(ct).ConfigureAwait(false);
+        if (!long.TryParse(mark, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var watermark)
+            || watermark <= 0) return [];
+        var upTo = (int)Math.Min(watermark, int.MaxValue);
+
+        var lines = await db.ChatMessages.AsNoTracking()
+            .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage && m.Id <= upTo
+                        && string.Compare(m.OccurredAt, fromText) >= 0
+                        && !db.IntelReports.Any(r => r.ChatMessageId == m.Id))
+            .OrderByDescending(m => m.Id)
+            .Take(MaxChatter)
+            .Select(m => new { m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message })
+            .ToListAsync(ct).ConfigureAwait(false);
+        return [.. lines
+            .Where(l => IntelSnapshotBuilder.TryParse(l.OccurredAt, out _))
+            .Select(l => new IntelChatter(l.Id, IntelSnapshotBuilder.TryParse(l.OccurredAt, out var at) ? at : default,
+                                          l.ChannelName, l.SenderName, l.Message))];
+    }
+
+    /// <summary>The most chatter lines a snapshot holds.</summary>
+    public const int MaxChatter = 300;
 
     /// <summary>Last seen: everything in the window every five minutes, and between, only the rows
     /// written since the last read.</summary>
