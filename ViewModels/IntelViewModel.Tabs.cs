@@ -21,7 +21,7 @@ namespace EveConsole.ViewModels;
 /// </summary>
 public sealed partial class IntelViewModel
 {
-    private const string KeyPilotsWindow = "intel.pilots_window";
+    private const string KeyPilotsWindow = "intel.pilots_window", KeyPilotsSort = "intel.pilots_sort";
 
     /// <summary>How often the Pilots tab reads again while it is on screen.</summary>
     private static readonly TimeSpan PilotsEvery = TimeSpan.FromSeconds(30);
@@ -36,6 +36,11 @@ public sealed partial class IntelViewModel
     {
         var hours = (int)Read(() => UiState.GetLong(KeyPilotsWindow, 24), 24L);
         _selectedPilotWindow = PilotWindowChoices.FirstOrDefault(c => c.Value == hours) ?? PilotWindowChoices[2];
+        var sort = Read(() => UiState.Get(KeyPilotsSort), null)?.Split(',');
+        if (sort is [var column, var direction] && Enum.TryParse<PilotColumn>(column, out var kept) && Enum.IsDefined(kept))
+            (_pilotSort, _pilotSortDescending) = (kept, direction == "desc");
+        PilotHeaders = [.. Enum.GetValues<PilotColumn>().Select(c => new IntelSortHeaderVm(c, PilotColumnName(c), SortPilotsBy))];
+        foreach (var h in PilotHeaders) h.Show(_pilotSort, _pilotSortDescending);
         WatchList = new IntelWatchTabVm(_watchList, _dbFactory);
 
         // The search box, on the Pilots tab, searches the database: once typing pauses.
@@ -169,6 +174,7 @@ public sealed partial class IntelViewModel
             var row = new IntelPilotListRowVm(r, _pilotResults.Names, snapshot, best, via, from, pending, actions, now);
             rows.Add(held.TryGetValue(r.CharacterId, out var old) && old.Signature == row.Signature ? old : row);
         }
+        rows = [.. SortPilots(rows, _pilotSort, _pilotSortDescending)];
         PilotRows.ResetTo(rows);
         foreach (var row in rows.Where(r => !held.TryGetValue(r.CharacterId, out var old) || !ReferenceEquals(old, r)))
             _ = row.LoadPicturesAsync();
@@ -178,6 +184,85 @@ public sealed partial class IntelViewModel
             : Plurals.Format(IntelText.ResourceManager, nameof(IntelText.PilotsCountOther), rows.Count);
         PilotsEmptyText = rows.Count > 0 || PilotsBusy ? ""
                         : SearchText.Trim().Length > 0 ? IntelText.ToolNothingMatches : IntelText.PilotsEmpty;
+    }
+
+    // ── Pilots: the sort ─────────────────────────────────────────────────────
+
+    /// <summary>A column of the Pilots tab, each sortable by clicking its header.</summary>
+    public enum PilotColumn { Jumps, Name, System, Seen, Ship, How, Corporation, Alliance }
+
+    private PilotColumn _pilotSort = PilotColumn.Seen;
+    private bool _pilotSortDescending = true;
+
+    /// <summary>The Pilots tab's headers, in <see cref="PilotColumn"/> order: each sorts by its column.</summary>
+    public IReadOnlyList<IntelSortHeaderVm> PilotHeaders { get; private set; } = [];
+
+    // Each header by name: a compiled binding reads a property, not an index into a read-only list.
+    public IntelSortHeaderVm HeadJumps       => PilotHeaders[(int)PilotColumn.Jumps];
+    public IntelSortHeaderVm HeadName        => PilotHeaders[(int)PilotColumn.Name];
+    public IntelSortHeaderVm HeadSystem      => PilotHeaders[(int)PilotColumn.System];
+    public IntelSortHeaderVm HeadSeen        => PilotHeaders[(int)PilotColumn.Seen];
+    public IntelSortHeaderVm HeadShip        => PilotHeaders[(int)PilotColumn.Ship];
+    public IntelSortHeaderVm HeadHow         => PilotHeaders[(int)PilotColumn.How];
+    public IntelSortHeaderVm HeadCorporation => PilotHeaders[(int)PilotColumn.Corporation];
+    public IntelSortHeaderVm HeadAlliance    => PilotHeaders[(int)PilotColumn.Alliance];
+
+    public PilotColumn PilotSort => _pilotSort;
+    public bool PilotSortDescending => _pilotSortDescending;
+
+    private static string PilotColumnName(PilotColumn column) => column switch
+    {
+        PilotColumn.Jumps       => IntelText.ColJumps,
+        PilotColumn.Name        => IntelText.ColPilot,
+        PilotColumn.System      => IntelText.ColLastSeenIn,
+        PilotColumn.Seen        => IntelText.ColSeen,
+        PilotColumn.Ship        => IntelText.ColHull,
+        PilotColumn.How         => IntelText.ColHow,
+        PilotColumn.Corporation => IntelText.ColCorporation,
+        _                       => IntelText.ColAlliance,
+    };
+
+    /// <summary>A header clicked: its column, or the other way round when it already sorts by it.</summary>
+    public void SortPilotsBy(PilotColumn column)
+    {
+        (_pilotSort, _pilotSortDescending) = NextPilotSort(_pilotSort, _pilotSortDescending, column);
+        var (sort, descending) = (_pilotSort, _pilotSortDescending);
+        Save(() => UiState.Set(KeyPilotsSort, sort + "," + (descending ? "desc" : "asc")));
+        foreach (var h in PilotHeaders) h.Show(sort, descending);
+        PilotRows.ResetTo([.. SortPilots(PilotRows.ToList(), sort, descending)]);
+    }
+
+    /// <summary>The sort after a header is clicked: the same column turns round; another starts newest first for
+    /// when they were seen, nearest first for jumps, and A to Z for the rest.</summary>
+    public static (PilotColumn Column, bool Descending) NextPilotSort(PilotColumn current, bool descending, PilotColumn clicked) =>
+        clicked == current ? (current, !descending) : (clicked, clicked == PilotColumn.Seen);
+
+    /// <summary>
+    /// The Pilots tab's rows in a column's order. A blank (no hull, no alliance, jumps not known) goes last either
+    /// way round; rows alike in the column keep newest first.
+    /// </summary>
+    public static IEnumerable<IntelPilotListRowVm> SortPilots(IEnumerable<IntelPilotListRowVm> rows, PilotColumn column, bool descending)
+    {
+        var text = StringComparer.CurrentCultureIgnoreCase;
+        IOrderedEnumerable<IntelPilotListRowVm> ByText(Func<IntelPilotListRowVm, string?> key)
+        {
+            var blankLast = rows.OrderBy(r => string.IsNullOrEmpty(key(r)) ? 1 : 0);
+            return descending ? blankLast.ThenByDescending(r => key(r) ?? "", text) : blankLast.ThenBy(r => key(r) ?? "", text);
+        }
+        var sorted = column switch
+        {
+            PilotColumn.Seen => descending ? rows.OrderByDescending(r => r.SeenAt) : rows.OrderBy(r => r.SeenAt),
+            PilotColumn.Jumps => descending
+                ? rows.OrderBy(r => r.Jumps is null ? 1 : 0).ThenByDescending(r => r.Jumps ?? 0)
+                : rows.OrderBy(r => r.Jumps is null ? 1 : 0).ThenBy(r => r.Jumps ?? 0),
+            PilotColumn.Name        => ByText(r => r.Name),
+            PilotColumn.System      => ByText(r => r.SystemName),
+            PilotColumn.Ship        => ByText(r => r.Hull?.Text),
+            PilotColumn.How         => ByText(r => r.SourceText),
+            PilotColumn.Corporation => ByText(r => r.Corporation?.Text),
+            _                       => ByText(r => r.Alliance?.Text),
+        };
+        return sorted.ThenByDescending(r => r.SeenAt).ThenBy(r => r.CharacterId);
     }
 
     // ── Camps ────────────────────────────────────────────────────────────────

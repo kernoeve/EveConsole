@@ -973,4 +973,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>Añadido</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Última noticia aquí a las {0} (hora de EVE)</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Visto por última vez a las {0} (hora de EVE)</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Hostiles aquí: {0} ({1} con nombre, {2} solo contados)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Derribo aquí a las {0} (hora de EVE)</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Derribos aquí: {0}, el último a las {1} (hora de EVE)</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Campeo de puerta</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Campeo en la puerta de {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Sin visual: informado, no visto</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Declarado despejado</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Quién está aquí, por alianza (o corporación):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Afiliación aún desconocida: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>Participó en un derribo aquí</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Pilotos aquí</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Informes y derribos</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Quién</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Ordenar por esta columna; vuelve a hacer clic para invertir</value>
+  </data>
 </root>

@@ -2,36 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:loc="using:EveConsole.Localization"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.PanelIntelLineContent"
              x:DataType="vm:PanelIntelVm">
   <UserControl.Styles>
-    <Style Selector="Border.badge">
-      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
-    </Style>
-    <Style Selector="Border.badge > TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
-    </Style>
-    <Style Selector="Border.badge.here">
-      <Setter Property="Background" Value="{DynamicResource BadBrush}" />
-    </Style>
-    <Style Selector="Border.badge.here > TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" />
-    </Style>
-    <Style Selector="Border.badge.near">
-      <Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" />
-    </Style>
-    <Style Selector="Border.badge.near > TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
-    </Style>
-    <Style Selector="Border.badge.mid">
-      <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
-    </Style>
-    <Style Selector="Border.badge.mid > TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
-    </Style>
-    <Style Selector="Border.badge.far > TextBlock">
-      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
-    </Style>
     <Style Selector="Border.chip">
       <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
@@ -73,45 +47,19 @@
     <Panel ClipToBounds="True">
       <TextBlock Text="{Binding LineEmptyText}" IsVisible="{Binding !HasNearest}" FontSize="11" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextMutedBrush}" TextTrimming="CharacterEllipsis" />
-      <StackPanel Orientation="Horizontal" Spacing="10" IsVisible="{Binding HasNearest}">
+      <!-- The nearest system, in the same form as the list's line; then how many more. -->
+      <DockPanel LastChildFill="True" IsVisible="{Binding HasNearest}">
+        <TextBlock DockPanel.Dock="Right" Text="{Binding MoreShort}" IsVisible="{Binding HasMore}" FontSize="11" FontWeight="SemiBold"
+                   VerticalAlignment="Center" Margin="8 0 0 0" ToolTip.Tip="{Binding MoreText}" Background="Transparent"
+                   Foreground="{DynamicResource TextMutedBrush}" />
         <Border Classes="chip" Classes.fresh="{Binding IsFresh}" BorderThickness="1"
-                CornerRadius="3" Padding="3 1 8 1" HorizontalAlignment="Left" VerticalAlignment="Center">
-          <StackPanel Orientation="Horizontal" Spacing="7" DataContext="{Binding Nearest}" x:DataType="vm:IntelNearestVm">
+                CornerRadius="3" Padding="0 0 4 0" HorizontalAlignment="Left" VerticalAlignment="Center">
+          <Grid ColumnDefinitions="3,*" DataContext="{Binding Nearest}" x:DataType="vm:IntelSystemLineVm">
             <Border Width="3" Background="{Binding TierBrush}" Margin="0 1" />
-            <Border Classes="badge" CornerRadius="3" Padding="5 0" MinWidth="20" VerticalAlignment="Center"
-                    Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}" Classes.far="{Binding IsFar}">
-              <TextBlock Text="{Binding JumpsText}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
-            </Border>
-            <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
-                       Foreground="{DynamicResource TextBrightBrush}" />
-            <TextBlock Text="{Binding StateText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource BadBrush}" />
-            <ItemsControl ItemsSource="{Binding Pictures}" VerticalAlignment="Center">
-              <ItemsControl.ItemsPanel>
-                <ItemsPanelTemplate>
-                  <StackPanel Orientation="Horizontal" Spacing="6" />
-                </ItemsPanelTemplate>
-              </ItemsControl.ItemsPanel>
-              <ItemsControl.ItemTemplate>
-                <DataTemplate x:DataType="vm:IntelPictureVm">
-                  <StackPanel Orientation="Horizontal" Spacing="3">
-                    <Border Width="16" Height="16" CornerRadius="2" ClipToBounds="True" VerticalAlignment="Center"
-                            Background="{DynamicResource SurfacePanelAltBrush}">
-                      <Image Source="{Binding Picture}" Width="16" Height="16" />
-                    </Border>
-                    <TextBlock Text="{Binding Text}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                  </StackPanel>
-                </DataTemplate>
-              </ItemsControl.ItemTemplate>
-            </ItemsControl>
-            <TextBlock Text="{Binding MoreHulls}" IsVisible="{Binding HasMoreHulls}" FontSize="11" VerticalAlignment="Center"
-                       Foreground="{DynamicResource TextMutedBrush}" />
-            <TextBlock Text="{Binding FlagsText}" IsVisible="{Binding HasFlags}" FontSize="11" VerticalAlignment="Center"
-                       Foreground="{DynamicResource WarnBrush}" />
-            <TextBlock Text="{Binding AgeText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-          </StackPanel>
+            <views:IntelSystemLine Grid.Column="1" Margin="4 0 0 0" />
+          </Grid>
         </Border>
-        <TextBlock Text="{Binding MoreText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-      </StackPanel>
+      </DockPanel>
     </Panel>
   </DockPanel>
 </UserControl>

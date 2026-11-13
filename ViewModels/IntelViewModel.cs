@@ -755,7 +755,8 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             .Where(s => search.Length == 0
                         || Matches(snapshot.SystemName(s.SystemId))
                         || Matches(_regions.GetValueOrDefault(s.SystemId))
-                        || s.Pilots.Any(p => Matches(p.Pilot.Name)))
+                        || s.Pilots.Any(p => Matches(p.Pilot.Name) || Matches(snapshot.EntityName(p.Pilot.AllianceId))
+                                             || Matches(snapshot.EntityName(p.Pilot.CorporationId))))
             .ToList();
         IEnumerable<IntelSystemRow> sorted = _selectedSort.Value switch
         {
@@ -890,6 +891,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
 public sealed class IntelBoardRowVm : ReactiveObject
 {
     private const int MaxHulls = 3;
+    private const int MaxWhoGroups = 2;
     private readonly DateTimeOffset _newest;
     private readonly IReadOnlyList<(DateTimeOffset At, TimeSpan Life)> _items;
 
@@ -900,7 +902,7 @@ public sealed class IntelBoardRowVm : ReactiveObject
         Actions = actions;
         SystemId = row.SystemId;
         SystemName = snapshot.SystemName(row.SystemId);
-        RegionText = region ?? "";
+        RegionText = region ?? snapshot.RegionName(row.SystemId) ?? "";
         JumpsText = IntelWords.Jumps(row.Jumps, pending);
         Band = row.Jumps is null && pending ? IntelJumpBand.Unknown : IntelWords.Band(row.Jumps);
         var nearest = row.NearestOrigin is long o ? snapshot.Own.FirstOrDefault(x => x.CharacterId == o) : null;
@@ -951,6 +953,12 @@ public sealed class IntelBoardRowVm : ReactiveObject
         if (camp is not null) flags |= (int)Monitoring.IntelRules.IntelFlags.Camp;
         FlagsText = IntelWords.Flags(flags, camp);
 
+        // Who is there: the alliance breakout (or the one pilot), and each pilot for the opened row.
+        var hostiles = IntelHostiles.Of(row, snapshot, now);
+        Who = new IntelWhoVm(hostiles, MaxWhoGroups);
+        Pilots = [.. hostiles.Pilots.Select(p => new IntelHostilePilotVm(p, hostiles, snapshot, actions, now))];
+        Flags = IntelFlagVm.Of(row, hostiles, snapshot);
+
         var moving = new List<string>();
         if (row.Intel.Moves.FirstOrDefault() is { } move && now - move.At <= TimeSpan.FromMinutes(30))
             moving.Add(string.Format(culture, IntelText.MovingFrom, snapshot.SystemName(move.FromSystemId)));
@@ -982,6 +990,8 @@ public sealed class IntelBoardRowVm : ReactiveObject
         Watch = row.Watch;
         Signature = string.Join("|", SystemId, JumpsText, row.Tier, StateText, HostilesText, FlagsText, MovingText, SourcesText,
                                 NearestName, RegionText, HullsMore, Watch, string.Join(",", Hulls.Select(h => h.Id + ":" + h.Text)),
+                                Who.Signature, string.Join(",", Flags.Select(f => f.Kind + ":" + f.Tip)),
+                                string.Join(",", Pilots.Select(p => p.Signature)),
                                 string.Join(",", Events.Select(e => e.Signature)));
         Tick(now, snapshot.Settings.FreshSeconds);
     }
@@ -1030,6 +1040,17 @@ public sealed class IntelBoardRowVm : ReactiveObject
     public string MovingText { get; }
     public string SourcesText { get; }
 
+    /// <summary>Who is there: the predominant alliances (or corporations) by logo, name and count, or the one pilot.</summary>
+    public IntelWhoVm Who { get; }
+
+    /// <summary>The flags as small icons, a kill among them; the words in their tooltips.</summary>
+    public IReadOnlyList<IntelFlagVm> Flags { get; }
+
+    /// <summary>The pilots there, newest first: the opened row's first section.</summary>
+    public IReadOnlyList<IntelHostilePilotVm> Pilots { get; }
+    public bool HasPilots => Pilots.Count > 0;
+    public bool HasEvents => Events.Count > 0;
+
     /// <summary>The character the jumps are counted from, with their portrait.</summary>
     public long NearestId { get; }
     public string NearestName { get; }
@@ -1063,11 +1084,16 @@ public sealed class IntelBoardRowVm : ReactiveObject
         Opacity = (_items.Count == 0 ? 1 : _items.Max(i => IntelLens.Opacity(i.At, i.Life, now)))
                   * (IsWatchIgnored ? IntelEventRowVm.IgnoredOpacity : 1.0);
         foreach (var e in Events) e.Tick(now, freshSeconds);
+        foreach (var p in Pilots) p.Tick(now);
     }
+
+    /// <summary>Every picture the row and its pilots show (the events load their own), for loading or, in a check, giving.</summary>
+    public IEnumerable<IntelPictureVm> PicturesToLoad =>
+        Hulls.Concat(Who.PicturesToLoad).Concat(Pilots.SelectMany(p => p.PicturesToLoad));
 
     public async Task LoadPicturesAsync()
     {
-        var loads = Hulls.Select(h => h.LoadAsync()).Concat(Events.Select(e => e.LoadPicturesAsync())).ToList();
+        var loads = PicturesToLoad.Select(h => h.LoadAsync()).Concat(Events.Select(e => e.LoadPicturesAsync())).ToList();
         if (NearestId > 0)
             loads.Add(Task.Run(async () =>
             {

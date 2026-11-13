@@ -973,4 +973,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>Hinzugefügt</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Neueste Meldung hier um {0} EVE-Zeit</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Zuletzt gesehen um {0} EVE-Zeit</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Feinde hier: {0} ({1} mit Namen, {2} nur gezählt)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Kill hier um {0} EVE-Zeit</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Kills hier: {0}, der letzte um {1} EVE-Zeit</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Gate-Camp</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Gate-Camp am Gate nach {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Keine Sicht: gemeldet, nicht gesehen</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Als frei gemeldet</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Wer ist hier, nach Allianz (oder Corporation):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Zugehörigkeit noch unbekannt: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>An einem Kill hier beteiligt</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Piloten hier</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Meldungen und Kills</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Wer</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Nach dieser Spalte sortieren; erneut klicken kehrt die Reihenfolge um</value>
+  </data>
 </root>

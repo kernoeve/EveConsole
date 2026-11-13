@@ -43,6 +43,7 @@ public sealed class IntelPilotListRowVm : ReactiveObject
 
         SystemId = r.SystemId;
         SystemName = snapshot.SystemName(r.SystemId);
+        Jumps = jumps;
         JumpsText = IntelWords.Jumps(jumps, pending);
         Band = jumps is null && pending ? IntelJumpBand.Unknown : IntelWords.Band(jumps);
         var from = nearest is long o ? standings.Own(o)?.Name ?? snapshot.Own.FirstOrDefault(x => x.CharacterId == o)?.Name : null;
@@ -91,6 +92,8 @@ public sealed class IntelPilotListRowVm : ReactiveObject
 
     public int SystemId { get; }
     public string SystemName { get; }
+    /// <summary>Jumps from the top bar's origin, for sorting; null while not known.</summary>
+    public int? Jumps { get; }
     public string JumpsText { get; }
     public bool HasJumps => JumpsText.Length > 0;
     public string? JumpsTip { get; }
@@ -143,6 +146,36 @@ public sealed class IntelPilotListRowVm : ReactiveObject
     private ReactiveCommand<Unit, Unit>? _openSystem;
     public ReactiveCommand<Unit, Unit> OpenSourceCommand => _openSource ??= ReactiveCommand.Create(OpenSource);
     private ReactiveCommand<Unit, Unit>? _openSource;
+}
+
+/// <summary>A column header that sorts its grid: clicked, by its column; clicked again, the other way round. The
+/// arrow shows which column sorts and which way.</summary>
+public sealed class IntelSortHeaderVm : ReactiveObject
+{
+    public IntelSortHeaderVm(IntelViewModel.PilotColumn column, string text, Action<IntelViewModel.PilotColumn> sort)
+    {
+        Column = column;
+        Text = text;
+        SortCommand = ReactiveCommand.Create(() => sort(column));
+    }
+
+    public IntelViewModel.PilotColumn Column { get; }
+    public string Text { get; }
+    public ReactiveCommand<Unit, Unit> SortCommand { get; }
+
+    private bool _isUp, _isDown;
+    /// <summary>Sorted by this column, A to Z (or nearest, or oldest) first.</summary>
+    public bool IsUp { get => _isUp; private set => this.RaiseAndSetIfChanged(ref _isUp, value); }
+    /// <summary>Sorted by this column, Z to A (or farthest, or newest) first.</summary>
+    public bool IsDown { get => _isDown; private set => this.RaiseAndSetIfChanged(ref _isDown, value); }
+    public bool IsSorted => IsUp || IsDown;
+
+    public void Show(IntelViewModel.PilotColumn sorted, bool descending)
+    {
+        IsUp = sorted == Column && !descending;
+        IsDown = sorted == Column && descending;
+        this.RaisePropertyChanged(nameof(IsSorted));
+    }
 }
 
 /// <summary>

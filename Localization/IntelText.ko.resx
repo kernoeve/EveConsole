@@ -919,4 +919,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>추가됨</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>이곳의 최신 정보: EVE 시간 {0}</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>마지막 목격: EVE 시간 {0}</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>이곳의 적대 세력: {0} (이름 확인 {1}, 인원만 {2})</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>이곳에서 격추: EVE 시간 {0}</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>이곳의 격추: {0}, 최근 EVE 시간 {1}</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>{0} 게이트에서 게이트 캠프</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>시야 없음: 보고만 있고 보이지 않음</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>클리어 보고됨</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>이곳에 있는 자 (얼라이언스 또는 코퍼레이션별):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>소속 미확인: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>이곳의 격추에 참여</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>이곳의 파일럿</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>보고 및 격추</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>누구</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>이 열로 정렬 (다시 클릭하면 역순)</value>
+  </data>
 </root>

@@ -142,6 +142,19 @@ public static class IntelWords
              : string.Format(culture, IntelText.AgeHours, seconds / 3600, seconds / 60 % 60);
     }
 
+    /// <summary>The age as a compact badge: "0:53" and "4:10" under ten minutes, then "12m", then "2h".</summary>
+    public static string CompactAge(DateTimeOffset at, DateTimeOffset now)
+    {
+        var seconds = (int)Math.Max(0, (now - at).TotalSeconds);
+        var culture = CultureInfo.CurrentCulture;
+        return seconds < 600  ? (seconds / 60).ToString(culture) + ":" + (seconds % 60).ToString("00", culture)
+             : seconds < 3600 ? string.Format(culture, IntelText.AgeCompactMinutes, seconds / 60)
+             : string.Format(culture, IntelText.AgeCompactHours, seconds / 3600);
+    }
+
+    /// <summary>A time in EVE time (UTC), as the age badges' tooltips give it.</summary>
+    public static string EveTime(DateTimeOffset at) => at.UtcDateTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+
     /// <summary>An age that may be days: as <see cref="Age"/> within the hour, then "5 h", then "3 d".</summary>
     public static string LongAge(DateTimeOffset at, DateTimeOffset now)
     {

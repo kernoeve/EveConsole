@@ -179,6 +179,20 @@ public sealed record IntelSnapshot(
             ? EveConsole.Localization.SdeNames.SolarSystem(systemId, english)
             : systemId.ToString(CultureInfo.InvariantCulture);
 
+    /// <summary>Names from the name caches: pilots the rows lack, and the corporations and alliances of the
+    /// pilots in the snapshot, for who is where.</summary>
+    public IReadOnlyDictionary<long, string> Names { get; init; } = new Dictionary<long, string>();
+
+    /// <summary>A corporation's, alliance's or pilot's name, when the caches have it.</summary>
+    public string? EntityName(long id) => id > 0 && Names.TryGetValue(id, out var name) ? name : null;
+
+    /// <summary>Each system's region, by its id and English name, read once with the stargates.</summary>
+    public IReadOnlyDictionary<int, (int RegionId, string Name)> Regions { get; init; } = new Dictionary<int, (int, string)>();
+
+    /// <summary>A system's region in the interface language; null when it is not known.</summary>
+    public string? RegionName(int systemId) =>
+        Regions.TryGetValue(systemId, out var region) ? EveConsole.Localization.SdeNames.Region(region.RegionId, region.Name) : null;
+
     public static readonly IntelSnapshot Empty = new(
         DateTimeOffset.MinValue, 0, IntelSettings.MinimumWindow, new IntelSettingsValues(),
         new Dictionary<int, SystemIntel>(), new Dictionary<long, PilotIntel>(), [],
@@ -210,6 +224,9 @@ public sealed record IntelSnapshotInput
 
     /// <summary>Published hulls' type ids by English name (case ignored).</summary>
     public IReadOnlyDictionary<string, int> HullIds { get; init; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>Each system's region, by id and English name.</summary>
+    public IReadOnlyDictionary<int, (int RegionId, string Name)> Regions { get; init; } = new Dictionary<int, (int, string)>();
 
     /// <summary>Pulled affiliations, for pilots no last-seen row gives one.</summary>
     public IReadOnlyDictionary<long, (long Corporation, long Alliance)> Affiliations { get; init; } =
@@ -506,6 +523,8 @@ public static class IntelSnapshotBuilder
         {
             SystemNames = input.SystemNames,
             HullIds = input.HullIds,
+            Names = input.Names,
+            Regions = input.Regions,
             Chatter =[.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
             Channels = input.Channels,
             Watch = input.Watch,

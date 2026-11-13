@@ -29,6 +29,48 @@
                    Foreground="{DynamicResource TextSecondaryBrush}" />
       </StackPanel>
     </DataTemplate>
+
+    <!-- A who token on the Board: a pilot's portrait, round, with a smaller alliance or corporation logo on it; or a
+         group's logo, square, with how many beside it. 24 pixels, with a placeholder while it loads. -->
+    <DataTemplate x:Key="WhoPicture" x:DataType="vm:IntelWhoTokenVm">
+      <StackPanel Orientation="Horizontal" Spacing="3" ToolTip.Tip="{Binding Tip}" Background="Transparent">
+        <Panel Width="24" Height="24" VerticalAlignment="Center">
+          <Border IsVisible="{Binding IsPilot}" CornerRadius="12" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Picture.Picture}" Width="24" Height="24" />
+          </Border>
+          <Border IsVisible="{Binding !IsPilot}" CornerRadius="3" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Picture.Picture}" Width="24" Height="24" />
+          </Border>
+          <Border IsVisible="{Binding HasBadge}" Width="13" Height="13" CornerRadius="2" ClipToBounds="True"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -3 -2"
+                  BorderBrush="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Badge.Picture}" Width="12" Height="12" />
+          </Border>
+        </Panel>
+        <TextBlock Text="{Binding CountText}" IsVisible="{Binding HasCount}" FontSize="11" FontWeight="SemiBold"
+                   VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+      </StackPanel>
+    </DataTemplate>
+
+    <!-- A sortable column's header: its words, and the arrow when it sorts the grid (up: A to Z, down: Z to A). -->
+    <DataTemplate x:Key="SortHead" x:DataType="vm:IntelSortHeaderVm">
+      <Button Classes="sortHead" Command="{Binding SortCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipSortColumn}">
+        <StackPanel Orientation="Horizontal" Spacing="4">
+          <TextBlock Classes="head" Text="{Binding Text}" />
+          <Path IsVisible="{Binding IsUp}" Data="M0,5 L4,0 L8,5 Z" Width="8" Height="5" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
+          <Path IsVisible="{Binding IsDown}" Data="M0,0 L8,0 L4,5 Z" Width="8" Height="5" VerticalAlignment="Center" Fill="{DynamicResource AccentBrush}" />
+        </StackPanel>
+      </Button>
+    </DataTemplate>
+
+    <!-- A flag as a small icon in its theme colour; the word in its tooltip. -->
+    <DataTemplate x:Key="Flag" x:DataType="vm:IntelFlagVm">
+      <Panel Background="Transparent" ToolTip.Tip="{Binding Tip}">
+        <Path Classes="flag" Data="{Binding Data}" Classes.kill="{Binding IsKill}" Classes.camp="{Binding IsCamp}"
+              Classes.novisual="{Binding IsNoVisual}" Classes.clear="{Binding IsClear}" Classes.cyno="{Binding IsCyno}"
+              Classes.bubbles="{Binding IsBubbles}" />
+      </Panel>
+    </DataTemplate>
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -156,6 +198,43 @@
     <Style Selector="Border.state.clear > TextBlock"><Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
 
     <Style Selector="Border.stripe.clear"><Setter Property="Background" Value="{DynamicResource GoodBrush}" /></Style>
+
+    <Style Selector="Path.flag">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="StrokeThickness" Value="1.4" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Stroke" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Path.flag.kill"><Setter Property="Stroke" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="Path.flag.camp, Path.flag.cyno"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Path.flag.novisual, Path.flag.bubbles"><Setter Property="Stroke" Value="{DynamicResource InfoBrush}" /></Style>
+    <Style Selector="Path.flag.clear"><Setter Property="Stroke" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Margin" Value="0 6 0 2" />
+    </Style>
+
+    <!-- A column header that sorts its grid: the words, and an arrow by the column sorting. -->
+    <Style Selector="Button.sortHead">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="MinHeight" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="HorizontalAlignment" Value="Left" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.sortHead:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.sortHead:pointerover TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
 
     <Style Selector="Border.boardRow">
       <Setter Property="Background" Value="Transparent" />
@@ -363,17 +442,18 @@
 
     <!-- ══ Board ══ -->
     <Grid Grid.Row="5" IsVisible="{Binding IsBoardTab}" RowDefinitions="Auto,*,Auto">
-      <Grid ColumnDefinitions="3,52,1.4*,96,64,1.5*,1.2*,1.1*,64,1.1*,1.2*" ColumnSpacing="8" Margin="16 6 16 6">
+      <Grid ColumnDefinitions="3,52,1.3*,84,52,1.7*,1.5*,0.9*,1*,56,1*,1*" ColumnSpacing="8" Margin="16 6 16 6">
         <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColJumps}" />
         <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColSystem}" />
         <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColState}" />
         <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColHostiles}" />
-        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColShips}" />
-        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColFlags}" />
-        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColMoving}" />
-        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColAge}" />
-        <TextBlock Grid.Column="9" Classes="head" Text="{x:Static loc:IntelText.ColNearest}" />
-        <TextBlock Grid.Column="10" Classes="head" Text="{x:Static loc:IntelText.ColSources}" />
+        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColWho}" />
+        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColShips}" />
+        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColFlags}" />
+        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColMoving}" />
+        <TextBlock Grid.Column="9" Classes="head" Text="{x:Static loc:IntelText.ColAge}" />
+        <TextBlock Grid.Column="10" Classes="head" Text="{x:Static loc:IntelText.ColNearest}" />
+        <TextBlock Grid.Column="11" Classes="head" Text="{x:Static loc:IntelText.ColSources}" />
       </Grid>
       <ScrollViewer x:Name="BoardScroll" Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
         <StackPanel>
@@ -383,7 +463,7 @@
                 <Border Classes="boardRow" Classes.open="{Binding IsOpen}" Tapped="OnBoardRowTapped" DoubleTapped="OnBoardRowDoubleTapped"
                         ContextRequested="OnBoardRowContext">
                   <StackPanel>
-                    <Grid ColumnDefinitions="3,52,1.4*,96,64,1.5*,1.2*,1.1*,64,1.1*,1.2*" ColumnSpacing="8" MinHeight="30"
+                    <Grid ColumnDefinitions="3,52,1.3*,84,52,1.7*,1.5*,0.9*,1*,56,1*,1*" ColumnSpacing="8" MinHeight="30"
                           Opacity="{Binding Opacity}">
                       <Border Classes="stripe" Classes.clear="{Binding IsClear}" Background="{Binding TierBrush}"
                               ToolTip.Tip="{Binding StandingsTip}" />
@@ -392,11 +472,13 @@
                               Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
                         <TextBlock Text="{Binding JumpsText}" />
                       </Border>
-                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" ClipToBounds="True">
+                      <!-- The system as text, its region small under it: no picture for a system. -->
+                      <StackPanel Grid.Column="2" VerticalAlignment="Center" ClipToBounds="True">
                         <Button Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}">
                           <TextBlock Text="{Binding SystemName}" FontSize="12" FontWeight="{Binding NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
                         </Button>
-                        <TextBlock Classes="cell" Text="{Binding RegionText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
+                        <TextBlock Classes="cell" Text="{Binding RegionText}" IsVisible="{Binding HasRegion}" FontSize="9.5" Margin="0 -1 0 0"
+                                   Foreground="{DynamicResource TextMutedBrush}" />
                       </StackPanel>
                       <Border Grid.Column="3" Classes="state" Classes.hostile="{Binding IsHostileState}" Classes.camp="{Binding IsCampState}"
                               Classes.novisual="{Binding IsNoVisualState}" Classes.clear="{Binding IsClear}">
@@ -404,7 +486,23 @@
                       </Border>
                       <TextBlock Grid.Column="4" Classes="cell" Text="{Binding HostilesText}" FontWeight="{Binding CountWeight}"
                                  Foreground="{DynamicResource TextPrimaryBrush}" />
-                      <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8" ClipToBounds="True" VerticalAlignment="Center">
+                      <!-- Who: the predominant alliances (or corporations) by logo, name and count, or the one pilot by portrait;
+                           the names give way to the logos when the column is tight. -->
+                      <views:IntelFitPanel Grid.Column="5" VerticalAlignment="Center" ToolTip.Tip="{Binding Who.Tip}" Background="Transparent">
+                        <ContentControl Content="{Binding Who.First}" ContentTemplate="{StaticResource WhoPicture}" IsVisible="{Binding Who.HasTokens}"
+                                        VerticalAlignment="Center" />
+                        <TextBlock views:IntelFitPanel.Drop="2" Text="{Binding Who.First.Name}" IsVisible="{Binding Who.HasTokens}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="5 0 0 0" MaxWidth="150" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <ContentControl views:IntelFitPanel.Drop="3" Content="{Binding Who.Second}" ContentTemplate="{StaticResource WhoPicture}"
+                                        IsVisible="{Binding Who.HasSecond}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                        <TextBlock views:IntelFitPanel.Drop="1" Text="{Binding Who.Second.Name}" IsVisible="{Binding Who.HasSecond}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="5 0 0 0" MaxWidth="130" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <TextBlock views:IntelFitPanel.Drop="3" Text="{Binding Who.MoreText}" IsVisible="{Binding Who.HasMore}" FontSize="11"
+                                   VerticalAlignment="Center" Margin="6 0 0 0" Foreground="{DynamicResource TextMutedBrush}" />
+                      </views:IntelFitPanel>
+                      <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="8" ClipToBounds="True" VerticalAlignment="Center">
                         <ItemsControl ItemsSource="{Binding Hulls}" ItemTemplate="{StaticResource Picture}" VerticalAlignment="Center">
                           <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
@@ -412,10 +510,16 @@
                         </ItemsControl>
                         <TextBlock Classes="cell" Text="{Binding HullsMore}" IsVisible="{Binding HasHullsMore}" Foreground="{DynamicResource TextMutedBrush}" />
                       </StackPanel>
-                      <TextBlock Grid.Column="6" Classes="cell" Text="{Binding FlagsText}" Foreground="{DynamicResource WarnBrush}" />
-                      <TextBlock Grid.Column="7" Classes="cell" Text="{Binding MovingText}" />
-                      <TextBlock Grid.Column="8" Classes="cell" Text="{Binding AgeText}" Foreground="{DynamicResource TextMutedBrush}" />
-                      <StackPanel Grid.Column="9" Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasNearest}" ClipToBounds="True">
+                      <!-- The flags as small icons, a kill among them; each word in its tooltip. -->
+                      <ItemsControl Grid.Column="7" ItemsSource="{Binding Flags}" ItemTemplate="{StaticResource Flag}" VerticalAlignment="Center"
+                                    ClipToBounds="True">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                      </ItemsControl>
+                      <TextBlock Grid.Column="8" Classes="cell" Text="{Binding MovingText}" />
+                      <TextBlock Grid.Column="9" Classes="cell" Text="{Binding AgeText}" Foreground="{DynamicResource TextMutedBrush}" />
+                      <StackPanel Grid.Column="10" Orientation="Horizontal" Spacing="4" IsVisible="{Binding HasNearest}" ClipToBounds="True">
                         <Border CornerRadius="8" ClipToBounds="True" Width="16" Height="16" VerticalAlignment="Center"
                                 Background="{DynamicResource SurfacePanelAltBrush}">
                           <Image Source="{Binding NearestPicture}" Width="16" Height="16" />
@@ -424,18 +528,30 @@
                           <TextBlock Text="{Binding NearestName}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                         </Button>
                       </StackPanel>
-                      <TextBlock Grid.Column="10" Classes="cell" Text="{Binding SourcesText}" Foreground="{DynamicResource TextMutedBrush}" />
+                      <TextBlock Grid.Column="11" Classes="cell" Text="{Binding SourcesText}" Foreground="{DynamicResource TextMutedBrush}" />
                     </Grid>
-                    <!-- Opened: the system's reports, follow-ups and kills, as every intel view shows a line. -->
+                    <!-- Opened: the pilots there first, then the system's reports, follow-ups and kills, as every intel
+                         view shows a line. -->
                     <Border IsVisible="{Binding IsOpen}" Margin="63 0 0 8" Padding="10 4" CornerRadius="4"
                             Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
-                      <ItemsControl ItemsSource="{Binding Events}">
-                        <ItemsControl.ItemTemplate>
-                          <DataTemplate x:DataType="vm:IntelEventRowVm">
-                            <views:IntelEventRow />
-                          </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                      </ItemsControl>
+                      <StackPanel>
+                        <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionPilots}" IsVisible="{Binding HasPilots}" />
+                        <ItemsControl ItemsSource="{Binding Pilots}" IsVisible="{Binding HasPilots}" Width="820" HorizontalAlignment="Left">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:IntelHostilePilotVm">
+                              <views:IntelHostileLine PictureSize="24" />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                        <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionEvents}" IsVisible="{Binding HasEvents}" />
+                        <ItemsControl ItemsSource="{Binding Events}">
+                          <ItemsControl.ItemTemplate>
+                            <DataTemplate x:DataType="vm:IntelEventRowVm">
+                              <views:IntelEventRow />
+                            </DataTemplate>
+                          </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                      </StackPanel>
                     </Border>
                   </StackPanel>
                 </Border>
@@ -531,14 +647,15 @@
     <!-- ══ Pilots: where each pilot was last seen ══ -->
     <Grid Grid.Row="5" IsVisible="{Binding IsPilotsTab}" RowDefinitions="Auto,*">
       <Grid ColumnDefinitions="3,40,1.6*,1.1*,124,1.1*,1.2*,1.3*,1.3*" ColumnSpacing="10" Margin="16 6 16 6">
-        <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColJumps}" />
-        <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColPilot}" />
-        <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColLastSeenIn}" />
-        <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColSeen}" />
-        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColHull}" />
-        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColHow}" />
-        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColCorporation}" />
-        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColAlliance}" />
+        <!-- Every column sorts by its header; again, the other way round. -->
+        <ContentControl Grid.Column="1" Content="{Binding HeadJumps}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="2" Content="{Binding HeadName}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="3" Content="{Binding HeadSystem}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="4" Content="{Binding HeadSeen}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="5" Content="{Binding HeadShip}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="6" Content="{Binding HeadHow}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="7" Content="{Binding HeadCorporation}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="8" Content="{Binding HeadAlliance}" ContentTemplate="{StaticResource SortHead}" />
       </Grid>
       <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16 0 16 8">

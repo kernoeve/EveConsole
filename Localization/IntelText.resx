@@ -1296,4 +1296,76 @@
     <value>Added</value>
     <comment>Intel tool Watch list tab column: when and on which PC.</comment>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>An intel line's compact age badge, ten minutes or more. {0} is the minutes. Keep it as short as possible.</comment>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+    <comment>An intel line's compact age badge, an hour or more. {0} is the hours. Keep it as short as possible.</comment>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>The newest news here at {0} EVE time</value>
+    <comment>Tooltip on a system line's age badge. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Last seen at {0} EVE time</value>
+    <comment>Tooltip on a hostile pilot's age badge. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Hostiles here: {0} ({1} named, {2} counted but not named)</value>
+    <comment>Tooltip on a system line's hostile count. {0} is all of them, {1} the pilots named, {2} the ones only counted.</comment>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Kill here at {0} EVE time</value>
+    <comment>Tooltip on a system line's kill icon: the hostiles there killed someone. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Kills here: {0}, the newest at {1} EVE time</value>
+    <comment>Tooltip on a system line's kill icon, several kills. {0} is how many, {1} the newest's time, HH:mm.</comment>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Gate camp</value>
+    <comment>Tooltip on a system line's camp icon, the gate not known.</comment>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Gate camp on the {0} gate</value>
+    <comment>Tooltip on a system line's camp icon. {0} is the system the camped gate leads to.</comment>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>No visual: reported, not seen</value>
+    <comment>Tooltip on the no-visual icon: the hostiles were reported but nobody saw them.</comment>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Called clear</value>
+    <comment>Tooltip on a system line's clear icon: someone said the system is clear.</comment>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Who is here, by alliance (or corporation):</value>
+    <comment>First line of the tooltip listing a system's hostiles by group.</comment>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Affiliation not known yet: {0}</value>
+    <comment>Line of the who tooltip: pilots whose corporation is not known yet. {0} is how many.</comment>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>On a kill here</value>
+    <comment>Tooltip on a hostile pilot's kill icon: they were on a kill in this system.</comment>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Pilots here</value>
+    <comment>Heading over the hostile pilots in an opened system row.</comment>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Reports and kills</value>
+    <comment>Heading over a system's reports, kills and camp lines in an opened system row.</comment>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Who</value>
+    <comment>Intel tool Board column: who the hostiles are, by alliance or corporation.</comment>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Sort by this column; click again for the other way round</value>
+    <comment>Tooltip on a sortable column header.</comment>
+  </data>
 </root>

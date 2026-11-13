@@ -919,4 +919,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>追加</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>ここでの最新情報: EVE時間 {0}</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>最終確認: EVE時間 {0}</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>ここの敵対者: {0}（名前あり {1}、人数のみ {2}）</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>ここで撃墜: EVE時間 {0}</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>ここでの撃墜: {0}、最新は EVE時間 {1}</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>ゲートキャンプ</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>{0} ゲートでゲートキャンプ</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>視認なし: 報告のみ、未確認</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>クリア報告済み</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>ここにいる者（アライアンスまたはコーポレーション別）:</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>所属不明: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>ここでの撃墜に参加</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>ここのパイロット</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>報告と撃墜</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>誰</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>この列で並べ替え（もう一度クリックで逆順）</value>
+  </data>
 </root>

@@ -27,11 +27,29 @@
     <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="Transparent" />
     </Style>
+    <Style Selector="Border.systemRow">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="0 0 0 1" />
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
+    <Style Selector="Border.systemRow:pointerover"><Setter Property="Background" Value="{DynamicResource SurfaceHoverBrush}" /></Style>
+    <Style Selector="Border.systemRow.open"><Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /></Style>
+    <!-- Fresh news within five jumps lights the system's line up. A look only: sound is the alarms' job. -->
+    <Style Selector="Border.line.fresh"><Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" /></Style>
+    <Style Selector="Border.stripe.clear"><Setter Property="Background" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="TextBlock.section">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+      <Setter Property="Margin" Value="0 4 0 2" />
+    </Style>
   </UserControl.Styles>
 
   <!-- Live intel within the control's range of the character in this monitor's client: one row per
-       event, newest first. Threats only: blue and light blue are left out. Read only; nothing here
-       types, and nothing reaches the game. -->
+       system with hostiles in it, nearest first. Threats only: blue and light blue are left out. A row
+       opens, clicked, to the pilots there and then the system's reports, kills and camp lines. Read only;
+       nothing here types, and nothing reaches the game. -->
   <Grid RowDefinitions="Auto,Auto,*,Auto">
     <Grid Grid.Row="0" ColumnDefinitions="Auto,*,Auto,Auto,Auto" ColumnSpacing="6" Margin="8 5 8 5">
       <ComboBox HorizontalAlignment="Left" FontSize="11" MinHeight="0" Padding="6 2" MaxWidth="170"
@@ -66,8 +84,38 @@
                   BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 0">
       <ItemsControl ItemsSource="{Binding Rows}">
         <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:IntelEventRowVm">
-            <views:IntelEventRow />
+          <DataTemplate x:DataType="vm:IntelSystemLineVm">
+            <Border Classes="systemRow" Classes.open="{Binding IsOpen}"
+                    Tapped="OnRowTapped" ContextRequested="OnRowContext">
+              <Grid ColumnDefinitions="3,*">
+                <Border Classes="stripe" Classes.clear="{Binding IsClear}" Background="{Binding TierBrush}"
+                        ToolTip.Tip="{Binding StandingsTip}" />
+                <StackPanel Grid.Column="1">
+                  <Border Classes="line" Classes.fresh="{Binding IsFresh}">
+                    <views:IntelSystemLine Margin="5 2 8 2" Opacity="{Binding Opacity}" />
+                  </Border>
+                  <!-- Opened: the pilots there, then the system's reports, kills and camp lines. -->
+                  <StackPanel IsVisible="{Binding IsOpen}" Margin="10 0 8 6">
+                    <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionPilots}" IsVisible="{Binding HasPilots}" />
+                    <ItemsControl ItemsSource="{Binding Pilots}" IsVisible="{Binding HasPilots}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:IntelHostilePilotVm">
+                          <views:IntelHostileLine PictureSize="20" />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionEvents}" IsVisible="{Binding HasEvents}" />
+                    <ItemsControl ItemsSource="{Binding Events}" IsVisible="{Binding HasEvents}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:IntelEventRowVm">
+                          <views:IntelEventRow />
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                  </StackPanel>
+                </StackPanel>
+              </Grid>
+            </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>

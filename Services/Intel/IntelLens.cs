@@ -198,9 +198,12 @@ public static class IntelLens
             if (drop) continue;
             var viewerId = standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId);
 
+            // A kill's victim was there, but is no hostile: never counted on a system's row (the kill's line says
+            // who was lost), as the alarm never wakes for one.
             var pilots = sys.PilotIds
                 .Select(id => snapshot.Pilots.GetValueOrDefault(id))
-                .Where(p => p is not null && p.SystemId == sys.SystemId && p.ExpiresAt > now)
+                .Where(p => p is not null && p.SystemId == sys.SystemId && p.ExpiresAt > now
+                            && p.Source != Models.IntelLastSeenSource.KillVictim)
                 .Select(p => new IntelPilotRow(p!, Tier(origin, p!.CharacterId, p.CorporationId, p.AllianceId))
                 {
                     Watch = snapshot.WatchOf(p.CharacterId, p.CorporationId, p.AllianceId, p.ShipTypeId),

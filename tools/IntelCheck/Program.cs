@@ -32,6 +32,10 @@ if (args.Length == 3 && args[0] == PgChecks.WriterArg)
 if (args.Length >= 2 && args[0] == MapRender.Arg)
     return MapRender.Run(args[1], args.Length >= 3 ? args[2] : "map");
 
+// The panel, its single line and the tool's Board drawn to pictures with invented hostiles: --hostile-shots <folder>.
+if (args.Length >= 2 && args[0] == HostileShots.Arg)
+    return HostileShots.Run(args[1]);
+
 var root = args.FirstOrDefault(a => !a.StartsWith('-')) is { } given && Directory.Exists(given) ? given : FindRepoRoot();
 if (root is null)
 {
@@ -113,6 +117,9 @@ try
 
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
     PanelChecks.Rows(c);
+
+    // ── Hostiles first: who and what in a system, one row per system, the Pilots tab's sort ─────────────────
+    HostileChecks.Run(c);
 
     // ── The Universe Map and the route planner ──────────────────────────────────────────────────────────────
     MapChecks.Run(c, root);

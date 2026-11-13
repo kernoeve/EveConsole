@@ -1081,4 +1081,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>Добавлено</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}м</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}ч</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Последние сведения здесь в {0} по времени EVE</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Последний раз замечен в {0} по времени EVE</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Врагов здесь: {0} ({1} по именам, {2} только по числу)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Убийство здесь в {0} по времени EVE</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Убийств здесь: {0}, последнее в {1} по времени EVE</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Кемп на гейте</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Кемп на гейте в {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Без визуала: сообщено, но не видно</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Объявлено чисто</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Кто здесь, по альянсам (или корпорациям):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Принадлежность пока неизвестна: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>Участвовал в убийстве здесь</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Пилоты здесь</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Сообщения и убийства</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Сортировать по этому столбцу; повторный щелчок меняет порядок</value>
+  </data>
 </root>

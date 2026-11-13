@@ -973,4 +973,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>Ajouté</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Dernière information ici à {0} (heure EVE)</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Vu pour la dernière fois à {0} (heure EVE)</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Hostiles ici : {0} ({1} nommés, {2} seulement comptés)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Destruction ici à {0} (heure EVE)</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Destructions ici : {0}, la dernière à {1} (heure EVE)</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Camp de portail</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Camp sur le portail de {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Pas de visuel : signalé, pas vu</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Annoncé dégagé</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Qui est là, par alliance (ou corporation) :</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Affiliation encore inconnue : {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>A participé à une destruction ici</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Pilotes ici</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Rapports et destructions</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Qui</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Trier selon cette colonne ; cliquer à nouveau inverse l'ordre</value>
+  </data>
 </root>

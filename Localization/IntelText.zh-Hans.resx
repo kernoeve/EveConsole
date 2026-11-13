@@ -919,4 +919,58 @@
   <data name="ColAdded" xml:space="preserve">
     <value>添加于</value>
   </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}小时</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>此处最新消息：EVE时间 {0}</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>最后出现：EVE时间 {0}</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>此处敌对：{0}（已知姓名 {1}，仅计数 {2}）</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>此处击杀：EVE时间 {0}</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>此处击杀：{0}，最近一次 EVE时间 {1}</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>{0} 星门蹲守</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>无目视：有报告，未看到</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>已报告安全</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>此处人员（按联盟或军团）：</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>所属尚未知：{0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>参与了此处的击杀</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>此处飞行员</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>报告与击杀</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>谁</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>按此列排序；再次点击则反向</value>
+  </data>
 </root>

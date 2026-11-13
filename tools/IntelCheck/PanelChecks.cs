@@ -67,9 +67,9 @@ namespace EveConsole.Tools.IntelCheck
                 line.Pictures[0].PictureUrl?.Contains($"/types/{HullC}/icon", StringComparison.Ordinal) == true, line.Pictures[0].PictureUrl ?? "no url");
             var board = new IntelBoardRowVm(view.Systems.Single(), known, [.. view.Feed], null, Now, false, IntelRowActions.None);
             c.Check("said hulls: the Board's row too", Says(board.Hulls) == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words", Says(board.Hulls));
-            var single = new IntelNearestVm(view.Systems.Single(), known, Now, false);
-            c.Check("said hulls: and the panel's single line", Says(single.Pictures) == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words",
-                Says(single.Pictures));
+            var single = new IntelSystemLineVm(view.Systems.Single(), known, [], null, Now, false, IntelRowActions.None);
+            var line2 = Says(new[] { single.PrimaryHull! }.Concat(single.OtherHulls));
+            c.Check("said hulls: and the panel's system line (the most flown first)", line2 == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words", line2);
 
             var unknown = IntelSnapshotBuilder.Build(input, new IntelCampRegister(), 1);
             var blind = new IntelEventRowVm(IntelLens.Project(unknown, viewer, Now, _ => hops).Feed.Single(), unknown, Now, false);

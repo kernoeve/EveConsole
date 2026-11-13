@@ -84,7 +84,7 @@ public sealed class IntelSnapshotService : IDisposable
     private sealed record SdeData(
         IReadOnlyDictionary<int, IReadOnlyList<IntelGate>> Gates, IntelSdeGroups Groups,
         IReadOnlyDictionary<int, string> SystemNames, IReadOnlyDictionary<string, int> SystemIds,
-        IReadOnlyDictionary<string, int> HullIds);
+        IReadOnlyDictionary<string, int> HullIds, IReadOnlyDictionary<int, (int RegionId, string Name)> Regions);
 
     public IntelSnapshotService(
         IDbContextFactory<AppDbContext> dbFactory, IntelStandingService standings,
@@ -304,9 +304,15 @@ public sealed class IntelSnapshotService : IDisposable
             .Concat(reportPilots.Select(p => p.CharacterId))
             .Concat(_kills.Values.SelectMany(k => k.Attackers.Select(a => a.CharacterId).Append(k.VictimId)))
             .Where(id => id > 0).ToHashSet();
-        await NamesAsync(db, pilotIds, ct).ConfigureAwait(false);
         await AffiliationsAsync(db, reportPilots.Select(p => p.CharacterId).Where(id => !_lastSeen.ContainsKey(id)).ToHashSet(), now, ct)
             .ConfigureAwait(false);
+        // The corporations and alliances too: who is in a system is said by them.
+        var groupIds = _lastSeen.Values.SelectMany(r => new[] { r.CorporationId ?? 0, r.AllianceId ?? 0 })
+            .Concat(_affiliations.Values.SelectMany(a => new[] { a.Item1, a.Item2 }))
+            .Concat(_kills.Values.SelectMany(k => k.Attackers.SelectMany(a => new[] { a.CorporationId, a.AllianceId })))
+            .Where(id => id > 0);
+        pilotIds.UnionWith(groupIds);
+        await NamesAsync(db, pilotIds, ct).ConfigureAwait(false);
         var typeIds = _lastSeen.Values.Select(r => r.ShipTypeId ?? 0)
             .Concat(reportPilots.Select(p => p.ShipTypeId ?? 0))
             .Concat(_kills.Values.SelectMany(k => k.Attackers.Select(a => a.ShipTypeId ?? 0).Append(k.VictimShipTypeId)))
@@ -338,7 +344,7 @@ public sealed class IntelSnapshotService : IDisposable
             Reports = reports, ReportPilots = reportPilots,
             LastSeen = [.. _lastSeen.Values],
             Kills = [.. _kills.Values],
-            Gates = sde.Gates, Groups = sde.Groups, SystemNames = sde.SystemNames, HullIds = sde.HullIds,
+            Gates = sde.Gates, Groups = sde.Groups, SystemNames = sde.SystemNames, HullIds = sde.HullIds, Regions = sde.Regions,
             Own = own, Names = new Dictionary<long, string>(_pilotNames), TypeNames = new Dictionary<int, string>(_typeNames),
             Affiliations = new Dictionary<long, (long, long)>(_affiliations),
             Officers = officers, Standings = standings,
@@ -547,7 +553,9 @@ public sealed class IntelSnapshotService : IDisposable
             select new { a.StargateId, a.SolarSystemId, Destination = b.SolarSystemId, c.X, c.Y, c.Z })
             .ToListAsync(ct).ConfigureAwait(false);
         var systems = await db.SdeSolarSystems.AsNoTracking()
-            .Select(s => new { s.SolarSystemId, s.Name }).ToListAsync(ct).ConfigureAwait(false);
+            .Select(s => new { s.SolarSystemId, s.Name, s.RegionId }).ToListAsync(ct).ConfigureAwait(false);
+        var regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct).ConfigureAwait(false))
+            .ToDictionary(r => r.RegionId, r => r.Name);
         // The published hulls, as the parser's vocabulary reads them: a hull said in chat or listed by
         // a pasted d-scan is stored by its English name, and a view finds its icon by it.
         var hulls = await db.SdeTypes.AsNoTracking()
@@ -565,7 +573,9 @@ public sealed class IntelSnapshotService : IDisposable
             systems.GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
                    .ToDictionary(g => g.Key, g => g.First().SolarSystemId, StringComparer.OrdinalIgnoreCase),
             hulls.GroupBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
-                 .ToDictionary(g => g.Key, g => g.Min(h => h.TypeId), StringComparer.OrdinalIgnoreCase));
+                 .ToDictionary(g => g.Key, g => g.Min(h => h.TypeId), StringComparer.OrdinalIgnoreCase),
+            systems.Where(s => regions.ContainsKey(s.RegionId))
+                   .ToDictionary(s => s.SolarSystemId, s => (s.RegionId, regions[s.RegionId])));
     }
 
     // ── Own characters ───────────────────────────────────────────────────────

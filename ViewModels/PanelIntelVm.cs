@@ -12,9 +12,11 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 /// <summary>
-/// Live intel on a panel beside a game client: what was reported, killed or pasted within a few jumps
-/// of the character in that monitor's client (<see cref="MonitorFocus"/>), newest first, as one row
-/// per event. Or, on one line, the nearest threat and how many more there are.
+/// Live intel on a panel beside a game client: the systems with hostiles in them within a few jumps of
+/// the character in that monitor's client (<see cref="MonitorFocus"/>), nearest first, one row per
+/// system: how far, how many, in what, who, how long ago, and whether they killed there. Clicked, a row
+/// opens to the pilots there and the system's reports and kills. Or, on one line, the nearest threat in
+/// the same form, and how many more there are.
 ///
 /// <para>It reads nothing itself. The shared snapshot (<see cref="IntelSnapshotService"/>) is projected
 /// through <see cref="IntelLens"/> for this one character: jumps from the system it is in (the newer of
@@ -118,7 +120,8 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
 
     // ── The rows ─────────────────────────────────────────────────────────────
 
-    public BulkObservableCollection<IntelEventRowVm> Rows { get; } = [];
+    /// <summary>One row per system with hostiles in it (or a camp, a flag, a clear), nearest first.</summary>
+    public BulkObservableCollection<IntelSystemLineVm> Rows { get; } = [];
 
     private string _note = "";
     /// <summary>Why the list is empty, when it is.</summary>
@@ -135,9 +138,9 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
 
     // ── The single line ──────────────────────────────────────────────────────
 
-    private IntelNearestVm? _nearest;
-    /// <summary>The nearest live threat, for the single line; null when there is none.</summary>
-    public IntelNearestVm? Nearest
+    private IntelSystemLineVm? _nearest;
+    /// <summary>The nearest live threat, for the single line, as the list's own line; null when there is none.</summary>
+    public IntelSystemLineVm? Nearest
     {
         get => _nearest;
         private set { this.RaiseAndSetIfChanged(ref _nearest, value); this.RaisePropertyChanged(nameof(HasNearest)); }
@@ -146,7 +149,17 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
 
     private string _moreText = "";
     /// <summary>"+6 more within 10j".</summary>
-    public string MoreText { get => _moreText; private set => this.RaiseAndSetIfChanged(ref _moreText, value); }
+    public string MoreText
+    {
+        get => _moreText;
+        private set { this.RaiseAndSetIfChanged(ref _moreText, value); this.RaisePropertyChanged(nameof(HasMore)); }
+    }
+
+    private string _moreShort = "";
+    /// <summary>"+6": the single line's count of the rest, short so the nearest system keeps the room; the
+    /// words are its tooltip.</summary>
+    public string MoreShort { get => _moreShort; private set => this.RaiseAndSetIfChanged(ref _moreShort, value); }
+    public bool HasMore => MoreText.Length > 0;
 
     private string _lineEmpty = "";
     /// <summary>What the line says with no threat to show: nothing near, or why it can't tell.</summary>
@@ -268,6 +281,7 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
             StandingsCharacterId = id,
             IncludeClear = true,
             IncludeKills = true,
+            SystemCap = MaxRows,
             FeedCap = MaxRows,
         };
         var now = Clock();
@@ -308,28 +322,34 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         var culture = CultureInfo.CurrentCulture;
         var pending = view.Pending;
 
-        // Kept where the row reads the same, so its pictures stay and nothing blinks.
-        var held = Rows.DistinctBy(r => r.Key).ToDictionary(r => r.Key);
-        // A camp is one row, as new as its last kill: its kills are not each a row of their own beside it.
-        var camps = view.Feed.Where(r => r.Event.Kind == IntelEventKind.CampFormed).Select(r => r.Event.CampKey).ToHashSet();
-        var fresh = view.Feed
-            .Where(r => !(r.Event.Kind == IntelEventKind.Kill && r.Event.CampKey is { } camp && camps.Contains(camp)))
-            .Select(r => new IntelEventRowVm(r, snapshot, now, pending, Actions))
-            .Select(r => held.TryGetValue(r.Key, out var old) && old.Signature == r.Signature ? old : r)
-            .OrderByDescending(r => r.NewestAt).ThenByDescending(r => r.Key, StringComparer.Ordinal)
+        // One row per system: who is there leads, and its reports, kills and camp lines are its details. A camp's
+        // kills are not each a line beside the camp's own.
+        var events = SystemEvents(view);
+        var held = Rows.ToDictionary(r => r.SystemId);
+        var fresh = Lines(snapshot, view, now, Actions)
+            .Select(row =>
+            {
+                if (!held.TryGetValue(row.SystemId, out var old)) return row;
+                if (old.Signature == row.Signature) return old;
+                row.IsOpen = old.IsOpen;
+                return row;
+            })
             .ToList();
         Rows.ResetTo(fresh);
-        foreach (var row in fresh.Where(r => !held.ContainsKey(r.Key) || !ReferenceEquals(held[r.Key], r)))
+        foreach (var row in fresh.Where(r => !held.TryGetValue(r.SystemId, out var old) || !ReferenceEquals(old, r)))
             _ = row.LoadPicturesAsync();
 
         // Who the watch list ignores is listed, dimmed, but is no threat to count or to put on the line.
         var threats = view.Systems.Where(s => s.State != IntelSystemState.Clear && s.Watch != IntelWatchMark.Ignored).ToList();
         // The nearest someone; with nobody about, the nearest camp, cyno or bubbles, rather than "nothing".
         var nearest = own is null ? null : view.Nearest ?? view.Systems.FirstOrDefault(r => r.State == IntelSystemState.FlagsOnly);
-        Nearest = nearest is null ? null : new IntelNearestVm(nearest, snapshot, now, pending);
-        if (Nearest is { } n) _ = n.LoadPicturesAsync();
+        // The list's own row for it: the single line reads exactly as the list does.
+        Nearest = nearest is null ? null
+            : fresh.FirstOrDefault(r => r.SystemId == nearest.SystemId)
+              ?? new IntelSystemLineVm(nearest, snapshot, events.GetValueOrDefault(nearest.SystemId) ?? [], null, now, pending, Actions);
         var others = threats.Count - (nearest is null ? 0 : 1);
         MoreText = own is null || others <= 0 ? "" : string.Format(culture, IntelText.PanelMoreWithin, others, Range);
+        MoreShort = MoreText.Length == 0 ? "" : "+" + others.ToString(culture);
         CountText = own is null ? "" : string.Format(culture, IntelText.PanelWithin, threats.Count, Range);
         WhereText = own is null
             ? (id is null ? "" : IntelText.PanelWhereUnknown)
@@ -367,80 +387,31 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         Tick();
     }
 
+    /// <summary>The panel's rows for a projection: one per system the lens kept, in its order (nearest first), each
+    /// with the system's feed lines as its details.</summary>
+    public static List<IntelSystemLineVm> Lines(IntelSnapshot snapshot, IntelView view, DateTimeOffset now, IntelRowActions actions)
+    {
+        var events = SystemEvents(view);
+        return [.. view.Systems.Select(s =>
+            new IntelSystemLineVm(s, snapshot, events.GetValueOrDefault(s.SystemId) ?? [], null, now, view.Pending, actions))];
+    }
+
+    /// <summary>Each system's feed lines, newest first, with a camp's kills left to the camp's own line.</summary>
+    public static Dictionary<int, List<IntelFeedRow>> SystemEvents(IntelView view)
+    {
+        var camps = view.Feed.Where(r => r.Event.Kind == IntelEventKind.CampFormed).Select(r => r.Event.CampKey).ToHashSet();
+        return view.Feed
+            .Where(r => !(r.Event.Kind == IntelEventKind.Kill && r.Event.CampKey is { } camp && camps.Contains(camp)))
+            .GroupBy(r => r.Event.SystemId)
+            .ToDictionary(g => g.Key, g => g.OrderByDescending(r => r.Event.At).ThenByDescending(r => r.Event.Key, StringComparer.Ordinal).ToList());
+    }
+
     private void Tick()
     {
         var now = Clock();
         var freshSeconds = _snapshot.Settings.FreshSeconds;
         foreach (var row in Rows) row.Tick(now, freshSeconds);
-        Nearest?.Tick(now);
+        if (Nearest is { } n && !Rows.Contains(n)) n.Tick(now, freshSeconds);
         IsFresh = Rows.Any(r => r.IsFresh);
     }
-}
-
-/// <summary>
-/// The single line's threat: the nearest system with someone in it, how far, who, what they fly,
-/// what else was said, and how long ago.
-/// </summary>
-public sealed class IntelNearestVm : ReactiveObject
-{
-    private const int MaxHulls = 2;
-    private readonly DateTimeOffset _newest;
-
-    public IntelNearestVm(IntelSystemRow row, IntelSnapshot snapshot, DateTimeOffset now, bool pending)
-    {
-        var culture = CultureInfo.CurrentCulture;
-        SystemId = row.SystemId;
-        SystemName = snapshot.SystemName(row.SystemId);
-        JumpsText = IntelWords.Jumps(row.Jumps, pending);
-        Band = row.Jumps is null && pending ? IntelJumpBand.Unknown : IntelWords.Band(row.Jumps);
-        TierBrush = IntelTierColors.Of(row.Tier);
-        var count = row.Pilots.Count + row.Unnamed;
-        var flags = row.Facts.Aggregate(0, (f, x) => f | (int)x.Flag);
-        var camp = row.Camps.FirstOrDefault();
-        StateText = row.State switch
-        {
-            IntelSystemState.NoVisual => string.Format(culture, IntelText.StateNoVisual, count),
-            IntelSystemState.FlagsOnly when camp is not null => string.Format(culture, IntelText.StateCamp, camp.KillMailIds.Count),
-            IntelSystemState.FlagsOnly => IntelWords.Flags(flags),
-            _ => string.Format(culture, IntelText.StateHostile, count),
-        };
-
-        // The hulls, each with its icon, as many as fit; then the unnamed hulls said.
-        var hulls = row.Pilots.Where(p => p.Pilot.Ship is { Length: > 0 })
-            .GroupBy(p => (p.Pilot.ShipTypeId is > 0 and int t ? t : snapshot.HullId(p.Pilot.Ship), p.Pilot.Ship!))
-            .OrderByDescending(g => g.Count())
-            .Select(g => IntelPictureVm.Ship(g.Key.Item1, g.Key.Item2, g.Count()))
-            .ToList();
-        if (row.Intel.Unnamed is { Ships: { Length: > 0 } said } && row.Unnamed > 0)
-            hulls.AddRange(EveConsole.Services.IntelDisplay.ParseShips(said).Select(s => IntelPictureVm.SaidHull(snapshot, s.Name, s.Count)));
-        Pictures = [.. hulls.Take(MaxHulls)];
-        MoreHulls = hulls.Count > MaxHulls ? "+" + (hulls.Count - MaxHulls).ToString(culture) : "";
-
-        FlagsText = row.State == IntelSystemState.FlagsOnly && camp is null ? "" : IntelWords.Flags(flags, camp);
-        _newest = row.NewestAt;
-        Tick(now);
-    }
-
-    public int SystemId { get; }
-    public string SystemName { get; }
-    public string JumpsText { get; }
-    public IntelJumpBand Band { get; }
-    public bool IsHere => Band == IntelJumpBand.Here;
-    public bool IsNear => Band == IntelJumpBand.Near;
-    public bool IsMid  => Band == IntelJumpBand.Mid;
-    public bool IsFar  => Band == IntelJumpBand.Far;
-    public Avalonia.Media.IBrush TierBrush { get; }
-    public string StateText { get; }
-    public IReadOnlyList<IntelPictureVm> Pictures { get; }
-    public string MoreHulls { get; }
-    public bool HasMoreHulls => MoreHulls.Length > 0;
-    public string FlagsText { get; }
-    public bool HasFlags => FlagsText.Length > 0;
-
-    private string _ageText = "";
-    public string AgeText { get => _ageText; private set => this.RaiseAndSetIfChanged(ref _ageText, value); }
-
-    public void Tick(DateTimeOffset now) => AgeText = IntelWords.Age(_newest, now);
-
-    public Task LoadPicturesAsync() => Task.WhenAll(Pictures.Select(p => p.LoadAsync()));
 }
