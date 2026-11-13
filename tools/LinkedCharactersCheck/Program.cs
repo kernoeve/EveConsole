@@ -14,16 +14,16 @@ using Npgsql;
 //  Linked characters check
 //
 //  Does a connector's answer store exactly what it says, does an install that never connects see
-//  nothing at all, and does the connection behave: the EVE token sent once and never again, the
-//  key on every call, and what was stored kept through the connector's outages and refusals?
+//  nothing at all, and does the connection behave: the connector's own sign-in, confirmed by its
+//  code, the key on every call, and what was stored kept through the connector's outages and refusals?
 //
 //  WHY. Nothing here fails loudly. A store that keeps a character the answer dropped, lets an
 //  older answer put back last week's links, or takes half of an answer it should have refused all
-//  leave tables that look fine. A client that kept sending the EVE token, or dropped the cache the
-//  moment a connector blinked, would work in every demonstration.
+//  leave tables that look fine. A client that put a secret in an address, opened any page it was
+//  given, or dropped the cache the moment a connector blinked, would work in every demonstration.
 //
-//  The connector is a fake behind the HTTP client factory: no socket, no browser, no EVE. The
-//  sign-in itself is EVE's page, which nothing automated may drive.
+//  The connector is a fake behind the HTTP client factory: no socket, no browser, no EVE. Its
+//  sign-in page is a call standing in for the person at the browser, who compares the codes.
 //
 //  On SQLite always. On PostgreSQL too when EVECONSOLE_PG names a server: a database of its own
 //  is created there, built the way an existing install is upgraded (the three tables from
@@ -212,46 +212,76 @@ async Task RunSuiteAsync(OneFactory factory)
     var changed = 0;
     store.Changed += () => changed++;
 
-    var fake      = new FakeConnector { Payload = Payload1(t0) };
-    var connector = new ConnectorService(new FakeHttp(fake), factory, store, signIn: null, errors);
+    // The person at the browser: they compare the code on the connector's page with the one EVE Console
+    // showed them, and sign in only if they match. What the fake connector then decides is its own setting.
+    var fake  = new FakeConnector { Payload = Payload1(t0) };
+    var shown = new List<string>();
+    var connector = new ConnectorService(new FakeHttp(fake), factory, store, errors, openBrowser: page => fake.Visit(page, shown.LastOrDefault()));
+    var other     = new ConnectorService(new FakeHttp(fake), factory, store, errors, openBrowser: page => fake.Visit(page, shown.LastOrDefault()));
     const string Url = "http://localhost:5054/";
+    Task<ConnectorConnectResult> Connect(ConnectorService who, string url = Url) => who.ConnectAsync(url, shown.Add, default);
 
     // Most installs: never connected.
     Check("not connected: no account", await connector.AccountAsync() is null);
     Check("not connected: a refresh does nothing", (await connector.RefreshAsync()).Outcome == ConnectorRefreshOutcome.NotConnected);
     Check("and asks nobody", fake.Requests.Count == 0);
     Check("nothing stored, nothing logged", await CountsAsync(factory) == (0, 0, 0) && await LogCountAsync(factory) == 0);
-    Check("Connect is not offered by a build with no connector application", !connector.CanConnect);
 
-    // Connecting to the wrong thing, or with the wrong token, connects nothing.
+    // Connecting to the wrong thing, or a sign-in that does not end well, connects nothing.
     fake.Interface = "something-else";
-    var c = await connector.ConnectWithTokenAsync(Url, "token-member");
-    Check("not a connector: refused", !c.Ok && fake.Requests.All(r => r.Path != "/v1/auth/eve"), c.Message);
+    var c = await Connect(connector);
+    Check("not a connector: refused before any sign-in", !c.Ok && fake.Requests.All(x => x.Path != "/v1/auth/start"), c.Message);
     fake.Interface = "eveconsole.connector";
 
     fake.Versions = [2];
-    c = await connector.ConnectWithTokenAsync(Url, "token-member");
-    Check("a connector of a later version only: refused", !c.Ok && fake.Requests.All(r => r.Path != "/v1/auth/eve"), c.Message);
+    c = await Connect(connector);
+    Check("a connector of a later version only: refused before any sign-in", !c.Ok && fake.Requests.All(x => x.Path != "/v1/auth/start"), c.Message);
     fake.Versions = [1, 2];
 
-    c = await connector.ConnectWithTokenAsync(Url, "token-forged");
-    Check("a token the connector refuses: not connected", !c.Ok && await connector.AccountAsync() is null, c.Message);
-    c = await connector.ConnectWithTokenAsync(Url, "token-outsider");
-    Check("a character the connector refuses: not connected", !c.Ok && await connector.AccountAsync() is null, c.Message);
-    c = await connector.ConnectWithTokenAsync("http://192.168.1.20:5054/", "token-member");
-    Check("plain http to another device: not even asked", !c.Ok && fake.Requests.All(r => r.Host != "192.168.1.20"), c.Message);
+    c = await Connect(connector, "http://192.168.1.20:5054/");
+    Check("plain http to another device: not even asked", !c.Ok && fake.Requests.All(x => x.Host != "192.168.1.20"), c.Message);
+
+    foreach (var (person, what) in new[] { ("outsider", "a character the connector refuses"), ("forged", "an EVE sign-in the connector could not confirm"),
+                                           ("declines", "the person declining on the page"), ("leaves", "a sign-in left until it expired") })
+    {
+        fake.Person = person;
+        c = await Connect(connector);
+        Check($"{what}: not connected", !c.Ok && await connector.AccountAsync() is null && fake.IssuedKeys.Count == 0, c.Message);
+    }
+
+    // ⚠️ Somebody else's sign-in: the page shows a code that is not the one EVE Console showed, so the person
+    // declines it, and nobody gets a key for them.
+    fake.Person = "member";
+    fake.ForeignCode = true;
+    c = await Connect(connector);
+    fake.ForeignCode = false;
+    Check("a page showing a code EVE Console did not show is declined", !c.Ok && fake.IssuedKeys.Count == 0, c.Message);
+
+    // ⚠️ A sign-in page EVE Console must not open: plain http on a network.
+    var visits = fake.Visits.Count;
+    fake.LoginPage = "http://elsewhere.example.com/login";
+    c = await Connect(connector);
+    fake.LoginPage = null;
+    Check("a sign-in page on plain http elsewhere is not opened", !c.Ok && fake.Visits.Count == visits, c.Message);
 
     // Connected.
-    c = await connector.ConnectWithTokenAsync(Url, "token-member");
+    c = await Connect(connector);
     var account = await connector.AccountAsync();
     Check("connected", c.Ok, c.Message);
     Check("as the character the connector named", account is { CharacterId: 90_000_001, CharacterName: "Example Main", ConnectorName: "Example Connector" },
           account?.ToString() ?? "none");
     Check("the key the connector issued is kept", fake.IssuedKeys.Count == 1);
+    Check("the code shown was the sign-in's own", shown.LastOrDefault() is { Length: > 0 } code && fake.Visits[^1].Code == code);
 
-    // Refreshing stores what it says.
-    var r = await connector.RefreshAsync();
-    Check("a refresh stores the links", r.Outcome == ConnectorRefreshOutcome.Imported, r.ToString());
+    // ⚠️ The poll secret only ever travels in a request body: never in an address, so never in a browser.
+    var secrets = fake.Secrets.ToList();
+    Check("the poll secret never appears in an address", secrets.Count > 0
+          && !fake.Requests.Any(x => secrets.Any(sc => x.Path.Contains(sc)))
+          && !fake.Visits.Any(v => secrets.Any(sc => v.Page.ToString().Contains(sc))));
+
+    // Connecting stored what it says.
+    var r = new ConnectorRefreshResult(ConnectorRefreshOutcome.Imported);
+    Check("connecting stores the links", c.Ok && await CountsAsync(factory) == (1, 2, 3));
     Check("the rows it says", await CountsAsync(factory) == (1, 2, 3), (await CountsAsync(factory)).ToString());
     await using (var db = factory.CreateDbContext())
     {
@@ -266,17 +296,13 @@ async Task RunSuiteAsync(OneFactory factory)
     Check("its first arrival is noted once", await LogCountAsync(factory, LogSeverity.Note, expect: 1) == 1);
     Check("and the screen is told", changed == 1);
 
-    // ⚠️ The EVE token went to the connector once, and never again; every later call carried the key.
+    // ⚠️ After the sign-in, every call carries the key, and no call ever carried anything EVE gave.
     var key = fake.IssuedKeys.Single();
-    // The refused attempts above stopped at /v1/info or before any call, so the one that connected is the
-    // only call the token went in.
-    var carried = fake.Requests.Where(x => x.Body.Contains("token-member") || (x.Authorization ?? "").Contains("token-")).ToList();
-    Check("the EVE token was sent once, to the sign-in only", carried is [{ Path: "/v1/auth/eve" }],
-          string.Join(", ", carried.Select(x => x.Path)));
-    var afterConnect = fake.Requests.SkipWhile(x => !(x.Path == "/v1/auth/eve" && x.Body.Contains("token-member"))).Skip(1).ToList();
-    Check("no call after it carried the token", afterConnect.All(x => !x.Body.Contains("token-") && !(x.Authorization ?? "").Contains("token-")));
-    Check("every call after it carried the key", afterConnect.Count > 0 && afterConnect.All(x => x.Authorization == "Bearer " + key),
+    var lastPoll = fake.Requests.FindLastIndex(x => x.Path == "/v1/auth/poll");
+    var afterConnect = fake.Requests.Skip(lastPoll + 1).ToList();
+    Check("every call after the sign-in carried the key", afterConnect.Count > 0 && afterConnect.All(x => x.Authorization == "Bearer " + key),
           string.Join(", ", afterConnect.Select(x => $"{x.Path}={x.Authorization}")));
+    Check("EVE Console never sent an EVE token", !fake.Requests.Any(x => x.Body.Contains("accessToken") || x.Body.Contains("eve-token")));
 
     // The same answer again changes nothing; an older one never puts back old links.
     r = await connector.RefreshAsync();
@@ -381,11 +407,9 @@ async Task RunSuiteAsync(OneFactory factory)
     // ⚠️ With no key left, Disconnect still forgets the links: nothing else ever would.
     await connector.DisconnectAsync();
     Check("after that, Disconnect still forgets the links", await CountsAsync(factory) == (0, 0, 0));
-    await connector.ConnectWithTokenAsync(Url, "token-member");
-    await connector.RefreshAsync();
+    await Connect(connector);
 
     // ⚠️ Another PC on the same database: what one of them does in the middle of the other's refresh.
-    var other = new ConnectorService(new FakeHttp(fake), factory, store, signIn: null, errors);
     fake.Payload = Payload1(t0.AddHours(6));
     fake.AfterKeyCheck = async path => { if (path == "/v1/linked-characters") await other.DisconnectAsync(); };
     r = await connector.RefreshAsync();
@@ -394,14 +418,14 @@ async Task RunSuiteAsync(OneFactory factory)
           r.Outcome == ConnectorRefreshOutcome.NotConnected && await CountsAsync(factory) == (0, 0, 0) && await connector.AccountAsync() is null,
           $"{r} {await CountsAsync(factory)}");
 
-    await connector.ConnectWithTokenAsync(Url, "token-member");
+    await Connect(connector);
     var oldKey = fake.IssuedKeys.Single();
     fake.BeforeAnswer = async path =>
     {
         if (path != "/v1/me") return;
         fake.BeforeAnswer = null;
         fake.IssuedKeys.Remove(oldKey);                                   // the old key ended...
-        await other.ConnectWithTokenAsync(Url, "token-member");           // ...and another PC connected anew
+        await Connect(other);                                             // ...and another PC connected anew
     };
     r = await connector.RefreshAsync();
     var newer = await connector.AccountAsync();
@@ -411,10 +435,11 @@ async Task RunSuiteAsync(OneFactory factory)
     // Connecting to a different connector forgets the first one's links.
     await connector.RefreshAsync();
     Check("links stored from the first connector", (await CountsAsync(factory)).Item3 > 0);
-    c = await connector.ConnectWithTokenAsync("http://127.0.0.1:5054/", "token-member");
+    fake.Capabilities = [];     // so the refresh after connecting stores nothing of its own
+    c = await Connect(connector, "http://127.0.0.1:5054/");
+    fake.Capabilities = ["linked-characters"];
     Check("connecting to another connector forgets them", c.Ok && await CountsAsync(factory) == (0, 0, 0), c.Message);
-    await connector.ConnectWithTokenAsync(Url, "token-member");
-    await connector.RefreshAsync();
+    await Connect(connector);
 
     // ⚠️ A connector that hangs until the request times out: disconnected all the same.
     fake.Hung = true;
@@ -425,9 +450,9 @@ async Task RunSuiteAsync(OneFactory factory)
     fake.IssuedKeys.Clear();    // the hung connector never heard about its key ending
 
     // Connecting again ends the key it replaces; disconnecting ends the key there and forgets what it gave here.
-    c = await connector.ConnectWithTokenAsync(Url, "token-member");
+    c = await Connect(connector);
     var key1 = fake.IssuedKeys.Single();
-    c = await connector.ConnectWithTokenAsync(Url, "token-member");
+    c = await Connect(connector);
     Check("connecting again ends the key it replaces", c.Ok && fake.IssuedKeys.Count == 1 && fake.IssuedKeys[0] != key1,
           string.Join(",", fake.IssuedKeys));
     var key2 = fake.IssuedKeys.Single();
@@ -437,8 +462,7 @@ async Task RunSuiteAsync(OneFactory factory)
     Check("and forgets it here, and every link", await connector.AccountAsync() is null && await CountsAsync(factory) == (0, 0, 0));
 
     // ⚠️ Even with the connector down: disconnected is disconnected.
-    c = await connector.ConnectWithTokenAsync(Url, "token-member");
-    await connector.RefreshAsync();
+    c = await Connect(connector);
     fake.Down = true;
     await connector.DisconnectAsync();
     Check("disconnecting while it is down still disconnects", await connector.AccountAsync() is null && await CountsAsync(factory) == (0, 0, 0));
@@ -543,8 +567,10 @@ sealed class OneFactory(DbContextOptions<AppDbContext> o) : IDbContextFactory<Ap
 // ── A connector, as the interface describes one ─────────────────────────────
 
 /// <summary>
-/// Answers as docs/connector describes, from memory. Two EVE tokens it accepts, by name: "token-member" for an
-/// allowed character, "token-outsider" for one it refuses. Anything else is a token that failed its checks.
+/// Answers as docs/connector describes, from memory. Its sign-in stands in for EVE's: <see cref="Visit"/> is
+/// the browser at its page, and <see cref="Person"/> says how that goes — "member" signs in as an allowed
+/// character, "outsider" as one it refuses, "forged" fails the EVE checks, "declines" says no to the code,
+/// "leaves" lets it expire. A person also declines whenever the page's code is not the one EVE Console showed.
 /// </summary>
 sealed class FakeConnector
 {
@@ -561,6 +587,36 @@ sealed class FakeConnector
     public Func<string, Task>? BeforeAnswer;     // before the key is checked
     public Func<string, Task>? AfterKeyCheck;    // the key was good when the request arrived
     public List<string> IssuedKeys   = [];
+    public string       Person       = "member";
+    public bool         ForeignCode;                // the page shows a code from somebody else's sign-in
+    public string?      LoginPage;                  // a sign-in page other than its own
+    public List<(Uri Page, string Code)> Visits = [];
+    public IEnumerable<string> Secrets => _logins.Values.Select(l => l.Secret).Concat(_used);
+
+    private sealed class LoginState { public string Secret = "", Code = "", Status = "pending", Error = ""; }
+    private readonly Dictionary<string, LoginState> _logins = [];
+    private readonly List<string> _used = [];
+    private int _n;
+
+    /// <summary>The browser at the sign-in page, and the person deciding, given the code EVE Console showed.</summary>
+    public void Visit(Uri page, string? shownByEveConsole)
+    {
+        // Every page opened is seen, whatever it is: a page that should never have been opened must show.
+        var id = System.Web.HttpUtility.ParseQueryString(page.Query)["login"] ?? "";
+        if (!_logins.TryGetValue(id, out var login)) { Visits.Add((page, "")); return; }
+        var onPage = ForeignCode ? "ZZZ-999" : login.Code;
+        Visits.Add((page, onPage));
+
+        if (onPage != shownByEveConsole) { login.Status = "declined"; return; }
+        switch (Person)
+        {
+            case "member":   login.Status = "done"; break;
+            case "outsider": login.Status = "refused"; login.Error = "not_allowed"; break;
+            case "forged":   login.Status = "refused"; login.Error = "eve_token_invalid"; break;
+            case "declines": login.Status = "declined"; break;
+            case "leaves":   login.Status = "expired"; break;
+        }
+    }
     public List<(string Host, string Path, string? Authorization, string Body)> Requests = [];
 
     public async Task<HttpResponseMessage> AnswerAsync(HttpRequestMessage req)
@@ -571,21 +627,38 @@ sealed class FakeConnector
         if (Down) throw new HttpRequestException("connection refused");
         // What HttpClient throws when its timeout runs out: an OperationCanceledException nobody asked for.
         if (Hung) throw new TaskCanceledException("The request was canceled due to the configured HttpClient.Timeout of 60 seconds elapsing.");
-        if (Redirect && path != "/v1/info" && path != "/v1/auth/eve")
+        if (Redirect && !path.StartsWith("/v1/info") && !path.StartsWith("/v1/auth/start") && !path.StartsWith("/v1/auth/poll"))
             return new HttpResponseMessage(HttpStatusCode.TemporaryRedirect) { Headers = { Location = new Uri("https://elsewhere.example.com" + path) } };
         if (BeforeAnswer is { } before) await before(path);
 
         if (path == "/v1/info")
             return Json(HttpStatusCode.OK, new { @interface = Interface, versions = Versions, name = "Example Connector" });
 
-        if (path == "/v1/auth/eve")
+        if (path == "/v1/auth/start")
         {
-            var token = JsonDocument.Parse(body).RootElement.GetProperty("accessToken").GetString();
-            if (token == "token-outsider") return Error(HttpStatusCode.Forbidden, "not_allowed");
-            if (token != "token-member")   return Error(HttpStatusCode.Unauthorized, "eve_token_invalid");
+            var id = $"L{++_n}";
+            var login = new LoginState { Secret = Convert.ToHexString(Guid.NewGuid().ToByteArray()), Code = $"K{_n:D2}-4QX" };
+            _logins[id] = login;
+            var page = LoginPage ?? $"{req.RequestUri.GetLeftPart(UriPartial.Authority)}/login?login={id}";
+            return Json(HttpStatusCode.OK, new { loginId = id, pollSecret = login.Secret, loginUrl = page, code = login.Code, interval = 0, expiresIn = 600 });
+        }
+
+        if (path == "/v1/auth/poll")
+        {
+            var poll   = JsonDocument.Parse(body).RootElement;
+            var id     = poll.GetProperty("loginId").GetString() ?? "";
+            var secret = poll.GetProperty("pollSecret").GetString();
+            if (!_logins.TryGetValue(id, out var login) || login.Secret != secret) return Error(HttpStatusCode.NotFound, "login_unknown");
+            if (login.Status == "pending") return Json(HttpStatusCode.OK, new { status = "pending" });
+
+            // Answered once: a finished sign-in is gone after its answer is collected.
+            _logins.Remove(id);
+            _used.Add(login.Secret);
+            if (login.Status != "done") return Json(HttpStatusCode.OK, new { status = login.Status, error = login.Error, message = "refused: " + login.Error });
+
             var key = Convert.ToHexString(Guid.NewGuid().ToByteArray()) + Convert.ToHexString(Guid.NewGuid().ToByteArray());
             IssuedKeys.Add(key);
-            return Json(HttpStatusCode.OK, new { key, character = new { id = 90_000_001, name = "Example Main" } });
+            return Json(HttpStatusCode.OK, new { status = "done", key, character = new { id = 90_000_001, name = "Example Main" } });
         }
 
         var bearer = req.Headers.Authorization is { Scheme: "Bearer", Parameter: { } p } ? p : null;

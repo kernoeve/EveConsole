@@ -20,36 +20,14 @@ public sealed record OnlineSignInOutcome(bool Ok, string Message);
 /// <para>⚠️ The refresh token EVE sends back is ignored. The token is used once and thrown away:
 /// the service answers it with a key, which is what the app keeps.</para>
 /// </summary>
-public class OnlineSignInService
+public class OnlineSignInService(IHttpClientFactory httpFactory)
 {
     // Public by design, like the ESI one. The application's secret is not used by PKCE, and ships nowhere.
-    private const string OnlineClientId = "cb852ea95cbd4773b52215c3f85c3785";
-    private const int    OnlinePort     = 5052;
-    private const string AuthEndpoint   = "https://login.eveonline.com/v2/oauth/authorize";
-    private const string TokenEndpoint  = "https://login.eveonline.com/v2/oauth/token";
-
-    private readonly IHttpClientFactory httpFactory;
-    private readonly string ClientId;
-    private readonly string CallbackUrl;
-    private readonly string ListenPrefix;
-
-    public OnlineSignInService(IHttpClientFactory httpFactory) : this(httpFactory, OnlineClientId, OnlinePort) { }
-
-    /// <summary>
-    /// The same sign-in against another no-scope EVE application. ⚠️ Each service that takes these
-    /// tokens has an application of its own, and checks that a token was issued to it: one service
-    /// could otherwise sign in to another as whoever signed in to it.
-    /// </summary>
-    protected OnlineSignInService(IHttpClientFactory httpFactory, string clientId, int port)
-    {
-        this.httpFactory = httpFactory;
-        ClientId     = clientId;
-        CallbackUrl  = $"http://localhost:{port}/callback";
-        ListenPrefix = $"http://localhost:{port}/callback/";
-    }
-
-    /// <summary>False in a build whose EVE application is not registered yet.</summary>
-    public bool IsAvailable => ClientId.Length > 0;
+    private const string ClientId      = "cb852ea95cbd4773b52215c3f85c3785";
+    private const string CallbackUrl   = "http://localhost:5052/callback";
+    private const string ListenPrefix  = "http://localhost:5052/callback/";
+    private const string AuthEndpoint  = "https://login.eveonline.com/v2/oauth/authorize";
+    private const string TokenEndpoint = "https://login.eveonline.com/v2/oauth/token";
 
     /// <summary>
     /// Runs the browser sign-in and hands the access token to <paramref name="useToken"/>.
@@ -89,7 +67,7 @@ public class OnlineSignInService
         return outcome;
     }
 
-    private string AuthUrl(string challenge, string state)
+    private static string AuthUrl(string challenge, string state)
         // ⚠️ No scope at all, rather than an empty one: tested against EVE on 2026-11-04.
         => $"{AuthEndpoint}" +
            "?response_type=code" +

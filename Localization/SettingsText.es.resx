@@ -3973,9 +3973,6 @@ La aplicación se reiniciará.</value>
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>Ya está actualizado.</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} ya está conectado a {1}.</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>Escribe la dirección completa del conector, empezando por http:// o https://.</value>
   </data>
@@ -3990,9 +3987,6 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>Este conector necesita una versión más reciente de EVE Console.</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>Conectarse a un conector no está disponible en esta compilación de EVE Console.</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>El conector no permite este personaje.</value>
@@ -4014,5 +4008,23 @@ La aplicación se reiniciará.</value>
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>El conector no entendió la solicitud de EVE Console. Puede que uno de los dos necesite actualizarse.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Pidiendo al conector que inicie un inicio de sesión…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>En la página que se abrió, comprueba que el conector muestra el código {0}, confírmalo allí e inicia sesión con EVE. Nunca confirmes un código que EVE Console no te haya mostrado.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>El inicio de sesión se rechazó en la página del conector.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>El inicio de sesión no se completó a tiempo. Vuelve a conectar.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>El conector indicó una página de inicio de sesión que EVE Console no abrirá: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>Se han iniciado demasiados inicios de sesión en el conector. Espera unos minutos e inténtalo de nuevo.</value>
   </data>
 </root>

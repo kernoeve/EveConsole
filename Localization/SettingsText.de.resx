@@ -3973,9 +3973,6 @@ Die Anwendung wird neu gestartet.</value>
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>Bereits aktuell.</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} ist jetzt mit {1} verbunden.</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>Gib die vollständige Adresse des Connectors ein, beginnend mit http:// oder https://.</value>
   </data>
@@ -3990,9 +3987,6 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>Dieser Connector benötigt eine neuere Version von EVE Console.</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>Die Verbindung zu einem Connector ist in diesem Build von EVE Console nicht verfügbar.</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>Der Connector lässt diesen Charakter nicht zu.</value>
@@ -4014,5 +4008,23 @@ Die Anwendung wird neu gestartet.</value>
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>Der Connector hat die Anfrage von EVE Console nicht verstanden. Eines von beiden muss vielleicht aktualisiert werden.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Der Connector wird gebeten, eine Anmeldung zu starten…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>Prüfe auf der geöffneten Seite, dass der Connector den Code {0} anzeigt, bestätige ihn dort und melde dich mit EVE an. Bestätige nie einen Code, den dir EVE Console nicht angezeigt hat.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>Die Anmeldung wurde auf der Seite des Connectors abgelehnt.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>Die Anmeldung wurde nicht rechtzeitig abgeschlossen. Verbinde dich erneut.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Der Connector hat eine Anmeldeseite angegeben, die EVE Console nicht öffnet: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>Beim Connector wurden zu viele Anmeldungen gestartet. Warte ein paar Minuten und versuche es erneut.</value>
   </data>
 </root>

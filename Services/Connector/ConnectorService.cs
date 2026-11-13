@@ -4,7 +4,6 @@ using System.Net.Sockets;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using EveConsole.Auth;
 using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Models;
@@ -52,11 +51,11 @@ public sealed record ConnectorConnectResult(bool Ok, string Message);
 /// or their corporation hosts one. The interface is EVE Console's own and names no service: see
 /// <c>docs/connector/</c>. Nothing here does anything until somebody connects.
 ///
-/// <para><b>Connecting.</b> EVE's sign-in, with an application that has no scopes
-/// (<see cref="ConnectorSignInService"/>), and the token goes to the connector once. The connector checks
-/// whom it names, decides whether that character may connect, and answers with a key of its own; every
-/// later call sends the key. The connector keeps checking that the character still may, and answers 403
-/// once it may not.</para>
+/// <para><b>Connecting.</b> The connector runs EVE's sign-in, with its own EVE application and callback;
+/// EVE Console only opens the page and shows the code the person confirms there (see
+/// <see cref="ConnectAsync"/>). The connector decides whether that character may connect and hands EVE
+/// Console a key; every later call sends the key. The connector keeps checking that the character still
+/// may, and answers 403 once it may not.</para>
 ///
 /// <para>⚠️ The connection belongs to the database, not to the machine, as the online services' sign-in
 /// does: the refresh is background work, run by whichever client holds the worker lease. So it is read
@@ -91,7 +90,7 @@ public sealed class ConnectorService
     private readonly IHttpClientFactory              _httpFactory;
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly LinkedCharacterStore            _store;
-    private readonly OnlineSignInService?            _signIn;
+    private readonly Action<Uri>                     _openBrowser;
     private readonly AppErrorLogger?                 _errors;
 
     private CancellationTokenSource? _cts;
@@ -105,29 +104,30 @@ public sealed class ConnectorService
         IHttpClientFactory              httpFactory,
         IDbContextFactory<AppDbContext> dbFactory,
         LinkedCharacterStore            store,
-        ConnectorSignInService?         signIn = null,
-        AppErrorLogger?                 errors = null)
+        AppErrorLogger?                 errors      = null,
+        Action<Uri>?                    openBrowser = null)
     {
         _httpFactory = httpFactory;
         _dbFactory   = dbFactory;
         _store       = store;
-        _signIn      = signIn;
         _errors      = errors;
+        _openBrowser = openBrowser ?? OpenInBrowser;
     }
+
+    private static void OpenInBrowser(Uri page) =>
+        System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(page.ToString()) { UseShellExecute = true });
 
     /// <summary>Raised after connecting or disconnecting here, so what is on screen can follow.</summary>
     public event Action? AccountChanged;
 
-    /// <summary>False in a build whose EVE application for connectors is not registered yet.</summary>
-    public bool CanConnect => _signIn?.IsAvailable == true;
 
     // ── The address ──────────────────────────────────────────────────────────
 
     /// <summary>
     /// The connector's address as typed, made into the base its calls go under, or the reason it can't be.
     ///
-    /// <para>⚠️ https unless the connector is on this PC. The EVE token, and then the key, go with every
-    /// call, and on a network they would be readable by anyone on the way. A connector in a container on
+    /// <para>⚠️ https unless the connector is on this PC. The sign-in's poll secret, and then the key, go with
+    /// every call, and on a network they would be readable by anyone on the way. A connector in a container on
     /// this PC is reached through localhost, so it counts as this PC.</para>
     /// </summary>
     public static (Uri? Url, string? Error) ParseUrl(string? typed)
@@ -223,10 +223,20 @@ public sealed class ConnectorService
     // ── Connecting ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Connects to the connector at <paramref name="typedUrl"/>: checks it is one, runs EVE's sign-in in
-    /// the browser, hands the token over for a key, and refreshes. Throws only when cancelled.
+    /// Connects to the connector at <paramref name="typedUrl"/>: checks it is one, asks it to start a sign-in,
+    /// shows the person the sign-in's code (<paramref name="showCode"/>), opens the connector's page in the
+    /// browser, and waits for the connector to hand over a key. Then refreshes. Throws only when cancelled.
+    ///
+    /// <para>⚠️ EVE Console never takes part in the EVE sign-in itself. The connector runs it, with its own EVE
+    /// application and its own callback, so who signed in is something it learned from EVE directly, and a
+    /// token issued to it is accepted nowhere else. EVE Console is a client it does not have to trust: all it
+    /// ever holds is the poll secret for one sign-in, and then the key that sign-in produced.</para>
+    ///
+    /// <para>⚠️ The code is what stops somebody else's sign-in being finished by this person. Anyone can start a
+    /// sign-in and send the link to someone; the page shows that sign-in's code, and the person is asked to
+    /// confirm it only if it is the one EVE Console is showing them.</para>
     /// </summary>
-    public async Task<ConnectorConnectResult> ConnectAsync(string typedUrl, CancellationToken ct)
+    public async Task<ConnectorConnectResult> ConnectAsync(string typedUrl, Action<string>? showCode, CancellationToken ct)
     {
         var (url, urlError) = ParseUrl(typedUrl);
         if (url is null) return new(false, urlError!);
@@ -235,20 +245,20 @@ public sealed class ConnectorService
         {
             var info = await InfoAsync(url, ct);
             if (info.Error is not null) return new(false, info.Error);
-            if (_signIn is not { IsAvailable: true } signIn) return new(false, SettingsText.ConnectorErrNotAvailable);
 
-            Replaced? replaced = null;
-            var outcome = await signIn.SignInAsync(async (token, c) =>
-            {
-                var (o, r) = await ExchangeAsync(url, info.Name!, token, c);
-                replaced = r;
-                return o;
-            }, ct);
-            if (!outcome.Ok) return new(false, outcome.Message);
+            var (login, startError) = await StartAsync(url, ct);
+            if (login is null) return new(false, startError!);
 
-            // After the browser has had its page: ending the old key and the refresh may each take a while
-            // against a connector that is slow, and neither is the sign-in. Connected either way; a refresh
-            // that went wrong, or a connector with nothing to give, says so beside it.
+            showCode?.Invoke(login.Code);
+            _openBrowser(login.Page);
+
+            var (signedIn, pollError) = await PollAsync(url, login, ct);
+            if (signedIn is null) return new(false, pollError!);
+
+            var replaced = await StoreKeyAsync(url, info.Name!, signedIn.Key, signedIn.Character, ct);
+
+            // Connected either way from here; a refresh that went wrong, or a connector with nothing to give,
+            // says so beside it.
             await EndReplacedAsync(replaced, ct);
             var refreshed = await RefreshAsync(ct);
             return new(true, refreshed.Outcome is ConnectorRefreshOutcome.Imported or ConnectorRefreshOutcome.Unchanged
@@ -264,21 +274,92 @@ public sealed class ConnectorService
         }
     }
 
-    /// <summary>
-    /// The second half of connecting, given an EVE token from the no-scope application: the token for the
-    /// connector's key. Public so a check can connect to a test connector without a browser.
-    /// </summary>
-    public async Task<ConnectorConnectResult> ConnectWithTokenAsync(string typedUrl, string accessToken, CancellationToken ct = default)
+    /// <summary>A sign-in the connector has started, as far as EVE Console needs it.</summary>
+    private sealed record Login(string Id, string Secret, Uri Page, string Code, TimeSpan Every, DateTimeOffset Until);
+
+    /// <summary>A finished sign-in: the key, and whom the connector says it is for.</summary>
+    private sealed record SignedIn(string Key, CharacterAnswer Character);
+
+    private static readonly TimeSpan LongestSignIn = TimeSpan.FromMinutes(15);
+
+    /// <summary>Asks the connector to start a sign-in, or says why it would not.</summary>
+    private async Task<(Login? Login, string? Error)> StartAsync(Uri url, CancellationToken ct)
     {
-        var (url, urlError) = ParseUrl(typedUrl);
-        if (url is null) return new(false, urlError!);
+        try
+        {
+            using var http = _httpFactory.CreateClient(ClientName);
+            using var content = new StringContent(JsonSerializer.Serialize(new { client = "EVE Console" }), Encoding.UTF8, "application/json");
+            using var res = await http.PostAsync(new Uri(url, "v1/auth/start"), content, ct);
+            var body = await res.Content.ReadAsStringAsync(ct);
+            if (!res.IsSuccessStatusCode) return (null, ErrorText(body, res.StatusCode));
 
-        var info = await InfoAsync(url, ct);
-        if (info.Error is not null) return new(false, info.Error);
+            var a = JsonSerializer.Deserialize<StartAnswer>(body, Json);
+            if (a is not { LoginId.Length: > 0, PollSecret.Length: > 0, Code.Length: > 0, LoginUrl.Length: > 0 })
+                return (null, string.Format(SettingsText.ConnectorErrNotConnector, url.Authority));
 
-        var (outcome, replaced) = await ExchangeAsync(url, info.Name!, accessToken, ct);
-        await EndReplacedAsync(replaced, ct);
-        return new(outcome.Ok, outcome.Message);
+            // ⚠️ A page the browser is sent to on the connector's word: http(s) only, and https unless on this
+            // PC, the same rule as the connector's own address.
+            if (ParseUrl(a.LoginUrl).Url is null || !Uri.TryCreate(a.LoginUrl.Trim(), UriKind.Absolute, out var page))
+                return (null, string.Format(SettingsText.ConnectorErrBadLoginPage, a.LoginUrl));
+
+            var every = TimeSpan.FromSeconds(Math.Clamp(a.Interval ?? 2, 0.5, 10));
+            var until = DateTimeOffset.UtcNow + TimeSpan.FromSeconds(Math.Clamp(a.ExpiresIn ?? 600, 30, LongestSignIn.TotalSeconds));
+            return (new Login(a.LoginId, a.PollSecret, page, a.Code.Trim(), every, until), null);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SocketException or JsonException)
+        {
+            return (null, string.Format(SettingsText.ConnectorErrUnreachable, url.Authority));
+        }
+    }
+
+    /// <summary>
+    /// Asks, every few seconds, whether the sign-in has finished, until it has, was refused or declined, or
+    /// ran out of time. A connector that stops answering for a moment is asked again, not given up on.
+    /// </summary>
+    private async Task<(SignedIn? SignedIn, string? Error)> PollAsync(Uri url, Login login, CancellationToken ct)
+    {
+        var unreachable = 0;
+        while (DateTimeOffset.UtcNow < login.Until)
+        {
+            await Task.Delay(login.Every, ct);
+            try
+            {
+                using var http = _httpFactory.CreateClient(ClientName);
+                using var content = new StringContent(JsonSerializer.Serialize(new { loginId = login.Id, pollSecret = login.Secret }),
+                                                      Encoding.UTF8, "application/json");
+                using var res = await http.PostAsync(new Uri(url, "v1/auth/poll"), content, ct);
+                var body = await res.Content.ReadAsStringAsync(ct);
+                unreachable = 0;
+
+                if (res.StatusCode == HttpStatusCode.NotFound) return (null, SettingsText.ConnectorErrLoginExpired);
+                if (!res.IsSuccessStatusCode) return (null, ErrorText(body, res.StatusCode));
+
+                var a = JsonSerializer.Deserialize<PollAnswer>(body, Json);
+                switch (a?.Status)
+                {
+                    case "pending":
+                        continue;
+                    case "done" when a.Key is { Length: > 0 } key && a.Character is { Id: > 0 } character:
+                        return (new SignedIn(key, character), null);
+                    case "refused":
+                        return (null, ErrorText(body, HttpStatusCode.Forbidden));
+                    case "declined":
+                        return (null, SettingsText.ConnectorErrLoginDeclined);
+                    case "expired":
+                        return (null, SettingsText.ConnectorErrLoginExpired);
+                    default:
+                        return (null, string.Format(SettingsText.ConnectorErrNotConnector, url.Authority));
+                }
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (JsonException) { return (null, string.Format(SettingsText.ConnectorErrNotConnector, url.Authority)); }
+            catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SocketException)
+            {
+                if (++unreachable >= 3) return (null, string.Format(SettingsText.ConnectorErrUnreachable, url.Authority));
+            }
+        }
+        return (null, SettingsText.ConnectorErrLoginExpired);
     }
 
     /// <summary>A key a new connection replaced, and where it came from.</summary>
@@ -325,53 +406,30 @@ public sealed class ConnectorService
         }
     }
 
-    /// <summary>
-    /// The EVE token for the connector's key. The token goes no further than this call. Also says which key
-    /// the new one replaced, for ending afterwards: the browser waits on this, so nothing slow happens here.
-    /// </summary>
-    private async Task<(OnlineSignInOutcome Outcome, Replaced? Replaced)> ExchangeAsync(
-        Uri url, string connectorName, string accessToken, CancellationToken ct)
+    /// <summary>Stores the key a sign-in produced, and says which key it replaced, for ending afterwards.</summary>
+    private async Task<Replaced?> StoreKeyAsync(Uri url, string connectorName, string key, CharacterAnswer character, CancellationToken ct)
     {
-        try
+        var prefs  = await ReadPrefsAsync(ct);
+        var before = Account(prefs);
+        var replaced = before is ({ } old, { } oldKey) && oldKey != key ? new Replaced(old.Url, oldKey) : null;
+
+        // ⚠️ Another connector's links go with this one's key arriving, in the same transaction: only one
+        // connector is connected at a time, and links from one it no longer is would otherwise stay for good.
+        // And the address goes with the key, never before it: a key is only sent where it came from.
+        var previous = prefs.GetValueOrDefault(UrlPref);
+        await WritePrefsAsync(new Dictionary<string, string?>
         {
-            using var http = _httpFactory.CreateClient(ClientName);
-            using var content = new StringContent(JsonSerializer.Serialize(new { accessToken }), Encoding.UTF8, "application/json");
-            using var res = await http.PostAsync(new Uri(url, "v1/auth/eve"), content, ct);
-            var body = await res.Content.ReadAsStringAsync(ct);
-            if (!res.IsSuccessStatusCode) return (new(false, ErrorText(body, res.StatusCode)), null);
+            [UrlPref]           = url.ToString(),
+            [KeyPref]           = key,
+            [NamePref]          = connectorName,
+            [CharacterPref]     = character.Id.ToString(),
+            [CharacterNamePref] = character.Name ?? "",
+            [CapabilitiesPref]  = null,     // asked for next, by the refresh
+        }, ct, clearLinks: previous is not null && previous != url.ToString());
 
-            var answer = JsonSerializer.Deserialize<SignInAnswer>(body, Json);
-            if (answer?.Key is not { Length: > 0 } key || answer.Character is not { Id: > 0 } character)
-                return (new(false, string.Format(SettingsText.ConnectorErrNotConnector, url.Authority)), null);
-
-            var prefs  = await ReadPrefsAsync(ct);
-            var before = Account(prefs);
-            var replaced = before is ({ } old, { } oldKey) && oldKey != key ? new Replaced(old.Url, oldKey) : null;
-
-            // ⚠️ Another connector's links go with this one's key arriving, in the same transaction: only one
-            // connector is connected at a time, and links from one it no longer is would otherwise stay for
-            // good. And the address goes with the key, never before it: a key is only sent where it came from.
-            var previous = prefs.GetValueOrDefault(UrlPref);
-            await WritePrefsAsync(new Dictionary<string, string?>
-            {
-                [UrlPref]           = url.ToString(),
-                [KeyPref]           = key,
-                [NamePref]          = connectorName,
-                [CharacterPref]     = character.Id.ToString(),
-                [CharacterNamePref] = character.Name ?? "",
-                [CapabilitiesPref]  = null,     // asked for next, by the refresh
-            }, ct, clearLinks: previous is not null && previous != url.ToString());
-
-            _lastProblem = null;
-            AccountChanged?.Invoke();
-
-            return (new(true, string.Format(SettingsText.ConnectorPageConnectedBody, character.Name, connectorName)), replaced);
-        }
-        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
-        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SocketException or JsonException)
-        {
-            return (new(false, string.Format(SettingsText.ConnectorErrUnreachable, url.Authority)), null);
-        }
+        _lastProblem = null;
+        AccountChanged?.Invoke();
+        return replaced;
     }
 
     /// <summary>
@@ -592,6 +650,7 @@ public sealed class ConnectorService
         {
             "not_allowed"        => SettingsText.ConnectorErrNotAllowed,
             "eve_token_invalid"  => SettingsText.ConnectorErrEveInvalid,
+            "too_many_logins"    => SettingsText.ConnectorErrTooManyLogins,
             "eve_unavailable"    => SettingsText.OnlineErrEveUnavailable,
             "source_unavailable" => SettingsText.ConnectorErrSourceUnavailable,
             "not_offered"        => SettingsText.ConnectorNothingOffered,
@@ -607,7 +666,8 @@ public sealed class ConnectorService
         [property: JsonPropertyName("interface")] string? Interface,
         [property: JsonPropertyName("versions")]  int[]?  Versions,
         [property: JsonPropertyName("name")]      string? Name);
-    private sealed record SignInAnswer(string? Key, CharacterAnswer? Character);
+    private sealed record StartAnswer(string? LoginId, string? PollSecret, string? LoginUrl, string? Code, double? Interval, double? ExpiresIn);
+    private sealed record PollAnswer(string? Status, string? Key, CharacterAnswer? Character);
     private sealed record CharacterAnswer(long Id, string? Name);
     private sealed record MeAnswer(CharacterAnswer? Character, List<string?>? Capabilities);
     private sealed record ErrorAnswer(string? Error, string? Message);

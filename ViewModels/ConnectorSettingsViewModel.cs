@@ -17,7 +17,7 @@ public class ConnectorSettingsViewModel : ReactiveObject
 
     // EVE's page sends nothing back if its tab is simply closed, so the wait is always bounded,
     // and can be abandoned.
-    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromMinutes(5);
+    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromMinutes(16);   // past the longest sign-in a connector may allow (15 min)
 
     private CancellationTokenSource? _connectCts;
 
@@ -142,10 +142,13 @@ public class ConnectorSettingsViewModel : ReactiveObject
         _connectCts  = cts;
         IsBusy       = true;
         IsConnecting = true;
-        Status = SettingsText.OnlineWaitingForBrowser;
+        Status = SettingsText.ConnectorStarting;
         try
         {
-            var result = await _connector.ConnectAsync(Url, cts.Token);
+            // The code arrives before the browser opens, so it is on screen when the page asks about it.
+            var result = await _connector.ConnectAsync(Url,
+                code => Avalonia.Threading.Dispatcher.UIThread.Post(() => Status = string.Format(SettingsText.ConnectorConfirmCode, code)),
+                cts.Token);
             IsConnecting = false;
             await LoadAsync();
             // ⚠️ By what is true now, not by the result alone: the key can be stored and something after it fail.

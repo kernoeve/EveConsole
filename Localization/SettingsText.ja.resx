@@ -3970,9 +3970,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>すでに最新です。</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} は {1} に接続されました。</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>コネクターの完全なアドレスを http:// または https:// から入力してください。</value>
   </data>
@@ -3987,9 +3984,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>このコネクターには新しいバージョンの EVE Console が必要です。</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>この EVE Console のビルドでは、コネクターへの接続は利用できません。</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>コネクターはこのキャラクターを許可していません。</value>
@@ -4011,5 +4005,23 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>コネクターが EVE Console の要求を理解できませんでした。どちらかの更新が必要かもしれません。</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>コネクターにサインインの開始を依頼しています…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>開いたページで、コネクターがコード {0} を表示していることを確認し、そこで確認してから EVE でサインインしてください。EVE Console が表示していないコードは決して確認しないでください。</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>コネクターのページでサインインが拒否されました。</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>サインインが時間内に完了しませんでした。もう一度接続してください。</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>コネクターが EVE Console では開かないサインインページを指定しました: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>コネクターで開始されたサインインが多すぎます。数分待ってからもう一度お試しください。</value>
   </data>
 </root>

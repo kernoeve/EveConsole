@@ -22,11 +22,39 @@ paths:
             application/json:
               schema:
                 $ref: "#/components/schemas/Info"
-  /v1/auth/eve:
+  /v1/auth/start:
     post:
-      summary: Trade an EVE token from EVE Console's connector application for a key
+      summary: Start a sign-in on the connector's own page
       description: |
-        The token has no scopes. Check it as README.md says, use it once, and never store it.
+        The connector runs EVE's sign-in itself, with its own EVE application and callback. EVE Console shows
+        the user `code` and opens `loginUrl`; the page shows the same code and asks the user to confirm it
+        before going to EVE. See README.md.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client:
+                  type: string
+                  example: EVE Console
+      responses:
+        "200":
+          description: A sign-in, waiting for the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginStarted"
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/auth/poll:
+    post:
+      summary: How a sign-in is going; the key once it is done
+      description: |
+        `pending` until the sign-in ends; then the final answer, once, after which the sign-in is forgotten.
+        The secret travels in the body, never in the address.
       security: []
       requestBody:
         required: true
@@ -34,22 +62,18 @@ paths:
           application/json:
             schema:
               type: object
-              required: [accessToken]
+              required: [loginId, pollSecret]
               properties:
-                accessToken:
-                  type: string
-                  description: The EVE SSO access token (a JWT)
+                loginId: { type: string }
+                pollSecret: { type: string }
       responses:
         "200":
-          description: Connected
+          description: The sign-in's state
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/SignedIn"
-        "400": { $ref: "#/components/responses/Error" }
-        "401": { $ref: "#/components/responses/Error" }
-        "403": { $ref: "#/components/responses/Error" }
-        "503": { $ref: "#/components/responses/Error" }
+                $ref: "#/components/schemas/LoginState"
+        "404": { $ref: "#/components/responses/Error" }
   /v1/auth/sign-out:
     post:
       summary: End the key this call was made with
@@ -89,7 +113,7 @@ components:
     connectorKey:
       type: http
       scheme: bearer
-      description: The key from /v1/auth/eve
+      description: The key from a finished sign-in (/v1/auth/poll)
   responses:
     Error:
       description: Refused
@@ -118,15 +142,46 @@ components:
       properties:
         id: { type: integer, format: int64 }
         name: { type: string }
-    SignedIn:
+    LoginStarted:
       type: object
-      required: [key, character]
+      required: [loginId, pollSecret, loginUrl, code]
       properties:
+        loginId: { type: string }
+        pollSecret:
+          type: string
+          description: At least 128 random bits. Only in request bodies, never in an address.
+        loginUrl:
+          type: string
+          description: The connector's page for this sign-in. https unless the connector is on the user's PC.
+        code:
+          type: string
+          example: K7P-4QX
+        interval:
+          type: number
+          default: 2
+          description: Seconds between polls
+        expiresIn:
+          type: number
+          default: 600
+          maximum: 900
+          description: Seconds before an unfinished sign-in expires
+    LoginState:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, done, refused, declined, expired]
         key:
           type: string
-          description: At least 256 random bits. Shown once; the connector keeps only a hash.
+          description: With done. At least 256 random bits. Given once; the connector keeps only a hash.
         character:
           $ref: "#/components/schemas/Character"
+        error:
+          type: string
+          description: With refused, e.g. not_allowed or eve_token_invalid
+        message:
+          type: string
     Me:
       type: object
       required: [character, capabilities]
@@ -180,7 +235,7 @@ components:
       properties:
         error:
           type: string
-          enum: [bad_request, eve_token_invalid, not_signed_in, not_allowed, not_offered, eve_unavailable, source_unavailable]
+          enum: [bad_request, not_signed_in, not_allowed, not_offered, login_unknown, too_many_logins, eve_unavailable, source_unavailable]
         message:
           type: string
           description: English, shown only for a code EVE Console does not know

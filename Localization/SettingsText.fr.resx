@@ -3973,9 +3973,6 @@ L'application va redémarrer.</value>
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>Déjà à jour.</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} est maintenant connecté à {1}.</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>Saisissez l'adresse complète du connecteur, commençant par http:// ou https://.</value>
   </data>
@@ -3990,9 +3987,6 @@ L'application va redémarrer.</value>
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>Ce connecteur nécessite une version plus récente d'EVE Console.</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>La connexion à un connecteur n'est pas disponible dans cette version d'EVE Console.</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>Le connecteur n'autorise pas ce personnage.</value>
@@ -4014,5 +4008,23 @@ L'application va redémarrer.</value>
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>Le connecteur n'a pas compris la requête d'EVE Console. L'un des deux doit peut-être être mis à jour.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Demande au connecteur de lancer une connexion…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>Sur la page qui s'est ouverte, vérifiez que le connecteur affiche le code {0}, confirmez-le et connectez-vous avec EVE. Ne confirmez jamais un code qu'EVE Console ne vous a pas affiché.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>La connexion a été refusée sur la page du connecteur.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>La connexion n'a pas été terminée à temps. Reconnectez-vous.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Le connecteur a indiqué une page de connexion qu'EVE Console n'ouvrira pas : {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>Trop de connexions ont été lancées sur le connecteur. Patientez quelques minutes, puis réessayez.</value>
   </data>
 </root>

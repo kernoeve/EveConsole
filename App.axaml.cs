@@ -5176,8 +5176,8 @@ public class App : Application
         // and every call is made absolute from it. A timeout of its own, so a connector that has hung
         // fails the refresh rather than holding it.
         //
-        // ⚠️ Redirects are not followed. A 307 would post the EVE token again to wherever it pointed, and
-        // any redirect could take the key to a host it was never issued by, or to plain http on a network
+        // ⚠️ Redirects are not followed. A 307 would post a sign-in's poll secret again to wherever it pointed,
+        // and any redirect could take the key to a host it was never issued by, or to plain http on a network
         // after the address was checked. A connector that has moved is typed in again.
         services.AddHttpClient(EveConsole.Services.Connector.ConnectorService.ClientName, client =>
         {
@@ -5450,11 +5450,9 @@ public class App : Application
         services.AddSingleton<EveScoutService>();
         services.AddSingleton(sp => new LinkedCharacterStore(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(), sp.GetRequiredService<AppErrorLogger>()));
-        services.AddSingleton<ConnectorSignInService>();
         services.AddSingleton(sp => new EveConsole.Services.Connector.ConnectorService(
             sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
-            sp.GetRequiredService<LinkedCharacterStore>(), sp.GetRequiredService<ConnectorSignInService>(),
-            sp.GetRequiredService<AppErrorLogger>()));
+            sp.GetRequiredService<LinkedCharacterStore>(), sp.GetRequiredService<AppErrorLogger>()));
         services.AddSingleton<SovCampaignService>();
         services.AddHttpClient("eve-scout", c =>
         {

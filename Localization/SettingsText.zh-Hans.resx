@@ -3970,9 +3970,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>已是最新。</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} 现已连接到 {1}。</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>请输入连接器的完整地址，以 http:// 或 https:// 开头。</value>
   </data>
@@ -3987,9 +3984,6 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>此连接器需要更新版本的 EVE Console。</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>此版本的 EVE Console 构建不支持连接到连接器。</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>连接器不允许此角色。</value>
@@ -4011,5 +4005,23 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>连接器无法理解 EVE Console 的请求。两者之一可能需要更新。</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>正在请求连接器开始登录…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>在打开的页面中，确认连接器显示的代码为 {0}，在该页面确认后用 EVE 登录。切勿确认 EVE Console 没有向你显示的代码。</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>登录已在连接器页面上被拒绝。</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>登录未在规定时间内完成。请重新连接。</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>连接器提供了 EVE Console 不会打开的登录页面：{0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>连接器上开始的登录过多。请等待几分钟后重试。</value>
   </data>
 </root>

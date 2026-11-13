@@ -3979,9 +3979,6 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="ConnectorUnchanged" xml:space="preserve">
     <value>Уже актуально.</value>
   </data>
-  <data name="ConnectorPageConnectedBody" xml:space="preserve">
-    <value>{0} теперь подключён к {1}.</value>
-  </data>
   <data name="ConnectorErrBadUrl" xml:space="preserve">
     <value>Введите полный адрес коннектора, начиная с http:// или https://.</value>
   </data>
@@ -3996,9 +3993,6 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="ConnectorErrNewerVersion" xml:space="preserve">
     <value>Этому коннектору нужна более новая версия EVE Console.</value>
-  </data>
-  <data name="ConnectorErrNotAvailable" xml:space="preserve">
-    <value>Подключение к коннектору недоступно в этой сборке EVE Console.</value>
   </data>
   <data name="ConnectorErrNotAllowed" xml:space="preserve">
     <value>Коннектор не допускает этого персонажа.</value>
@@ -4020,5 +4014,23 @@ EVE Console сразу перезапустится, потому что баз�
   </data>
   <data name="ConnectorErrBadRequest" xml:space="preserve">
     <value>Коннектор не понял запрос EVE Console. Возможно, одно из них нужно обновить.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Запрос коннектору на начало входа…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>На открывшейся странице убедитесь, что коннектор показывает код {0}, подтвердите его там и войдите через EVE. Никогда не подтверждайте код, который вам не показал EVE Console.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>Вход отклонён на странице коннектора.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>Вход не был завершён вовремя. Подключитесь снова.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Коннектор указал страницу входа, которую EVE Console не откроет: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>В коннекторе начато слишком много входов. Подождите несколько минут и попробуйте снова.</value>
   </data>
 </root>

@@ -11,34 +11,68 @@ to those services.
 - **Without one:** EVE Console works exactly as before. Nothing below happens until the user connects.
 - **The machine-readable description** is [`openapi.yaml`](openapi.yaml).
 
+## Who trusts whom
+
+**The connector does not trust EVE Console.** EVE Console is a client anyone can run or change, so it is
+never the one saying who a character is. The connector learns that from EVE directly, through its own
+EVE sign-in: its own EVE application, registered at developers.eveonline.com, and its own callback. A
+token from that sign-in is issued to the connector's application, so no other service would accept it,
+and EVE Console never sees it.
+
+What EVE Console holds is a **key**, issued by the connector at the end of a sign-in, for the character
+that signed in. That key is the only thing it sends afterwards.
+
 ## Connecting
 
 1. The user types the connector's address in **Settings → Connector** and chooses **Connect with EVE**.
 2. EVE Console calls `GET /v1/info` to confirm it is a connector that speaks version 1.
-3. EVE Console opens EVE's sign-in in the browser, using EVE Console's **connector application**. That
-   application has **no scopes**: its token proves which character signed in, and can read nothing.
-4. EVE Console sends that token once, to `POST /v1/auth/eve`.
-5. The connector checks the token (see below), decides whether this character may connect, and answers
-   with a **key** for that character.
-6. Every later call sends `Authorization: Bearer <key>`. EVE Console keeps no EVE token.
+3. EVE Console calls `POST /v1/auth/start`. The connector starts a sign-in and answers with:
+   - `loginUrl`: its own page for this sign-in;
+   - `code`: a short code, such as `K7P-4QX`;
+   - `loginId` and `pollSecret`: for asking how the sign-in is going;
+   - optionally `interval` (seconds between polls, default 2) and `expiresIn` (seconds, default 600,
+     at most 900).
+4. EVE Console shows the user the **code**, and opens `loginUrl` in their browser.
+5. The connector's page shows the **same code** and asks the user to confirm it is the one EVE Console
+   is showing. Only after they confirm does it send them to EVE's sign-in. EVE sends them back to the
+   connector's callback; the connector checks who signed in and whether that character may connect.
+6. Meanwhile EVE Console calls `POST /v1/auth/poll` with `loginId` and `pollSecret` every `interval`
+   seconds. The answer is `{"status": "pending"}` until the sign-in ends, then once:
+   - `{"status": "done", "key": "…", "character": {"id": …, "name": "…"}}`;
+   - `{"status": "refused", "error": "not_allowed"}` (or `eve_token_invalid`, …): signed in, but not
+     allowed;
+   - `{"status": "declined"}`: the user said the code did not match, or cancelled;
+   - `{"status": "expired"}`: not finished in time.
+7. Every later call sends `Authorization: Bearer <key>`.
+
+**Why the code.** Anyone can start a sign-in and send someone the link. Without the code, whoever
+started it would be handed a key for whoever finished it. The page asks the user to compare codes, so a
+sign-in somebody else started is declined instead.
 
 The key belongs to the EVE Console database, not to one PC: on a database shared by several PCs, the
 PC holding the background worker lease refreshes every 30 minutes, and any PC can refresh on demand.
 
 ## What a connector must do
 
-**Check the EVE token** sent to `/v1/auth/eve`:
+**Run the sign-in:**
 
-- It is a JWT signed by CCP. Check the signature against CCP's keys
-  (`https://login.eveonline.com/oauth/jwks`), and that it has not expired.
-- The issuer is `https://login.eveonline.com` (older tokens say `login.eveonline.com`).
-- The audience contains **EVE Console's connector application client id** and `EVE Online`. Refuse a
-  token issued to any other application, including EVE Console's other ones: a token meant for one
-  service must not sign anyone in to another.
-- The token carries **no scopes**. Refuse one that does: EVE Console never sends a token that can
-  read anything.
-- The character is the number in `sub` (`CHARACTER:EVE:<id>`); the name is in `name`.
-- Use the token once and forget it. Never store or forward it.
+- Register its own EVE application, with a callback at the connector. It needs no scopes to know who
+  signed in; ask for scopes only if the connector itself uses them.
+- On `/v1/auth/start`: make a new sign-in with an unguessable `loginId`, a `pollSecret` of at least 128
+  random bits, and a short `code` that is easy to compare (letters and digits, no look-alikes). Keep
+  only a hash of the secret. Limit how many sign-ins can be started, for example per address; answer
+  `429` with `too_many_logins` past it.
+- On its page: show the code and the connector's name, ask the user to confirm it matches what EVE
+  Console shows, and offer a way to decline. Only on confirm, go to EVE's sign-in, with the sign-in's own
+  `state`.
+- On its callback: check `state`, exchange the code with EVE, and check the token: CCP's signature
+  (`https://login.eveonline.com/oauth/jwks`), not expired, issuer `https://login.eveonline.com`, and an
+  audience containing **the connector's own client id**. The character is the number in `sub`
+  (`CHARACTER:EVE:<id>`); the name is in `name`. Then decide whether the character may connect.
+- On `/v1/auth/poll`: answer `404` with `login_unknown` for an unknown sign-in or a wrong secret, and
+  `pending` until it ends. Give the final answer **once**, then forget the sign-in. A sign-in no one
+  finished expires after `expiresIn`.
+- Never put the poll secret or the key in an address: both travel only in request bodies and headers.
 
 **Issue and keep keys:**
 
@@ -55,9 +89,10 @@ with `"error": "not_allowed"`; EVE Console keeps what it already has and shows t
 
 **Transport:**
 
-- A connector on another device must use HTTPS. EVE Console refuses `http://` for anything but this PC.
+- A connector on another device must use HTTPS. EVE Console refuses `http://` for anything but this PC,
+  for the connector's address and for the sign-in page it is given.
 - A connector on the same PC should listen on `127.0.0.1` only. Port **5054** is the suggested default.
-- EVE Console does not follow redirects. A redirect is treated as a refusal, so a key or token never goes
+- EVE Console does not follow redirects. A redirect is treated as a refusal, so a key never goes
   anywhere but the address the user typed. A connector that moves needs its new address typed in.
 
 ## Errors
@@ -71,12 +106,16 @@ Every refusal is JSON:
 | `error`              | Status | Meaning                                                                 |
 |----------------------|--------|-------------------------------------------------------------------------|
 | `bad_request`        | 400    | The request is not one this connector understands.                      |
-| `eve_token_invalid`  | 401    | The EVE token failed a check above. Only from `/v1/auth/eve`.           |
 | `not_signed_in`      | 401    | No key, or one the connector does not know (ended, revoked, expired).   |
 | `not_allowed`        | 403    | The character may not use this connector, or this part of it.           |
 | `not_offered`        | 404    | The connector does not offer this.                                      |
-| `eve_unavailable`    | 503    | CCP's keys could not be read just now.                                  |
+| `login_unknown`      | 404    | `/v1/auth/poll`: no such sign-in, a wrong secret, or one already answered. |
+| `too_many_logins`    | 429    | `/v1/auth/start`: too many sign-ins started; try again later.           |
+| `eve_unavailable`    | 503    | EVE's sign-in could not be completed or checked just now.               |
 | `source_unavailable` | 503    | The service the connector reads from could not be reached just now.     |
+
+In a poll's `refused` answer, `error` is one of these codes, or `eve_token_invalid` when the EVE
+sign-in failed the connector's checks.
 
 EVE Console shows its own text for these codes; `message` is shown, in English, only for a code it
 does not know.
