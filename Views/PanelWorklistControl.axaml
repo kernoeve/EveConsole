@@ -91,6 +91,9 @@
                            TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildLabel}" />
                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsChildLine}" Margin="8 0 0 0">
                   <TextBlock Text="{Binding ChildAction}" FontSize="9" Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" />
+                  <!-- The item's picture, left of its name, on a line that names an item; a line
+                       of plain text has none. -->
+                  <Image Source="{Binding Icon}" Width="14" Height="14" VerticalAlignment="Center" IsVisible="{Binding ChildHasLink}" />
                   <Panel>
                     <Button Classes="link" Click="OnOpenChildItem" IsVisible="{Binding ChildHasLink}"
                             ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">

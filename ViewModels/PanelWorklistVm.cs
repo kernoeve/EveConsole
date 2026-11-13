@@ -179,7 +179,9 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
             .Select(g => new PanelWorklistGroupVm(g.Key, ByName(g), !_closedKinds.Contains(g.Key)) { ExpansionChanged = OnGroupChanged })
             .ToList();
         Rows.ResetTo(groups.SelectMany(GroupRows));
-        _ = Task.WhenAll(fresh.Select(r => r.LoadIconAsync()));
+        // The lines under a task kept open across the rebuild are new rows too, and need their pictures.
+        _ = Task.WhenAll(fresh.Concat(fresh.Where(r => r.IsExpanded && r.CanExpand).SelectMany(r => r.Children))
+                              .Select(r => r.LoadIconAsync()));
 
         Counts.Clear();
         foreach (var g in groups)

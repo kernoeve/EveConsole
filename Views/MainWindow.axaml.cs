@@ -97,6 +97,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (!IsVisible) Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();
+        // Raised over a layout without a change of focus, when it already had it: Windows says
+        // nothing, so the taskbar is told here (see ClientPanelHost.Reconcile).
+        Services.ClientLayouts.FrontWindows.NoteRaised();
     }
 
     /// <summary>
@@ -284,7 +287,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         };
         vm.ShowWorkspaceRequested += ws =>
         {
-            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
+            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); Services.ClientLayouts.FrontWindows.NoteRaised(); }
             else if (ws.IsMain) ShowFromTray();
             // A Tool Container: its panel comes in front with the clients on its monitor, as a click
             // on the panel brings them, without taking focus from a game client. The panel alone

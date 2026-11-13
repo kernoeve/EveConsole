@@ -33,6 +33,9 @@ public partial class ClientPanelWindow : Window
     /// <summary>A click anywhere on the panel, whatever ends up handling it.</summary>
     public event Action? Pressed;
 
+    /// <summary>The click let go, which is when a button acts.</summary>
+    public event Action? Released;
+
     /// <summary>Asked for by <see cref="BringForwardWithClients"/>; the host raises the monitor.</summary>
     public event Action? MonitorForwardRequested;
 
@@ -51,6 +54,7 @@ public partial class ClientPanelWindow : Window
     {
         InitializeComponent();
         AddHandler(PointerPressedEvent, (_, _) => Pressed?.Invoke(), RoutingStrategies.Tunnel);
+        AddHandler(PointerReleasedEvent, (_, _) => Released?.Invoke(), RoutingStrategies.Tunnel, handledEventsToo: true);
         ScalingChanged += (_, _) => BuildParts();
         Deactivated += (_, _) => StayOutOfTheWay();
         Closed += (_, _) => EveConsole.Services.UiScaleService.Changed -= OnUiScaleChanged;
@@ -82,11 +86,16 @@ public partial class ClientPanelWindow : Window
     /// itself: a window that never activates doesn't get raised either.
     /// ⚠️ Through always-on-top and straight back, and it doesn't stay on top. HWND_TOP does nothing
     /// here, because Windows ignores it from a program that isn't the one in front.
+    /// <para>⚠️ This panel only (SWP_NOOWNERZORDER). Every panel, on every monitor, is owned by the
+    /// one hidden window Avalonia parks out-of-taskbar windows under, and Windows moves an owner
+    /// with its owned windows: raising one monitor's panels raised all of them, over whatever was
+    /// in front on the other monitors (Slack, say). Activating a client then had the taskbar find a
+    /// marked panel on top of every monitor, and it dropped everywhere.</para>
     /// </summary>
     public void BringForward()
     {
         if (!OperatingSystem.IsWindows() || TryGetPlatformHandle()?.Handle is not { } handle) return;
-        const uint flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE;
+        const uint flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER;
         SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, flags);
         SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, flags);
     }
@@ -300,7 +309,7 @@ public partial class ClientPanelWindow : Window
 
     private const int GWL_EXSTYLE = -20, RGN_DIFF = 4;
     private const long WS_EX_NOACTIVATE = 0x08000000, WS_EX_TOOLWINDOW = 0x00000080;
-    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOSENDCHANGING = 0x0400;
+    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOOWNERZORDER = 0x0200, SWP_NOSENDCHANGING = 0x0400;
     private static readonly IntPtr HWND_TOPMOST = new(-1), HWND_NOTOPMOST = new(-2);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtr(IntPtr h, int index);
