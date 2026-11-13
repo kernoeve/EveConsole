@@ -86,6 +86,14 @@ public sealed partial class MessagesLineVm(DmLine line, string shownSender, Emot
     public IReadOnlyList<string> Links { get; } = line.Deleted != EveConsole.Models.JabberDeleted.No ? [] : [.. UrlPattern().Matches(line.Body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
     public bool HasLinks => Links.Count > 0;
 
+    /// <summary>The pictures it links to, shown under it.</summary>
+    public IReadOnlyList<ChatPictureVm> Pictures => _pictures ??= ChatPictureVm.Of(Links);
+    private IReadOnlyList<ChatPictureVm>? _pictures;
+    public bool HasPictures => Pictures.Count > 0;
+
+    /// <summary>The words, unless they are only a picture's link: the picture shows, with the link under it.</summary>
+    public bool ShowsBody => !(Pictures.Count == 1 && Body.Trim() == Pictures[0].Url);
+
     [System.Text.RegularExpressions.GeneratedRegex(@"https?://[^\s<>""]+", System.Text.RegularExpressions.RegexOptions.IgnoreCase)]
     private static partial System.Text.RegularExpressions.Regex UrlPattern();
 }

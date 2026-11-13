@@ -266,9 +266,33 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
+    private bool _picturesHooked;
+
+    /// <summary>Tells chat pictures where these servers keep files, once: on starting, or on connecting where nothing started this.</summary>
+    private void HookPictures()
+    {
+        if (_picturesHooked) return;
+        _picturesHooked = true;
+        ChatPictures.AddHosts(PictureHosts);
+    }
+
+    /// <summary>
+    /// Where the servers connected keep files (their draft/FILEHOST), so pictures there show in chat at once. A
+    /// certificate trusted for the IRC server goes for its file host too when both are on the same host.
+    /// </summary>
+    private IEnumerable<PictureHost> PictureHosts() =>
+        Sessions.Where(s => s.State == IrcState.Connected && Uri.TryCreate(s.FileHost, UriKind.Absolute, out _))
+                .Select(s =>
+                {
+                    var host = new Uri(s.FileHost);
+                    var sameHost = string.Equals(host.Host, s.Server.Host.Trim(), StringComparison.OrdinalIgnoreCase);
+                    return new PictureHost(host.Host, false, host.Port, sameHost ? s.Server.TrustedCertificate : "");
+                });
+
     /// <summary>Lists the saved servers. Connecting is the worker's (<see cref="BecomeWorkerAsync"/>).</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
+        HookPictures();
         await LoadServersAsync(ct);
         await StartShowingAsync(ct);
     }
@@ -353,6 +377,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     /// <summary>Asks for this server to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(IrcSession session)
     {
+        HookPictures();
         if (!ActsHere)
         {
             PostToWorker(session.Server.Id, "connect", new CommandArgs());

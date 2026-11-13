@@ -160,4 +160,19 @@
   <data name="PickBanned" xml:space="preserve">
     <value>Elige a alguien de la lista.</value>
   </data>
+  <data name="ShowPicture" xml:space="preserve">
+    <value>Mostrar imagen</value>
+  </data>
+  <data name="ShowPictureTip" xml:space="preserve">
+    <value>Lo carga desde {0}. Ese sitio verá tu dirección IP.</value>
+  </data>
+  <data name="PictureLoading" xml:space="preserve">
+    <value>Cargando imagen…</value>
+  </data>
+  <data name="PictureFailed" xml:space="preserve">
+    <value>No se pudo cargar la imagen. El enlace de abajo la abre igualmente.</value>
+  </data>
+  <data name="OpenPictureTip" xml:space="preserve">
+    <value>Abrir a tamaño completo en el navegador</value>
+  </data>
 </root>

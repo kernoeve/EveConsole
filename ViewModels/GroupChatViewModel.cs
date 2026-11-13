@@ -129,7 +129,15 @@ public sealed partial class GroupLineVm : ReactiveObject
         Channel = channel;
         IsMention = isMention && !IsDeleted;
         Links = IsDeleted ? [] : [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+        Pictures = ChatPictureVm.Of(Links);
     }
+
+    /// <summary>The pictures it links to, shown under it.</summary>
+    public IReadOnlyList<ChatPictureVm> Pictures { get; }
+    public bool HasPictures => Pictures.Count > 0;
+
+    /// <summary>The words, unless they are only a picture's link: the picture shows, with the link under it.</summary>
+    public bool ShowsBody => !(Pictures.Count == 1 && Body.Trim() == Pictures[0].Url);
 
     /// <summary>A deleted message keeps its place, and says so, as other clients show it.</summary>
     public bool IsDeleted { get; }

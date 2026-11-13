@@ -78,14 +78,19 @@ public static class WebPictures
         return false;
     }
 
-    /// <summary>The picture at a link, or null when it cannot be had or is too big to be one.</summary>
-    public static async Task<byte[]?> FetchAsync(string url, CancellationToken ct)
+    /// <summary>The picture at a link, or null when it cannot be had or is bigger than <paramref name="mostBytes"/> (a person's picture's limit, unless said).</summary>
+    public static Task<byte[]?> FetchAsync(string url, CancellationToken ct, long mostBytes = AvatarService.MostBytes) =>
+        Uri.TryCreate(url, UriKind.Absolute, out var uri) && uri.Scheme is "http" or "https"
+            ? ReadAsync(Http, uri, mostBytes, ct)
+            : Task.FromResult<byte[]?>(null);
+
+    /// <summary>What a link holds, through the client given, or null when it cannot be had or is too big.</summary>
+    public static async Task<byte[]?> ReadAsync(HttpClient http, Uri uri, long mostBytes, CancellationToken ct)
     {
-        if (!Uri.TryCreate(url, UriKind.Absolute, out var uri) || uri.Scheme is not ("http" or "https")) return null;
         try
         {
-            using var response = await Http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct);
-            if (!response.IsSuccessStatusCode || response.Content.Headers.ContentLength > AvatarService.MostBytes) return null;
+            using var response = await http.GetAsync(uri, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!response.IsSuccessStatusCode || response.Content.Headers.ContentLength > mostBytes) return null;
 
             await using var stream = await response.Content.ReadAsStreamAsync(ct);
             using var kept = new MemoryStream();
@@ -93,7 +98,7 @@ public static class WebPictures
             int read;
             while ((read = await stream.ReadAsync(chunk, ct)) > 0)
             {
-                if (kept.Length + read > AvatarService.MostBytes) return null;
+                if (kept.Length + read > mostBytes) return null;
                 kept.Write(chunk, 0, read);
             }
             return kept.ToArray();
