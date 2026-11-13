@@ -146,7 +146,10 @@
     <value>Conteneur d'outils</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>Outils</value>
+    <value>Outils. Maj+clic ouvre une autre copie.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Ouvrir un outil dans ces onglets. Maj+clic ouvre une autre copie.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>Ouvre les outils dans</value>
@@ -322,7 +325,7 @@
     <value>{0} : sa position est occupée par un autre personnage connecté, il est donc resté où il était.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} est connecté mais n'appartient à aucun groupe. Ajoutez-le à une position de client.</value>
+    <value>{0} est connecté mais n'appartient à aucun groupe, et aucune position de client n'est libre sur son écran. Ajoutez-le à une position de client.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} a été déplacé à la main : il n'est plus touché tant que vous n'appuyez pas sur Appliquer.</value>
@@ -494,5 +497,32 @@
   </data>
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>Le salon choisi pour ce contrôle n&apos;est plus dans la discussion de groupe.</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Importer</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Enregistrer cette disposition dans un fichier, pour la garder ou la partager.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Ajouter une disposition depuis un fichier comme nouvelle disposition. Les moniteurs ne changent pas.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>Disposition EVE Console</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>« {0} » exporté.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>« {0} » importé. Vérifiez ses contrôles Mumble s&apos;il vient d&apos;une autre base de données.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Ce fichier n&apos;est pas une disposition EVE Console.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Cette disposition vient d&apos;une version plus récente d&apos;EVE Console. Mettez à jour pour l&apos;importer.</value>
   </data>
 </root>

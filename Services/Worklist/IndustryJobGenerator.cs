@@ -58,7 +58,6 @@ public class IndustryJobGenerator(
         await using var db = await dbFactory.CreateDbContextAsync(ct);
 
         var parkId = await WorklistSettings.ResolveParkIdAsync(db, settings.IndustryParkId, ct);
-        if (parkId <= 0) return [];
 
         // No early exit on an empty rule set: customer orders are demand in their own right, so
         // a player who tracks orders and keeps no inventory targets still gets jobs.
@@ -66,8 +65,13 @@ public class IndustryJobGenerator(
             .Where(r => r.Enabled && r.Action == "Build")
             .ToListAsync(ct);
 
+        // ⚠️ Without a park or anyone to run jobs, every industry generator stands down — jobs,
+        // purchases, invention, copies — and Build rules and orders that are waiting got no row at
+        // all. One row says why, so a silent list is never the answer to a missing setting.
+        if (parkId <= 0) return await SetupMissingAsync(db, rules.Count, WorklistText.IndustrySetupNoPark, ct);
+
         var candidates = await assignment.LoadCandidatesAsync(ct);
-        if (candidates.Count == 0) return [];
+        if (candidates.Count == 0) return await SetupMissingAsync(db, rules.Count, WorklistText.IndustrySetupNoCharacters, ct);
 
         // Loaded once per run and passed down. Calculate() is pure given a context, so each item
         // costs only arithmetic — and a field would race, since generators run in parallel and
@@ -144,27 +148,11 @@ public class IndustryJobGenerator(
                       .GroupBy(a => (a.RootLocationId, a.TypeId, a.OwnerId))
                       .ToDictionary(g => g.Key, g => g.Sum(a => (long)a.Quantity)));
 
-        // Output delivered since the asset poll is in a hangar at the site the job ran in,
-        // whatever the snapshot says. The mirror of the started-job deduction seeded into
-        // `committed` below: a component delivered ten minutes ago is exactly what the next job
-        // at this site is waiting for, and without this it reads as missing for up to an hour
-        // while the job that made it has already stopped counting.
-        foreach (var d in await DeliveryLag.ItemsAsync(db, ct))
-        {
-            if (!siteIds.Contains(d.Site) || !Ours(d.OwnerType, d.OwnerId)) continue;
-            var pile = d.OwnerType == "corporation" ? stock.Corp : stock.Personal;
-            pile[(d.Site, d.TypeId, d.OwnerId)] = pile.GetValueOrDefault((d.Site, d.TypeId, d.OwnerId)) + d.Units;
-        }
-
-        // The same for contracts: material put on a contract since the poll is gone from the
-        // site, material bought on one is there. Never below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct))
-        {
-            // ⚠️ Not what a courier is still carrying: a job starts on what is on the shelf.
-            if (m.InTransit || !siteIds.Contains(m.Site) || !Ours(m.OwnerType, m.OwnerId)) continue;
-            var pile = m.OwnerType == "corporation" ? stock.Corp : stock.Personal;
-            pile[(m.Site, m.TypeId, m.OwnerId)] = Math.Max(0, pile.GetValueOrDefault((m.Site, m.TypeId, m.OwnerId)) + m.Units);
-        }
+        // ⚠️ What has happened since the asset poll — a job started (its materials gone) or
+        // delivered (its output here), a contract, a haul — is in the rows already: written on
+        // top of the poll as it happens, see AssetActivity. A component delivered ten minutes ago
+        // is exactly what the next job at this site is waiting for. Not what a courier is still
+        // carrying, which is in no row: a job starts on what is on the shelf.
 
         // Everything in scope, wherever it sits — assets and running jobs. Separate from the
         // per-site view above and asking a different question: the site view decides whether a
@@ -195,14 +183,21 @@ public class IndustryJobGenerator(
         // Materials already spoken for by jobs planned earlier in this pass, keyed by site and
         // type. Without it every job in a split would compare against the same untouched pile
         // and all five would report Ready off one job's worth of stock.
-        var committed = new Dictionary<(long Site, int TypeId), long>();
+        var ledgerSeed = new Dictionary<(long Site, int TypeId), long>();
 
-        // Jobs that have already started have eaten their materials in the game, and the asset
-        // snapshot will not say so for up to an hour. Seeded into the same ledger the pass uses
-        // for its own reservations, because it is the same fact — material already spoken for
-        // — and every question downstream then nets it off without knowing it is there.
-        foreach (var (key, qty) in await demands.AlreadyConsumedAsync(db, ctx, siteIds.ToHashSet(), ct))
-            committed[key] = committed.GetValueOrDefault(key) + qty;
+        // Jobs that have already started have eaten their materials, and the assets say so: they
+        // are taken out of the rows as the job is seen to start (AssetActivity). Nothing to seed.
+
+        // ⚠️ One ledger per corporation the job's character is in. A character builds from its own
+        // corporation's hangar and its own: an alt outside the main corporation, building from its
+        // own hangar, takes nothing from the corporation's pile, and counted in one ledger its jobs
+        // made the corporation's stock look short for everyone else. Characters of one corporation
+        // still share one, as they share that hangar.
+        var ledgers = new Dictionary<long, Dictionary<(long Site, int TypeId), long>>();
+        Dictionary<(long Site, int TypeId), long> LedgerOf(IndustryCandidate who) =>
+            ledgers.TryGetValue(who.CorporationId, out var ledger)
+                ? ledger
+                : ledgers[who.CorporationId] = new Dictionary<(long Site, int TypeId), long>(ledgerSeed);
 
         // Planning is pure given the context, so the same item at the same size and ME always
         // costs the same. A split is mostly equal-sized jobs off one print, so this collapses a
@@ -841,6 +836,9 @@ public class IndustryJobGenerator(
                         WorklistIndyCharReach.Of(c, corps).CanUse(job.Print))
                         ?? eligible[0];
 
+                    // What earlier jobs of this pass have taken from the piles this character uses.
+                    var committed = LedgerOf(owner);
+
                     var perRun = (long)Math.Max(1, product.Quantity);
 
                     // Materials for this job at this print's ME, against what is left at the site
@@ -1221,6 +1219,7 @@ public class IndustryJobGenerator(
                     {
                         var left  = split.RunsUnassigned;
                         var piece = ++state.UnprintedPieces;
+                        var committed = LedgerOf(eligible[0]);
 
                         // ⚠️ A real job's worth, always. There used to be a ceiling of twelve rows
                         // per item, with the twelfth absorbing every run still outstanding — one
@@ -1622,6 +1621,35 @@ public class IndustryJobGenerator(
     /// <summary>What is on hand at the park's facilities, indexed by who can reach it. Materials
     /// in a corp hangar serve every alt in that corporation; personal stock serves only its
     /// owner.</summary>
+    /// <summary>
+    /// The one row for industry that cannot plan at all, when there is something to plan: Build
+    /// rules, or customer orders the Worklist is set to plan. Nothing when there is neither — an
+    /// unused feature is not a fault.
+    /// </summary>
+    private async Task<List<WorklistItem>> SetupMissingAsync(
+        AppDbContext db, int buildRules, string reason, CancellationToken ct)
+    {
+        var orders = settings.PlanCustomerOrders
+            ? (await db.TrackedOrders.AsNoTracking()
+                   .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
+              .Count(o => OrderContractLinks.StillToSupply(o) > 0)
+            : 0;
+        if (buildRules == 0 && orders == 0) return [];
+
+        return [new WorklistItem
+        {
+            Key       = "industry_setup",
+            Source    = Id,
+            Kind      = WorklistKind.Job,
+            Pool      = IndustryPool.Manufacturing,
+            Title     = WorklistText.IndustrySetupTitle,
+            Detail    = string.Format(WorklistText.IndustrySetupDetail, buildRules, orders) + " " + reason,
+            Readiness = WorklistReadiness.Blocked,
+            BlockedBy = reason,
+            Priority  = WorklistPriority.ServesOther,
+        }];
+    }
+
     private sealed record SiteStock(
         Dictionary<(long Site, int TypeId, long OwnerId), long> Corp,
         Dictionary<(long Site, int TypeId, long OwnerId), long> Personal)

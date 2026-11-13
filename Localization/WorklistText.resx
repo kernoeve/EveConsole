@@ -3568,4 +3568,115 @@
     <value>{0}.</value>
     <comment>Worklist copy job detail: the original to copy from, when it is not yet at the copy lab. {0} describes the blueprint (e.g. BPO ME10/TE20).</comment>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Transfers</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Hand items to another character or corporation, in the station they&apos;re in</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} item type</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} item types</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} to {1} at {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}: move these from your own hangar into {1}&apos;s hangar at {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} isn&apos;t in {1}: give these to {1} with an item exchange contract at {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, for {1}: give these to {2} with an item exchange contract at {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}: take these from {1}&apos;s hangar into your own at {2}, as your character level keeps them.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}: take these from {1}&apos;s hangar and give them to {2} with an item exchange contract at {3}. {2} isn&apos;t in {1}, so only their own hangar counts for their jobs.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Character Levels</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Default corporation</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>The corporation that should hold the Worklist&apos;s items (those of orders and inventory levels), so every character in it can build with them: a character can use only its own hangar and its corporation&apos;s. An item a character holds, in its hangar or a docked ship&apos;s cargo hold, gets a Transfer task to this corporation at any station where it has a hangar, except what a character level below keeps with that character. Fitted modules, blueprints and assembled ships are never moved.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Your other corporations give theirs too</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Off: only characters&apos; hangars and holds are emptied into the default corporation. On: your other corporations&apos; Worklist items get Transfer tasks too, done by one of your characters in that corporation.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Keep a group&apos;s levels with one character at a station, in that character&apos;s own hangar, for its jobs only. It&apos;s how a character outside the default corporation gets material to build with. Hauling brings the amount to the station, added to any station level there, and a Transfer task gives the character what it lacks from the default corporation&apos;s hangar.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Pick a character.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>In the default corporation already</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>No character levels yet.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} character level</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} character levels</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>A character is left alone until it falls this far under its level, then is given enough to fill it all the way back up. Zero gives on any shortfall at all.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>What a character holds over its level stays with it until it is this far over, then the excess goes back to the default corporation. Zero sweeps any excess at all.</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Some are in a ship&apos;s cargo hold.</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Of that, {0:N0} is on store offers, counted as coming.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Short {0:N0} copy run(s).</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Plus {0:N0} copy run(s) for its inventory level or orders.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} for pending orders</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nothing manufactures it; {0:N0} on hand</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Industry planning is not set up</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} Build rule(s) and {1:N0} pending order(s) are waiting.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>No Indy Park is picked for the Worklist and none is starred in Indy Parks.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>No character is enabled to run industry jobs.</value>
+  </data>
 </root>

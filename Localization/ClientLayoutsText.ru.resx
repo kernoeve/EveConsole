@@ -146,7 +146,10 @@
     <value>Контейнер инструментов</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>Инструменты</value>
+    <value>Инструменты. Shift+щелчок открывает ещё одну копию.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Открыть инструмент в этих вкладках. Shift+щелчок открывает ещё одну копию.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>Где открывать инструменты</value>
@@ -322,7 +325,7 @@
     <value>{0}: это место занято другим персонажем в игре, поэтому окно осталось где было.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0}: персонаж в игре, но не входит ни в одну группу. Добавьте его к месту клиента.</value>
+    <value>{0}: персонаж в игре, но не входит ни в одну группу, а свободного места клиента на его мониторе нет. Добавьте его к месту клиента.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0}: окно сдвинуто вручную, поэтому его не трогают, пока вы не нажмёте «Применить».</value>
@@ -494,5 +497,32 @@
   </data>
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>Комнаты, заданной для этого элемента, больше нет в групповом чате.</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Экспорт</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Импорт</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Сохранить этот макет в файл, чтобы сохранить его или поделиться им.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Добавить макет из файла как новый. Мониторы не меняются.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>Макет EVE Console</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>«{0}» экспортирован.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>«{0}» импортирован. Если он из другой базы данных, проверьте его элементы Mumble.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Этот файл не является макетом EVE Console.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Этот макет создан в более новой версии EVE Console. Обновитесь, чтобы импортировать его.</value>
   </data>
 </root>

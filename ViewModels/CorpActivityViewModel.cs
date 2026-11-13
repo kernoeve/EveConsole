@@ -783,7 +783,7 @@ public sealed class Activity24hKillRowVm : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
+public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
@@ -1481,7 +1481,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // The corp chosen last time, if already available; again as the list populates (after
         // auth, or at startup one corp at a time).
         PickRemembered();
-        Corps.CollectionChanged += (_, _) => PickRemembered();
+        System.Collections.Specialized.NotifyCollectionChangedEventHandler onCorps = (_, _) => PickRemembered();
+        _life.Follow(() => Corps.CollectionChanged += onCorps, () => Corps.CollectionChanged -= onCorps);
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
@@ -1621,7 +1622,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
         // Light refresh every 60 s; full refresh (including detail tabs) every 5 min (tick 5).
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _life.Keep(Observable.Interval(TimeSpan.FromSeconds(60))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("CorpActivity.AutoRefresh")
             .Where(_ => SelectedCorp is not null && !IsLoading)
@@ -1629,8 +1630,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 _refreshTick++;
                 var t = _refreshTick % 5 == 0 ? LoadAsync() : LoadLightAsync();
-            });
+            }));
     }
+
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
 
     private async Task LoadAsync(CancellationToken ct = default)
     {

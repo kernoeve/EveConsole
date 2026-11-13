@@ -37,6 +37,8 @@ public class AppDbContext : DbContext
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
+    public DbSet<AssetSnapshot>              AssetSnapshots          => Set<AssetSnapshot>();
+    public DbSet<MarketOrderSighting>        MarketOrderSightings    => Set<MarketOrderSighting>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
     public DbSet<CharacterNotification>      EsiNotifications        => Set<CharacterNotification>();
@@ -97,6 +99,12 @@ public class AppDbContext : DbContext
     public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
     public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
     public DbSet<JabberAccount>         JabberAccounts           => Set<JabberAccount>();
+    public DbSet<IrcServer>             IrcServers               => Set<IrcServer>();
+    public DbSet<IrcChannel>            IrcChannels              => Set<IrcChannel>();
+    public DbSet<IrcStoredMessage>      IrcMessages              => Set<IrcStoredMessage>();
+    public DbSet<IrcReaction>           IrcReactions             => Set<IrcReaction>();
+    public DbSet<IrcLiveState>          IrcLiveStates            => Set<IrcLiveState>();
+    public DbSet<IrcCommand>            IrcCommands              => Set<IrcCommand>();
     public DbSet<MumbleServer>          MumbleServers            => Set<MumbleServer>();
     public DbSet<MumbleUserVolume>      MumbleUserVolumes        => Set<MumbleUserVolume>();
     public DbSet<MumbleDirectMessage>     MumbleDirectMessages       => Set<MumbleDirectMessage>();
@@ -146,6 +154,7 @@ public class AppDbContext : DbContext
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
     public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
     public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
+    public DbSet<WorklistCharacterLevel>   WorklistCharacterLevels   => Set<WorklistCharacterLevel>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -893,6 +902,21 @@ public class AppDbContext : DbContext
             e.Property(x => x.ItemId).ValueGeneratedNever();
             e.ToTable("EsiAssets"); });
 
+        // When each owner's assets were current, and what has been written on top since. An
+        // entity that arrived after databases existed: created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<AssetSnapshot>(e => {
+            e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Kind });
+            e.Property(x => x.OwnerId).ValueGeneratedNever();
+            e.ToTable("AssetSnapshots"); });
+
+        // When each order was first and last seen open. Created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<MarketOrderSighting>(e => {
+            e.HasKey(x => x.OrderId);
+            e.Property(x => x.OrderId).ValueGeneratedNever();
+            e.ToTable("MarketOrderSightings"); });
+
         mb.Entity<CharacterBlueprint>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
@@ -1303,6 +1327,36 @@ public class AppDbContext : DbContext
             e.Property(x => x.ServerId).ValueGeneratedNever();
             e.ToTable("ChatAvatarOwners"); });
 
+        mb.Entity<IrcServer>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcServers"); });
+
+        mb.Entity<IrcChannel>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.Name }).IsUnique().HasDatabaseName("IX_IrcChannels_Name");
+            e.ToTable("IrcChannels"); });
+
+        mb.Entity<IrcStoredMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.DedupeKey }).IsUnique().HasDatabaseName("IX_IrcMessages_Dedupe");
+            e.HasIndex(x => new { x.ServerId, x.Conversation, x.Id }).HasDatabaseName("IX_IrcMessages_Conversation");
+            e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_IrcMessages_Unread");
+            e.ToTable("IrcMessages"); });
+
+        mb.Entity<IrcReaction>(e => {
+            e.HasKey(x => new { x.ServerId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcReactions"); });
+
+        mb.Entity<IrcLiveState>(e => {
+            e.HasKey(x => new { x.ServerId, x.Part });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcLiveStates"); });
+
+        mb.Entity<IrcCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcCommands"); });
+
         mb.Entity<JabberEmotePack>(e => {
             e.HasKey(x => new { x.AccountId, x.PackId });
             e.Property(x => x.AccountId).ValueGeneratedNever();
@@ -1433,6 +1487,7 @@ public class AppDbContext : DbContext
         mb.Entity<StorePosting>(e => {
             e.HasKey(x => x.Id);
             e.Ignore(x => x.IsBuy);
+            e.Ignore(x => x.CapsAtNeed);
             e.HasIndex(x => x.StoreId);
             e.ToTable("StorePostings"); });
 
@@ -1489,6 +1544,13 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             // One row per group per station; a station may hold several groups.
             e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
+
+        mb.Entity<WorklistCharacterLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per character per station.
+            // The name App.axaml.cs and PostgresSchema give it, so a fresh install builds it once.
+            e.HasIndex(x => new { x.GroupId, x.LocationId, x.CharacterId }).IsUnique()
+             .HasDatabaseName("IX_WorklistCharacterLevels_Group_Location_Character"); });
 
         mb.Entity<WorklistIndyScopeStation>(e => {
             e.HasKey(x => x.Id);

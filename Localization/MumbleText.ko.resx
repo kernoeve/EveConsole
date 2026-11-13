@@ -386,7 +386,7 @@
     <value>해당 채널에 있는 이 서버 그룹의 구성원만 (선택 사항)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>내가 있는 채널</value>
+    <value>&lt;현재 채널&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>새 대상</value>
@@ -669,5 +669,11 @@
   </data>
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>Mumble 서버 {1}의 {0}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>채널 대상 {0}</value>
   </data>
 </root>

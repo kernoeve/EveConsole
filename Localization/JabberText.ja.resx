@@ -229,9 +229,6 @@
   <data name="SoundOption" xml:space="preserve">
     <value>注意が必要なメッセージで音を鳴らす</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>既読メッセージの保存日数 (0 ですべて保存)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>メッセージを入力。Enter で送信、Shift+Enter で改行。</value>
   </data>

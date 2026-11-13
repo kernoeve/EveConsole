@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} 在这里不是命令。以 // 开头即可作为文字发送。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>添加 IRC 服务器</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>添加 IRC 服务器后，可在群聊中使用其频道，并在消息中与其用户聊天。</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>请在左侧选择一个服务器。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>服务器地址</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>加密 (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>不加密时，途中任何人都能读取全部内容，且不会发送密码（本机除外）。</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>如被占用，会尝试在后面加 _ 或数字。</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>登录方式</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>无密码</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>账户 (SASL)，大多数网络使用</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>连接后通过 NickServ</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>服务器密码</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>账户名</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>留空则使用昵称。</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>更多设置</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>真实姓名</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>连接后执行的命令</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>每行一条，按网络要求：/msg、/mode 等。</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>离开原因（可选）</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>设为离开</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>回来</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>立即更改昵称</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>频道在群聊中，与人的对话在消息中。</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>已连接，离开</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>未连接：密码只通过加密连接发送。请为此服务器开启 TLS。</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>未连接：服务器拒绝了连接。</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>已以 {0} 身份连接到 {1}。</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>此连接未加密。</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>此服务器保留历史：离开期间的发言会在重新连接时送达。</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>此服务器不保留历史：未连接期间的发言不会显示在这里。</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>发送到 {0}（/me 表示动作）</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>当前不在此频道。</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>服务器未列出频道。输入频道名即可加入。</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>管理员</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>管理</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>半管理</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>发言权</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>离开：{0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>设为管理</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>取消管理</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>设为半管理</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>取消半管理</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>将 {0} 从 {2} 封禁？这会封禁 {1} 并将其移出。</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>昵称</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>请输入服务器地址。</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>请输入昵称：一个词，不以 # 或 : 开头。</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>请输入此登录方式的密码。</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>移除 {0}？其频道和已保存消息也会一并删除。</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>昵称</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>未连接：服务器不接受此昵称。请在编辑中选择其他昵称。</value>
+  </data>
+</root>

@@ -416,6 +416,9 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// <summary>The kind of doing, as its own scannable column.</summary>
     public string KindText => KindLabel(_item);
 
+    /// <summary>The kind as a short tag, for a panel's list: a haul is a haul there, whatever its lane.</summary>
+    public string KindTag => _item.Kind == WorklistKind.Haul ? WorklistText.KindHaul : KindLabel(_item);
+
     public static string KindLabel(WorklistItem item) => item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,
@@ -428,6 +431,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             HaulLane.LongDistance => WorklistText.KindHaulLongDistance,
             _                     => WorklistText.KindHaul,
         },
+        WorklistKind.Transfer    => WorklistText.KindTransfer,
         WorklistKind.Refine      => WorklistText.KindRefine,
         WorklistKind.Decompress  => WorklistText.KindDecompress,
         WorklistKind.Job         => WorklistText.KindJob,
@@ -459,6 +463,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         // Arrow between two points: something to move.
         (WorklistKind.Haul, _) =>
             "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
+
+        // Two arrows passing each other: from one owner's hands to another's, in one place.
+        (WorklistKind.Transfer, _) =>
+            "M2,5.5 H12 M9.5,3 L12.5,5.5 L9.5,8 M14,10.5 H4 M6.5,8 L3.5,10.5 L6.5,13",
 
         // A rock breaking into pieces: reprocessing.
         (WorklistKind.Refine, _) =>
@@ -528,6 +536,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     {
         (WorklistKind.Buy,  _)                        => WorklistText.KindBuy,
         (WorklistKind.Haul, _)                        => WorklistText.KindHaul,
+        (WorklistKind.Transfer, _)                    => WorklistText.KindTipTransfer,
         (WorklistKind.Refine, _)                      => WorklistText.KindTipRefine,
         (WorklistKind.Decompress, _)                  => WorklistText.KindTipDecompress,
         (WorklistKind.Job, IndustryPool.Manufacturing) => WorklistText.KindTipManufacturing,
@@ -1883,8 +1892,17 @@ public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRo
 /// once the thing it asked for has happened. Detection is off polled ESI data, which means a
 /// refresh only reflects the last poll — hence the per-row data age.
 /// </summary>
-public class WorklistViewModel : ReactiveObject
+public class WorklistViewModel : ReactiveObject, IDisposable
 {
+    /// <summary>A copy of the tool closed: its tabs stop following the character list.</summary>
+    public void Dispose()
+    {
+        MarketAltsVm.Life.Dispose();
+        CorpAltsVm.Life.Dispose();
+        IndustryVm.Life.Dispose();
+        HaulingVm.Life.Dispose();
+    }
+
     private readonly WorklistService   _service;
     private readonly BottleneckService     _bottlenecks;
     private readonly ItemContentionService _itemContention;
@@ -2257,6 +2275,9 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>The default corporation, and what each character keeps at a station.</summary>
+    public WorklistCharacterLevelsViewModel CharacterLevelsVm { get; }
+
     /// <summary>Config → Hauling: how each kind of trip is made, and by whom.</summary>
     public WorklistHaulingViewModel HaulingVm { get; }
 
@@ -2338,6 +2359,10 @@ public class WorklistViewModel : ReactiveObject
         StationLevelsVm = stationLevels;
         FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
+        CharacterLevelsVm = new WorklistCharacterLevelsViewModel(service.DbFactory, service.Settings, stationLevels.LocationPopulator)
+        {
+            LevelsChanged = RefreshAsync,
+        };
         HaulingVm = hauling;
         HaulingVm.HaulingChanged = RefreshAsync;
 

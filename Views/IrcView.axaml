@@ -1,0 +1,156 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.IrcView"
+             x:DataType="vm:IrcViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Ellipse.dot.red"><Setter Property="Fill" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ListBox#Rows ListBoxItem"><Setter Property="Padding" Value="8 3" /><Setter Property="MinHeight" Value="0" /></Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="270,4,*">
+
+    <!-- ── Servers ─────────────────────────────────────────────────── -->
+    <Grid Grid.Column="0" RowDefinitions="Auto,*" Background="{DynamicResource SurfacePanelBrush}">
+      <Button Grid.Row="0" Content="{x:Static loc:IrcText.AddServer}" Command="{Binding AddServerCommand}" Margin="8" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" />
+
+      <ListBox x:Name="Rows" Grid.Row="1" ItemsSource="{Binding Rows}" SelectedItem="{Binding SelectedRow}" Background="Transparent">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:JabberRowVm">
+            <Grid ColumnDefinitions="14,*">
+              <Ellipse Grid.Column="0" Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" Classes.red="{Binding DotRed}"
+                       IsVisible="{Binding HasDot}" HorizontalAlignment="Left" />
+              <StackPanel Grid.Column="1" Orientation="Vertical">
+                <TextBlock Text="{Binding ShownText}" FontSize="12" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding ShownDetail}" IsVisible="{Binding HasDetail}" FontSize="10" TextTrimming="CharacterEllipsis"
+                           Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding ShownDetail}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+
+    <GridSplitter Grid.Column="1" Background="{DynamicResource SurfaceRaisedBrush}" />
+
+    <!-- ── The pane on the right ─────────────────────────────────────── -->
+    <Grid Grid.Column="2" RowDefinitions="*,Auto">
+
+      <!-- Nothing set up yet -->
+      <StackPanel Grid.Row="0" IsVisible="{Binding ShowWelcome}" VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="10" MaxWidth="420">
+        <TextBlock Text="{x:Static loc:IrcText.Welcome}" TextWrapping="Wrap" TextAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+        <Button Content="{x:Static loc:IrcText.AddServer}" Command="{Binding AddServerCommand}" HorizontalAlignment="Center" />
+      </StackPanel>
+
+      <TextBlock Grid.Row="0" IsVisible="{Binding ShowNothing}" Text="{x:Static loc:IrcText.PickServer}"
+                 VerticalAlignment="Center" HorizontalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+
+      <!-- The server editor -->
+      <ScrollViewer Grid.Row="0" IsVisible="{Binding IsEditing}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20 14" MaxWidth="520" HorizontalAlignment="Left" Width="520">
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelName}" />
+          <TextBox Text="{Binding EditName}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelHost}" />
+          <TextBox Text="{Binding EditHost}" Watermark="irc.example.org" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelPort}" />
+          <NumericUpDown Value="{Binding EditPort}" Minimum="1" Maximum="65535" Increment="1" FormatString="0" Width="130" HorizontalAlignment="Left" />
+          <CheckBox IsChecked="{Binding EditTls}" Content="{x:Static loc:IrcText.LabelTls}" Margin="0 8 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:IrcText.PlainWarning}" IsVisible="{Binding ShowPlainWarning}" Foreground="{DynamicResource WarnBrush}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelNick}" />
+          <TextBox Text="{Binding EditNick}" />
+          <TextBlock Classes="note" Text="{x:Static loc:IrcText.NickNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelLogin}" />
+          <ComboBox ItemsSource="{Binding LoginChoices}" SelectedItem="{Binding EditLogin}" Width="320">
+            <ComboBox.ItemTemplate>
+              <DataTemplate x:DataType="vm:IrcLoginChoice"><TextBlock Text="{Binding Label}" /></DataTemplate>
+            </ComboBox.ItemTemplate>
+          </ComboBox>
+          <StackPanel IsVisible="{Binding NeedsAccount}">
+            <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelAccount}" />
+            <TextBox Text="{Binding EditAccount}" />
+            <TextBlock Classes="note" Text="{x:Static loc:IrcText.AccountNote}" />
+          </StackPanel>
+          <StackPanel IsVisible="{Binding NeedsPassword}">
+            <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelPassword}" />
+            <TextBox Text="{Binding EditPassword}" PasswordChar="●" />
+            <TextBlock Classes="note" Text="{x:Static loc:JabberText.PasswordKeep}" IsVisible="{Binding EditIsExisting}" />
+          </StackPanel>
+          <CheckBox IsChecked="{Binding EditAutoConnect}" Content="{x:Static loc:JabberText.LabelAutoConnect}" Margin="0 10 0 0" />
+          <TextBlock Classes="note" Text="{x:Static loc:JabberText.AutoConnectNote}" />
+          <TextBlock Classes="label" Text="{x:Static loc:JabberText.LabelAlertWords}" />
+          <TextBox Text="{Binding EditAlertWords}" />
+
+          <Expander Header="{x:Static loc:IrcText.MoreSettings}" Margin="0 12 0 0" HorizontalAlignment="Stretch">
+            <StackPanel>
+              <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelUsername}" />
+              <TextBox Text="{Binding EditUser}" />
+              <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelRealName}" />
+              <TextBox Text="{Binding EditReal}" />
+              <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelOnConnect}" />
+              <TextBox Text="{Binding EditOnConnect}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" Watermark="/msg NickServ ..." />
+              <TextBlock Classes="note" Text="{x:Static loc:IrcText.OnConnectNote}" />
+            </StackPanel>
+          </Expander>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 14 0 0">
+            <Button Content="{x:Static loc:JabberText.Save}" Command="{Binding SaveServerCommand}" />
+            <Button Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelEditCommand}" />
+            <Button Content="{x:Static loc:JabberText.Delete}" Command="{Binding DeleteServerCommand}" IsVisible="{Binding EditIsExisting}" Margin="24 0 0 0" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <!-- A server -->
+      <ScrollViewer Grid.Row="0" IsVisible="{Binding ShowServer}" VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="20 14" Spacing="6" MaxWidth="620" HorizontalAlignment="Left">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+          <TextBlock Text="{Binding ServerState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" Margin="0 6 0 0" />
+          <TextBlock Classes="note" Text="{Binding ServerDetail}" IsVisible="{Binding HasServerDetail}" />
+          <TextBlock Classes="note" Text="{Binding Notes}" IsVisible="{Binding HasNotes}" />
+
+          <Border IsVisible="{Binding HasCertificateProblem}" Background="{DynamicResource WarnSurfaceBrush}" CornerRadius="4" Padding="10" Margin="0 6">
+            <StackPanel Spacing="8">
+              <TextBlock Text="{Binding CertificateText}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <Button Content="{x:Static loc:JabberText.TrustCertificate}" Command="{Binding TrustCertificateCommand}" />
+            </StackPanel>
+          </Border>
+
+          <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 6">
+            <Button Content="{x:Static loc:JabberText.Connect}" Command="{Binding ConnectCommand}" IsVisible="{Binding CanConnect}" />
+            <Button Content="{x:Static loc:JabberText.Disconnect}" Command="{Binding DisconnectCommand}" IsVisible="{Binding !CanConnect}" />
+            <Button Content="{x:Static loc:JabberText.Edit}" Command="{Binding EditServerCommand}" />
+          </StackPanel>
+
+          <StackPanel IsVisible="{Binding IsConnected}" Spacing="6">
+            <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelAway}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Text="{Binding AwayMessage}" Watermark="{x:Static loc:IrcText.AwayHint}" MaxLength="300" Width="320" />
+              <Button Content="{x:Static loc:IrcText.SetAway}" Command="{Binding SetAwayCommand}" />
+              <Button Content="{x:Static loc:IrcText.SetBack}" Command="{Binding SetBackCommand}" />
+            </StackPanel>
+            <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelChangeNick}" />
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <TextBox Text="{Binding NewNick}" MaxLength="64" Width="200" />
+              <Button Content="{x:Static loc:IrcText.ChangeNick}" Command="{Binding ChangeNickCommand}" />
+            </StackPanel>
+            <TextBlock Classes="note" Text="{x:Static loc:IrcText.ChannelsAreInGroupChat}" Margin="0 10 0 0" />
+          </StackPanel>
+        </StackPanel>
+      </ScrollViewer>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="14 4"
+                 Foreground="{DynamicResource BadBrush}" />
+    </Grid>
+  </Grid>
+</UserControl>

@@ -221,11 +221,43 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
         var row = await db.ClientLayoutMonitors
             .FirstOrDefaultAsync(m => m.DeviceId == deviceId && m.ProfileId == profileId && m.HardwareKey == hardwareKey, ct).ConfigureAwait(false);
         if (row is null) db.ClientLayoutMonitors.Add(row = new ClientLayoutMonitor { DeviceId = deviceId, ProfileId = profileId, HardwareKey = hardwareKey });
+        else if (row.LayoutId is { } from && layoutId is { } to && from != to)
+        {
+            var definitions = await db.ClientLayouts.AsNoTracking().Where(l => l.Id == from || l.Id == to)
+                .ToDictionaryAsync(l => l.Id, l => l.Definition, ct).ConfigureAwait(false);
+            if (definitions.TryGetValue(from, out var before) && definitions.TryGetValue(to, out var after))
+            {
+                var monitorId = row.Id;
+                var rows = await db.ClientLayoutCharacters.AsNoTracking().Where(c => c.MonitorId == monitorId)
+                    .ToListAsync(ct).ConfigureAwait(false);
+                db.ClientLayoutCharacters.AddRange(
+                    CarriedCharacters(monitorId, rows, ClientLayoutJson.Read(before), ClientLayoutJson.Read(after)));
+            }
+        }
         row.LayoutId = layoutId;
         row.FullMonitor = fullMonitor;
         row.PanelStart = panelStart.ToString();
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
         return row.Id;
+    }
+
+    /// <summary>
+    /// The groups a monitor's new layout starts with when it has none of its own there: copies of
+    /// the old layout's, client 1 to client 1 and so on, in the order the clients are numbered.
+    /// Copies, so each layout keeps its own groups on the monitor: switching back finds the old
+    /// layout's as they were, and a layout that already has groups there keeps exactly those.
+    /// </summary>
+    public static List<ClientLayoutCharacter> CarriedCharacters(int monitorId, IEnumerable<ClientLayoutCharacter> rows, LayoutArea from, LayoutArea to)
+    {
+        var before = ClientLayoutCalculator.ClientAreaIds(from).ToList();
+        var after = ClientLayoutCalculator.ClientAreaIds(to).ToList();
+        var mine = rows.Where(r => r.MonitorId == monitorId).ToList();
+        if (mine.Any(r => after.Contains(r.AreaId))) return [];
+        var carried = new List<ClientLayoutCharacter>();
+        for (var i = 0; i < Math.Min(before.Count, after.Count); i++)
+            foreach (var r in mine.Where(r => r.AreaId == before[i]))
+                carried.Add(new ClientLayoutCharacter { MonitorId = monitorId, AreaId = after[i], CharacterName = r.CharacterName });
+        return carried;
     }
 
     // ---- Who runs where ----
@@ -241,22 +273,43 @@ public sealed class ClientLayoutStore(IDbContextFactory<AppDbContext> dbFactory)
 
     /// <summary>
     /// Puts a character in a client position's group. A character has one position per profile, so
-    /// it leaves any other group it was in there. Matching ignores case, as window titles are matched.
+    /// it leaves any other group it was in there: on other monitors, and in this monitor's layout.
+    /// Groups this monitor keeps for its other layouts stay, as only one layout is in use at a time.
+    /// Matching ignores case, as window titles are matched.
     /// </summary>
     public async Task AssignCharacterAsync(string deviceId, int profileId, int monitorId, string areaId, string name, CancellationToken ct = default)
     {
-        await UnassignCharacterAsync(deviceId, profileId, name, ct).ConfigureAwait(false);
+        var rows = await ListCharactersAsync(deviceId, profileId, ct).ConfigureAwait(false);
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var definition = await db.ClientLayoutMonitors.Where(m => m.Id == monitorId)
+            .Join(db.ClientLayouts, m => m.LayoutId, l => (int?)l.Id, (m, l) => l.Definition)
+            .FirstOrDefaultAsync(ct).ConfigureAwait(false);
+        var areas = new HashSet<string> { areaId };
+        if (definition != null) areas.UnionWith(ClientLayoutCalculator.ClientAreaIds(ClientLayoutJson.Read(definition)));
+        var ids = Displaced(rows, monitorId, areas, name).Select(r => r.Id).ToList();
+        if (ids.Count > 0)
+            await db.ClientLayoutCharacters.Where(c => ids.Contains(c.Id)).ExecuteDeleteAsync(ct).ConfigureAwait(false);
         db.ClientLayoutCharacters.Add(new ClientLayoutCharacter { MonitorId = monitorId, AreaId = areaId, CharacterName = name });
         await db.SaveChangesAsync(ct).ConfigureAwait(false);
     }
 
-    public async Task UnassignCharacterAsync(string deviceId, int profileId, string name, CancellationToken ct = default)
+    /// <summary>
+    /// The groups a character leaves when it joins one on this monitor: any on another monitor, and
+    /// any of this monitor's layout (<paramref name="layoutAreas"/>), but not those of the
+    /// monitor's other layouts.
+    /// </summary>
+    public static IEnumerable<ClientLayoutCharacter> Displaced(IEnumerable<ClientLayoutCharacter> rows, int monitorId, IReadOnlySet<string> layoutAreas, string name) =>
+        rows.Where(r => string.Equals(r.CharacterName, name, StringComparison.OrdinalIgnoreCase)
+                        && (r.MonitorId != monitorId || layoutAreas.Contains(r.AreaId)));
+
+    /// <summary>Takes a character out of one client position's group, leaving any others it has.</summary>
+    public async Task UnassignCharacterAsync(int monitorId, string areaId, string name, CancellationToken ct = default)
     {
-        var rows = await ListCharactersAsync(deviceId, profileId, ct).ConfigureAwait(false);
-        var ids = rows.Where(r => string.Equals(r.CharacterName, name, StringComparison.OrdinalIgnoreCase)).Select(r => r.Id).ToList();
-        if (ids.Count == 0) return;
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var ids = (await db.ClientLayoutCharacters.AsNoTracking().Where(c => c.MonitorId == monitorId && c.AreaId == areaId)
+                .ToListAsync(ct).ConfigureAwait(false))
+            .Where(r => string.Equals(r.CharacterName, name, StringComparison.OrdinalIgnoreCase)).Select(r => r.Id).ToList();
+        if (ids.Count == 0) return;
         await db.ClientLayoutCharacters.Where(c => ids.Contains(c.Id)).ExecuteDeleteAsync(ct).ConfigureAwait(false);
     }
 

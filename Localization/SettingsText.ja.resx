@@ -3874,4 +3874,55 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>メインウィンドウを閉じても非表示になるだけで、パネル、アラーム、バックグラウンド処理は続きます。ウィンドウを戻すにはアイコンをダブルクリックするか、メニューの「{0}」を選び、EVE Consoleを終了するには「{1}」を選びます。</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>{0} のプッシュトゥトーク</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>キーまたはマウスボタンを押してください (Esc でキャンセル)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>このコンピューターでのバックグラウンド処理</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>このクライアントではバックグラウンド処理を行わない</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>ポーリングなどのバックグラウンド処理を行っているクライアントが終了すると、接続中の別のクライアントが引き継ぎます。オンにすると、このクライアントは引き継ぎません。他のクライアントが集めたものを表示するだけです。この設定はこのコンピューターにだけ保存され、すべてのクライアントには適用されません。他のクライアントが動いていなければ、ポーリングは行われません。</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>共有の PostgreSQL データベースでのみ使えます。SQLite ではこのクライアントが唯一なので、常に処理を行います。</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>インダストリーパーク</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>既定（{0}）</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>保存される製造コストの計算に使うインダストリーパーク（ストラクチャー、リグ、星系）。販売掲載など、製造コストから決まるすべての価格に影響します。「既定」はインダストリーパークで既定に設定されたパークに従います。ワークリストと計算ツールはそれぞれのパークを使い続けます。変更を反映するには「再計算」を押すか、次の市場更新を待ってください。</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>ダイレクトメッセージ</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Jabber、Mumble、IRC の保存済みダイレクトメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>次より古いダイレクトメッセージを削除</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>グループチャット</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Jabber のルームと IRC チャンネルの保存済みメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。Mumble のチャンネルチャットは保存されないため、削除するものはありません。インテルのルームやチャンネルから読み取り済みのインテルは、上のチャットメッセージとともに残ります。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>次より古いグループチャットを削除</value>
+  </data>
 </root>

@@ -386,7 +386,7 @@
     <value>Только участники этой группы сервера в этих каналах (необязательно)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>Канал, где я нахожусь</value>
+    <value>&lt;Текущий канал&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>Новая цель</value>
@@ -669,5 +669,11 @@
   </data>
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} на сервере Mumble {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>цель канала {0}</value>
   </data>
 </root>

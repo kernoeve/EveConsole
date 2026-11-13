@@ -1087,6 +1087,42 @@ LayoutArea TwoClients(out string first, out string second)
     Check(splits.ShowSplitDropZone, "one that can does");
 }
 
+// ---- Groups when a monitor changes layout ----
+{
+    EveConsole.Models.ClientLayoutCharacter Row(int id, int monitor, string area, string name) =>
+        new() { Id = id, MonitorId = monitor, AreaId = area, CharacterName = name };
+
+    var one = new LayoutArea { Content = AreaContent.Client };
+    var two = TwoClients(out var twoFirst, out var twoSecond);
+
+    // The new layout has none here: client 1's group comes along to client 1, as copies.
+    var rows = new[] { Row(1, 5, one.Id, "Alpha"), Row(2, 5, one.Id, "Bravo"), Row(3, 6, twoFirst, "Echo") };
+    var carried = ClientLayoutStore.CarriedCharacters(5, rows, one, two);
+    Same(carried.Count, 2, "both of client 1's characters come along");
+    Check(carried.All(r => r.MonitorId == 5 && r.AreaId == twoFirst && r.Id == 0), "as new rows, into the new client 1");
+    Check(carried.Select(r => r.CharacterName).Order().SequenceEqual(["Alpha", "Bravo"]), "with their names");
+
+    // Back to one client: client 1 comes back, and the second client's group has nowhere to go.
+    rows = [Row(1, 5, twoFirst, "Alpha"), Row(2, 5, twoSecond, "Bravo")];
+    carried = ClientLayoutStore.CarriedCharacters(5, rows, two, one);
+    Same(carried.Single().AreaId, one.Id, "client 1 to client 1");
+    Same(carried.Single().CharacterName, "Alpha", "only client 1's");
+
+    // A layout with groups of its own on this monitor keeps exactly those.
+    rows = [Row(1, 5, one.Id, "Alpha"), Row(2, 5, twoSecond, "Bravo")];
+    Same(ClientLayoutStore.CarriedCharacters(5, rows, one, two).Count, 0, "the new layout's own groups are left as they are");
+
+    // Another monitor's groups are never carried.
+    rows = [Row(1, 6, one.Id, "Alpha")];
+    Same(ClientLayoutStore.CarriedCharacters(5, rows, one, two).Count, 0, "only this monitor's groups");
+
+    // Joining a group: it leaves its group in this layout and on other monitors, but not this
+    // monitor's groups for its other layouts.
+    rows = [Row(1, 5, one.Id, "Alpha"), Row(2, 5, twoSecond, "alpha"), Row(3, 6, twoFirst, "ALPHA"), Row(4, 5, twoFirst, "Bravo")];
+    var gone = ClientLayoutStore.Displaced(rows, 5, new HashSet<string> { twoFirst, twoSecond }, "Alpha").Select(r => r.Id).Order().ToList();
+    Check(gone.SequenceEqual([2, 3]), $"this layout's and another monitor's, ignoring case: got {string.Join(",", gone)}");
+}
+
 // ---- The placement rules ----
 var now =new DateTime(2026, 1, 1, 12, 0, 0, DateTimeKind.Utc);
 var opening = new LayoutRect(10, 10, 1000, 800);
@@ -1143,7 +1179,7 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
 
     // One that was at the login screen isn't being flown, so its login is a normal login.
     step = e.Step([At(1, "EVE - Alpha", opening), At(2, "EVE - Bravo", opening)], now.AddSeconds(2));
-    Same(step.Notices.Single().Character, "Bravo", "a client that was at login is handled when it logs in");
+    Same(step.Moves.Single(), new ClientMove(2, c1), "a client that was at login is placed when it logs in");
 }
 {
     // A starting client takes an empty cell on its own monitor.
@@ -1229,12 +1265,35 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     Same(e.Step([At(1, "EVE", c1)], now.AddSeconds(2)).Moves.Count, 0, "logging out doesn't move it");
 }
 {
-    // A character in no group stays, and the app offers to add it.
+    // A character in no group keeps the cell its client took at login, and nothing is said.
     var e = Engine(out var c1, out _, out _);
     e.Step([], now);
     e.Step([At(1, "EVE", opening)], now);
     var step = e.Step([At(1, "EVE - Echo", c1)], now.AddSeconds(5));
-    Same(step.Moves.Count, 0, "no position, it stays");
+    Same(step.Moves.Count, 0, "no group, it keeps its cell");
+    Same(step.Notices.Count, 0, "and that's no problem");
+}
+{
+    // A character in no group with no cell takes a free one, one no group is set for first.
+    var e = Engine(out var c1, out var c2, out _, ("Alpha", 1));
+    e.Step([], now);
+    Same(e.Step([At(1, "EVE - Echo", opening)], now).Moves.Single(), new ClientMove(1, c2), "an ungrouped cell first");
+
+    // With only a grouped cell free, it takes that rather than staying out.
+    e = Engine(out c1, out c2, out _, ("Alpha", 2));
+    e.Step([], now);
+    e.Step([At(2, "EVE", opening)], now);
+    var step = e.Step([At(2, "EVE", c1), At(1, "EVE - Echo", opening)], now.AddSeconds(1));
+    Same(step.Moves.Single(), new ClientMove(1, c2), "the free one, grouped or not");
+}
+{
+    // No free cell at all: it stays, and the app says so.
+    var e = Engine(out var c1, out var c2, out _);
+    e.Step([], now);
+    e.Step([At(1, "EVE", opening)], now);
+    e.Step([At(1, "EVE", c1), At(2, "EVE", opening)], now.AddSeconds(1));
+    var step = e.Step([At(1, "EVE", c1), At(2, "EVE", c2), At(3, "EVE - Echo", opening)], now.AddSeconds(2));
+    Same(step.Moves.Count, 0, "nowhere to go");
     Same(step.Notices.Single().Kind, PlacementNoticeKind.CharacterHasNoPosition, "and it's reported");
 }
 {
@@ -1313,13 +1372,13 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     var step = e.Apply([w1, w2, w3, w4, w5], now.AddSeconds(1));
     Check(step.Moves.Contains(new ClientMove(2, c2)), "a character goes to its position");
     Check(step.Moves.Contains(new ClientMove(3, far)), "on any monitor");
-    Check(step.Moves.Contains(new ClientMove(1, c1)), "a client at login takes what's left");
-    Check(!step.Moves.Any(m => m.Handle == 4), "a character with no position stays");
+    Check(step.Moves.Contains(new ClientMove(4, c1)), "a character in no group takes a free cell");
+    Check(!step.Moves.Any(m => m.Handle == 1), "before a client at login, which finds none left");
     Check(!step.Moves.Any(m => m.Handle == 5), "a framed client is not placed");
-    Check(step.Notices.Any(n => n.Kind == PlacementNoticeKind.CharacterHasNoPosition && n.Character == "Echo"), "the unplaced character is mentioned");
+    Check(!step.Notices.Any(n => n.Kind == PlacementNoticeKind.CharacterHasNoPosition), "nobody is left without a place");
 
     // Applying again with everything in place moves nothing.
-    var settled = new[] { At(1, "EVE", c1), At(2, "EVE - Alpha", c2), At(3, "EVE - Bravo", far), w4, w5 };
+    var settled = new[] { w1, At(2, "EVE - Alpha", c2), At(3, "EVE - Bravo", far), At(4, "EVE - Echo", c1), w5 };
     e.Step(settled, now.AddSeconds(2));
     Same(e.Apply(settled, now.AddSeconds(3)).Moves.Count, 0, "nothing to do the second time");
 }
@@ -1384,6 +1443,85 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     e.Step([], now.AddSeconds(2));
     Same(e.ClientsOn(smallBounds), 0, "closed, none left");
     Check(!e.ClientHandlesOn(smallBounds).Any(), "and nothing to cover with");
+}
+
+{
+    // A layout to a file and back, as another database would read it.
+    // Controls go inside a panel: the root is one, holding a client.
+    var root = ClientLayoutEditing.NewRoot();
+    var inside = root.Inside!;
+    inside.Docked.Add(new DockedPanel
+    {
+        Edge = DockEdge.Top, Size = 40, Name = "Voice", Control = "Mumble",
+        Options = new ControlOptions { MumbleServerId = 7, MumbleMode = "Wide" },
+    });
+    inside.Docked.Add(new DockedPanel { Edge = DockEdge.Left, Control = "Mumble", Options = new ControlOptions { MumbleServerId = 9 } });
+    var here = new List<EveConsole.Models.MumbleServer>
+    {
+        new() { Id = 7, Name = "Fleet", Host = "voice.example.org", Port = 64738 },
+        new() { Id = 9, Name = "Other", Host = "other.example.org", Port = 64738 },
+    };
+    using var file = new MemoryStream();
+    ClientLayoutFile.WriteAsync(file, "Main screen", root, here).GetAwaiter().GetResult();
+    var written = System.Text.Encoding.UTF8.GetString(file.ToArray());
+    Check(written.Contains("voice.example.org") && written.Contains("other.example.org"), "the file names each Mumble server a control uses by address");
+
+    // Elsewhere the same server has another id, and the second isn't known.
+    var there = new List<EveConsole.Models.MumbleServer> { new() { Id = 3, Host = "VOICE.example.org ", Port = 64738 } };
+    file.Position = 0;
+    var (name, back) = ClientLayoutFile.ReadAsync(file, there).GetAwaiter().GetResult();
+    Same(name, "Main screen", "the name comes back");
+    var sent = ClientLayoutEditing.Controls(root).ToList();
+    var got = ClientLayoutEditing.Controls(back).ToList();
+    Same(got.Count, 2, "both docked controls come back");
+    Check(got.Select(c => c.Id).SequenceEqual(sent.Select(c => c.Id)), "ids are kept, as a menu names a Tool Container by its id");
+    Same(got[0].Options?.MumbleServerId, (int?)3, "a Mumble control is tied to the server at the same address here");
+    Same(got[0].Options?.MumbleMode, "Wide", "and keeps its other choices");
+    Same(got[1].Options?.MumbleServerId, (int?)null, "one whose server isn't here is left to be picked");
+    sent[0].Options!.MumbleServerId = 3;
+    sent[1].Options!.MumbleServerId = null;
+    Same(ClientLayoutJson.Write(back), ClientLayoutJson.Write(root), "apart from that, the layout is unchanged");
+
+    bool Refused(string text, bool newer)
+    {
+        try { ClientLayoutFile.ReadAsync(new MemoryStream(System.Text.Encoding.UTF8.GetBytes(text)), here).GetAwaiter().GetResult(); return false; }
+        catch (LayoutFileException e) { return e.Newer == newer; }
+    }
+    Check(Refused("not json at all", newer: false), "a file that isn't JSON is refused as not a layout");
+    Check(Refused("""{"name":"x","layout":{}}""", newer: false), "JSON without the format mark is refused");
+    Check(Refused("""{"format":"eveconsole-client-layout","version":"one","layout":{}}""", newer: false), "a version that isn't a number is refused");
+    Check(Refused("""{"format":"eveconsole-client-layout","version":99,"layout":{}}""", newer: true), "a newer version says so");
+}
+
+{
+    // The templates that ship with the app: each one a layout, and nothing in it from one person's setup.
+    var repo = new DirectoryInfo(Directory.GetCurrentDirectory());
+    while (repo != null && !File.Exists(Path.Combine(repo.FullName, "EveConsole.csproj"))) repo = repo.Parent;
+    var folder = repo is null ? null : Path.Combine(repo.FullName, "LayoutTemplates");
+    var files = folder != null && Directory.Exists(folder) ? Directory.GetFiles(folder, "*.json") : [];
+    Check(files.Length > 0, "the shipped layout templates are found (run from the repository)");
+    foreach (var path in files)
+    {
+        var shown = Path.GetFileName(path);
+        try
+        {
+            using var stream = File.OpenRead(path);
+            var (name, root) = ClientLayoutFile.ReadAsync(stream, []).GetAwaiter().GetResult();
+            Check(name.Length > 0, $"{shown}: has a name");
+            Check(root.Content == AreaContent.Panel || root.Docked.Count > 0, $"{shown}: holds a layout");
+            var text = File.ReadAllText(path);
+            Check(!System.Text.RegularExpressions.Regex.IsMatch(text, "\"MumbleServerId\":\\s*\\d") && text.Contains("\"mumbleServers\": []"),
+                  $"{shown}: names no Mumble server, which is one person's");
+            Check(ClientLayoutEditing.Controls(root).All(c => string.IsNullOrEmpty(c.Options?.GroupChatRoom)), $"{shown}: names no chat room, which is one person's");
+        }
+        catch (LayoutFileException)
+        {
+            Check(false, $"{shown}: is a layout file");
+        }
+    }
+
+    var blank = ClientLayoutEditing.BlankRoot();
+    Check(blank.Content == AreaContent.Panel && blank.Inside is null && blank.Docked.Count == 0, "a blank layout is one empty panel");
 }
 
 Console.WriteLine(failures == 0

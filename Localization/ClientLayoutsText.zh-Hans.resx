@@ -146,7 +146,10 @@
     <value>工具容器</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>工具</value>
+    <value>工具。按住 Shift 单击可再打开一个副本。</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>在这些标签页中打开工具。按住 Shift 单击可再打开一个副本。</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>工具打开位置</value>
@@ -322,7 +325,7 @@
     <value>{0}：其位置已被另一个已登录的角色占用，因此保持原位。</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} 已登录，但不在任何分组中。请将其添加到某个客户端位置。</value>
+    <value>{0} 已登录，但不在任何分组中，且其所在显示器上没有空闲的客户端位置。请将其添加到某个客户端位置。</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} 被手动移动过，因此在你按下“应用”之前不会再调整。</value>
@@ -494,5 +497,32 @@
   </data>
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>为此控件设置的房间已不在群聊中。</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>将此布局保存为文件，以便保留或分享。</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>将文件中的布局添加为新布局。显示器不会改变。</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console 布局</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>已导出“{0}”。</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>已导入“{0}”。如果来自其他数据库，请检查其 Mumble 控件。</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>该文件不是 EVE Console 布局。</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>该布局由较新版本的 EVE Console 创建。请更新后再导入。</value>
   </data>
 </root>

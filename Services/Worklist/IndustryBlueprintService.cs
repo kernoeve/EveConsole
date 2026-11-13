@@ -109,8 +109,15 @@ public class IndustryBlueprintService(IDbContextFactory<AppDbContext> dbFactory)
         // actually referenced are looked up, which is a handful of rows rather than the assets
         // table; a blueprint whose location matches no asset is already sitting in a station.
         var locIds = rows.Select(r => r.LocationId).Distinct().ToList();
+        //
+        // ⚠️ Not the structure itself. A print straight in a character's hangar in a structure
+        // has the structure as its location, and a corporation that owns the structure lists it
+        // as an asset too — in space, rooted at its solar system. Taken as a container, every
+        // such print read as lying in the solar system and matched no facility: an alt outside
+        // the corporation with six free formulas at the refinery was told every character who
+        // could run them was busy. Nothing that holds prints sits in space but the structure.
         var containerRoots = (await db.EsiAssets.AsNoTracking()
-                .Where(a => locIds.Contains(a.ItemId))
+                .Where(a => locIds.Contains(a.ItemId) && a.LocationType != "solar_system")
                 .Select(a => new { a.ItemId, a.RootLocationId, a.OwnerId })
                 .ToListAsync(ct))
             .GroupBy(a => a.ItemId)

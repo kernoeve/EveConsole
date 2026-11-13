@@ -36,6 +36,13 @@ public class SalePostingService(
     IDbContextFactory<AppDbContext> dbFactory,
     InvLevelService                 inv)
 {
+    /// <summary>
+    /// A posting was added, renamed, imported or deleted. Raised off the UI thread. The Stores
+    /// screen picks its listings' postings from a list it loads once, and a posting made after
+    /// that was not offered until the app restarted.
+    /// </summary>
+    public static event Action? PostingsChanged;
+
     // ── Posting CRUD ──────────────────────────────────────────────────────────
 
     public async Task<List<SalePosting>> LoadPostingsAsync(CancellationToken ct = default)
@@ -67,9 +74,11 @@ public class SalePostingService(
             ColorInStock      = r.ColorInStock,
             ColorInBuild      = r.ColorInBuild,
             ColorNone         = r.ColorNone,
+            ShowNeed          = r.ShowNeed,
         };
         db.SalePostings.Add(p);
         await db.SaveChangesAsync(ct);
+        PostingsChanged?.Invoke();
         return p;
     }
 
@@ -96,7 +105,9 @@ public class SalePostingService(
         p.ColorInStock      = r.ColorInStock;
         p.ColorInBuild      = r.ColorInBuild;
         p.ColorNone         = r.ColorNone;
+        p.ShowNeed          = r.ShowNeed;
         await db.SaveChangesAsync(ct);
+        PostingsChanged?.Invoke();   // its name may have changed
     }
 
     public async Task DeletePostingAsync(int postingId, CancellationToken ct = default)
@@ -109,6 +120,7 @@ public class SalePostingService(
         await db.SalePostingPosts.Where(p => p.PostingId == postingId).ExecuteDeleteAsync(ct);
         await db.SalePostingLocations.Where(l => l.PostingId == postingId).ExecuteDeleteAsync(ct);
         await db.SalePostings.Where(p => p.Id == postingId).ExecuteDeleteAsync(ct);
+        PostingsChanged?.Invoke();
     }
 
     // ── Post blocks (the Summary/Detail/Static blocks a posting renders as) ──────
@@ -412,7 +424,8 @@ public class SalePostingService(
         string ColorNone    = "#888899",
         // The places it lists whatever is found in. Ids of stations, owners and containers: the
         // file carries them to another database of the same pilots, where they mean the same.
-        List<PostingPlaceExportDto>? Places = null);
+        List<PostingPlaceExportDto>? Places = null,
+        bool ShowNeed = true);
 
     public sealed record PostingPlaceExportDto(
         long StationId, string OwnerType, long OwnerId, string Flag, long ContainerId, string Path, string Title);
@@ -464,7 +477,8 @@ public class SalePostingService(
                 x.HeaderColor, x.FooterColor)).ToList(),
             p.ColorByState, p.ColorInStock, p.ColorInBuild, p.ColorNone,
             places.Count == 0 ? null : places.Select(l => new PostingPlaceExportDto(
-                l.StationId, l.OwnerType, l.OwnerId, l.Flag, l.ContainerId, l.Path, l.Title)).ToList());
+                l.StationId, l.OwnerType, l.OwnerId, l.Flag, l.ContainerId, l.Path, l.Title)).ToList(),
+            p.ShowNeed);
 
         await JsonSerializer.SerializeAsync(stream, dto, ExportJson, ct);
     }
@@ -515,6 +529,7 @@ public class SalePostingService(
             ColorInStock          = dto.ColorInStock,
             ColorInBuild          = dto.ColorInBuild,
             ColorNone             = dto.ColorNone,
+            ShowNeed              = dto.ShowNeed,
         };
         db.SalePostings.Add(posting);
         await db.SaveChangesAsync(ct);
@@ -585,6 +600,7 @@ public class SalePostingService(
         }));
 
         await db.SaveChangesAsync(ct);
+        PostingsChanged?.Invoke();
         return posting;
     }
 
@@ -699,7 +715,8 @@ public class SalePostingService(
 
         return buying
             ? new PostingView(false, false, false, false,
-                              false, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone, views)
+                              false, posting.ColorInStock, posting.ColorInBuild, posting.ColorNone, views,
+                              ShowNeed: posting.ShowNeed)
             : new PostingView(
                 posting.ShowInStock, posting.ShowInBuild, posting.ShowReserved,
                 posting.IncludeCompletionDate,
@@ -719,10 +736,13 @@ public class SalePostingService(
     /// <param name="buying">A store's Buy listing, as for <see cref="BuildViewAsync"/>.</param>
     internal async Task<List<RenderedPost>> RenderAsync(
         int postingId, string formatName, CancellationToken ct = default, IReadOnlySet<int>? blocked = null,
-        string? language = null, bool buying = false)
+        string? language = null, bool buying = false,
+        Func<IReadOnlyCollection<int>, Task<Dictionary<int, ItemNeed>>>? needs = null)
     {
         var view = await BuildViewAsync(postingId, ct, language, buying);
         if (view is null) return [];
+        // A Buy listing that takes only what is still needed: each line says so.
+        if (buying && needs is not null) view = view.WithNeeds(await needs([.. view.TypeIds]));
 
         var fmt   = OutputFormat.ByName(formatName);
         var posts = await LoadPostsAsync(postingId, ct);

@@ -134,7 +134,11 @@ var approxTokens = prompt.Length / 4;
 // sentence added to any tool's guide entry fails the build, and a new feature's guide entry is
 // how the agent learns it exists. The 1,000 is room for the guide to grow with the app, not
 // for anything already in it. The next raise should come with the same kind of reason.
-const int Budget = 15_000;
+//
+// Raised from 15,000 on 2026-11-09, by the owner's decision. Every table name is in the index,
+// and two new tables (asset snapshots, character levels) left the prompt 2 tokens under after
+// its header had already been tightened to fit: the next table would have failed the build.
+const int Budget = 16_000;
 
 Console.WriteLine($"tables in model      : {schema.TableCount}");
 Console.WriteLine($"identifiers checked  : {checkedNames}");

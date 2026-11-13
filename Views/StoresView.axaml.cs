@@ -45,6 +45,12 @@ public partial class StoresView : UserControl
             vm.RemoveListing(row);
     }
 
+    private void OnRemoveBuyLocation(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is StoresViewModel.BuyLocationRowVm row && DataContext is StoresViewModel vm)
+            vm.RemoveBuyLocation(row);
+    }
+
     private void OnListingUp(object? sender, RoutedEventArgs e)
     {
         if ((sender as Control)?.DataContext is StoreListingRowVm row && DataContext is StoresViewModel vm)

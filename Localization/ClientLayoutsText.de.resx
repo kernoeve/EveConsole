@@ -146,7 +146,10 @@
     <value>Werkzeug-Container</value>
   </data>
   <data name="MenuTip" xml:space="preserve">
-    <value>Werkzeuge</value>
+    <value>Werkzeuge. Umschalt+Klick öffnet eine weitere Kopie.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Ein Werkzeug in diesen Tabs öffnen. Umschalt+Klick öffnet eine weitere Kopie.</value>
   </data>
   <data name="LabelMenuTarget" xml:space="preserve">
     <value>Öffnet Werkzeuge in</value>
@@ -322,7 +325,7 @@
     <value>{0}: Die Position ist von einem anderen eingeloggten Charakter belegt, daher bleibt der Client, wo er ist.</value>
   </data>
   <data name="NoticeNoPosition" xml:space="preserve">
-    <value>{0} ist eingeloggt, aber in keiner Gruppe. Fügen Sie den Charakter einer Client-Position hinzu.</value>
+    <value>{0} ist eingeloggt, aber in keiner Gruppe, und auf seinem Monitor ist keine Client-Position frei. Fügen Sie den Charakter einer Client-Position hinzu.</value>
   </data>
   <data name="NoticeMovedByHand" xml:space="preserve">
     <value>{0} wurde von Hand verschoben und bleibt daher unverändert, bis Sie auf „Anwenden“ klicken.</value>
@@ -494,5 +497,32 @@
   </data>
   <data name="GroupChatRoomGone" xml:space="preserve">
     <value>Der für dieses Steuerelement gewählte Raum ist nicht mehr im Gruppenchat.</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Exportieren</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Importieren</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Dieses Layout in eine Datei speichern, um es aufzubewahren oder weiterzugeben.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Ein Layout aus einer Datei als neues Layout hinzufügen. Monitore werden nicht geändert.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console-Layout</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>„{0}“ exportiert.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>„{0}“ importiert. Prüfe die Mumble-Steuerelemente, falls es aus einer anderen Datenbank stammt.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Diese Datei ist kein EVE Console-Layout.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Dieses Layout stammt aus einer neueren EVE Console. Aktualisiere, um es zu importieren.</value>
   </data>
 </root>

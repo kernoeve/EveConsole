@@ -1316,7 +1316,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
                 string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasClient, i + 1),
                 string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.CanvasSize, client.Rect.Width, client.Rect.Height),
                 result.Problems.Any(p => p.Kind == LayoutProblemKind.SmallClient && p.AreaId == client.AreaId),
-                names, AddCharacterAsync, RemoveCharacterAsync)
+                names, AddCharacterAsync, name => RemoveCharacterAsync(row?.Id, client.AreaId, name))
             { Candidates = candidates });
         }
         foreach (var warning in Describe(result, MonitorLabel(monitor, number))) Warnings.Add(warning);
@@ -1429,6 +1429,7 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         await _store.SaveMonitorAsync(_deviceId, _profileId, _selectedMonitorKey, _monitorLayout?.Id, _monitorFull,
             _monitorPanelStart?.Value ?? PanelStart.WithConsole);
         _monitorRows = await _store.ListMonitorsAsync(_deviceId, _profileId);
+        _characters = await _store.ListCharactersAsync(_deviceId, _profileId);   // a new layout takes over the groups
         ShowMonitor();
         ShowLayoutWarnings();
         await ShowPendingAsync();
@@ -1445,9 +1446,9 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         await ReloadAssignmentsAsync();
     }
 
-    private async Task RemoveCharacterAsync(string name)
+    private async Task RemoveCharacterAsync(int? monitorId, string areaId, string name)
     {
-        await _store.UnassignCharacterAsync(_deviceId, _profileId, name);
+        if (monitorId is { } id) await _store.UnassignCharacterAsync(id, areaId, name);
         await ReloadAssignmentsAsync();
     }
 
@@ -1486,14 +1487,47 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
 
     // ---- Changes on the Layouts tab ----
 
-    private async Task NewLayoutAsync()
+    private Task NewLayoutAsync() => NewLayoutAsync(null);
+
+    /// <summary>A new layout: blank, one empty panel, or a copy of a template under the template's name.</summary>
+    public Task NewLayoutAsync(LayoutTemplate? template) => Run(async () =>
     {
-        var root = ClientLayoutEditing.NewRoot();
-        var row = new LayoutRowVm(null, ClientLayoutsText.NewLayoutName, root);
+        var root = template?.Root ?? ClientLayoutEditing.BlankRoot();
+        await AddLayoutAsync(template?.Name ?? ClientLayoutsText.NewLayoutName, root);
+    });
+
+    /// <summary>The templates a new layout can start from, read fresh, so one just exported there is listed.</summary>
+    public async Task<List<LayoutTemplate>> TemplatesAsync()
+    {
+        try
+        {
+            return await LayoutTemplates.ListAsync(await MumbleServerRowsAsync());
+        }
+        catch (Exception ex)
+        {
+            Status = string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.StatusFailed, ex.Message);
+            _errorLogger.Log("ClientLayouts", "reading layout templates", ex);
+            return [];
+        }
+    }
+
+    /// <summary>A layout kept as a new one under a name of its own, and selected.</summary>
+    private async Task<string> AddLayoutAsync(string name, LayoutArea root)
+    {
+        // A name of its own, so the monitors' lists can tell it from the one it may be a copy of.
+        if (Layouts.Any(l => string.Equals(l.Name, name, StringComparison.CurrentCultureIgnoreCase)))
+        {
+            var taken = Layouts.Select(l => l.Name).ToHashSet(StringComparer.CurrentCultureIgnoreCase);
+            var n = 2;
+            while (taken.Contains($"{name} ({n})")) n++;
+            name = $"{name} ({n})";
+        }
+        var row = new LayoutRowVm(null, name, root);
         row.Id = await _store.SaveLayoutAsync(null, row.Name, root);
         Layouts.Add(row);
         RefillChoices();
         SelectedLayout = row;
+        return name;
     }
 
     private async Task DuplicateLayoutAsync()
@@ -1505,6 +1539,40 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         Layouts.Add(row);
         RefillChoices();
         SelectedLayout = row;
+    }
+
+    /// <summary>The selected layout written to a file, as it is now.</summary>
+    public Task ExportLayoutAsync(Func<Task<Stream>> open) => Run(async () =>
+    {
+        if (SelectedLayout is not { } row) return;
+        await SaveTypedNowAsync();
+        await using var stream = await open();
+        await ClientLayoutFile.WriteAsync(stream, row.Name, row.Root, await MumbleServerRowsAsync());
+        Status = string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.StatusLayoutExported, row.Name);
+    });
+
+    /// <summary>A layout from a file, kept as a new one beside the others and selected.</summary>
+    public Task ImportLayoutAsync(Func<Task<Stream>> open) => Run(async () =>
+    {
+        (string Name, LayoutArea Root) read;
+        try
+        {
+            await using var stream = await open();
+            read = await ClientLayoutFile.ReadAsync(stream, await MumbleServerRowsAsync());
+        }
+        catch (LayoutFileException e)
+        {
+            Status = e.Newer ? ClientLayoutsText.StatusLayoutFileNewer : ClientLayoutsText.StatusNotLayoutFile;
+            return;
+        }
+        var name = await AddLayoutAsync(read.Name.Length > 0 ? read.Name : ClientLayoutsText.NewLayoutName, read.Root);
+        Status = string.Format(CultureInfo.CurrentCulture, ClientLayoutsText.StatusLayoutImported, name);
+    });
+
+    private async Task<List<MumbleServer>> MumbleServerRowsAsync()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        return await db.MumbleServers.AsNoTracking().ToListAsync();
     }
 
     private async Task DeleteLayoutAsync()

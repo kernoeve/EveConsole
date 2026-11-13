@@ -3877,4 +3877,55 @@ La aplicación se reiniciará.</value>
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Al cerrar la ventana principal solo se oculta: los paneles, las alarmas y el trabajo en segundo plano continúan. Haz doble clic en el icono, o elige {0} en su menú, para recuperar la ventana, y {1} para cerrar EVE Console.</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>pulsar para hablar de {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Pulsa una tecla o un botón del ratón (Esc cancela)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Trabajo en segundo plano en este equipo</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>No ejecutar nunca el trabajo en segundo plano en este cliente</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Cuando se cierra el cliente que consulta y hace el resto del trabajo en segundo plano, otro cliente conectado lo asume. Si está marcado, este nunca lo hace: solo muestra lo que recogen los demás. Se guarda solo en este equipo, no para todos los clientes. Si no hay otro cliente en marcha, nadie consulta.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Solo con una base de datos PostgreSQL compartida: con SQLite este es el único cliente, así que siempre hace el trabajo.</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Parque industrial</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Predeterminado ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>El parque industrial con cuyas estructuras, rigs y sistemas se calculan los costes de fabricación guardados, y con ellos todo precio basado en el coste de fabricación, como el de una publicación de venta. «Predeterminado» sigue al parque marcado como predeterminado en Parques industriales. La Lista de tareas y las calculadoras mantienen su propio parque. Pulsa Recalcular, o espera a la siguiente actualización del mercado, para que el cambio surta efecto.</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Mensajes directos</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Elimina los mensajes directos guardados de Jabber, Mumble e IRC. Los mensajes sin leer nunca se eliminan, por antiguos que sean. Activado por defecto a 30 días, como lo estaba el ajuste de historial de Jabber; desmárcalo para conservarlo todo.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purgar mensajes directos anteriores a</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Chat de grupo</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Elimina los mensajes guardados de las salas de Jabber y los canales de IRC. Los mensajes sin leer nunca se eliminan, por antiguos que sean. El chat de los canales de Mumble nunca se guarda, así que no hay nada que eliminar. La inteligencia ya leída de una sala o canal de inteligencia se conserva con los mensajes de chat de arriba. Activado por defecto a 30 días, como lo estaba el ajuste de historial de Jabber; desmárcalo para conservarlo todo.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purgar chat de grupo anterior a</value>
+  </data>
 </root>

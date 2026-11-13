@@ -212,8 +212,11 @@ public class WalletDivisionRowVm
 
 // ── Main view-model ───────────────────────────────────────────────────────────
 
-public class WalletViewModel : ReactiveObject
+public class WalletViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger _errorLogger;
     private bool _initialized;
@@ -518,7 +521,7 @@ public class WalletViewModel : ReactiveObject
 
     private async Task InitAsync()
     {
-        OwnerList.Changed += () => _ = LoadOwnersAsync();
+        _life.OnOwnersChanged(() => _ = LoadOwnersAsync());
         await LoadOwnersAsync();
     }
 

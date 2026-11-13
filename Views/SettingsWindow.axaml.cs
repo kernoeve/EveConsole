@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+        KeyCaptureHook.Attach(AgentSettingsPane);
 
         // Every tab saves as it is changed, and text once typing pauses. Leaving a box saves it
         // now: a pause is no promise the next thing done is not closing the window, or reading
@@ -67,6 +68,9 @@ public partial class SettingsWindow : Window
         // stopped or removed from services.msc while this window is closed, and a stale switch is
         // one that lies about a thing the user is about to act on.
         vm.PollingVm.RefreshServiceState();
+
+        // The parks build costs can be worked out at: a park added or renamed since last time shows.
+        _ = vm.MarketVm.LoadBuildCostParksAsync();
 
         var scopeHandler = vm.CharacterVm.ScopeSelectionInteraction.RegisterHandler(async ctx =>
         {
@@ -170,6 +174,10 @@ public partial class SettingsWindow : Window
         => _ = Retention?.ChatMessages.PurgeNowAsync();
     private void OnPurgeAgentTelemetryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.AgentTelemetry.PurgeNowAsync();
+    private void OnPurgeDirectMessagesClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.DirectMessages.PurgeNowAsync();
+    private void OnPurgeGroupChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.GroupChat.PurgeNowAsync();
 
     public void WireDatabase(DatabaseSettingsViewModel dbVm, Window ownerWindow)
     {

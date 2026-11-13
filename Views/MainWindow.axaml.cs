@@ -42,6 +42,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // telling two windows apart before reading either.
         if (AppConfig.ProfileName is { } profile) Title = $"EVE Console — {profile}";
         Current = this;
+        _navShift = ShiftWatch.On(NavList);
+    }
+
+    private readonly ShiftWatch _navShift;
+
+    /// <summary>A tool in the navigation: opened, or shown where it is; with Shift, another copy.</summary>
+    private void OnNavToolClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: NavItem item } || DataContext is not MainWindowViewModel vm) return;
+        if (_navShift.Take()) vm.OpenCopy(item.ToolId);
+        else vm.OpenTool(item.ToolId);
     }
 
     protected override void OnOpened(EventArgs e)
@@ -786,7 +797,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                    // Over the shared preferences, which are already in memory.
                                                    new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
                                                    vm.JabberVm, vm.MumbleVm,
-                                                   vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
+                                                   vm.TtsService, vm.SpeechInputService, vm.HotkeyService, vm.IrcVm);
             // Not awaited: it asks the web, and the window should not wait for that to open.
             _ = vm.OnlineServicesSettingsVm.RefreshAsync();
             settingsWin = new SettingsWindow { DataContext = settingsVm };
@@ -818,10 +829,16 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         await settingsWin.PendingSaves;
         // Slack token / channel or a Discord webhook may have changed — re-evaluate the post
         // buttons' visibility.
-        vm.CorpActivityVm.RefreshSlackState();
-        vm.SalePostingVm.RefreshSlackState();
-        vm.CorpActivityVm.RefreshDiscordState();
-        vm.SalePostingVm.RefreshDiscordState();
+        foreach (var corp in vm.AllOf(vm.CorpActivityVm))
+        {
+            corp.RefreshSlackState();
+            corp.RefreshDiscordState();
+        }
+        foreach (var posting in vm.AllOf(vm.SalePostingVm))
+        {
+            posting.RefreshSlackState();
+            posting.RefreshDiscordState();
+        }
     }
 
     private SettingsWindow? _settingsWindow;
@@ -1102,7 +1119,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// <summary>The tool a tab shows, by the name the Tool Reference uses — "Universe Map", not
     /// the tab's "Universe" — or the tab's own title for one that is not a tool.</summary>
     private static string? OnScreenName(ToolTab? tab) =>
-        tab is null ? null : EveConsole.Agent.AppKnowledge.Tool(tab.Id)?.Name ?? tab.Title;
+        tab is null ? null : EveConsole.Agent.AppKnowledge.Tool(tab.ToolId)?.Name ?? tab.Title;
 
     private string BuildAgentContext(MainWindowViewModel vm)
     {

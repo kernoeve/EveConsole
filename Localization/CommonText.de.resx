@@ -364,4 +364,13 @@
   <data name="PrintOriginalName" xml:space="preserve">
     <value>{0} (Original)</value>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} wird schon für {1} verwendet. Wähle eine andere Taste oder entferne sie dort zuerst.</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} wird auch für {1} verwendet, ein Druck löst also beides aus. Wähle für eines davon eine andere Taste.</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

@@ -439,7 +439,6 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         _chatSaver ??= Task.Run(SaveChatAsync, CancellationToken.None);
         StartTalkerWatch();
 
-        await PurgeOldChatAsync(ct);
         await LoadServersAsync(ct);
     }
 
@@ -587,26 +586,6 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
         if (SessionOf(serverId) is not { } session) throw new MumbleException(MumbleFailure.Network, "Not connected.");
         var person = PersonOf(serverId, peerKey) ?? throw new MumbleException(MumbleFailure.Network, "They are not connected.");
         return SendPrivateTextAsync(session, person, message, ct);
-    }
-
-    /// <summary>Private messages past the days Jabber's history is kept, by the same setting. Zero keeps them all.</summary>
-    private async Task PurgeOldChatAsync(CancellationToken ct)
-    {
-        try
-        {
-            await using var db = await dbFactory.CreateDbContextAsync(ct);
-            var saved = await db.AppPreferences.AsNoTracking().Where(p => p.Key == Jabber.JabberService.HistoryDaysPref).Select(p => p.Value).FirstOrDefaultAsync(ct);
-            var days  = int.TryParse(saved, out var d) ? d : Jabber.JabberService.DefaultHistoryDays;
-            if (days <= 0) return;
-
-            var cutoff = DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString(StoredDate, CultureInfo.InvariantCulture);
-            // ⚠️ Never an unread one: age is no reason to lose what was not seen.
-            await db.MumbleDirectMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
-        }
-        catch (Exception e) when (e is DbUpdateException or InvalidOperationException)
-        {
-            errors.Log(nameof(MumbleService), "purge old chat", e);
-        }
     }
 
     public async Task StopAsync()
@@ -1519,8 +1498,8 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
     {
         _talkerTimer ??= new Timer(_ =>
         {
-            // Every couple of seconds: a headset unplugged ends its stream without saying so.
-            if (++_talkerTicks % 20 == 0) Devices?.KeepOutputAlive();
+            // Twice a second: a headset unplugged stops its stream without saying so.
+            if (++_talkerTicks % 5 == 0) Devices?.KeepOutputAlive();
 
             var now = string.Join('|', Talkers().Select(t => $"{t.ServerId}:{t.Session}:{t.Mode}"));
             if (now == _lastTalkers) return;

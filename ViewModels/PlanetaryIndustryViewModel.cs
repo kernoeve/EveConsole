@@ -24,7 +24,7 @@ namespace EveConsole.ViewModels;
 /// last time each colony was opened in game, so every one of them is labelled an estimate and the
 /// data's age is always on screen.</para>
 /// </summary>
-public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefresh
+public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a no-op.
     /// See IPeriodicRefresh.</summary>
@@ -107,14 +107,25 @@ public sealed class PlanetaryIndustryViewModel : ReactiveObject, IPeriodicRefres
         OpenSettingsCommand = ReactiveCommand.Create(() => OpenPiSettingsRequested?.Invoke());
 
         // The countdowns move by the minute, and the poll can bring a new layout any ten minutes.
-        Observable.Interval(TimeSpan.FromMinutes(1))
+        _timer = Observable.Interval(TimeSpan.FromMinutes(1))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("PlanetaryIndustry.AutoRefresh")
             .SubscribeAsyncSafe(_ => RefreshAsync(), errorLogger, "PlanetaryIndustry.AutoRefresh");
 
         // Names arrive in the interface language once they are loaded; until then a list built at
         // start reads English.
-        SdeNames.Changed += () => Dispatcher.UIThread.Post(() => { if (AutoRefreshEnabled) _ = RefreshAsync(); });
+        _onNames = () => Dispatcher.UIThread.Post(() => { if (AutoRefreshEnabled) _ = RefreshAsync(); });
+        SdeNames.Changed += _onNames;
+    }
+
+    private readonly IDisposable _timer;
+    private readonly Action _onNames;
+
+    /// <summary>A copy of the tool closed: its clock stops, and it stops following the names.</summary>
+    public void Dispose()
+    {
+        _timer.Dispose();
+        SdeNames.Changed -= _onNames;
     }
 
     /// <summary>Opens the selected colony's detail — a double-click on its row, or the button.</summary>

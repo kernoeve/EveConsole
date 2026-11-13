@@ -229,9 +229,6 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="SoundOption" xml:space="preserve">
     <value>Émettre un son pour les messages importants</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>Conserver les messages lus (jours, 0 = tous)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Écrivez un message. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
   </data>

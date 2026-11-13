@@ -147,6 +147,7 @@ public static partial class CourierCargoStore
             });
         }
         await db.SaveChangesAsync(ct);
+        AssetActivity.Nudge();   // its delivery, if it has been, into the assets now
     }
 
     /// <summary>One line's quantity; 0 or less takes the line off.</summary>
@@ -158,5 +159,6 @@ public static partial class CourierCargoStore
         if (quantity <= 0) db.CourierCargo.Remove(row);
         else row.Quantity = quantity;
         await db.SaveChangesAsync(ct);
+        AssetActivity.Nudge();   // its delivery, if it has been, into the assets now
     }
 }

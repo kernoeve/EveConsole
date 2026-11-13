@@ -179,9 +179,13 @@ public class StoreSenderRowVm(StoreSender s)
 /// always have — a store order is an ordinary tracked order with a reference on it — and a second
 /// screen that edited them would be a second set of rules about what an order is.</para>
 /// </summary>
-public class StoresViewModel : ReactiveObject
+public class StoresViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
+    private readonly EveConsole.Api.EsiClient?       _esi;
     private readonly SalePostingService              _postings;
     private readonly StoreMailService                _storeMail;
     private readonly OrderLabelService               _labels;
@@ -260,6 +264,12 @@ public class StoresViewModel : ReactiveObject
 
     /// <summary>A place a Buy listing's contracts may be made at: an NPC station shown in the
     /// interface language, a structure by its own name. <see cref="Name"/> is what is stored.</summary>
+    /// <summary>One of the places a store names, on the Stores screen.</summary>
+    public sealed record BuyLocationRowVm(long Id, string Name)
+    {
+        public string Shown => SdeNames.Location(Id, Name);
+    }
+
     public sealed record BuyPlaceOption(long Id, string Name)
     {
         public string DisplayName => SdeNames.Location(Id, Name);
@@ -318,9 +328,11 @@ public class StoresViewModel : ReactiveObject
         AppErrorLogger                  errorLogger,
         WebStoreSyncService             webSync,
         WorkerLease                     lease,
-        CloudflareDeployService         deploy)
+        CloudflareDeployService         deploy,
+        EveConsole.Api.EsiClient?       esi = null)
 
     {
+        _esi         = esi;
         _dbFactory   = dbFactory;
         _postings    = postings;
         _storeMail   = storeMail;
@@ -360,13 +372,39 @@ public class StoresViewModel : ReactiveObject
 
         // The log is the only sign the shop is doing anything, and it changes without anyone
         // touching this screen.
-        Observable.Interval(TimeSpan.FromSeconds(30))
+        _life.Keep(Observable.Interval(TimeSpan.FromSeconds(30))
             .ObserveOnUi("Stores.AutoRefresh")
-            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh");
+            .SubscribeAsyncSafe(_ => LoadSelectedAsync(fields: false), errorLogger, "Stores.AutoRefresh"));
 
-        OwnerList.Changed += () => _ = RefreshCharacterOptionsAsync();
+        _life.OnOwnersChanged(() => _ = RefreshCharacterOptionsAsync());
+
+        // A posting made, renamed or deleted in the Sale Postings tool is offered here at once.
+        Action postingsChanged = () => _ = RefreshPostingOptionsAsync();
+        SalePostingService.PostingsChanged += postingsChanged;
+        _life.Keep(System.Reactive.Disposables.Disposable.Create(() => SalePostingService.PostingsChanged -= postingsChanged));
 
         _ = LoadAsync();
+    }
+
+    /// <summary>The postings a listing can pick, read again; the listings shown keep theirs.</summary>
+    private async Task RefreshPostingOptionsAsync()
+    {
+        try
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync();
+            var postings = await db.SalePostings.AsNoTracking()
+                .Select(p => new { p.Id, p.Name }).OrderBy(p => p.Name).ToListAsync();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                PostingOptions.Clear();
+                foreach (var p in postings) PostingOptions.Add(new PostingOption(p.Id, p.Name));
+                foreach (var l in Listings) l.Rebind(PostingOptions.FirstOrDefault(p => p.Id == l.Posting?.Id));
+            });
+        }
+        catch (Exception ex)
+        {
+            _errorLogger.Log(nameof(StoresViewModel), nameof(RefreshPostingOptionsAsync), ex);
+        }
     }
 
     public ReactiveCommand<Unit, Unit> AddStoreCommand    { get; }
@@ -453,15 +491,14 @@ public class StoresViewModel : ReactiveObject
 
     // ── Where a Buy listing's contracts are made ─────────────────────────────
 
-    // The place picked, as stored: English for an NPC station, a structure's own name.
-    private long   _buyLocationId;
-    private string _buyLocationName = "";
+    /// <summary>The places picked, in order, as stored: English for an NPC station, a structure's own name.</summary>
+    public ObservableCollection<BuyLocationRowVm> BuyLocations { get; } = [];
 
-    public bool HasBuyLocation => _buyLocationId != 0;
+    public bool HasBuyLocation => BuyLocations.Count > 0;
 
-    /// <summary>What sellers are told, with the place as this screen names it.</summary>
-    public string BuyLocationChosenText => _buyLocationId == 0 ? ""
-        : string.Format(SalesText.BuyLocationChosen, SdeNames.Location(_buyLocationId, _buyLocationName));
+    /// <summary>What sellers are told, with the places as this screen names them.</summary>
+    public string BuyLocationChosenText => BuyLocations.Count == 0 ? ""
+        : string.Format(SalesText.BuyLocationChosen, StoreBuyLocations.Phrase([.. BuyLocations.Select(b => b.Shown)]));
 
     private string _buyLocationSearch = "";
     public string BuyLocationSearch
@@ -489,14 +526,15 @@ public class StoresViewModel : ReactiveObject
         this.RaisePropertyChanged(nameof(HasBuyLocationResults));
     }
 
-    /// <summary>Picking a search result names it as the place; the search is cleared.</summary>
+    /// <summary>Picking a search result adds it to the places; the search is cleared.</summary>
     public BuyPlaceOption? PickedBuyLocation
     {
         get => null;
         set
         {
             if (value is null) return;
-            SetBuyLocation(value.Id, value.Name);
+            if (BuyLocations.All(b => b.Id != value.Id))
+                SetBuyLocations([.. BuyLocations.Select(b => new BuyLocation(b.Id, b.Name)), new BuyLocation(value.Id, value.Name)]);
             _buyLocationQuery++;
             _buyLocationSearch = ""; this.RaisePropertyChanged(nameof(BuyLocationSearch));
             BuyLocationResults.Clear(); this.RaisePropertyChanged(nameof(HasBuyLocationResults));
@@ -504,20 +542,23 @@ public class StoresViewModel : ReactiveObject
         }
     }
 
-    private void ClearBuyLocation() => SetBuyLocation(0, "");
+    private void ClearBuyLocation() => SetBuyLocations([]);
 
-    private void SetBuyLocation(long id, string name, bool save = true)
+    public void RemoveBuyLocation(BuyLocationRowVm row) =>
+        SetBuyLocations([.. BuyLocations.Where(b => b.Id != row.Id).Select(b => new BuyLocation(b.Id, b.Name))]);
+
+    private void SetBuyLocations(IReadOnlyList<BuyLocation> places, bool save = true)
     {
-        _buyLocationId   = id;
-        _buyLocationName = name;
+        BuyLocations.Clear();
+        foreach (var p in places) BuyLocations.Add(new BuyLocationRowVm(p.Id, p.Name));
         this.RaisePropertyChanged(nameof(HasBuyLocation));
         this.RaisePropertyChanged(nameof(BuyLocationChosenText));
         if (save && SelectedStore is not null)
-            _ = SaveAsync(s => { s.BuyLocationId = id; s.BuyLocationName = name; }, nudge: true);
+            _ = SaveAsync(s => StoreBuyLocations.Set(s, places), nudge: true);
     }
 
-    private StoreListingRowVm NewListing(PostingOption? posting, string side, string title) =>
-        new(posting, side, title, ListingsChanged, PostingOptions);
+    private StoreListingRowVm NewListing(PostingOption? posting, string side, string title, bool trackNeed = false) =>
+        new(posting, side, title, ListingsChanged, PostingOptions, trackNeed);
 
     /// <summary>Adds a Sell listing of the first posting the store does not list yet.</summary>
     private void AddListing()
@@ -552,7 +593,7 @@ public class StoresViewModel : ReactiveObject
         if (_suppressSave || SelectedStore is not StoreRowVm row) return;
 
         var listings = Listings.Where(l => l.Posting is not null)
-            .Select(l => new StorePosting { PostingId = l.Posting!.Id, Side = l.SideValue, Title = l.Title })
+            .Select(l => new StorePosting { PostingId = l.Posting!.Id, Side = l.SideValue, Title = l.Title, TrackNeed = l.TrackNeed })
             .ToList();
 
         // In line with every other save, so the writes land in the order they were made.
@@ -2085,7 +2126,7 @@ public class StoresViewModel : ReactiveObject
                     StoreCharacter = CharacterOptions.FirstOrDefault(c => c.Id == store.CharacterId);
                     Listings.Clear();
                     foreach (var l in listings)
-                        Listings.Add(NewListing(PostingOptions.FirstOrDefault(p => p.Id == l.PostingId), l.Side, l.Title));
+                        Listings.Add(NewListing(PostingOptions.FirstOrDefault(p => p.Id == l.PostingId), l.Side, l.Title, l.TrackNeed));
                     this.RaisePropertyChanged(nameof(HasBuyListing));
                     _buyAssignee = store.BuyAssigneeId == 0 ? null
                         : AssigneeOptions.FirstOrDefault(a => a.Id == store.BuyAssigneeId && a.Kind == store.BuyAssigneeType);
@@ -2095,7 +2136,7 @@ public class StoresViewModel : ReactiveObject
                         AssigneeOptions.Add(_buyAssignee = new AssigneeOption(store.BuyAssigneeId, store.BuyAssigneeType, store.BuyAssigneeName));
                     this.RaisePropertyChanged(nameof(BuyAssignee));
                     this.RaisePropertyChanged(nameof(BuyAssigneeMissing));
-                    SetBuyLocation(store.BuyLocationId, store.BuyLocationName, save: false);
+                    SetBuyLocations(StoreBuyLocations.Of(store), save: false);
                     _ = MeasurePostingAsync();
                     _senderPolicy  = store.SenderPolicy; this.RaisePropertyChanged(nameof(SenderPolicy));
                     _storeLanguage = store.Language;     this.RaisePropertyChanged(nameof(StoreLanguage));
@@ -2334,7 +2375,7 @@ public class StoresViewModel : ReactiveObject
             var resolved = SenderMatch is { } picked
                         && string.Equals(picked.Name, typed, StringComparison.OrdinalIgnoreCase)
                 ? (picked.Id, picked.Name)
-                : await ResolveAsync(db, typed, kind);
+                : await ResolveAsync(db, typed, kind) ?? await ResolveFromEsiAsync(typed, kind);
             if (resolved is null)
             {
                 Status = string.Format(kind switch
@@ -2424,6 +2465,20 @@ public class StoresViewModel : ReactiveObject
         if (exact is not null) return (exact.EntityId, exact.Name);
 
         return hits.Count == 1 ? (hits[0].EntityId, hits[0].Name) : null;
+    }
+
+    /// <summary>
+    /// A name the app has never seen, asked of EVE itself (the public /universe/ids/, exact name,
+    /// any case). The app's own cache only holds who it has met — killmails, contacts, mail — so
+    /// a new buyer's name was "not found" although EVE knew it perfectly well.
+    /// </summary>
+    private async Task<(long Id, string Name)?> ResolveFromEsiAsync(string name, string kind)
+    {
+        if (_esi is null) return null;
+        var category = kind is "corporation" or "alliance" ? kind : "character";
+        var found = await _esi.LookupEntityIdsAsync([name]);
+        var hit = found.FirstOrDefault(f => f.Category == category);
+        return hit.Id == 0 ? null : (hit.Id, hit.Name);
     }
 
     private async Task CheckMailNowAsync()

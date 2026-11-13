@@ -386,7 +386,7 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
     <value>Uniquement les membres de ce groupe du serveur, dans ces canaux (facultatif)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>Le canal où je suis</value>
+    <value>&lt;Canal actuel&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>Nouvelle cible</value>
@@ -669,5 +669,11 @@ La plupart des serveurs Mumble utilisent leur propre certificat. Faites-lui conf
   </data>
   <data name="PickTalkingTo" xml:space="preserve">
     <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} sur le serveur Mumble {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>cible de canal {0}</value>
   </data>
 </root>

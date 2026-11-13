@@ -19,7 +19,7 @@ namespace EveConsole.ViewModels;
 /// so a change that comes to nothing is not saved (<see cref="_savedSignature"/>), and speech
 /// input is only reconfigured when one of its own fields changed.</para>
 /// </summary>
-public sealed class AgentSettingsViewModel : ReactiveObject
+public sealed class AgentSettingsViewModel : ReactiveObject, IKeyCaptureHost
 {
     private readonly AgentService        _service;
     private readonly TtsService?         _tts;
@@ -764,25 +764,95 @@ public sealed class AgentSettingsViewModel : ReactiveObject
     }
 
     // ── Push-to-talk global key ────────────────────────────────────────────────
-    /// <summary>The keys offered, by the virtual-key code the settings keep (0 for none), with the
-    /// words shown for each. Chosen by the code, never by the name: "Disabled" is translated.</summary>
-    public IReadOnlyList<Choice<int>> PushToTalkKeyNames { get; } =
-        GlobalHotkeyService.KeyOptions.Where(k => GlobalHotkeyService.AvailableHere(k.WinVk))
-                                      .Select(k => new Choice<int>(k.WinVk, k.Name)).ToList();
+    // Chosen by pressing it, as the Mumble tool's keys are: any key or mouse button this computer can listen for.
 
     /// <summary>The Win32 virtual-key code, as saved; 0 = disabled.</summary>
     private int _pushToTalkKey;
+    private bool _capturingPushToTalk;
+    private string _pushToTalkKeyProblem = "";
+    private bool _pushToTalkKeyRefused;
 
-    public Choice<int> SelectedPushToTalkKeyName
+    /// <summary>⚠️ No public setter: the tab saves what has one at each change, and this saves from the key's commands.</summary>
+    public int PushToTalkKey
     {
-        get => PushToTalkKeyNames.FirstOrDefault(k => k.Value == _pushToTalkKey) ?? PushToTalkKeyNames[0];
-        set
+        get => _pushToTalkKey;
+        private set { this.RaiseAndSetIfChanged(ref _pushToTalkKey, value); this.RaisePropertyChanged(nameof(PushToTalkKeyText)); }
+    }
+
+    public string PushToTalkKeyText =>
+        _capturingPushToTalk ? SettingsText.PttKeyPressNow
+        : _pushToTalkKey == 0 ? SettingsText.PttKeyDisabled
+        : GlobalHotkeyService.VkName(_pushToTalkKey);
+
+    public ICommand CapturePushToTalkKeyCommand { get; }
+    public ICommand ClearPushToTalkKeyCommand { get; }
+
+    /// <summary>What is wrong with the key: blank when nothing is.</summary>
+    public string PushToTalkKeyProblem
+    {
+        get => _pushToTalkKeyProblem;
+        private set { this.RaiseAndSetIfChanged(ref _pushToTalkKeyProblem, value); this.RaisePropertyChanged(nameof(HasPushToTalkKeyProblem)); }
+    }
+
+    public bool HasPushToTalkKeyProblem => _pushToTalkKeyProblem.Length > 0;
+
+    /// <summary>The key pressed was refused, rather than the key kept being one another place has too.</summary>
+    public bool PushToTalkKeyRefused
+    {
+        get => _pushToTalkKeyRefused;
+        private set => this.RaiseAndSetIfChanged(ref _pushToTalkKeyRefused, value);
+    }
+
+    public bool IsCapturingKey => _capturingPushToTalk;
+
+    private void CapturePushToTalkKey()
+    {
+        RefreshPushToTalkProblem();
+        _capturingPushToTalk = true;
+        this.RaisePropertyChanged(nameof(PushToTalkKeyText));
+    }
+
+    public void CancelKeyCapture()
+    {
+        if (!_capturingPushToTalk) return;
+        _capturingPushToTalk = false;
+        this.RaisePropertyChanged(nameof(PushToTalkKeyText));
+    }
+
+    public void TakeCapturedKey(int vk)
+    {
+        if (vk == 0 || !_capturingPushToTalk) return;
+        CancelKeyCapture();
+
+        // ⚠️ A key something else listens for would do both at once: talk to the agent and on a Mumble server.
+        if (GlobalKeys.Holder(vk, o => o == GlobalKeys.AgentOwner) is { } holder)
         {
-            // A detaching ComboBox sets null; that is not a choice.
-            if (value is null) { this.RaisePropertyChanged(); return; }
-            _pushToTalkKey = value.Value;
-            this.RaisePropertyChanged();
+            RefreshPushToTalkProblem();
+            PushToTalkKeyProblem = string.Format(CommonText.KeyTaken, GlobalHotkeyService.VkName(vk), holder.What);
+            PushToTalkKeyRefused = true;
+            return;
         }
+
+        PushToTalkKey = vk;
+        RefreshPushToTalkProblem();
+        _autoSave.Changed();
+    }
+
+    private void ClearPushToTalkKey()
+    {
+        CancelKeyCapture();
+        PushToTalkKey = 0;
+        RefreshPushToTalkProblem();
+        _autoSave.Changed();
+    }
+
+    /// <summary>Warns when the key kept is one something else has too: chosen before keys were checked across the app.</summary>
+    private void RefreshPushToTalkProblem()
+    {
+        PushToTalkKeyRefused = false;
+        PushToTalkKeyProblem = GlobalKeys.Holder(_pushToTalkKey, o => o == GlobalKeys.AgentOwner) is { } holder
+            ? string.Format(CommonText.KeyAlsoUsed, GlobalHotkeyService.VkName(_pushToTalkKey), holder.What)
+            : "";
     }
 
     public ICommand RefreshMicDevicesCommand { get; }
@@ -902,6 +972,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
             _autoSave.Changed();   // a button, not typing: saved now
         });
         RefreshMicDevicesCommand  = ReactiveCommand.Create(RefreshMicrophoneDevices);
+        CapturePushToTalkKeyCommand = ReactiveCommand.Create(CapturePushToTalkKey);
+        ClearPushToTalkKeyCommand   = ReactiveCommand.Create(ClearPushToTalkKey);
         TranscriptionList         = new ServiceListChoice(() => _transcriptionModel, id => TranscriptionModel = id, TranscriptionSource,
             n => string.Format(SettingsText.TranscriptionListFound, n), () => SettingsText.TranscriptionListEmpty,
             ServiceListChoice.Holds.Models, SettingsText.TypeModelNameInstead, listed => AddListedRates(ListedRates.OpenAiTranscribe, listed));
@@ -945,6 +1017,7 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         // What another client has written since this one started. The subscription above puts
         // it on the tab when it lands.
         _ = _service.RefreshSharedAsync();
+        RefreshPushToTalkProblem();
     }
 
     private void LoadFromService()
@@ -1002,8 +1075,8 @@ public sealed class AgentSettingsViewModel : ReactiveObject
         _whisperLocalModel        = s.WhisperLocalModel;
         _whisperLanguage          = string.IsNullOrWhiteSpace(s.WhisperLanguage) ? "en" : s.WhisperLanguage;
         _microphoneDevice         = s.MicrophoneDeviceName ?? "";
-        // A key the list does not offer reads, and is saved, as none — as it always was.
-        _pushToTalkKey = GlobalHotkeyService.KeyOptions.Any(k => k.WinVk == s.PushToTalkKey)
+        // A key this computer can't listen for reads, and is saved, as none — as it always was.
+        _pushToTalkKey = GlobalHotkeyService.AnyKeys.Any(k => k.WinVk == s.PushToTalkKey)
                          && GlobalHotkeyService.AvailableHere(s.PushToTalkKey) ? s.PushToTalkKey : 0;
 
         if (s.SpeechInputProvider != SpeechInputKind.None)

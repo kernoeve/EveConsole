@@ -2041,4 +2041,49 @@ Rien n'est détruit : ses commandes restent dans le suivi des commandes, et ses
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>Échec de la publication Discord sur « {0} » : {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Uniquement le nécessaire</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Listes d&apos;achat : n&apos;accepter que ce dont la Liste de tâches a encore besoin pour chaque objet, soit ce qu&apos;elle demande moins ce qui est détenu, en fabrication et déjà proposé dans cette boutique. Un objet qui n&apos;est plus recherché n&apos;accepte aucune offre, et une offre supérieure au besoin n&apos;est pas acceptée.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Afficher combien il en faut encore</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>Sur une liste d&apos;achat qui n&apos;accepte que le nécessaire : montrer aux vendeurs combien d&apos;exemplaires de chaque objet sont encore recherchés, et quelle part est couverte. Désactivé, le plafond s&apos;applique toujours ; seuls les chiffres restent internes à la boutique.</value>
+  </data>
+  <data name="WebSyncOverNeedOne" xml:space="preserve">
+    <value>{1:N0} {2} proposés, mais il n&apos;en faut plus que {0:N0}.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>{1:N0} {2} proposés, mais il n&apos;en faut plus que {0:N0}.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Restant</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Demandé {0:N0} · en stock {1:N0} · en fabrication {2:N0} · proposé {3:N0} → encore nécessaire {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Supprimer l&apos;annonce « {0} », avec toutes ses sections, objets et lieux ? Les boutiques qui la proposent cesseront de l&apos;afficher. Action irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Supprimer la section « {1} » ({0:N0} objet) ? Action irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Supprimer la section « {1} » et les {0:N0} objets qu&apos;elle contient ? Action irréversible.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Retirer {0} de cette annonce ?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Retirer les {0:N0} objets sélectionnés de leurs annonces ?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Ne plus lister ce qui se trouve dans {0} ?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Supprimer {0:N0} objets</value>
+  </data>
 </root>

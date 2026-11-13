@@ -29,7 +29,7 @@ namespace EveConsole.ViewModels;
 /// <see cref="LiveEvery"/> and drawn on every map tab, and an overlay counting intel or kills is
 /// re-read every <see cref="OverlayEvery"/>.</para>
 /// </summary>
-public sealed class MapToolViewModel : ReactiveObject
+public sealed class MapToolViewModel : ReactiveObject, IDisposable
 {
     private readonly UniverseMapService         _map;
     private readonly MapStatsService?           _stats;
@@ -64,13 +64,13 @@ public sealed class MapToolViewModel : ReactiveObject
     {
         _eveScout      = eveScout;
         _campaigns     = campaigns;
-        if (eveScout is not null) eveScout.Changed += () => _ = ReloadHolesAsync();
+        if (eveScout is not null) _life.Follow(() => eveScout.Changed += OnHolesChanged, () => eveScout.Changed -= OnHolesChanged);
         _errors        = errors;
         _bridges       = bridges;
         _routes        = routes;
         _jumpPlanner   = jumpPlanner;
         _db            = db;
-        if (bridges is not null) bridges.Changed += () => _ = ReloadBridgesAsync();
+        if (bridges is not null) _life.Follow(() => bridges.Changed += OnBridgesChanged, () => bridges.Changed -= OnBridgesChanged);
         _map           = map;
         _stats         = stats;
         _prefs         = prefs;
@@ -90,11 +90,12 @@ public sealed class MapToolViewModel : ReactiveObject
         ShowCampaignsTabCommand   = ReactiveCommand.Create(() => { ShowCampaignsTab(); });
 
         // The avoid list is ringed on every map, whoever changed it.
-        RouteAvoidList.Changed += () => Dispatcher.UIThread.Post(() =>
+        Action onAvoided = () => Dispatcher.UIThread.Post(() =>
         {
             var ids = RouteAvoidList.Ids;
             foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.Map.Avoided = ids;
         });
+        _life.Follow(() => RouteAvoidList.Changed += onAvoided, () => RouteAvoidList.Changed -= onAvoided);
 
         // Typing refreshes the suggestions; picking one opens it. Throttled: each keystroke is a
         // query.
@@ -368,6 +369,22 @@ public sealed class MapToolViewModel : ReactiveObject
         _activePane.Tabs.Add(tab);
         SelectedTab = tab;
         PanesChanged();
+    }
+
+    private readonly ToolLife _life = new();
+    private void OnHolesChanged()   => _ = ReloadHolesAsync();
+    private void OnBridgesChanged() => _ = ReloadBridgesAsync();
+
+    /// <summary>
+    /// A copy of the map closed: it stops following the holes, bridges and avoid list, its live
+    /// loop stops, and each of its own tabs closes as closing it would (their clocks stop).
+    /// </summary>
+    public void Dispose()
+    {
+        _life.Dispose();
+        _liveCts?.Cancel();
+        _liveCts = null;
+        foreach (var tab in AllTabs.ToList()) tab.OnClosed();
     }
 
     public void CloseTab(MapTabViewModel tab)

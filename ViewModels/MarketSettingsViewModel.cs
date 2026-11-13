@@ -545,8 +545,10 @@ public class MarketSettingsViewModel : ReactiveObject
         MarketPricingService            svc,
         EsiClient                       esiClient,
         ObservableCollection<Character> characters,
-        BuildCostService?               buildCostSvc = null)
+        BuildCostService?               buildCostSvc = null,
+        AppPreferencesService?          prefs = null)
     {
+        _prefs         = prefs;
         _db            = db;
         _dbFactory     = dbFactory;
         _svc           = svc;
@@ -707,6 +709,47 @@ public class MarketSettingsViewModel : ReactiveObject
         });
 
         _defaultsSave.Flash(s => DefaultsStatus = s, SettingsText.Saved);
+    }
+
+    // ── Which park build costs are worked out at ────────────────────────────
+
+    private readonly AppPreferencesService? _prefs;
+
+    /// <summary>"Default" (0: whichever park is marked default), then every park by name.</summary>
+    public ObservableCollection<Choice<int>> BuildCostParks { get; } = [];
+
+    private Choice<int>? _buildCostPark;
+    public Choice<int>? BuildCostPark
+    {
+        get => _buildCostPark;
+        set
+        {
+            // ⚠️ A refilled ComboBox sets null; that is not a choice and is not saved.
+            if (value is null || value == _buildCostPark) return;
+            var changed = _buildCostPark is not null && _buildCostPark.Value != value.Value;
+            this.RaiseAndSetIfChanged(ref _buildCostPark, value);
+            if (changed && _prefs is not null)
+                _ = _prefs.SetLongAsync(BuildCostService.ParkKey, value.Value == 0 ? null : value.Value);
+        }
+    }
+
+    /// <summary>The parks, and the one build costs use, read again: a park added or renamed since shows here.</summary>
+    public async Task LoadBuildCostParksAsync()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var parks = await db.IndyParks.AsNoTracking()
+            .OrderBy(p => p.Name).Select(p => new { p.Id, p.Name, p.IsDefault }).ToListAsync();
+        var chosen = (int)(_prefs?.GetLong(BuildCostService.ParkKey, 0) ?? 0);
+        if (chosen != 0 && parks.All(p => p.Id != chosen)) chosen = 0;   // a deleted park: back to the default
+
+        var defaultName = parks.FirstOrDefault(p => p.IsDefault)?.Name;
+        BuildCostParks.Clear();
+        BuildCostParks.Add(new Choice<int>(0, defaultName is null
+            ? SettingsText.BuildCostParkDefault
+            : string.Format(SettingsText.BuildCostParkDefaultNamed, defaultName)));
+        foreach (var p in parks) BuildCostParks.Add(new Choice<int>(p.Id, p.Name));
+        _buildCostPark = BuildCostParks.First(c => c.Value == chosen);
+        this.RaisePropertyChanged(nameof(BuildCostPark));
     }
 
     private async Task RecalculateBuildCostsAsync()

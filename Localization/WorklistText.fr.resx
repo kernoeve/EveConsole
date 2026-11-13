@@ -2683,4 +2683,115 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Transferts</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Transfert</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Remettre des objets à un autre personnage ou à une autre corporation, dans la station où ils se trouvent</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} type d&apos;objet</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} types d&apos;objets</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} à {1}, {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0} : déplace ceci de ton propre hangar vers le hangar de {1} à {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} n&apos;est pas dans {1} : remets ceci à {1} avec un contrat d&apos;échange d&apos;objets à {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, pour {1} : remets ceci à {2} avec un contrat d&apos;échange d&apos;objets à {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0} : prends ceci du hangar de {1} dans le tien à {2}, comme le prévoit ton niveau de personnage.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0} : prends ceci dans le hangar de {1} et remets-le à {2} avec un contrat d&apos;échange d&apos;objets à {3}. {2} n&apos;est pas dans {1} : pour ses travaux, seul son propre hangar compte.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Niveaux de personnage</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Corporation par défaut</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>La corporation qui doit détenir les objets de la liste de travail (ceux des commandes et des niveaux d&apos;inventaire), pour que chaque personnage qui en fait partie puisse construire avec : un personnage ne peut utiliser que son propre hangar et celui de sa corporation. Un objet détenu par un personnage, dans son hangar ou dans la soute d&apos;un vaisseau à quai, reçoit un transfert vers cette corporation dans toute station où elle a un hangar, sauf ce qu&apos;un niveau de personnage ci-dessous garde à ce personnage. Les modules équipés, les plans et les vaisseaux assemblés ne sont jamais déplacés.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Tes autres corporations remettent aussi les leurs</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Désactivé : seuls les hangars et soutes des personnages sont vidés dans la corporation par défaut. Activé : les objets de la liste de travail de tes autres corporations reçoivent aussi des transferts, faits par un de tes personnages dans cette corporation.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Garde les niveaux d&apos;un groupe chez un personnage dans une station, dans son propre hangar, pour ses travaux seulement. C&apos;est ainsi qu&apos;un personnage hors de la corporation par défaut obtient de quoi construire. Le transport amène la quantité à la station, en plus d&apos;un éventuel niveau de station, et un transfert donne au personnage ce qui lui manque depuis le hangar de la corporation par défaut.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Choisis un personnage.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>Déjà dans la corporation par défaut</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>Actif</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>Aucun niveau de personnage pour l&apos;instant.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} niveau de personnage</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} niveaux de personnage</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>Un personnage n&apos;est pas réapprovisionné tant qu&apos;il n&apos;est pas descendu de ce pourcentage sous son niveau, puis reçoit de quoi le remplir entièrement. Zéro donne au moindre manque.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>Ce qu&apos;un personnage détient au-delà de son niveau lui reste tant qu&apos;il ne le dépasse pas de ce pourcentage, puis l&apos;excédent retourne à la corporation par défaut. Zéro renvoie le moindre excédent.</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Certains sont dans la soute d&apos;un vaisseau.</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Dont {0:N0} en offres de la boutique, comptés comme à venir.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Il manque {0:N0} exécutions de copie.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Plus {0:N0} exécutions de copie pour son niveau de stock ou des commandes.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} pour des commandes en attente</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Rien ne le fabrique ; {0:N0} en stock</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>La planification industrielle n&apos;est pas configurée</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} règle(s) de fabrication et {1:N0} commande(s) en attente patientent.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>Aucun parc industriel n&apos;est choisi pour la Liste de tâches et aucun n&apos;est marqué dans les parcs industriels.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Aucun personnage n&apos;est activé pour les travaux industriels.</value>
+  </data>
 </root>

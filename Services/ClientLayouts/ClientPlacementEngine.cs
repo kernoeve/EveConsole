@@ -187,8 +187,9 @@ public sealed class ClientPlacementEngine
         foreach (var w in live)
         {
             if (CharacterIn(w.Title) is not { } character || _plan.Positions.ContainsKey(character)) continue;
-            ClaimCellItSitsIn(_clients[w.Handle]);
-            step.Notices.Add(new PlacementNotice(PlacementNoticeKind.CharacterHasNoPosition, w.Handle, character));
+            var c = _clients[w.Handle];
+            ClaimCellItSitsIn(c);
+            if (c.AreaId == null) TakeFreeCell(w.Handle, c, character, step, now);
         }
         foreach (var w in live.Where(w => CharacterIn(w.Title) == null))
             TakeEmptyCell(w.Handle, _clients[w.Handle], step, now);
@@ -243,11 +244,31 @@ public sealed class ClientPlacementEngine
         }
     }
 
+    /// <summary>
+    /// A free cell on its monitor for a logged-in character in no group. Cells no group is set for
+    /// come first, so it doesn't sit in a place someone else is expected in; only with none of
+    /// those free does it take one, and the user hears of it only when there was nowhere at all.
+    /// </summary>
+    private void TakeFreeCell(long handle, Tracked c, string character, PlacementStep step, DateTime now)
+    {
+        var monitor = _plan.Monitors.FirstOrDefault(m => Contains(m.Bounds, c.Last));
+        var free = monitor?.Cells.Where(cell => Holder(monitor.Key, cell.AreaId) == null).ToList() ?? [];
+        if (monitor == null || free.Count == 0)
+        {
+            step.Notices.Add(new PlacementNotice(PlacementNoticeKind.CharacterHasNoPosition, handle, character));
+            return;
+        }
+        var grouped = _plan.Positions.Values.ToHashSet();
+        var ungrouped = free.Where(cell => !grouped.Contains((monitor.Key, cell.AreaId))).ToList();
+        Send(handle, c, monitor.Key, ungrouped.Count > 0 ? ungrouped[0] : free[0], step, now);
+    }
+
     private void GoToPosition(long handle, Tracked c, string character, PlacementStep step, DateTime now)
     {
         if (!_plan.Positions.TryGetValue(character, out var position))
         {
-            step.Notices.Add(new PlacementNotice(PlacementNoticeKind.CharacterHasNoPosition, handle, character));
+            // In no group: like a client at login, it keeps the cell it holds or takes a free one.
+            if (c.AreaId == null) TakeFreeCell(handle, c, character, step, now);
             return;
         }
         if (c.MonitorKey == position.MonitorKey && c.AreaId == position.AreaId) return;

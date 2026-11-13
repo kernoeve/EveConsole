@@ -136,6 +136,16 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
 
         var fresh = id is not { } characterId ? [] : _worklist.PoolRows
             .Where(r => r.Item.CharacterId == characterId)
+            // ⚠️ By task name here, and only here: this list can't be sorted by the one reading
+            // it, and alike tasks side by side are run through faster. The Worklist's own grids
+            // keep their order. Then the Worklist's order, among tasks of one name.
+            //
+            // A Transfer by its item, not its title: the title leads with the quantity, which
+            // scatters the same item ("1 × Tritanium", "176,793 × Tritanium") across the list.
+            // One of several items has no single item, and keeps its title.
+            .OrderBy(r => r.Item.Kind == EveConsole.Services.Worklist.WorklistKind.Transfer && r.Item.TypeName.Length > 0 ? r.Item.TypeName : r.Item.Title,
+                     StringComparer.CurrentCultureIgnoreCase)
+            .ThenBy(r => r.Sequence)
             .Select(r => new WorklistRowVm(r.Item, r.Sequence) { ExpansionChanged = OnExpansionChanged })
             .ToList();
         RowExpansion.Carry(_parents, fresh);
@@ -180,6 +190,13 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
         if (e.PropertyName is nameof(WorklistViewModel.IsLoading) or nameof(WorklistViewModel.Status))
             Dispatcher.UIThread.Post(ShowNote);
     }
+
+    // Ticking a stop off from here: the worklist this list is cut from records it and rebuilds,
+    // and the rebuilt rows come back through PoolRows.
+    public Task MarkHauledAsync(WorklistRowVm stopRow) => _worklist.MarkHauledAsync(stopRow);
+    public ContractedCargoVm? ContractedEditor(WorklistRowVm stopRow) => _worklist.ContractedEditor(stopRow);
+    public Task MarkContractedAsync(WorklistRowVm stopRow, IReadOnlyList<(int TypeId, long Quantity)> cargo) =>
+        _worklist.MarkContractedAsync(stopRow, cargo);
 
     private void OnExpansionChanged(WorklistRowVm row)
     {

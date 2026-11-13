@@ -82,23 +82,29 @@ public static class ContractLag
         return all.Where(m => set.Contains(m.TypeId)).ToList();
     }
 
+    /// <summary>
+    /// Only the goods still in a courier: out of the start already, at the end not yet.
+    ///
+    /// <para>⚠️ Everything else these moves say is in the assets themselves now — written on top
+    /// of the poll as it happens, see AssetActivity — so a count reading assets must not add it
+    /// again. Cargo in transit is on no shelf and in no asset row, and a count that asks whether
+    /// goods exist (demand, purchasing, inventory levels) still adds it from here.</para>
+    /// </summary>
+    public static async Task<List<ContractMove>> InTransitAsync(
+        AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds = null) =>
+        [.. (await MovesAsync(db, ct, typeIds)).Where(m => m.InTransit)];
+
     private static async Task<List<ContractMove>> MovesUncachedAsync(
         AppDbContext db, CancellationToken ct, IReadOnlyCollection<int>? typeIds)
     {
         if (typeIds is { Count: 0 }) return [];
 
-        // Each owner's asset clock, and whether that is a character's hangar or a corporation's.
+        // Each owner's asset clock — when its list was current, see AssetClock — and whether
+        // that is a character's hangar or a corporation's.
         var now = DateTimeOffset.UtcNow;
-        var snapshot = (await db.EsiCallRecords.AsNoTracking()
-                .Where(r => r.Endpoint == "char.assets" || r.Endpoint == "corp.assets")
-                .Select(r => new { r.OwnerId, r.Endpoint, r.LastCalledAt })
-                .ToListAsync(ct))
-            .GroupBy(r => r.OwnerId)
-            .Select(g => (Owner: g.Key,
-                          Type: g.Any(r => r.Endpoint == "corp.assets") ? "corporation" : "character",
-                          At: g.Max(r => r.LastCalledAt)))
-            .Where(s => s.At > now - NotPolled)
-            .ToDictionary(s => s.Owner, s => (s.Type, s.At));
+        var snapshot = (await AssetClock.LoadAsync(db, "assets", ct))
+            .Where(s => s.Value.At > now - NotPolled)
+            .ToDictionary(s => s.Key, s => s.Value);
         if (snapshot.Count == 0) return [];
 
         // Hauls ticked off as delivered move goods just as contracts do, against the same clocks,

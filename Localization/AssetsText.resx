@@ -2037,4 +2037,40 @@ away: Edit list brings it back.</value>
     <value>Volume</value>
     <comment>Column header in Item Valuation's two tables: the space the row's items take, in m³ (not a trade volume — that is ColVolume).</comment>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>Since poll</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>Added ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>Changed ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>job {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>contract {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>haul</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>Current as of {0}</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>Current as of {0} to {1}</value>
+  </data>
+  <data name="StatusSincePollOne" xml:space="preserve">
+    <value>{0:N0} row written since</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>{0:N0} rows written since</value>
+  </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>market order {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>bought on the market</value>
+  </data>
 </root>

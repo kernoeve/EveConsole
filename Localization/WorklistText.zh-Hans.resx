@@ -2644,4 +2644,109 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>使用 {0}。</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>转交</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>转交</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>在物品所在的空间站，把它们交给另一个角色或军团</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} 种物品</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>在 {2} 将{0}交给 {1}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}：在 {2} 把这些从你自己的机库移到 {1} 的机库。</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} 不在 {1}：在 {2} 通过物品交换合同把这些交给 {1}。</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}（代表 {1}）：在 {3} 通过物品交换合同把这些交给 {2}。</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}：按你的角色存量，在 {2} 把这些从 {1} 的机库移到你自己的机库。</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}：从 {1} 的机库取出这些，在 {3} 通过物品交换合同交给 {2}。{2} 不在 {1}，其作业只能使用自己的机库。</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>角色存量</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>默认军团</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>应当持有工作清单物品（订单和库存水平中的物品）的军团，这样军团里的每个角色都能用它们制造：角色只能使用自己的机库和所在军团的机库。角色持有的物品（在其机库或停靠舰船的货柜中），会在该军团有机库的空间站生成转交给该军团的任务，下方角色存量为该角色保留的部分除外。已装配的装备、蓝图和组装好的舰船永远不会被移动。</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>你的其他军团也交出它们的物品</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>关：只把角色的机库和货柜清空到默认军团。开：你其他军团的工作清单物品也会生成转交任务，由你在该军团中的一个角色完成。</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>在某个空间站为一个角色保留一组物品的存量，放在该角色自己的机库，只供其作业使用。这是默认军团之外的角色获得制造材料的方式。运输会把这些数量运到该空间站（与那里的空间站存量相加），转交任务再从默认军团的机库把缺少的部分交给该角色。</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>请选择一个角色。</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>已在默认军团中</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>启用</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>还没有角色存量。</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} 条角色存量</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>角色低于其等级达到这个比例之前不做处理，之后补给到完全满额。为零时只要有缺口就补给。</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>角色持有的超出等级部分在超出这个比例之前保留，之后将多余部分还给默认军团。为零时任何多余都归还。</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>部分在舰船的货舱中。</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>其中 {0:N0} 来自商店报价，按即将到货计算。</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>复制流程数缺少 {0:N0}。</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>另加 {0:N0} 个复制流程，用于其库存水平或订单。</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} 用于待处理订单</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>无法制造；现有 {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>工业计划尚未设置</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>有 {0:N0} 条制造规则和 {1:N0} 个待处理订单在等待。</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>工作清单未选择工业园区，工业园区中也没有标星的园区。</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>没有启用任何角色来运行工业任务。</value>
+  </data>
 </root>

@@ -765,8 +765,11 @@ public class InvItemRow : ReactiveObject
 
 // ── Main ViewModel ─────────────────────────────────────────────────────────────
 
-public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
+public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
     public bool AutoRefreshEnabled { get; set; }
@@ -937,10 +940,10 @@ public class InvLevelViewModel : ReactiveObject, IPeriodicRefresh
         // ⚠️ Gated and labelled. Off until the tool is opened, because every view model is
         // built at launch; labelled because the error log otherwise cannot tell one periodic
         // refresh from another once it is on the UI thread.
-        Observable.Interval(TimeSpan.FromMinutes(1))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(1))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("InvLevel.AutoRefresh")
-            .SubscribeAsyncSafe(_ => RefreshAllAsync(), null, "InvLevel.AutoRefresh");
+            .SubscribeAsyncSafe(_ => RefreshAllAsync(), null, "InvLevel.AutoRefresh"));
 
         _ = InitAsync();
     }

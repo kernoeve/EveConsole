@@ -229,9 +229,6 @@
   <data name="SoundOption" xml:space="preserve">
     <value>확인이 필요한 메시지에 소리 재생</value>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>읽은 메시지 보관 기간 (일, 0은 전부 보관)</value>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>메시지를 입력하세요. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
   </data>

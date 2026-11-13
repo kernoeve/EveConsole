@@ -74,7 +74,8 @@
   <data name="ChatNoNewMessages" xml:space="preserve"><value>No new direct messages.</value></data>
   <data name="ChatNoNewGroup" xml:space="preserve"><value>Nothing new in group chat.</value></data>
   <data name="AgentOff" xml:space="preserve"><value>The AI companion is turned off. Turn it on in Settings.</value></data>
-  <data name="MenuTip" xml:space="preserve"><value>Tools</value></data>
+  <data name="MenuTip" xml:space="preserve"><value>Tools. Shift-click opens another copy.</value></data>
+  <data name="ContainerMenuTip" xml:space="preserve"><value>Open a tool in these tabs. Shift-click opens another copy.</value></data>
   <data name="LabelMenuTarget" xml:space="preserve"><value>Opens tools in</value></data>
   <data name="MenuTargetNewWindow" xml:space="preserve"><value>A new window</value></data>
   <data name="MenuTargetLastUsed" xml:space="preserve"><value>The window used last</value></data>
@@ -149,7 +150,7 @@
   <data name="NoticeAClient" xml:space="preserve"><value>A client</value><comment>Used in place of a character's name while a game client is at the login screen.</comment></data>
   <data name="NoticeNotFixed" xml:space="preserve"><value>{0} isn't in Fixed Window mode, so it was left alone. Change its window mode in the game's settings.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="NoticeInUse" xml:space="preserve"><value>{0}: its position is in use by another logged-in character, so it stayed where it is.</value><comment>{0} is a character's name.</comment></data>
-  <data name="NoticeNoPosition" xml:space="preserve"><value>{0} is logged in but isn't in any group. Add it to a client position.</value><comment>{0} is a character's name.</comment></data>
+  <data name="NoticeNoPosition" xml:space="preserve"><value>{0} is logged in but isn't in any group, and no client position on its monitor is free. Add it to a client position.</value><comment>{0} is a character's name.</comment></data>
   <data name="NoticeMovedByHand" xml:space="preserve"><value>{0} was moved by hand, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="NoticeDidNotHold" xml:space="preserve"><value>{0} didn't stay where it was placed, so it is left alone until you press Apply.</value><comment>{0} is a character's name or "A client".</comment></data>
   <data name="OtherDesktops" xml:space="preserve"><value>Other desktops</value></data>
@@ -182,4 +183,40 @@
   <data name="WarnSmall" xml:space="preserve"><value>{0}: client {1} is only {2} × {3}, small for playing.</value><comment>{0} is a monitor's label, {1} a client position's number, {2} and {3} its width and height.</comment></data>
   <data name="WarnNoFit" xml:space="preserve"><value>{0}: the panels here don't fit, so something has no room.</value><comment>{0} is a monitor's label.</comment></data>
   <data name="WarnBroken" xml:space="preserve"><value>{0}: part of this layout can't be used as saved. It may have come from a newer version.</value><comment>{0} is a monitor's label.</comment></data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Export</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Import</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Save this layout to a file, to keep it or share it.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Add a layout from a file as a new layout. Monitors are not changed.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console layout</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>Exported &quot;{0}&quot;.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>Imported &quot;{0}&quot;. Check its Mumble controls if it came from another database.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>That file isn&apos;t an EVE Console layout.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>That layout was made by a newer EVE Console. Update to import it.</value>
+  </data>
+  <data name="NewBlankLayout" xml:space="preserve">
+    <value>Blank</value>
+  </data>
+  <data name="OpenTemplatesFolder" xml:space="preserve">
+    <value>Open templates folder</value>
+  </data>
+  <data name="TipNewLayout" xml:space="preserve">
+    <value>Start a new layout blank or from a template. A layout exported to the templates folder becomes a template.</value>
+  </data>
 </root>

@@ -40,6 +40,7 @@ public class SettingsViewModel : ReactiveObject
     /// <summary>The app's own, not copies: they hold the live connections.</summary>
     public JabberViewModel JabberVm { get; }
     public MumbleViewModel MumbleVm { get; }
+    public IrcViewModel? IrcVm { get; }
 
     public SettingsViewModel(
         WorklistIndustryViewModel     industryVm,
@@ -68,8 +69,10 @@ public class SettingsViewModel : ReactiveObject
         MumbleViewModel               mumbleVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
-        GlobalHotkeyService?          hotkey  = null)
+        GlobalHotkeyService?          hotkey  = null,
+        IrcViewModel?                 ircVm   = null)
     {
+        IrcVm          = ircVm;
         JabberVm       = jabberVm;
         MumbleVm       = mumbleVm;
         SlackVm        = slackVm;

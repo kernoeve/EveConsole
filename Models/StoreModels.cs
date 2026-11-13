@@ -274,11 +274,22 @@ public class Store
 
     /// <summary>Where sellers are asked to create those contracts: an NPC station or a structure,
     /// by id; zero when the store does not say. Told to sellers in the price list mail, the offer
-    /// replies and on the web site — not enforced: a contract made elsewhere still matches.</summary>
+    /// replies and on the web site — not enforced: a contract made elsewhere still matches.
+    ///
+    /// <para>⚠️ The FIRST of <see cref="BuyLocations"/> since a store could name several, kept so
+    /// an older app sharing the database still names one. Read and written through
+    /// <see cref="EveConsole.Services.StoreBuyLocations"/>, never directly.</para></summary>
     public long   BuyLocationId   { get; set; }
     /// <summary>Its name as picked: English for an NPC station, which each store's buyers read in
     /// the store's language; a structure's own name otherwise.</summary>
     public string BuyLocationName { get; set; } = "";
+
+    /// <summary>
+    /// Every place sellers may create those contracts, in order, as JSON <c>[{"id":…,"name":…}]</c>;
+    /// empty for a store from before there could be several, whose one place is
+    /// <see cref="BuyLocationId"/>. See <see cref="EveConsole.Services.StoreBuyLocations"/>.
+    /// </summary>
+    public string BuyLocations    { get; set; } = "";
 
     public DateTimeOffset CreatedAt { get; set; }
 }
@@ -308,7 +319,18 @@ public class StorePosting
     /// <summary>What the tab and the mail are headed; empty for the posting's own name.</summary>
     public string Title     { get; set; } = "";
 
+    /// <summary>
+    /// Buy only: take only what the production plan still needs of each item — what the worklist
+    /// wants, less what is held, in build, and already offered on this store. An item no longer
+    /// needed takes no offers, and an offer for more than is needed is not taken. See
+    /// <see cref="EveConsole.Services.StoreNeedService"/>.
+    /// </summary>
+    public bool   TrackNeed { get; set; }
+
     public bool IsBuy => Side == Buy;
+
+    /// <summary>A Buy listing capped by need.</summary>
+    public bool CapsAtNeed => IsBuy && TrackNeed;
 }
 
 /// <summary>

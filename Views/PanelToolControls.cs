@@ -60,28 +60,12 @@ public sealed class PanelMenuControl : Panel
         BuildMenu().Open(_button);
     }
 
-    /// <summary>The navigation's sections as submenus, each tool opening where this control is set to.</summary>
+    /// <summary>The navigation's sections as submenus, each tool opening where this control is set to,
+    /// or another copy of it with Shift.</summary>
     public ContextMenu BuildMenu()
     {
         var target = ToolTargets.Of(_options);
-        var menu = new ContextMenu { Placement = PlacementMode.BottomEdgeAlignedLeft };
-        foreach (var group in _main.NavGroups)
-        {
-            var section = new MenuItem { Header = group.Title };
-            foreach (var item in group.Items)
-            {
-                var entry = new MenuItem
-                {
-                    Header = item.Title,
-                    Icon = item.IsOpen ? new Ellipse { Width = 5, Height = 5, [!Shape.FillProperty] = new DynamicResourceExtension("AccentBrush") } : null,
-                };
-                var toolId = item.ToolId;
-                entry.Click += (_, _) => _main.OpenToolAt(toolId, target, _monitorKey);
-                section.Items.Add(entry);
-            }
-            menu.Items.Add(section);
-        }
-        return menu;
+        return ToolMenu.Build(_main, item => item.IsOpen, (toolId, copy) => _main.OpenToolAt(toolId, target, _monitorKey, copy));
     }
 }
 
@@ -122,12 +106,29 @@ public sealed class PanelToolContainer : Panel
         base.OnAttachedToVisualTree(e);
         _workspace = _main.ClaimContainer(_monitorKey, _controlId, _options);
         _view.DataContext = _workspace;
-        if (TopLevel.GetTopLevel(this) is Window window) MainWindow.Current?.AddContainerView(window, _view);
+        if (TopLevel.GetTopLevel(this) is Window window)
+        {
+            MainWindow.Current?.AddContainerView(window, _view);
+            // A panel hides with its client, and its tools mustn't be thought on screen meanwhile.
+            _window = window;
+            window.PropertyChanged += WindowChanged;
+            _main.SetContainerShown(_workspace, window.IsVisible);
+        }
+    }
+
+    private Window? _window;
+
+    private void WindowChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == Visual.IsVisibleProperty && _workspace is { } ws && _window is { } window)
+            _main.SetContainerShown(ws, window.IsVisible);
     }
 
     protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
     {
         base.OnDetachedFromVisualTree(e);
+        if (_window is { } window) window.PropertyChanged -= WindowChanged;
+        _window = null;
         MainWindow.Current?.RemoveContainerView(_view);
         _view.DataContext = null;
         if (_workspace is { } ws) _main.ReleaseContainer(ws);

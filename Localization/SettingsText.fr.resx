@@ -3877,4 +3877,55 @@ L'application va redémarrer.</value>
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Fermer la fenêtre principale ne fait alors que la masquer : les panneaux, les alarmes et le travail en arrière-plan continuent. Double-cliquez sur l&apos;icône, ou choisissez {0} dans son menu, pour faire revenir la fenêtre, et {1} pour arrêter EVE Console.</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>touche pour parler de {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Appuyez sur une touche ou un bouton de souris (Échap annule)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Effacer</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Travail en arrière-plan sur cet ordinateur</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Ne jamais exécuter le travail en arrière-plan sur ce client</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Quand le client qui interroge et fait le reste du travail en arrière-plan se ferme, un autre client connecté prend le relais. Coché, celui-ci ne le fait jamais : il affiche seulement ce que les autres recueillent. Enregistré sur cet ordinateur seulement, pas pour tous les clients. Si aucun autre client ne tourne, rien n'interroge.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Seulement avec une base PostgreSQL partagée : avec SQLite, ce client est le seul, il fait donc toujours le travail.</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Parc industriel</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Par défaut ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>Le parc industriel dont les structures, rigs et systèmes servent au calcul des coûts de fabrication enregistrés, et donc de tout prix fondé sur ce coût, comme celui d&apos;une annonce de vente. « Par défaut » suit le parc marqué par défaut dans les parcs industriels. La Liste de tâches et les calculateurs gardent leur propre parc. Cliquez sur Recalculer, ou attendez la prochaine actualisation du marché, pour appliquer un changement.</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Messages directs</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Supprime les messages directs enregistrés de Jabber, Mumble et IRC. Les messages non lus ne sont jamais supprimés, quel que soit leur âge. Activé par défaut à 30 jours, comme l’était le réglage d’historique de Jabber ; décochez pour tout conserver.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purger les messages directs de plus de</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Discussions de groupe</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Supprime les messages enregistrés des salons Jabber et des canaux IRC. Les messages non lus ne sont jamais supprimés, quel que soit leur âge. Le chat des canaux Mumble n’est jamais enregistré, il n’y a donc rien à supprimer. Les renseignements déjà lus d’un salon ou canal de renseignement sont conservés avec les messages de chat ci-dessus. Activé par défaut à 30 jours, comme l’était le réglage d’historique de Jabber ; décochez pour tout conserver.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purger les discussions de groupe de plus de</value>
+  </data>
 </root>

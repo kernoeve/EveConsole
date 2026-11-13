@@ -565,4 +565,25 @@
   <data name="WebDeclined" xml:space="preserve">
     <value>Отклонён магазином.</value>
   </data>
+  <data name="OfferNotNeeded" xml:space="preserve">
+    <value>{0} больше не нужен, поэтому предложение не принято.</value>
+  </data>
+  <data name="OfferOverNeedOther" xml:space="preserve">
+    <value>Нам нужно ещё только {0:N0} шт. «{2}», поэтому предложение на {1:N0} шт. не принято. Предложите не больше.</value>
+  </data>
+  <data name="PriceListNotNeeded" xml:space="preserve">
+    <value>больше не нужно</value>
+  </data>
+  <data name="PriceListStillNeededOther" xml:space="preserve">
+    <value>нужно ещё {0:N0} шт.</value>
+  </data>
+  <data name="PlacesOr" xml:space="preserve">
+    <value>{0} или {1}</value>
+  </data>
+  <data name="PlacesSeparator" xml:space="preserve">
+    <value>, </value>
+  </data>
+  <data name="PlacesOrMany" xml:space="preserve">
+    <value>{0} или {1}</value>
+  </data>
 </root>

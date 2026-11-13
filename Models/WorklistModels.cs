@@ -219,6 +219,28 @@ public class WorklistStationLevel
 }
 
 /// <summary>
+/// "Keep this much of this group with this character at this station."
+///
+/// <para>A station level for one character: the group's levels say how much, and this says that
+/// much should sit in this character's own hangar there, where only they can use it. For a
+/// character outside the default corporation, that is the only material they can build with.</para>
+///
+/// <para>It raises hauling to the station, as a station level there would, added to any the
+/// station has. Once at the station, a Transfer task gives the character what they lack, and the
+/// default corporation's sweep leaves that much with them.</para>
+/// </summary>
+public class WorklistCharacterLevel
+{
+    public int    Id            { get; set; }
+    public int    GroupId       { get; set; }
+    public long   LocationId    { get; set; }
+    public string LocationName  { get; set; } = "";
+    public long   CharacterId   { get; set; }
+    public string CharacterName { get; set; } = "";
+    public bool   Enabled       { get; set; } = true;
+}
+
+/// <summary>
 /// A station added to the industry asset scope on top of the region or system it is set to.
 ///
 /// The scope answers "where would I actually pull material from", and for most players that is

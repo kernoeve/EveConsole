@@ -235,7 +235,7 @@ public sealed class MumbleOverlayColumn(MumbleViewModel owner, MumbleSession ses
 /// <para>Separate from Jabber on purpose: they are different tools, for different purposes. They share
 /// nothing but the way passwords are kept.</para>
 /// </summary>
-public sealed class MumbleViewModel : ReactiveObject
+public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
 {
     public const string OverlayPref = "mumble.overlay";
     public const string ShowPeoplePref = "mumble.tree.people";
@@ -262,6 +262,9 @@ public sealed class MumbleViewModel : ReactiveObject
         MuteKey   = new MumbleToggleKeyVm(this);
         DeafenKey = new MumbleToggleKeyVm(this);
         PickKey   = new MumbleToggleKeyVm(this);
+
+        // Every server's keys, as saved, for the other places a key is chosen. Lives as long as the tool does.
+        _ = GlobalKeys.AddSource(() => _service.Sessions.SelectMany(s => KeyUses(s.Server)));
         AddServerCommand      = ReactiveCommand.CreateFromTask(AddServerAsync);
         DeleteServerCommand   = ReactiveCommand.CreateFromTask(DeleteAsync);
         ConnectCommand        = ReactiveCommand.Create(Connect);
@@ -1209,7 +1212,7 @@ public sealed class MumbleViewModel : ReactiveObject
                             string.Join(' ', session.CertificateFingerprint.Chunk(4).Select(c => new string(c))))
             : "";
         ReachText = ReachOf(session);
-        FillChannelChoices(session);
+        FillChannelChoices();
     }
 
     private readonly AutoSave _autoSave;
@@ -1267,6 +1270,8 @@ public sealed class MumbleViewModel : ReactiveObject
             EditVoiceActivated = s.VoiceActivated;
             foreach (var target in MumbleTargets.Read(s)) Targets.Add(new MumbleTargetVm(this, target));
         }
+        FillChannelChoices();
+        RefreshKeyProblems();
     }
 
     /// <summary>Everything on the Servers tab, as it stands, for the server showing.</summary>
@@ -1320,19 +1325,36 @@ public sealed class MumbleViewModel : ReactiveObject
     /// <summary>The targets of the server showing.</summary>
     public ObservableCollection<MumbleTargetVm> Targets { get; } = [];
 
-    /// <summary>What a target's channel box offers: where this client is, the root, and every channel when connected.</summary>
+    /// <summary>
+    /// What a target's channel list offers: the current channel first, the root, then every channel when connected.
+    /// ⚠️ The channels already picked are offered too, so they still show while not connected or once gone from the server.
+    /// </summary>
     public ObservableCollection<string> TargetChannelChoices { get; } = [];
 
-    private void FillChannelChoices(MumbleSession session)
+    private void FillChannelChoices()
     {
-        var paths = session.Client is { } client && session.State == MumbleState.Connected
-            ? client.Channels.Select(c => MumbleService.PathOf(client, c.Id)).Where(p => p.Length > 0).Order(StringComparer.CurrentCultureIgnoreCase)
-            : Enumerable.Empty<string>();
-        ListSync.Sync(TargetChannelChoices, [MumbleText.TargetWhereIAm, MumbleText.RootChannel, .. paths], c => c);
+        var picked = Targets.SelectMany(t => t.Channels).Select(c => c.Text);
+        var live = EditSession is { Client: { } client, State: MumbleState.Connected }
+            ? client.Channels.Select(c => MumbleService.PathOf(client, c.Id))
+            : [];
+        var paths = live.Concat(picked)
+            .Where(p => p.Length > 0 && p != MumbleText.TargetWhereIAm && p != MumbleText.RootChannel)
+            .Distinct().Order(StringComparer.CurrentCultureIgnoreCase);
+        string[] wanted = [MumbleText.TargetWhereIAm, MumbleText.RootChannel, .. paths];
+        if (TargetChannelChoices.SequenceEqual(wanted)) return;
+
+        ListSync.Sync(TargetChannelChoices, wanted, c => c);
+        foreach (var channel in Targets.SelectMany(t => t.Channels)) channel.Reshow();
     }
 
     internal void TargetTyped() => _autoSave.Typed();
     internal void TargetChanged() => _autoSave.Changed();
+
+    internal void KeyCleared()
+    {
+        RefreshKeyProblems();
+        _autoSave.Changed();
+    }
 
     private void AddTarget()
     {
@@ -1382,6 +1404,7 @@ public sealed class MumbleViewModel : ReactiveObject
     internal void CaptureKeyFor(IMumbleKeySlot target)
     {
         CancelKeyCapture();
+        RefreshKeyProblems();
         _capturingFor = target;
         target.Capturing = true;
     }
@@ -1397,21 +1420,78 @@ public sealed class MumbleViewModel : ReactiveObject
     {
         if (vk == 0 || _capturingFor is not { } target) return;
 
-        var before = target.Key;
-        target.Key = vk;
         CancelKeyCapture();
 
-        // ⚠️ Keys must be unique, or one press talks on two servers at once.
-        if (EditedServer() is { } server && MumbleService.KeyClash(server, _service.Sessions.Select(s => s.Server)) is { } clash)
+        // ⚠️ Keys must be unique, or one press does two things: talks on two servers at once, or here and for the agent.
+        if (KeyRefusal(target, vk) is { } why)
         {
-            target.Key = before;
-            StatusText = string.Format(CultureInfo.CurrentCulture, MumbleText.KeyClash, clash);
+            RefreshKeyProblems();
+            target.KeyProblem = why;
+            target.KeyRefused = true;
             return;
         }
 
+        target.Key = vk;
         StatusText = "";
+        RefreshKeyProblems();
         _autoSave.Changed();
     }
+
+    /// <summary>Why the key just pressed can't be this one's, or null when it can: another of this server's keys, or one anywhere else.</summary>
+    private string? KeyRefusal(IMumbleKeySlot target, int vk)
+    {
+        if (EditSession?.Server is not { } server) return null;
+
+        var mine = KeySlots().FirstOrDefault(s => s.Slot != target && s.Slot.Key == vk).What;
+        var what = mine is not null ? Described(mine, EditName.Trim().Length > 0 ? EditName.Trim() : EditHost.Trim())
+                 : GlobalKeys.Holder(vk, o => o == GlobalKeys.MumbleOwner(server.Id))?.What;
+        return what is null ? null : string.Format(CultureInfo.CurrentCulture, CommonText.KeyTaken, GlobalHotkeyService.VkName(vk), what);
+    }
+
+    /// <summary>The keys on the Servers tab, each with what it is called.</summary>
+    private IEnumerable<(IMumbleKeySlot Slot, string What)> KeySlots() =>
+        Targets.Select((t, i) => ((IMumbleKeySlot)t, TargetLabel(t.Name, i)))
+               .Append((MuteKey, MumbleText.MuteKey)).Append((DeafenKey, MumbleText.DeafenKey)).Append((PickKey, MumbleText.PickKey));
+
+    /// <summary>
+    /// Marks each of the showing server's keys that somewhere else has too: chosen before keys were checked across the
+    /// app, or on another computer. A key refused a moment ago is told again only until the next change.
+    /// </summary>
+    private void RefreshKeyProblems()
+    {
+        var own = EditSession?.Server is { } s ? GlobalKeys.MumbleOwner(s.Id) : null;
+        foreach (var (slot, _) in KeySlots())
+        {
+            var holder = own is null ? null : GlobalKeys.Holder(slot.Key, o => o == own);
+            slot.KeyRefused = false;
+            slot.KeyProblem = holder is null ? ""
+                : string.Format(CultureInfo.CurrentCulture, CommonText.KeyAlsoUsed, GlobalHotkeyService.VkName(slot.Key), holder.What);
+        }
+    }
+
+    /// <summary>A server's keys as saved, each with what it does and where it is set.</summary>
+    internal static IEnumerable<GlobalKeys.Use> KeyUses(MumbleServer server)
+    {
+        var owner = GlobalKeys.MumbleOwner(server.Id);
+        var name  = server.Name.Length > 0 ? server.Name : server.Host;
+
+        var targets = MumbleTargets.Read(server);
+        for (var i = 0; i < targets.Count; i++)
+            if (targets[i].Key != 0) yield return new(owner, targets[i].Key, Described(TargetLabel(targets[i].Name, i), name));
+        if (server.MuteKey != 0)   yield return new(owner, server.MuteKey, Described(MumbleText.MuteKey, name));
+        if (server.DeafenKey != 0) yield return new(owner, server.DeafenKey, Described(MumbleText.DeafenKey, name));
+        if (server.PickKey != 0)   yield return new(owner, server.PickKey, Described(MumbleText.PickKey, name));
+    }
+
+    /// <summary>A key's job on a server, and where in the app it is set.</summary>
+    private static string Described(string what, string server) =>
+        string.Format(CultureInfo.CurrentCulture, CommonText.KeyUseWhere,
+            string.Format(CultureInfo.CurrentCulture, MumbleText.KeyUseMumble, what, server),
+            $"Mumble > {MumbleText.SubTabServers} > {MumbleText.TabTargets}");
+
+    private static string TargetLabel(string name, int index) =>
+        string.Format(CultureInfo.CurrentCulture, MumbleText.KeyUseTarget,
+            name.Trim().Length > 0 ? name.Trim() : (index + 1).ToString(CultureInfo.CurrentCulture));
 
     /// <summary>Which of the Mumble tab's tabs is showing. The microphone's level is only read while Sound can be seen.</summary>
     public int SubTab

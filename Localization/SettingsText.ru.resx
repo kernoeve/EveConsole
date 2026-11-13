@@ -3883,4 +3883,55 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="KeepInTrayNote" xml:space="preserve">
     <value>Тогда закрытие главного окна только скрывает его: панели, тревоги и фоновая работа продолжаются. Чтобы вернуть окно, дважды щёлкните значок или выберите «{0}» в его меню; чтобы завершить EVE Console — «{1}».</value>
   </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>режим рации для {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Нажмите клавишу или кнопку мыши (Esc — отмена)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Фоновая работа на этом компьютере</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Никогда не выполнять фоновую работу в этом клиенте</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>Когда клиент, который опрашивает и выполняет остальную фоновую работу, закрывается, её берёт на себя другой подключённый клиент. Если отмечено, этот не возьмёт никогда: он только показывает то, что собирают другие. Сохраняется только на этом компьютере, а не для всех клиентов. Если других клиентов нет, опроса не будет.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Только для общей базы данных PostgreSQL: с SQLite этот клиент единственный, поэтому он всегда выполняет работу.</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Промпарк</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>По умолчанию ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>Промпарк, по структурам, ригам и системам которого считается сохранённая стоимость производства, а с ней и любая цена от стоимости производства, например в объявлении о продаже. «По умолчанию» следует за парком, отмеченным как основной в промпарках. Список задач и калькуляторы используют свои парки. Чтобы изменение вступило в силу, нажмите «Пересчитать» или дождитесь следующего обновления рынка.</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Личные сообщения</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Удаляет сохранённые личные сообщения Jabber, Mumble и IRC. Непрочитанные сообщения никогда не удаляются, какими бы старыми они ни были. По умолчанию включено, 30 дней, как было в настройке истории Jabber; снимите флажок, чтобы хранить всё.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Удалять личные сообщения старше</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Удаляет сохранённые сообщения из комнат Jabber и каналов IRC. Непрочитанные сообщения никогда не удаляются, какими бы старыми они ни были. Чат каналов Mumble никогда не сохраняется, поэтому удалять нечего. Разведданные, уже прочитанные из разведкомнаты или канала, остаются вместе с сообщениями чата выше. По умолчанию включено, 30 дней, как было в настройке истории Jabber; снимите флажок, чтобы хранить всё.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Удалять групповой чат старше</value>
+  </data>
 </root>

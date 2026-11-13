@@ -303,10 +303,6 @@ Trust it only if this matches what the server's admin published. From then on, o
     <value>Play a sound for messages that need attention</value>
     <comment>Setting.</comment>
   </data>
-  <data name="HistoryDays" xml:space="preserve">
-    <value>Keep read messages for (days, 0 keeps them all)</value>
-    <comment>Setting.</comment>
-  </data>
   <data name="MessageHint" xml:space="preserve">
     <value>Write a message. Enter sends, Shift+Enter starts a new line.</value>
     <comment>Input hint.</comment>

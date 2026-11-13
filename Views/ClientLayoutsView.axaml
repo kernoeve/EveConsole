@@ -61,7 +61,7 @@
 
         <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
                 BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-          <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto" ColumnSpacing="10">
+          <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" ColumnSpacing="10">
             <TextBlock Grid.Column="0" Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelDesktop}" />
             <TextBox Grid.Column="1" Width="180" Text="{Binding DeviceName}" LostFocus="DeviceName_LostFocus"
                      TextChanged="DeviceName_TextChanged" />
@@ -93,31 +93,34 @@
               <TextBlock Classes="note" Text="{Binding Pending}" />
               <TextBlock Classes="note" Text="{Binding Status}" />
             </StackPanel>
+            <!-- What placement couldn't do, beside Apply where it's seen: Apply is what fixes most of it. -->
+            <Border Grid.Row="3" Grid.ColumnSpan="5" Margin="0 8 0 0" Padding="8 6" CornerRadius="2"
+                    IsVisible="{Binding HasNotices}" Background="{DynamicResource WarnSurfaceBrush}"
+                    ToolTip.Tip="{x:Static loc:ClientLayoutsText.NoticesTitle}">
+              <ScrollViewer MaxHeight="96">
+                <ItemsControl ItemsSource="{Binding Notices}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="6" Margin="0 1">
+                        <TextBlock Text="⚠" Foreground="{DynamicResource WarnBrush}" FontSize="14" VerticalAlignment="Top" />
+                        <TextBlock Grid.Column="1" Text="{Binding}" Foreground="{DynamicResource WarnBrush}"
+                                   TextWrapping="Wrap" VerticalAlignment="Center" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </ScrollViewer>
+            </Border>
           </Grid>
         </Border>
 
-        <Grid Grid.Row="1" ColumnDefinitions="*,380" RowDefinitions="*,Auto" Margin="10" ColumnSpacing="10" RowSpacing="10">
+        <Grid Grid.Row="1" ColumnDefinitions="*,380" Margin="10" ColumnSpacing="10">
 
           <Border Grid.Column="0" Classes="section" Padding="4">
             <views:ClientMonitorMap Items="{Binding MapItems}" Pick="{Binding PickMonitor}" />
           </Border>
 
-          <Border Grid.Column="0" Grid.Row="1" Classes="section" IsVisible="{Binding HasNotices}" MaxHeight="150">
-            <StackPanel Spacing="4">
-              <TextBlock Classes="title" Text="{x:Static loc:ClientLayoutsText.NoticesTitle}" />
-              <ScrollViewer MaxHeight="110">
-                <ItemsControl ItemsSource="{Binding Notices}">
-                  <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="x:String">
-                      <TextBlock Classes="note" Text="{Binding}" />
-                    </DataTemplate>
-                  </ItemsControl.ItemTemplate>
-                </ItemsControl>
-              </ScrollViewer>
-            </StackPanel>
-          </Border>
-
-          <ScrollViewer Grid.Column="1" Grid.RowSpan="2">
+          <ScrollViewer Grid.Column="1">
             <StackPanel Spacing="10">
               <Border Classes="section" IsVisible="{Binding HasMonitor}">
                 <StackPanel Spacing="8">
@@ -240,9 +243,14 @@
               </ListBox.ItemTemplate>
             </ListBox>
             <WrapPanel Grid.Row="2">
-              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.NewLayout}" Command="{Binding NewLayoutCommand}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.NewLayout}" Click="NewLayout_Click"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipNewLayout}" />
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DuplicateLayout}" Command="{Binding DuplicateLayoutCommand}" IsEnabled="{Binding HasLayout}" />
               <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.DeleteLayout}" Command="{Binding DeleteLayoutCommand}" IsEnabled="{Binding HasLayout}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.ExportLayout}" Click="ExportLayout_Click" IsEnabled="{Binding HasLayout}"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipExportLayout}" />
+              <Button Margin="0 0 4 4" Content="{x:Static loc:ClientLayoutsText.ImportLayout}" Click="ImportLayout_Click"
+                      ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipImportLayout}" />
             </WrapPanel>
 
             <!-- The layout as a tree: the way to reach what's nested, or covered by what it holds. -->

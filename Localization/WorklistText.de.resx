@@ -2683,4 +2683,115 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
   </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Übergaben</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Übergabe</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Gegenstände an einen anderen Charakter oder eine andere Corporation übergeben, in der Station, in der sie liegen</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} Gegenstandstyp</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} Gegenstandstypen</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} an {1} in {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}: Verschiebe diese aus deinem eigenen Hangar in den Hangar von {1} in {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} ist nicht in {1}: Übergib diese mit einem Gegenstandstausch-Vertrag an {1} in {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, für {1}: Übergib diese mit einem Gegenstandstausch-Vertrag an {2} in {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}: Nimm diese aus dem Hangar von {1} in deinen eigenen in {2}, wie deine Charakterstufe es vorsieht.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}: Nimm diese aus dem Hangar von {1} und übergib sie mit einem Gegenstandstausch-Vertrag an {2} in {3}. {2} ist nicht in {1}, für die eigenen Jobs zählt also nur der eigene Hangar.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Charakterstufen</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Standard-Corporation</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>Die Corporation, die die Gegenstände der Arbeitsliste (aus Aufträgen und Lagerbeständen) halten soll, damit jeder Charakter darin damit bauen kann: Ein Charakter kann nur seinen eigenen Hangar und den seiner Corporation nutzen. Ein Gegenstand, den ein Charakter hält, im Hangar oder im Frachtraum eines angedockten Schiffs, bekommt eine Übergabe an diese Corporation, an jeder Station, an der sie einen Hangar hat, außer dem, was eine Charakterstufe unten bei diesem Charakter hält. Ausgerüstete Module, Blaupausen und zusammengebaute Schiffe werden nie bewegt.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Deine anderen Corporations geben ihre auch ab</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Aus: Nur die Hangars und Frachträume der Charaktere werden in die Standard-Corporation geleert. An: Auch die Arbeitslisten-Gegenstände deiner anderen Corporations bekommen Übergaben, erledigt von einem deiner Charaktere in dieser Corporation.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Halte die Stufen einer Gruppe bei einem Charakter an einer Station, in dessen eigenem Hangar, nur für seine Jobs. So bekommt ein Charakter außerhalb der Standard-Corporation Material zum Bauen. Der Transport bringt die Menge zur Station, zusätzlich zu einer dortigen Stationsstufe, und eine Übergabe gibt dem Charakter aus dem Hangar der Standard-Corporation, was ihm fehlt.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Wähle einen Charakter.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>Schon in der Standard-Corporation</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>An</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>Noch keine Charakterstufen.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} Charakterstufe</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} Charakterstufen</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>Ein Charakter wird in Ruhe gelassen, bis er so weit unter seinem Level liegt, und erhält dann genug, um es ganz aufzufüllen. Null gibt bei jedem Fehlbestand.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>Was ein Charakter über seinem Level hält, bleibt bei ihm, bis er so weit darüber liegt; dann geht der Überschuss an die Standard-Corporation zurück. Null gibt jeden Überschuss zurück.</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Einige liegen im Frachtraum eines Schiffs.</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Davon sind {0:N0} in Ladenangeboten und werden als unterwegs gezählt.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Es fehlen {0:N0} Kopierläufe.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Dazu {0:N0} Kopierläufe für den Lagerbestand oder Aufträge.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} für offene Aufträge</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nichts stellt es her; {0:N0} vorrätig</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Industrieplanung ist nicht eingerichtet</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} Bauregel(n) und {1:N0} offene(r) Auftrag/Aufträge warten.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>Für die Arbeitsliste ist kein Industriepark gewählt und in den Industrieparks ist keiner markiert.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Kein Charakter ist für Industriejobs aktiviert.</value>
+  </data>
 </root>

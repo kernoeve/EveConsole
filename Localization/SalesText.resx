@@ -2693,4 +2693,49 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Discord post failed on "{0}": {1}</value>
     <comment>Sale Posting: Discord status. {0} is the post block, {1} the error.</comment>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Only what&apos;s needed</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Buy listings: take only what the Worklist still needs of each item, which is what it wants less what is held, in build and already offered on this store. An item no longer needed takes no offers, and an offer for more than is needed is not taken.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Show how many are still needed</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>On a store&apos;s Buy listing that takes only what&apos;s needed: show sellers how many of each item are still wanted, and how much is covered. Off, the cap still applies; only the figures are kept to the store.</value>
+  </data>
+  <data name="WebSyncOverNeedOne" xml:space="preserve">
+    <value>Offered {1:N0} {2}, but only {0:N0} more is needed.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>Offered {1:N0} {2}, but only {0:N0} more are needed.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Total need {0:N0} · on hand {1:N0} · in build {2:N0} · on order {3:N0} → remaining {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Delete the posting &quot;{0}&quot;, with all its sections, items and places? Any store listing it stops showing it. This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Delete the section &quot;{1}&quot; and the {0:N0} item in it? This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Delete the section &quot;{1}&quot; and the {0:N0} items in it? This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Remove {0} from this posting?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Remove the {0:N0} selected items from their postings?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Stop listing what is in {0}?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Delete {0:N0} Items</value>
+  </data>
 </root>
