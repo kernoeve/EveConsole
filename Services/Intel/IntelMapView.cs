@@ -29,8 +29,14 @@ public sealed record IntelRouteMark(
 /// </summary>
 public static class IntelMapView
 {
-    /// <summary>The most arrows drawn at once, newest first: more is a tangle, not a picture.</summary>
+    /// <summary>The most arrows drawn at once, newest first: more is a tangle, not a picture. Applied by
+    /// each map to its own systems and by the canvas to what is on screen, never to New Eden as a whole:
+    /// capped first, a region's map could lose every arrow of its own to newer reports elsewhere.</summary>
     public const int MaxArrows = 30;
+
+    /// <summary>The most arrows the whole-universe map hands its canvas, which then draws the newest
+    /// <see cref="MaxArrows"/> on screen: a bound on the hover text built, well above what one view holds.</summary>
+    public const int MaxArrowsListed = 300;
 
     /// <summary>
     /// What the map sees: every system, no distance (the map has no single origin), the clear state on,
@@ -51,7 +57,8 @@ public static class IntelMapView
     /// The arrows of the live reports: a solid one from where a pilot came from to where they were seen, a
     /// dashed one from there to where they were said to be heading. Only while the system the report placed
     /// them in still shows something (a clear, or the pilots gone, takes the arrow with them), never for a
-    /// line a later one restated, one per pair and kind, newest first, at most <see cref="MaxArrows"/>.
+    /// line a later one restated, one per pair and kind, newest first. Every one of them: the cap belongs
+    /// to the map that draws them, after it has kept only its own systems.
     /// </summary>
     public static IReadOnlyList<IntelMapArrow> Arrows(IntelView view)
     {
@@ -71,8 +78,7 @@ public static class IntelMapView
         return [.. arrows
             .GroupBy(a => (a.FromSystemId, a.ToSystemId, a.Heading))
             .Select(g => g.OrderByDescending(a => a.At).ThenByDescending(a => a.Event.Key, StringComparer.Ordinal).First())
-            .OrderByDescending(a => a.At).ThenBy(a => a.FromSystemId).ThenBy(a => a.ToSystemId)
-            .Take(MaxArrows)];
+            .OrderByDescending(a => a.At).ThenBy(a => a.FromSystemId).ThenBy(a => a.ToSystemId)];
     }
 
     /// <summary>

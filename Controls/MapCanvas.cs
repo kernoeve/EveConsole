@@ -442,6 +442,9 @@ public class MapCanvas : Control
     private Dictionary<int, MapNode>       _byId   = new();
     private Dictionary<int, FormattedText> _labels = new();
 
+    /// <summary>Whether this frame writes a dot's name beside it: what a camp's stub must stop short of.</summary>
+    private bool _dotLabels;
+
     /// <summary>System name and region name for each gateway node.</summary>
     private Dictionary<int, (FormattedText Sys, FormattedText Region)> _gateLabels = new();
 
@@ -845,6 +848,7 @@ public class MapCanvas : Control
         var onRegionTier  = g.IsContinuous && _activeTier == 0;
         var useBoxes      = spacingPx >= (onRegionTier ? RegionBoxThreshold : BoxThreshold);
         var showDotLabels = spacingPx >= (onRegionTier ? RegionBoxThreshold : DotLabelMin);
+        _dotLabels = showDotLabels;
 
         _gateRects.Clear();
         _nodeRects.Clear();
@@ -914,8 +918,17 @@ public class MapCanvas : Control
         }
         if (systemsDrawn && CampedGates is { Count: > 0 } camps)
             foreach (var camp in camps) DrawCampStub(ctx, camp);
+        // The list comes newest first; the cap counts only arrows on screen, so panning to a quiet corner
+        // still shows its own arrows when newer ones elsewhere fill the list.
         if (systemsDrawn && IntelArrows is { Count: > 0 } arrows)
-            foreach (var arrow in arrows) DrawIntelArrow(ctx, arrow);
+        {
+            var drawnArrows = 0;
+            foreach (var arrow in arrows)
+            {
+                if (drawnArrows >= EveConsole.Services.Intel.IntelMapView.MaxArrows) break;
+                if (DrawIntelArrow(ctx, arrow)) drawnArrows++;
+            }
+        }
 
         // Avoided systems, ringed over their node, where systems are drawn.
         if (Avoided is { Count: > 0 } avoided && (!g.IsContinuous || _activeTier == 1))
@@ -1490,7 +1503,12 @@ public class MapCanvas : Control
     /// <summary>
     /// A camped gate: a thick stub over the gate's line, from the camped system's edge two fifths of the
     /// way to the system the gate leads to, fading as the camp ages, with the kills counted in a tag at its
-    /// middle. When the far system is not on the map, a short stub up and to the left.
+    /// far end. When the far system is not on the map, a short stub up and to the left.
+    /// <para>⚠️ The stub and its tag stop short of the far system: its box, or its dot and the name beside
+    /// it. Drawn after the nodes, a tag that reached the far system covered its name and its click area
+    /// (a "2" over a neighbour's box read as part of the name). On a line too short for the tag to clear
+    /// both the hostile mark beside the camped system and the far system, the stub runs as far as it can
+    /// and the tag goes to a corner of the camped system instead.</para>
     /// </summary>
     private void DrawCampStub(DrawingContext ctx, MapCampMark camp)
     {
@@ -1498,8 +1516,16 @@ public class MapCanvas : Control
         var p = ToScreen(node.X, node.Y);
         if (p.X < -200 || p.Y < -200 || p.X > Bounds.Width + 200 || p.Y > Bounds.Height + 200) return;
 
+        var alpha   = FadeAlpha(camp.Freshness);
+        var tagFill = Blend(camp.Tint, Palette.Colour("SurfaceBase"), Math.Max(alpha, 0.75));
+        var text = new FormattedText(camp.Kills.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                                     FlowDirection.LeftToRight, BoldFace, 9, PickInk(tagFill).Strong);
+        var w = Math.Max(13, text.Width + 6);
+        const double tagH = 13;
+
         Vector dir;
-        double length;
+        double target;
+        List<Rect> footprint;
         if (_byId.TryGetValue(camp.ToSystemId, out var far))
         {
             var q = ToScreen(far.X, far.Y);
@@ -1507,34 +1533,72 @@ public class MapCanvas : Control
             var len = Math.Sqrt(d.X * d.X + d.Y * d.Y);
             if (len < 1) return;
             dir = d / len;
-            length = len * 0.4;
+            target = len * 0.4;
+            footprint = Footprint(camp.ToSystemId, far, q);
         }
         else
         {
             dir = new Vector(-0.7071, -0.7071);
-            length = 0;
+            target = 0;
+            footprint = [];
         }
 
-        // Long enough to clear the hostile mark beside a box, which sits on the same side for a gate to the east.
-        var edge  = EdgeOffset(camp.SystemId, dir);
-        var start = p + dir * (edge + 1);
-        var end   = p + dir * Math.Max(length, edge + 46);
-        var alpha = FadeAlpha(camp.Freshness);
-        // ⚠️ The stub in the theme's danger colour, whoever camps: a camp is a threat to anyone going through,
-        // and a neutral grey stub vanished into the grey gate line. The campers' tier is the tag's colour.
-        var pen   = new ImmutablePen(new ImmutableSolidColorBrush(WithAlpha(Palette.Colour("Bad"), alpha)), 4, lineCap: PenLineCap.Round);
-        ctx.DrawLine(StubShadowPen, start, end);
-        ctx.DrawLine(pen, start, end);
+        var edge = EdgeOffset(camp.SystemId, dir);
+        var (reach, tagAt) = MapCampStub.Layout(p, dir, edge, target, footprint, w, tagH);
+        if (reach > edge + 4)
+        {
+            // ⚠️ The stub in the theme's danger colour, whoever camps: a camp is a threat to anyone going through,
+            // and a neutral grey stub vanished into the grey gate line. The campers' tier is the tag's colour.
+            var pen   = new ImmutablePen(new ImmutableSolidColorBrush(WithAlpha(Palette.Colour("Bad"), alpha)), 4, lineCap: PenLineCap.Round);
+            var start = p + dir * (edge + 1);
+            var end   = p + dir * reach;
+            ctx.DrawLine(StubShadowPen, start, end);
+            ctx.DrawLine(pen, start, end);
+        }
 
-        // The kills, in a tag at the stub's far end.
-        var tagFill = Blend(camp.Tint, Palette.Colour("SurfaceBase"), Math.Max(alpha, 0.75));
-        var text = new FormattedText(camp.Kills.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
-                                     FlowDirection.LeftToRight, BoldFace, 9, PickInk(tagFill).Strong);
-        var w    = Math.Max(13, text.Width + 6);
-        var rect = new Rect(end.X - w / 2, end.Y - 6.5, w, 13);
+        // The kills, in a tag at the stub's far end, or at the camped system's corner on the stub's side.
+        var rect = tagAt is { } at ? new Rect(at.X - w / 2, at.Y - tagH / 2, w, tagH) : CornerTag(camp.SystemId, p, dir, w, tagH);
         ctx.DrawRectangle(new ImmutableSolidColorBrush(tagFill), MarkPen, new RoundedRect(rect, 3));
         ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
         _badgeTips.Add((rect.Inflate(3), camp.Title, camp.Detail, null));
+    }
+
+    /// <summary>What a system takes up on screen this frame: its box (a gateway's too), or its dot and, when
+    /// dots are named, the name written to its right.</summary>
+    private List<Rect> Footprint(int id, MapNode n, Point at)
+    {
+        if (_nodeRects.TryGetValue(id, out var box)) return [box];
+        if (_gateRects.TryGetValue(id, out var gate)) return [gate];
+        var rects = new List<Rect> { new(at.X - NodeRadius, at.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2) };
+        if (_dotLabels && !n.IsOutsideRegion && _labels.TryGetValue(id, out var label))
+            rects.Add(new Rect(at.X + NodeRadius + 3, at.Y - label.Height / 2, label.Width, label.Height));
+        return rects;
+    }
+
+    /// <summary>
+    /// A camp's tag on a corner of the camped system, where the corner tags sit (storm upper left, wormhole
+    /// upper right, campaign lower right, officers lower left): the corner facing the stub that one of those
+    /// does not already hold, the nearest corner when all are held. Never a dot's upper right, where its
+    /// hostile mark sits.
+    /// </summary>
+    private Rect CornerTag(int id, Point p, Vector dir, double w, double h)
+    {
+        var isBox  = _nodeRects.TryGetValue(id, out var box);
+        var anchor = isBox ? box : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2);
+        (bool Right, bool Top, bool Held)[] corners =
+        [
+            (false, true,  Storms?.ContainsKey(id) == true),
+            (true,  true,  Holes?.ContainsKey(id) == true || !isBox),
+            (true,  false, Campaigns?.ContainsKey(id) == true),
+            (false, false, Markers?.TryGetValue(id, out var m) == true && m.Officers > 0),
+        ];
+        var order = corners.OrderByDescending(c => (c.Right ? 1 : -1) * dir.X + (c.Top ? -1 : 1) * dir.Y).ToList();
+        var (right, top, _) = order.FirstOrDefault(c => !c.Held, order[0]);
+        var x = isBox ? (right ? anchor.Right - w / 2 : anchor.Left - w / 2)
+                      : (right ? anchor.Right + 1 : anchor.Left - w - 1);
+        var y = isBox ? (top ? anchor.Top - 7 : anchor.Bottom - 6)
+                      : (top ? anchor.Top - 15 : anchor.Bottom + 2);
+        return new Rect(x, y, w, h);
     }
 
     /// <summary>
@@ -1542,23 +1606,25 @@ public class MapCanvas : Control
     /// so a move and a heading along the same gate both show; solid for a move, dashed for a heading, the
     /// arrowhead at the system it points to. Fades with the report. Hover at its middle for the report.
     /// </summary>
-    private void DrawIntelArrow(DrawingContext ctx, MapIntelArrow arrow)
+    /// <returns>Whether it was drawn: on screen, and long enough to read.</returns>
+    private bool DrawIntelArrow(DrawingContext ctx, MapIntelArrow arrow)
     {
-        if (!_byId.TryGetValue(arrow.FromId, out var a) || !_byId.TryGetValue(arrow.ToId, out var b)) return;
+        if (!_byId.TryGetValue(arrow.FromId, out var a) || !_byId.TryGetValue(arrow.ToId, out var b)) return false;
         var pa = ToScreen(a.X, a.Y);
         var pb = ToScreen(b.X, b.Y);
-        if ((pa.X < -200 && pb.X < -200) || (pa.Y < -200 && pb.Y < -200) ||
-            (pa.X > Bounds.Width + 200 && pb.X > Bounds.Width + 200) ||
-            (pa.Y > Bounds.Height + 200 && pb.Y > Bounds.Height + 200)) return;
+        // Off screen when both ends lie past the same side: such an arrow takes no share of the cap.
+        if ((pa.X < -10 && pb.X < -10) || (pa.Y < -10 && pb.Y < -10) ||
+            (pa.X > Bounds.Width + 10 && pb.X > Bounds.Width + 10) ||
+            (pa.Y > Bounds.Height + 10 && pb.Y > Bounds.Height + 10)) return false;
 
         var d   = pb - pa;
         var len = Math.Sqrt(d.X * d.X + d.Y * d.Y);
-        if (len < 1) return;
+        if (len < 1) return false;
         var dir  = d / len;
         var side = new Vector(dir.Y, -dir.X) * 4;
         var from = pa + dir * (EdgeOffset(arrow.FromId, dir) + 3) + side;
         var to   = pb - dir * (EdgeOffset(arrow.ToId, -dir) + 3) + side;
-        if (Math.Abs(to.X - from.X) + Math.Abs(to.Y - from.Y) < 10) return;
+        if (Math.Abs(to.X - from.X) + Math.Abs(to.Y - from.Y) < 10) return false;
 
         var colour = WithAlpha(arrow.Tint, FadeAlpha(arrow.Freshness));
         var brush  = new ImmutableSolidColorBrush(colour);
@@ -1582,6 +1648,7 @@ public class MapCanvas : Control
 
         var mid = new Point((from.X + to.X) / 2, (from.Y + to.Y) / 2);
         _badgeTips.Add((new Rect(mid.X - 7, mid.Y - 7, 14, 14), arrow.Title, arrow.Detail, null));
+        return true;
     }
 
     private static readonly IPen StubShadowPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.FromArgb(0x99, 0x0b, 0x0b, 0x10)), 6, lineCap: PenLineCap.Round);

@@ -67,7 +67,8 @@ public sealed record LiveMapSnapshot(
     /// <summary>Active gate camps, each drawn on the line of its gate.</summary>
     public IReadOnlyList<IntelMapCamp> Camps { get; init; } = [];
 
-    /// <summary>Where reported pilots came from and were heading: the map's arrows.</summary>
+    /// <summary>Where reported pilots came from and were heading: the map's arrows, every live one in New Eden,
+    /// newest first. Each map caps them after keeping its own systems.</summary>
     public IReadOnlyList<IntelMapArrow> Arrows { get; init; } = [];
 
     /// <summary>The shared snapshot this was read from: the route planner's hostiles column reads it too.</summary>

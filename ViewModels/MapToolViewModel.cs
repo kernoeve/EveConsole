@@ -1092,15 +1092,21 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
     /// <summary>
     /// The reported directions for one map: solid from where pilots came from to where they were seen,
     /// dashed from there to where they were said to be heading; in the report's worst tier, fading with it.
+    /// Newest first, and capped only after keeping the arrows with both ends on this map: capped first, a
+    /// region's map lost its own arrows to newer reports elsewhere. A region's map keeps the newest
+    /// <see cref="IntelMapView.MaxArrows"/>; the whole-universe map keeps more, and its canvas draws the
+    /// newest <see cref="IntelMapView.MaxArrows"/> of those on screen.
     /// </summary>
     internal static List<MapIntelArrow> BuildArrows(LiveMapSnapshot live, MapGraph graph)
     {
         var nodes = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
         string Name(int id) => nodes.TryGetValue(id, out var n) ? n.Label
                              : live.Intel?.SystemName(id) ?? id.ToString(CultureInfo.InvariantCulture);
+        var cap = graph.IsContinuous ? IntelMapView.MaxArrowsListed : IntelMapView.MaxArrows;
         var arrows = new List<MapIntelArrow>();
         foreach (var a in live.Arrows)
         {
+            if (arrows.Count >= cap) break;
             if (!nodes.ContainsKey(a.FromSystemId) || !nodes.ContainsKey(a.ToSystemId)) continue;
             var e = a.Event;
             var who = e.Pilots.Select(p => p.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Take(5).ToList();

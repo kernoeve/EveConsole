@@ -1,6 +1,8 @@
 // The Universe Map and the route planner on the shared snapshot: marks coloured by the worst standings tier and
-// faded by age, the clear and no-visual states, camps on their gates, move and heading arrows, the route planner's
-// hostiles column, and the alert zone drawn through the alarm's own function. Every name and id here is invented.
+// faded by age, the clear and no-visual states, camps on their gates (the stub and its tag clear of the far system),
+// move and heading arrows (capped per map, after it keeps its own systems), the route planner's hostiles column, and
+// the alert zone drawn through the alarm's own function. Every name and id here is invented.
+using Avalonia;
 using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -86,10 +88,43 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("arrows: past the report's lifetime there is no arrow",
                 LiveIntelService.ToMap(snap, Now.AddHours(1)).Arrows.Count == 0);
 
-            var busy = IntelSnapshotBuilder.Build(Input(manyMoves: 40), new IntelCampRegister(), 3);
-            var many = IntelMapView.Arrows(IntelMapView.Project(busy, Now));
-            c.Check($"arrows: at most {IntelMapView.MaxArrows}, newest first",
-                many.Count == IntelMapView.MaxArrows && many.Zip(many.Skip(1)).All(p => p.First.At >= p.Second.At), many.Count.ToString());
+            // ── The cap comes after each map keeps its own systems ──────────────────────────────────────────────
+            // Forty newer moves into Q7-ZZX, each from a system this map does not hold: news from elsewhere.
+            var busy     = IntelSnapshotBuilder.Build(Input(manyMoves: 40), new IntelCampRegister(), 3);
+            var busyLive = LiveIntelService.ToMap(busy, Now);
+            var many     = busyLive.Arrows;
+            c.Check("arrows: every live one in New Eden reaches the maps, newest first",
+                many.Count == 42 && many.Zip(many.Skip(1)).All(p => p.First.At >= p.Second.At), many.Count.ToString());
+            static bool Has(IEnumerable<MapIntelArrow> list, int from, int to) => list.Any(a => a.FromId == from && a.ToId == to);
+            var ours = MapToolViewModel.BuildArrows(busyLive, graph);
+            c.Check("arrows: forty newer elsewhere, and this map still draws its own move and heading",
+                ours.Count == 2 && Has(ours, S9, S2) && Has(ours, S3, S1), string.Join(",", ours.Select(a => $"{a.FromId % 100}->{a.ToId % 100}")));
+            c.Check("arrows: (mutation) capped before the map keeps its own, the heading is lost",
+                !many.Take(IntelMapView.MaxArrows).Any(a => a.FromSystemId == S3 && a.ToSystemId == S1));
+
+            // A region's map that holds every one of them draws the newest MaxArrows; the whole-universe map hands
+            // its canvas them all, and the canvas draws the newest MaxArrows on screen.
+            var sources = Enumerable.Range(0, 40).Select(i => 39_901_000 + i).ToList();
+            var region  = new MapGraph(
+                [.. graph.Nodes, .. sources.Select(id => new MapNode(id, "QX" + (id % 1000), 900, 600, -0.3, false, SecurityClass: "null",
+                                                                      RegionId: 10_900_001, RegionName: "Q-ZX9"))],
+                graph.Edges);
+            var expected = many.Where(a => region.Nodes.Any(n => n.Id == a.FromSystemId) && region.Nodes.Any(n => n.Id == a.ToSystemId))
+                               .Take(IntelMapView.MaxArrows).Select(a => (a.FromSystemId, a.ToSystemId)).ToList();
+            var capped = MapToolViewModel.BuildArrows(busyLive, region);
+            c.Check($"arrows: a region's map draws at most {IntelMapView.MaxArrows}, its newest",
+                capped.Count == IntelMapView.MaxArrows && capped.Select(a => (a.FromId, a.ToId)).SequenceEqual(expected), capped.Count.ToString());
+            var universe = MapToolViewModel.BuildArrows(busyLive, region with { IsContinuous = true });
+            c.Check("arrows: the whole-universe map hands its canvas every one, for the canvas to cap on screen",
+                universe.Count == 42 && universe.Take(IntelMapView.MaxArrows).Select(a => (a.FromId, a.ToId)).SequenceEqual(expected),
+                universe.Count.ToString());
+            var canvas = File.ReadAllText(Path.Combine(root, "Controls", "MapCanvas.cs"));
+            c.Check("arrows: the canvas counts only arrows it drew towards the cap",
+                canvas.Contains("if (drawnArrows >= EveConsole.Services.Intel.IntelMapView.MaxArrows) break;", StringComparison.Ordinal)
+                && canvas.Contains("if (DrawIntelArrow(ctx, arrow)) drawnArrows++;", StringComparison.Ordinal));
+
+            // ── A camp's stub and tag stop short of the far system ─────────────────────────────────────────────
+            StubChecks(c);
 
             // ── The route planner's hostiles column ──────────────────────────────────────────────────────────
             var route = IntelMapView.Route(snap, Systems.Select(s => s.Id), Alpha, Now);
@@ -110,6 +145,53 @@ namespace EveConsole.Tools.IntelCheck
                 && !condition.Contains("_graph.DistancesWithinAsync", StringComparison.Ordinal));
             c.Check("zone: the map's outline is drawn through the same function",
                 zone.Contains("IntelCondition.WatchedSystemsAsync(", StringComparison.Ordinal));
+        }
+
+        /// <summary>
+        /// The stub's geometry, as the canvas lays it out: the camped system's box centred at the origin, 46 by 16
+        /// (a short name), and the system its gate leads to due east. The tag is 13 by 13; the stub's round end and
+        /// shadow reach 3 px past where it ends.
+        /// </summary>
+        private static void StubChecks(Checks c)
+        {
+            const double tagW = 13, tagH = 13, edge = 23, cap = 3;
+            var east = new Vector(1, 0);
+            static Rect Box(double x) => new(x - 23, -8, 46, 16);
+            static Rect Tag(Point at) => new(at.X - 6.5, at.Y - 6.5, 13, 13);
+
+            // The scene's ZXQ-4F → 9Q-ZX2 at the wide zoom: 77 px apart, boxes 31 px apart.
+            var shortFar = Box(77);
+            var (reach, tag) = MapCampStub.Layout(new Point(0, 0), east, edge, 77 * 0.4, [shortFar], tagW, tagH);
+            c.Check("stub: on a short gate line the stub stops before the far system's box",
+                reach > edge + 4 && reach + cap < shortFar.Left, $"{reach:0.0} vs {shortFar.Left:0.0}");
+            c.Check("stub: and its tag leaves the line rather than cover the far system's name", tag is null);
+            var old = new Point(Math.Max(77 * 0.4, edge + 46), 0);
+            c.Check("stub: (mutation) laid out as before, the tag sat on the far system's box", Tag(old).Intersects(shortFar));
+
+            // Room to clear the hostile mark but not to reach two fifths of the way: still on the line, clear of the far box.
+            var midFar = Box(160);
+            (reach, tag) = MapCampStub.Layout(new Point(0, 0), east, edge, 160 * 0.4, [midFar], tagW, tagH);
+            c.Check("stub: with room, the tag sits past the hostile mark, clear of the far box",
+                tag is { } mid && Math.Abs(mid.X - (edge + MapCampStub.MarkClearance)) < 1e-9 && !Tag(mid).Intersects(midFar),
+                $"{tag}");
+
+            // A long line: two fifths of the way, as designed.
+            var longFar = Box(300);
+            (reach, tag) = MapCampStub.Layout(new Point(0, 0), east, edge, 300 * 0.4, [longFar], tagW, tagH);
+            c.Check("stub: on a long gate line, two fifths of the way with the tag at its end",
+                tag is { } far && Math.Abs(far.X - 120) < 1e-9 && Math.Abs(reach - 120) < 1e-9 && !Tag(far).Intersects(longFar));
+
+            // Dots, zoomed out: the far system 80 px to the west, its name written to its right, towards the camp.
+            var farDot  = new Rect(-85, -5, 10, 10);
+            var farName = new Rect(-72, -6, 40, 12);
+            (reach, tag) = MapCampStub.Layout(new Point(0, 0), new Vector(-1, 0), 5, 80 * 0.4, [farDot, farName], tagW, tagH);
+            c.Check("stub: on the dot tier it stops short of the far system's name too",
+                tag is null && -(reach + cap) > farName.Right, $"{reach:0.0}");
+
+            // No far system on the map: the short stub up and to the left, its tag at the end.
+            (reach, tag) = MapCampStub.Layout(new Point(0, 0), new Vector(-0.7071, -0.7071), edge, 0, [], tagW, tagH);
+            c.Check("stub: with no far system, a short stub with its tag at the end",
+                tag is not null && Math.Abs(reach - (edge + MapCampStub.MarkClearance)) < 1e-9);
         }
     }
 }
