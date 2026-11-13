@@ -96,7 +96,14 @@ public sealed class IntelDuplicates
     private readonly Dictionary<int, List<Held>> _bySystem = [];
 
     /// <summary>Remembers a report, so later ones can be measured against it.</summary>
-    public void Add(IntelReport report, IEnumerable<long> pilots)
+    public void Add(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
+        Add(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+
+    /// <summary>Remembers a report whose pilots' hulls are not known.</summary>
+    public void Add(IntelReport report, IEnumerable<long> pilots) =>
+        Add(report, pilots.Select(id => (id, (int?)null)));
+
+    private void Add(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         if (Read(report, pilots) is not { } held) return;
 
@@ -105,7 +112,14 @@ public sealed class IntelDuplicates
     }
 
     /// <summary>Whether this report is already held from another channel.</summary>
-    public bool IsCopy(IntelReport report, IEnumerable<long> pilots)
+    public bool IsCopy(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
+        IsCopy(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+
+    /// <summary>Whether this report, whose pilots' hulls are not known, is already held from another channel.</summary>
+    public bool IsCopy(IntelReport report, IEnumerable<long> pilots) =>
+        IsCopy(report, pilots.Select(id => (id, (int?)null)));
+
+    private bool IsCopy(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return false;
 
@@ -123,13 +137,21 @@ public sealed class IntelDuplicates
         return shorter.SaysSomething && longer.Words.EndsWith(" " + shorter.Words, StringComparison.Ordinal);
     }
 
-    private static Held? Read(IntelReport report, IEnumerable<long> pilots)
+    /// <summary>
+    /// What a report says, to compare. ⚠️ Everything a follow-up line can add is in it: the heading and each pilot's
+    /// hull as well as the counts and flags. A follow-up restates the report it adds to, so one that adds only a
+    /// heading or a hull would otherwise look like a copy of that report and be dropped, when it came from another
+    /// channel within <see cref="Window"/>; a relayed copy of the follow-up itself still matches it.
+    /// </summary>
+    private static Held? Read(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         if (IntelRooms.Parse(report.ReportedAt) is not { } at) return null;
 
-        var named = string.Join(',', pilots.Order());
-        var facts = $"{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}";
-        var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0;
+        var named = string.Join(',', pilots.OrderBy(p => p.Id).ThenBy(p => p.Hull)
+            .Select(p => p.Hull is { } hull ? $"{p.Id}:{hull}" : p.Id.ToString(CultureInfo.InvariantCulture)));
+        var facts = $"{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
+        var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
+                 || report.HeadingSystemId is not null;
         return new Held(report.ChannelName, at, Words(report.Message), facts, says);
     }
 

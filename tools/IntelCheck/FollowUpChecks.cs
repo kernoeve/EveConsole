@@ -224,6 +224,58 @@ internal static class FollowUpChecks
             cleared.BySameReporter("intelcheck-a", "Scout Alpha", T(20), window)?.Report.Id == 20);
         c.Check("threads: a clear is never a parent", cleared.BySameReporter("intelcheck-b", "Scout Bravo", T(60), window) is null);
 
+        // A pilot of the report called in another system since: "+2" from the first reporter does not copy them
+        // back. Their report elsewhere is the newer one, and must stay so.
+        var moved = new IntelThreads();
+        moved.AddStored(Stored(50, 0, count: 2), [Pilot(Zeltrix, "Zeltrix Quorvane"), Pilot(Mirrel, "Mirrel Okonda")]);
+        moved.AddStored(Stored(51, 30, reporter: "Scout Bravo", channel: "intelcheck-b", system: S2), [Pilot(Mirrel, "Mirrel Okonda")]);
+        var mb = moved.Newest(moved.BySameReporter("intelcheck-a", "Scout Alpha", T(60), window)!, T(60));
+        var mGone = moved.Gone(mb, T(60), noKills);
+        c.Check("gone: a pilot called in another system since", mGone.SetEquals([Mirrel]), string.Join(",", mGone));
+        var (rm, pm) = IntelThreads.Restate(mb, plus, [], Line(52, 60), null, mGone);
+        c.Check("restate: a pilot called elsewhere since is not copied back",
+            pm.Select(p => p.CharacterId).SequenceEqual([Zeltrix]), string.Join(",", pm.Select(p => p.CharacterId)));
+        c.Check("restate: and the reporter's count stands", rm.PlayerCount == 4, $"{rm.PlayerCount}");
+        var (_, pn) = IntelThreads.Restate(mb, IntelRules.ParseFollowUp("Mirrel Okonda", lex)!, [Pilot(Mirrel, "Mirrel Okonda")], Line(53, 60), null, mGone);
+        c.Check("restate: a pilot the line names is in, wherever they were called",
+            pn.Select(p => p.CharacterId).Order().SequenceEqual([Zeltrix, Mirrel]));
+        c.Check("gone: not before they were called elsewhere", moved.Gone(mb, T(20), noKills).Count == 0);
+
+        // Called elsewhere and then back here: their latest is here, so they stay.
+        moved.AddStored(Stored(54, 45, reporter: "Scout Bravo", channel: "intelcheck-b"), [Pilot(Mirrel, "Mirrel Okonda")]);
+        c.Check("gone: not when their latest sighting is back in the report's system", moved.Gone(mb, T(60), noKills).Count == 0);
+
+        // A pilot of the report on a kill since: ended, not copied. A kill before the report changes nothing.
+        c.Check("gone: a copied pilot seen on a kill since", moved.Gone(mb, T(60), Kills(Zeltrix, T(40))).SetEquals([Zeltrix]));
+        c.Check("gone: a kill in the same second as the report too", moved.Gone(mb, T(60), Kills(Zeltrix, T(0))).SetEquals([Zeltrix]));
+        c.Check("gone: not for a kill before the report", moved.Gone(mb, T(60), Kills(Zeltrix, T(-10))).Count == 0);
+        c.Check("gone: nor one after the line", moved.Gone(mb, T(60), Kills(Zeltrix, T(70))).Count == 0);
+
+        // A follow-up from another channel that adds only a heading or a hull is not a relayed copy of the report
+        // it adds to; a relayed copy of the follow-up itself still is.
+        var cross = new IntelThreads();
+        var first = Stored(60, 0, reporter: "Scout Bravo", channel: "intelcheck-b");
+        cross.AddStored(first, [Pilot(Zeltrix, "Zeltrix Quorvane")]);
+        var held = new IntelDuplicates();
+        held.Add(first, [Pilot(Zeltrix, "Zeltrix Quorvane")]);
+        var cb = cross.ByPilot([Zeltrix], T(40), named, noKills)!;
+        var (rh, ph) = IntelThreads.Restate(cb, IntelRules.ParseFollowUp("Zeltrix Quorvane heading XQ1-Z2", lex)!,
+                                            [Pilot(Zeltrix, "Zeltrix Quorvane")], Line(61, 40), S2);
+        c.Check("copy: a follow-up adding a heading, from another channel, is not a copy", !held.IsCopy(rh, ph));
+        var (rl, pl) = IntelThreads.Restate(cb, IntelRules.ParseFollowUp("Zeltrix Quorvane Loki", lex)!,
+                                            [Pilot(Zeltrix, "Zeltrix Quorvane", "Loki", LokiId)], Line(62, 40), null);
+        c.Check("copy: nor one adding a hull", !held.IsCopy(rl, pl));
+        held.Add(rl, pl);
+        // Other words, so only the facts can match it.
+        var relayed = Line(63, 45, channel: "intelcheck-c");
+        relayed.Message = "relay: Zeltrix Quorvane Loki";
+        var (rr, pr) = IntelThreads.Restate(cross.AddFollowUp(cb, rl, pl, DateTimeOffset.UtcNow), IntelRules.ParseFollowUp("Zeltrix Quorvane Loki", lex)!,
+                                            [Pilot(Zeltrix, "Zeltrix Quorvane", "Loki", LokiId)], relayed, null);
+        c.Check("copy: a relayed copy of the follow-up still is", held.IsCopy(rr, pr));
+        var (rs, ps) = IntelThreads.Restate(cb, IntelRules.ParseFollowUp("Zeltrix Quorvane", lex)!,
+                                            [Pilot(Zeltrix, "Zeltrix Quorvane")], Line(64, 40), null);
+        c.Check("copy: (setup) a follow-up adding nothing at all is taken for one", held.IsCopy(rs, ps));
+
         // A thread whose first report is new in this batch: the follow-up learns its id once it is saved.
         var fresh = new IntelThreads();
         var newHead = new IntelReport { ReportedAt = T(0), ReporterName = "Scout Alpha", ChannelName = "intelcheck-a", SystemId = S1, PlayerCount = 1 };
@@ -359,6 +411,9 @@ internal static class FollowUpChecks
             await db.Database.EnsureCreatedAsync();
             foreach (var (id, name) in new[] { (S1, "QZ-X77"), (S2, "XQ1-Z2"), (S3, "ZZQ-71"), (S4, "X2-QZ7") })
                 db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = id, ConstellationId = 20_000_001, RegionId = 10_000_001, Name = name, Security = -0.4 });
+            // One hull, so a line can give a pilot's.
+            db.SdeGroups.Add(new SdeGroup { GroupId = 9_901, CategoryId = 6, Name = "Strategic Cruiser", Published = true });
+            db.SdeTypes.Add(new SdeType { TypeId = LokiId, GroupId = 9_901, Name = "Loki", Published = true });
             db.UniverseNames.AddRange(
                 new UniverseName { EntityId = Alpha,   Name = "Scout Alpha",      Category = "character" },
                 new UniverseName { EntityId = Bravo,   Name = "Scout Bravo",      Category = "character" },
@@ -426,6 +481,37 @@ internal static class FollowUpChecks
         await Lines(("u13", ChB, "Scout Bravo", 1200, "Mirrel Okonda"),
                     ("r14", ChB, "Scout Bravo", 1210, "X2-QZ7  Zeltrix Quorvane heading QZ-X77"),
                     ("r15", ChA, "Scout Alpha", 1300, "Zeltrix Quorvane jumped into ZZQ-71"));
+        // A follow-up from another channel within the copy window that adds a heading, then one that adds a hull,
+        // then a relayed copy of that one.
+        await Lines(("r16", ChB, "Scout Bravo", 1500, "X2-QZ7  Zeltrix Quorvane"),
+                    ("r17", ChA, "Scout Alpha", 1540, "Zeltrix Quorvane heading QZ-X77"),
+                    ("r18", ChA, "Scout Alpha", 1560, "Zeltrix Quorvane Loki"));
+        await Lines(("u19", ChB, "Scout Alpha", 1570, "Zeltrix Quorvane Loki"));
+        // A pilot of a report called in another system, then "+2" on that report.
+        await Lines(("r20", ChA, "Scout Alpha", 1700, "QZ-X77  Zeltrix Quorvane  Mirrel Okonda"),
+                    ("r21", ChB, "Scout Bravo", 1730, "XQ1-Z2  Mirrel Okonda"),
+                    ("r22", ChA, "Scout Alpha", 1760, "+2"));
+        // Before anything later names them: their report elsewhere stands, and that is where they were last seen.
+        bool movedStands;
+        int? movedLastSeen;
+        await using (var db = new AppDbContext(options))
+        {
+            movedStands = await db.IntelReports.AsNoTracking().AnyAsync(r => r.ChatMessageId == ids["r21"] && !r.Obsolete);
+            movedLastSeen = await db.IntelLastSeens.AsNoTracking().Where(s => s.CharacterId == Mirrel).Select(s => (int?)s.SystemId).FirstOrDefaultAsync();
+        }
+        // A pilot of a report on a kill, named nowhere in the batch of the follow-up that would copy them.
+        await Lines(("r23", ChA, "Scout Alpha", 1900, "ZZQ-71  Mirrel Okonda  Zeltrix Quorvane"));
+        await using (var db = new AppDbContext(options))
+        {
+            db.KillMailDetails.Add(new KillMailDetail
+            {
+                KillMailId = 8_803, KillMailHash = "copied", KillMailTime = t0.AddSeconds(1920), SolarSystemId = S2,
+                VictimCharId = 93_000_011, VictimCorpId = 98_000_021, VictimShipTypeId = LokiId,
+            });
+            db.KillMailAttackers.Add(new KillMailAttacker { KillMailId = 8_803, CharacterId = Zeltrix });
+            await db.SaveChangesAsync();
+        }
+        await Lines(("r24", ChA, "Scout Alpha", 1950, "Mirrel Okonda"));
 
         var live = await ReportsAsync(options);
         IntelReport? R(string key) => live.Reports.GetValueOrDefault(ids[key]);
@@ -456,6 +542,19 @@ internal static class FollowUpChecks
         c.Check("pass: a heading on a report with its own system", R("r14") is { SystemId: S4, HeadingSystemId: S1 });
         c.Check("pass: \"jumped into\" places them there", R("r15") is { SystemId: S3, FromSystemId: null });
         c.Check("pass: clears name nobody", live.Pilots[ids["r8"]].Count == 0 && live.Pilots[ids["r11"]].Count == 0);
+        c.Check("pass: a follow-up adding a heading, from another channel within the copy window, is kept",
+            R("r17") is { SystemId: S4, HeadingSystemId: S1, ChannelName: ChA } && Parent("r17") == ids["r16"]);
+        c.Check("pass: and one adding a hull", R("r18") is { SystemId: S4, HeadingSystemId: S1 } && Parent("r18") == ids["r16"]);
+        c.Check("pass: a relayed copy of that follow-up is not", R("u19") is null);
+        c.Check("pass: \"+2\" does not copy back a pilot called in another system since",
+            R("r22") is { SystemId: S1, PlayerCount: 4 } && live.Pilots[ids["r22"]].SequenceEqual([Zeltrix]),
+            $"{R("r22")?.PlayerCount} pilots {string.Join(",", live.Pilots.GetValueOrDefault(ids["r22"]) ?? [])}");
+        c.Check("pass: whose report there stands", movedStands);
+        c.Check("pass: and is where they were last seen", movedLastSeen == S2, $"{movedLastSeen}");
+        c.Check("pass: and \"+2\" restates the rest", Parent("r22") == ids["r20"]);
+        c.Check("pass: a copied pilot on a kill since is not copied, though the batch never named them",
+            R("r24") is { SystemId: S3 } && live.Pilots[ids["r24"]].SequenceEqual([Mirrel]),
+            $"pilots {string.Join(",", live.Pilots.GetValueOrDefault(ids["r24"]) ?? [])}");
 
         // The same history re-parsed, twice: the same reports each time, and the same as live.
         var first = await worker.BackfillAsync();

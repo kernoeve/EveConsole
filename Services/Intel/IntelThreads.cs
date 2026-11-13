@@ -29,7 +29,8 @@ namespace EveConsole.Services.Intel;
 /// whose pilot has since been on a kill, is over: the line does not revive it.</para>
 ///
 /// <para>The new report restates the latest report of the thread with the additions: the same
-/// system, pilots merged, "+N" added to the unnamed count, "=N" setting the total, flags and no
+/// system, pilots merged (less any with newer news of them since, see <see cref="Gone"/>), "+N" added
+/// to the unnamed count, "=N" setting the total, flags and no
 /// visual added, the heading from the follow-up. It supersedes what it restates, so whatever reads
 /// the newest report for a system or a pilot just works. A clear word makes a clear row on the
 /// thread's system instead.</para>
@@ -223,9 +224,45 @@ public sealed class IntelThreads
     private bool ClearedSince(Entry parent, string at) =>
         _entries.Any(e =>
             e.Report.Kind == IntelReportKind.Clear && e.Report.SystemId == parent.Report.SystemId
-            && string.CompareOrdinal(e.Report.ReportedAt, at) <= 0
-            && (string.CompareOrdinal(e.Report.ReportedAt, parent.Report.ReportedAt) > 0
-                || (e.Report.ReportedAt == parent.Report.ReportedAt && e.Order > parent.Order)));
+            && string.CompareOrdinal(e.Report.ReportedAt, at) <= 0 && IsAfter(e, parent));
+
+    /// <summary>Whether <paramref name="e"/> came after <paramref name="than"/>: later, or in the same second and known later.</summary>
+    private static bool IsAfter(Entry e, Entry than) =>
+        string.CompareOrdinal(e.Report.ReportedAt, than.Report.ReportedAt) > 0
+        || (e.Report.ReportedAt == than.Report.ReportedAt && e.Order > than.Order);
+
+    /// <summary>
+    /// The pilots of <paramref name="basis"/> that a follow-up at <paramref name="at"/> must not copy into its new
+    /// report, because there is newer news of them than <paramref name="basis"/>: their latest sighting since it,
+    /// up to the line, is in another system; or they have been on a kill since it (<paramref name="kills"/>, by
+    /// <see cref="KillTimesAsync"/>, which must hold every pilot of <paramref name="basis"/>).
+    ///
+    /// <para>⚠️ The new report's time is the line's, so it is the newest sighting of everyone it holds. Copying
+    /// a pilot who has been called elsewhere since would put them back where they were: the superseding pass
+    /// would retire the true report, and where they were last seen would move back with it. Copying one who
+    /// has been on a kill would keep a thread alive that the kill has ended.</para>
+    /// </summary>
+    public HashSet<long> Gone(Entry basis, string at, IReadOnlyDictionary<long, List<string>> kills)
+    {
+        var gone = new HashSet<long>();
+        foreach (var id in basis.Pilots.Select(p => p.CharacterId))
+        {
+            // A kill in the same second as the report wins it, as in ByPilot.
+            if (kills.TryGetValue(id, out var times) && times.Any(t => Within(t, basis.Report.ReportedAt, at)))
+            {
+                gone.Add(id);
+                continue;
+            }
+
+            // Only their latest: called elsewhere and then back here, they are here.
+            var latest = Latest(_entries.Where(e =>
+                e.Report.Kind == IntelReportKind.Sighting
+                && string.CompareOrdinal(e.Report.ReportedAt, at) <= 0 && IsAfter(e, basis)
+                && e.Pilots.Any(p => p.CharacterId == id)));
+            if (latest is not null && latest.Report.SystemId != basis.Report.SystemId) gone.Add(id);
+        }
+        return gone;
+    }
 
     private static bool Within(string time, string from, string to) =>
         string.CompareOrdinal(time, from) >= 0 && string.CompareOrdinal(time, to) <= 0;
@@ -240,11 +277,13 @@ public sealed class IntelThreads
     /// The report a follow-up makes from the latest report of its thread (<paramref name="basis"/>, from
     /// <see cref="Newest"/>). <paramref name="line"/> carries the line's own facts: the message and its id, the
     /// time, the channel and the reporter; the rest is filled here. <paramref name="named"/> are the pilots the
-    /// line names, resolved. Nothing is changed; <see cref="AddFollowUp"/> takes the result.
+    /// line names, resolved. <paramref name="gone"/> are the pilots of <paramref name="basis"/> not to copy (from
+    /// <see cref="Gone"/>); a pilot the line names is in the new report whatever it holds. Nothing is changed;
+    /// <see cref="AddFollowUp"/> takes the result.
     /// </summary>
     public static (IntelReport Report, List<IntelReportCharacter> Pilots) Restate(
         Entry basis, IntelRules.ParsedFollowUp followUp, IReadOnlyList<IntelReportCharacter> named,
-        IntelReport line, int? headingSystemId)
+        IntelReport line, int? headingSystemId, IReadOnlyCollection<long>? gone = null)
     {
         var b = basis.Report;
         line.SystemId   = b.SystemId;
@@ -262,9 +301,17 @@ public sealed class IntelThreads
             return (line, []);
         }
 
-        // The pilots of the report, then the ones the line adds. A hull the line gives a pilot replaces
-        // the one they had: it is the newer word on what they fly.
-        var pilots = basis.Pilots.Select(Copy).ToList();
+        // The pilots of the report still there, then the ones the line adds. A hull the line gives a pilot
+        // replaces the one they had: it is the newer word on what they fly.
+        var pilots = basis.Pilots
+            .Where(p => gone is null || !gone.Contains(p.CharacterId) || named.Any(n => n.CharacterId == p.CharacterId))
+            .Select(Copy).ToList();
+
+        // ⚠️ Counted from the pilots copied, not the report's. Only the name of one left out is news from
+        // elsewhere; the people counted here are what the reporter counted, so the count stands and the one
+        // left out becomes one of the people nobody named.
+        var unnamed = Math.Max(0, b.PlayerCount - pilots.Count);
+
         foreach (var p in named)
         {
             var known = pilots.FindIndex(x => x.CharacterId == p.CharacterId);
@@ -287,7 +334,6 @@ public sealed class IntelThreads
         }
 
         // The people nobody named stay as many as the report had, plus the line's "+N"; "=N" sets the whole.
-        var unnamed = Math.Max(0, b.PlayerCount - basis.Pilots.Count);
         var count = followUp.Total > 0
             ? Math.Max(followUp.Total, pilots.Count)
             : Math.Max(pilots.Count + unnamed + followUp.Plus, ships.Sum(s => s.Count));
@@ -382,7 +428,7 @@ public sealed class IntelThreads
     /// <summary>
     /// When each of <paramref name="characters"/> was on a kill, attacking or losing a ship, between
     /// <paramref name="from"/> and <paramref name="to"/>, as ISO text: what <see cref="ByPilot"/> checks a pilot's
-    /// report against.
+    /// report against, and <see cref="Gone"/> the pilots a follow-up would copy.
     ///
     /// <para>⚠️ The times are compared in SQL as the kill table's own type, bound as values, and only then turned
     /// into text: the column is stored differently on each engine, so a text bound would compare on neither.</para>

@@ -550,7 +550,20 @@ public sealed class IntelService(
             var namedLife    = await IntelLastSeenWriter.NamedLifetimeAsync(db, ct);
             var reach        = followWindow > namedLife ? followWindow : namedLife;
             var threads      = await IntelThreads.LoadAsync(db, IntelThreads.Shift(minAt, -reach) ?? "", maxAt, ct);
-            Dictionary<long, List<string>>? killTimes = null;
+
+            // When each pilot a follow-up could name or copy was on a kill. Asked first for every character the
+            // batch names, at once, and then only for pilots of earlier reports not asked about yet.
+            var killTimes  = new Dictionary<long, List<string>>();
+            var killsAsked = new HashSet<long>();
+            async Task<Dictionary<long, List<string>>> KillsOf(IEnumerable<long> pilots)
+            {
+                var ask = (killsAsked.Count == 0 ? pilots.Concat(Resolved(candidates)) : pilots)
+                    .Where(killsAsked.Add).ToList();
+                if (ask.Count > 0)
+                    foreach (var (id, times) in await KillTimesAsync(db, ask, minAt, maxAt, reach, ct))
+                        killTimes[id] = times;
+                return killTimes;
+            }
 
             foreach (var m in batch)
             {
@@ -577,19 +590,21 @@ public sealed class IntelService(
                     var parent = threads.BySameReporter(m.ChannelName, m.SenderName, m.OccurredAt, followWindow);
                     if (parent is null && named.Count > 0)
                     {
-                        // Asked once a batch, for every character the batch named, and only when needed.
-                        killTimes ??= await KillTimesAsync(db, candidates, minAt, maxAt, namedLife, ct);
-                        parent = threads.ByPilot([.. named.Select(p => p.CharacterId)], m.OccurredAt, namedLife, killTimes);
+                        var namedIds = named.Select(p => p.CharacterId).ToList();
+                        parent = threads.ByPilot(namedIds, m.OccurredAt, namedLife, await KillsOf(namedIds));
                     }
 
                     // ⚠️ Unattached: not stored as intel. A report with no system would break everything
                     // that reads intel by system; the line itself stays in the chat it came from.
                     if (parent is null) continue;
 
+                    // The report's pilots who have been called elsewhere or been on a kill since are not copied.
                     basis = threads.Newest(parent, m.OccurredAt);
+                    HashSet<long> gone = basis.Pilots.Count == 0 ? []
+                        : threads.Gone(basis, m.OccurredAt, await KillsOf(basis.Pilots.Select(p => p.CharacterId)));
                     built = IntelThreads.Restate(basis, follow, named,
                                                  Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message),
-                                                 SystemIdOf(vocabulary, follow.HeadingSystem));
+                                                 SystemIdOf(vocabulary, follow.HeadingSystem), gone);
                 }
 
                 var report = built.Report;
@@ -599,9 +614,9 @@ public sealed class IntelService(
                 if (!seenContent.Add($"{m.OccurredAt}|{m.SenderName}|{report.SystemId}|{m.Message}"))
                     continue;
 
-                var namedIds = built.Pilots.Select(p => p.CharacterId).ToList();
-                if (held.IsCopy(report, namedIds)) continue;
-                held.Add(report, namedIds);
+                // Pilots with their hulls, and the heading: a follow-up that adds only those is not a copy.
+                if (held.IsCopy(report, built.Pilots)) continue;
+                held.Add(report, built.Pilots);
 
                 pending.Add(built);
                 if (basis is null) threads.AddNew(report, built.Pilots);
@@ -699,8 +714,8 @@ public sealed class IntelService(
         var pilots = (await (from c in db.IntelReportCharacters.AsNoTracking()
                              join r in db.IntelReports.AsNoTracking() on c.IntelReportId equals r.Id
                              where string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
-                             select new { c.IntelReportId, c.CharacterId }).ToListAsync(ct))
-            .ToLookup(c => c.IntelReportId, c => c.CharacterId);
+                             select new { c.IntelReportId, c.CharacterId, c.ShipTypeId }).ToListAsync(ct))
+            .ToLookup(c => c.IntelReportId, c => new IntelReportCharacter { CharacterId = c.CharacterId, ShipTypeId = c.ShipTypeId });
 
         foreach (var report in reports) held.Add(report, pilots[report.Id]);
         return held;
@@ -788,19 +803,21 @@ public sealed class IntelService(
     }
 
     /// <summary>
-    /// When each character named in the batch was on a kill, from <paramref name="reach"/> before its first line
+    /// When each of <paramref name="ids"/> was on a kill, from <paramref name="reach"/> before the batch's first line
     /// to its last: a pilot seen on a kill since their report is no longer at that report.
     /// </summary>
-    private async Task<Dictionary<long, List<string>>> KillTimesAsync(
-        AppDbContext db, IEnumerable<string> names, string minAt, string maxAt, TimeSpan reach, CancellationToken ct)
+    private static async Task<Dictionary<long, List<string>>> KillTimesAsync(
+        AppDbContext db, List<long> ids, string minAt, string maxAt, TimeSpan reach, CancellationToken ct)
     {
-        var ids = names.Select(n => _nameCache.GetValueOrDefault(n)).Where(id => id is not null)
-                       .Select(id => id!.Value).Distinct().ToList();
         if (ids.Count == 0
             || !LiveIntelService.TryParseReported(minAt, out var from)
             || !LiveIntelService.TryParseReported(maxAt, out var to)) return [];
         return await IntelThreads.KillTimesAsync(db, ids, from - reach, to, ct);
     }
+
+    /// <summary>The characters among <paramref name="names"/> the name cache knows, by id.</summary>
+    private IEnumerable<long> Resolved(IEnumerable<string> names) =>
+        names.Select(n => _nameCache.GetValueOrDefault(n)).Where(id => id is not null).Select(id => id!.Value);
 
     /// <summary>A system's id by the name the parser gave, or null.</summary>
     private static int? SystemIdOf(IntelVocabulary vocabulary, string? name) =>
