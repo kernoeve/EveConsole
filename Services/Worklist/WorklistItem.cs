@@ -38,7 +38,7 @@ public enum WorklistReadiness
 /// </summary>
 /// <para>Transfer is beside Haul: the item is at the right station already, held by the wrong owner,
 /// a character or corporation that the one who needs it can't take it from.</para>
-public enum WorklistKind { Buy, Haul, Transfer, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
+public enum WorklistKind { Buy, Haul, Transfer, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi, Structure }
 
 /// <summary>What stops a task now, which is what the summary at the top of the list divides by.</summary>
 public enum WorklistStop { None, NoSlot, NotDue, Materials, PrintsInUse, NoPrintHere, Other }
@@ -575,6 +575,14 @@ public sealed record WorklistItem
     /// one. Set where the generator knows; a blueprint it did not is caught by the row falling back.
     /// </summary>
     public string? TypeImage { get; init; }
+
+    /// <summary>
+    /// The type the row's picture shows when it is not <see cref="TypeId"/>, drawn as
+    /// <see cref="TypeImage"/>. An invention row is about the item that is short — a hull, say —
+    /// but the job makes that item's blueprint copy, and the copy is what it shows. Zero for the
+    /// row's own type.
+    /// </summary>
+    public int PictureTypeId { get; init; }
 
     /// <summary>
     /// What the row's item is when it is a blueprint: a copy or an original, which decides its

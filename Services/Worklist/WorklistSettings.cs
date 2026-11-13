@@ -491,6 +491,74 @@ public class WorklistSettings(AppPreferencesService prefs)
         prefs.SetAsync(LoopSharesKey, string.Join(";", shares.OrderBy(kv => kv.Key, StringComparer.Ordinal)
                                                               .Select(kv => $"{kv.Key}={kv.Value}")));
 
+    // ── Structures ────────────────────────────────────────────────────────────
+    //
+    // Tasks from Corp Structures: fuel to bring, moon material to collect, a fit to put right and
+    // ammo or fighters to top up. Each kind has its own switch, as the standing buy conditions do —
+    // a corporation that fuels its structures through someone else still wants the fit tasks.
+
+    public const string StructureCorpsKey      = "worklist.structures.corps";
+    public const string StructureFuelDaysKey   = "worklist.structures.fuel.min_days";
+    public const string StructureFillDaysKey   = "worklist.structures.fuel.fill_days";
+    public const string StructurePickupByKey   = "worklist.structures.pickup.by";
+    public const string StructurePickupAtKey   = "worklist.structures.pickup.at";
+
+    /// <summary>Whether one kind of structure task is raised: fuel, pickup, ammo or fit. On by default.</summary>
+    public bool RaisesStructureTask(StructureTaskKind kind) =>
+        prefs.GetBool(StructureKindKey(kind), true);
+
+    public Task SetRaisesStructureTaskAsync(StructureTaskKind kind, bool on) =>
+        prefs.SetAsync(StructureKindKey(kind), on ? "1" : "0");
+
+    private static string StructureKindKey(StructureTaskKind kind) => kind switch
+    {
+        StructureTaskKind.Fuel   => "worklist.structures.fuel.enabled",
+        StructureTaskKind.Pickup => "worklist.structures.pickup.enabled",
+        StructureTaskKind.Ammo   => "worklist.structures.ammo.enabled",
+        _                        => "worklist.structures.fit.enabled",
+    };
+
+    /// <summary>
+    /// The corporations whose structures raise tasks; null for every one. Stored as "all" or as
+    /// ids — never as an empty list meaning all, so a list emptied by hand raises nothing.
+    /// </summary>
+    public IReadOnlySet<long>? StructureCorporations =>
+        prefs.Get(StructureCorpsKey) is not { Length: > 0 } raw || raw == "all"
+            ? null
+            : raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                 .Select(s => long.TryParse(s, out var id) ? id : 0).Where(id => id > 0).ToHashSet();
+
+    /// <summary>Null for every corporation.</summary>
+    public Task SetStructureCorporationsAsync(IEnumerable<long>? corporationIds) =>
+        prefs.SetAsync(StructureCorpsKey, corporationIds is null ? "all"
+            : string.Join(",", corporationIds.Where(id => id > 0).Distinct().OrderBy(id => id)));
+
+    /// <summary>A structure with less fuel than this many days left gets a fuel task. Seven by default.</summary>
+    public double StructureFuelMinDays => Number(StructureFuelDaysKey, 7);
+
+    /// <summary>What a fuel task brings the structure up to, in days. Thirty by default.</summary>
+    public double StructureFuelFillDays => Number(StructureFillDaysKey, 30);
+
+    /// <summary>What a moon material pickup is measured by. Percent full by default.</summary>
+    public StructurePickupMeasure StructurePickupBy =>
+        Enum.TryParse<StructurePickupMeasure>(prefs.Get(StructurePickupByKey), out var m) ? m : StructurePickupMeasure.PercentFull;
+
+    /// <summary>The amount, in <see cref="StructurePickupBy"/>'s unit, a bay must hold before it is
+    /// collected: ISK, m³ or percent. Fifty by default — half full.</summary>
+    public double StructurePickupAt => Number(StructurePickupAtKey, 50);
+
+    public Task SetStructureNumberAsync(string key, double value) =>
+        prefs.SetAsync(key, Math.Max(0, value).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
+    public Task SetStructurePickupByAsync(StructurePickupMeasure by) =>
+        prefs.SetAsync(StructurePickupByKey, by.ToString());
+
+    private double Number(string key, double fallback) =>
+        prefs.Get(key) is { Length: > 0 } s
+        && double.TryParse(s, System.Globalization.NumberStyles.Float,
+                           System.Globalization.CultureInfo.InvariantCulture, out var v) && v >= 0
+            ? v : fallback;
+
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it
     /// is short enough that a split actually happens on the long component runs that prompted

@@ -2041,4 +2041,181 @@
   <data name="MenuDeleteItemsOther" xml:space="preserve">
     <value>아이템 {0:N0}개 삭제</value>
   </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>기간별</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>아이템 그룹</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>이 마켓 그룹에 속한 아이템의 판매만 표시합니다(모든 탭). 계약은 가장 비싼 아이템 기준으로 분류됩니다.</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>이 그룹 제거</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>+ 그룹</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>판매를 마켓 그룹으로 좁히기</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>그룹 추가</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>행</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>분할 기준</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>영리 비중 기준</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>집계 기준</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>텍스트로 복사</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>두 표를 코드 블록 안의 일반 텍스트로 복사해 채팅에 붙여 넣을 수 있게 합니다.</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>CSV 내보내기</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>판매 요약 내보내기</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>영리</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>비영리</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>영리 비중</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>판매액 {0}</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>이익 {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>기준: {0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>전체 판매</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>영리</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>비영리</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>기간</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>판매 ISK</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>영리 비중</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>영리</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>비영리</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>합계</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>판매 수량</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>각 칸: 수량, 이어서 (영리·비영리). 아이템 그룹 안의 아이템만 셉니다.</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>여기서는 &apos;비영리 표시&apos; 설정과 관계없이 비영리 판매도 항상 셉니다. 비영리 표시가 각 판매를 어느 쪽에 넣을지 정합니다. 태그는 텍스트일 뿐입니다. 찾은 태그마다 한 줄이 생기며, 태그가 둘인 판매는 양쪽에 나오지만 기간과 합계에서는 한 번만 셉니다. 비용은 위에서 고른 이익 기준이며 각 판매일 기준입니다. 이익 %는 그 비용 대비 이익입니다.</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>태그</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>마켓 그룹</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>아이템</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>구매자</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>소유자</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>비용</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>판매 ISK</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>태그 없음</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>오늘까지</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>분할</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>영리 판매 ISK</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>영리 비용</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>비영리 판매 ISK</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>비영리 비용</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>비용 없는 판매</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>집계 기준</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>요약을 클립보드에 복사했습니다.</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>요약을 {0}(으)로 내보냈습니다.</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>판매 요약 · {0} ~ {1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>행: {0} · 분할: {1} · 영리 비중 기준: {2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>{0}별 판매 수량 (영리·비영리)</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>수량</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>영리 비중을 무엇에 대해 계산할지: 비용, 판매 ISK 또는 판매 수량.</value>
+  </data>
 </root>

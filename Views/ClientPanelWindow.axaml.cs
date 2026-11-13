@@ -33,6 +33,20 @@ public partial class ClientPanelWindow : Window
     /// <summary>A click anywhere on the panel, whatever ends up handling it.</summary>
     public event Action? Pressed;
 
+    /// <summary>Asked for by <see cref="BringForwardWithClients"/>; the host raises the monitor.</summary>
+    public event Action? MonitorForwardRequested;
+
+    /// <summary>
+    /// This panel, the others on its monitor and that monitor's clients in front, as a click on the
+    /// panel does: for a tool shown in the panel from the main window, which would otherwise come
+    /// forward alone, over clients still behind other windows. Focus stays where it was.
+    /// </summary>
+    public void BringForwardWithClients()
+    {
+        if (MonitorForwardRequested is null) BringForward();
+        else MonitorForwardRequested();
+    }
+
     public ClientPanelWindow()
     {
         InitializeComponent();

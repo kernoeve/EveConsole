@@ -2557,4 +2557,40 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>상위 10 솔로 킬</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>하루 {0}개 (시간당 {1}개), 유형에 설정한 피팅 기준</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>알 수 없음: 목록을 마지막으로 읽은 시각은 {0}이며, 그때의 연료 만료 시각은 이미 지났습니다.</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>알 수 없음: 목록을 ESI에서 읽지 않았습니다.</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, 앵커 해제 중</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>구조물 목록 마지막 읽음: {0}.</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>타워 목록 마지막 읽음: {0}.</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>이 코퍼레이션을 읽는 캐릭터가 ESI에 필요한 코퍼레이션 역할을 잃어 더 이상 ESI에 요청하지 않습니다.</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>그 뒤로 ESI가 응답하지 않았습니다.</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>아래의 연료, 상태, 타이머는 그 시점의 것입니다.</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>목록 읽음</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>상태 종료</value>
+  </data>
 </root>

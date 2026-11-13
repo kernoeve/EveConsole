@@ -110,6 +110,7 @@ public sealed class CorpStructureInfo
     public string SystemName     { get; init; } = "";
     public double? Security      { get; init; }
     public string RegionName     { get; init; } = "";
+    public int    RegionId       { get; init; }
     public string Place          { get; init; } = "";   // nearest celestial, or the tower's moon
     public string State          { get; init; } = "";
 
@@ -162,6 +163,14 @@ public sealed class CorpStructureInfo
     /// <summary>Fuel blocks an hour across the bay — what the list's burn column shows.</summary>
     public double? BlocksPerHour { get; init; }
 
+    /// <summary>
+    /// <see cref="BlocksPerHour"/> is the fit set for the structure's type, not its own modules: the
+    /// corporation's assets are not read, so what is fitted is not known. The type's fit stands in
+    /// for it — its service modules, those ESI lists as running — and a fit with no service modules
+    /// burns nothing.
+    /// </summary>
+    public bool BurnFromTypeFit { get; init; }
+
     /// <summary>What the fuel it burns costs a day at the asset valuation's prices: the blocks at
     /// <see cref="BlocksPerHour"/>, and any other fuel with a burn (a Metenox's gas, a tower's
     /// charters, strontium while reinforced). Null where the blocks a day are not known.</summary>
@@ -180,9 +189,56 @@ public sealed class CorpStructureInfo
     public bool NeedsFuel { get; init; }
 }
 
+/// <summary>
+/// When a corporation's structure or tower list was last read from ESI, and whether it is still
+/// being read. <see cref="Stale"/> means what is stored is a snapshot from <see cref="ReadAt"/>:
+/// a fuel expiry that has passed since then says nothing about the structure now.
+/// </summary>
+/// <param name="ReadAt">The last successful read; null when there has never been one.</param>
+/// <param name="Denied">The character that reads the corporation lacks the role, so ESI is no
+/// longer asked at all.</param>
+public sealed record CorpListRead(DateTimeOffset? ReadAt, bool Denied, bool Stale);
+
 /// <summary>Reads what Corp Structures shows, for one corporation.</summary>
 public static class CorpStructures
 {
+    /// <summary>
+    /// How old a read may be before the list is taken as no longer current. The list is polled
+    /// every hour at most; three missed polls is not a slow poller but one that has stopped.
+    /// </summary>
+    public static readonly TimeSpan StaleAfter = TimeSpan.FromHours(3);
+
+    public const string StructuresEndpoint = "corp.structures";
+    public const string StarbasesEndpoint  = "corp.starbases";
+
+    /// <summary>
+    /// When <paramref name="endpoint"/> was last read for <paramref name="corpId"/>, and whether
+    /// what it left is a snapshot that has stopped being refreshed.
+    ///
+    /// <para>⚠️ A list is replaced whole on each poll, so a poll that stops leaves the last one
+    /// looking current: on 2026-11-12 a corporation's reader had lost its roles two weeks before,
+    /// and every jump bridge whose expiry had passed since read as out of fuel.</para>
+    /// </summary>
+    public static async Task<CorpListRead> ListReadAsync(
+        IDbContextFactory<AppDbContext> dbFactory, long corpId, string endpoint, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var denied = (await db.Corporations.AsNoTracking()
+                .Where(c => c.Id == corpId).Select(c => c.DeniedEndpoints).FirstOrDefaultAsync(ct) ?? "")
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Contains(endpoint);
+        var call = await db.EsiCallRecords.AsNoTracking()
+            .Where(r => r.OwnerId == corpId && r.Endpoint == endpoint)
+            .Select(r => new { r.LastCalledAt, r.LastStatusCode })
+            .FirstOrDefaultAsync(ct);
+        // A 304 is a read: the copy held is still the server's. A call that failed once leaves the
+        // last read in place, so only its age makes it stale; a refusal stops the reads for good.
+        DateTimeOffset? readAt = call is { LastStatusCode: (>= 200 and < 300) or 304 } ? call.LastCalledAt : null;
+        var stale = denied || call is null || call.LastStatusCode == 403
+                 || DateTimeOffset.UtcNow - call.LastCalledAt > StaleAfter;
+        return new CorpListRead(readAt, denied || call?.LastStatusCode == 403, stale);
+    }
+
     // Dogma.
     private const int AttrServiceFuelPerHour  = 2109;   // serviceModuleFuelAmount — blocks an hour
     private const int AttrControlTowerSize    = 1031;   // 1 small, 2 medium, 3 large
@@ -421,6 +477,7 @@ public static class CorpStructures
         var moduleTypeIds = contents.Values.SelectMany(l => l)
             .Where(a => a.LocationFlag.StartsWith("ServiceSlot")).Select(a => a.TypeId)
             .Concat(byHand.Values.SelectMany(l => l).Where(f => f.Band == "Service").Select(f => f.TypeId))
+            .Concat(required.Values.SelectMany(f => f.Items).Where(i => BandOf(i.Flag).Band == "ServiceSlot").Select(i => i.TypeId))
             .Distinct().ToList();
         var fuelPerHour = await db.SdeTypeDogmaAttributes.AsNoTracking()
             .Where(a => a.AttributeId == AttrServiceFuelPerHour && moduleTypeIds.Contains(a.TypeId))
@@ -465,6 +522,7 @@ public static class CorpStructures
                 ? (SdeNames.SolarSystem(id, s.Name), s.Security,
                    regions.TryGetValue(s.RegionId, out var r) ? SdeNames.Region(s.RegionId, r) : "")
                 : ($"#{id}", null, "");
+        int RegionOf(int systemId) => systems.TryGetValue(systemId, out var s) ? s.RegionId : 0;
 
         CorpFuelInfo Fuel(CorpFuelBay b, double? expected, DateTimeOffset? esiRunsOut) => new(
             b.TypeId, TypeName(b.TypeId), b.Quantity, b.SeenAt,
@@ -507,14 +565,25 @@ public static class CorpStructures
             var powered = s.FuelExpires is { } fe && fe > now;
             double? expectedBlocks = null;
             var serviceModules = fit.Where(f => f.Band == "ServiceSlot").ToList();
-            if (serviceModules.Count > 0)
+
+            // ⚠️ With no assets read, the fit set for the type is the only word on what is fitted:
+            // its service modules burn as if fitted, an empty one burns nothing. Never the services
+            // ESI lists alone — they say what runs, not how much of it.
+            var fromTypeFit = serviceModules.Count == 0 && !corpHasAssets
+                              && required.ContainsKey(s.TypeId);
+            var burning = fromTypeFit
+                ? required[s.TypeId].Items.Where(i => BandOf(i.Flag).Band == "ServiceSlot")
+                    .SelectMany(i => Enumerable.Repeat(i.TypeId, Math.Max(1, i.Quantity))).ToList()
+                : serviceModules.Select(m => m.TypeId).ToList();
+            if (fromTypeFit) expectedBlocks = 0;
+            if (burning.Count > 0)
             {
                 double sum = 0;
-                foreach (var m in serviceModules)
+                foreach (var moduleTypeId in burning)
                 {
-                    if (!fuelPerHour.TryGetValue(m.TypeId, out var rate)) continue;
-                    if (!ModuleRunning(English(m.TypeId), svc)) continue;
-                    foreach (var b in bonuses.Where(b => b.TypeId == s.TypeId && b.GroupId == GroupOf(m.TypeId)))
+                    if (!fuelPerHour.TryGetValue(moduleTypeId, out var rate)) continue;
+                    if (!ModuleRunning(English(moduleTypeId), svc)) continue;
+                    foreach (var b in bonuses.Where(b => b.TypeId == s.TypeId && b.GroupId == GroupOf(moduleTypeId)))
                         rate *= 1 + b.Value / 100.0;
                     sum += rate;
                 }
@@ -565,6 +634,7 @@ public static class CorpStructures
                 SystemName         = sysName,
                 Security           = sec,
                 RegionName         = region,
+                RegionId           = RegionOf(s.SystemId),
                 Place              = places.GetValueOrDefault(s.StructureId) ?? "",
                 State              = s.State,
                 StateTimerStart    = s.StateTimerStart,
@@ -587,10 +657,11 @@ public static class CorpStructures
                 FitKnown           = corpHasAssets,
                 FitCheck           = check,
                 BlocksPerHour      = blocksPerHour,
+                BurnFromTypeFit    = fromTypeFit,
                 FuelIskPerDay      = IskPerDay(blocksPerHour, fuel),
                 RunsOut            = firstOut,
                 IsPowered          = powered,
-                NeedsFuel          = svc.Count > 0 || serviceModules.Count > 0,
+                NeedsFuel          = svc.Count > 0 || burning.Count > 0,
             });
         }
 
@@ -642,6 +713,7 @@ public static class CorpStructures
                 SystemName      = sysName,
                 Security        = sec,
                 RegionName      = region,
+                RegionId        = RegionOf(t.SystemId),
                 Place           = moons.GetValueOrDefault(t.MoonId) ?? "",
                 State           = t.State,
                 UnanchorsAt     = t.UnanchorAt,
@@ -677,6 +749,7 @@ public static class CorpStructures
                 SystemName      = sysName,
                 Security        = sec,
                 RegionName      = region,
+                RegionId        = planet is null ? 0 : RegionOf(planet.SolarSystemId),
                 Place           = planet?.Name ?? "",
                 State           = SkyhookState(s.State),
                 StateTimerEnd   = s.ReinforcedUntil,

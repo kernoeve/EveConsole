@@ -2578,4 +2578,40 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>Top 10 destructions en solo</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>{0} par jour ({1} par heure), d&apos;après le fit de son type</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>Inconnu : la liste a été lue pour la dernière fois le {0}, et l&apos;expiration du carburant qu&apos;elle indiquait est passée depuis.</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>Inconnu : la liste n&apos;a pas été lue depuis ESI.</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, en désancrage</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>Liste des structures lue pour la dernière fois : {0}.</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>Liste des tours lue pour la dernière fois : {0}.</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>jamais</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>Le personnage qui lit cette corporation a perdu le rôle de corporation qu&apos;ESI exige, donc ESI n&apos;est plus interrogé.</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>ESI n&apos;a pas répondu depuis.</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>Le carburant, les états et les minuteurs ci-dessous sont ceux d&apos;alors.</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>Liste lue</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>Fin de l&apos;état</value>
+  </data>
 </root>

@@ -64,6 +64,7 @@ public sealed class ClientPanelHost
                 _windows[key] = window = new ClientPanelWindow();
                 var monitor = key.MonitorKey;
                 window.Pressed += () => BringMonitorForward(monitor);
+                window.MonitorForwardRequested += () => BringMonitorForward(monitor);
             }
             window.Show(state.Panel, new PanelSurroundings(_mainScreen, key.MonitorKey, _focus));
             if (window.TryGetPlatformHandle()?.Handle is { } handle)

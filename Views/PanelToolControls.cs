@@ -108,7 +108,7 @@ public sealed class PanelToolContainer : Panel
         _view.DataContext = _workspace;
         if (TopLevel.GetTopLevel(this) is Window window)
         {
-            MainWindow.Current?.AddContainerView(window, _view);
+            MainWindow.AddContainerView(window, _view);
             // A panel hides with its client, and its tools mustn't be thought on screen meanwhile.
             _window = window;
             window.PropertyChanged += WindowChanged;
@@ -129,7 +129,7 @@ public sealed class PanelToolContainer : Panel
         base.OnDetachedFromVisualTree(e);
         if (_window is { } window) window.PropertyChanged -= WindowChanged;
         _window = null;
-        MainWindow.Current?.RemoveContainerView(_view);
+        MainWindow.RemoveContainerView(_view);
         _view.DataContext = null;
         if (_workspace is { } ws) _main.ReleaseContainer(ws);
         _workspace = null;

@@ -2693,7 +2693,7 @@
     <value>Gegenstände an einen anderen Charakter oder eine andere Corporation übergeben, in der Station, in der sie liegen</value>
   </data>
   <data name="TransferOneLine" xml:space="preserve">
-    <value>{0:N0} × {1}</value>
+    <value>{1} × {0:N0}</value>
   </data>
   <data name="TransferTypesOne" xml:space="preserve">
     <value>{0:N0} Gegenstandstyp</value>
@@ -2793,5 +2793,146 @@
   </data>
   <data name="IndustrySetupNoCharacters" xml:space="preserve">
     <value>Kein Charakter ist für Industriejobs aktiviert.</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>Corp-Strukturen</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>Struktur</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>Eine Corp-Struktur: Treibstoff, Mondbucht, Fit oder Munition</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>{0} betanken — noch {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>{0} betanken — kein Treibstoff</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{0} von {1}. Leer {2}; aufzufüllen auf {3} Tage.</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>jetzt</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>{0:N0} Treibstoffblöcke bringen ({1} pro Stunde).</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>Der Verbrauch ist unbekannt: Lege auf Corp-Strukturen → Konfiguration einen Fit für die {0} fest, damit die Blöcke gezählt werden.</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>Der Verbrauch stammt aus dem Fit für seinen Typ: Die Assets der Corporation werden nicht gelesen.</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>Mondbucht von {0} leeren — {1} % voll</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{0} von {1}: {2} m³ im Wert von {3} ISK.</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>Fit von {0} korrigieren</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>Fehlt: {0}.</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{0} eingebaut, wo {1} sein sollte.</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>Geprüft gegen {0} ({1}), den Fit für die {2} von {3}.</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>Munition und Jäger in {0} nachfüllen</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>Niedrig: {0}. Gegen {1}, den Fit für die {2} von {3}.</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0} von {2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}: Strukturliste seit {1} nicht gelesen</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}: Turmliste seit {1} nicht gelesen</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>Der Charakter, der diese Corporation liest, hat die nötige Corp-Rolle verloren (Station Manager für Strukturen, Starbase Equipment Config für Türme). Die Liste wird nicht mehr gelesen und Treibstoff kann nicht verfolgt werden. Gib die Rolle zurück oder lass einen Charakter mit der Rolle die Corporation lesen.</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>ESI hat in letzter Zeit nicht für die Liste geantwortet; Treibstoff kann erst nach erneutem Lesen verfolgt werden.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Strukturen</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>Aufgaben aus Corp-Strukturen. Betanken braucht nur die Strukturliste und geht für jede Corporation; die anderen drei lesen, was in einer Struktur ist, und kommen nur, wo die Assets der Corporation gelesen werden.</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>Alle Corporations</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>Jede Corporation, auch später hinzugefügte. Abwählen, um auszuwählen.</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>Aufgaben</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>Strukturen betanken</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>Entsteht, wenn der Treibstoff einer Struktur innerhalb des Minimums ausgeht, und füllt auf das Füllniveau auf. Der Verbrauch kommt von den eingebauten Modulen oder, ohne Assets, vom Fit für den Typ auf Corp-Strukturen → Konfiguration.</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>Mindest-Treibstoff</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>Eine Struktur mit weniger Treibstoff als hier bekommt eine Aufgabe.</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>Auffüllen auf</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>Auf wie viele Tage Treibstoff die Aufgabe die Struktur bringt.</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>Reagenzien abholen</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Entsteht, wenn die Mondbucht eines Metenox so viel enthält wie hier eingestellt. Braucht die Assets der Corporation.</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>Abholen ab</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>% voll</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>Volumen</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>Marktwert</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>Wie viel die Bucht enthalten muss, in der gewählten Einheit.</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>Drohnen/Munition nachfüllen</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>Entsteht, wenn Munition oder Jäger unter den in Einstellungen → Alarme gesetzten Anteil des Fits fallen. Braucht die Assets der Corporation.</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>Fit korrigieren</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>Entsteht, wenn einer Struktur ein Modul des Fits für ihren Typ fehlt oder ein anderes an seiner Stelle sitzt. Braucht die Assets der Corporation.</value>
   </data>
 </root>
