@@ -2681,4 +2681,40 @@
     <value>Kills reported</value>
     <comment>Title of an intel alarm's alert or dialog when what fired is several kills and nothing else; the systems follow after a dash.</comment>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Only news wakes you (a sound, speech, the agent, a dialog): something seen, or come into range, in the last two minutes (Settings → Intel). Older news is only recorded as an Alert. Intel alarms take turns: after one wakes you the others wait a few seconds unless the news is urgent, and a sighting two of them catch is said once.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelChangedNote. To wake = to sound, speak, have the agent speak or show a dialog. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert). 'Settings → Intel' names the place in the Settings window.</comment>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Where to watch</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say where to watch (around what, how far).</comment>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>What fires</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say what kind of report fires the alarm.</comment>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>What wakes you</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say what wakes the capsuleer (sound, speech, a dialog) rather than only being recorded.</comment>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Wake within</value>
+    <comment>Alarm editor, intel alarm: label of a tick box and a number of jumps; only news this near wakes the capsuleer. Followed by the number and IntelWakeJumpsSuffix.</comment>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Optional. Only news this many jumps out or nearer wakes you; farther out it is only recorded as an Alert. Kills and urgent news always wake. Unticked, the whole range wakes.</value>
+    <comment>Alarm editor, intel alarm: the description under Wake within. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert).</comment>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>jumps</value>
+    <comment>Alarm editor, intel alarm: the unit after the Wake within number (gate jumps).</comment>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Quieter further out</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; the alarm sound plays more quietly for news further away.</comment>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>The sound plays at full volume within a jump, and more quietly further out: down to 40% at the edge of the range. Speech keeps your voice volume.</value>
+    <comment>Alarm editor, intel alarm: the description under Quieter further out.</comment>
+  </data>
 </root>

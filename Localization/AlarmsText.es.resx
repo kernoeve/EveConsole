@@ -2059,4 +2059,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Muertes notificadas</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Solo lo nuevo te despierta (un sonido, voz, el agente, un cuadro de diálogo): algo visto, o que ha entrado en alcance, en los últimos dos minutos (Ajustes → Intel). Lo más antiguo solo se registra como Alerta. Las alarmas de intel se turnan: después de que una te despierte, las demás esperan unos segundos salvo que el aviso sea urgente, y un avistamiento que capten dos de ellas se dice una vez.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Dónde vigilar</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Qué la dispara</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Qué te despierta</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Despertar a menos de</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Opcional. Solo te despierta lo que esté a este número de saltos o menos; más lejos solo se registra como Alerta. Las muertes y los avisos urgentes siempre despiertan. Sin marcar, despierta todo el alcance.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>saltos</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Más bajo cuanto más lejos</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>El sonido suena a todo volumen a un salto o menos, y más bajo cuanto más lejos: hasta el 40 % en el borde del alcance. La voz mantiene su propio volumen.</value>
+  </data>
 </root>

@@ -37,6 +37,11 @@ namespace EveConsole.Alarms.Conditions;
 /// <item>a kill once, said as a kill. Its attackers are banked with it and not said again as a
 /// sighting.</item>
 /// </list>
+///
+/// <para><b>Showing versus waking.</b> Every match is recorded and shown on the Alert row; only news
+/// wakes anyone (<see cref="Waking"/>): seen, or come into range, within the fresh window of Settings →
+/// Intel, and inside the wake range when one is set. Every intel alarm is in one wake group, so they
+/// share a wake cooldown and say a sighting two of them catch once (<see cref="Services.AlarmWakeGate"/>).</para>
 /// </summary>
 public sealed class IntelCondition : IAlarmCondition
 {
@@ -87,17 +92,30 @@ public sealed class IntelCondition : IAlarmCondition
     private readonly SystemGraph           _graph;
     private readonly IntelSnapshotService? _snapshots;
     private readonly IntelDistanceService? _distances;
+    private readonly IntelWatchMemory      _memory;
 
     /// <param name="snapshots">The shared intel snapshot this check matches against; without it the
     /// check cannot evaluate, and says so.</param>
     /// <param name="distances">Threat distances (stargates plus Thera and Turnur's open holes); without
     /// them the range is walked over stargates alone.</param>
-    public IntelCondition(SystemGraph graph, IntelSnapshotService? snapshots = null, IntelDistanceService? distances = null)
+    /// <param name="memory">When each system came into each alarm's reach (what makes a match news);
+    /// one of its own when not given.</param>
+    public IntelCondition(SystemGraph graph, IntelSnapshotService? snapshots = null, IntelDistanceService? distances = null,
+                          IntelWatchMemory? memory = null)
     {
         _graph     = graph;
         _snapshots = snapshots;
         _distances = distances;
+        _memory    = memory ?? new IntelWatchMemory();
     }
+
+    /// <summary>The wake group every intel alarm is in: one shared wake cooldown, and a sighting two of
+    /// them catch said once.</summary>
+    public const string WakeGroupName = "intel";
+    public string? WakeGroup => WakeGroupName;
+
+    /// <summary>The Sound action's share of its volume at the edge of the range; 1 within a jump.</summary>
+    internal const double FarLoudness = 0.4;
 
     public string TypeKey     => "intel";
     public string DisplayName => "Intel report";
@@ -112,7 +130,11 @@ public sealed class IntelCondition : IAlarmCondition
         "of unnamed pilots again when it grows past 1, 4, 9 or 19, and a report of only a gate camp, bubbles, " +
         "a cyno, a hot drop, a spike or combat probes fires too (flag_reports). A kill there with hostile " +
         "attackers always fires, said as a kill, and first when it is within a jump; its attackers are not " +
-        "said again as a sighting.";
+        "said again as a sighting. Only news wakes the capsuleer (sound, speech, the agent, a dialog): seen, or " +
+        "come into range, within the last two minutes by default (Settings → Intel), and within wake_jumps when " +
+        "that is set; older or farther matches are only written to Alerts. Intel alarms share one wake cooldown " +
+        "(15 s by default; urgent news skips it) and a sighting two of them catch is said once. The sound plays " +
+        "quieter further out (quieter_far).";
 
     public object ParameterSchema => new
     {
@@ -121,6 +143,7 @@ public sealed class IntelCondition : IAlarmCondition
         {
             around = new
             {
+                section     = SectionWhere,
                 type        = "string",
                 @enum       = AroundChoices,
                 @default    = AroundUndocked,
@@ -131,6 +154,7 @@ public sealed class IntelCondition : IAlarmCondition
             },
             characters = new
             {
+                section     = SectionWhere,
                 type        = "array",
                 items       = new { type = "string" },
                 format      = "character-name",
@@ -141,6 +165,7 @@ public sealed class IntelCondition : IAlarmCondition
             },
             systems = new
             {
+                section     = SectionWhere,
                 type        = "array",
                 items       = new { type = "string" },
                 format      = "system-name",
@@ -151,6 +176,7 @@ public sealed class IntelCondition : IAlarmCondition
             },
             jumps = new
             {
+                section     = SectionWhere,
                 type        = "integer",
                 @default    = DefaultJumps,
                 description = "How many jumps out from each character or system to watch, through " +
@@ -159,6 +185,7 @@ public sealed class IntelCondition : IAlarmCondition
             },
             ly = new
             {
+                section     = SectionWhere,
                 type        = "number",
                 beside      = "jumps",
                 title       = "Light years",
@@ -168,18 +195,21 @@ public sealed class IntelCondition : IAlarmCondition
             },
             min_players = new
             {
+                section     = SectionWhat,
                 type        = "integer",
                 description = "Only fire when at least this many hostiles are in the system. Default 1. " +
                               "Kills and flag-only reports fire whatever the number.",
             },
             ignore_no_visual = new
             {
+                section     = SectionWhat,
                 type        = "boolean",
                 description = "Skip pilots and counts reported NV (no visual) — someone relaying a contact " +
                               "they cannot actually see.",
             },
             flag_reports = new
             {
+                section     = SectionWhat,
                 type        = "boolean",
                 @default    = true,
                 title       = "Flag-only reports",
@@ -187,14 +217,47 @@ public sealed class IntelCondition : IAlarmCondition
                               "cyno, a hot drop, a spike or combat probes. Each is said once while it lasts. " +
                               "Default true.",
             },
+            wake_jumps = new
+            {
+                section     = SectionWaking,
+                type        = "integer",
+                optional    = true,
+                title       = "Wake within",
+                description = "Optional. Only matches this many jumps out or nearer wake you (sound, speech, the " +
+                              "agent, a dialog); farther ones are only written to Alerts. Kills and urgent news " +
+                              "always wake. Left out, the whole range wakes.",
+            },
+            quieter_far = new
+            {
+                section     = SectionWaking,
+                type        = "boolean",
+                @default    = true,
+                title       = "Quieter further out",
+                description = "The sound plays at full volume within a jump, and more quietly further out: down to " +
+                              "40% at the edge of the jump range. Speech keeps its own volume. Default true.",
+            },
         },
         required = Array.Empty<string>(),
     };
 
+    // The editor's sections: where to watch, what fires, and what wakes.
+    internal const string SectionWhere  = "where";
+    internal const string SectionWhat   = "what";
+    internal const string SectionWaking = "waking";
+
     // The editor's words; the three above are the agent's and stay English.
     public string ScreenName        => AlarmsText.CheckIntel;
-    public string ScreenDescription => Sentences.Join(
-        Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote), AlarmsText.CheckIntelChangedNote);
+    public string ScreenDescription => Sentences.Join(Sentences.Join(
+        Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote), AlarmsText.CheckIntelChangedNote),
+        AlarmsText.CheckIntelWakeNote);
+
+    public string? ScreenSection(string section) => section switch
+    {
+        SectionWhere  => AlarmsText.IntelSectionWhere,
+        SectionWhat   => AlarmsText.IntelSectionWhat,
+        SectionWaking => AlarmsText.IntelSectionWaking,
+        _             => null,
+    };
 
     public AlarmFieldText? ScreenField(string property) => property switch
     {
@@ -208,6 +271,8 @@ public sealed class IntelCondition : IAlarmCondition
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
         "ignore_no_visual" => new(AlarmsText.IntelIgnoreNvLabel,    AlarmsText.IntelIgnoreNvNote),
         "flag_reports"     => new(AlarmsText.IntelFlagReportsLabel, AlarmsText.IntelFlagReportsNote),
+        "wake_jumps"       => new(AlarmsText.IntelWakeJumpsLabel,   AlarmsText.IntelWakeJumpsNote, AlarmsText.IntelWakeJumpsSuffix),
+        "quieter_far"      => new(AlarmsText.IntelQuieterFarLabel,  AlarmsText.IntelQuieterFarNote),
         _                  => null,
     };
 
@@ -250,7 +315,10 @@ public sealed class IntelCondition : IAlarmCondition
         }
 
         var text = minimum > 1 ? $"Intel {where}, {minimum}+ pilots" : $"Intel {where}";
-        return ReadBool(config, "flag_reports", true) ? text : text + ", no flag-only reports";
+        if (!ReadBool(config, "flag_reports", true)) text += ", no flag-only reports";
+        if (ReadWakeJumps(config) is { } wakes) text += $", wakes within {wakes} jump{(wakes == 1 ? "" : "s")}";
+        if (!ReadBool(config, "quieter_far", true)) text += ", same loudness near or far";
+        return text;
     }
 
     public (string Title, string Body) DefaultText(
@@ -305,7 +373,68 @@ public sealed class IntelCondition : IAlarmCondition
         // every character docked must go quiet too, which is the point of watching undocked ones.
         if (zone.Systems.Count == 0) return [];
 
-        return Match(snapshot, zone, Options(config), ctx.Now);
+        var options = Options(config);
+        var matches = Match(snapshot, zone, options, ctx.Now);
+
+        // What is news to the capsuleer, as opposed to unseen by this alarm: remembered only while
+        // something is watched, so a long dock (or every character logged off) begins it again.
+        var look = _memory.Observe(ctx.Alarm.Id, zone.Systems,
+                                   matches.Where(m => KindOf(m) == KindKill).Select(m => m.Key), ctx.Now);
+        return Waking(matches, zone, options, ctx.Now, TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds), look);
+    }
+
+    /// <summary>
+    /// Which matches wake the capsuleer and how loud, as against only being shown (see
+    /// <see cref="AlarmMatch.Quiet"/>). Pure: tools/IntelCheck runs it on matches built by hand.
+    /// <list type="bullet">
+    /// <item><b>News only.</b> Quiet when older than <paramref name="fresh"/> (Settings → Intel, two
+    /// minutes by default), counted from the later of when it was seen and when its system came into
+    /// reach (<paramref name="look"/>) — and, for a kill, when this alarm first caught it, since the
+    /// kill feed brings a kill minutes after it happened. Urgent news is held to this too: what makes
+    /// it urgent is how near it is, not how new.</item>
+    /// <item><b>Within the wake range</b>, when the alarm sets one; a kill and urgent news always wake.</item>
+    /// <item><b>Loudness</b>, when the alarm plays far news quieter: 1 within a jump, down to
+    /// <see cref="FarLoudness"/> at the edge of the range (<see cref="Loudness"/>); urgent news at 1.</item>
+    /// </list>
+    /// </summary>
+    internal static IReadOnlyList<AlarmMatch> Waking(
+        IReadOnlyList<AlarmMatch> matches, IntelWatchedSystems zone, IntelAlarmOptions options, DateTimeOffset now,
+        TimeSpan fresh, IntelWatchMemory.Look look)
+    {
+        return [.. matches.Select(m =>
+        {
+            var system = m.Detail is { } d && d.TryGetValue("system_id", out var s) && s is int id ? id : 0;
+            var seen   = AtOf(m) is var at && at != DateTime.MinValue
+                ? new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)) : DateTimeOffset.MinValue;
+            var kill   = KindOf(m) == KindKill;
+            var news   = Later(seen, look.EnteredAt(system));
+            if (kill) news = Later(news, look.CaughtAt(m.Key));
+
+            int? jumps = zone.Jumps.TryGetValue(system, out var hops) ? hops : null;
+            double? ly = zone.LightYears.TryGetValue(system, out var far) ? far : null;
+
+            var quiet = now - news > fresh
+                     || (!kill && !m.Urgent && options.WakeJumps is int within && (jumps is not int j || j > within));
+            var loud  = m.Urgent || !options.QuieterFar ? 1.0 : Loudness(jumps, ly, options.Jumps, options.Ly);
+            return m with { Quiet = quiet, Loudness = loud };
+        })];
+
+        static DateTimeOffset Later(DateTimeOffset a, DateTimeOffset b) => a >= b ? a : b;
+    }
+
+    /// <summary>
+    /// The Sound action's share of its volume for news this far out: 1 within a jump, falling evenly to
+    /// <see cref="FarLoudness"/> at <paramref name="range"/> jumps; a system only the light-year range
+    /// caught by its light years against that range. Relative to the alarm's own range, because ranges
+    /// differ: the edge of a three-jump alarm is as quiet as the edge of a fifteen-jump one.
+    /// </summary>
+    internal static double Loudness(int? jumps, double? ly, int range, double? lyRange)
+    {
+        if (jumps is int hops)
+            return hops <= 1 || range <= 1 ? 1 : 1 - (1 - FarLoudness) * (Math.Min(hops, range) - 1) / (range - 1.0);
+        if (ly is double far && lyRange is double reach && reach > 0)
+            return 1 - (1 - FarLoudness) * Math.Clamp(far / reach, 0, 1);
+        return 1;
     }
 
     /// <summary>Where the user's characters are, as the snapshot has it (the newer of ESI and the chat
@@ -316,7 +445,11 @@ public sealed class IntelCondition : IAlarmCondition
     // ── Matching ─────────────────────────────────────────────────────────────
 
     /// <summary>What one alarm's config asks for, read once.</summary>
-    internal sealed record IntelAlarmOptions(int Jumps, int MinPlayers = 1, bool SkipNoVisual = false, bool FlagReports = true);
+    /// <param name="WakeJumps">The wake range: farther matches only show. Null for the whole range.</param>
+    /// <param name="QuieterFar">The sound plays quieter further out.</param>
+    /// <param name="Ly">The light-year range, when set: what a system only it caught is as far as.</param>
+    internal sealed record IntelAlarmOptions(int Jumps, int MinPlayers = 1, bool SkipNoVisual = false, bool FlagReports = true,
+                                             int? WakeJumps = null, bool QuieterFar = true, double? Ly = null);
 
     internal static IntelAlarmOptions Options(JsonElement config)
     {
@@ -325,8 +458,15 @@ public sealed class IntelCondition : IAlarmCondition
             ReadJumps(config, around),
             Math.Max(1, ReadInt(config, "min_players") ?? 1),
             ReadBool(config, "ignore_no_visual"),
-            ReadBool(config, "flag_reports", true));
+            ReadBool(config, "flag_reports", true),
+            ReadWakeJumps(config),
+            ReadBool(config, "quieter_far", true),
+            ReadLy(config));
     }
+
+    /// <summary>The wake range, capped like the range; null when it is not set (the whole range wakes).</summary>
+    private static int? ReadWakeJumps(JsonElement config) =>
+        ReadInt(config, "wake_jumps") is int n ? Math.Clamp(n, 0, MaxJumps) : null;
 
     // What a match is about, in its detail.
     internal const string KindPilot = "pilot";

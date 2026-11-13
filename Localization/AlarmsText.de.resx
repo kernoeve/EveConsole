@@ -2059,4 +2059,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Abschüsse gemeldet</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Nur Neues weckt dich (ein Ton, Sprache, der Agent, ein Dialog): etwas, das in den letzten zwei Minuten gesehen wurde oder in Reichweite kam (Einstellungen → Intel). Ältere Meldungen werden nur als Warnung festgehalten. Intel-Alarme wechseln sich ab: Nachdem einer geweckt hat, warten die anderen ein paar Sekunden, außer die Meldung ist dringend, und eine Sichtung, die zwei von ihnen erfassen, wird einmal angesagt.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Wo beobachten</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Was auslöst</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Was dich weckt</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Wecken innerhalb von</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Optional. Nur Meldungen höchstens so viele Sprünge entfernt wecken dich; weiter draußen werden sie nur als Warnung festgehalten. Abschüsse und dringende Meldungen wecken immer. Nicht angehakt weckt die ganze Reichweite.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>Sprüngen</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Leiser in der Ferne</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Der Ton spielt innerhalb eines Sprungs mit voller Lautstärke und weiter draußen leiser: bis 40 % am Rand der Reichweite. Sprache behält deine Sprachlautstärke.</value>
+  </data>
 </root>

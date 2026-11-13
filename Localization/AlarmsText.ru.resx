@@ -2131,4 +2131,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Уничтожения</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Будят только новости (звук, речь, агент, окно): то, что замечено или вошло в радиус за последние две минуты (Настройки → Разведка). Более старое только записывается как оповещение. Тревоги разведки соблюдают очередь: после того как одна разбудила, остальные ждут несколько секунд, если сведения не срочные, а наблюдение, пойманное двумя тревогами, произносится один раз.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Где следить</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Что срабатывает</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Что будит</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Будить в пределах</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Необязательно. Будят только сведения не дальше этого числа прыжков; дальше они только записываются как оповещение. Уничтожения и срочные сведения будят всегда. Без отметки будит весь радиус.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>прыжков</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Тише вдали</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Звук играет на полной громкости в пределах прыжка и тише дальше: до 40% на краю радиуса. Речь сохраняет свою громкость.</value>
+  </data>
 </root>

@@ -2023,4 +2023,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>여러 킬 발생</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>새로운 정보만 깨웁니다(소리, 음성, 에이전트, 대화 상자). 최근 2분 안에 목격되었거나 범위 안에 들어온 것이 대상입니다(설정 → 인텔). 그보다 오래된 정보는 경보로만 기록됩니다. 인텔 알람은 차례를 지킵니다. 한 알람이 깨운 뒤에는 긴급하지 않은 한 다른 알람이 몇 초 기다리고, 두 알람이 잡은 같은 목격은 한 번만 말합니다.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>감시할 곳</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>발생 조건</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>깨우는 조건</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>깨우는 범위</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>선택 사항. 이 점프 수 이내의 정보만 깨웁니다. 더 먼 것은 경보로만 기록됩니다. 킬과 긴급한 정보는 항상 깨웁니다. 체크하지 않으면 범위 전체에서 깨웁니다.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>점프</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>멀수록 작게</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>1점프 이내에서는 최대 음량으로, 멀수록 작게 울립니다. 범위 끝에서는 40%입니다. 음성은 설정한 음량을 유지합니다.</value>
+  </data>
 </root>

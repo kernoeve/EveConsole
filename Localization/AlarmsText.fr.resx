@@ -2059,4 +2059,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Destructions signalées</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Seule la nouveauté vous réveille (un son, la voix, l'agent, une boîte de dialogue) : ce qui a été vu, ou est entré à portée, dans les deux dernières minutes (Paramètres → Intel). Le reste n'est enregistré que comme Alerte. Les alarmes d'intel se relaient : après le réveil par l'une, les autres attendent quelques secondes sauf urgence, et un signalement capté par deux d'entre elles n'est dit qu'une fois.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Où surveiller</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Ce qui déclenche</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Ce qui vous réveille</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Réveiller à moins de</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Facultatif. Seules les informations à ce nombre de sauts ou moins vous réveillent ; plus loin, elles ne sont enregistrées que comme Alerte. Les destructions et les informations urgentes réveillent toujours. Décoché, toute la portée réveille.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>sauts</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Plus bas au loin</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Le son joue à plein volume à un saut ou moins, et plus bas au-delà : jusqu'à 40 % au bord de la portée. La voix garde son propre volume.</value>
+  </data>
 </root>

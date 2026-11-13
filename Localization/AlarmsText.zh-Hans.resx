@@ -2023,4 +2023,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>发生多起击毁</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>只有新情报才会唤醒你（声音、语音、代理、对话框）：最近两分钟内被看到或进入范围的情报（设置 → 情报）。更早的情报只记录为提醒。情报警报轮流发声：一个警报唤醒后，除非情报紧急，其他警报会等待几秒；两个警报捕捉到的同一目击只说一次。</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>监视位置</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>触发内容</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>唤醒条件</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>唤醒范围</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>可选。只有在此跳数以内的情报才会唤醒你；更远的只记录为提醒。击毁和紧急情报总会唤醒。不勾选时，整个范围都会唤醒。</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>跳</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>越远越轻</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>一跳以内以最大音量播放，越远越轻：到范围边缘为 40%。语音保持你设置的音量。</value>
+  </data>
 </root>

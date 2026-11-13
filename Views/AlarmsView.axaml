@@ -414,12 +414,20 @@
                   <DataTemplate x:DataType="vm:AlarmFieldVm">
                     <!-- One field to a row, or two side by side where the check pairs them. Not rounded:
                          two rounded halves of an odd width come out a pixel wider than the row. -->
-                    <Grid ColumnDefinitions="*,12,*" IsVisible="{Binding !IsBeside}" UseLayoutRounding="False">
-                      <ContentControl Grid.Column="0" Grid.ColumnSpan="{Binding Span}" Content="{Binding}"
-                                      ContentTemplate="{StaticResource FieldBody}" />
-                      <ContentControl Grid.Column="2" Content="{Binding Partner}" IsVisible="{Binding HasPartner}"
-                                      ContentTemplate="{StaticResource FieldBody}" />
-                    </Grid>
+                    <StackPanel IsVisible="{Binding !IsBeside}">
+                      <!-- A heading above the first field of each of the check's sections. -->
+                      <StackPanel IsVisible="{Binding HasSectionHeading}" Margin="0 6 0 6" Spacing="3">
+                        <TextBlock Text="{Binding SectionHeading}" FontSize="11" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource AccentBrush}" />
+                        <Border Height="1" Background="{DynamicResource BorderSubtleBrush}" />
+                      </StackPanel>
+                      <Grid ColumnDefinitions="*,12,*" UseLayoutRounding="False">
+                        <ContentControl Grid.Column="0" Grid.ColumnSpan="{Binding Span}" Content="{Binding}"
+                                        ContentTemplate="{StaticResource FieldBody}" />
+                        <ContentControl Grid.Column="2" Content="{Binding Partner}" IsVisible="{Binding HasPartner}"
+                                        ContentTemplate="{StaticResource FieldBody}" />
+                      </Grid>
+                    </StackPanel>
                   </DataTemplate>
                 </ItemsControl.ItemTemplate>
               </ItemsControl>

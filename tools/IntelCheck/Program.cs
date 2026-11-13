@@ -123,6 +123,7 @@ try
         new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, name)}").Options;
     await AlarmChecks.WatchedAsync(c, Scratch("alarmwatch.db"));
     await AlarmChecks.EvaluateAsync(c, Scratch("alarmeval.db"));
+    await AlarmChecks.WakeServiceAsync(c, Scratch("alarmwake.db"));
     await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
 
     var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;

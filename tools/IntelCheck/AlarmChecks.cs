@@ -16,7 +16,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Tools.IntelCheck
 {
-    internal static class AlarmChecks
+    internal static partial class AlarmChecks
     {
         // Systems: S1 where Alpha is, S2 one jump, S3 two, S4 three, S5 six; S6 outside the alarm's reach.
         private const int S1 = 30_000_101, S2 = 30_000_102, S3 = 30_000_103, S4 = 30_000_104, S5 = 30_000_105, S6 = 30_000_106;
@@ -111,6 +111,9 @@ namespace EveConsole.Tools.IntelCheck
                 Kills(c);
                 Filters(c);
                 Config(c);
+                Waking(c);
+                Memory(c);
+                Gate(c);
             }
             finally
             {
@@ -352,8 +355,9 @@ namespace EveConsole.Tools.IntelCheck
             using var off = JsonDocument.Parse("""{"flag_reports":false}""");
             c.Check("alarm: and the switch turns them off", !IntelCondition.Options(off.RootElement).FlagReports);
             var schema = JsonSerializer.Serialize(condition.ParameterSchema);
+            var flagSpec = JsonSerializer.SerializeToElement(condition.ParameterSchema).GetProperty("properties").GetProperty("flag_reports");
             c.Check("alarm: the editor shows the switch, on by default",
-                schema.Contains("\"flag_reports\":{\"type\":\"boolean\",\"default\":true", StringComparison.Ordinal)
+                flagSpec.GetProperty("type").GetString() == "boolean" && flagSpec.GetProperty("default").ValueKind == JsonValueKind.True
                 && condition.ScreenField("flag_reports")?.Label is { Length: > 0 }, schema);
             c.Check("alarm: the editor's note says what changed",
                 condition.ScreenDescription.Contains(EveConsole.Localization.AlarmsText.CheckIntelChangedNote, StringComparison.Ordinal));

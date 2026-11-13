@@ -60,7 +60,8 @@ public sealed class AlarmService : ReactiveObject
         AlarmConditionRegistry          registry,
         AlarmActionRunner               actions,
         AppErrorLogger                  errors,
-        ClientSignals?                  signals = null)
+        ClientSignals?                  signals  = null,
+        AlarmWakeGate?                  wakeGate = null)
     {
         _dbFactory  = dbFactory;
         _connString = connString;
@@ -68,6 +69,37 @@ public sealed class AlarmService : ReactiveObject
         _actions    = actions;
         _errors     = errors;
         _signals    = signals;
+        _wakeGate   = wakeGate ?? new AlarmWakeGate();
+    }
+
+    /// <summary>The wake cooldown and memory each wake group's alarms share (see <see cref="IAlarmCondition.WakeGroup"/>).</summary>
+    private readonly AlarmWakeGate _wakeGate;
+
+    /// <summary>Each wake group's cooldown as last read, and when: read again at most every
+    /// <see cref="CooldownReadEvery"/>.</summary>
+    private readonly Dictionary<string, (TimeSpan Cooldown, DateTimeOffset At)> _cooldowns = new(StringComparer.Ordinal);
+    private static readonly TimeSpan CooldownReadEvery = TimeSpan.FromSeconds(30);
+
+    /// <summary>
+    /// A wake group's cooldown, from the shared preference (<see cref="AlarmWakeGate.CooldownKey"/>),
+    /// default <see cref="AlarmWakeGate.DefaultCooldownSeconds"/>, 0 for none.
+    /// <para>⚠️ Read from the database, never this PC's preference cache: it is set on Settings → Intel,
+    /// on whichever PC, and the worker that evaluates may be another one that loaded its copy at
+    /// startup.</para>
+    /// </summary>
+    private async Task<TimeSpan> WakeCooldownAsync(AppDbContext db, string group, DateTimeOffset now, CancellationToken ct)
+    {
+        if (_cooldowns.TryGetValue(group, out var held) && now - held.At < CooldownReadEvery && now >= held.At)
+            return held.Cooldown;
+
+        var key  = AlarmWakeGate.CooldownKey(group);
+        var text = await db.AppPreferences.AsNoTracking().Where(p => p.Key == key).Select(p => p.Value).FirstOrDefaultAsync(ct);
+        var seconds = long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)
+            ? Math.Clamp(n, 0, AlarmWakeGate.MaxCooldownSeconds)
+            : AlarmWakeGate.DefaultCooldownSeconds;
+        var cooldown = TimeSpan.FromSeconds(seconds);
+        _cooldowns[group] = (cooldown, now);
+        return cooldown;
     }
 
     public AlarmConditionRegistry Registry => _registry;
@@ -342,12 +374,17 @@ public sealed class AlarmService : ReactiveObject
         }
 
         var fired = 0;
+        var shown = 0;
         foreach (var alarm in due)
         {
             if (ct.IsCancellationRequested) break;
             try
             {
-                if (await EvaluateAsync(db, alarm, now, ct)) fired++;
+                switch (await EvaluateAsync(db, alarm, now, ct))
+                {
+                    case Outcome.Woke:  fired++; break;
+                    case Outcome.Shown: shown++; break;
+                }
             }
             catch (Exception ex)
             {
@@ -363,11 +400,10 @@ public sealed class AlarmService : ReactiveObject
 
         await db.SaveChangesAsync(ct);
 
-        if (fired > 0)
-        {
-            LastFireAt = now;
-            Fired?.Invoke();
-        }
+        // A show-only firing is not the alarm firing, but its history and Alert row are new: open
+        // views refresh for it all the same.
+        if (fired > 0) LastFireAt = now;
+        if (fired + shown > 0) Fired?.Invoke();
 
         StatusText = fired > 0
             ? string.Format(DataText.AlarmsStatusCheckedFired, alarms.Count, due.Count, fired)
@@ -381,19 +417,29 @@ public sealed class AlarmService : ReactiveObject
         }
     }
 
-    /// <summary>Returns true if the alarm fired.</summary>
-    private async Task<bool> EvaluateAsync(AppDbContext db, Alarm alarm, DateTimeOffset now, CancellationToken ct)
+    /// <summary>What one evaluation of an alarm came to.</summary>
+    private enum Outcome
+    {
+        /// <summary>Nothing new, or all of it held back by a cooldown.</summary>
+        None,
+        /// <summary>Recorded and shown only (the Alert row): nothing new enough or near enough to wake for.</summary>
+        Shown,
+        /// <summary>Fired: something woke the capsuleer, or would have, had the alarm a waking action.</summary>
+        Woke,
+    }
+
+    private async Task<Outcome> EvaluateAsync(AppDbContext db, Alarm alarm, DateTimeOffset now, CancellationToken ct)
     {
         var condition = _registry.Find(alarm.ConditionType);
         if (condition is null)
         {
             alarm.LastError = $"Unknown condition type '{alarm.ConditionType}'.";
-            return false;
+            return Outcome.None;
         }
 
         JsonElement config;
         try { config = JsonDocument.Parse(alarm.ConditionJson ?? "{}").RootElement.Clone(); }
-        catch (Exception ex) { alarm.LastError = $"Bad condition config: {ex.Message}"; return false; }
+        catch (Exception ex) { alarm.LastError = $"Bad condition config: {ex.Message}"; return Outcome.None; }
 
         var seenSet = await SeenAsync(db, alarm.Id, ct);
 
@@ -420,7 +466,7 @@ public sealed class AlarmService : ReactiveObject
         {
             if (matches.Count > 0) BankKeys(db, alarm.Id, matches, seenSet, now);
             alarm.Primed = true;
-            return false;
+            return Outcome.None;
         }
 
         // Checks over mutable state forget keys that have gone away, so the same key can be
@@ -429,7 +475,7 @@ public sealed class AlarmService : ReactiveObject
         if (condition.ForgetsUnseenKeys)
             await ForgetVanishedKeysAsync(db, alarm.Id, matches, ct);
 
-        if (matches.Count == 0) return false;
+        if (matches.Count == 0) return Outcome.None;
 
         // Silent matches are banked and never announced: what a check folded into another
         // announcement, or an event kind the user switched off, which must not fire later if
@@ -439,7 +485,7 @@ public sealed class AlarmService : ReactiveObject
         if (fresh.Count == 0)
         {
             if (unseen.Count > 0) BankKeys(db, alarm.Id, unseen, seenSet, now);
-            return false;
+            return Outcome.None;
         }
 
         // A staged check sets its own cadence — a cooldown would swallow stage two, and one-shot
@@ -451,50 +497,87 @@ public sealed class AlarmService : ReactiveObject
         if (!staged && alarm.CooldownSeconds > 0 && alarm.LastFiredAt is { } last
             && now < last.AddSeconds(alarm.CooldownSeconds))
         {
-            return false;
+            return Outcome.None;
         }
-
-        var evt = new AlarmEvent
-        {
-            AlarmId    = alarm.Id,
-            FiredAt    = now,
-            MatchCount = fresh.Count,
-            Summary    = BuildSummary(fresh),
-            DetailJson = JsonSerializer.Serialize(fresh.Select(m => new
-            {
-                key     = m.Key,
-                summary = m.Summary,
-                detail  = m.Detail,
-            })),
-        };
-        db.AlarmEvents.Add(evt);
-
-        BankKeys(db, alarm.Id, unseen, seenSet, now);
-
-        alarm.LastFiredAt = now;
-        alarm.FireCount  += 1;
-        if (!staged && alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
-
-        // Persist before acting: an action that raises a dialog or calls the agent must not be
-        // able to run twice because the write that recorded it had not landed yet.
-        await db.SaveChangesAsync(ct);
 
         var actions = await db.AlarmActions.AsNoTracking()
             .Where(a => a.AlarmId == alarm.Id)
             .OrderBy(a => a.Ordinal)
             .ToListAsync(ct);
 
+        // ── Showing versus waking ──
+        // What would wake: every fresh match the check did not mark quiet. An alarm of a wake group
+        // with something to wake with then asks the group: a match another alarm of it already woke
+        // for is only shown, and within the group's cooldown the rest are held — unless one is urgent.
+        // A held match is neither shown nor banked: the next evaluation judges it again.
+        var show = fresh;
+        var wake = staged ? fresh : fresh.Where(m => !m.Quiet).ToList();
+        var wakeGroup = staged ? null : condition.WakeGroup;
+        if (wakeGroup is not null && wake.Count > 0 && actions.Any(a => AlarmActionKinds.Wakes(a.Kind)))
+        {
+            var decision = _wakeGate.Judge(wakeGroup, wake, now, await WakeCooldownAsync(db, wakeGroup, now, ct));
+            if (decision.Held.Count > 0)
+            {
+                var held = decision.Held.Select(m => m.Key).ToHashSet(StringComparer.Ordinal);
+                show   = [.. fresh.Where(m => !held.Contains(m.Key))];
+                unseen = [.. unseen.Where(m => !held.Contains(m.Key))];
+            }
+            wake = [.. decision.Wake];
+            if (show.Count == 0) return Outcome.None;
+            if (wake.Count > 0) _wakeGate.Woke(wakeGroup, wake.Select(m => m.Key), now);
+        }
+        var woke     = wake.Count > 0;
+        var wakeKeys = wake.Select(m => m.Key).ToHashSet(StringComparer.Ordinal);
+
+        var evt = new AlarmEvent
+        {
+            AlarmId    = alarm.Id,
+            FiredAt    = now,
+            MatchCount = show.Count,
+            Summary    = BuildSummary(show),
+            DetailJson = JsonSerializer.Serialize(show.Select(m => new
+            {
+                key     = m.Key,
+                summary = m.Summary,
+                detail  = m.Detail,
+                wake    = wakeKeys.Contains(m.Key),
+            })),
+        };
+        db.AlarmEvents.Add(evt);
+
+        BankKeys(db, alarm.Id, unseen, seenSet, now);
+
+        // ⚠️ Only a firing that woke someone counts as the alarm firing. A show-only one is recorded
+        // and shown, but a one-shot "tell me when" must end on a real wake-up, never a stale
+        // catch-up row, and "last fired" must say when it last made a sound.
+        if (woke)
+        {
+            alarm.LastFiredAt = now;
+            alarm.FireCount  += 1;
+            if (!staged && alarm.Repeat == AlarmRepeat.OneShot) alarm.Enabled = false;
+        }
+
+        // Persist before acting: an action that raises a dialog or calls the agent must not be
+        // able to run twice because the write that recorded it had not landed yet.
+        await db.SaveChangesAsync(ct);
+
         if (!staged)
         {
             // The condition supplies wording for any Alert or Dialog left on its default, so what
-            // the capsuleer reads reflects what was actually being watched for.
-            var defaults = condition.DefaultText(alarm.Name, config, fresh);
+            // the capsuleer reads reflects what was actually being watched for: the Alert row all
+            // that is shown, the dialog and the voice what wakes.
+            var defaults = condition.DefaultText(alarm.Name, config, show);
+            var wakeSet  = woke
+                ? new AlarmWakeSet(wake,
+                    wake.Count == show.Count ? defaults : condition.DefaultText(alarm.Name, config, wake),
+                    // For a condition that would rather be quoted than paraphrased, the exact words.
+                    condition.Announcement(config, wake),
+                    // What {summary} says in the waking actions: what wakes, not all that is shown.
+                    BuildSummary(wake))
+                : AlarmWakeSet.None;
 
-            // And, for a condition that would rather be quoted than paraphrased, the exact words.
-            var announcement = condition.Announcement(config, fresh);
-
-            await _actions.RunAsync(alarm, actions, evt, fresh, defaults, announcement, ct: ct);
-            return true;
+            await _actions.RunAsync(alarm, actions, evt, show, defaults, wakeSet.Announcement, ct: ct, wake: wakeSet);
+            return woke ? Outcome.Woke : Outcome.Shown;
         }
 
         // Staged: one firing per scope and stage — two pilots adrift are two wake-up calls, each
@@ -522,7 +605,7 @@ public sealed class AlarmService : ReactiveObject
                 condition.AgentPrompt(config, list),
                 ct);
         }
-        return true;
+        return Outcome.Woke;
     }
 
     private static string DetailText(AlarmMatch m, string key)

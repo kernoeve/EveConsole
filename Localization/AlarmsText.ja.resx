@@ -2023,4 +2023,31 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>複数のキル発生</value>
   </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>起こすのは新しい情報だけです（音、読み上げ、エージェント、ダイアログ）。直近2分以内に目撃された、または範囲に入ったものが対象です（設定 → インテル）。それより古い情報はアラートとして記録されるだけです。インテルアラームは順番に鳴ります。1つが起こした後、緊急でない限り他のアラームは数秒待ち、2つのアラームが捉えた同じ目撃は1回だけ読み上げます。</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>監視する場所</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>発動する内容</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>起こす条件</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>起こす範囲</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>任意。このジャンプ数以内の情報だけが起こします。それより遠いものはアラートとして記録されるだけです。キルと緊急の情報は常に起こします。チェックしない場合は範囲全体で起こします。</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>ジャンプ</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>遠いほど小さく</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>1ジャンプ以内は最大音量で、遠いほど小さく鳴ります。範囲の端では40%です。読み上げは設定した音量のままです。</value>
+  </data>
 </root>
