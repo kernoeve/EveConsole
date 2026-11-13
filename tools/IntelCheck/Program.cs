@@ -126,6 +126,8 @@ try
     await AlarmChecks.WakeServiceAsync(c, Scratch("alarmwake.db"));
     await AlarmChecks.WhoAndWhereWatchedAsync(c, Scratch("alarmwho.db"));
     await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
+    await AlarmChecks.RouteStoreAsync(c, "SQLite", Scratch("routes.db"));
+    await AlarmChecks.RouteWatchedAsync(c, Scratch("routewatch.db"));
 
     var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
     await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
@@ -262,7 +264,7 @@ namespace EveConsole.Tools.IntelCheck
             return [.. Regex.Matches(src, q3 + "(.*?)" + q3, RegexOptions.Singleline)
                 .Select(m => m.Groups[1].Value.Trim())
                 // Index names too ("IX_IntelReports_…"): a DROP names only the index.
-                .Where(s => s.Contains("IntelReports") || s.Contains("IntelLastSeen") || s.Contains("IntelReportCharacters") || s.Contains("IntelWatchEntries"))
+                .Where(s => s.Contains("IntelReports") || s.Contains("IntelLastSeen") || s.Contains("IntelReportCharacters") || s.Contains("IntelWatchEntries") || s.Contains("CharacterRoutes"))
                 // Statements with braces are formatted or interpolated: not the startup list's.
                 .Where(s => !s.Contains('{'))];
         }
@@ -365,6 +367,10 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{label}: one watch entry per thing (unique on Kind, EntityId)",
                 watchIdx.TryGetValue("IX_IntelWatchEntries_Kind_Entity", out var we) && we.Unique && we.Columns == "Kind,EntityId",
                 string.Join("; ", watchIdx.Select(kv => $"{kv.Key}={kv.Value}")));
+            var routeCols = Columns(conn, "CharacterRoutes");
+            missing = [.. Rows.ModelColumns<CharacterRoute>(options).Where(m => !routeCols.Contains(m))];
+            c.Check($"{label}: CharacterRoutes exists with every column the model has", routeCols.Count > 0 && missing.Count == 0,
+                routeCols.Count == 0 ? "no table" : string.Join(",", missing));
         }
 
         /// <summary>A database made by the build before this one, then this build's start, twice.</summary>
@@ -382,6 +388,7 @@ namespace EveConsole.Tools.IntelCheck
             Exec(conn, "DROP TABLE \"IntelReports\"");
             Exec(conn, "DROP TABLE \"IntelLastSeen\"");
             Exec(conn, "DROP TABLE \"IntelWatchEntries\"");
+            Exec(conn, "DROP TABLE \"CharacterRoutes\"");
             Exec(conn, """CREATE TABLE "IntelReports" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "ReportedAt" TEXT NOT NULL DEFAULT '', "ChannelName" TEXT NOT NULL DEFAULT '', "ReporterName" TEXT NOT NULL DEFAULT '', "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "PlayerCount" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "Obsolete" INTEGER NOT NULL DEFAULT 0, "ObsoleteSetOn" TEXT NULL, "ChatMessageId" INTEGER NOT NULL DEFAULT 0, "ReporterCharacterId" INTEGER NULL, "NoVisual" INTEGER NOT NULL DEFAULT 0, "Message" TEXT NOT NULL DEFAULT '', "Flags" INTEGER NOT NULL DEFAULT 0, "Gate" TEXT NULL, "Ships" TEXT NULL)""");
             Exec(conn, """CREATE UNIQUE INDEX "IX_IntelReports_ChatMessageId" ON "IntelReports" ("ChatMessageId")""");
 
@@ -711,6 +718,7 @@ namespace EveConsole.Tools.IntelCheck
                 await ReadSideChecks.PilotSearchAsync(c, "PG", options);
                 await PasteChecks.DatabaseAsync(c, "PG", options);
                 await AlarmChecks.RePrimeAsync(c, "PG", options);
+                await AlarmChecks.RouteStoreAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);
@@ -797,7 +805,10 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{label}: one watch entry per thing (unique on Kind, EntityId)",
                 watchIdx.TryGetValue("IX_IntelWatchEntries_Kind_Entity", out var wdef)
                 && wdef.Contains("UNIQUE", StringComparison.Ordinal) && wdef.Contains("\"Kind\", \"EntityId\"", StringComparison.Ordinal),
-                string.Join("; ", watchIdx.Values));
+                string.Join("; ", watchIdx.Values));            var routeCols = await ColumnsAsync(cs, "CharacterRoutes");
+            missing = [.. Rows.ModelColumns<CharacterRoute>(options).Where(m => !routeCols.Contains(m))];
+            c.Check($"{label}: CharacterRoutes has every column the model has", routeCols.Count > 0 && missing.Count == 0,
+                routeCols.Count == 0 ? "no table" : string.Join(",", missing));
 
             // Pastes, and the next start.
             await ExecAsync(cs, "DELETE FROM \"IntelReports\"");
@@ -829,6 +840,7 @@ namespace EveConsole.Tools.IntelCheck
                                            DROP COLUMN "FromSystemId", DROP COLUMN "HeadingSystemId";
                 DROP TABLE "IntelLastSeen";
                 DROP TABLE "IntelWatchEntries";
+                DROP TABLE "CharacterRoutes";
                 """);
             await using (var db = new AppDbContext(options)) PostgresSchema.Apply(db);
             await SchemaAsync(c, "PG upgrade", options, cs);

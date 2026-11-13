@@ -147,6 +147,10 @@ public sealed class QueryDatabaseTool : IAgentTool
         IntelWatchEntries: Id, Kind('pilot','corp','alliance','hull','group'), EntityId, Name, Mode(0 always
             alert, 1 ignore), Note, AddedBy(PC), AddedAt(ISO text)
             - The shared intel watch list, one row per thing.
+        CharacterRoutes: CharacterId (PK), DestinationSystemId, SystemIds(comma list, start first), AtIndex(step last
+            seen at), SetAt(ISO text), ClearedAt(ISO text, null while flown)
+            - The last route the Route Planner sent to the game per character; intel alarms watch the steps after
+              AtIndex. Ignored after 6 hours.
 
         ALARMS (see the manage_alarms tool rather than writing to these directly)
         Alarms: Id, Name, Enabled, ConditionType, ConditionJson, Repeat, PollSeconds,

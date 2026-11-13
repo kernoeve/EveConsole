@@ -117,6 +117,7 @@ namespace EveConsole.Tools.IntelCheck
                 MoveIntoRange(c);
                 Gate(c);
                 WhoAndWhere(c);
+                Routes(c);
             }
             finally
             {

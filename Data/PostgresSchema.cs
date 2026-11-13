@@ -267,6 +267,18 @@ public static class PostgresSchema
             "AddedAt"  TEXT    NOT NULL DEFAULT ''
         )
         """,
+        // The last route the Route Planner sent for each character, for the intel alarms. SetAt and ClearedAt are
+        // ISO TEXT like every intel time. Mirrored for SQLite in App.axaml.cs.
+        """
+        CREATE TABLE IF NOT EXISTS "CharacterRoutes" (
+            "CharacterId"         BIGINT  NOT NULL PRIMARY KEY,
+            "DestinationSystemId" INTEGER NOT NULL DEFAULT 0,
+            "SystemIds"           TEXT    NOT NULL DEFAULT '',
+            "AtIndex"             INTEGER NOT NULL DEFAULT 0,
+            "SetAt"               TEXT    NOT NULL DEFAULT '',
+            "ClearedAt"           TEXT    NULL
+        )
+        """,
         """
         ALTER TABLE "SdeSolarSystems" ADD COLUMN IF NOT EXISTS "Corridor" BOOLEAN NOT NULL DEFAULT FALSE
         """,

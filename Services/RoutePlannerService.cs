@@ -249,6 +249,12 @@ public sealed class RoutePlannerService(
             if (!r.IsSuccess) return r.StatusCode == 0 ? r.Error ?? "" : $"{r.StatusCode} {r.Error}";
             first = false;
         }
+
+        // The route the game now flies, for the intel alarms to watch ahead of the character. The game took the
+        // route whatever happens here, so a failure to store it is not the send failing: the alarms then only
+        // watch around the character, as for a route set in the game.
+        try { await Intel.CharacterRouteStore.SaveAsync(dbFactory, characterId, [.. plan.Steps.Select(s => s.SystemId)], DateTimeOffset.UtcNow, ct); }
+        catch (Exception ex) when (ex is not OperationCanceledException) { }
         return null;
     }
 }

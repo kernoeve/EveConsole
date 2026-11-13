@@ -2146,4 +2146,43 @@
   <data name="IntelSaidViaWormhole" xml:space="preserve">
     <value>{0}, a través de Thera o Turnur</value>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>También activado por defecto: los campeos de puerta deducidos de derribos, cerca de tus personajes o en una ruta por delante, y la propia ruta por delante, los sistemas que faltan por recorrer en la última ruta que el Planificador de rutas envió al juego (Campeos de puerta y Vigilar la ruta por delante, abajo).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Vigilar la ruta por delante</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Vigila también los sistemas que aún quedan por delante en la última ruta que el Planificador de rutas envió al juego para un personaje vigilado, a cualquier distancia: lo que se vea allí salta y se anuncia como tantos saltos por delante en la ruta. Solo la parte aún no recorrida; la ruta se descarta al llegar o seis horas después de enviarla. Una ruta fijada solo en el juego no se puede conocer.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Campeos de puerta</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Salta por un campeo de puerta deducido de derribos en una puerta, cerca de un personaje vigilado o en una ruta por delante. Se anuncia una vez por campeo, por personaje y por ruta, así que una ruta nueva que pase por un campeo conocido lo vuelve a anunciar. Uno en una ruta por delante dentro del alcance para despertar (5 saltos si no se ha fijado) es urgente.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Campeo de puerta en {0}, en la puerta de {1}.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Campeo de puerta en {0}, en la puerta de {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} derribo en {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} derribos en {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} minuto</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} minutos</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} salto por delante en la ruta de {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} saltos por delante en la ruta de {1}</value>
+  </data>
 </root>

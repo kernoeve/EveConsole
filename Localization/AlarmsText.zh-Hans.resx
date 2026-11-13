@@ -2110,4 +2110,34 @@
   <data name="IntelSaidViaWormhole" xml:space="preserve">
     <value>{0}，经由 Thera 或 Turnur</value>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>默认同样开启：根据击毁推算出的、位于你的角色附近或前方路线上的星门蹲守，以及前方路线本身，即路线规划发送到游戏的最后一条路线上尚待飞行的星系（见下方“星门蹲守”和“监视前方路线”）。</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>监视前方路线</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>同时监视路线规划为受监视角色发送到游戏的最后一条路线上仍在前方的星系，无论多远：在那里看到的情况会触发，并以路线前方多少跳来播报。只包括尚未飞过的部分；到达后或发送六小时后路线即被丢弃。只在游戏中设置的路线无法得知。</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>当根据星门处的击毁推算出的星门蹲守位于受监视角色附近或前方路线上时触发。每个蹲守、每个角色、每条路线各播报一次，因此经过已知蹲守的新路线会再次播报。前方路线上、唤醒范围内（未设置时为 5 跳）的蹲守为紧急。</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守。</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守，{2}。</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1}内击毁 {0} 次。</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1} 的路线前方 {0} 跳</value>
+  </data>
 </root>

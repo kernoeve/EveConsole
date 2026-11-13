@@ -1981,6 +1981,35 @@ public static class IntelWatchMode
     public const int Ignore = 1;
 }
 
+/// <summary>
+/// The last route the Route Planner sent to the game for one character, shared by every PC on the
+/// database: what the intel alarms watch ahead of that character.
+///
+/// <para>One row per character: sending another route replaces it. Only the part still ahead is
+/// watched (<see cref="AtIndex"/>); the route is cleared when the character reaches its destination,
+/// and ignored six hours after it was sent. A route set only in the game is not known: the game does
+/// not tell anyone what its autopilot is set to.</para>
+/// </summary>
+public class CharacterRoute
+{
+    public long    CharacterId         { get; set; }
+
+    /// <summary>The last step: where the route ends.</summary>
+    public int     DestinationSystemId { get; set; }
+
+    /// <summary>Every step's system id, start first, as a comma list.</summary>
+    public string  SystemIds           { get; set; } = "";
+
+    /// <summary>The step the character was last seen at; the steps after it are ahead.</summary>
+    public int     AtIndex             { get; set; }
+
+    /// <summary>When it was sent, ISO text "yyyy-MM-ddTHH:mm:ssZ" like every intel time column.</summary>
+    public string  SetAt               { get; set; } = "";
+
+    /// <summary>When the character arrived (ISO text); null while the route is being flown.</summary>
+    public string? ClearedAt           { get; set; }
+}
+
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
 /// <summary>

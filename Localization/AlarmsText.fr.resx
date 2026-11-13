@@ -2146,4 +2146,43 @@
   <data name="IntelSaidViaWormhole" xml:space="preserve">
     <value>{0}, en passant par Thera ou Turnur</value>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Également activés par défaut : les camps de portail déduits des destructions, près de vos personnages ou sur un itinéraire à venir, et l&apos;itinéraire à venir lui-même, les systèmes restant à parcourir sur le dernier itinéraire que le Planificateur d&apos;itinéraire a envoyé au jeu (Camps de portail et Surveiller l&apos;itinéraire à venir, ci-dessous).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Surveiller l&apos;itinéraire à venir</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Surveille aussi les systèmes encore à venir sur le dernier itinéraire que le Planificateur d&apos;itinéraire a envoyé au jeu pour un personnage surveillé, à n&apos;importe quelle distance : ce qui y est vu déclenche l&apos;alarme, annoncé comme tant de sauts plus loin sur l&apos;itinéraire. Seule la partie pas encore parcourue ; l&apos;itinéraire est abandonné à l&apos;arrivée ou six heures après son envoi. Un itinéraire défini uniquement dans le jeu ne peut pas être connu.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Camps de portail</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Se déclenche pour un camp de portail déduit des destructions sur un portail, près d&apos;un personnage surveillé ou sur un itinéraire à venir. Annoncé une fois par camp, par personnage et par itinéraire, si bien qu&apos;un nouvel itinéraire passant par un camp connu l&apos;annonce de nouveau. Un camp sur un itinéraire à venir dans la portée de réveil (5 sauts si aucune n&apos;est définie) est urgent.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Camp de portail dans {0}, sur le portail de {1}.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Camp de portail dans {0}, sur le portail de {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} destruction en {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} destructions en {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} saut plus loin sur l&apos;itinéraire de {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} sauts plus loin sur l&apos;itinéraire de {1}</value>
+  </data>
 </root>

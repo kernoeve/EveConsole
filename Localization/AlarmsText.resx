@@ -2797,4 +2797,56 @@
     <value>{0}, through Thera or Turnur</value>
     <comment>Spoken by an intel alarm: how far away something is, when the shortest way there goes through a Thera or Turnur wormhole. {0} is the distance (IntelSaidJumpsFromOne/Other or IntelSaidJumpsOutOne/Other). Thera and Turnur are EVE system names; keep them as they are.</comment>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Also on by default: gate camps worked out from kills, near your characters or on a route ahead, and the route ahead itself, the systems still to fly on the last route the Route Planner sent to the game (Gate camps and Watch the route ahead, below).</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelChangedNote. &apos;Gate camps&apos; must match IntelCampsLabel and &apos;Watch the route ahead&apos; IntelRouteLabel. &apos;Route Planner&apos; is the Universe Map&apos;s route tab (MapText.RoutePlannerTab). A gate camp = hostiles waiting at a stargate to kill whoever comes through.</comment>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Watch the route ahead</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default, shown when watching around characters. The route is the last one the Route Planner sent to the game&apos;s autopilot for a watched character.</comment>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Also watch the systems still ahead on the last route the Route Planner sent to the game for a watched character, however far: what is seen there fires, said as so many jumps ahead on the route. Only the part not yet flown; the route is dropped on arrival or six hours after it was sent. A route set only in the game cannot be known.</value>
+    <comment>Alarm editor, intel alarm: the description under Watch the route ahead. &apos;Route Planner&apos; must match MapText.RoutePlannerTab.</comment>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Gate camps</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default. A gate camp = hostiles waiting at a stargate to kill whoever comes through, here worked out from kills close together on one gate.</comment>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Fire for a gate camp worked out from kills on a gate, near a watched character or on a route ahead. Said once per camp, per character and per route, so a new route through a known camp is said again. One on a route ahead within the wake range (5 jumps when none is set) is urgent.</value>
+    <comment>Alarm editor, intel alarm: the description under Gate camps. &apos;Wake range&apos; is the Wake within field (IntelWakeJumpsLabel).</comment>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Gate camp in {0} on the {1} gate.</value>
+    <comment>Spoken by an intel alarm: a gate camp worked out from kills. {0} is the system; {1} the system the camped stargate leads to (EVE names a gate for where it goes).</comment>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Gate camp in {0} on the {1} gate, {2}.</value>
+    <comment>Spoken by an intel alarm: a gate camp worked out from kills, with how far. {0} is the system; {1} the system the camped stargate leads to; {2} how far (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other or IntelSaidOnRouteOne/Other).</comment>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} kill in {1}.</value>
+    <comment>Spoken after IntelSaidCamp: how many kills the camp has made, and over how long. {0} is the number of kills; {1} the time (IntelSaidMinutesOne/Other).</comment>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} kills in {1}.</value>
+    <comment>Spoken after IntelSaidCamp: how many kills the camp has made, and over how long. {0} is the number of kills; {1} the time (IntelSaidMinutesOne/Other).</comment>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>Spoken, in IntelSaidCampKillsOne/Other: a number of minutes. {0} is the number.</comment>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>Spoken, in IntelSaidCampKillsOne/Other: a number of minutes. {0} is the number.</comment>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} jump ahead on {1}&apos;s route</value>
+    <comment>Spoken by an intel alarm: how far along a watched character&apos;s route a system is, for one still ahead on the route the Route Planner sent. {0} is the number of jumps; {1} the character&apos;s name.</comment>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} jumps ahead on {1}&apos;s route</value>
+    <comment>Spoken by an intel alarm: how far along a watched character&apos;s route a system is, for one still ahead on the route the Route Planner sent. {0} is the number of jumps; {1} the character&apos;s name.</comment>
+  </data>
 </root>

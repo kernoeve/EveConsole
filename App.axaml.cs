@@ -414,6 +414,20 @@ public class App : Application
             // changes what it watches: evaluated then, so a hostile already reported next door
             // is heard on arrival rather than at the alarm's next interval.
             polling.CharacterMoved += characterId =>
+            {
+                // A route sent from the Route Planner follows the character: the step they are on, and cleared on
+                // arrival, so what is ahead is right even while no intel alarm is reading it. Then the alarms.
+                var factory = Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+                _ = Task.Run(async () =>
+                {
+                    try { await EveConsole.Services.Intel.CharacterRouteStore.FollowStatusAsync(factory, characterId); }
+                    catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("CharacterRoutes", "follow", ex); }
+                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+                });
+            };
+
+            // A route just sent from the Route Planner is watched ahead from now: evaluated at once.
+            EveConsole.Services.Intel.CharacterRouteStore.Saved += () =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
 
             // And when the chat log moves one first ("Channel changed to Local", seconds before ESI's
@@ -4362,6 +4376,9 @@ public class App : Application
                     // for, or ignored. Mirrored for PostgreSQL in PostgresSchema.
                     """CREATE TABLE IF NOT EXISTS "IntelWatchEntries" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Kind" TEXT NOT NULL DEFAULT '', "EntityId" INTEGER NOT NULL DEFAULT 0, "Name" TEXT NOT NULL DEFAULT '', "Mode" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "AddedBy" TEXT NOT NULL DEFAULT '', "AddedAt" TEXT NOT NULL DEFAULT '')""",
                     """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelWatchEntries_Kind_Entity" ON "IntelWatchEntries" ("Kind", "EntityId")""",
+                    // The last route the Route Planner sent for each character: what the intel alarms watch
+                    // ahead of it. Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "CharacterRoutes" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "DestinationSystemId" INTEGER NOT NULL DEFAULT 0, "SystemIds" TEXT NOT NULL DEFAULT '', "AtIndex" INTEGER NOT NULL DEFAULT 0, "SetAt" TEXT NOT NULL DEFAULT '', "ClearedAt" TEXT NULL)""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the

@@ -2110,4 +2110,34 @@
   <data name="IntelSaidViaWormhole" xml:space="preserve">
     <value>{0}(Thera 또는 Turnur 경유)</value>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>기본으로 켜짐: 킬로 알아낸, 캐릭터 근처나 앞쪽 경로의 게이트 캠프와, 앞쪽 경로 자체(경로 플래너가 게임에 보낸 마지막 경로에서 아직 비행할 항성계)도 대상입니다(아래 &apos;게이트 캠프&apos;와 &apos;앞쪽 경로 감시&apos;).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>앞쪽 경로 감시</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>감시 중인 캐릭터를 위해 경로 플래너가 게임에 보낸 마지막 경로에서 아직 앞에 있는 항성계도 거리와 상관없이 감시합니다. 그곳에서 목격된 것은 울리며, 경로에서 몇 점프 앞인지로 안내됩니다. 아직 비행하지 않은 부분만 대상이며, 경로는 도착하거나 보낸 지 6시간이 지나면 버려집니다. 게임 안에서만 설정한 경로는 알 수 없습니다.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>게이트에서의 킬로 알아낸 게이트 캠프가 감시 중인 캐릭터 근처나 앞쪽 경로에 있으면 울립니다. 캠프마다, 캐릭터마다, 경로마다 한 번 안내하므로, 알려진 캠프를 지나는 새 경로는 다시 안내합니다. 깨우는 범위(설정하지 않으면 5점프) 안의 앞쪽 경로에 있는 캠프는 긴급입니다.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0}의 {1} 게이트에 게이트 캠프가 있습니다.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0}, {2}의 {1} 게이트에 게이트 캠프가 있습니다.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1} 동안 {0}건의 킬.</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1}의 경로에서 {0}점프 앞</value>
+  </data>
 </root>

@@ -35,8 +35,14 @@ namespace EveConsole.Alarms.Conditions;
 /// <item>an episode that goes on keeps its first start after its first reports leave the snapshot's
 /// window (<see cref="IntelEpisodeRegister"/>), so a long camp or count is not said again;</item>
 /// <item>a kill once, said as a kill. Its attackers are banked with it and not said again as a
-/// sighting.</item>
+/// sighting;</item>
+/// <item>a gate camp worked out from kills once per camp episode, per character and per route: near a
+/// watched character, or on a route ahead. A new route sent through a camp already said says it again.</item>
 /// </list>
+///
+/// <para><b>The route ahead.</b> Around characters, the systems still ahead on the last route the Route
+/// Planner sent for one of them are watched too, however far (<see cref="CharacterRouteStore"/>): only the
+/// part not yet flown, until arrival or six hours. A route set only in the game is not known.</para>
 ///
 /// <para><b>Showing versus waking.</b> Every match is recorded and shown on the Alert row; only news
 /// wakes anyone (<see cref="Waking"/>): seen, or come into range, within the fresh window of Settings →
@@ -156,7 +162,12 @@ public sealed class IntelCondition : IAlarmCondition
         "(priority_systems, always watched), anyone on the watch list's Always alert (within watch_list_jumps, " +
         "whatever the range or minimum; Ignore never fires), and a pilot approaching (seen closer than before, or " +
         "reported heading toward a watched character), which wakes beyond wake_jumps unless approach_wakes is off. " +
-        "A pilot heading away is said so. A distance through Thera or Turnur is said so.";
+        "A pilot heading away is said so. A distance through Thera or Turnur is said so. Around characters, the systems " +
+        "still ahead on the last route the Route Planner sent for one of them are watched too, however far (route; dropped " +
+        "on arrival or after six hours; a route set only in the game is not known). A gate camp worked out from kills " +
+        "fires when it is in what is watched or on a route ahead (camps): once per camp, per character and per route, " +
+        "so a new route through a known camp is said again; one on a route ahead within the wake range (5 jumps when " +
+        "none is set) is urgent.";
 
     public object ParameterSchema => new
     {
@@ -215,6 +226,18 @@ public sealed class IntelCondition : IAlarmCondition
                               "character or system, however many gates away — what a jump drive or a " +
                               "cyno puts in reach. A report caught by either range fires. Capped at 20.",
             },
+            route = new
+            {
+                section     = SectionWhere,
+                type        = "boolean",
+                @default    = true,
+                show_if     = new Dictionary<string, string[]> { ["around"] = [AroundUndocked, AroundCharacters] },
+                title       = "Watch the route ahead",
+                description = "Also watch the systems still ahead on the last route the Route Planner sent to the game " +
+                              "for a watched character, however far: what is seen there fires, said as so many jumps " +
+                              "ahead on the route. Only the part not yet flown; the route is dropped on arrival or six " +
+                              "hours after it was sent. A route set only in the game is not known. Default true.",
+            },
             min_players = new
             {
                 section     = SectionWhat,
@@ -238,6 +261,17 @@ public sealed class IntelCondition : IAlarmCondition
                 description = "Also fire for a report that counts nobody but says a gate camp, bubbles, a " +
                               "cyno, a hot drop, a spike or combat probes. Each is said once while it lasts. " +
                               "Default true.",
+            },
+            camps = new
+            {
+                section     = SectionWhat,
+                type        = "boolean",
+                @default    = true,
+                title       = "Gate camps",
+                description = "Fire for a gate camp worked out from kills on a gate (two or more pilots lost to the same " +
+                              "attackers within half an hour), in what is watched or on a route ahead. Said once per camp, " +
+                              "per character and per route, so a new route through a known camp is said again. One on a " +
+                              "route ahead within wake_jumps (5 jumps when that is not set) is urgent. Default true.",
             },
             hostile_from = new
             {
@@ -321,9 +355,9 @@ public sealed class IntelCondition : IAlarmCondition
 
     // The editor's words; the three above are the agent's and stay English.
     public string ScreenName        => AlarmsText.CheckIntel;
-    public string ScreenDescription => Sentences.Join(Sentences.Join(
+    public string ScreenDescription => Sentences.Join(Sentences.Join(Sentences.Join(
         Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote), AlarmsText.CheckIntelChangedNote),
-        AlarmsText.CheckIntelWakeNote);
+        AlarmsText.CheckIntelRouteNote), AlarmsText.CheckIntelWakeNote);
 
     public string? ScreenSection(string section) => section switch
     {
@@ -345,6 +379,8 @@ public sealed class IntelCondition : IAlarmCondition
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
         "ignore_no_visual" => new(AlarmsText.IntelIgnoreNvLabel,    AlarmsText.IntelIgnoreNvNote),
         "flag_reports"     => new(AlarmsText.IntelFlagReportsLabel, AlarmsText.IntelFlagReportsNote),
+        "route"            => new(AlarmsText.IntelRouteLabel,       AlarmsText.IntelRouteNote),
+        "camps"            => new(AlarmsText.IntelCampsLabel,       AlarmsText.IntelCampsNote),
         "wake_jumps"       => new(AlarmsText.IntelWakeJumpsLabel,   AlarmsText.IntelWakeJumpsNote, AlarmsText.IntelWakeJumpsSuffix),
         "quieter_far"      => new(AlarmsText.IntelQuieterFarLabel,  AlarmsText.IntelQuieterFarNote),
         "hostile_from"     => new(AlarmsText.IntelHostileFromLabel, AlarmsText.IntelHostileFromNote),
@@ -407,6 +443,8 @@ public sealed class IntelCondition : IAlarmCondition
         if (ReadWakeJumps(config) is not null && !ReadBool(config, "approach_wakes", true)) text += ", approaching pilots wake only within that";
         var priority = ReadList(config, "priority_systems");
         if (priority.Count > 0) text += $", {priority.Count} priority system{(priority.Count == 1 ? "" : "s")}";
+        if (around != AroundSystems && !ReadBool(config, "route", true)) text += ", not the route ahead";
+        if (!ReadBool(config, "camps", true)) text += ", no gate camps";
         return text;
     }
 
@@ -480,7 +518,7 @@ public sealed class IntelCondition : IAlarmCondition
     /// </summary>
     internal static IntelWatchMemory.Look Observe(IntelWatchMemory memory, long alarmId, IntelWatchedSystems zone,
                                                   IntelAlarmOptions options, IReadOnlyList<AlarmMatch> matches, DateTimeOffset now) =>
-        memory.Observe(alarmId, zone.Systems, matches.Where(m => KindOf(m) == KindKill).Select(m => m.Key), now,
+        memory.Observe(alarmId, zone.Systems, matches.Where(m => KindOf(m) is KindKill or KindCamp).Select(m => m.Key), now,
                        options.WatchList ? zone.Systems.Union(zone.WatchReach) : null);
 
     /// <summary>
@@ -510,7 +548,9 @@ public sealed class IntelCondition : IAlarmCondition
             var kill   = KindOf(m) == KindKill;
             // From when the range took the system in; for one only the watch list's reach holds, from when that did.
             var news   = Later(seen, look.NewsAt(system, zone.Systems.Contains(system)));
-            if (kill) news = Later(news, look.CaughtAt(m.Key));
+            // A kill, and a gate camp, from when this alarm first caught it: the kill feed is minutes late, and a
+            // camp is new to a route sent through it, or to another character, when its key is.
+            if (kill || KindOf(m) == KindCamp) news = Later(news, look.CaughtAt(m.Key));
 
             int? jumps = zone.Jumps.TryGetValue(system, out var hops) ? hops : null;
             double? ly = zone.LightYears.TryGetValue(system, out var far) ? far : null;
@@ -555,10 +595,11 @@ public sealed class IntelCondition : IAlarmCondition
     /// red, orange and neutral count, Orange red and orange, Red red alone.</param>
     /// <param name="WatchList">The watch list is followed: Always fires farther and first, Ignore never.</param>
     /// <param name="ApproachWakes">A pilot approaching wakes beyond the wake range.</param>
+    /// <param name="Camps">Gate camps worked out from kills fire, in what is watched or on a route ahead.</param>
     internal sealed record IntelAlarmOptions(int Jumps, int MinPlayers = 1, bool SkipNoVisual = false, bool FlagReports = true,
                                              int? WakeJumps = null, bool QuieterFar = true, double? Ly = null,
                                              StandingTier HostileFrom = StandingTier.Neutral, bool WatchList = true,
-                                             bool ApproachWakes = true);
+                                             bool ApproachWakes = true, bool Camps = true);
 
     internal static IntelAlarmOptions Options(JsonElement config)
     {
@@ -573,8 +614,12 @@ public sealed class IntelCondition : IAlarmCondition
             ReadLy(config),
             ReadHostileFrom(config),
             ReadBool(config, "watch_list", true),
-            ReadBool(config, "approach_wakes", true));
+            ReadBool(config, "approach_wakes", true),
+            ReadBool(config, "camps", true));
     }
+
+    /// <summary>How many jumps ahead on a route a gate camp is urgent when the alarm sets no wake range.</summary>
+    internal const int CampUrgentJumps = 5;
 
     /// <summary>The wake range, capped like the range; null when it is not set (the whole range wakes).</summary>
     private static int? ReadWakeJumps(JsonElement config) =>
@@ -601,6 +646,7 @@ public sealed class IntelCondition : IAlarmCondition
     internal const string KindCount = "count";
     internal const string KindFlag  = "flag";
     internal const string KindKill  = "kill";
+    internal const string KindCamp  = "camp";
 
     /// <summary>
     /// Everything in the watched systems now, as matches keyed by episode (see the class summary).
@@ -630,11 +676,20 @@ public sealed class IntelCondition : IAlarmCondition
             options.WatchList ? snapshot.WatchOf(pilot, corp, alliance, ship) : IntelWatchMark.None;
         // Whether a named pilot fires: never on Ignore, never a friend (blue, or one of the user's own); on
         // Always whatever the alarm's hostility choice, otherwise only at that tier or worse.
-        bool Fires(int systemId, long pilot, long corp, long alliance, IntelWatchMark mark)
+        bool Fires(int systemId, long pilot, long corp, long alliance, IntelWatchMark mark) =>
+            FiresFor(ViewerOf(systemId), pilot, corp, alliance, mark);
+        bool FiresFor(long? viewer, long pilot, long corp, long alliance, IntelWatchMark mark)
         {
             if (mark == IntelWatchMark.Ignored) return false;
-            var tier = standings.TierFor(ViewerOf(systemId), pilot, corp, alliance);
+            var tier = standings.TierFor(viewer, pilot, corp, alliance);
             return StandingTiers.IsHostile(tier) && (mark == IntelWatchMark.Always || tier <= options.HostileFrom);
+        }
+        // On a watched character's route ahead: how many jumps along it, and whose it is.
+        void RouteInto(Dictionary<string, object?> detail, int systemId)
+        {
+            if (!zone.Route.TryGetValue(systemId, out var step)) return;
+            detail["route_jumps"] = step.Jumps;
+            detail["route_of"]    = step.Name;
         }
         // The range (with the light years and the priority systems), and the watch list's reach beyond it.
         bool Watched(int systemId) => zone.Systems.Contains(systemId);
@@ -686,34 +741,114 @@ public sealed class IntelCondition : IAlarmCondition
             var priority = zone.Priority.Contains(e.SystemId);
             var urgent = priority || watch || (zone.Jumps.TryGetValue(e.SystemId, out var j) && j <= UrgentKillJumps);
 
+            var killDetail = new Dictionary<string, object?>
+            {
+                ["kind"]          = KindKill,
+                ["killmail_id"]   = killId,
+                ["system"]        = snapshot.SystemName(e.SystemId),
+                ["system_id"]     = e.SystemId,
+                ["count"]         = gang.Count,
+                ["pilots"]        = names,
+                ["hulls"]         = hulls,
+                ["victim_hull"]   = victim,
+                ["victim_id"]     = e.VictimId,
+                ["gate"]          = e.NearGate is { } g ? snapshot.SystemName(g.DestinationSystemId) : null,
+                ["jumps"]         = jumpsOut,
+                ["ly"]            = lyOut,
+                ["near"]          = near,
+                ["via"]           = zone.ViaWormhole.Contains(e.SystemId),
+                ["priority"]      = priority,
+                ["watch"]         = watch,
+                ["urgent"]        = urgent,
+                ["at"]            = e.At.UtcDateTime,
+            };
+            RouteInto(killDetail, e.SystemId);
             matches.Add(new AlarmMatch(
                 "intel:k:" + killId.ToString(CultureInfo.InvariantCulture),
                 $"Kill in {English(e.SystemId)}{from}: {victim ?? "a ship"} lost to " +
                 (hulls.Count > 0 ? string.Join(", ", hulls) : gang.Count == 1 ? "1 pilot" : $"{gang.Count} pilots"))
             {
                 Urgent = urgent,
-                Detail = new Dictionary<string, object?>
-                {
-                    ["kind"]          = KindKill,
-                    ["killmail_id"]   = killId,
-                    ["system"]        = snapshot.SystemName(e.SystemId),
-                    ["system_id"]     = e.SystemId,
-                    ["count"]         = gang.Count,
-                    ["pilots"]        = names,
-                    ["hulls"]         = hulls,
-                    ["victim_hull"]   = victim,
-                    ["victim_id"]     = e.VictimId,
-                    ["gate"]          = e.NearGate is { } g ? snapshot.SystemName(g.DestinationSystemId) : null,
-                    ["jumps"]         = jumpsOut,
-                    ["ly"]            = lyOut,
-                    ["near"]          = near,
-                    ["via"]           = zone.ViaWormhole.Contains(e.SystemId),
-                    ["priority"]      = priority,
-                    ["watch"]         = watch,
-                    ["urgent"]        = urgent,
-                    ["at"]            = e.At.UtcDateTime,
-                },
+                Detail = killDetail,
             });
+        }
+
+        // ── Gate camps: near a watched character, or on a route ahead ─────────
+        // Once per camp, per character and per route: the key carries whose it is and which route, so a new route
+        // through a camp already said is said again, and so is the camp near another character.
+        if (options.Camps && snapshot.Camps.Count > 0)
+        {
+            // The attackers' hulls as the kill feed names them.
+            var hullNames = new Dictionary<int, string>();
+            foreach (var e in snapshot.Feed)
+                if (e.Kind == IntelEventKind.Kill)
+                    foreach (var p in e.Pilots)
+                        if (p.ShipTypeId is int t and > 0 && !string.IsNullOrWhiteSpace(p.Ship)) hullNames.TryAdd(t, p.Ship!);
+
+            foreach (var camp in snapshot.Camps)
+            {
+                if (!camp.IsActive(now)) continue;
+                var id = camp.SystemId;
+                // On a route: a system still to come, or the one the character is on when the camp is on the gate
+                // the route leaves by.
+                IntelRouteStep? step = zone.Route.TryGetValue(id, out var ahead) ? ahead
+                    : zone.RouteHere.TryGetValue(id, out var here) && here.NextSystemId == camp.GateSystemId ? here : null;
+                if (step is null && !Watched(id)) continue;
+
+                // Judged by whose route it is on, else by the character nearest. A camp of blues, or of pilots the
+                // watch list ignores, is no threat.
+                var viewer = step?.CharacterId ?? ViewerOf(id);
+                var gang = camp.Attackers
+                    .Select(a => (Attacker: a, Mark: Mark(a.CharacterId, a.CorporationId, a.AllianceId, a.ShipTypeId)))
+                    .Where(x => FiresFor(viewer, x.Attacker.CharacterId, x.Attacker.CorporationId, x.Attacker.AllianceId, x.Mark))
+                    .ToList();
+                if (gang.Count == 0) continue;
+
+                var watch    = gang.Any(x => x.Mark == IntelWatchMark.Always);
+                var priority = zone.Priority.Contains(id);
+                var urgent   = priority || watch || (step is not null && step.Jumps <= (options.WakeJumps ?? CampUrgentJumps));
+                var who      = viewer ?? 0;
+                var hulls = gang.Where(x => x.Attacker.ShipTypeId is > 0)
+                    .GroupBy(x => x.Attacker.ShipTypeId!.Value)
+                    .OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
+                    .Select(g => hullNames.GetValueOrDefault(g.Key)).Where(n => n is not null).Select(n => n!).Take(3).ToList();
+                var kills   = camp.KillMailIds.Count;
+                var minutes = Math.Max(1, (int)Math.Ceiling((camp.LastKill - camp.FirstKill).TotalMinutes));
+                var (near, jumpsOut, lyOut, from) = HowFar(id, options.Jumps, zone);
+
+                var detail = new Dictionary<string, object?>
+                {
+                    ["kind"]         = KindCamp,
+                    ["camp_key"]     = camp.Key,
+                    ["system"]       = snapshot.SystemName(id),
+                    ["system_id"]    = id,
+                    ["gate"]         = snapshot.SystemName(camp.GateSystemId),
+                    ["gate_id"]      = camp.GateSystemId,
+                    ["kills"]        = kills,
+                    ["minutes"]      = minutes,
+                    ["count"]        = gang.Count,
+                    ["hulls"]        = hulls,
+                    ["character_id"] = who,
+                    ["on_route"]     = step is not null,
+                    ["jumps"]        = jumpsOut,
+                    ["ly"]           = lyOut,
+                    ["near"]         = near,
+                    ["via"]          = zone.ViaWormhole.Contains(id),
+                    ["priority"]     = priority,
+                    ["watch"]        = watch,
+                    ["urgent"]       = urgent,
+                    ["at"]           = camp.LastKill.UtcDateTime,
+                };
+                RouteInto(detail, id);
+                matches.Add(new AlarmMatch(
+                    $"intel:c:{camp.Key}|{who.ToString(CultureInfo.InvariantCulture)}|{(step is null ? "near" : Stamp(step.SetAt))}",
+                    $"Gate camp in {English(id)} on the {English(camp.GateSystemId)} gate{from}: {kills} kills in {minutes} min" +
+                    (hulls.Count > 0 ? $" ({string.Join(", ", hulls)})" : ""))
+                {
+                    Urgent = urgent,
+                    Detail = detail,
+                });
+            }
         }
 
         // ── Each watched system as it stands ─────────────────────────────────
@@ -729,7 +864,14 @@ public sealed class IntelCondition : IAlarmCondition
             var (near, jumpsOut, lyOut, from) = HowFar(id, options.Jumps, zone);
 
             Dictionary<string, object?> Detail(string kind, int count, IReadOnlyList<string> pilots, IReadOnlyList<string> hulls,
-                                               int flags, DateTimeOffset at) => new()
+                                               int flags, DateTimeOffset at)
+            {
+                var detail = SystemDetail(kind, count, pilots, hulls, flags, at);
+                RouteInto(detail, id);
+                return detail;
+            }
+            Dictionary<string, object?> SystemDetail(string kind, int count, IReadOnlyList<string> pilots, IReadOnlyList<string> hulls,
+                                                     int flags, DateTimeOffset at) => new()
             {
                 ["kind"]      = kind,
                 ["system"]    = snapshot.SystemName(id),
@@ -929,10 +1071,14 @@ public sealed class IntelCondition : IAlarmCondition
     /// came from or is heading for is known (<see cref="IntelWatchedSystems.JumpsBetween"/>).</para>
     /// <para>The characters are where <paramref name="own"/> places them (the snapshot's own positions,
     /// the newer of ESI and the chat log); without it, where their last location poll did.</para>
+    /// <para>Around characters, with the route switch on (the default), the systems still ahead on each watched
+    /// character's last route from the Route Planner are watched too, however far; reading the routes moves each
+    /// along to where its character is now, and clears one whose character has arrived.</para>
     /// </summary>
     public static async Task<IntelWatchedSystems> WatchedSystemsAsync(
         JsonElement config, SystemGraph graph, IDbContextFactory<AppDbContext> dbFactory,
-        IntelDistanceService? distances = null, IReadOnlyList<OwnPosition>? own = null, CancellationToken ct = default)
+        IntelDistanceService? distances = null, IReadOnlyList<OwnPosition>? own = null, CancellationToken ct = default,
+        DateTimeOffset? now = null)
     {
         var around = ReadAround(config);
         var jumps  = ReadJumps(config, around);
@@ -1049,8 +1195,42 @@ public sealed class IntelCondition : IAlarmCondition
                     if (walk.TryGetValue(id, out var hop)) Place(id, hop, origin);
             }
 
+        // The routes ahead, around characters: every system still to come on the last route the Route Planner sent
+        // for a watched character (online, docked or not: a route is flown from a dock), however far. A system no
+        // range reaches is placed by its jumps along the route and judged by that character's standings; where the
+        // nearest way there is not the route, where it came from or is heading is not measured (no origin's walk).
+        var route = new Dictionary<int, IntelRouteStep>();
+        var routeHere = new Dictionary<int, IntelRouteStep>();
+        if (around != AroundSystems && ReadBool(config, "route", true))
+        {
+            var flying = own is not null
+                ? OriginsFrom(own, AroundCharacters, ReadList(config, "characters"))
+                : await OriginsAsync(db, AroundCharacters, ReadList(config, "characters"), ct);
+            if (flying.Count > 0)
+            {
+                var names = flying.ToDictionary(f => f.CharacterId, f => f.Name);
+                var at = flying.ToDictionary(f => f.CharacterId, f => f.SystemId);
+                foreach (var r in await CharacterRouteStore.ReadAsync(db, at, now ?? DateTimeOffset.UtcNow, ct))
+                {
+                    if (!names.TryGetValue(r.CharacterId, out var name)) continue;
+                    foreach (var (id, hops) in r.Ahead) KeepNewest(route, id, new IntelRouteStep(r.CharacterId, name, hops, r.SetAt));
+                    KeepNewest(routeHere, r.Here, new IntelRouteStep(r.CharacterId, name, 0, r.SetAt, r.Next));
+                }
+            }
+            foreach (var (id, step) in route)
+            {
+                watched.Add(id);
+                if (hopsTo.ContainsKey(id) || lyDistances.ContainsKey(id)) continue;
+                hopsTo[id] = step.Jumps;
+                nearest[id] = step.Name;
+                nearestId[id] = step.CharacterId;
+            }
+        }
+
         return new IntelWatchedSystems(watched, hopsTo, nearest, lyDistances, lyNearest)
         {
+            Route                      = route,
+            RouteHere                  = routeHere,
             NearestCharacter           = nearestId,
             LightYearsNearestCharacter = lyNearestId,
             ViaWormhole                = via,
@@ -1059,6 +1239,15 @@ public sealed class IntelCondition : IAlarmCondition
             NearestOrigin              = nearestFrom,
             Walks                      = walks,
         };
+    }
+
+    /// <summary>Two routes through one system: the newest is the one said (a route just sent through a known camp
+    /// says it again), then the one it is nearer on.</summary>
+    private static void KeepNewest(Dictionary<int, IntelRouteStep> into, int systemId, IntelRouteStep step)
+    {
+        if (into.TryGetValue(systemId, out var had)
+            && (had.SetAt > step.SetAt || (had.SetAt == step.SetAt && had.Jumps <= step.Jumps))) return;
+        into[systemId] = step;
     }
 
     /// <summary>
@@ -1126,14 +1315,37 @@ public sealed class IntelCondition : IAlarmCondition
             var victim = Str(d, "victim_hull") is { Length: > 0 } v ? v : AlarmsText.HullShip;
             var hulls  = Names(d, "hulls").ToList();
             var by     = hulls.Count > 0 ? AlarmWords.List(hulls) : AlarmsText.IntelSaidKillHostiles;
-            var where  = Where(JumpsOf(k), d.TryGetValue("ly", out var l) && l is double far ? far : null, Str(d, "near"), Flag(k, "via"));
+            var where  = OnRoute(d) ?? Where(JumpsOf(k), d.TryGetValue("ly", out var l) && l is double far ? far : null, Str(d, "near"), Flag(k, "via"));
             var rank   = Rank(k);
             items.Add((rank, AtOf(k), Marked(rank, where is null
                 ? string.Format(AlarmsText.IntelSaidKill, system, victim, by)
                 : string.Format(AlarmsText.IntelSaidKillAt, system, where, victim, by))));
         }
 
-        foreach (var g in said.Where(m => KindOf(m) != KindKill)
+        // A gate camp as one: where and on which gate, then how many kills over how long, then the hulls.
+        foreach (var k in said.Where(m => KindOf(m) == KindCamp))
+        {
+            var d      = k.Detail!;
+            var system = Str(d, "system") is { Length: > 0 } s ? s : AlarmsText.UnknownSystem;
+            var gate   = Str(d, "gate") is { Length: > 0 } gs ? gs : AlarmsText.UnknownSystem;
+            var where  = OnRoute(d) ?? Where(JumpsOf(k), d.TryGetValue("ly", out var l) && l is double far ? far : null, Str(d, "near"), Flag(k, "via"));
+            var kills  = d.TryGetValue("kills", out var n) && n is int kc ? kc : 0;
+            var span   = d.TryGetValue("minutes", out var mn) && mn is int minutes ? minutes : 1;
+            var hulls  = Names(d, "hulls").ToList();
+            var rank   = Rank(k);
+            var sb = new System.Text.StringBuilder(where is null
+                ? string.Format(AlarmsText.IntelSaidCamp, system, gate)
+                : string.Format(AlarmsText.IntelSaidCampAt, system, gate, where));
+            if (kills > 0)
+                sb.Append(' ').Append(Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidCampKillsOther), kills,
+                    Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidMinutesOther), span)));
+            if (hulls.Count > 0)
+                sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidFlying,
+                    hulls.Count == 1 ? AlarmWords.Hull(hulls[0]) : AlarmWords.List(hulls)));
+            items.Add((rank, AtOf(k), Marked(rank, sb.ToString())));
+        }
+
+        foreach (var g in said.Where(m => KindOf(m) is not (KindKill or KindCamp))
                               .GroupBy(m => m.Detail!.TryGetValue("system_id", out var s) && s is int id ? id : 0))
         {
             var list   = g.ToList();
@@ -1152,7 +1364,8 @@ public sealed class IntelCondition : IAlarmCondition
             var jumps  = list.Select(JumpsOf).Where(j => j is not null).Min();
             var ly     = list.Select(m => m.Detail!.TryGetValue("ly", out var l) && l is double far ? far : (double?)null).Where(l => l is not null).Min();
             var near   = list.Select(m => Str(m.Detail, "near")).FirstOrDefault(n => n.Length > 0);
-            var where  = Where(jumps, ly, near, list.Any(m => Flag(m, "via")));
+            var where  = list.Select(m => OnRoute(m.Detail!)).FirstOrDefault(w => w is not null)
+                      ?? Where(jumps, ly, near, list.Any(m => Flag(m, "via")));
             var facts  = IntelDisplay.Facts(flags, gate);
             var rank   = list.Max(Rank);
 
@@ -1232,6 +1445,13 @@ public sealed class IntelCondition : IAlarmCondition
             => d.TryGetValue(key, out var v) && v is IEnumerable<string> list ? list.Where(n => !string.IsNullOrWhiteSpace(n)) : [];
     }
 
+    /// <summary>How far along a watched character's route, for a system still ahead on it: "3 jumps ahead on Alpha's
+    /// route"; null for one on no route.</summary>
+    private static string? OnRoute(IReadOnlyDictionary<string, object?> d) =>
+        d.TryGetValue("route_jumps", out var j) && j is int hops && Str(d, "route_of") is { Length: > 0 } who
+            ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidOnRouteOther), hops, who)
+            : null;
+
     /// <summary>How far out, in the interface language: "2 jumps from Alpha", "where Alpha is",
     /// "3 jumps out", "4.2 light years from Alpha"; null when there is no range to say it by. A way that
     /// goes through Thera or Turnur says so: "3 jumps from Alpha, through Thera or Turnur".</summary>
@@ -1259,6 +1479,15 @@ public sealed class IntelCondition : IAlarmCondition
     /// at. English, for the summary; the announcement says it from the detail.
     /// </summary>
     private static (string? Near, int? Jumps, double? Ly, string From) HowFar(int systemId, int jumps, IntelWatchedSystems zone)
+    {
+        var far = HowFarAround(systemId, jumps, zone);
+        // On a route ahead, said along the route: that is how the character will come to it.
+        return zone.Route.TryGetValue(systemId, out var step)
+            ? far with { From = $" ({step.Jumps} jump{(step.Jumps == 1 ? "" : "s")} ahead on {step.Name}'s route)" }
+            : far;
+    }
+
+    private static (string? Near, int? Jumps, double? Ly, string From) HowFarAround(int systemId, int jumps, IntelWatchedSystems zone)
     {
         var near = zone.Nearest.GetValueOrDefault(systemId);
         if (zone.Jumps.TryGetValue(systemId, out var hops) && (jumps > 0 || near is not null || hops > 0))
@@ -1509,6 +1738,14 @@ public sealed record IntelWatchedSystems(
 
     /// <summary>The system of the origin each placed system is nearest, by jumps.</summary>
     public IReadOnlyDictionary<int, int> NearestOrigin { get; init; } = new Dictionary<int, int>();
+
+    /// <summary>The systems still ahead on a watched character's route (the Route Planner's last sent), with how many
+    /// jumps along it and whose it is. Watched (in <see cref="Systems"/>) however far.</summary>
+    public IReadOnlyDictionary<int, IntelRouteStep> Route { get; init; } = new Dictionary<int, IntelRouteStep>();
+
+    /// <summary>The step each routed character is on, with the system the route leaves for: a gate camp on that gate
+    /// is on the route.</summary>
+    public IReadOnlyDictionary<int, IntelRouteStep> RouteHere { get; init; } = new Dictionary<int, IntelRouteStep>();
 
     /// <summary>Each origin's walk, by its system: every system it reaches (with the distance service, all of them).</summary>
     public IReadOnlyDictionary<int, IReadOnlyDictionary<int, IntelHop>> Walks { get; init; } =

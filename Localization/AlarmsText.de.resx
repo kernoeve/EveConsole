@@ -2146,4 +2146,43 @@
   <data name="IntelSaidViaWormhole" xml:space="preserve">
     <value>{0}, über Thera oder Turnur</value>
   </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Ebenfalls standardmäßig an: aus Abschüssen ermittelte Gate-Camps in der Nähe deiner Charaktere oder auf einer Route voraus, und die Route voraus selbst, also die noch zu fliegenden Systeme der letzten Route, die der Routenplaner an das Spiel geschickt hat (Gate-Camps und Route voraus beobachten, unten).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Route voraus beobachten</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Beobachtet auch die Systeme, die auf der letzten Route, die der Routenplaner für einen beobachteten Charakter an das Spiel geschickt hat, noch voraus liegen, egal wie weit: Was dort gesehen wird, löst aus und wird als so viele Sprünge voraus auf der Route angesagt. Nur der noch nicht geflogene Teil; die Route entfällt bei Ankunft oder sechs Stunden nach dem Senden. Eine nur im Spiel gesetzte Route kann nicht bekannt sein.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Gate-Camps</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Löst bei einem aus Abschüssen an einem Gate ermittelten Gate-Camp aus, in der Nähe eines beobachteten Charakters oder auf einer Route voraus. Einmal pro Camp, pro Charakter und pro Route angesagt, sodass eine neue Route durch ein bekanntes Camp es erneut ansagt. Eines auf einer Route voraus innerhalb der Weckreichweite (5 Sprünge, wenn keine gesetzt ist) ist dringend.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} Abschuss in {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} Abschüsse in {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} Minute</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} Minuten</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} Sprung voraus auf der Route von {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} Sprünge voraus auf der Route von {1}</value>
+  </data>
 </root>

@@ -173,6 +173,7 @@ public class AppDbContext : DbContext
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<IntelLastSeen>        IntelLastSeens        => Set<IntelLastSeen>();
     public DbSet<IntelWatchEntry>      IntelWatchEntries     => Set<IntelWatchEntry>();
+    public DbSet<CharacterRoute>       CharacterRoutes       => Set<CharacterRoute>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
@@ -1618,6 +1619,12 @@ public class AppDbContext : DbContext
             e.HasKey(x => x.Id);
             // One entry per thing watched: choosing again changes its mode, never adds a second.
             e.HasIndex(x => new { x.Kind, x.EntityId }).IsUnique().HasDatabaseName("IX_IntelWatchEntries_Kind_Entity"); });
+
+        mb.Entity<CharacterRoute>(e => {
+            // One row per character: a route sent replaces the one before.
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("CharacterRoutes"); });
 
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);
