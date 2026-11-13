@@ -2557,4 +2557,40 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>トップ10 ソロキル</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>1日 {0}（1時間 {1}）、タイプに設定したフィットより</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>不明：一覧の最終読み込みは {0} で、その時点の燃料切れ予定はすでに過ぎています。</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>不明：一覧は ESI から読み込まれていません。</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}・アンアンカー中</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>ストラクチャー一覧の最終読み込み：{0}。</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>タワー一覧の最終読み込み：{0}。</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>このコーポレーションを読み込むキャラクターが ESI に必要なコーポ役職を失ったため、ESI に問い合わせていません。</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>それ以降 ESI から応答がありません。</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>下の燃料・状態・タイマーはその時点のものです。</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>一覧の読み込み</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>状態終了</value>
+  </data>
 </root>

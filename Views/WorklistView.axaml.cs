@@ -49,6 +49,87 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         }
     }
 
+    // ── Item Needs headings ───────────────────────────────────────────────────
+
+    /// <summary>
+    /// An item's heading in Item Needs: each column from Total to the right summed over the
+    /// stations under it, by the same numbers the rows sort on. The "asked for by" rows under a
+    /// station are its detail and aren't counted again.
+    /// </summary>
+    public static readonly Func<DataGridColumn, IReadOnlyList<object>, ColumnTotal?> ItemNeedTotals = (column, items) =>
+    {
+        var rows = items.OfType<StationNeedRowVm>().Where(r => !r.IsChild).ToList();
+        if (rows.Count == 0) return null;
+        static string Some(long v) => v > 0 ? v.ToString("N0") : "";
+        // Value and volume as the rows have them: only where a station is short.
+        var shortRows = rows.Where(r => r.ShortRaw > 0).ToList();
+        return column.SortMemberPath switch
+        {
+            nameof(StationNeedRowVm.TotalRaw)  => new ColumnTotal(rows.Sum(r => r.TotalRaw).ToString("N0")),
+            nameof(StationNeedRowVm.OnHandRaw) => new ColumnTotal(rows.Sum(r => r.OnHandRaw).ToString("N0")),
+            nameof(StationNeedRowVm.InBuildRaw) => new ColumnTotal(Some(rows.Sum(r => r.InBuildRaw))),
+            nameof(StationNeedRowVm.ShortAfterBuildRaw) => rows.Sum(r => r.ShortAfterBuildRaw) is var s and > 0
+                ? new ColumnTotal(s.ToString("N0"), EveConsole.Services.Palette.Bad) : null,
+            nameof(StationNeedRowVm.ShortValueRaw)  => shortRows.Count == 0 ? null
+                : new ColumnTotal(StationNeedRowVm.Isk(shortRows.Sum(r => r.ShortValueRaw))),
+            nameof(StationNeedRowVm.ShortVolumeRaw) => shortRows.Count == 0 ? null
+                : new ColumnTotal($"{shortRows.Sum(r => r.ShortVolumeRaw):N0} m³"),
+            nameof(StationNeedRowVm.OrderJobsRaw) => new ColumnTotal(Some(rows.Sum(r => r.OrderJobsRaw))),
+            nameof(StationNeedRowVm.JobsRaw)      => new ColumnTotal(Some(rows.Sum(r => r.JobsRaw))),
+            nameof(StationNeedRowVm.InvLevelsRaw) => new ColumnTotal(Some(rows.Sum(r => r.InvLevelsRaw))),
+            nameof(StationNeedRowVm.StnLevelsRaw) => new ColumnTotal(Some(rows.Sum(r => r.StnLevelsRaw))),
+            _ => null,
+        };
+    };
+
+    /// <summary>An item's heading names the item: open it, by the id its rows carry.</summary>
+    private void OnOpenNeedGroupItem(object? sender, RoutedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is DataGridCollectionViewGroup group)
+            group.Items.OfType<StationNeedRowVm>().FirstOrDefault(r => r.HasItemLink)?.OpenItem();
+    }
+
+    /// <summary>The items opened by hand, by name, kept open when the list is grouped afresh.</summary>
+    private readonly HashSet<object> _openItemNeeds = [];
+    private WorklistViewModel? _itemNeedsFor;
+
+    /// <summary>
+    /// Item Needs opens with every item closed: hundreds of items, read by their totals first, and
+    /// opened where a total needs explaining. Grouped afresh (a reload, a sort), they close again,
+    /// except those the reader opened.
+    /// </summary>
+    private void WatchItemNeeds()
+    {
+        if (_itemNeedsFor is not null) _itemNeedsFor.ItemNeedsView.CollectionChanged -= OnItemNeedsChanged;
+        _itemNeedsFor = DataContext as WorklistViewModel;
+        if (_itemNeedsFor is null) return;
+        _itemNeedsFor.ItemNeedsView.CollectionChanged += OnItemNeedsChanged;
+        CloseItemNeedsLater();
+    }
+
+    private void OnItemNeedsChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.Action == System.Collections.Specialized.NotifyCollectionChangedAction.Reset) CloseItemNeedsLater();
+    }
+
+    // Posted: the grid builds its groups from the same Reset, after this hears of it.
+    private void CloseItemNeedsLater() => Dispatcher.UIThread.Post(CloseItemNeeds, DispatcherPriority.Background);
+
+    private void CloseItemNeeds()
+    {
+        if (_itemNeedsFor is not { } vm || this.FindControl<DataGrid>("ItemNeedsGrid") is not { } grid) return;
+        foreach (var group in vm.ItemNeedsView.Groups?.OfType<DataGridCollectionViewGroup>() ?? [])
+            if (group.Key is not { } key || !_openItemNeeds.Contains(key)) grid.CollapseRowGroup(group, true);
+    }
+
+    /// <summary>The reader opened or closed an item: remembered for the next time it's grouped.</summary>
+    private void OnItemNeedsGroupToggled(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not ToggleButton { DataContext: DataGridCollectionViewGroup { Key: { } key } } toggle) return;
+        if (toggle.IsChecked == true) _openItemNeeds.Add(key);
+        else _openItemNeeds.Remove(key);
+    }
+
     private WorklistViewModel? _shownFor;
 
     protected override void OnDataContextChanged(EventArgs e)
@@ -58,6 +139,7 @@ public partial class WorklistView : ReactiveUserControl<WorklistViewModel>
         if (_shownFor is not null) _shownFor.ShowRow -= OnShowRow;
         _shownFor = DataContext as WorklistViewModel;
         if (_shownFor is not null) _shownFor.ShowRow += OnShowRow;
+        WatchItemNeeds();
     }
 
     private void OnShowRow(WorklistRowVm row)

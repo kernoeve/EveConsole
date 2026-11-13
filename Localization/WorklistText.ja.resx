@@ -2654,7 +2654,7 @@
     <value>アイテムを、それがあるステーションで別のキャラクターまたはコーポレーションに渡す</value>
   </data>
   <data name="TransferOneLine" xml:space="preserve">
-    <value>{0:N0} × {1}</value>
+    <value>{1} × {0:N0}</value>
   </data>
   <data name="TransferTypesOther" xml:space="preserve">
     <value>{0:N0}種類のアイテム</value>
@@ -2748,5 +2748,146 @@
   </data>
   <data name="IndustrySetupNoCharacters" xml:space="preserve">
     <value>インダストリー作業を実行できるキャラクターが有効になっていません。</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>コーポのストラクチャー</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>ストラクチャー</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>コーポのストラクチャー：燃料、ムーンベイ、フィット、弾薬</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>{0} に給油 — 残り {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>{0} に給油 — 燃料切れ</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{1} の {0}。燃料切れ {2}。{3} 日分まで補給します。</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>燃料ブロック {0:N0} 個を運ぶ（1時間 {1}）。</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>消費速度が不明です。ブロック数を出すには「コーポのストラクチャー → 設定」で {0} のフィットを設定してください。</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>消費量はタイプに設定したフィットによるものです（コーポの資産は読み込んでいません）。</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>{0} のムーンベイを空にする — {1}% 使用</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{1} の {0}：{2} m³、{3} ISK 相当。</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>{0} のフィットを直す</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>不足：{0}。</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{1} の代わりに {0} が装着されています。</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>{3} の {2} に設定したフィット {0}（{1}）と照合。</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>{0} に弾薬とファイターを補充</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>不足：{0}。{3} の {2} に設定したフィット {1} 基準。</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0}/{2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}：ストラクチャー一覧を {1} 以降読み込んでいません</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}：タワー一覧を {1} 以降読み込んでいません</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>このコーポを読み込むキャラクターが ESI に必要な役職（ストラクチャーは Station Manager、タワーは Starbase Equipment Config）を失ったため、一覧を読み込めず燃料を追跡できません。役職を戻すか、役職を持つキャラクターに読み込ませてください。</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>最近 ESI から一覧の応答がないため、再び読み込むまで燃料を追跡できません。</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>ストラクチャー</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>コーポのストラクチャーからのタスクです。給油はストラクチャー一覧だけで済むため、どのコーポでも使えます。他の3つはストラクチャー内の物を読むので、コーポの資産を読み込んでいる場合だけ出ます。</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>すべてのコーポレーション</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>後で追加するものも含め、すべてのコーポ。外すと選べます。</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>タスク</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>ストラクチャーの給油</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>燃料が最低日数以内に切れるときに出て、補給先の日数まで満たします。消費量は装着モジュール、資産がない場合は「コーポのストラクチャー → 設定」でタイプに設定したフィットから求めます。</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>最低燃料</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>残り燃料がこれより少ないストラクチャーにタスクを出します。</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>補給先</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>タスクで何日分の燃料まで補給するか。</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>リエージェントの回収</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Metenox のムーンベイがここで設定した量に達すると出ます。コーポの資産が必要です。</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>回収の目安</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>使用率 %</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>容積</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>市場価値</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>ベイに必要な量（選んだ単位）。</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>ドローン/弾薬の補充</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>弾薬やファイターが「設定 → アラート」で決めたフィットの割合を下回ると出ます。コーポの資産が必要です。</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>フィットの修正</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>ストラクチャーにタイプのフィットのモジュールが欠けているか、別のものが付いていると出ます。コーポの資産が必要です。</value>
   </data>
 </root>

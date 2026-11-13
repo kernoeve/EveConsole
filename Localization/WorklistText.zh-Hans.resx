@@ -2654,7 +2654,7 @@
     <value>在物品所在的空间站，把它们交给另一个角色或军团</value>
   </data>
   <data name="TransferOneLine" xml:space="preserve">
-    <value>{0:N0} × {1}</value>
+    <value>{1} × {0:N0}</value>
   </data>
   <data name="TransferTypesOther" xml:space="preserve">
     <value>{0:N0} 种物品</value>
@@ -2748,5 +2748,146 @@
   </data>
   <data name="IndustrySetupNoCharacters" xml:space="preserve">
     <value>没有启用任何角色来运行工业任务。</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>军团建筑</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>军团建筑：燃料、月矿舱、配置或弹药</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>为 {0} 加燃料 — 剩余 {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>为 {0} 加燃料 — 燃料耗尽</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{1} 的 {0}。燃料耗尽于 {2}；补到 {3} 天。</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>现在</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>运送 {0:N0} 个燃料块（每小时 {1}）。</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>消耗速度未知：在 军团建筑 → 配置 中为 {0} 设定配置即可计算燃料块。</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>消耗量取自其类型设定的配置：未读取军团资产。</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>清空 {0} 的月矿舱 — 已满 {1}%</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{1} 的 {0}：{2} m³，价值 {3} ISK。</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>修正 {0} 的配置</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>缺少：{0}。</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>在应装 {1} 的位置装了 {0}。</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>对照 {0}（{1}），即为 {3} 的 {2} 设定的配置。</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>为 {0} 补充弹药和舰载机</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>不足：{0}。依据为 {3} 的 {2} 设定的配置 {1}。</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0}/{2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}：建筑列表自 {1} 起未读取</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}：控制塔列表自 {1} 起未读取</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>读取此军团的角色已失去 ESI 所需的职位（建筑需 Station Manager，控制塔需 Starbase Equipment Config），因此列表不再读取，无法跟踪燃料。请恢复该职位，或让拥有该职位的角色读取军团。</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>ESI 最近未返回该列表，重新读取前无法跟踪燃料。</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>建筑</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>来自军团建筑的任务。加燃料只需建筑列表，适用于任何军团；其余三项需读取建筑内的物品，只在读取军团资产时生成。</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>所有军团</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>所有军团，包括以后添加的。取消勾选即可选择。</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>任务</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>建筑加燃料</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>建筑燃料将在最低天数内耗尽时生成，并补到目标天数。消耗量取自已装模块；无资产时取自 军团建筑 → 配置 中为类型设定的配置。</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>最低燃料</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>剩余燃料少于此值的建筑会生成任务。</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>补到</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>任务将建筑燃料补到多少天。</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>收取反应物</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Metenox 月矿舱达到此处设定的量时生成。需要军团资产。</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>收取条件</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>已满 %</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>体积</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>市场价值</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>舱内需达到的量（所选单位）。</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>补充无人机/弹药</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>弹药或舰载机低于 设置 → 警报 中设定的配置比例时生成。需要军团资产。</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>修正配置</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>建筑缺少其类型配置中的模块，或装了别的模块时生成。需要军团资产。</value>
   </data>
 </root>

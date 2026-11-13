@@ -2086,4 +2086,181 @@ Nichts wird vernichtet: Seine Bestellungen bleiben in der Bestellverfolgung, und
   <data name="MenuDeleteItemsOther" xml:space="preserve">
     <value>{0:N0} Artikel löschen</value>
   </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>Nach Zeitraum</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>Artikelgruppen</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>Nur Verkäufe von Artikeln unter diesen Marktgruppen, auf jedem Reiter. Ein Vertrag zählt unter seinem wertvollsten Artikel.</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>Diese Gruppe entfernen</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>+ Gruppe</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>Verkäufe auf eine Marktgruppe eingrenzen</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>Gruppe hinzufügen</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>Zeilen</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>Aufteilen nach</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>Gewinnanteil nach</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>Zählen nach</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>Als Text kopieren</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>Kopiert beide Tabellen als reinen Text in einem Codeblock, zum Einfügen in einen Chat.</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>CSV exportieren</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>Verkaufsübersicht exportieren</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>Mit Gewinn</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>Ohne Gewinn</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>Gewinnanteil</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>{0} verkauft</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>Gewinn {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>gemessen an {0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>Alle Verkäufe</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>Mit Gewinn</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>Ohne Gewinn</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Zeitraum</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>Verkaufs-ISK</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Kosten</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>Gewinnanteil</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>Mit Gewinn</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>Ohne Gewinn</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Gesamt</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>Verkaufte Einheiten</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>Jede Zelle: Einheiten, dann (mit Gewinn·ohne Gewinn). Nur Artikel in den Artikelgruppen zählen.</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>Verkäufe ohne Gewinn zählen hier immer, egal was „Ohne Gewinn anzeigen“ sagt: Die Markierung „ohne Gewinn“ entscheidet, auf welcher Seite ein Verkauf steht. Tags sind nur Text: Jeder gefundene Tag bekommt eine Zeile, und ein Verkauf mit zwei Tags steht unter beiden, zählt aber im Zeitraum und in der Summe einmal. Die Kosten folgen der oben gewählten Gewinnbasis, zum Tag jedes Verkaufs; Gewinn % ist der Gewinn im Verhältnis zu diesen Kosten.</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>Keine</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>Marktgruppe</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>Artikel</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>Käufer</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>Besitzer</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>Kosten</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>Verkaufs-ISK</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>Kein Tag</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>bis heute</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>Aufteilung</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>Verkaufs-ISK mit Gewinn</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>Kosten mit Gewinn</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>Verkaufs-ISK ohne Gewinn</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>Kosten ohne Gewinn</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>Verkäufe ohne Kosten</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>Gezählt nach</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>Übersicht in die Zwischenablage kopiert.</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>Übersicht nach {0} exportiert.</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>Verkaufsübersicht · {0} bis {1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>Zeilen: {0} · Aufteilung: {1} · Gewinnanteil nach {2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>Verkaufte Einheiten nach {0} (mit Gewinn·ohne Gewinn)</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>Einheiten</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>Wovon der Gewinnanteil ein Anteil ist: Kosten, Verkaufs-ISK oder verkaufte Einheiten.</value>
+  </data>
 </root>

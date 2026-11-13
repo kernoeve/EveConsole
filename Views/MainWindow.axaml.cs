@@ -286,22 +286,28 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         {
             if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
             else if (ws.IsMain) ShowFromTray();
-            // A Tool Container: its panel comes in front, without taking focus from a game client.
-            else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForward();
+            // A Tool Container: its panel comes in front with the clients on its monitor, as a click
+            // on the panel brings them, without taking focus from a game client. The panel alone
+            // came forward over clients still buried under other windows.
+            else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForwardWithClients();
         };
         // Where a panel's menu set to "last used" opens tools.
         Activated += (_, _) => vm.LastUsedWorkspace = vm.Main;
     }
 
-    /// <summary>The Tool Containers on panels, which take dragged tabs as windows of tabs do.</summary>
-    private readonly List<(Window Window, WorkspaceView View)> _containerViews = [];
+    /// <summary>The Tool Containers on panels, which take dragged tabs as windows of tabs do.
+    /// <para>⚠️ Static: the panels are placed at startup, before the main window exists, and a
+    /// panel's container signing up with <c>MainWindow.Current</c> then went nowhere. The list stayed
+    /// empty, so a tool shown in a panel from the main window never brought the panel forward, and
+    /// a tab dragged onto a panel's container found no container there.</para></summary>
+    private static readonly List<(Window Window, WorkspaceView View)> _containerViews = [];
 
-    internal void AddContainerView(Window window, WorkspaceView view)
+    internal static void AddContainerView(Window window, WorkspaceView view)
     {
         if (!_containerViews.Any(x => x.View == view)) _containerViews.Add((window, view));
     }
 
-    internal void RemoveContainerView(WorkspaceView view) => _containerViews.RemoveAll(x => x.View == view);
+    internal static void RemoveContainerView(WorkspaceView view) => _containerViews.RemoveAll(x => x.View == view);
 
     private void OpenHost(MainWindowViewModel vm, TabWorkspace ws)
     {

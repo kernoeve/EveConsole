@@ -2557,4 +2557,40 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>前十单人击毁</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>每天 {0}（每小时 {1}），按其类型设定的配置</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>未知：列表最后读取于 {0}，其中的燃料耗尽时间此后已过。</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>未知：列表未从 ESI 读取。</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}，正在解锚</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>建筑列表最后读取：{0}。</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>控制塔列表最后读取：{0}。</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>从未</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>读取此军团的角色已失去 ESI 所需的军团职位，因此不再向 ESI 请求。</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>此后 ESI 未作响应。</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>下方的燃料、状态和计时均为当时的情况。</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>列表读取</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>状态结束</value>
+  </data>
 </root>

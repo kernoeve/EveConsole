@@ -24,6 +24,8 @@
     <InternalsVisibleTo Include="JabberCheck" />
     <!-- The store need check renders a price list line and builds the site's catalogue item. -->
     <InternalsVisibleTo Include="StoreNeedCheck" />
+    <!-- The sales summary check builds periods from constructed sales and asks what is a sale. -->
+    <InternalsVisibleTo Include="SalesSummaryCheck" />
   </ItemGroup>
 
   <!--

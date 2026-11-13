@@ -110,9 +110,9 @@ class Program
         if (asService)     AppRuntime.MarkService();
         else if (headless) AppRuntime.MarkHeadless();
 
-        // One instance per user, and only where that means anything: on SQLite. A worker and a
-        // desktop client on one machine are two clients of one PostgreSQL database, which is the
-        // arrangement this whole mode exists to serve.
+        // One desktop app per user and profile, on either engine: a second launch brings the first
+        // forward and exits. A worker beside it on PostgreSQL is still allowed: two clients of one
+        // server, which is the arrangement the worker modes exist to serve.
         if (!SingleInstance.TryAcquire(args)) return;
 
         // One-time carry-forward from a pre-rename Eve Cortex install — must happen before any

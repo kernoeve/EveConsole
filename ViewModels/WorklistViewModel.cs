@@ -378,7 +378,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         }
 
         // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
-        var bmp = _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
+        var bmp = _item.PictureTypeId > 0              ? await TypePictureAsync(_item.PictureTypeId, _item.TypeImage ?? "icon")
+                : _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
                 : !string.IsNullOrEmpty(_item.IconUrl) ? await EveImageCache.GetAsync(_item.IconUrl)
                 : null;
 
@@ -416,9 +417,6 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     /// <summary>The kind of doing, as its own scannable column.</summary>
     public string KindText => KindLabel(_item);
 
-    /// <summary>The kind as a short tag, for a panel's list: a haul is a haul there, whatever its lane.</summary>
-    public string KindTag => _item.Kind == WorklistKind.Haul ? WorklistText.KindHaul : KindLabel(_item);
-
     public static string KindLabel(WorklistItem item) => item.Kind switch
     {
         WorklistKind.Buy         => WorklistText.KindBuy,
@@ -438,6 +436,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         WorklistKind.AssetSafety => WorklistText.KindAssetSafety,
         WorklistKind.SkillQueue  => WorklistText.KindSkillQueue,
         WorklistKind.Pi          => WorklistText.KindPi,
+        WorklistKind.Structure   => WorklistText.KindStructure,
         _                        => WorklistText.KindCorpProject,
     };
 
@@ -477,27 +476,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             "M4,7 H2 M12,7 H14 M4,9.5 H2 M12,9.5 H14 M5.5,3.5 L8,1.5 L10.5,3.5 " +
             "M5,6 H11 V11 H5 Z",
 
-        // Factory roofline.
-        (WorklistKind.Job, IndustryPool.Manufacturing) =>
-            "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
-
-        // ⚠️ Atom, not a flask. The flask is what EVE draws for science, so using it here read as
-        // "copying" on every reaction row — the two got swapped on first writing. In the client's
-        // facility list the reaction icon is the last of the activity marks and is the round one.
-        (WorklistKind.Job, IndustryPool.Reaction) =>
-            "M8,6.75 A1.25,1.25 0 1,0 8,9.25 A1.25,1.25 0 1,0 8,6.75 " +
-            "M4.3,11.7 A5.2,2.4 45 1,1 11.7,4.3 A5.2,2.4 45 1,1 4.3,11.7 " +
-            "M4.3,4.3 A5.2,2.4 -45 1,1 11.7,11.7 A5.2,2.4 -45 1,1 4.3,4.3",
-
-        // Flask: copying and invention, which share the science slots — and which is what the
-        // client marks those activities with.
-        (WorklistKind.Job, IndustryPool.Science) =>
-            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
-
-        // Gear, for a job whose pool is not known.
-        (WorklistKind.Job, _) =>
-            "M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 1,0 8,5.5 M8,1.5 V3.5 M8,12.5 V14.5 " +
-            "M1.5,8 H3.5 M12.5,8 H14.5 M3.5,3.5 L5,5 M11,11 L12.5,12.5 M12.5,3.5 L11,5 M5,11 L3.5,12.5",
+        // The Industry Jobs grid's marks (IndustryGlyphs), by slot pool rather than activity: the
+        // flask stands for copying, invention and research together, which share the science slots.
+        (WorklistKind.Job, IndustryPool.Manufacturing) => IndustryGlyphs.Manufacturing,
+        (WorklistKind.Job, IndustryPool.Reaction)      => IndustryGlyphs.Reaction,
+        (WorklistKind.Job, IndustryPool.Science)       => IndustryGlyphs.Science,
+        (WorklistKind.Job, _)                          => IndustryGlyphs.Unknown,
 
         // Flag: a corp project.
         (WorklistKind.CorpProject, _) =>
@@ -510,6 +494,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         // A ringed planet: Planetary Industry.
         (WorklistKind.Pi, _) =>
             "M8,4 A4,4 0 1,0 8,12 A4,4 0 1,0 8,4 M1.5,10.5 C0.5,12.5 5,11.5 8.5,9.5 C12,7.5 15.5,4.5 14.5,3.8",
+
+        // A tower on a base: a corporation structure.
+        (WorklistKind.Structure, _) =>
+            "M2,14 H14 M4,14 V9 H12 V14 M6,9 V4 H10 V9 M8,4 V1.5",
 
         // Rising bars: a skill queue.
         _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
@@ -546,6 +534,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         (WorklistKind.CorpProject, _)                  => WorklistText.KindTipCorpProject,
         (WorklistKind.AssetSafety, _)                  => WorklistText.KindTipAssetSafety,
         (WorklistKind.Pi, _)                           => WorklistText.KindTipPi,
+        (WorklistKind.Structure, _)                    => WorklistText.KindTipStructure,
         _                                              => WorklistText.KindTipSkillQueue,
     };
 
@@ -2281,6 +2270,9 @@ public class WorklistViewModel : ReactiveObject, IDisposable
     /// <summary>Config → Hauling: how each kind of trip is made, and by whom.</summary>
     public WorklistHaulingViewModel HaulingVm { get; }
 
+    /// <summary>Config → Structures: which corporations' structures raise tasks, and which tasks.</summary>
+    public WorklistStructuresViewModel StructuresVm { get; }
+
     /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
     public WorklistFinalProductsViewModel FinalProductsVm { get; }
 
@@ -2365,6 +2357,10 @@ public class WorklistViewModel : ReactiveObject, IDisposable
         };
         HaulingVm = hauling;
         HaulingVm.HaulingChanged = RefreshAsync;
+        StructuresVm = new WorklistStructuresViewModel(service.DbFactory, service.Settings)
+        {
+            StructuresChanged = RefreshAsync,
+        };
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.

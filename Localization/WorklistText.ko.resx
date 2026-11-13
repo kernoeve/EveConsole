@@ -2654,7 +2654,7 @@
     <value>아이템이 있는 정거장에서 다른 캐릭터나 코퍼레이션에게 넘깁니다</value>
   </data>
   <data name="TransferOneLine" xml:space="preserve">
-    <value>{0:N0} × {1}</value>
+    <value>{1} × {0:N0}</value>
   </data>
   <data name="TransferTypesOther" xml:space="preserve">
     <value>아이템 {0:N0}종</value>
@@ -2748,5 +2748,146 @@
   </data>
   <data name="IndustrySetupNoCharacters" xml:space="preserve">
     <value>인더스트리 작업을 실행하도록 활성화된 캐릭터가 없습니다.</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>코퍼레이션 구조물</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>코퍼레이션 구조물: 연료, 위성 베이, 피팅 또는 탄약</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>{0} 연료 보급 — {1} 남음</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>{0} 연료 보급 — 연료 없음</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{1}의 {0}. {2}에 연료 소진, {3}일분까지 채웁니다.</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>지금</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>연료 블록 {0:N0}개 운반 (시간당 {1}).</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>소비 속도를 알 수 없습니다. 블록 수를 세려면 코퍼레이션 구조물 → 설정에서 {0}의 피팅을 지정하세요.</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>소비량은 유형에 지정한 피팅 기준입니다. 코퍼레이션 자산은 읽지 않습니다.</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>{0}의 위성 베이 비우기 — {1}% 참</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{1}의 {0}: {2} m³, {3} ISK 상당.</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>{0}의 피팅 수정</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>누락: {0}.</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{1} 자리에 {0}이(가) 장착됨.</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>{3}의 {2}에 지정한 피팅 {0}({1})과 비교.</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>{0}에 탄약과 전투기 보충</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>부족: {0}. {3}의 {2}에 지정한 피팅 {1} 기준.</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0}/{2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}: 구조물 목록을 {1} 이후 읽지 않음</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}: 타워 목록을 {1} 이후 읽지 않음</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>이 코퍼레이션을 읽는 캐릭터가 ESI에 필요한 역할(구조물은 Station Manager, 타워는 Starbase Equipment Config)을 잃어 목록을 읽지 못하고 연료를 추적할 수 없습니다. 역할을 되돌리거나 역할이 있는 캐릭터가 읽게 하세요.</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>최근 ESI가 목록에 응답하지 않아 다시 읽을 때까지 연료를 추적할 수 없습니다.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>구조물</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>코퍼레이션 구조물의 작업입니다. 연료 보급은 구조물 목록만 있으면 되므로 어느 코퍼레이션이든 됩니다. 나머지 셋은 구조물 안의 물건을 읽으므로 코퍼레이션 자산을 읽는 경우에만 생깁니다.</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>모든 코퍼레이션</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>나중에 추가하는 것까지 모든 코퍼레이션. 해제하면 고를 수 있습니다.</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>작업</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>구조물 연료 보급</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>연료가 최소 일수 안에 떨어지면 생기고, 채울 일수까지 보급합니다. 소비량은 장착 모듈, 자산이 없으면 코퍼레이션 구조물 → 설정에서 유형에 지정한 피팅으로 구합니다.</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>최소 연료</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>남은 연료가 이보다 적은 구조물에 작업이 생깁니다.</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>채울 양</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>작업으로 며칠분의 연료까지 채울지.</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>시약 수거</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Metenox 위성 베이가 여기서 정한 양에 이르면 생깁니다. 코퍼레이션 자산이 필요합니다.</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>수거 기준</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>% 참</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>부피</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>시장 가치</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>베이에 있어야 할 양(선택한 단위).</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>드론/탄약 보충</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>탄약이나 전투기가 설정 → 알림에서 정한 피팅 비율 아래로 떨어지면 생깁니다. 코퍼레이션 자산이 필요합니다.</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>피팅 수정</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>구조물에 유형 피팅의 모듈이 없거나 다른 모듈이 대신 있으면 생깁니다. 코퍼레이션 자산이 필요합니다.</value>
   </data>
 </root>

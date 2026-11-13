@@ -6,10 +6,15 @@ namespace EveConsole.Views;
 
 public partial class MarketGroupPickerWindow : Window
 {
-    public MarketGroupPickerWindow(MarketGroupPickerViewModel vm)
+    /// <param name="title">The window's title, for a pick that adds no items (a filter); null
+    /// keeps "add items from market group".</param>
+    /// <param name="okText">The confirm button's words, the same way.</param>
+    public MarketGroupPickerWindow(MarketGroupPickerViewModel vm, string? title = null, string? okText = null)
     {
         DataContext = vm;
         InitializeComponent();
+        if (title  is not null) Title = title;
+        if (okText is not null) OkButton.Content = okText;
         _ = vm.LoadAsync();
     }
 

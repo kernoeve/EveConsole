@@ -13,6 +13,31 @@ namespace EveConsole.ViewModels;
 public sealed record WorklistKindCount(string Kind, int Count);
 
 /// <summary>
+/// A kind of task's heading in a panel's worklist, as the Worklist tool groups its rows: the kind
+/// and how many, closing over the tasks under it.
+/// </summary>
+public sealed class PanelWorklistGroupVm(string label, IReadOnlyList<WorklistRowVm> members, bool expanded) : ReactiveObject
+{
+    public string Label { get; } = label;
+    public IReadOnlyList<WorklistRowVm> Members { get; } = members;
+    public string CountText => Members.Count.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
+
+    private bool _isExpanded = expanded;
+    public bool IsExpanded
+    {
+        get => _isExpanded;
+        set
+        {
+            if (_isExpanded == value) return;
+            this.RaiseAndSetIfChanged(ref _isExpanded, value);
+            ExpansionChanged?.Invoke(this);
+        }
+    }
+
+    public Action<PanelWorklistGroupVm>? ExpansionChanged { get; init; }
+}
+
+/// <summary>
 /// The worklist of one character, for a panel: that character's ready tasks, opening into their
 /// detail as in the Worklist tool, and nothing else from that tool. The character is the one in
 /// whichever client was last in use on this panel's monitor (see <see cref="MonitorFocus"/>).
@@ -46,7 +71,12 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
     }
 
     public ObservableCollection<string> Names { get; } = [];
-    public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
+
+    /// <summary>Each kind's heading, then its tasks while it is open, each task's detail under it while that is.</summary>
+    public BulkObservableCollection<object> Rows { get; } = [];
+
+    /// <summary>The kinds closed by the reader, by label, kept across rebuilds and characters.</summary>
+    private readonly HashSet<string> _closedKinds = [];
 
     /// <summary>For the single line: how many of each kind of task there are, in the list's order.</summary>
     public ObservableCollection<WorklistKindCount> Counts { get; } = [];
@@ -136,30 +166,74 @@ public sealed class PanelWorklistVm : ReactiveObject, IDisposable
 
         var fresh = id is not { } characterId ? [] : _worklist.PoolRows
             .Where(r => r.Item.CharacterId == characterId)
-            // ⚠️ By task name here, and only here: this list can't be sorted by the one reading
-            // it, and alike tasks side by side are run through faster. The Worklist's own grids
-            // keep their order. Then the Worklist's order, among tasks of one name.
-            //
-            // A Transfer by its item, not its title: the title leads with the quantity, which
-            // scatters the same item ("1 × Tritanium", "176,793 × Tritanium") across the list.
-            // One of several items has no single item, and keeps its title.
-            .OrderBy(r => r.Item.Kind == EveConsole.Services.Worklist.WorklistKind.Transfer && r.Item.TypeName.Length > 0 ? r.Item.TypeName : r.Item.Title,
-                     StringComparer.CurrentCultureIgnoreCase)
-            .ThenBy(r => r.Sequence)
             .Select(r => new WorklistRowVm(r.Item, r.Sequence) { ExpansionChanged = OnExpansionChanged })
             .ToList();
         RowExpansion.Carry(_parents, fresh);
         _parents = fresh;
-        Rows.ResetTo(FamilyRows.WithChildren(fresh, r => r.IsExpanded && r.CanExpand, r => r.Children));
+
+        // Grouped by kind as the Worklist tool groups them, the groups in its order (the order
+        // WorklistKind is declared in, hauls by lane).
+        var groups = fresh
+            .GroupBy(r => r.KindText)
+            .OrderBy(g => g.Min(r => r.KindRank))
+            .Select(g => new PanelWorklistGroupVm(g.Key, ByName(g), !_closedKinds.Contains(g.Key)) { ExpansionChanged = OnGroupChanged })
+            .ToList();
+        Rows.ResetTo(groups.SelectMany(GroupRows));
         _ = Task.WhenAll(fresh.Select(r => r.LoadIconAsync()));
 
         Counts.Clear();
-        foreach (var kind in fresh.GroupBy(r => WorklistRowVm.KindLabel(r.Item)))
-            Counts.Add(new WorklistKindCount(kind.Key, kind.Count()));
+        foreach (var g in groups)
+            Counts.Add(new WorklistKindCount(g.Label, g.Members.Count));
 
         _shownId = id;
         _shownCount = fresh.Count;
         ShowNote();
+    }
+
+    /// <summary>
+    /// ⚠️ By task name within a kind, and only here: this list can't be sorted by the one reading
+    /// it, and alike tasks side by side are run through faster. The Worklist's own grids keep
+    /// their order. Then the Worklist's order, among tasks of one name.
+    ///
+    /// <para>A Transfer by its item, not its title: the item leads the title in English, but a
+    /// translation may put the quantity first. One of several items has no single item, and keeps
+    /// its title.</para>
+    /// </summary>
+    private static List<WorklistRowVm> ByName(IEnumerable<WorklistRowVm> rows) => rows
+        .OrderBy(r => r.Item.Kind == EveConsole.Services.Worklist.WorklistKind.Transfer && r.Item.TypeName.Length > 0 ? r.Item.TypeName : r.Item.Title,
+                 StringComparer.CurrentCultureIgnoreCase)
+        .ThenBy(r => r.Sequence)
+        .ToList();
+
+    /// <summary>A kind's heading, then, while it is open, its tasks and their open detail.</summary>
+    private static IEnumerable<object> GroupRows(PanelWorklistGroupVm group)
+    {
+        yield return group;
+        if (!group.IsExpanded) yield break;
+        foreach (var row in FamilyRows.WithChildren(group.Members, r => r.IsExpanded && r.CanExpand, r => r.Children))
+            yield return row;
+    }
+
+    /// <summary>
+    /// A kind opened or closed: its rows go in under the heading or come out, one at a time, as a
+    /// task's detail does, so the reader isn't thrown back to the top of the list.
+    /// </summary>
+    private void OnGroupChanged(PanelWorklistGroupVm group)
+    {
+        if (group.IsExpanded) _closedKinds.Remove(group.Label);
+        else _closedKinds.Add(group.Label);
+
+        var at = Rows.IndexOf(group);
+        if (at < 0) return;
+        if (group.IsExpanded)
+        {
+            var rows = GroupRows(group).Skip(1).ToList();
+            for (var i = 0; i < rows.Count; i++) Rows.Insert(at + 1 + i, rows[i]);
+        }
+        else
+        {
+            while (at + 1 < Rows.Count && Rows[at + 1] is WorklistRowVm) Rows.RemoveAt(at + 1);
+        }
     }
 
     private long? _shownId;

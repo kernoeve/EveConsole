@@ -39,14 +39,31 @@
     </Grid>
     <TextBlock Grid.Row="1" Text="{Binding Note}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
     <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-      <ItemsControl ItemsSource="{Binding Rows}" Grid.IsSharedSizeScope="True">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate x:DataType="vm:WorklistRowVm">
+      <ItemsControl ItemsSource="{Binding Rows}">
+        <ItemsControl.DataTemplates>
+          <!-- A kind of task's heading, as the Worklist tool groups its rows: what kind, how many,
+               and a click anywhere on it closes or opens what's under it. -->
+          <DataTemplate DataType="vm:PanelWorklistGroupVm" x:DataType="vm:PanelWorklistGroupVm">
+            <Button Click="OnToggleGroup" HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                    Background="{DynamicResource SurfacePanelBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}"
+                    BorderThickness="0 0 0 1" CornerRadius="0" Padding="2 0" Margin="0 4 0 2" MinHeight="22" Cursor="Hand">
+              <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                <!-- Drawn, not a ▸ character: not every font has one. Points down while open. -->
+                <Path Data="M0,0 L5,4 L0,8 Z" Width="5" Height="8" VerticalAlignment="Center" Margin="4 0 2 0"
+                      Fill="{DynamicResource TextMutedBrush}" RenderTransformOrigin="50%,50%"
+                      RenderTransform="{Binding IsExpanded, Converter={x:Static views:PanelWorklistControl.OpenTurn}}" />
+                <TextBlock Text="{Binding Label}" FontSize="12" FontWeight="SemiBold"
+                           Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{Binding CountText}" FontSize="11"
+                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+              </StackPanel>
+            </Button>
+          </DataTemplate>
+
+          <DataTemplate DataType="vm:WorklistRowVm" x:DataType="vm:WorklistRowVm">
             <Grid MinHeight="20">
               <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="18" />
-                <!-- One width for every row's tag, so the items line up. -->
-                <ColumnDefinition Width="Auto" SharedSizeGroup="Kind" />
                 <ColumnDefinition Width="20" />
                 <ColumnDefinition Width="*" />
               </Grid.ColumnDefinitions>
@@ -55,15 +72,9 @@
                       Background="Transparent" BorderThickness="0" Padding="0" MinWidth="0" MinHeight="0" FontSize="12"
                       HorizontalAlignment="Center" VerticalAlignment="Center"
                       Foreground="{DynamicResource TextMutedBrush}" />
-              <!-- What kind of task, before the row is read: a buy and a job can name the same item. -->
-              <Border Grid.Column="1" IsVisible="{Binding !IsChild}" Margin="0 0 4 0" Padding="4 0" CornerRadius="2"
-                      VerticalAlignment="Center" Background="{DynamicResource SurfacePanelAltBrush}">
-                <TextBlock Text="{Binding KindTag}" FontSize="9" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
-              </Border>
-              <Image Grid.Column="2" Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" IsVisible="{Binding !IsChild}" />
+              <Image Grid.Column="1" Source="{Binding Icon}" Width="16" Height="16" VerticalAlignment="Center" IsVisible="{Binding !IsChild}" />
 
-              <Panel Grid.Column="3" VerticalAlignment="Center" Margin="4 0 0 0">
+              <Panel Grid.Column="2" VerticalAlignment="Center" Margin="4 0 0 0">
                 <!-- A loop's stop, a line of text, or an item handled at a stop. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsChildStop}">
                   <TextBlock Text="{Binding ChildLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
@@ -150,7 +161,7 @@
               </Panel>
             </Grid>
           </DataTemplate>
-        </ItemsControl.ItemTemplate>
+        </ItemsControl.DataTemplates>
       </ItemsControl>
     </ScrollViewer>
   </Grid>
