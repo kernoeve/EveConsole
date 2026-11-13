@@ -474,4 +474,13 @@
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>このサーバーに登録していないため、画像は切断するまでしか保持されません。</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>ルームに拒否されました: そこではその操作は許可されていません。</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>ルームに拒否されました ({0})。</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>ルームに理由なく拒否されました。</value>
+  </data>
 </root>

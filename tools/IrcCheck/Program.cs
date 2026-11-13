@@ -230,9 +230,12 @@ try
         && c.Members.Values.Any(m => m.Nick == "Bob" && m.Ranks == "ov")), string.Join(",", session.ChannelOf("#fleet")?.Members.Values.Select(m => m.Ranks + m.Nick) ?? []));
 
     // ⚠️ The history the join asks for holds an old JOIN of this person: taken as live, it emptied the people (fixed).
+    // ⚠️ Waited for longer than most: the ask goes out at the sending pace (five lines, then one a second) behind the
+    // join, the history targets and the channel's settings, some four seconds in, which a five-second wait missed.
     Check("history read, and its old JOIN leaves the people alone",
-        await Wait(() => stored.Any(m => m.Body == "from history" && m.IsRead)) && session.ChannelOf("#fleet")!.Members.Count == 3,
-        $"{session.ChannelOf("#fleet")?.Members.Count} people");
+        await Wait(() => stored.Any(m => m.Body == "from history" && m.IsRead), 15000) && session.ChannelOf("#fleet")!.Members.Count == 3,
+        $"{session.ChannelOf("#fleet")?.Members.Count} people; saved: " + string.Join(" | ", stored.Select(m => $"{m.Body}:{(m.IsRead ? "read" : "unread")}"))
+        + "; sent: " + string.Join(" | ", fake.Got.ToArray()));
 
     fake.Push(":Bob!b@h PRIVMSG #fleet :Ann are you there");
     Check("a mention saved, unread, alerting", await Wait(() => stored.Any(m => m.Body == "Ann are you there" && m is { IsMention: true, IsAlert: true, IsRead: false })));
@@ -254,6 +257,11 @@ try
         && c.Modes.ContainsKey('m') && !c.Modes.ContainsKey('t') && !c.Modes.ContainsKey('l') && !c.Modes.ContainsKey('b')),
         string.Join(",", session.ChannelOf("#fleet")?.Modes.Select(x => x.Key + "=" + x.Value) ?? []));
     Check("a key is held without its value: it is a password", session.ChannelOf("#fleet")!.Modes.GetValueOrDefault('k') == "");
+    var before = session.RefusalCount;
+    fake.Push(":fake.server 482 Ann #fleet :You're not a channel operator");
+    fake.Push(":fake.server 482 Ann #fleet :You're not a channel operator");
+    Check("the same refusal twice is two refusals, so both are shown", await Wait(() => session.RefusalCount == before + 2)
+        && session.LastRefusal == "#fleet: You're not a channel operator", $"{session.RefusalCount - before} {session.LastRefusal}");
     var exceptions = await irc.ModeListAsync(session, "#fleet", 'e');
     Check("a channel's ban exceptions read", exceptions is [{ Mask: "*!*@friend.host", SetBy: "Bob" }], string.Join(",", exceptions.Select(e => e.Mask)));
     Check("an empty list is empty, and comes back", (await irc.ModeListAsync(session, "#fleet", 'I')).Count == 0);
@@ -736,6 +744,12 @@ try
 
         var askedBans = await view.BansAsync(seen, "#fleet");
         Check("relay: a channel's bans, asked through the worker", askedBans.Count == 2 && askedBans[0].SetBy == "Bob", askedBans.Count.ToString());
+        var relayRefusals = seen.RefusalCount;
+        relayFake.Push(":fake.server 482 Ann #fleet :You're not a channel operator");
+        Check("relay: a refusal reaches the client", await Wait(() => seen.RefusalCount > relayRefusals && seen.LastRefusal.Contains("not a channel operator")));
+        relayRefusals = seen.RefusalCount;
+        relayFake.Push(":fake.server 482 Ann #fleet :You're not a channel operator");
+        Check("relay: and the same one again, again", await Wait(() => seen.RefusalCount > relayRefusals), $"{seen.RefusalCount} {relayRefusals}");
         var relayWhois = await view.WhoisAsync(seen, "Bob");
         Check("relay: who someone is, asked through the worker", relayWhois is { Found: true, RealName: "Bob Real" }, relayWhois?.RealName ?? "none");
         var listed = await view.ListChannelsAsync(seen);

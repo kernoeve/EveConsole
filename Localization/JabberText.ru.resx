@@ -474,4 +474,13 @@
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>Вы не зарегистрированы на этом сервере, поэтому он хранит изображение только до отключения.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Комната отказала: вам там это не разрешено.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Комната отказала ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Комната отказала без объяснения.</value>
+  </data>
 </root>

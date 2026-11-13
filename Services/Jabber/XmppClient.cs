@@ -109,8 +109,9 @@ public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, N
 public sealed record XmppRoomInfo(string Jid, string Name);
 
 /// <summary>What a room says about itself when asked. Each piece is there only if the server chose to say it.</summary>
+/// <param name="AllowsInvites">The room says its members may invite (muc#roomconfig_allowinvites), where it says at all.</param>
 public sealed record XmppRoomDetails(string Jid, string Name, string Description, string Subject, int? People,
-                                     bool NeedsPassword, bool MembersOnly, bool Moderated, bool Temporary);
+                                     bool NeedsPassword, bool MembersOnly, bool Moderated, bool Temporary, bool AllowsInvites = false);
 
 /// <summary>A room the account has saved on its server.</summary>
 public sealed record XmppBookmark(string Jid, string Name, string Nick, bool AutoJoin, string Password);
@@ -313,8 +314,53 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             from is null ? null : new XAttribute("to", from), payload));
     }
 
+    /// <summary>Messages sent that a refusal may answer, by id: the answer is the refusal's words.</summary>
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _refusable = new();
+
+    /// <summary>How long a room is given to refuse an invitation. ⚠️ It says nothing when it passes one on, only when it will not.</summary>
+    public static TimeSpan RefusalWait { get; set; } = TimeSpan.FromSeconds(4);
+
+    /// <summary>
+    /// Sends a message a room or server may refuse, and waits a moment for that: throws with its words if it did.
+    /// Nothing comes back when it went through, so silence that long is taken for yes.
+    /// </summary>
+    private async Task SendRefusableAsync(XElement message, CancellationToken ct)
+    {
+        var id = NewId();
+        message.SetAttributeValue("id", id);
+        var refused = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _refusable[id] = refused;
+        try
+        {
+            await connection.WriteAsync(message, ct);
+            if (await Task.WhenAny(refused.Task, Task.Delay(RefusalWait, ct)) == refused.Task)
+                throw new XmppException(XmppFailure.Protocol, refused.Task.Result);
+        }
+        finally { _refusable.TryRemove(id, out _); }
+    }
+
+    /// <summary>The words of an error stanza: the server's own text, or what kind of refusal it was.</summary>
+    public static string RefusalWords(XElement? error)
+    {
+        if (error?.Element(Stanzas + "text")?.Value is { Length: > 0 } text) return text;
+        var kind = error?.Elements().FirstOrDefault(e => e.Name.Namespace == Stanzas)?.Name.LocalName;
+        return kind switch
+        {
+            "forbidden" or "not-allowed" => Localization.JabberText.RefusedNotAllowed,
+            null => Localization.JabberText.RefusedUnknown,
+            _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, Localization.JabberText.RefusedBecause, kind),
+        };
+    }
+
     private void HandleMessage(XElement stanza)
     {
+        // A refusal of something sent and waited on (an invitation): said to whoever waits.
+        if ((string?)stanza.Attribute("type") == "error" && (string?)stanza.Attribute("id") is { } errorId && _refusable.TryGetValue(errorId, out var waiting))
+        {
+            waiting.TrySetResult(RefusalWords(stanza.Element(Client + "error")));
+            return;
+        }
+
         if (stanza.Element(Mam + "result") is not null)
         {
             var archived = _archiveRoom is { } room
@@ -725,7 +771,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             features.Contains("muc_passwordprotected"),
             features.Contains("muc_membersonly"),
             features.Contains("muc_moderated"),
-            features.Contains("muc_temporary"));
+            features.Contains("muc_temporary"),
+            fields.GetValueOrDefault("muc#roomconfig_allowinvites") is "1" or "true");
     }
 
     public async Task<IReadOnlyList<XmppRoomInfo>> ItemsOfAsync(string to, CancellationToken ct)

@@ -19,7 +19,7 @@ public sealed partial class GroupChatViewModel
     private readonly IrcService? _irc;
     private List<IrcUnread> _ircUnread = [];
     private bool _addingIrc;
-    private readonly Dictionary<int, string> _refusalsShown = [];
+    private readonly Dictionary<int, int> _refusalsShown = [];
 
     /// <summary>Opens a conversation with someone on an IRC server in the Messages tool: server and nickname.</summary>
     public Action<int, string>? OpenIrcDirect { get; set; }
@@ -43,12 +43,13 @@ public sealed partial class GroupChatViewModel
         _irc.SessionChanged += session =>
         {
             QueueRefresh();
-            // Something the server refused (not an operator, no such nick) is said where it was asked.
-            var refusal = session.LastRefusal;
-            if (refusal.Length > 0 && _refusalsShown.GetValueOrDefault(session.Server.Id) != refusal)
+            // Something the server refused (not an operator, no such nick) is said where it was asked. ⚠️ Each one, by
+            // its count: the same words refused again must show again.
+            var (refusal, count) = (session.LastRefusal, session.RefusalCount);
+            if (refusal.Length > 0 && _refusalsShown.GetValueOrDefault(session.Server.Id) != count)
                 Dispatcher.UIThread.Post(() =>
                 {
-                    _refusalsShown[session.Server.Id] = refusal;
+                    _refusalsShown[session.Server.Id] = count;
                     if (SelectedRow is { IsIrc: true } open && open.ServerId == session.Server.Id) StatusText = refusal;
                 });
         };
@@ -323,6 +324,19 @@ public sealed partial class GroupChatViewModel
         var modes = session.Locked(_ => new Dictionary<char, string>(state.Modes));
         return new IrcChannelSettingsVm(irc, session, state.ServerName, session.Support, modes, state.ModesKnown);
     }
+
+    /// <summary>
+    /// Whether the channel open lets this person change its topic: anyone, unless only operators may (+t). Offered when
+    /// its settings are not known yet: the server then says, and that is shown.
+    /// </summary>
+    public bool IrcCanChangeTopic() =>
+        OpenIrcChannel() is (IrcSession session, IrcChannelState state)
+        && (!session.Locked(_ => state.ModesKnown && state.Modes.ContainsKey('t')) || IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName)));
+
+    /// <summary>Whether the channel open lets this person invite: anyone, unless it is invite-only (+i), where operators do.</summary>
+    public bool IrcCanInvite() =>
+        OpenIrcChannel() is (IrcSession session, IrcChannelState state)
+        && (!session.Locked(_ => state.ModesKnown && state.Modes.ContainsKey('i')) || IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName)));
 
     /// <summary>Whether this person can put others out of the channel open: half-operator or above.</summary>
     public bool IrcCanModerate() =>

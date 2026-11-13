@@ -474,4 +474,13 @@
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>이 서버에 등록되어 있지 않아, 연결을 끊을 때까지만 사진이 유지됩니다.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>방에서 거부했습니다: 그곳에서 그렇게 할 권한이 없습니다.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>방에서 거부했습니다 ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>방에서 이유 없이 거부했습니다.</value>
+  </data>
 </root>

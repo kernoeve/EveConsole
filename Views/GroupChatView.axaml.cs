@@ -244,19 +244,18 @@ public partial class GroupChatView : UserControl
     private void ShowIrcChannelMenu(Control at, GroupChatViewModel vm, GroupChatRowVm row)
     {
         var room = row.ShownText;
-        var lines = new List<Control>
+        var lines = new List<Control>();
+        // ⚠️ Only what the channel lets this person do: +t keeps the topic to operators, +i the inviting.
+        if (vm.IrcCanChangeTopic()) lines.Add(Line(GroupChatText.MenuChangeTopic, async () =>
         {
-            Line(GroupChatText.MenuChangeTopic, async () =>
-            {
-                if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
-                    await vm.IrcSetTopicAsync(topic);
-            }),
-            Line(GroupChatText.MenuInvite, async () =>
-            {
-                if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
-                    await vm.IrcInviteAsync(who);
-            }),
-        };
+            if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
+                await vm.IrcSetTopicAsync(topic);
+        }));
+        if (vm.IrcCanInvite()) lines.Add(Line(GroupChatText.MenuInvite, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
+                await vm.IrcInviteAsync(who);
+        }));
         if (vm.IrcCanModerate()) lines.Add(Line(GroupChatText.MenuLiftBan, async () =>
         {
             var bans = await vm.IrcBansAsync();

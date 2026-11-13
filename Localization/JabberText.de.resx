@@ -474,4 +474,13 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>Du bist auf diesem Server nicht registriert, also behält er dein Bild nur bis zum Trennen.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Der Raum hat abgelehnt: Das darfst du dort nicht.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Der Raum hat abgelehnt ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Der Raum hat abgelehnt, ohne Grund.</value>
+  </data>
 </root>

@@ -725,6 +725,7 @@ public sealed partial class GroupChatViewModel : ReactiveObject
         }
         else if (row is { IsRoom: true })
         {
+            if (JabberOf(row) is { State: JabberState.Connected } roomSession) _ = LearnRoomAsync(roomSession, row.Key);
             var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, limit: PageSize));
             if (!ReferenceEquals(SelectedRow, row)) return;
 
@@ -1237,7 +1238,22 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     public JabberPersonRights RightsOver(JabberOccupantVm person) =>
         person.Person is { } them ? JabberRoomRights.Over(Me(), them) : JabberPersonRights.None;
 
-    public JabberRoomRightsSet RoomRights() => JabberRoomRights.OfRoom(Me());
+    public JabberRoomRightsSet RoomRights() =>
+        JabberRoomRights.OfRoom(Me(), OpenRoom() is (_, JabberRoomState state) ? _roomDetails.GetValueOrDefault(state.Room.RoomJid) : null);
+
+    /// <summary>What each room opened says of itself (members-only, and whether members may invite), asked once per room.</summary>
+    private readonly Dictionary<string, XmppRoomDetails> _roomDetails = new(StringComparer.Ordinal);
+
+    /// <summary>Asks a room about itself, for what its menu offers. Not waited on: the menu offers what it knows until then.</summary>
+    private async Task LearnRoomAsync(JabberSession session, string room)
+    {
+        if (_roomDetails.ContainsKey(room)) return;
+        try
+        {
+            if (await Task.Run(() => _jabber.RoomDetailsAsync(session, room)) is { } details) _roomDetails[room] = details;
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { /* the menu offers what it would have, and the room refuses if it must */ }
+    }
 
     /// <summary>The room open, as the menus and their questions name it.</summary>
     public string RoomName => Title;

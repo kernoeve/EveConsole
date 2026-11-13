@@ -151,7 +151,20 @@ public sealed class IrcSession(IrcServer server)
     public bool LoggedIn { get; internal set; }
 
     /// <summary>The last thing the server refused, for the screen to say (not being an operator, no such nick).</summary>
-    public string LastRefusal { get; internal set; } = "";
+    public string LastRefusal { get; private set; } = "";
+
+    /// <summary>
+    /// Rises with every refusal, so the same words refused twice are shown twice. ⚠️ Shown by their words alone, a
+    /// second "not a channel operator" looked like nothing happened at all.
+    /// </summary>
+    public int RefusalCount { get; private set; }
+
+    internal void Refused(string why) { LastRefusal = why; RefusalCount++; }
+
+    /// <summary>A refusal as the worker last wrote it, for a client that is not the worker.</summary>
+    internal void ShowRefusal(string why, int count) { LastRefusal = why; RefusalCount = count; }
+
+    internal void ForgetRefusal() { LastRefusal = ""; RefusalCount = 0; }
 
     public T Locked<T>(Func<IrcSession, T> read) { lock (_gate) return read(this); }
     public void Locked(Action<IrcSession> act) { lock (_gate) act(this); }

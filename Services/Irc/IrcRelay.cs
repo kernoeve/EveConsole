@@ -229,7 +229,7 @@ public sealed partial class IrcService
         session.Detail = "";
         session.NextAttempt = null;
         session.Nick = "";
-        session.LastRefusal = "";
+        session.ForgetRefusal();
     }
 
     /// <summary>The servers as saved: another client may have added, changed or removed one.</summary>
@@ -430,7 +430,7 @@ public sealed partial class IrcService
         IrcState State, IrcProblem Problem, string Detail, string CertificateFingerprint, string CertificateSubject,
         DateTimeOffset? NextAttempt, string Nick, string Network, bool IsAway, bool HasHistory, bool HasTags, bool IsEncrypted,
         string LastRefusal, string ChannelTypes, string RankModes, string RankSymbols, List<IrcPerson> People, List<IrcInvite> Invites,
-        string ChannelModes = "", bool CanRedact = false, bool LoggedIn = false, string Software = "", bool HasPictures = false);
+        string ChannelModes = "", bool CanRedact = false, bool LoggedIn = false, string Software = "", bool HasPictures = false, int RefusalCount = 0);
 
     private sealed record LiveMember(string Nick, string UserHost, string Account, string Ranks, bool Away, string AwayMessage);
 
@@ -461,7 +461,7 @@ public sealed partial class IrcService
                 s.IsAway, s.HasHistory, s.HasTags, s.IsEncrypted, s.LastRefusal,
                 support.ChannelTypes, new string([.. support.Ranks.Select(r => r.Mode)]), new string([.. support.Ranks.Select(r => r.Symbol)]),
                 [.. s.PeopleMap.Values], [.. s.InviteMap.Values],
-                $"{support.ModesA},{support.ModesB},{support.ModesC},{support.ModesD}", s.CanRedact, s.LoggedIn, support.Software, s.HasPictures)),
+                $"{support.ModesA},{support.ModesB},{support.ModesC},{support.ModesD}", s.CanRedact, s.LoggedIn, support.Software, s.HasPictures, s.RefusalCount)),
         };
 
         foreach (var (key, c) in s.ChannelMap)
@@ -630,7 +630,7 @@ public sealed partial class IrcService
         s.State = a.State; s.Problem = a.Problem; s.Detail = a.Detail;
         s.CertificateFingerprint = a.CertificateFingerprint; s.CertificateSubject = a.CertificateSubject;
         s.NextAttempt = a.NextAttempt; s.Nick = a.Nick; s.Network = a.Network; s.IsAway = a.IsAway;
-        s.HasHistory = a.HasHistory; s.HasTags = a.HasTags; s.IsEncrypted = a.IsEncrypted; s.LastRefusal = a.LastRefusal;
+        s.HasHistory = a.HasHistory; s.HasTags = a.HasTags; s.IsEncrypted = a.IsEncrypted; s.ShowRefusal(a.LastRefusal, a.RefusalCount);
         s.CanRedact = a.CanRedact; s.LoggedIn = a.LoggedIn; s.HasPictures = a.HasPictures;
 
         var support = new IrcSupport { Software = a.Software };

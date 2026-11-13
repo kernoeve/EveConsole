@@ -108,14 +108,14 @@ public sealed partial class IrcService
                 changed = OnJoinRefused(session, m[1], m.Last);
                 break;
             case "401" or "404" or "406" or "441" or "442" or "443" or "481" or "482":
-                session.LastRefusal = (m.Params.Count > 2 ? m[1] + ": " : "") + m.Last;
+                session.Refused((m.Params.Count > 2 ? m[1] + ": " : "") + m.Last);
                 changed = true;
                 break;
             // A read marker refused is nothing to tell anyone: reading here goes on all the same.
             case "FAIL" when m[0] is "MARKREAD" or "METADATA":
                 break;
             case "FAIL":
-                session.LastRefusal = m.Last;
+                session.Refused(m.Last);
                 changed = true;
                 break;
         }
@@ -369,7 +369,7 @@ public sealed partial class IrcService
 
     private static bool OnJoinRefused(IrcSession session, string channel, string why) => session.Locked(s =>
     {
-        if (s.ChannelMap.GetValueOrDefault(s.Fold(channel)) is not { } c) { s.LastRefusal = $"{channel}: {why}"; return true; }
+        if (s.ChannelMap.GetValueOrDefault(s.Fold(channel)) is not { } c) { s.Refused($"{channel}: {why}"); return true; }
         c.Joined = false;
         c.Failure = why;
         return true;

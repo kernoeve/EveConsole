@@ -474,4 +474,13 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>Vous n’êtes pas enregistré sur ce serveur : il ne garde votre image que jusqu’à la déconnexion.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Le salon a refusé : vous n’avez pas le droit de faire cela ici.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Le salon a refusé ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Le salon a refusé, sans dire pourquoi.</value>
+  </data>
 </root>

@@ -549,4 +549,13 @@ Trust it only if this matches what the server's admin published. From then on, o
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>You are not registered on this server, so it keeps your picture only until you disconnect.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>The room refused: you are not allowed to do that there.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>The room refused ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>The room refused, without saying why.</value>
+  </data>
 </root>

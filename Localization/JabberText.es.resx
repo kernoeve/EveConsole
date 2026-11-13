@@ -474,4 +474,13 @@ Confía en él solo si coincide con lo que publicó el administrador del servido
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>No estás registrado en este servidor, así que solo guarda tu imagen hasta que te desconectes.</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>La sala lo rechazó: no tienes permiso para hacer eso ahí.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>La sala lo rechazó ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>La sala lo rechazó sin decir por qué.</value>
+  </data>
 </root>

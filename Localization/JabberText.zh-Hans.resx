@@ -474,4 +474,13 @@
   <data name="PictureMumbleUnregistered" xml:space="preserve">
     <value>你未在此服务器注册，因此头像只保留到断开连接为止。</value>
   </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>房间拒绝了：你在那里无权这样做。</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>房间拒绝了（{0}）。</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>房间拒绝了，未说明原因。</value>
+  </data>
 </root>
