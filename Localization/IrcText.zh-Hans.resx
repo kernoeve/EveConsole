@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>此服务器要求在 {1} 之前仅通过加密连接，因此无论这里如何设置，都会通过端口 {0} 加密连接。</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>此服务器不接受文件。</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>服务器的文件托管未加密，因此不会向其发送任何内容。</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>文件托管接收了文件，但没有说明存放位置。</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>服务器的文件托管只接受：{0}。</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>服务器的文件托管不接受此类文件。</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>文件太大，服务器的文件托管无法接收。</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>服务器的文件托管拒绝了：请登录账户 (SASL) 后再发送文件。</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>服务器的文件托管拒绝了（{0} {1}）。</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>服务器的文件托管在中途停止接收文件。文件可能太大。</value>
+  </data>
 </root>

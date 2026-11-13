@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>Этот сервер просит до {1} подключаться только с шифрованием, поэтому так и будет, на порт {0}, что бы здесь ни стояло.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>Этот сервер не принимает файлы.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>Файловое хранилище сервера не зашифровано, поэтому туда ничего не отправляется.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>Хранилище приняло файл, но не сообщило, где он лежит.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>Файловое хранилище сервера принимает только: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>Файловое хранилище сервера не принимает файлы этого типа.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>Файл слишком велик для хранилища сервера.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>Хранилище сервера отказало: войдите в учётную запись (SASL), чтобы отправлять файлы.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>Хранилище сервера отказало ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>Хранилище сервера перестало принимать файл на полпути. Возможно, он слишком велик.</value>
+  </data>
 </root>

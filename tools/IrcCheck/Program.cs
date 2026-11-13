@@ -641,6 +641,93 @@ try
         WebPictures.AllowThisMachine = false;
     }
 
+    // ── Sending files (draft/FILEHOST) ──
+    // A message as sent: its words after a ":" only when they hold a space.
+    static bool Said(string line, string target, string words) =>
+        IrcMessage.Parse(line) is { Command: "PRIVMSG" } m && m[0] == target && m.Last.StartsWith(words, StringComparison.Ordinal);
+    {
+        var draft = new IrcSupport();
+        draft.Apply(["FILEHOST=https://plain.example/up"]);
+        Check("files: the plain name is not read, as the draft asks", draft.FileHost == "");
+        draft.Apply(["draft/FILEHOST=https://draft.example/up", "soju.im/FILEHOST=https://soju.example/up"]);
+        var soju = new IrcSupport();
+        soju.Apply(["soju.im/FILEHOST=https://soju.example/up"]);
+        var both = new IrcSupport();
+        both.Apply(["soju.im/FILEHOST=https://soju.example/up"]);
+        both.Apply(["draft/FILEHOST=https://draft.example/up"]);
+        Check("files: the draft name, or soju's, the draft's kept when both come in either order",
+            draft.FileHost == "https://draft.example/up" && soju.FileHost == "https://soju.example/up" && both.FileHost == "https://draft.example/up");
+        Check("files: https always, plain http to this machine only and never under an encrypted connection",
+            IrcService.IsUsableFileHost("https://files.example/up", true) && IrcService.IsUsableFileHost("http://127.0.0.1:8080/up", false)
+            && !IrcService.IsUsableFileHost("http://127.0.0.1:8080/up", true) && !IrcService.IsUsableFileHost("http://files.example/up", false)
+            && !IrcService.IsUsableFileHost("ftp://files.example/up", false) && !IrcService.IsUsableFileHost("not a link", false) && !IrcService.IsUsableFileHost("", false));
+        Check("files: kinds the host takes", IrcService.TypeMatches("image/*", "image/png") && IrcService.TypeMatches("*/*", "application/pdf")
+            && IrcService.TypeMatches("image/png", "IMAGE/PNG") && !IrcService.TypeMatches("image/*", "application/pdf") && !IrcService.TypeMatches("image/png", "image/jpeg"));
+
+        await using var files = new FileHostFake();
+        var logger = new AppErrorLogger(null!);
+        var sender = new IrcService(factory, logger);
+        await using var hosting = new FakeIrc { ExtraSupport = $"draft/FILEHOST=http://127.0.0.1:{files.Port}/upload" };
+        var fs = await sender.SaveServerAsync(new IrcServer
+        {
+            Name = "Files", Host = "127.0.0.1", Port = hosting.Port, Tls = false, Nickname = "Ann",
+            LoginKind = (int)IrcLoginKind.Sasl, Account = "ann",
+        }, "file-pw");
+        sender.Connect(fs);
+        Check("files: the server's file host is known, and files can be sent", await Wait(() => fs.State == IrcState.Connected, 20000)
+            && fs.FileHost == $"http://127.0.0.1:{files.Port}/upload" && IrcService.CanSendFiles(fs), fs.FileHost);
+
+        var picture = Encoding.UTF8.GetBytes("not really a png, but bytes all the same");
+        await sender.SendFileAsync(fs, "#fleet", new MemoryStream(picture), "Fleet map.png", picture.Length, "image/png");
+        var up = files.Posts.LastOrDefault();
+        Check("files: sent by POST, with the SASL login as Basic, its kind, name and bytes",
+            up is not null && up.Authorization == "Basic " + Convert.ToBase64String(Encoding.UTF8.GetBytes("ann:file-pw"))
+            && up.ContentType == "image/png" && up.Disposition.Contains("Fleet map.png") && up.Body.SequenceEqual(picture),
+            up is null ? "nothing" : $"{up.ContentType} | {up.Disposition} | {up.Body.Length}");
+        var link = $"http://127.0.0.1:{files.Port}/f/1.png";
+        Check("files: the address it is kept at (given relative) goes to the channel as a message",
+            await Wait(() => { lock (hosting.Got) return hosting.Got.Any(l => Said(l, "#fleet", link)); }),
+            string.Join(" | ", hosting.Got.Where(l => l.StartsWith("PRIVMSG"))));
+
+        files.AcceptPost = "image/*";
+        var posts = files.Posts.Count;
+        var notTaken = (await Catch(() => sender.SendFileAsync(fs, "#fleet", new MemoryStream(picture), "orders.pdf", picture.Length, "application/pdf")))?.Message ?? "";
+        Check("files: a kind the host says it does not take is refused here, and not sent", notTaken.Contains("image/*") && files.Posts.Count == posts, notTaken);
+        files.AcceptPost = "";
+
+        files.Answer = "413 Payload Too Large";
+        var tooBig = (await Catch(() => sender.SendFileAsync(fs, "#fleet", new MemoryStream(picture), "big.png", picture.Length, "image/png")))?.Message ?? "";
+        Check("files: one too big is said in words, and no link is sent", tooBig == EveConsole.Localization.IrcText.FileTooBigForHost
+            && !hosting.Got.Any(l => l.Contains("/f/2")), tooBig);
+
+        files.Answer = $"307 Temporary Redirect\r\nLocation: http://127.0.0.1:{files.Port}/elsewhere";
+        posts = files.Posts.Count;
+        var moved = await Catch(() => sender.SendFileAsync(fs, "#fleet", new MemoryStream(picture), "moved.png", picture.Length, "image/png"));
+        await Task.Delay(300);
+        Check("files: a redirect is not followed, so the login goes nowhere else", moved is not null && files.Posts.Count == posts + 1 && !files.Paths.Contains("/elsewhere"),
+            moved?.Message ?? "none");
+        files.Answer = "";
+        await sender.DisconnectAsync(fs);
+
+        await using var anonymous = new FakeIrc { ExtraSupport = $"draft/FILEHOST=http://127.0.0.1:{files.Port}/upload" };
+        var plain = await sender.SaveServerAsync(new IrcServer { Name = "No login", Host = "127.0.0.1", Port = anonymous.Port, Tls = false, Nickname = "Ann" }, null);
+        sender.Connect(plain);
+        await Wait(() => plain.State == IrcState.Connected, 20000);
+        await sender.SendFileAsync(plain, "Bob", new MemoryStream(picture), "a.png", picture.Length, "image/png");
+        Check("files: without a SASL login no login is shown, and a person can be sent one too",
+            files.Posts.LastOrDefault()?.Authorization == "" && await Wait(() => { lock (anonymous.Got) return anonymous.Got.Any(l => Said(l, "Bob", $"http://127.0.0.1:{files.Port}/f/")); }),
+            files.Posts.LastOrDefault()?.Authorization ?? "none");
+        await sender.DisconnectAsync(plain);
+
+        await using var bare = new FakeIrc();
+        var none = await sender.SaveServerAsync(new IrcServer { Name = "No host", Host = "127.0.0.1", Port = bare.Port, Tls = false, Nickname = "Ann" }, null);
+        sender.Connect(none);
+        await Wait(() => none.State == IrcState.Connected, 20000);
+        Check("files: a server that names no host offers no sending", none.FileHost == "" && !IrcService.CanSendFiles(none));
+        await sender.DisconnectAsync(none);
+        foreach (var s in new[] { fs, plain, none }) await sender.DeleteServerAsync(s.Server.Id);
+    }
+
     // ── Under the worker lease: one process connects, every other client shows what it wrote and asks it ──────────
     {
         var logger = new AppErrorLogger(null!);
@@ -663,7 +750,8 @@ try
         };
         signals.Start();
 
-        await using var relayFake = new FakeIrc();
+        await using var relayFiles = new FileHostFake();
+        await using var relayFake = new FakeIrc { ExtraSupport = $"draft/FILEHOST=http://127.0.0.1:{relayFiles.Port}/upload" };
         await worker.StartAsync();
         await view.StartAsync();
 
@@ -707,6 +795,12 @@ try
 
         var sent = await view.SendAsync(seen, "#fleet", "from the client");
         Check("relay: a client's words go out through the worker, and come back saved", sent == "" && await Wait(() => shown.Any(m => m.Body == "from the client" && m.IsOutgoing)));
+        Check("relay: the server's file host reaches the client", seen.FileHost == $"http://127.0.0.1:{relayFiles.Port}/upload" && IrcService.CanSendFiles(seen), seen.FileHost);
+        var relayed = Encoding.UTF8.GetBytes("a file from the client");
+        await view.SendFileAsync(seen, "#fleet", new MemoryStream(relayed), "note.png", relayed.Length, "image/png");
+        Check("relay: a client's file goes up from the client, and its link out through the worker",
+            relayFiles.Posts.Count == 1 && relayFiles.Posts[0].Body.SequenceEqual(relayed)
+            && await Wait(() => { lock (relayFake.Got) return relayFake.Got.Any(l => Said(l, "#fleet", $"http://127.0.0.1:{relayFiles.Port}/f/1.png")); }));
         var unknown = await view.SendAsync(seen, "#fleet", "/frobnicate now");
         Check("relay: what the worker says back is said here", unknown.Contains("/frobnicate", StringComparison.Ordinal), unknown);
 
@@ -933,6 +1027,9 @@ sealed class FakeIrc : IAsyncDisposable
     /// <summary>More offered at CAP LS, as "sts=port=6697".</summary>
     public string ExtraCaps { get; init; } = "";
 
+    /// <summary>More said in the 005 line, as "draft/FILEHOST=https://...".</summary>
+    public string ExtraSupport { get; init; } = "";
+
     /// <summary>Keeps people's pictures (draft/metadata-2), Bob's being this link.</summary>
     public bool Pictures { get; init; }
     public string BobPicture { get; set; } = "";
@@ -986,7 +1083,7 @@ sealed class FakeIrc : IAsyncDisposable
             Send($":fake.server 004 {nick} fake.server ergo-2.19.1 iow beIiklmnst beIklov");
             // Logged in to an account, as a certificate would: what read markers are kept under.
             if (!NoCaps) Send($":fake.server 900 {nick} {nick}!u@h ann :You are now logged in as ann");
-            Send($":fake.server 005 {nick} PREFIX=(ov)@+ CHANTYPES=# CASEMAPPING=rfc1459 NETWORK=Fake CHATHISTORY=100 MONITOR=10 CHANMODES=beI,k,l,imnst :are supported");
+            Send($":fake.server 005 {nick} PREFIX=(ov)@+ CHANTYPES=# CASEMAPPING=rfc1459 NETWORK=Fake CHATHISTORY=100 MONITOR=10 CHANMODES=beI,k,l,imnst{(ExtraSupport.Length > 0 ? " " + ExtraSupport : "")} :are supported");
             Send($":fake.server 376 {nick} :End of MOTD");
         }
 
@@ -1149,6 +1246,96 @@ sealed class FakeIrc : IAsyncDisposable
         await _stop.CancelAsync();
         _listener.Stop();
         Drop();
+    }
+}
+
+/// <summary>
+/// A file host (draft/FILEHOST) over plain HTTP on this machine: answers OPTIONS, keeps what is POSTed and answers 201
+/// with a relative Location, or whatever <see cref="Answer"/> says instead.
+/// </summary>
+sealed class FileHostFake : IAsyncDisposable
+{
+    public sealed record Post(string Authorization, string ContentType, string Disposition, byte[] Body);
+
+    private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
+    private readonly CancellationTokenSource _stop = new();
+    private int _kept;
+
+    public int Port { get; }
+    public List<Post> Posts { get; } = [];
+    public List<string> Paths { get; } = [];
+
+    /// <summary>What OPTIONS says is taken (Accept-Post). Blank: says nothing.</summary>
+    public string AcceptPost { get; set; } = "";
+
+    /// <summary>The status line (and headers) to answer a POST with instead of 201. Blank: 201.</summary>
+    public string Answer { get; set; } = "";
+
+    public FileHostFake()
+    {
+        _listener.Start();
+        Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
+        _ = Task.Run(AcceptAsync);
+    }
+
+    private async Task AcceptAsync()
+    {
+        while (!_stop.IsCancellationRequested)
+        {
+            TcpClient client;
+            try { client = await _listener.AcceptTcpClientAsync(_stop.Token); }
+            catch (Exception) { return; }
+            _ = Task.Run(() => ServeAsync(client));
+        }
+    }
+
+    private static async Task<string?> ReadLineAsync(Stream stream)
+    {
+        var line = new List<byte>();
+        var one = new byte[1];
+        while (await stream.ReadAsync(one) == 1)
+        {
+            if (one[0] == '\n') return Encoding.Latin1.GetString([.. line]).TrimEnd('\r');
+            line.Add(one[0]);
+        }
+        return line.Count > 0 ? Encoding.Latin1.GetString([.. line]) : null;
+    }
+
+    private async Task ServeAsync(TcpClient client)
+    {
+        using (client)
+        {
+            var stream = client.GetStream();
+            while (await ReadLineAsync(stream) is { Length: > 0 } request)
+            {
+                var headers = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+                while (await ReadLineAsync(stream) is { Length: > 0 } header)
+                    if (header.IndexOf(':') is var colon and > 0) headers[header[..colon].Trim()] = header[(colon + 1)..].Trim();
+                var parts = request.Split(' ');
+                var (method, path) = (parts[0], parts.ElementAtOrDefault(1) ?? "");
+                lock (Paths) Paths.Add(path);
+                var body = new byte[int.TryParse(headers.GetValueOrDefault("Content-Length"), out var n) ? n : 0];
+                await stream.ReadExactlyAsync(body);
+
+                string head;
+                if (method == "OPTIONS")
+                    head = "HTTP/1.1 204 No Content\r\nAllow: OPTIONS, POST\r\n" + (AcceptPost.Length > 0 ? $"Accept-Post: {AcceptPost}\r\n" : "");
+                else if (method == "POST")
+                {
+                    lock (Posts) Posts.Add(new Post(headers.GetValueOrDefault("Authorization") ?? "", headers.GetValueOrDefault("Content-Type") ?? "",
+                        headers.GetValueOrDefault("Content-Disposition") ?? "", body));
+                    head = Answer.Length > 0 ? $"HTTP/1.1 {Answer}\r\n" : $"HTTP/1.1 201 Created\r\nLocation: /f/{Interlocked.Increment(ref _kept)}.png\r\n";
+                }
+                else head = "HTTP/1.1 404 Not Found\r\n";
+                await stream.WriteAsync(Encoding.ASCII.GetBytes(head + "Content-Length: 0\r\n\r\n"));
+            }
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _stop.CancelAsync();
+        _listener.Stop();
     }
 }
 

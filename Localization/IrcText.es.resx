@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>Este servidor pidió que solo se le contacte cifrado hasta {1}, así que se hará en el puerto {0}, se ponga lo que se ponga aquí.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>Este servidor no acepta archivos.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor no está cifrado, así que no se le envía nada.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>El alojamiento aceptó el archivo pero no dijo dónde se guarda.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor solo acepta: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor no acepta este tipo de archivo.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>El archivo es demasiado grande para el alojamiento del servidor.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>El alojamiento del servidor lo rechazó: inicia sesión con una cuenta (SASL) para enviar archivos.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>El alojamiento del servidor lo rechazó ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>El alojamiento del servidor dejó de recibir el archivo a mitad. Puede que sea demasiado grande.</value>
+  </data>
 </root>

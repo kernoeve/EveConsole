@@ -1048,6 +1048,11 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     /// <summary>Sends a file the person chose to the room open.</summary>
     public async Task SendFileAsync(Stream content, string fileName, long size)
     {
+        if (SelectedRow is { } ircRow && IrcOf(ircRow) is { } irc)
+        {
+            await IrcSendFileAsync(irc, ircRow, content, fileName, size);
+            return;
+        }
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)

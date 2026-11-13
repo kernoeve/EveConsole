@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>This server has asked to be reached only encrypted until {1}, so it will be, on port {0}, whatever is set here.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>This server does not take files.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>The server's file host is not encrypted, so nothing is sent to it.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>The file host took the file but did not say where it is kept.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>The server's file host only takes: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>The server's file host does not take this kind of file.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>The file is too big for the server's file host.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>The server's file host refused: log in to an account (SASL) to send files.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>The server's file host refused ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>The server's file host stopped taking the file part-way. It may be too big for it.</value>
+  </data>
 </root>

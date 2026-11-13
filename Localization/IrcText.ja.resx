@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>このサーバーは {1} まで暗号化接続だけを求めているため、ここの設定にかかわらずポート {0} で暗号化して接続します。</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>このサーバーはファイルを受け付けません。</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>サーバーのファイル置き場が暗号化されていないため、何も送信しません。</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>ファイル置き場はファイルを受け取りましたが、保存先を返しませんでした。</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>サーバーのファイル置き場が受け付けるのは次のみです: {0}。</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>サーバーのファイル置き場はこの種類のファイルを受け付けません。</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>ファイルが大きすぎて、サーバーのファイル置き場に置けません。</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>サーバーのファイル置き場に拒否されました。ファイルを送るにはアカウント (SASL) でログインしてください。</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>サーバーのファイル置き場に拒否されました ({0} {1})。</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>サーバーのファイル置き場が途中で受け取りをやめました。ファイルが大きすぎる可能性があります。</value>
+  </data>
 </root>

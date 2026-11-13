@@ -96,6 +96,7 @@ public sealed class IrcDmSource : IDmSource
         {
             Presence = !connected || online is null ? DmPresence.Unknown : online == false ? DmPresence.Offline : away ? DmPresence.Away : DmPresence.Online,
             Status = person?.AwayMessage ?? "",
+            CanAttach = connected && online != false && IrcService.CanSendFiles(session),
 
             // ⚠️ An IRC server delivers only to someone connected now, and keeps nothing for later (unless it keeps
             // history, which this cannot know for the other person). Said plainly rather than lost silently.
@@ -174,8 +175,12 @@ public sealed class IrcDmSource : IDmSource
             await _service.ReactAsync(session, peer, key.Peer, target, emoji, ct);
     }
 
-    public Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default) =>
-        throw new NotSupportedException("IRC has no way to send a file here.");
+    /// <summary>Puts the file on the server's file host and sends the person its address.</summary>
+    public Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default)
+    {
+        var session = SessionOf(key);
+        return _service.SendFileAsync(session, Shown(session, key.Peer, key.Peer), content, fileName, size, contentType, ct);
+    }
 
     public Task AddContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;
     public Task RemoveContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;

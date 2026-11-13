@@ -135,6 +135,9 @@ public sealed class IrcSession(IrcServer server)
     /// <summary>The server keeps people's pictures (draft/metadata-2), so one set here is seen by others.</summary>
     public bool HasPictures { get; internal set; }
 
+    /// <summary>Where the server takes files (draft/FILEHOST), blank when it named none: see IrcService.SendFileAsync.</summary>
+    public string FileHost { get; internal set; } = "";
+
     /// <summary>Whose pictures this connection has asked for or been told, by folded nickname: each asked once.</summary>
     internal HashSet<string> PicturesAsked { get; } = new(StringComparer.Ordinal);
 
@@ -519,6 +522,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.CanRedact = client.HasRedact;
         session.LoggedIn = client.LoggedInAs.Length > 0;
         session.HasPictures = client.HasMetadata;
+        session.FileHost = client.Support.FileHost;
         await KeepStsAsync(session, client, server.Host.Trim(), port, ct);
         // What was left before this connection: a JOIN of the last one cannot be on its way any more.
         session.Locked(s => { s.Leaving.Clear(); s.PicturesAsked.Clear(); s.PicturesToAsk.Clear(); });

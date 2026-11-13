@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>이 서버는 {1}까지 암호화된 연결만 요청했으므로, 여기 설정과 상관없이 포트 {0}로 암호화해 연결합니다.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>이 서버는 파일을 받지 않습니다.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>서버의 파일 호스트가 암호화되지 않아 아무것도 보내지 않습니다.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>파일 호스트가 파일을 받았지만 보관 위치를 알려 주지 않았습니다.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>서버의 파일 호스트는 다음만 받습니다: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>서버의 파일 호스트는 이 종류의 파일을 받지 않습니다.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>파일이 너무 커서 서버의 파일 호스트에 올릴 수 없습니다.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>서버의 파일 호스트가 거부했습니다. 파일을 보내려면 계정(SASL)으로 로그인하세요.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>서버의 파일 호스트가 거부했습니다 ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>서버의 파일 호스트가 도중에 파일 받기를 멈췄습니다. 파일이 너무 클 수 있습니다.</value>
+  </data>
 </root>

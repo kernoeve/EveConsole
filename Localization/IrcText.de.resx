@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>Dieser Server möchte bis {1} nur verschlüsselt erreicht werden, also geschieht das auf Port {0}, egal was hier steht.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>Dieser Server nimmt keine Dateien an.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>Der Dateispeicher des Servers ist nicht verschlüsselt, daher wird nichts dorthin gesendet.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>Der Dateispeicher hat die Datei angenommen, aber nicht gesagt, wo sie liegt.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>Der Dateispeicher des Servers nimmt nur an: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>Der Dateispeicher des Servers nimmt diese Art von Datei nicht an.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>Die Datei ist zu groß für den Dateispeicher des Servers.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>Der Dateispeicher des Servers hat abgelehnt: Melde dich mit einem Konto (SASL) an, um Dateien zu senden.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>Der Dateispeicher des Servers hat abgelehnt ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>Der Dateispeicher des Servers hat die Annahme mittendrin abgebrochen. Vielleicht ist die Datei zu groß.</value>
+  </data>
 </root>

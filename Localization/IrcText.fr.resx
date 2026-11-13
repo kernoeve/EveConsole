@@ -685,4 +685,31 @@
   <data name="StsEditNote" xml:space="preserve">
     <value>Ce serveur demande à n’être joint que chiffré jusqu’au {1} : ce sera donc le cas, sur le port {0}, quoi qu’indiqué ici.</value>
   </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>Ce serveur n’accepte pas de fichiers.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>L’hébergement de fichiers du serveur n’est pas chiffré : rien ne lui est envoyé.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>L’hébergement a pris le fichier sans dire où il est conservé.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>L’hébergement de fichiers du serveur n’accepte que : {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>L’hébergement de fichiers du serveur n’accepte pas ce type de fichier.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>Le fichier est trop volumineux pour l’hébergement du serveur.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>L’hébergement du serveur a refusé : connectez-vous à un compte (SASL) pour envoyer des fichiers.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>L’hébergement du serveur a refusé ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>L’hébergement du serveur a cessé de recevoir le fichier en cours de route. Il est peut-être trop volumineux.</value>
+  </data>
 </root>

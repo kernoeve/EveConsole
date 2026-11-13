@@ -221,6 +221,23 @@ public sealed partial class GroupChatViewModel
         if (said.Length > 0) StatusText = said;
     }
 
+    /// <summary>Puts a file on the server's file host and sends its address to the channel open.</summary>
+    private async Task IrcSendFileAsync(IrcSession session, GroupChatRowVm row, Stream content, string fileName, long size)
+    {
+        var target = session.ChannelOf(row.Key)?.ServerName ?? row.Key;
+        StatusText = "";
+        SendingFile = string.Format(CultureInfo.CurrentCulture, JabberText.SendingFile, fileName);
+        try
+        {
+            await Task.Run(() => _irc!.SendFileAsync(session, target, content, fileName, size, JabberViewModel.ContentTypeOf(fileName)));
+        }
+        catch (Exception e) when (e is not OperationCanceledException || e is TaskCanceledException)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.SendFileFailed, fileName, e.Message);
+        }
+        finally { SendingFile = ""; }
+    }
+
     private void ShowIrc(GroupChatRowVm row, IrcSession session)
     {
         ServerState = IrcViewModel.StateText(session);
@@ -237,7 +254,7 @@ public sealed partial class GroupChatViewModel
         var state = session.ChannelOf(row.Key);
         ChosenRoomType = RoomTypeChoices.FirstOrDefault(c => c.Type == row.ShownRoomType);
         CanSend = connected && state is { Joined: true };
-        CanAttach = false;
+        CanAttach = CanSend && IrcService.CanSendFiles(session);
         DraftHint = string.Format(CultureInfo.CurrentCulture, IrcText.MessageHint, state?.ServerName ?? row.Key);
         CannotSend = !connected ? string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected, session.DisplayName)
                    : state is not { Joined: true } ? IrcText.NotInChannel
