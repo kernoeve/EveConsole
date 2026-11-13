@@ -55,6 +55,18 @@ public sealed class ChatLogImportService : ReactiveObject
     /// wired at startup. Kept as a hook so this service knows nothing about intel.</summary>
     public Func<int, CancellationToken, Task>? AfterTail { get; set; }
 
+    /// <summary>
+    /// Told, with the number of messages stored, when a history import has finished: intel, wired at
+    /// startup. A hand-off, never awaited.
+    ///
+    /// <para>⚠️ Not <see cref="AfterTail"/>. The tail loop runs on a background thread and may wait for the
+    /// parse; a history import is started from a Settings button and runs on the UI thread, so awaiting
+    /// the parse of thousands of lines there would freeze the window, and hold the import "busy" (which
+    /// pauses the tail loop) for as long. Whatever is hooked here must start its own work elsewhere and
+    /// return at once.</para>
+    /// </summary>
+    public Action<int>? AfterHistoryImport { get; set; }
+
     // ── Observable state ─────────────────────────────────────────────────────
 
     private string _statusText = SettingsText.ChatLogStatusDisabled;
@@ -314,6 +326,7 @@ public sealed class ChatLogImportService : ReactiveObject
 
         _importCts = new CancellationTokenSource();
         var ct     = _importCts.Token;
+        var stored = 0;
 
         IsBusy          = true;
         ProgressCurrent = 0;
@@ -364,14 +377,7 @@ public sealed class ChatLogImportService : ReactiveObject
                 ? string.Format(SettingsText.ChatLogImportCancelled, ProgressCurrent, imported)
                 : string.Format(SettingsText.ChatLogImportDone, imported, files.Count);
             ProgressText = StatusText;
-
-            // What came in is news to the intel parser too, which may be on another PC: the hook
-            // tells it. Not cancellable by the import's own token, which may already be cancelled.
-            if (imported > 0 && AfterTail is { } hook)
-            {
-                try { await hook(imported, CancellationToken.None); }
-                catch (Exception ex) { _errorLogger.Log(nameof(ChatLogImportService), "AfterTail", ex); }
-            }
+            stored       = imported;
         }
         catch (Exception ex)
         {
@@ -384,6 +390,14 @@ public sealed class ChatLogImportService : ReactiveObject
             IsBusy = false;
             _importCts?.Dispose();
             _importCts = null;
+        }
+
+        // What came in is news to the intel parser too, which may be on another PC. Handed off once the
+        // import is no longer busy, and not awaited: see AfterHistoryImport.
+        if (stored > 0 && AfterHistoryImport is { } told)
+        {
+            try { told(stored); }
+            catch (Exception ex) { _errorLogger.Log(nameof(ChatLogImportService), nameof(AfterHistoryImport), ex); }
         }
     }
 

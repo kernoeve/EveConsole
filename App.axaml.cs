@@ -380,6 +380,10 @@ public class App : Application
                 else if (stored > 0) intel.LinesStored();
             };
 
+            // A history import, from a Settings button, on the UI thread: told, never awaited. LinesStored
+            // runs the pass on a background thread here on the worker, and anywhere else tells the worker.
+            chatLogs.AfterHistoryImport = _ => intel.LinesStored();
+
             // ⚠️ The alarms follow "intel was written", never the pass itself. The pass publishes it,
             // every PC hears it (the worker its own too), and only the worker evaluates: one pass, one
             // evaluation, on whichever PC the intel was written.

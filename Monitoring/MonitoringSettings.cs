@@ -138,40 +138,62 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
     }
 
     /// <summary>
-    /// Channels whose messages are parsed for intel. A subset of <see cref="ChatChannels"/> —
-    /// a channel that is not being stored has nothing to parse — and empty by default, so
-    /// intel parsing stays off until the user names a channel.
-    /// </summary>
-    /// <summary>
     /// Regions set by hand for an intel channel, by channel name — optional. Without them the
     /// channel's regions are learned from the systems it has reported. Shared like the channel
     /// list itself: every client parses the same channels the same way.
+    ///
+    /// <para>⚠️ For Settings. The parser reads <see cref="ReadIntelChannelRegionsAsync"/>: see
+    /// <see cref="ReadIntelChannelsAsync"/> for why.</para>
     /// </summary>
     public IReadOnlyDictionary<string, IReadOnlyList<string>> IntelChannelRegions
     {
-        get
-        {
-            var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
-            try
-            {
-                if (prefs.Get(KeyIntelRegions) is { Length: > 0 } json
-                    && System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) is { } read)
-                    foreach (var (channel, regions) in read)
-                        if (regions.Count > 0) map[channel] = regions;
-            }
-            catch (System.Text.Json.JsonException) { /* unreadable: as if none were set */ }
-            return map;
-        }
+        get => ParseRegions(prefs.Get(KeyIntelRegions));
         set => _ = prefs.SetAsync(KeyIntelRegions, value.Count == 0 ? null
                     : System.Text.Json.JsonSerializer.Serialize(value.Where(kv => kv.Value.Count > 0)
                           .ToDictionary(kv => kv.Key, kv => kv.Value)));
     }
 
+    /// <summary>
+    /// Channels whose messages are parsed for intel. A subset of <see cref="ChatChannels"/> —
+    /// a channel that is not being stored has nothing to parse — and empty by default, so
+    /// intel parsing stays off until the user names a channel.
+    ///
+    /// <para>⚠️ For Settings. The parser reads <see cref="ReadIntelChannelsAsync"/>.</para>
+    /// </summary>
     public IReadOnlyList<string> ChatIntelChannels
     {
-        get => (prefs.Get(KeyChatIntelChannels) ?? "")
-               .Split('\n', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        get => Split(prefs.Get(KeyChatIntelChannels));
         set => _ = prefs.SetAsync(KeyChatIntelChannels, value.Count == 0 ? null : string.Join('\n', value));
+    }
+
+    /// <summary>
+    /// The intel channels as the database holds them now. Read by the parser at every pass.
+    ///
+    /// <para>⚠️ Never this process's copy, which is loaded once at startup. Only the worker parses, and
+    /// a headless worker has no Settings: a channel ticked on another PC would not be seen there until it
+    /// restarted. Worse than late: a pass reads only the channels it knows, moves the shared watermark to
+    /// the last line it read, and the new channel's lines below that are never parsed at all.</para>
+    /// </summary>
+    public async Task<IReadOnlyList<string>> ReadIntelChannelsAsync(CancellationToken ct = default) =>
+        Split(await prefs.ReadFreshAsync(KeyChatIntelChannels, ct));
+
+    /// <summary>The regions set by hand per intel channel, as the database holds them now; see
+    /// <see cref="ReadIntelChannelsAsync"/>.</summary>
+    public async Task<IReadOnlyDictionary<string, IReadOnlyList<string>>> ReadIntelChannelRegionsAsync(CancellationToken ct = default) =>
+        ParseRegions(await prefs.ReadFreshAsync(KeyIntelRegions, ct));
+
+    private static Dictionary<string, IReadOnlyList<string>> ParseRegions(string? json)
+    {
+        var map = new Dictionary<string, IReadOnlyList<string>>(StringComparer.OrdinalIgnoreCase);
+        try
+        {
+            if (json is { Length: > 0 }
+                && System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, List<string>>>(json) is { } read)
+                foreach (var (channel, regions) in read)
+                    if (regions.Count > 0) map[channel] = regions;
+        }
+        catch (System.Text.Json.JsonException) { /* unreadable: as if none were set */ }
+        return map;
     }
 
     /// <summary>Highest ChatMessage.Id already considered for intel. A watermark rather than a

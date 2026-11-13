@@ -71,6 +71,9 @@ try
     // ── A PC that is not the worker: it asks, and does nothing itself ───────────────────────────────────────
     await NotTheWorker.CheckAsync(c, wmOptions);
 
+    // ── A channel ticked on another PC: the worker parses it from the next pass ────────────────────────────
+    await ChannelsFromAnotherPc.CheckAsync(c, profile);
+
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
     if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
@@ -468,6 +471,121 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("intel: on SQLite this PC is the worker", worker.IsWorker);
 
             signals.Stop();
+        }
+    }
+
+    // ── A channel ticked on another PC ───────────────────────────────────────────────────────────────────────
+
+    internal static class ChannelsFromAnotherPc
+    {
+        private const string One = "intelcheck-one";
+        private const string Two = "intelcheck-two";
+        private const long Scout = 90_000_001;
+
+        /// <summary>
+        /// Two PCs over one database. The worker (A) has the channel list it loaded at its start; B, where
+        /// Settings is, ticks a second channel and stores lines in it, then a later line in the first. The
+        /// worker's next pass must parse B's channel, and must not move the watermark past its lines.
+        /// </summary>
+        public static async Task CheckAsync(Checks c, string profile)
+        {
+            var options = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "channels.db")}").Options;
+            await using (var db = new AppDbContext(options))
+            {
+                await db.Database.EnsureCreatedAsync();
+                // Just enough for a pass to place a sighting with no lookup: the system, the reporter, and the
+                // reporter's corporation already known.
+                db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = 30_000_001, ConstellationId = 20_000_001, RegionId = 10_000_001, Name = "QZ-X77", Security = -0.4 });
+                db.UniverseNames.Add(new UniverseName { EntityId = Scout, Name = "Scout Alpha", Category = "character" });
+                db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = Scout, CorporationId = 98_000_001, PulledAt = DateTimeOffset.UtcNow });
+                await db.SaveChangesAsync();
+            }
+
+            var a = Prefs.Over(options);   // the worker: a headless one, with no Settings
+            var b = Prefs.Over(options);   // the PC where Settings is
+            await b.SetAsync(MonitoringSettings.KeyChatIntelChannels, One);
+            await a.LoadAsync();
+            await b.LoadAsync();
+
+            // ⚠️ SQLite is pinned, so the "intel changed" a pass sends stays in this process.
+            var logger  = new AppErrorLogger(null!);
+            var signals = new ClientSignals(logger);
+            signals.Start();
+            var lease = new WorkerLease(logger);
+            await lease.AcquireAsync();
+            var aSettings = new MonitoringSettings(a);
+            var worker = new IntelService(new Factory(options), null!, aSettings, logger, signals, lease);
+
+            var now = DateTimeOffset.UtcNow;
+            var first = await StoreAsync(options, One, "QZ-X77 +1", now.AddHours(-3));
+            var wrote = await worker.ProcessNewAsync(waitForTurn: true);
+            c.Check("channels: the worker parses the channel it started with", wrote == 1 && await ReportedAsync(options, first), $"{wrote} written");
+
+            // B ticks a second channel, then lines arrive: one in it, then a later one in the first.
+            await b.SetAsync(MonitoringSettings.KeyChatIntelChannels, One + "\n" + Two);
+            var inTwo = await StoreAsync(options, Two, "QZ-X77 +2", now.AddHours(-2));
+            var later = await StoreAsync(options, One, "QZ-X77 +3", now.AddHours(-1));
+
+            c.Check("channels: (setup) the worker's own copy still lacks the new channel",
+                !aSettings.ChatIntelChannels.Contains(Two) && inTwo < later);
+
+            // ⚠️ Mutation: what a pass over that copy would read. It sees only the later line, and the watermark
+            // would move to it, past the new channel's line, for good.
+            await using (var db = new AppDbContext(options))
+            {
+                var stale = aSettings.ChatIntelChannels.ToList();
+                var after = await aSettings.ReadIntelWatermarkAsync();
+                var read  = await db.ChatMessages.AsNoTracking().Where(m => stale.Contains(m.ChannelName) && m.Id > after)
+                                    .Select(m => m.Id).ToListAsync();
+                c.Check("channels: (mutation) a pass over the copy would skip the new channel's line",
+                    read.Count == 1 && read[0] == later && read[0] > inTwo, string.Join(",", read));
+            }
+
+            wrote = await worker.ProcessNewAsync(waitForTurn: true);
+            c.Check("channels: the next pass parses the channel ticked on the other PC",
+                await ReportedAsync(options, inTwo), $"{wrote} written");
+            c.Check("channels: and the later line in the first", await ReportedAsync(options, later));
+            var watermark = await aSettings.ReadIntelWatermarkAsync();
+            c.Check("channels: the watermark stops at the last line read, with nothing below it unread",
+                watermark == later && !await UnreadBelowAsync(options, watermark, [One, Two]), watermark.ToString());
+
+            // The regions set by hand, likewise: the worker reads B's, not its own copy.
+            var map = new Dictionary<string, IReadOnlyList<string>> { [Two] = ["Invented Region"] };
+            await b.SetAsync(MonitoringSettings.KeyIntelRegions, System.Text.Json.JsonSerializer.Serialize(map));
+            var copy  = aSettings.IntelChannelRegions;
+            var fresh = await aSettings.ReadIntelChannelRegionsAsync();
+            c.Check("channels: the regions set on the other PC are read fresh",
+                !copy.ContainsKey(Two) && fresh.TryGetValue(Two, out var set) && set.SequenceEqual(["Invented Region"]));
+
+            signals.Stop();
+        }
+
+        private static async Task<int> StoreAsync(DbContextOptions<AppDbContext> options, string channel, string text, DateTimeOffset at)
+        {
+            await using var db = new AppDbContext(options);
+            var row = new ChatMessage
+            {
+                OccurredAt = ChatLogRules.FormatTimestamp(at), ChannelName = channel, SenderName = "Scout Alpha",
+                Message = text, SourceFile = channel + ".txt", LineNumber = at.ToUnixTimeSeconds(),
+            };
+            db.ChatMessages.Add(row);
+            await ChatMessageWrites.SaveAsync(db);
+            return row.Id;
+        }
+
+        private static async Task<bool> ReportedAsync(DbContextOptions<AppDbContext> options, int messageId)
+        {
+            await using var db = new AppDbContext(options);
+            return await db.IntelReports.AsNoTracking().AnyAsync(r => r.ChatMessageId == messageId);
+        }
+
+        /// <summary>Whether a line in these channels at or below the watermark has no report.</summary>
+        private static async Task<bool> UnreadBelowAsync(DbContextOptions<AppDbContext> options, long watermark, string[] channels)
+        {
+            await using var db = new AppDbContext(options);
+            return await db.ChatMessages.AsNoTracking()
+                .Where(m => channels.Contains(m.ChannelName) && m.Id <= watermark)
+                .AnyAsync(m => !db.IntelReports.Any(r => r.ChatMessageId == m.Id));
         }
     }
 

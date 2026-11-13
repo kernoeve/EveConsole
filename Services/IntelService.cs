@@ -154,8 +154,9 @@ public sealed class IntelService(
 
     private IntelVocabulary? _vocabulary;
 
-    /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly.</summary>
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly. Kept with
+    /// the regions set by hand that they were built from, so a change to those rebuilds them.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, string Regions, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>A name as ESI spells it, by the name as typed — a character's real capitalisation.</summary>
     private readonly Dictionary<string, string> _canonical = new(StringComparer.OrdinalIgnoreCase);
@@ -238,11 +239,17 @@ public sealed class IntelService(
         }
     }
 
-    /// <summary>What is parsed: the chat channels ticked in Settings and the Jabber rooms marked Intel.</summary>
+    /// <summary>
+    /// What is parsed: the chat channels ticked in Settings and the Jabber and IRC rooms marked Intel,
+    /// both as the database holds them now. ⚠️ Never this process's copy: the channels can be ticked on
+    /// any PC, and this one may be a headless worker that never shows Settings at all
+    /// (see <see cref="MonitoringSettings.ReadIntelChannelsAsync"/>).
+    /// </summary>
     private async Task<IReadOnlyList<string>> ChannelsAsync(CancellationToken ct)
     {
+        var chat = await settings.ReadIntelChannelsAsync(ct);
         await RefreshRoomChannelsAsync(ct);
-        return [.. settings.ChatIntelChannels, .. RoomChannels];
+        return [.. chat, .. RoomChannels];
     }
 
     /// <summary>
@@ -442,6 +449,15 @@ public sealed class IntelService(
                 .Select(m => new { m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message })
                 .ToListAsync(ct);
 
+            // ⚠️ The channels again, after the batch. One ticked on another PC between the list being
+            // read and the batch being read can already have lines in the batch's span, and the
+            // watermark is about to move past them: read the batch again with it instead. A line
+            // stored before its channel was ticked is history, for a re-parse, as it always was.
+            var current = await ChannelsAsync(ct);
+            var added   = current.Except(channels, StringComparer.Ordinal).Any();
+            channels    = current;
+            if (added) continue;
+
             if (batch.Count == 0)
             {
                 Backlog = 0;
@@ -459,9 +475,11 @@ public sealed class IntelService(
             var vocabulary = await VocabularyAsync(db, ct);
 
             // One lexicon per channel: a shortened system name is read in the channel's regions.
+            // The regions as the database holds them now, for the same reason as the channels.
+            var regions  = await settings.ReadIntelChannelRegionsAsync(ct);
             var lexicons = new Dictionary<string, IntelLexicon>(StringComparer.OrdinalIgnoreCase);
             foreach (var channel in batch.Select(m => m.ChannelName).Distinct(StringComparer.OrdinalIgnoreCase))
-                lexicons[channel] = new IntelLexicon(vocabulary, await HintsAsync(db, vocabulary, channel, ct), IsCharacter);
+                lexicons[channel] = new IntelLexicon(vocabulary, await HintsAsync(db, vocabulary, channel, regions, ct), IsCharacter);
 
             // One resolution pass for the whole batch, so a busy channel costs a handful of ESI
             // calls rather than one per line.
@@ -951,15 +969,21 @@ public sealed class IntelService(
     /// for it in Settings, or, when none are, the ones it has been seen to report on.
     /// </summary>
     private async Task<IntelChannelHints> HintsAsync(
-        AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
+        AppDbContext db, IntelVocabulary vocabulary, string channel,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> setRegions, CancellationToken ct)
     {
-        if (_hints.TryGetValue(channel, out var cached) && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
+        // Kept an hour, unless the regions set for the channel have changed since: a change made on any
+        // PC applies from the next pass, not an hour later.
+        var named = setRegions.TryGetValue(channel, out var list) ? list : null;
+        var key   = named is null ? "" : string.Join('\n', named);
+        if (_hints.TryGetValue(channel, out var cached) && cached.Regions == key
+            && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
             return cached.Hints;
 
         var (frequency, learned) = await LearnAsync(db, vocabulary, channel, ct);
 
         var regions = learned;
-        if (settings.IntelChannelRegions.TryGetValue(channel, out var named))
+        if (named is not null)
         {
             var wanted = named.Select(n => n.Trim().ToLowerInvariant()).ToHashSet();
             regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
@@ -967,7 +991,7 @@ public sealed class IntelService(
         }
 
         var hints = new IntelChannelHints(regions, frequency);
-        _hints[channel] = (DateTimeOffset.UtcNow, hints);
+        _hints[channel] = (DateTimeOffset.UtcNow, key, hints);
         return hints;
     }
 
