@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>インテルの有効期間</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>各種の情報は報告からこの時間だけ現在のものとして扱われ、時間とともに薄れ、その後パネルとマップから消えます。このデータベースを使うすべての PC で共通です。「ノービジュアル」は目撃情報に付く印で、独自の期間はありません。</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>名前の分かっているパイロット</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>名前のない人数（「+5」）</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>クリアと報告された星系</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>ゲートキャンプまたはバブル</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>サイノ</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>キルに関わったパイロット</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>艦船を失ったパイロット</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>分</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>続報の行</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>星系を含まない行（「+2」「nv」「clr」）は、この時間内に来た場合、同じチャンネルの同じ報告者の直前の報告に追加されます。</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>続報の受付時間</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>キルからのゲートキャンプ</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>同じゲートでのキルが、それぞれ前のキルの直後に起き、共通の攻撃者がいる場合、十分な数の異なるパイロットが失われた時点でキャンプとみなします。キル 1 件だけではキャンプではありません。</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>ゲートからこの距離以内</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>キル間の最大間隔</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>キャンプとみなす喪失パイロット数</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>スタンディング</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>パイロットは見ているキャラクターのスタンディングで色分けされます。パネルが追うキャラクター、または最も近いオンラインのキャラクターです。個人の連絡先が最優先で、次にコーポレーション、次にアライアンスの連絡先です。ここでキャラクターを選ぶと、どこでもそのスタンディングを使います。</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>スタンディングの基準</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>（各クライアント自身のキャラクター）</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>距離</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>脅威までの近さは、スターゲートと、開いているすべての Thera・Turnur の接続を双方向で数えます。移動距離では、キャラクターのアライアンスが使える方向の自前のジャンプブリッジも数えられます。</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>移動距離に自前のジャンプブリッジを使う</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>インテルアラーム</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>すべてのインテルアラームで共通です。これより新しい情報だけが誰かを起こし（音声、読み上げ、ダイアログ）、パネルの行を強調します。古い情報も表示はされます。あるアラームが起こした後、緊急でない限り、他のアラームはこの時間待ちます。</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>これより新しい情報でのみ起こす</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>起こす間隔</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>秒（0 で待たない）</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>キルフィードの警告</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>zKillboard が New Eden のすべてのキルを読んでいないとき、インテルツールが警告します。その場合、他の場所のキルはインテルに届きません。警告はそこで全 PC 共通で閉じられます。</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>警告をもう一度表示</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>警告が再び表示されます。</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>保存できませんでした: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>インテル履歴</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>これより古いインテル報告、その中で名前の挙がったパイロット、各パイロットの最終目撃場所を削除します。チャットメッセージとキルはそれぞれのルールで保持されます。</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>これより古いインテル履歴を削除</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>{1:N0} 日より古いインテルの行を {0:N0} 件削除しました。</value>
+  </data>
+</root>

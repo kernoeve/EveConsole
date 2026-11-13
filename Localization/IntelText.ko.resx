@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>인텔 유지 시간</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>각 종류의 정보는 보고된 뒤 이 시간 동안 현재 정보로 취급되며 시간이 지날수록 흐려지고, 그 뒤 패널과 지도에서 사라집니다. 이 데이터베이스를 쓰는 모든 PC가 공유합니다. &quot;노 비주얼&quot;은 목격에 붙는 표시일 뿐, 별도의 유지 시간이 없습니다.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>이름이 확인된 파일럿</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>이름 없는 인원수(&quot;+5&quot;)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>클리어로 보고된 성계</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>게이트 캠프 또는 버블</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>사이노</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>킬에 참여한 파일럿</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>함선을 잃은 파일럿</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>분</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>초</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>후속 보고</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>자체 성계가 없는 줄(&quot;+2&quot;, &quot;nv&quot;, &quot;clr&quot;)은 이 시간 안에 오면 같은 채널의 같은 보고자의 마지막 보고에 더해집니다.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>후속 보고 허용 시간</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>킬로 찾은 게이트 캠프</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>한 게이트에서 각 킬이 직전 킬 직후에 일어나고 공격자가 겹치면, 서로 다른 파일럿이 충분히 잃었을 때 캠프로 봅니다. 킬 하나는 캠프가 아닙니다.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>게이트로부터 이 거리 이내</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>킬 사이의 최대 간격</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>캠프로 볼 손실 파일럿 수</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>스탠딩</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>파일럿은 보고 있는 캐릭터의 스탠딩으로 색이 정해집니다. 패널이 따르는 캐릭터, 또는 가장 가까운 접속 중인 캐릭터입니다. 개인 연락처가 먼저, 그다음 코퍼레이션, 그다음 얼라이언스의 연락처입니다. 여기서 캐릭터를 고르면 어디서나 그 캐릭터의 스탠딩을 씁니다.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>스탠딩 기준</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(각 클라이언트 자신의 캐릭터)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>거리</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>위협의 거리는 스타게이트와 열려 있는 모든 Thera·Turnur 연결을 양방향으로 셉니다. 이동 거리에는 캐릭터의 얼라이언스가 쓸 수 있는 방향의 우리 점프 브리지도 셀 수 있습니다.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>이동 거리에 우리 점프 브리지 사용</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>인텔 알람</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>모든 인텔 알람이 공유합니다. 이보다 새로운 정보만 누군가를 깨우고(소리, 음성, 대화 상자) 패널 줄을 강조합니다. 오래된 정보도 계속 표시됩니다. 한 알람이 깨운 뒤에는 긴급하지 않은 한 다른 알람이 이 시간만큼 기다립니다.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>이보다 새로운 정보에만 깨우기</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>깨우기 사이 대기 시간</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>초(0이면 대기 없음)</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>킬 피드 경고</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>zKillboard가 New Eden의 모든 킬을 읽지 않으면 인텔 도구가 경고합니다. 그러면 다른 곳의 킬은 인텔에 닿지 않습니다. 경고는 그곳에서 모든 PC에 대해 닫을 수 있습니다.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>경고 다시 표시</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>경고가 다시 표시됩니다.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>저장하지 못했습니다: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>인텔 기록</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>이보다 오래된 인텔 보고, 그 안에 이름이 나온 파일럿, 각 파일럿을 마지막으로 본 위치를 삭제합니다. 채팅 메시지와 킬은 각자의 규칙대로 보관됩니다.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>이보다 오래된 인텔 기록 삭제</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>{1:N0}일보다 오래된 인텔 행 {0:N0}개를 삭제했습니다.</value>
+  </data>
+</root>

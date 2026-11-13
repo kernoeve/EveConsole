@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Settings window tab for the intel settings.</comment>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>How long intel lasts</value>
+    <comment>Settings → Intel section heading: how long each kind of intel counts as current.</comment>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Each kind of news counts as current for this long after it was reported, fading as it ages; then it drops off the panels and the map. Shared by every PC on this database. &quot;No visual&quot; is a flag on a sighting, not a lifetime of its own.</value>
+    <comment>Settings → Intel, under the lifetimes heading.</comment>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>A named pilot</value>
+    <comment>Settings → Intel lifetime row: a pilot reported by name.</comment>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>An unnamed count (&quot;+5&quot;)</value>
+    <comment>Settings → Intel lifetime row: pilots counted without names.</comment>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>A system called clear</value>
+    <comment>Settings → Intel lifetime row: a system someone called clear.</comment>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>A gate camp or bubbles</value>
+    <comment>Settings → Intel lifetime row: a gate camp or warp disruption bubbles.</comment>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>A cyno</value>
+    <comment>Settings → Intel lifetime row: a cynosural field.</comment>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>A pilot on a kill</value>
+    <comment>Settings → Intel lifetime row: a pilot placed by being an attacker on a killmail.</comment>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>A pilot who lost a ship</value>
+    <comment>Settings → Intel lifetime row: a pilot placed by being the victim of a killmail.</comment>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>minutes</value>
+    <comment>Unit after a number box on Settings → Intel.</comment>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>seconds</value>
+    <comment>Unit after a number box on Settings → Intel.</comment>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+    <comment>Unit after a number box on Settings → Intel: kilometres.</comment>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Follow-up lines</value>
+    <comment>Settings → Intel section heading: lines that add to an earlier report.</comment>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>A line with no system of its own (&quot;+2&quot;, &quot;nv&quot;, &quot;clr&quot;) adds to the same reporter&apos;s last report in the same channel when it comes within this time.</value>
+    <comment>Settings → Intel, under the follow-up heading. The quoted words are what people type in intel channels; keep them as they are.</comment>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Follow-up window</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Gate camps from kills</value>
+    <comment>Settings → Intel section heading: gate camps worked out from killmails.</comment>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Kills on one gate, each soon after the one before and sharing an attacker, are a camp once enough different pilots have been lost there. A single kill is not a camp.</value>
+    <comment>Settings → Intel, under the gate camp heading.</comment>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Within this distance of a gate</value>
+    <comment>Settings → Intel number box label: how near a stargate a kill must be.</comment>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Longest gap between kills</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Pilots lost before it is a camp</value>
+    <comment>Settings → Intel number box label: how many different pilots must be lost.</comment>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Standings</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Pilots are coloured by the standings of the character looking: the one a panel follows, or the nearest online character. Personal contacts come first, then the corporation&apos;s, then the alliance&apos;s. Choose a character here to use its standings everywhere instead.</value>
+    <comment>Settings → Intel, under the standings heading.</comment>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Standings from</value>
+    <comment>Settings → Intel picker label: whose standings colour pilots.</comment>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(each client&apos;s own character)</value>
+    <comment>First choice of the Standings from picker: no character forced.</comment>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Distance</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>How near a threat is counts stargates and every open Thera and Turnur connection, both ways. Travel distances can also count our own jump bridges, the ways the character&apos;s alliance may use.</value>
+    <comment>Settings → Intel, under the distance heading. Thera and Turnur are system names; keep them.</comment>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Use our jump bridges in travel distances</value>
+    <comment>Settings → Intel check box.</comment>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Intel alarms</value>
+    <comment>Settings → Intel section heading: numbers shared by every intel alarm.</comment>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Shared by every intel alarm. Only news this new wakes anyone (a sound, speech, a dialog) and lights up a panel row; older news is still shown. After one alarm wakes, the others wait this long, unless the news is urgent.</value>
+    <comment>Settings → Intel, under the intel alarms heading. To wake = to sound, speak or show a dialog.</comment>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Wake only for news newer than</value>
+    <comment>Settings → Intel number box label, followed by a number of seconds.</comment>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>Wait between wakes</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>seconds (0 for no wait)</value>
+    <comment>Unit and hint after the wait-between-wakes number box.</comment>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Kill feed warning</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>The Intel tool warns when zKillboard is not reading every kill in New Eden: kills anywhere else then never reach intel. The warning can be dismissed there, for every PC.</value>
+    <comment>Settings → Intel, under the kill feed warning heading.</comment>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Show the warning again</value>
+    <comment>Settings → Intel button.</comment>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>The warning will show again.</value>
+    <comment>Settings → Intel, after the show-again button was pressed.</comment>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Could not save: {0}</value>
+    <comment>Settings → Intel status when a value could not be written. {0} is the error.</comment>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>Intel history</value>
+    <comment>Settings → Data Retention section heading.</comment>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Removes intel reports, the pilots named in them, and where each pilot was last seen, once older than this. Chat messages and kills are kept by their own rules.</value>
+    <comment>Settings → Data Retention, under the intel history heading.</comment>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Purge intel history older than</value>
+    <comment>Settings → Data Retention check box, followed by a number of days.</comment>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>Removed {0:N0} intel rows older than {1:N0} days.</value>
+    <comment>Settings → Data Retention status after a purge. {0} the rows removed, {1} the days.</comment>
+  </data>
+</root>

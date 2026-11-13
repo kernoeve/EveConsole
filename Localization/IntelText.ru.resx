@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>Сколько живут разведданные</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Каждый вид сведений считается актуальным столько времени после сообщения, постепенно бледнея; затем он исчезает с панелей и карты. Общая настройка для всех ПК с этой базой. «No visual» — это пометка на наблюдении, а не отдельный срок.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>Названный пилот</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>Число без имён («+5»)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>Система, объявленная чистой</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>Кэмп на гейте или пузыри</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>Цино</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>Пилот на килле</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>Пилот, потерявший корабль</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>минут</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>секунд</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>км</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Уточняющие строки</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>Строка без своей системы («+2», «nv», «clr») дополняет последнее сообщение того же автора в том же канале, если приходит в пределах этого времени.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Окно уточнений</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Кэмпы на гейтах по киллам</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Киллы на одном гейте, каждый вскоре после предыдущего и с общим атакующим, считаются кэмпом, когда там потеряно достаточно разных пилотов. Один килл — не кэмп.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Не дальше этого расстояния от гейта</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Наибольший перерыв между киллами</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Потерянных пилотов, чтобы считать кэмпом</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Стендинги</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Пилоты окрашиваются по стендингам персонажа, который смотрит: того, за кем следит панель, или ближайшего персонажа в сети. Сначала личные контакты, затем корпорации, затем альянса. Выберите здесь персонажа, чтобы везде использовать его стендинги.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Стендинги от</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(свой персонаж каждого клиента)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Расстояние</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>Близость угрозы считается по звёздным вратам и каждому открытому соединению Thera и Turnur в обе стороны. Расстояния для перелётов могут учитывать и наши мосты прыжков — в тех направлениях, которыми может пользоваться альянс персонажа.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Учитывать наши мосты прыжков в расстояниях перелёта</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Тревоги разведки</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Общее для всех тревог разведки. Будят (звук, речь, окно) и подсвечивают строку панели только сведения не старше этого; более старые по-прежнему показываются. После того как одна тревога разбудила, остальные ждут столько, если сведения не срочные.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Будить только для сведений не старше</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>Пауза между пробуждениями</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>секунд (0 — без паузы)</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Предупреждение о ленте киллов</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>Инструмент разведки предупреждает, когда zKillboard читает не все киллы в New Eden: тогда киллы в других местах не попадают в разведку. Предупреждение можно скрыть там для всех ПК.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Снова показать предупреждение</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>Предупреждение будет показано снова.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>История разведки</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Удаляет сообщения разведки, названных в них пилотов и последнее место, где видели каждого пилота, если они старше этого срока. Сообщения чата и киллы хранятся по своим правилам.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Удалять историю разведки старше</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>Удалено {0:N0} строк разведки старше {1:N0} дн.</value>
+  </data>
+</root>

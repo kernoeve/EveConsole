@@ -334,6 +334,7 @@ public class MainWindowViewModel : ReactiveObject
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
     public ZkillboardSettingsViewModel    ZkbSettingsVm          { get; }
+    public IntelSettingsViewModel         IntelSettingsVm        { get; }
     public MapStatsSettingsViewModel      MapStatsSettingsVm     { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
@@ -1784,7 +1785,11 @@ public class MainWindowViewModel : ReactiveObject
         SovCampaignService              sovCampaigns,
         EveConsole.Services.Pi.PiService piService,
         ParkComparisonService           parkCompare,
-        CostIndexHistoryService         costIndexHistory)
+        CostIndexHistoryService         costIndexHistory,
+        LiveIntelService                liveIntel,
+        JumpBridgeService               jumpBridges,
+        EveConsole.Services.Intel.IntelSettings        intelSettings,
+        EveConsole.Services.Intel.IntelSnapshotService intelSnapshots)
     {
         StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
@@ -1813,6 +1818,7 @@ public class MainWindowViewModel : ReactiveObject
         ChatLogSettingsVm = new ChatLogSettingsViewModel(monitoringSettings, chatLogImport, intelService);
         StartupTrace.Step("new ZkbSettingsVm");
         ZkbSettingsVm     = new ZkillboardSettingsViewModel(zkillboardSettings, zkbPolling, zkbFirehose, zkbBackfill, zkbPost);
+        IntelSettingsVm   = new IntelSettingsViewModel(intelSettings, intelSnapshots, dbFactory);
         StartupTrace.Step("new MapStatsSettingsVm");
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         StartupTrace.Step("new AlertSettingsVm");
@@ -2095,11 +2101,10 @@ public class MainWindowViewModel : ReactiveObject
         // The jump planner and the route planner are tabs of the map tool.
         StartupTrace.Step("new JumpPlannerVm");
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
-        var jumpBridges        = new JumpBridgeService(dbFactory, esi.GetSovSystemsAsync, corpActivityService);
         StartupTrace.Step("new MapVm");
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
-            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         StartupTrace.Step("new AlarmsVm");
@@ -2249,7 +2254,7 @@ public class MainWindowViewModel : ReactiveObject
         // A jump planner of its own too: the map's tabs are its own.
         CopyOf("universe", () => MapVm, () => new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
-            new LiveIntelService(dbFactory, corpActivityService), errorLogger, jumpBridges,
+            liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
             new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns));
         CopyOf("alarms", () => AlarmsVm, () => new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute));

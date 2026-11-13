@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>情报的有效时长</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>每种情报在报告后的这段时间内都视为当前情报，并随时间逐渐变淡；之后从面板和地图上消失。此数据库上的所有电脑共用此设置。“无视野”只是目击上的标记，没有单独的时长。</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>有名字的飞行员</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>未具名的人数（“+5”）</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>报告为安全的星系</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>星门蹲守或泡泡</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>诱导</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>参与击杀的飞行员</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>损失舰船的飞行员</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>公里</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>补充报告</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>没有自己星系的一行（“+2”“nv”“clr”）如果在这段时间内发出，会补充到同一频道中同一报告者的上一条报告。</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>补充报告时限</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>根据击杀判断星门蹲守</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>同一星门的击杀，若每次都紧接上一次且有共同的攻击者，当足够多的不同飞行员在那里损失后即视为蹲守。单次击杀不算蹲守。</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>距星门在此距离以内</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>击杀之间的最长间隔</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>构成蹲守所需的损失飞行员数</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>声望</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>飞行员按正在查看的角色的声望着色：面板所跟随的角色，或最近的在线角色。先看个人联系人，再看军团的，再看联盟的。在此选择一个角色即可在所有地方使用其声望。</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>声望来源</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>（每个客户端自己的角色）</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>距离</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>威胁的远近按星门以及所有开放的 Thera 和 Turnur 连接双向计算。旅行距离还可以计入我们自己的跳桥，按角色所在联盟可以使用的方向。</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>在旅行距离中使用我们的跳桥</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>情报警报</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>所有情报警报共用。只有不超过此时间的情报才会唤醒（声音、语音、对话框）并突出显示面板行；更早的情报仍会显示。一个警报唤醒后，除非情报紧急，其他警报会等待这段时间。</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>只为不早于此时间的情报唤醒</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>两次唤醒之间的间隔</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>秒（0 表示不等待）</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>击杀流警告</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>当 zKillboard 没有读取新伊甸的所有击杀时，情报工具会发出警告：此时其他地方的击杀永远不会进入情报。可以在那里为所有电脑关闭此警告。</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>再次显示警告</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>警告将再次显示。</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>无法保存：{0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>情报历史</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>删除早于此时长的情报报告、其中提到的飞行员以及每位飞行员最后被看到的位置。聊天消息和击杀按各自的规则保留。</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>清除早于此时长的情报历史</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>已删除 {0:N0} 行早于 {1:N0} 天的情报。</value>
+  </data>
+</root>

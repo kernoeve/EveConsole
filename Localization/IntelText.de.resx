@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>Wie lange Intel gilt</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Jede Art von Meldung gilt so lange nach der Meldung als aktuell und verblasst dabei; danach verschwindet sie aus den Panels und von der Karte. Gilt für jeden PC an dieser Datenbank. „No visual“ ist eine Markierung an einer Sichtung, keine eigene Dauer.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>Ein benannter Pilot</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>Eine unbenannte Anzahl („+5“)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>Ein als frei gemeldetes System</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>Ein Gate-Camp oder Bubbles</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>Ein Cyno</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>Ein Pilot auf einem Kill</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>Ein Pilot, der ein Schiff verloren hat</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>Minuten</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>Sekunden</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Folgezeilen</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>Eine Zeile ohne eigenes System („+2“, „nv“, „clr“) ergänzt die letzte Meldung desselben Melders im selben Kanal, wenn sie innerhalb dieser Zeit kommt.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Zeitfenster für Folgezeilen</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Gate-Camps aus Kills</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Kills an einem Gate, jeder kurz nach dem vorigen und mit einem gemeinsamen Angreifer, sind ein Camp, sobald dort genug verschiedene Piloten verloren haben. Ein einzelner Kill ist kein Camp.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Innerhalb dieser Entfernung zu einem Gate</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Längste Pause zwischen Kills</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Verlorene Piloten, ab denen es ein Camp ist</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Standings</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Piloten werden nach den Standings des betrachtenden Charakters gefärbt: dem, dem ein Panel folgt, oder dem nächsten Online-Charakter. Persönliche Kontakte zuerst, dann die der Corporation, dann die der Allianz. Wähle hier einen Charakter, um überall dessen Standings zu verwenden.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Standings von</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(der eigene Charakter jedes Clients)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Entfernung</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>Wie nah eine Bedrohung ist, zählt Stargates und jede offene Thera- und Turnur-Verbindung in beide Richtungen. Reiseentfernungen können zusätzlich unsere eigenen Jump Bridges zählen, in den Richtungen, die die Allianz des Charakters nutzen darf.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Unsere Jump Bridges für Reiseentfernungen verwenden</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Intel-Alarme</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Gilt für alle Intel-Alarme. Nur so neue Meldungen wecken jemanden (ein Ton, Sprache, ein Dialog) und heben eine Panel-Zeile hervor; ältere Meldungen werden weiter angezeigt. Nachdem ein Alarm geweckt hat, warten die anderen so lange, außer die Meldung ist dringend.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Nur wecken für Meldungen jünger als</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>Wartezeit zwischen Weckrufen</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>Sekunden (0 für keine Wartezeit)</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Warnung zum Kill-Feed</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>Das Intel-Tool warnt, wenn zKillboard nicht jeden Kill in New Eden liest: Kills anderswo erreichen Intel dann nie. Die Warnung lässt sich dort für jeden PC ausblenden.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Warnung wieder anzeigen</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>Die Warnung wird wieder angezeigt.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Speichern fehlgeschlagen: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>Intel-Verlauf</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Entfernt Intel-Meldungen, die darin genannten Piloten und wo jeder Pilot zuletzt gesehen wurde, sobald sie älter sind als dies. Chatnachrichten und Kills werden nach ihren eigenen Regeln behalten.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Intel-Verlauf löschen, älter als</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>{0:N0} Intel-Zeilen älter als {1:N0} Tage entfernt.</value>
+  </data>
+</root>

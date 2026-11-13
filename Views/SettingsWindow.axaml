@@ -1841,6 +1841,171 @@
       </ScrollViewer>
     </TabItem>
 
+    <!-- ══ Intel ══════════════════════════════════════════════════════════════
+         Shared in the database: what is set here holds on every PC, and the intel read side picks
+         it up within a minute. The channels parsed for intel stay under Chat Logs. -->
+    <TabItem Header="{x:Static loc:IntelText.SettingsTab}">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14" x:DataType="vm:IntelSettingsViewModel" DataContext="{Binding IntelVm}">
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsLifetimesHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsLifetimesNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsNamedPilot}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding NamedMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsUnnamedCount}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding UnnamedMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="2" Text="{x:Static loc:IntelText.SettingsClear}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding ClearMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="3" Text="{x:Static loc:IntelText.SettingsCamp}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding CampMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="3" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="4" Text="{x:Static loc:IntelText.SettingsCyno}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding CynoMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="4" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="5" Text="{x:Static loc:IntelText.SettingsKillAttacker}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="5" Grid.Column="1" Value="{Binding KillAttackerMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="5" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="6" Text="{x:Static loc:IntelText.SettingsKillVictim}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding KillVictimMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="6" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsFollowUpHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsFollowUpNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto">
+                  <TextBlock Text="{x:Static loc:IntelText.SettingsFollowUpWindow}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Column="1" Value="{Binding FollowUpSeconds}" Minimum="{Binding MinFollowUp}" Maximum="{Binding MaxFollowUp}" Increment="10" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:IntelText.SettingsSeconds}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsCampHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsCampNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsCampGateKm}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding CampGateKm}" Minimum="{Binding MinGateKm}" Maximum="{Binding MaxGateKm}" Increment="10" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsKm}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsCampWindow}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding CampWindowMinutes}" Minimum="{Binding MinCampWindow}" Maximum="{Binding MaxCampWindow}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="2" Text="{x:Static loc:IntelText.SettingsCampVictims}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding CampMinVictims}" Minimum="{Binding MinCampVictims}" Maximum="{Binding MaxCampVictims}" Increment="1" FormatString="0" FontSize="12" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsStandingsHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsStandingsNote}" />
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Text="{x:Static loc:IntelText.SettingsStandingsFrom}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding StandingsChoices}" SelectedItem="{Binding SelectedStandings}"
+                            MinWidth="260" HorizontalAlignment="Left" FontSize="12" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsDistanceHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsDistanceNote}" />
+                <CheckBox IsChecked="{Binding UseBridges}" Content="{x:Static loc:IntelText.SettingsUseBridges}"
+                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsAlertsHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsAlertsNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsFresh}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding FreshSeconds}" Minimum="{Binding MinFresh}" Maximum="{Binding MaxFresh}" Increment="15" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsSeconds}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsWakeCooldown}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding WakeCooldownSeconds}" Minimum="0" Maximum="{Binding MaxWakeCooldown}" Increment="5" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsWakeCooldownHint}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsFeedWarningHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsFeedWarningNote}" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:IntelText.SettingsShowWarningAgain}" Click="OnIntelShowWarningClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                             VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
     <TabItem Header="{x:Static loc:SettingsText.TabCorpTop10}">
       <Grid ColumnDefinitions="*,8,*" Margin="0 8 0 0" DataContext="{Binding CorpTop10Vm}">
@@ -4084,6 +4249,49 @@
                   <Button Content="{x:Static loc:SettingsText.PurgeNow}"
                           IsEnabled="{Binding CanPurge}"
                           Click="OnPurgeChatClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding Intel}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.RetentionHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.RetentionNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:IntelText.RetentionPurgeOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeIntelClick"
                           Padding="12 5" FontSize="12"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                           BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />

@@ -5380,6 +5380,35 @@ public class App : Application
         // Where each pilot was last seen, from the kills every importer stores, and its one-time seed.
         services.AddSingleton<EveConsole.Services.Intel.IntelLastSeenFeed>();
 
+        // The read side of intel: one snapshot per process, read from the shared database while
+        // anything shows intel, and the standings and distances every view projects it through.
+        // The bridge list is one instance for the map and the distances alike, so a bridge added on
+        // the map reaches travel distances at once.
+        services.AddSingleton<EveConsole.Services.Intel.IntelSettings>();
+        services.AddSingleton<EveConsole.Services.Intel.IntelStandingService>();
+        services.AddSingleton(sp => new JumpBridgeService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<EsiClient>().GetSovSystemsAsync,
+            sp.GetRequiredService<CorpActivityService>()));
+        services.AddSingleton(sp => new EveConsole.Services.Intel.IntelDistanceService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<SystemGraph>(),
+            sp.GetRequiredService<EveScoutService>(),
+            sp.GetRequiredService<JumpBridgeService>(),
+            sp.GetRequiredService<AppErrorLogger>()));
+        services.AddSingleton(sp => new EveConsole.Services.Intel.IntelSnapshotService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelStandingService>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelDistanceService>(),
+            sp.GetRequiredService<IntelService>(),
+            sp.GetRequiredService<CorpActivityService>(),
+            sp.GetRequiredService<AppPreferencesService>(),
+            sp.GetRequiredService<AppErrorLogger>()));
+        // The map's long-standing reader, now an adapter over the snapshot.
+        services.AddSingleton(sp => new LiveIntelService(
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>()));
+
         // zKillboard integration — optional supplement to the ESI-based kill pull (see
         // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"
         // and "All kills" scopes each use a different live mechanism). Off by default.

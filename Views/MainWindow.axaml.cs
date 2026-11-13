@@ -791,6 +791,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             await vm.CharacterVm.RefreshTokenStateAsync();
             await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
             vm.CorpTop10SettingsVm.Load();
+            // Read off the UI thread: the intel settings are shared, and another PC may have changed them.
+            await vm.IntelSettingsVm.LoadAsync();
             var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
             // The Worklist tool's own industry view model, not a second one: the Industry tab edits
             // the character list that tool plans against, and two instances over one table would not
@@ -801,7 +803,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                    vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                    vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                    vm.OnlineServicesSettingsVm,
-                                                   vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
+                                                   vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm, vm.IntelSettingsVm,
                                                    vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                    // Over the shared preferences, which are already in memory.
                                                    new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),

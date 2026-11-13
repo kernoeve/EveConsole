@@ -93,6 +93,18 @@ try
     await FollowUpChecks.DatabaseAsync(c, "SQLite threads", lsOptions);
     await FollowUpChecks.PassAsync(c, profile);
 
+    // ── The read side: standings, distances, camps, the snapshot and the lens ────────────────────────────────
+    ReadSideChecks.StandingChecks(c);
+    await ReadSideChecks.SdeGroupChecks(c, root, profile);
+    ReadSideChecks.CampChecks(c);
+    await ReadSideChecks.DistanceChecks(c);
+    ReadSideChecks.SnapshotChecks(c);
+    ReadSideChecks.LensChecks(c);
+    var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
+    await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
+    await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
+    await ReadSideChecks.RetentionAsync(c, "SQLite", rsOptions);
+
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
     if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
@@ -646,6 +658,8 @@ namespace EveConsole.Tools.IntelCheck
                 await LastSeenChecks.WriterAsync(c, "PG", options);
                 await LastSeenChecks.FeedAsync(c, "PG", options);
                 await FollowUpChecks.DatabaseAsync(c, "PG threads", options);
+                await ReadSideChecks.ServiceAsync(c, "PG", options);
+                await ReadSideChecks.RetentionAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);

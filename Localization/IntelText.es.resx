@@ -1,0 +1,133 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>Cuánto dura la información de intel</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Cada tipo de aviso cuenta como actual durante este tiempo desde que se informó, atenuándose con la edad; después desaparece de los paneles y del mapa. Compartido por todos los PC de esta base de datos. «No visual» es una marca en un avistamiento, no una duración propia.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>Un piloto con nombre</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>Un recuento sin nombres («+5»)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>Un sistema declarado despejado</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>Un campamento en puerta o burbujas</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>Un cyno</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>Un piloto en un killmail</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>Un piloto que perdió una nave</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>minutos</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>segundos</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Líneas de seguimiento</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>Una línea sin sistema propio («+2», «nv», «clr») se suma al último aviso del mismo informante en el mismo canal si llega dentro de este tiempo.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Ventana de seguimiento</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Campamentos en puertas según los killmails</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Los killmails en una misma puerta, cada uno poco después del anterior y con algún atacante en común, son un campamento cuando suficientes pilotos distintos han perdido allí. Un solo killmail no es un campamento.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>A menos de esta distancia de una puerta</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Pausa máxima entre killmails</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Pilotos perdidos para ser un campamento</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Standings</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Los pilotos se colorean según los standings del personaje que mira: el que sigue un panel, o el personaje conectado más cercano. Primero los contactos personales, luego los de la corporación y luego los de la alianza. Elige aquí un personaje para usar sus standings en todas partes.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Standings de</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(el personaje propio de cada cliente)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Distancia</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>La cercanía de una amenaza cuenta las puertas estelares y cada conexión abierta de Thera y Turnur, en ambos sentidos. Las distancias de viaje también pueden contar nuestros propios puentes de salto, en los sentidos que la alianza del personaje puede usar.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Usar nuestros puentes de salto en las distancias de viaje</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Alarmas de intel</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Compartido por todas las alarmas de intel. Solo los avisos así de recientes despiertan a alguien (un sonido, voz, un diálogo) y resaltan una fila del panel; los avisos más antiguos se siguen mostrando. Después de que una alarma despierte, las demás esperan este tiempo, salvo que el aviso sea urgente.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Despertar solo con avisos de menos de</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>Espera entre despertares</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>segundos (0 sin espera)</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Aviso del feed de killmails</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>La herramienta de Intel avisa cuando zKillboard no lee todos los killmails de New Eden: entonces los de otros lugares nunca llegan a intel. El aviso se puede descartar allí, para todos los PC.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Volver a mostrar el aviso</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>El aviso se volverá a mostrar.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>No se pudo guardar: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>Historial de intel</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Elimina los avisos de intel, los pilotos nombrados en ellos y dónde se vio por última vez a cada piloto, cuando son más antiguos que esto. Los mensajes de chat y los killmails se conservan según sus propias reglas.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Purgar el historial de intel de más de</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>Eliminadas {0:N0} filas de intel de más de {1:N0} días.</value>
+  </data>
+</root>

@@ -92,6 +92,17 @@ public sealed class RoutePlannerService(
     /// <summary>A way out of a system that is not a stargate: a bridge, or a wormhole.</summary>
     private sealed record Link(int To, RouteBridge? Bridge, RouteWormhole? Wormhole);
 
+    /// <summary>
+    /// Whether a pilot of <paramref name="allianceId"/> may jump a bridge the way
+    /// <paramref name="way"/> describes. A known holder: only that alliance (and nobody where nobody
+    /// holds the system). A holder not yet known: allowed for a pilot in an alliance, since the
+    /// route says so; a pilot in none could not use any bridge. The one rule for every planner and
+    /// every travel distance.
+    /// </summary>
+    public static bool BridgeUsable(BridgeDirection? way, long? allianceId) =>
+        way is not null ? way.AllianceId != 0 && way.AllianceId == allianceId
+                        : allianceId is not null;
+
     /// <summary>The ways across every known bridge and open Thera/Turnur hole, from each system,
     /// as the request may use them.</summary>
     private async Task<Dictionary<int, List<Link>>> OtherLinksAsync(RouteRequest req, CancellationToken ct)
@@ -120,9 +131,7 @@ public sealed class RoutePlannerService(
                 var way  = b.Directions?.FirstOrDefault(d => d.FromSystemId == from);
                 var gate = b.Gates.FirstOrDefault(g => g.SystemId == from);
 
-                // Known holder: only that alliance. Unknown: allowed, and said so.
-                if (way is not null && (way.AllianceId == 0 || way.AllianceId != req.AllianceId)) continue;
-                if (way is null && req.AllianceId is null) continue;
+                if (!BridgeUsable(way, req.AllianceId)) continue;
 
                 Add(from, new Link(to, new RouteBridge(gate?.StructureId, gate?.Name ?? "", way?.Zone ?? 0, way?.Multiplier ?? 0, way is not null), null));
             }

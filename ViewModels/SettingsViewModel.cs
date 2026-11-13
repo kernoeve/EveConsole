@@ -23,6 +23,7 @@ public class SettingsViewModel : ReactiveObject
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
+    public IntelSettingsViewModel         IntelVm         { get; }
     public MapStatsSettingsViewModel      MapStatsVm      { get; }
     public OtherSettingsViewModel         OtherVm         { get; }
     public DataRetentionSettingsViewModel RetentionVm     { get; }
@@ -61,6 +62,7 @@ public class SettingsViewModel : ReactiveObject
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
         ZkillboardSettingsViewModel   zkbVm,
+        IntelSettingsViewModel        intelVm,
         MapStatsSettingsViewModel     mapStatsVm,
         OtherSettingsViewModel        otherVm,
         DataRetentionSettingsViewModel retentionVm,
@@ -81,6 +83,7 @@ public class SettingsViewModel : ReactiveObject
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
         ZkbVm          = zkbVm;
+        IntelVm        = intelVm;
         MapStatsVm     = mapStatsVm;
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
