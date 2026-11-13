@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>Also set on the channel: {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>Who is this?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>Who is {0}</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>Asking the server…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>The server did not answer.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} is not online.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>Real name</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>Account</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>Not logged in to an account</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>Away</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>Quiet for</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>Connected since</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>Channels</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>Address</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>Encrypted connection</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>Network operator</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>Yes</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>Also</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Your picture</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>A web link to a picture. People on this server see it where their IRC program shows pictures.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… link to a picture</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Use an EVE portrait</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>Your character's portrait from EVE's own image server. It changes when you change it in the game.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Set picture</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Remove picture</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>Picture saved. It is set again each time this server connects.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Picture removed.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>This server does not keep pictures: it is saved here, and set once a server that does is connected.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>A picture link starts with https:// or http://, has no spaces, and is at most 400 characters.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>The server asked to be reached only encrypted, so it is: port {0}, until {1}.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>This server has asked to be reached only encrypted until {1}, so it will be, on port {0}, whatever is set here.</value>
+  </data>
 </root>

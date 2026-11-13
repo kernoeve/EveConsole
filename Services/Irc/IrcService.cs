@@ -129,6 +129,18 @@ public sealed class IrcSession(IrcServer server)
     /// </summary>
     internal Dictionary<string, (List<IrcBan> Bans, TaskCompletionSource<IReadOnlyList<IrcBan>> Done)> BansComing { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Answers to WHOIS being gathered, by folded nickname: what was said, who waits, and whether anything came yet.</summary>
+    internal Dictionary<string, (IrcWhois Info, TaskCompletionSource<IrcWhois?> Done, bool Heard)> WhoisComing { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>The server keeps people's pictures (draft/metadata-2), so one set here is seen by others.</summary>
+    public bool HasPictures { get; internal set; }
+
+    /// <summary>Whose pictures this connection has asked for or been told, by folded nickname: each asked once.</summary>
+    internal HashSet<string> PicturesAsked { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>People to ask for a picture, a few at a time: see IrcService.AskPicturesSlowlyAsync.</summary>
+    internal Queue<string> PicturesToAsk { get; } = new();
+
     /// <summary>The server lets messages be taken back (REDACT): see <see cref="IrcClient.HasRedact"/>.</summary>
     public bool CanRedact { get; internal set; }
 
@@ -188,7 +200,7 @@ public sealed record IrcDirectSummary(int ServerId, string Conversation, string 
 /// <para>What was said while nothing held the lease comes back where the server keeps history (CHATHISTORY); a server
 /// without history has no way to give it, as with any IRC client.</para>
 /// </remarks>
-public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
+public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null, AvatarService? avatars = null)
 {
     private static readonly int[] BackoffSeconds = [5, 10, 20, 40, 60, 120, 300];
     private static readonly TimeSpan StableAfter = TimeSpan.FromMinutes(2);
@@ -262,7 +274,19 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         if (server.Id == 0) db.IrcServers.Add(server);
-        else db.IrcServers.Update(server);
+        else
+        {
+            // ⚠️ What the connection keeps (the server's encryption rule) and the picture have their own ways of being set:
+            // a settings screen holding an older copy must not write them back.
+            var id = server.Id;
+            if (await db.IrcServers.AsNoTracking().Where(s => s.Id == id)
+                        .Select(s => new { s.StsHost, s.StsPort, s.StsUntil, s.AvatarUrl }).FirstOrDefaultAsync(ct) is { } kept)
+            {
+                server.StsHost = kept.StsHost; server.StsPort = kept.StsPort; server.StsUntil = kept.StsUntil;
+                server.AvatarUrl = kept.AvatarUrl;
+            }
+            db.IrcServers.Update(server);
+        }
         await db.SaveChangesAsync(ct);
 
         if (password is not null)
@@ -353,7 +377,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             if (session.Client is { } c) await c.DisposeAsync();
             if (loop is not null) await loop.WaitAsync(TimeSpan.FromSeconds(5));
         }
-        catch (Exception e) when (e is OperationCanceledException or TimeoutException or ObjectDisposedException or IrcException) { }
+        // ⚠️ Anything: a connection closed mid-way through being made can fail in ways of its own, and a Disconnect must not.
+        catch (Exception) { }
 
         SetState(session, IrcState.Offline, IrcProblem.None, "");
     }
@@ -375,6 +400,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     private async Task KeepConnectedAsync(IrcSession session, CancellationToken ct)
     {
         var attempt = 0;
+        int? upgradeTo = null;
         while (!ct.IsCancellationRequested)
         {
             var started = DateTimeOffset.UtcNow;
@@ -382,13 +408,18 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
 
             try
             {
-                await RunOnceAsync(session, ct);
+                await RunOnceAsync(session, upgradeTo, ct);
                 if (ct.IsCancellationRequested) break;
             }
             catch (IrcException e) when (!ct.IsCancellationRequested)
             {
                 switch (e.Failure)
                 {
+                    // The server asked to be reached encrypted (STS): at once, and encrypted from here on while this runs.
+                    // ⚠️ Never twice in a row: a server that asks again over the encrypted connection is not followed round.
+                    case IrcFailure.Upgrade when upgradeTo is null:
+                        upgradeTo = e.UpgradePort;
+                        continue;   // the finally below closes this connection first
                     case IrcFailure.Certificate:
                         session.CertificateFingerprint = e.CertificateFingerprint ?? "";
                         session.CertificateSubject = e.CertificateSubject ?? "";
@@ -436,7 +467,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
-    private async Task RunOnceAsync(IrcSession session, CancellationToken ct)
+    private async Task RunOnceAsync(IrcSession session, int? upgradeTo, CancellationToken ct)
     {
         var server = session.Server;
         var kind = (IrcLoginKind)server.LoginKind;
@@ -450,8 +481,12 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
                     : "No password is saved.");
         }
 
+        // Encrypted where the server has asked to be (STS), on the port it named, whatever is set: just now, or kept from before.
+        var (port, tls) = (server.Port, server.Tls);
+        if (!tls && (upgradeTo ?? StsPortOf(server)) is { } encrypted) (port, tls) = (encrypted, true);
+
         var client = new IrcClient(new IrcLogin(
-            server.Host.Trim(), server.Port, server.Tls, server.Nickname.Trim(), server.Username, server.RealName,
+            server.Host.Trim(), port, tls, server.Nickname.Trim(), server.Username, server.RealName,
             kind, server.Account, password, server.TrustedCertificate));
         session.Client = client;
 
@@ -470,8 +505,10 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.HasTags = client.HasTags;
         session.CanRedact = client.HasRedact;
         session.LoggedIn = client.LoggedInAs.Length > 0;
+        session.HasPictures = client.HasMetadata;
+        await KeepStsAsync(session, client, server.Host.Trim(), port, ct);
         // What was left before this connection: a JOIN of the last one cannot be on its way any more.
-        session.Locked(s => s.Leaving.Clear());
+        session.Locked(s => { s.Leaving.Clear(); s.PicturesAsked.Clear(); s.PicturesToAsk.Clear(); });
         SetState(session, IrcState.Connected, IrcProblem.None, "");
 
         // One reader per connection keeps lines in order, and the database off the reading thread. ⚠️ Stopped with the
@@ -479,6 +516,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         // joined, or list people, on a connection that has not joined them.
         using var workerStop = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var worker = Task.Run(() => ProcessInboxAsync(session, client, inbox.Reader, workerStop.Token), workerStop.Token);
+        if (client.HasMetadata) _ = AskPicturesSlowlyAsync(session, client, workerStop.Token);
 
         // ⚠️ Reading starts now, alongside what follows logging in: joining many channels at the sending pace takes a
         // while, and a server whose PING goes unread meanwhile drops the connection.
@@ -544,6 +582,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
                             .Select(m => m.PeerName).Distinct().Take(Math.Max(0, client.Support.Monitor)).ToListAsync(ct);
         session.Locked(s => { foreach (var p in peers.Where(p => p.Length > 0)) s.PeopleMap.TryAdd(s.Fold(p), new IrcPerson(p)); });
         await client.MonitorAsync(peers, ct);
+        await PicturesAfterLoginAsync(session, client, peers, ct);
 
         if (client.HasChatHistory)
         {

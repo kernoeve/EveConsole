@@ -1414,6 +1414,10 @@ public static class PostgresSchema
             "AwayMessage"        TEXT    NOT NULL DEFAULT '',
             "OnConnect"          TEXT    NOT NULL DEFAULT '',
             "AutoConnect"        BOOLEAN NOT NULL DEFAULT FALSE,
+            "StsHost"            TEXT    NOT NULL DEFAULT '',
+            "StsPort"            INTEGER NOT NULL DEFAULT 0,
+            "StsUntil"           TEXT    NOT NULL DEFAULT '',
+            "AvatarUrl"          TEXT    NOT NULL DEFAULT '',
             CONSTRAINT "PK_IrcServers" PRIMARY KEY ("Id")
         )
         """,
@@ -2110,6 +2114,18 @@ public static class PostgresSchema
         """,
         """
         ALTER TABLE "IrcMessages" ADD COLUMN IF NOT EXISTS "DeletedReason" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "IrcServers" ADD COLUMN IF NOT EXISTS "StsHost" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "IrcServers" ADD COLUMN IF NOT EXISTS "StsPort" INTEGER NOT NULL DEFAULT 0
+        """,
+        """
+        ALTER TABLE "IrcServers" ADD COLUMN IF NOT EXISTS "StsUntil" TEXT NOT NULL DEFAULT ''
+        """,
+        """
+        ALTER TABLE "IrcServers" ADD COLUMN IF NOT EXISTS "AvatarUrl" TEXT NOT NULL DEFAULT ''
         """,
     ];
 }

@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>频道上另外设置了：{0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>这是谁？</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>{0} 是谁</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>服务器没有回应。</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} 不在线。</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>真实姓名</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>账户</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>未登录账户</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>未发言时长</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>连接时间</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>地址</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>加密连接</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>网络管理员</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>机器人</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>另外</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>你的头像</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>图片的网址。此服务器上的人会在其 IRC 程序显示图片的地方看到它。</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… 图片链接</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>使用 EVE 肖像</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>来自 EVE 图片服务器的角色肖像。你在游戏中更改后它也会改变。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>设置头像</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>移除头像</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>头像已保存。每次连接此服务器时都会重新设置。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>头像已移除。</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>此服务器不保存头像：已保存在这里，服务器支持后再设置。</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>头像链接以 https:// 或 http:// 开头，不含空格，最多 400 个字符。</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>服务器要求仅通过加密连接，因此这样连接：端口 {0}，直到 {1}。</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>此服务器要求在 {1} 之前仅通过加密连接，因此无论这里如何设置，都会通过端口 {0} 加密连接。</value>
+  </data>
 </root>

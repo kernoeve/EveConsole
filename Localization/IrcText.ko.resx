@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>채널에 추가로 설정됨: {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>이 사람은?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>{0} 정보</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>서버에 묻는 중…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>서버가 응답하지 않았습니다.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} 님은 온라인이 아닙니다.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>실명</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>계정</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>계정에 로그인하지 않음</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>자리 비움</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>조용한 시간</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>접속 시작</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>채널</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>주소</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>서버</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>암호화된 연결</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>네트워크 운영자</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>봇</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>예</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0}시간 {1}분</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0}일 {1}시간</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>내 사진</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>사진의 웹 링크입니다. 이 서버의 사람들은 IRC 프로그램이 사진을 보여주는 곳에서 볼 수 있습니다.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… 사진 링크</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE 초상화 사용</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>EVE 이미지 서버에 있는 캐릭터 초상화입니다. 게임에서 바꾸면 함께 바뀝니다.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>사진 설정</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>사진 제거</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>사진을 저장했습니다. 이 서버에 연결할 때마다 다시 설정됩니다.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>사진을 제거했습니다.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>이 서버는 사진을 저장하지 않습니다. 여기에 저장해 두었다가 서버가 지원하면 설정합니다.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>사진 링크는 https:// 또는 http://로 시작하고, 공백이 없으며, 400자 이하입니다.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>서버가 암호화된 연결만 요청해서 그렇게 합니다: 포트 {0}, {1}까지.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>이 서버는 {1}까지 암호화된 연결만 요청했으므로, 여기 설정과 상관없이 포트 {0}로 암호화해 연결합니다.</value>
+  </data>
 </root>

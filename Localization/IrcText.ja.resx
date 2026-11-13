@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>チャンネルにはほかに設定あり: {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>この人について</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>{0} について</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>サーバーに問い合わせ中…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>サーバーから応答がありませんでした。</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} はオンラインではありません。</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>本名</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>アカウント</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>アカウントにログインしていない</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>離席</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>無言の時間</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>接続開始</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>チャンネル</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>アドレス</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>サーバー</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>暗号化された接続</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>ネットワークのオペレーター</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>ボット</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>はい</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>その他</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} 分</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} 時間 {1} 分</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} 日 {1} 時間</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>あなたの画像</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>画像へのウェブリンクです。このサーバーの人は、IRC プログラムが画像を表示する場所でそれを見られます。</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… 画像へのリンク</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE のポートレートを使う</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>EVE の画像サーバーにあるキャラクターのポートレートです。ゲーム内で変えると変わります。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>画像を設定</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>画像を削除</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>画像を保存しました。このサーバーに接続するたびに設定し直されます。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>画像を削除しました。</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>このサーバーは画像を保存しません。ここに保存しておき、サーバーが対応すれば設定します。</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>画像リンクは https:// か http:// で始まり、空白を含まず、400 文字以内です。</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>サーバーが暗号化接続だけを求めているので、そうしています: ポート {0}、{1} まで。</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>このサーバーは {1} まで暗号化接続だけを求めているため、ここの設定にかかわらずポート {0} で暗号化して接続します。</value>
+  </data>
 </root>

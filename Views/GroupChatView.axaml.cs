@@ -208,6 +208,12 @@ public partial class GroupChatView : UserControl
         var member = person.IrcMember!;
         var lines = new List<Control>();
         if (!person.IsSelf) lines.Add(Line(GroupChatText.MenuDirectMessage, () => { vm.MessageOccupant(person); return Task.CompletedTask; }));
+        if (TopLevel.GetTopLevel(this) is Window host)
+            lines.Add(Line(IrcText.MenuWhois, () =>
+            {
+                if (vm.IrcWhois(person) is { } whois) IrcWhoisWindow.ShowFor(whois, host);
+                return Task.CompletedTask;
+            }));
 
         var admin = new List<Control>();
         foreach (var (mode, give, take) in vm.IrcRankChoices())

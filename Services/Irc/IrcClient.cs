@@ -47,7 +47,7 @@ public sealed class IrcClient : IAsyncDisposable
         "server-time", "message-tags", "echo-message", "batch", "away-notify", "account-notify", "account-tag",
         "extended-join", "multi-prefix", "userhost-in-names", "chghost", "cap-notify", "invite-notify", "setname",
         "draft/chathistory", "chathistory", "draft/event-playback", "standard-replies", "znc.in/self-message",
-        "draft/message-redaction", "draft/read-marker", "draft/multiline",
+        "draft/message-redaction", "draft/read-marker", "draft/multiline", "draft/metadata-2",
     ];
 
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(60);
@@ -96,6 +96,7 @@ public sealed class IrcClient : IAsyncDisposable
         };
     }
     private DateTime _lastCtcpReply;
+    private string? _stsOffer;
 
     public IrcClient(IrcLogin login) => _login = login;
 
@@ -135,9 +136,19 @@ public sealed class IrcClient : IAsyncDisposable
     /// <summary>The most lines one multiline message may hold (max-lines), or 0 for no limit beyond the bytes.</summary>
     public int MultilineMaxLines { get; private set; }
 
+    /// <summary>
+    /// What the server said of encryption (STS) on an encrypted connection: how long it asks to be reached only so. Null
+    /// when it said nothing; zero when it takes back a rule given before.
+    /// </summary>
+    public TimeSpan? StsDuration { get; private set; }
+
+    /// <summary>The server keeps values for people and channels (draft/metadata-2): pictures among them.</summary>
+    public bool HasMetadata => Has("draft/metadata-2");
+
     /// <summary>What the server offered with a capability ("max-bytes=4096,max-lines=100"), for those that say more.</summary>
     private void OfferValue(string cap, string value)
     {
+        if (cap == "sts") { _stsOffer = value; return; }
         if (cap != "draft/multiline") return;
         foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries))
         {
@@ -223,6 +234,7 @@ public sealed class IrcClient : IAsyncDisposable
                     }
                     if (m[2] == "*") break;   // more to come
 
+                    CheckSts();
                     var ask = Wanted.Where(_offered.Contains).ToList();
                     if (saslWanted && _offered.Contains("sasl")) ask.Add("sasl");
                     if (ask.Count == 0) { await SendRawAsync(new IrcMessage("CAP", "END"), ct); negotiating = false; }
@@ -315,6 +327,24 @@ public sealed class IrcClient : IAsyncDisposable
                     return;
             }
         }
+    }
+
+    /// <summary>
+    /// Strict transport security: a server can say it is to be reached only encrypted. ⚠️ Said on an unencrypted
+    /// connection it is an instruction to go and connect encrypted, now, on the port it names; said on an encrypted one it
+    /// is a rule, for how long, to keep for next time. Never kept from an unencrypted connection: anyone in the middle
+    /// could have written it.
+    /// </summary>
+    private void CheckSts()
+    {
+        if (StsOffer.Parse(_stsOffer) is not { } offer) return;
+        if (!_connection.IsEncrypted)
+        {
+            if (offer.Port is > 0 and <= 65535)
+                throw new IrcException(IrcFailure.Upgrade, "The server asks to be reached encrypted.") { UpgradePort = offer.Port };
+            return;
+        }
+        StsDuration = offer.Duration;
     }
 
     private async Task SendSaslAsync(CancellationToken ct)
@@ -738,6 +768,25 @@ public sealed class IrcClient : IAsyncDisposable
 
     public Task WhoAsync(string target, CancellationToken ct) => SendRawAsync(new IrcMessage("WHO", target), ct);
 
+    /// <summary>
+    /// Asks the server who someone is. Their nickname twice: that asks the server they are connected to, which is the
+    /// one that knows how long they have been idle.
+    /// </summary>
+    public Task WhoisAsync(string nick, CancellationToken ct) => SendRawAsync(new IrcMessage("WHOIS", nick, nick), ct);
+
+    /// <summary>The keys of people's values this client wants told about as they change: their pictures.</summary>
+    public Task SubscribeMetadataAsync(CancellationToken ct) =>
+        HasMetadata ? SendRawAsync(new IrcMessage("METADATA", "*", "SUB", "avatar"), ct) : Task.CompletedTask;
+
+    /// <summary>Asks for someone's picture (or a channel's). The answer is a 761, or a 766 for none.</summary>
+    public Task AskAvatarAsync(string target, CancellationToken ct) =>
+        HasMetadata ? SendRawAsync(new IrcMessage("METADATA", target, "GET", "avatar"), ct) : Task.CompletedTask;
+
+    /// <summary>Sets this person's picture, as a web link, or takes it away with a blank one.</summary>
+    public Task SetAvatarAsync(string url, CancellationToken ct) =>
+        !HasMetadata ? Task.CompletedTask
+        : SendRawAsync(url.Length > 0 ? new IrcMessage("METADATA", "*", "SET", "avatar", url) : new IrcMessage("METADATA", "*", "SET", "avatar"), ct);
+
     /// <summary>Asks for what was said in a channel or with a person after a time, where the server keeps history.</summary>
     public Task HistoryAfterAsync(string target, DateTimeOffset after, int limit, CancellationToken ct) =>
         SendRawAsync(new IrcMessage("CHATHISTORY", "AFTER", target, "timestamp=" + after.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture),
@@ -783,4 +832,35 @@ public sealed class IrcClient : IAsyncDisposable
     }
 
     public ValueTask DisposeAsync() => _connection.DisposeAsync();
+}
+
+/// <summary>What a server offered as "sts": a port to go to encrypted, and how long to keep to encryption.</summary>
+public sealed record StsOffer(int Port, TimeSpan? Duration)
+{
+    /// <summary>Most a rule is kept for, whatever the server says: a typo of a few zeroes must not hold for centuries.</summary>
+    public static readonly TimeSpan Longest = TimeSpan.FromDays(400);
+
+    /// <summary>"port=6697,duration=2592000,preload" as its parts. Null for nothing usable.</summary>
+    public static StsOffer? Parse(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var port = 0;
+        TimeSpan? duration = null;
+        foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var eq = part.IndexOf('=');
+            if (eq < 0) continue;
+            var number = part[(eq + 1)..];
+            switch (part[..eq])
+            {
+                case "port" when int.TryParse(number, NumberStyles.None, CultureInfo.InvariantCulture, out var p):
+                    port = p;
+                    break;
+                case "duration" when long.TryParse(number, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds):
+                    duration = TimeSpan.FromSeconds(Math.Min(seconds, (long)Longest.TotalSeconds));
+                    break;
+            }
+        }
+        return port == 0 && duration is null ? null : new StsOffer(port, duration);
+    }
 }

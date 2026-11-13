@@ -345,6 +345,15 @@ public sealed partial class GroupChatViewModel
     public Task IrcBanAsync(JabberOccupantVm person, string reason) =>
         person.IrcMember is { } member ? IrcActAsync((s, channel) => _irc!.BanAsync(s, channel, member, reason)) : Task.CompletedTask;
 
+    /// <summary>Who someone in the channel open is, asked of the server for the window that shows it. Null when no channel is open.</summary>
+    public IrcWhoisVm? IrcWhois(JabberOccupantVm person)
+    {
+        if (person.IrcMember is not { } member || OpenIrcChannel() is not (IrcSession session, _) || _irc is not { } irc) return null;
+        var whois = new IrcWhoisVm(member.Nick);
+        _ = whois.LoadAsync(member.Nick, () => irc.WhoisAsync(session, member.Nick));
+        return whois;
+    }
+
     public Task IrcSetTopicAsync(string topic) => IrcActAsync((s, channel) => _irc!.SetTopicAsync(s, channel, topic));
 
     /// <summary>Who the channel open bans. Empty, with what went wrong said, when it will not say.</summary>

@@ -62,6 +62,10 @@ public sealed partial class IrcService
                 case "back":
                     await SetAwayAsync(session, "", ct);
                     return "";
+                // With no name in a conversation with someone: who they are.
+                case "whois" when rest.Length > 0 || !session.IsChannelName(target):
+                    var who = rest.Length > 0 ? rest.Split(' ')[0] : target;
+                    return WhoisLine(await WhoisAsync(session, who, ct), who);
                 case "quote" or "raw" when IrcMessage.Parse(rest) is { } raw:
                     await client.SendRawAsync(raw, ct);
                     return "";

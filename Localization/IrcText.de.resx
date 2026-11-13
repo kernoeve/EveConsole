@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>Außerdem am Kanal gesetzt: {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>Wer ist das?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>Wer ist {0}</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>Server wird gefragt …</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>Der Server hat nicht geantwortet.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} ist nicht online.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>Echter Name</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>Bei keinem Konto angemeldet</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>Abwesend</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>Still seit</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>Verbunden seit</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>Kanäle</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>Server</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>Verschlüsselte Verbindung</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>Netzwerk-Operator</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>Ja</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>Außerdem</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} Min.</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} T. {1} Std.</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Dein Bild</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Ein Weblink zu einem Bild. Leute auf diesem Server sehen es, wo ihr IRC-Programm Bilder zeigt.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… Link zu einem Bild</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE-Porträt verwenden</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>Das Porträt deines Charakters vom Bildserver von EVE. Es ändert sich, wenn du es im Spiel änderst.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Bild setzen</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Bild entfernen</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>Bild gespeichert. Es wird bei jeder Verbindung mit diesem Server neu gesetzt.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Bild entfernt.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>Dieser Server speichert keine Bilder: Es wird hier gespeichert und gesetzt, sobald der Server das kann.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>Ein Bildlink beginnt mit https:// oder http://, hat keine Leerzeichen und höchstens 400 Zeichen.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>Der Server möchte nur verschlüsselt erreicht werden, also geschieht das: Port {0}, bis {1}.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>Dieser Server möchte bis {1} nur verschlüsselt erreicht werden, also geschieht das auf Port {0}, egal was hier steht.</value>
+  </data>
 </root>

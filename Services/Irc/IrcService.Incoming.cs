@@ -32,6 +32,11 @@ public sealed partial class IrcService
         var history = IsHistory(m);
         if (history && m.Command is not ("PRIVMSG" or "NOTICE" or "TAGMSG" or "REDACT")) return;
 
+        // An answer to WHOIS is the asker's alone: a 401 there is no refusal to show, and a 301 is not news of anyone going away.
+        if (m.Command is "311" or "312" or "313" or "317" or "318" or "319" or "330" or "301" or "671" or "335"
+                      or "307" or "320" or "276" or "338" or "378" or "379" or "401" or "402"
+            && OnWhoisLine(session, m)) return;
+
         var changed = false;
         switch (m.Command)
         {
@@ -72,6 +77,11 @@ public sealed partial class IrcService
                 break;
             case "324": changed = OnModesRead(session, client, m); break;
             case "REDACT": await OnRedactAsync(session, client, m, ct); break;
+            // Pictures: told as they change (METADATA target key visibility [:value]), or asked for (761, and 766 for none).
+            case "METADATA" when m.Params.Count >= 3: OnMetadata(session, client, m[0], m[1], m.Params.Count > 3 ? m[3] : ""); break;
+            case "761" when m.Params.Count >= 5: OnMetadata(session, client, m[1], m[2], m[4]); break;
+            case "766" when m.Params.Count >= 3: OnMetadata(session, client, m[1], m[2], ""); break;
+            case "760" when m.Params.Count >= 5: OnMetadata(session, client, m[1], m[2], m[4]); break;   // a picture told with WHOIS
             case "MARKREAD" when m.Params.Count > 1: await OnReadMarkerAsync(session, client, m[0], m[1], ct); break;
             case "321": session.Locked(s => s.ListComing = []); break;
             case "322":
@@ -102,7 +112,7 @@ public sealed partial class IrcService
                 changed = true;
                 break;
             // A read marker refused is nothing to tell anyone: reading here goes on all the same.
-            case "FAIL" when m[0] == "MARKREAD":
+            case "FAIL" when m[0] is "MARKREAD" or "METADATA":
                 break;
             case "FAIL":
                 session.LastRefusal = m.Last;
@@ -152,6 +162,9 @@ public sealed partial class IrcService
             _ = AskModesAsync(client, channel, ct);
             return true;
         }
+
+        // Someone else's picture: a server tells the one joining about everyone there, not everyone there about them.
+        AskPictureLater(session, client, nick);
 
         return session.Locked(s =>
         {

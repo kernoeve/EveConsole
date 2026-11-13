@@ -430,7 +430,7 @@ public sealed partial class IrcService
         IrcState State, IrcProblem Problem, string Detail, string CertificateFingerprint, string CertificateSubject,
         DateTimeOffset? NextAttempt, string Nick, string Network, bool IsAway, bool HasHistory, bool HasTags, bool IsEncrypted,
         string LastRefusal, string ChannelTypes, string RankModes, string RankSymbols, List<IrcPerson> People, List<IrcInvite> Invites,
-        string ChannelModes = "", bool CanRedact = false, bool LoggedIn = false, string Software = "");
+        string ChannelModes = "", bool CanRedact = false, bool LoggedIn = false, string Software = "", bool HasPictures = false);
 
     private sealed record LiveMember(string Nick, string UserHost, string Account, string Ranks, bool Away, string AwayMessage);
 
@@ -461,7 +461,7 @@ public sealed partial class IrcService
                 s.IsAway, s.HasHistory, s.HasTags, s.IsEncrypted, s.LastRefusal,
                 support.ChannelTypes, new string([.. support.Ranks.Select(r => r.Mode)]), new string([.. support.Ranks.Select(r => r.Symbol)]),
                 [.. s.PeopleMap.Values], [.. s.InviteMap.Values],
-                $"{support.ModesA},{support.ModesB},{support.ModesC},{support.ModesD}", s.CanRedact, s.LoggedIn, support.Software)),
+                $"{support.ModesA},{support.ModesB},{support.ModesC},{support.ModesD}", s.CanRedact, s.LoggedIn, support.Software, s.HasPictures)),
         };
 
         foreach (var (key, c) in s.ChannelMap)
@@ -631,7 +631,7 @@ public sealed partial class IrcService
         s.CertificateFingerprint = a.CertificateFingerprint; s.CertificateSubject = a.CertificateSubject;
         s.NextAttempt = a.NextAttempt; s.Nick = a.Nick; s.Network = a.Network; s.IsAway = a.IsAway;
         s.HasHistory = a.HasHistory; s.HasTags = a.HasTags; s.IsEncrypted = a.IsEncrypted; s.LastRefusal = a.LastRefusal;
-        s.CanRedact = a.CanRedact; s.LoggedIn = a.LoggedIn;
+        s.CanRedact = a.CanRedact; s.LoggedIn = a.LoggedIn; s.HasPictures = a.HasPictures;
 
         var support = new IrcSupport { Software = a.Software };
         support.Apply([$"CHANTYPES={a.ChannelTypes}", $"PREFIX=({a.RankModes}){a.RankSymbols}", .. a.ChannelModes.Length > 0 ? [$"CHANMODES={a.ChannelModes}"] : Array.Empty<string>()]);
@@ -888,6 +888,8 @@ public sealed partial class IrcService
                 await SetModesAsync(session, a.Target, a.Text, values, ct);
                 break;
             case "modelist":   return JsonSerializer.Serialize(await ModeListAsync(session, a.Target, a.Mode, ct));
+            case "whois":      return await WhoisAsync(session, a.Nick, ct) is { } who ? JsonSerializer.Serialize(who) : "";
+            case "avatar":     await SetAvatarUrlAsync(session, a.Text, ct); break;
             default:           throw new InvalidOperationException($"Nothing knows how to do {command.Kind}.");
         }
 

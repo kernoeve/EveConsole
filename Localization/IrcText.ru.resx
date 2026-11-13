@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>Также установлено на канале: {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>Кто это?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>Кто такой {0}</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>Запрос к серверу…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>Сервер не ответил.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} не в сети.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>Настоящее имя</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>Учётная запись</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>Не вошёл в учётную запись</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>Отошёл</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>Молчит</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>Подключён с</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>Адрес</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>Сервер</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>Зашифрованное подключение</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>Оператор сети</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>Бот</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>Да</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>Также</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} д {1} ч</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Ваше изображение</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Веб-ссылка на изображение. Люди на этом сервере видят его там, где их IRC-программа показывает изображения.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… ссылка на изображение</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Взять портрет из EVE</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>Портрет персонажа с сервера изображений EVE. Меняется, когда вы меняете его в игре.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Установить</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>Изображение сохранено. Оно устанавливается заново при каждом подключении к серверу.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Изображение убрано.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>Этот сервер не хранит изображения: оно сохранено здесь и будет установлено, когда сервер сможет.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>Ссылка на изображение начинается с https:// или http://, без пробелов, не длиннее 400 символов.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>Сервер просит подключаться только с шифрованием, так и делается: порт {0}, до {1}.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>Этот сервер просит до {1} подключаться только с шифрованием, поэтому так и будет, на порт {0}, что бы здесь ни стояло.</value>
+  </data>
 </root>

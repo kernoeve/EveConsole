@@ -482,6 +482,153 @@ try
         && !await Wait(() => { lock (fake.Got) return fake.Got.Any(l => l.StartsWith("PART #later")); }, 1500));
     await irc.DisconnectAsync(session);
 
+    // ── Who someone is (WHOIS) ──
+    irc.Connect(session);
+    await Wait(() => session.State == IrcState.Connected, 20000);
+    var bob = await irc.WhoisAsync(session, "Bob");
+    Check("WHOIS: who someone is, from the lines the server sends", bob is { Found: true, RealName: "Bob Real", User: "b", Host: "bob.host", Account: "bobacct",
+        Away: "at lunch", IsSecure: true, IdleSeconds: 300, SignedOnUnix: 1700000000, Server: "fake.server" } && bob.Channels.SequenceEqual(["@#fleet"]),
+        bob is null ? "none" : $"{bob.RealName}|{bob.Account}|{bob.Away}|{bob.IdleSeconds}|{string.Join(",", bob.Channels)}");
+    var nobody = await irc.WhoisAsync(session, "Nobody");
+    Check("WHOIS: nobody of that name is said so, not waited out", nobody is { Found: false });
+    Check("WHOIS: a refusal for it is not shown as one", !session.LastRefusal.Contains("Nobody"), session.LastRefusal);
+    var typed = await irc.SendAsync(session, "#fleet", "/whois Bob");
+    Check("WHOIS: typed, it answers in a line", typed.Contains("Bob Real") && typed.Contains("bobacct") && typed.Contains(IrcText.WhoisAway), typed);
+    var inDm = await irc.SendAsync(session, "Bob", "/whois");
+    Check("WHOIS: typed alone in a conversation, it asks about the other person", inDm.Contains("Bob Real"), inDm);
+    Check("WHOIS: the rows say only what was said", bob is not null && IrcService.WhoisRows(bob).All(r => r.Value.Length > 0)
+        && IrcService.WhoisRows(new IrcWhois { Nick = "x" }).Count == 1);
+    Check("WHOIS: how long, as people say it", IrcService.Span(TimeSpan.FromSeconds(42)).Contains("42") && IrcService.Span(TimeSpan.FromMinutes(90)).Contains("30")
+        && IrcService.Span(TimeSpan.FromDays(2.5)).Contains("12"));
+    Check("WHOIS: a channel or a name with a space is not asked", await irc.WhoisAsync(session, "#fleet") is null && await irc.WhoisAsync(session, "a b") is null);
+    await irc.DisconnectAsync(session);
+
+    // ── Encryption the server asks for (STS) ──
+    Check("STS: what a server offers, read", StsOffer.Parse("port=6697,duration=2592000,preload") is { Port: 6697 } o && o.Duration == TimeSpan.FromSeconds(2592000)
+        && StsOffer.Parse("duration=0") is { Port: 0 } z && z.Duration == TimeSpan.Zero
+        && StsOffer.Parse("") is null && StsOffer.Parse("preload") is null && StsOffer.Parse("port=x") is null
+        && StsOffer.Parse("duration=99999999999")!.Duration == StsOffer.Longest);
+    {
+        await using var asking = new FakeIrc { ExtraCaps = "sts=port=6697,duration=3600" };
+        await using var plain = new IrcClient(new IrcLogin("127.0.0.1", asking.Port, false, "Ann"));
+        IrcException? told = null;
+        try { await plain.ConnectAsync(CancellationToken.None); } catch (IrcException e) { told = e; }
+        Check("STS: unencrypted, the server's ask is to go encrypted now, on its port", told is { Failure: IrcFailure.Upgrade, UpgradePort: 6697 }, told?.Message ?? "connected");
+        Check("STS: and nothing more is sent first", !asking.Got.Any(l => l.StartsWith("CAP REQ")));
+
+        // The service goes there at once, encrypted: a listener on that port sees it come.
+        var tlsSide = new TcpListener(IPAddress.Loopback, 0);
+        tlsSide.Start();
+        var tlsPort = ((IPEndPoint)tlsSide.LocalEndpoint).Port;
+        var arrived = tlsSide.AcceptTcpClientAsync();
+        await using var upgrading = new FakeIrc { ExtraCaps = $"sts=port={tlsPort},duration=3600" };
+        var stsSession = await irc.SaveServerAsync(new IrcServer { Name = "Sts", Host = "127.0.0.1", Port = upgrading.Port, Tls = false, Nickname = "Ann" }, null);
+        irc.Connect(stsSession);
+        Check("STS: the service connects again at once, encrypted, on the port named", await Task.WhenAny(arrived, Task.Delay(5000)) == arrived);
+        await irc.DisconnectAsync(stsSession);
+        (await arrived).Dispose();
+        tlsSide.Stop();
+        Check("STS: an ask from an unencrypted connection is never kept", irc.SessionOf(stsSession.Server.Id)!.Server.StsHost == "");
+
+        var rule = new IrcServer { Host = "irc.example.org", StsHost = "irc.example.org", StsPort = 6697, StsUntil = DateTimeOffset.UtcNow.AddDays(1).ToString("yyyy-MM-ddTHH:mm:ssZ") };
+        Check("STS: a kept rule holds for its host until it ends", IrcService.StsPortOf(rule) == 6697
+            && IrcService.StsPortOf(new IrcServer { Host = "irc.other.org", StsHost = rule.StsHost, StsPort = 6697, StsUntil = rule.StsUntil }) is null
+            && IrcService.StsPortOf(new IrcServer { Host = rule.Host, StsHost = rule.StsHost, StsPort = 6697, StsUntil = DateTimeOffset.UtcNow.AddMinutes(-1).ToString("yyyy-MM-ddTHH:mm:ssZ") }) is null);
+
+        // The settings screen holds an older copy of the server: saving it must not undo what the connection kept.
+        var stsId = stsSession.Server.Id;
+        await using (var db = factory.CreateDbContext())
+            await db.IrcServers.Where(s => s.Id == stsId).ExecuteUpdateAsync(u => u.SetProperty(s => s.StsHost, "127.0.0.1").SetProperty(s => s.StsPort, 6697)
+                .SetProperty(s => s.StsUntil, rule.StsUntil).SetProperty(s => s.AvatarUrl, "https://example.org/a.png"));
+        await irc.SaveServerAsync(new IrcServer { Id = stsId, Name = "Sts renamed", Host = "127.0.0.1", Port = upgrading.Port, Tls = false, Nickname = "Ann" }, null);
+        await using (var db = factory.CreateDbContext())
+        {
+            var back = await db.IrcServers.AsNoTracking().FirstAsync(s => s.Id == stsId);
+            Check("STS: saving the settings keeps the server's rule and the picture", back is { Name: "Sts renamed", StsHost: "127.0.0.1", StsPort: 6697, AvatarUrl: "https://example.org/a.png" },
+                $"{back.Name} {back.StsHost} {back.StsPort} {back.AvatarUrl}");
+        }
+        await irc.DeleteServerAsync(stsId);
+    }
+
+    // ── Pictures (draft/metadata-2) ──
+    {
+        Check("pictures: only from the internet", !IrcPictures.IsInternet(IPAddress.Parse("127.0.0.1")) && !IrcPictures.IsInternet(IPAddress.Parse("10.1.2.3"))
+            && !IrcPictures.IsInternet(IPAddress.Parse("192.168.1.1")) && !IrcPictures.IsInternet(IPAddress.Parse("172.20.0.1")) && !IrcPictures.IsInternet(IPAddress.Parse("169.254.1.1"))
+            && !IrcPictures.IsInternet(IPAddress.Parse("::1")) && !IrcPictures.IsInternet(IPAddress.Parse("fd00::1")) && !IrcPictures.IsInternet(IPAddress.Parse("fe80::1"))
+            && !IrcPictures.IsInternet(IPAddress.Parse("::ffff:192.168.0.1"))
+            && IrcPictures.IsInternet(IPAddress.Parse("8.8.8.8")) && IrcPictures.IsInternet(IPAddress.Parse("2606:4700::1111")) && IrcPictures.IsInternet(IPAddress.Parse("172.32.0.1")));
+        Check("pictures: what a link may be", IrcService.IsPictureLink("") && IrcService.IsPictureLink("https://example.org/a.png")
+            && !IrcService.IsPictureLink("ftp://example.org/a.png") && !IrcService.IsPictureLink("https://example.org/a b.png") && !IrcService.IsPictureLink("not a link")
+            && !IrcService.IsPictureLink("https://example.org/" + new string('a', 400)));
+        Check("pictures: an EVE portrait's link", IrcService.EvePortraitLink(12345) == "https://images.evetech.net/characters/12345/portrait?size=128");
+
+        await using var pictureHost = new PictureHost();
+        var bobOne = $"http://127.0.0.1:{pictureHost.Port}/bob.png";
+        var bobTwo = $"http://127.0.0.1:{pictureHost.Port}/bob2.png";
+        var mine = $"http://127.0.0.1:{pictureHost.Port}/me.png";
+        Check("pictures: never from this machine", await IrcPictures.FetchAsync(bobOne, CancellationToken.None) is null && pictureHost.Served == 0);
+        IrcPictures.AllowThisMachine = true;
+        Check("pictures: fetched where allowed", await IrcPictures.FetchAsync(bobOne, CancellationToken.None) is { Length: > 0 });
+        Check("pictures: one too big is not taken", await IrcPictures.FetchAsync($"http://127.0.0.1:{pictureHost.Port}/huge.png", CancellationToken.None) is null);
+
+        var logger = new AppErrorLogger(null!);
+        var avatars = new AvatarService(factory, logger);
+        var pictured = new IrcService(factory, logger, null, avatars);
+        await using var meta = new FakeIrc { Pictures = true, BobPicture = bobOne };
+        var ps = await pictured.SaveServerAsync(new IrcServer { Name = "Pics", Host = "127.0.0.1", Port = meta.Port, Tls = false, Nickname = "Ann" }, null);
+        pictured.Connect(ps);
+        Check("pictures: the server keeps them, and is asked to tell of changes", await Wait(() => ps.State == IrcState.Connected, 20000) && ps.HasPictures
+            && await Wait(() => { lock (meta.Got) return meta.Got.Contains("METADATA * SUB avatar"); }));
+
+        async Task<string?> Owner(string person)
+        {
+            await using var db = factory.CreateDbContext();
+            return await db.ChatAvatarOwners.AsNoTracking().Where(o => o.Service == "irc" && o.ServerId == ps.Server.Id && o.Person == person).Select(o => o.Hash).FirstOrDefaultAsync();
+        }
+        async Task<bool> WaitOwner(string person, Func<string?, bool> ok)
+        {
+            var until = DateTime.UtcNow.AddSeconds(8);
+            while (DateTime.UtcNow < until) { if (ok(await Owner(person))) return true; await Task.Delay(50); }
+            return ok(await Owner(person));
+        }
+
+        await pictured.JoinChannelAsync(ps, "#fleet", "", null);
+        Check("pictures: someone's comes with joining, kept under both names the screens use",
+            await WaitOwner("nick:bob", h => h is { Length: > 0 }) && await Owner("bob") == await Owner("nick:bob"));
+        meta.Push(":Carol!c@h JOIN #fleet");
+        Check("pictures: someone who joins later is asked about, as the server tells only the one joining",
+            await Wait(() => { lock (meta.Got) return meta.Got.Contains("METADATA Carol GET avatar"); }, 8000));
+        meta.Push(":Carol!c@h PART #fleet");
+        meta.Push(":Carol!c@h JOIN #fleet");
+        meta.Push(":Bob!b@h PART #fleet");
+        meta.Push(":Bob!b@h JOIN #fleet");
+        await Task.Delay(5000);
+        Check("pictures: and only once, nor someone whose picture came already",
+            meta.Got.Count(l => l == "METADATA Carol GET avatar") == 1 && !meta.Got.Contains("METADATA Bob GET avatar"));
+        var first = await Owner("nick:bob");
+        meta.Push($":fake.server METADATA Bob avatar * :{bobTwo}");
+        Check("pictures: a new one replaces it", await WaitOwner("nick:bob", h => h is { Length: > 0 } && h != first));
+        meta.Push(":fake.server METADATA Bob avatar *");
+        Check("pictures: one taken away is forgotten", await WaitOwner("nick:bob", h => h is null) && await Owner("bob") is null);
+
+        await pictured.SetAvatarUrlAsync(ps, mine);
+        Check("pictures: this person's set on the server", await Wait(() => { lock (meta.Got) return meta.Got.Contains("METADATA * SET avatar " + mine); }),
+            string.Join(" | ", meta.Got.Where(l => l.StartsWith("METADATA"))));
+        Check("pictures: and shown here as theirs", await WaitOwner("me", h => h is { Length: > 0 }));
+        await using (var db = factory.CreateDbContext())
+            Check("pictures: and kept with the server", (await db.IrcServers.AsNoTracking().FirstAsync(s => s.Id == ps.Server.Id)).AvatarUrl == mine);
+        var refusedLink = false;
+        try { await pictured.SetAvatarUrlAsync(ps, "javascript:alert(1)"); } catch (ArgumentException) { refusedLink = true; }
+        Check("pictures: a link that is not one is refused", refusedLink && ps.Server.AvatarUrl == mine);
+
+        await pictured.ReconnectAsync(ps);
+        Check("pictures: set again on every connection", await Wait(() => { lock (meta.Got) return meta.Got.Count(l => l == "METADATA * SET avatar " + mine) >= 2; }, 20000));
+        await pictured.SetAvatarUrlAsync(ps, "");
+        Check("pictures: taken away when cleared", await Wait(() => { lock (meta.Got) return meta.Got.Contains("METADATA * SET avatar"); }) && await WaitOwner("me", h => h is null));
+        await pictured.DisconnectAsync(ps);
+        IrcPictures.AllowThisMachine = false;
+    }
+
     // ── Under the worker lease: one process connects, every other client shows what it wrote and asks it ──────────
     {
         var logger = new AppErrorLogger(null!);
@@ -585,6 +732,8 @@ try
 
         var askedBans = await view.BansAsync(seen, "#fleet");
         Check("relay: a channel's bans, asked through the worker", askedBans.Count == 2 && askedBans[0].SetBy == "Bob", askedBans.Count.ToString());
+        var relayWhois = await view.WhoisAsync(seen, "Bob");
+        Check("relay: who someone is, asked through the worker", relayWhois is { Found: true, RealName: "Bob Real" }, relayWhois?.RealName ?? "none");
         var listed = await view.ListChannelsAsync(seen);
         Check("relay: the server's channels, asked through the worker", listed.Any(l => l.Channel == "#ops" && l.People == 4 && l.Topic == "Ops chat"), listed.Count.ToString());
 
@@ -763,6 +912,13 @@ sealed class FakeIrc : IAsyncDisposable
     /// <summary>Never answers this client's PING: a connection that died without a word.</summary>
     public bool Silent { get; set; }
 
+    /// <summary>More offered at CAP LS, as "sts=port=6697".</summary>
+    public string ExtraCaps { get; init; } = "";
+
+    /// <summary>Keeps people's pictures (draft/metadata-2), Bob's being this link.</summary>
+    public bool Pictures { get; init; }
+    public string BobPicture { get; set; } = "";
+
     private int _connections;
     private bool _nakked;
 
@@ -832,7 +988,8 @@ sealed class FakeIrc : IAsyncDisposable
                     if (NoCaps) { Send($":fake.server 421 * CAP :Unknown command"); break; }
                     capping = true;
                     Send(":fake.server CAP * LS * :server-time message-tags echo-message batch");
-                    Send(":fake.server CAP * LS :sasl=PLAIN draft/chathistory multi-prefix away-notify draft/message-redaction draft/read-marker draft/multiline=max-bytes=4096,max-lines=100");
+                    Send(":fake.server CAP * LS :sasl=PLAIN draft/chathistory multi-prefix away-notify draft/message-redaction draft/read-marker draft/multiline=max-bytes=4096,max-lines=100"
+                         + (Pictures ? " draft/metadata-2=before-connect,max-subs=100,max-keys=100" : "") + (ExtraCaps.Length > 0 ? " " + ExtraCaps : ""));
                     break;
                 case "CAP" when m[0] == "REQ":
                     if (NakFirstRequest && !_nakked) { _nakked = true; Send($":fake.server CAP * NAK :{m.Last}"); break; }
@@ -867,6 +1024,13 @@ sealed class FakeIrc : IAsyncDisposable
                     break;
                 case "JOIN":
                     Send($":{nick}!u@h JOIN {m[0]}");
+                    if (Pictures && BobPicture.Length > 0)
+                    {
+                        // As Ergo does: the pictures of who is there, in a batch, before the names.
+                        Send($":fake.server BATCH +mj metadata {m[0]}");
+                        Send($"@batch=mj :fake.server 761 * Bob avatar * {BobPicture}");
+                        Send(":fake.server BATCH -mj");
+                    }
                     Send($":fake.server 353 {nick} = {m[0]} :{nick} @+Bob!b@h Carol");
                     Send($":fake.server 366 {nick} {m[0]} :End of NAMES");
                     break;
@@ -932,6 +1096,29 @@ sealed class FakeIrc : IAsyncDisposable
                 case "PRIVMSG" or "NOTICE" when echo:
                     Send($"@msgid=e{Interlocked.Increment(ref _msgid)};time={DateTime.UtcNow:yyyy-MM-ddTHH:mm:ss.fffZ} :{nick}!u@h {m.Command} {m[0]} :{m.Last}");
                     break;
+                case "WHOIS" when m[0] == "Bob":
+                    Send($":fake.server 311 {nick} Bob b bob.host * :Bob Real");
+                    Send($":fake.server 319 {nick} Bob :@#fleet");
+                    Send($":fake.server 312 {nick} Bob fake.server :The fake server");
+                    Send($":fake.server 301 {nick} Bob :at lunch");
+                    Send($":fake.server 330 {nick} Bob bobacct :is logged in as");
+                    Send($":fake.server 671 {nick} Bob :is using a secure connection");
+                    Send($":fake.server 317 {nick} Bob 300 1700000000 :seconds idle, signon time");
+                    Send($":fake.server 318 {nick} Bob :End of /WHOIS list");
+                    break;
+                case "WHOIS":
+                    Send($":fake.server 401 {nick} {m[0]} :No such nick");
+                    Send($":fake.server 318 {nick} {m[0]} :End of /WHOIS list");
+                    break;
+                case "METADATA" when Pictures && m.Params.Count >= 3 && m[1] == "SUB":
+                    Send($":fake.server 770 {nick} {m[2]}");
+                    break;
+                case "METADATA" when Pictures && m.Params.Count >= 3 && m[1] == "SET":
+                    Send(m.Params.Count > 3 ? $":fake.server 761 {nick} {nick} avatar * :{m[3]}" : $":fake.server 766 {nick} {nick} avatar :key not set");
+                    break;
+                case "METADATA" when Pictures && m.Params.Count >= 3 && m[1] == "GET":
+                    Send(m[0] == "Bob" && BobPicture.Length > 0 ? $":fake.server 761 {nick} Bob avatar * :{BobPicture}" : $":fake.server 766 {nick} {m[0]} avatar :key not set");
+                    break;
                 case "QUIT":
                     Send("ERROR :Closing link");
                     return;
@@ -944,5 +1131,72 @@ sealed class FakeIrc : IAsyncDisposable
         await _stop.CancelAsync();
         _listener.Stop();
         Drop();
+    }
+}
+
+/// <summary>Serves pictures over plain HTTP on this machine: two small ones of different colours, and one too big to be one.</summary>
+sealed class PictureHost : IAsyncDisposable
+{
+    private readonly TcpListener _listener = new(IPAddress.Loopback, 0);
+    private readonly CancellationTokenSource _stop = new();
+    private int _served;
+
+    public int Port { get; }
+    public int Served => Volatile.Read(ref _served);
+
+    public PictureHost()
+    {
+        _listener.Start();
+        Port = ((IPEndPoint)_listener.LocalEndpoint).Port;
+        _ = Task.Run(AcceptAsync);
+    }
+
+    private static byte[] Png(SkiaSharp.SKColor colour)
+    {
+        using var bitmap = new SkiaSharp.SKBitmap(16, 16);
+        bitmap.Erase(colour);
+        using var data = bitmap.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100);
+        return data.ToArray();
+    }
+
+    private async Task AcceptAsync()
+    {
+        while (!_stop.IsCancellationRequested)
+        {
+            TcpClient client;
+            try { client = await _listener.AcceptTcpClientAsync(_stop.Token); }
+            catch (Exception) { return; }
+            _ = Task.Run(async () =>
+            {
+                using (client)
+                {
+                    var stream = client.GetStream();
+                    var reader = new StreamReader(stream, Encoding.ASCII);
+                    var request = await reader.ReadLineAsync() ?? "";
+                    while (await reader.ReadLineAsync() is { Length: > 0 }) { }
+                    var path = request.Split(' ').ElementAtOrDefault(1) ?? "";
+                    var body = path switch
+                    {
+                        "/bob.png" => Png(SkiaSharp.SKColors.Red),
+                        "/bob2.png" => Png(SkiaSharp.SKColors.Blue),
+                        "/me.png" => Png(SkiaSharp.SKColors.Green),
+                        "/huge.png" => new byte[AvatarService.MostBytes + 10],
+                        _ => [],
+                    };
+                    Interlocked.Increment(ref _served);
+                    var head = body.Length > 0
+                        ? $"HTTP/1.1 200 OK\r\nContent-Type: image/png\r\nContent-Length: {body.Length}\r\nConnection: close\r\n\r\n"
+                        : "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nConnection: close\r\n\r\n";
+                    await stream.WriteAsync(Encoding.ASCII.GetBytes(head));
+                    await stream.WriteAsync(body);
+                }
+            });
+        }
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await _stop.CancelAsync();
+        _listener.Stop();
     }
 }

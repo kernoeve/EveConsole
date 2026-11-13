@@ -19,6 +19,11 @@ public enum IrcFailure
     Protocol,
     /// <summary>The server does not accept the nickname at all: it has to be changed.</summary>
     Nickname,
+    /// <summary>
+    /// The server asked, on an unencrypted connection, to be reached encrypted (STS): connect again with TLS on
+    /// <see cref="IrcException.UpgradePort"/>, at once.
+    /// </summary>
+    Upgrade,
 }
 
 public sealed class IrcException(IrcFailure failure, string message, Exception? inner = null) : Exception(message, inner)
@@ -29,6 +34,9 @@ public sealed class IrcException(IrcFailure failure, string message, Exception? 
     public string? CertificateFingerprint { get; init; }
     public string? CertificateSubject { get; init; }
     public string? CertificateProblem { get; init; }
+
+    /// <summary>For <see cref="IrcFailure.Upgrade"/>: the encrypted port the server named.</summary>
+    public int UpgradePort { get; init; }
 }
 
 /// <summary>
@@ -75,10 +83,12 @@ public sealed class IrcConnection : IAsyncDisposable
 
         try
         {
-            _tcp = new TcpClient { NoDelay = true };
-            await _tcp.ConnectAsync(host, port, timeout.Token);
-            _stream = _tcp.GetStream();
-            if (tls) await StartTlsAsync(host, trustedFingerprint, timeout.Token);
+            // ⚠️ Each held here, not read back from the fields: a Disconnect pressed meanwhile closes and clears them.
+            var tcp = _tcp = new TcpClient { NoDelay = true };
+            await tcp.ConnectAsync(host, port, timeout.Token);
+            var plain = tcp.GetStream();
+            _stream = plain;
+            if (tls) await StartTlsAsync(plain, host, trustedFingerprint, timeout.Token);
         }
         catch (Exception e) when (!ct.IsCancellationRequested && (e is not IrcException || timeout.IsCancellationRequested))
         {
@@ -87,11 +97,11 @@ public sealed class IrcConnection : IAsyncDisposable
         }
     }
 
-    private async Task StartTlsAsync(string host, string trusted, CancellationToken ct)
+    private async Task StartTlsAsync(Stream plain, string host, string trusted, CancellationToken ct)
     {
         string? fingerprint = null, subject = null, problem = null;
 
-        var tls = new SslStream(_stream!, leaveInnerStreamOpen: false);
+        var tls = new SslStream(plain, leaveInnerStreamOpen: false);
         var options = new SslClientAuthenticationOptions
         {
             TargetHost = host,

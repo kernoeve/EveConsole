@@ -577,4 +577,112 @@
   <data name="ModeAlsoSet" xml:space="preserve">
     <value>Aussi posé sur le canal : {0}</value>
   </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>Qui est-ce ?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>Qui est {0}</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>Question posée au serveur…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>Le serveur n’a pas répondu.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} n’est pas en ligne.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>Nom réel</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>Compte</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>Connecté à aucun compte</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>Silencieux depuis</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>Connecté depuis</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>Canaux</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>Adresse</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>Serveur</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>Connexion chiffrée</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>Opérateur du réseau</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>Oui</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>Aussi</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} j {1} h</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Votre image</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Un lien web vers une image. Les gens de ce serveur la voient là où leur logiciel IRC affiche des images.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… lien vers une image</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Utiliser un portrait EVE</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>Le portrait de votre personnage, depuis le serveur d’images d’EVE. Il change quand vous le changez dans le jeu.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Définir l’image</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Retirer l’image</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>Image enregistrée. Elle est redéfinie à chaque connexion à ce serveur.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Image retirée.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>Ce serveur ne garde pas d’images : elle est enregistrée ici et sera définie quand le serveur le pourra.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>Un lien d’image commence par https:// ou http://, sans espaces, et fait au plus 400 caractères.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>Le serveur demande à n’être joint que chiffré, c’est donc le cas : port {0}, jusqu’au {1}.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>Ce serveur demande à n’être joint que chiffré jusqu’au {1} : ce sera donc le cas, sur le port {0}, quoi qu’indiqué ici.</value>
+  </data>
 </root>
