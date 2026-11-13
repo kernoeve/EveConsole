@@ -2050,4 +2050,64 @@
   <data name="IntelQuieterFarNote" xml:space="preserve">
     <value>1점프 이내에서는 최대 음량으로, 멀수록 작게 울립니다. 범위 끝에서는 40%입니다. 음성은 설정한 음량을 유지합니다.</value>
   </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>적대로 보기</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>이름이 나온 파일럿 중 어떤 이를 셀지, 가장 가까운 내 캐릭터(또는 설정 → Intel에서 고정한 캐릭터)의 스탠딩으로 정합니다. 블루와 내 캐릭터는 세지 않고, 이름 없는 인원과 플래그만 있는 보고는 항상 셉니다.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>중립 이하</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>마이너스만</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>빨강만</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>감시 목록 사용</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>'항상 알림'에 있는 대상은 범위, 적대 선택, 최소 인원과 상관없이 감시 목록 범위 안에서 울리고, 가장 먼저 읽히며 미뤄지지 않습니다. '무시'에 있는 대상은 울리지 않습니다.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>감시 목록 범위</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>'항상 알림' 항목이 울리는 거리(점프 수)로, 범위보다 멀 때 쓰입니다. 최대 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>접근하는 파일럿은 항상 깨움</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>'깨우는 범위'가 설정된 경우, 다가오는 파일럿(전보다 가까이에서 보였거나 내 캐릭터 쪽으로 향한다고 보고된)은 범위 안 어디서든 깨웁니다.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>우선 성계</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>선택 사항. 캐릭터가 어디에 있든 항상 감시하는 성계입니다. 그곳에서 보인 것은 항상 깨우고, 다른 인텔 알람에 밀리지 않으며, 가장 먼저 읽힙니다.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>우선 성계: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>감시 목록: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>접근 중: {0}(으)로 향하고 있습니다.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>접근 중: {0}({1})(으)로 향하고 있습니다.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>접근 중: 이전에는 {0}에 있었습니다.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>멀어지고 있습니다({0} 방향).</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}(Thera 또는 Turnur 경유)</value>
+  </data>
 </root>

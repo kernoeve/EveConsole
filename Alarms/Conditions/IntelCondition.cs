@@ -89,6 +89,19 @@ public sealed class IntelCondition : IAlarmCondition
     internal const string AroundSystems    = "Systems";
     private static readonly string[] AroundChoices = [AroundUndocked, AroundCharacters, AroundSystems];
 
+    // Who counts as hostile, by the standings of the character nearest: the worst tier each lets through.
+    internal const string HostileNeutral  = "Neutral or worse";
+    internal const string HostileNegative = "Negative only";
+    internal const string HostileRed      = "Red only";
+    private static readonly string[] HostileChoices = [HostileNeutral, HostileNegative, HostileRed];
+
+    /// <summary>How far the watch list's Always entries fire by default, when farther than the range.</summary>
+    internal const int DefaultWatchReach = 10;
+
+    /// <summary>Without the distance service, how much farther than the reach the stargate walk goes, so a pilot
+    /// seen a few jumps outside it before is still known to have come nearer.</summary>
+    private const int ApproachMargin = 5;
+
     private readonly SystemGraph           _graph;
     private readonly IntelSnapshotService? _snapshots;
     private readonly IntelDistanceService? _distances;
@@ -134,7 +147,12 @@ public sealed class IntelCondition : IAlarmCondition
         "come into range, within the last two minutes by default (Settings → Intel), and within wake_jumps when " +
         "that is set; older or farther matches are only written to Alerts. Intel alarms share one wake cooldown " +
         "(15 s by default; urgent news skips it) and a sighting two of them catch is said once. The sound plays " +
-        "quieter further out (quieter_far).";
+        "quieter further out (quieter_far). Hostile is neutral or worse by default (hostile_from), by the standings " +
+        "of the watched character nearest. Urgent, said first and never held back: anything in a priority system " +
+        "(priority_systems, always watched), anyone on the watch list's Always alert (within watch_list_jumps, " +
+        "whatever the range or minimum; Ignore never fires), and a pilot approaching (seen closer than before, or " +
+        "reported heading toward a watched character), which wakes beyond wake_jumps unless approach_wakes is off. " +
+        "A pilot heading away is said so. A distance through Thera or Turnur is said so.";
 
     public object ParameterSchema => new
     {
@@ -217,6 +235,39 @@ public sealed class IntelCondition : IAlarmCondition
                               "cyno, a hot drop, a spike or combat probes. Each is said once while it lasts. " +
                               "Default true.",
             },
+            hostile_from = new
+            {
+                section     = SectionWhat,
+                type        = "string",
+                @enum       = HostileChoices,
+                @default    = HostileNeutral,
+                title       = "Hostile",
+                description = "Which named pilots count as hostile, by the standings of the watched character " +
+                              "nearest them (or the forced standings character of Settings → Intel): \"Neutral or " +
+                              "worse\" (the default), \"Negative only\" or \"Red only\". Blues and your own " +
+                              "characters never count. Unnamed counts and flag-only reports always do.",
+            },
+            watch_list = new
+            {
+                section     = SectionWhat,
+                type        = "boolean",
+                @default    = true,
+                title       = "Use the watch list",
+                description = "Follow the Intel tool's watch list: pilots, corporations, alliances, hulls and " +
+                              "ship groups on Always alert fire within watch_list_jumps whatever the range, the " +
+                              "hostility choice or min_players, said first and never held back; those on Ignore " +
+                              "never fire. Default true.",
+            },
+            watch_list_jumps = new
+            {
+                section     = SectionWhat,
+                type        = "integer",
+                @default    = DefaultWatchReach,
+                show_if     = new Dictionary<string, string[]> { ["watch_list"] = ["true"] },
+                title       = "Watch list reach",
+                description = "How many jumps out the watch list's Always entries fire, when that is farther than " +
+                              "jumps. Default 10, capped at 15.",
+            },
             wake_jumps = new
             {
                 section     = SectionWaking,
@@ -227,6 +278,15 @@ public sealed class IntelCondition : IAlarmCondition
                               "agent, a dialog); farther ones are only written to Alerts. Kills and urgent news " +
                               "always wake. Left out, the whole range wakes.",
             },
+            approach_wakes = new
+            {
+                section     = SectionWaking,
+                type        = "boolean",
+                @default    = true,
+                title       = "Approaching pilots still wake",
+                description = "With wake_jumps set: a pilot coming nearer (seen closer than before, or reported " +
+                              "heading toward a watched character) wakes you anywhere in the range. Default true.",
+            },
             quieter_far = new
             {
                 section     = SectionWaking,
@@ -235,6 +295,16 @@ public sealed class IntelCondition : IAlarmCondition
                 title       = "Quieter further out",
                 description = "The sound plays at full volume within a jump, and more quietly further out: down to " +
                               "40% at the edge of the jump range. Speech keeps its own volume. Default true.",
+            },
+            priority_systems = new
+            {
+                section     = SectionWaking,
+                type        = "array",
+                items       = new { type = "string" },
+                format      = "system-name",
+                title       = "Priority systems",
+                description = "Optional. Systems always watched, wherever the characters are; what is seen there " +
+                              "always wakes you, is never held back by another intel alarm, and is said first.",
             },
         },
         required = Array.Empty<string>(),
@@ -273,6 +343,11 @@ public sealed class IntelCondition : IAlarmCondition
         "flag_reports"     => new(AlarmsText.IntelFlagReportsLabel, AlarmsText.IntelFlagReportsNote),
         "wake_jumps"       => new(AlarmsText.IntelWakeJumpsLabel,   AlarmsText.IntelWakeJumpsNote, AlarmsText.IntelWakeJumpsSuffix),
         "quieter_far"      => new(AlarmsText.IntelQuieterFarLabel,  AlarmsText.IntelQuieterFarNote),
+        "hostile_from"     => new(AlarmsText.IntelHostileFromLabel, AlarmsText.IntelHostileFromNote),
+        "watch_list"       => new(AlarmsText.IntelWatchListLabel,   AlarmsText.IntelWatchListNote),
+        "watch_list_jumps" => new(AlarmsText.IntelWatchReachLabel,  AlarmsText.IntelWatchReachNote, AlarmsText.IntelWakeJumpsSuffix),
+        "approach_wakes"   => new(AlarmsText.IntelApproachWakesLabel, AlarmsText.IntelApproachWakesNote),
+        "priority_systems" => new(AlarmsText.IntelPrioritySystemsLabel, AlarmsText.IntelPrioritySystemsNote),
         _                  => null,
     };
 
@@ -281,6 +356,9 @@ public sealed class IntelCondition : IAlarmCondition
         AroundUndocked   => AlarmsText.OptionUndockedCharacters,
         AroundCharacters => AlarmsText.OptionCharacters,
         AroundSystems    => AlarmsText.OptionSystems,
+        HostileNeutral   => AlarmsText.OptionNeutralOrWorse,
+        HostileNegative  => AlarmsText.OptionNegativeOnly,
+        HostileRed       => AlarmsText.OptionRedOnly,
         _                => null,
     };
 
@@ -318,6 +396,13 @@ public sealed class IntelCondition : IAlarmCondition
         if (!ReadBool(config, "flag_reports", true)) text += ", no flag-only reports";
         if (ReadWakeJumps(config) is { } wakes) text += $", wakes within {wakes} jump{(wakes == 1 ? "" : "s")}";
         if (!ReadBool(config, "quieter_far", true)) text += ", same loudness near or far";
+        var hostile = ReadHostileFrom(config);
+        if (hostile != StandingTier.Neutral) text += hostile == StandingTier.Red ? ", red only" : ", negative only";
+        if (ReadWatchReach(config) is not { } watchReach) text += ", no watch list";
+        else if (watchReach != DefaultWatchReach) text += $", watch list within {watchReach} jump{(watchReach == 1 ? "" : "s")}";
+        if (ReadWakeJumps(config) is not null && !ReadBool(config, "approach_wakes", true)) text += ", approaching pilots wake only within that";
+        var priority = ReadList(config, "priority_systems");
+        if (priority.Count > 0) text += $", {priority.Count} priority system{(priority.Count == 1 ? "" : "s")}";
         return text;
     }
 
@@ -378,7 +463,8 @@ public sealed class IntelCondition : IAlarmCondition
 
         // What is news to the capsuleer, as opposed to unseen by this alarm: remembered only while
         // something is watched, so a long dock (or every character logged off) begins it again.
-        var look = _memory.Observe(ctx.Alarm.Id, zone.Systems,
+        // The watch list's farther reach counts as watched for this: an Always pilot is news when it comes into it.
+        var look = _memory.Observe(ctx.Alarm.Id, zone.WatchReach.Count == 0 ? zone.Systems : zone.Systems.Union(zone.WatchReach),
                                    matches.Where(m => KindOf(m) == KindKill).Select(m => m.Key), ctx.Now);
         return Waking(matches, zone, options, ctx.Now, TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds), look);
     }
@@ -392,7 +478,8 @@ public sealed class IntelCondition : IAlarmCondition
     /// reach (<paramref name="look"/>) — and, for a kill, when this alarm first caught it, since the
     /// kill feed brings a kill minutes after it happened. Urgent news is held to this too: what makes
     /// it urgent is how near it is, not how new.</item>
-    /// <item><b>Within the wake range</b>, when the alarm sets one; a kill and urgent news always wake.</item>
+    /// <item><b>Within the wake range</b>, when the alarm sets one. A kill, a priority system and the watch
+    /// list's Always always wake; a pilot approaching does too unless the alarm turns that off.</item>
     /// <item><b>Loudness</b>, when the alarm plays far news quieter: 1 within a jump, down to
     /// <see cref="FarLoudness"/> at the edge of the range (<see cref="Loudness"/>); urgent news at 1.</item>
     /// </list>
@@ -413,8 +500,9 @@ public sealed class IntelCondition : IAlarmCondition
             int? jumps = zone.Jumps.TryGetValue(system, out var hops) ? hops : null;
             double? ly = zone.LightYears.TryGetValue(system, out var far) ? far : null;
 
+            var anywhere = kill || Flag(m, "priority") || Flag(m, "watch") || (options.ApproachWakes && Flag(m, "approaching"));
             var quiet = now - news > fresh
-                     || (!kill && !m.Urgent && options.WakeJumps is int within && (jumps is not int j || j > within));
+                     || (!anywhere && options.WakeJumps is int within && (jumps is not int j || j > within));
             var loud  = m.Urgent || !options.QuieterFar ? 1.0 : Loudness(jumps, ly, options.Jumps, options.Ly);
             return m with { Quiet = quiet, Loudness = loud };
         })];
@@ -448,8 +536,14 @@ public sealed class IntelCondition : IAlarmCondition
     /// <param name="WakeJumps">The wake range: farther matches only show. Null for the whole range.</param>
     /// <param name="QuieterFar">The sound plays quieter further out.</param>
     /// <param name="Ly">The light-year range, when set: what a system only it caught is as far as.</param>
+    /// <param name="HostileFrom">The worst tier a named pilot may be and still not count: Neutral lets
+    /// red, orange and neutral count, Orange red and orange, Red red alone.</param>
+    /// <param name="WatchList">The watch list is followed: Always fires farther and first, Ignore never.</param>
+    /// <param name="ApproachWakes">A pilot approaching wakes beyond the wake range.</param>
     internal sealed record IntelAlarmOptions(int Jumps, int MinPlayers = 1, bool SkipNoVisual = false, bool FlagReports = true,
-                                             int? WakeJumps = null, bool QuieterFar = true, double? Ly = null);
+                                             int? WakeJumps = null, bool QuieterFar = true, double? Ly = null,
+                                             StandingTier HostileFrom = StandingTier.Neutral, bool WatchList = true,
+                                             bool ApproachWakes = true);
 
     internal static IntelAlarmOptions Options(JsonElement config)
     {
@@ -461,12 +555,31 @@ public sealed class IntelCondition : IAlarmCondition
             ReadBool(config, "flag_reports", true),
             ReadWakeJumps(config),
             ReadBool(config, "quieter_far", true),
-            ReadLy(config));
+            ReadLy(config),
+            ReadHostileFrom(config),
+            ReadBool(config, "watch_list", true),
+            ReadBool(config, "approach_wakes", true));
     }
 
     /// <summary>The wake range, capped like the range; null when it is not set (the whole range wakes).</summary>
     private static int? ReadWakeJumps(JsonElement config) =>
         ReadInt(config, "wake_jumps") is int n ? Math.Clamp(n, 0, MaxJumps) : null;
+
+    /// <summary>How far the watch list's Always entries fire, capped like the range; null when the alarm
+    /// does not follow the watch list.</summary>
+    internal static int? ReadWatchReach(JsonElement config) =>
+        ReadBool(config, "watch_list", true) ? Math.Clamp(ReadInt(config, "watch_list_jumps") ?? DefaultWatchReach, 0, MaxJumps) : null;
+
+    /// <summary>The worst tier that still counts as hostile. Lenient, as the agent may word it: anything
+    /// saying red is red only, anything saying negative (or orange) negative only, else neutral or worse.</summary>
+    internal static StandingTier ReadHostileFrom(JsonElement config)
+    {
+        var text = ReadString(config, "hostile_from")?.Trim() ?? "";
+        if (text.Contains("red", StringComparison.OrdinalIgnoreCase)) return StandingTier.Red;
+        if (text.Contains("neg", StringComparison.OrdinalIgnoreCase) || text.Contains("orange", StringComparison.OrdinalIgnoreCase))
+            return StandingTier.Orange;
+        return StandingTier.Neutral;
+    }
 
     // What a match is about, in its detail.
     internal const string KindPilot = "pilot";
@@ -478,9 +591,18 @@ public sealed class IntelCondition : IAlarmCondition
     /// Everything in the watched systems now, as matches keyed by episode (see the class summary).
     /// Pure: tools/IntelCheck runs it on snapshots built by hand.
     ///
-    /// <para>Hostile is "neutral or worse" as the character the system is nearest sees it (the
-    /// standings rule every intel view uses); the user's own characters never are. Urgent matches
-    /// come first, then the nearest, then the newest.</para>
+    /// <list type="bullet">
+    /// <item><b>Hostile</b> is the alarm's choice (neutral or worse by default, or negative only, or red only)
+    /// as the character the system is nearest sees it: the standings rule every intel view uses. Blues and
+    /// the user's own characters never are; unnamed counts and flags always count.</item>
+    /// <item><b>The watch list</b>, when the alarm follows it: Ignore never fires. Always fires whatever the
+    /// hostility choice or the minimum (a blue still never), out to the watch list's reach, and is urgent.</item>
+    /// <item><b>Priority systems</b>: whatever fires there is urgent.</item>
+    /// <item><b>Approaching</b>: a pilot, or a count, seen nearer than where it was seen before, or reported
+    /// heading toward the character nearest, is urgent. One heading away is said so, and nothing more.</item>
+    /// </list>
+    /// <para>Said first: priority systems, then the watch list, then other urgent news; then the nearest,
+    /// then the newest (<see cref="Ordered"/>).</para>
     /// </summary>
     internal static IReadOnlyList<AlarmMatch> Match(
         IntelSnapshot snapshot, IntelWatchedSystems zone, IntelAlarmOptions options, DateTimeOffset now)
@@ -489,10 +611,35 @@ public sealed class IntelCondition : IAlarmCondition
         long? ViewerOf(int systemId) =>
             zone.NearestCharacter.TryGetValue(systemId, out var id) ? id
             : zone.LightYearsNearestCharacter.TryGetValue(systemId, out var lyId) ? lyId : null;
-        bool Hostile(int systemId, long pilot, long corp, long alliance) =>
-            StandingTiers.IsHostile(standings.TierFor(ViewerOf(systemId), pilot, corp, alliance));
+        IntelWatchMark Mark(long pilot, long corp, long alliance, int? ship) =>
+            options.WatchList ? snapshot.WatchOf(pilot, corp, alliance, ship) : IntelWatchMark.None;
+        // Whether a named pilot fires: never on Ignore, never a friend (blue, or one of the user's own); on
+        // Always whatever the alarm's hostility choice, otherwise only at that tier or worse.
+        bool Fires(int systemId, long pilot, long corp, long alliance, IntelWatchMark mark)
+        {
+            if (mark == IntelWatchMark.Ignored) return false;
+            var tier = standings.TierFor(ViewerOf(systemId), pilot, corp, alliance);
+            return StandingTiers.IsHostile(tier) && (mark == IntelWatchMark.Always || tier <= options.HostileFrom);
+        }
+        // The range (with the light years and the priority systems), and the watch list's reach beyond it.
+        bool Watched(int systemId) => zone.Systems.Contains(systemId);
+        bool InReach(int systemId) => zone.Systems.Contains(systemId) || (options.WatchList && zone.WatchReach.Contains(systemId));
         string English(int systemId) =>
             snapshot.SystemNames.TryGetValue(systemId, out var name) ? name : systemId.ToString(CultureInfo.InvariantCulture);
+
+        // Which way a sighting goes, from the character nearest it: by where it was seen before (only lately: within
+        // twice the named lifetime), and by where a report said it was heading.
+        var lately = snapshot.Settings.Named + snapshot.Settings.Named;
+        IntelApproach Approach(int systemId, int? before, DateTimeOffset? beforeAt, int? heading)
+        {
+            if (!zone.Jumps.TryGetValue(systemId, out var here)) return default;
+            int? was = null;
+            if (before is int b && b != systemId && beforeAt is { } at && now - at <= lately && zone.JumpsBetween(systemId, b) is int then)
+                was = then;
+            int? to = heading is int h && h != systemId ? zone.JumpsBetween(systemId, h) : null;
+            return new IntelApproach(was is int w && w > here ? w : null, to is not null ? heading : null, to,
+                                     was > here, to < here, to > here);
+        }
 
         var matches = new List<AlarmMatch>();
 
@@ -502,22 +649,27 @@ public sealed class IntelCondition : IAlarmCondition
         foreach (var e in snapshot.Feed)
         {
             if (e.Kind != IntelEventKind.Kill || e.KillMailId is not int killId) continue;
-            if (!zone.Systems.Contains(e.SystemId) || e.ExpiresAt <= now) continue;
+            if (!InReach(e.SystemId) || e.ExpiresAt <= now) continue;
 
-            // A kill by blues alone is no threat; anyone else among the attackers is.
-            var gang = e.Pilots.Where(p => p.CharacterId > 0 && Hostile(e.SystemId, p.CharacterId, p.CorporationId, p.AllianceId))
+            // A kill by blues alone is no threat, nor one by pilots the watch list ignores; anyone else among
+            // the attackers is. Beyond the range, only an attacker the watch list always alerts on fires it.
+            var gang = e.Pilots.Where(p => p.CharacterId > 0)
+                .Select(p => (Pilot: p, Mark: Mark(p.CharacterId, p.CorporationId, p.AllianceId, p.ShipTypeId)))
+                .Where(x => Fires(e.SystemId, x.Pilot.CharacterId, x.Pilot.CorporationId, x.Pilot.AllianceId, x.Mark))
                 .ToList();
-            if (gang.Count == 0) continue;
-            foreach (var p in gang) onKills.Add((p.CharacterId, e.SystemId));
+            var watch = gang.Any(x => x.Mark == IntelWatchMark.Always);
+            if (gang.Count == 0 || (!Watched(e.SystemId) && !watch)) continue;
+            foreach (var (p, _) in gang) onKills.Add((p.CharacterId, e.SystemId));
 
-            var hulls = gang.Where(p => p.ShipTypeId is > 0 && !string.IsNullOrWhiteSpace(p.Ship))
+            var hulls = gang.Select(x => x.Pilot).Where(p => p.ShipTypeId is > 0 && !string.IsNullOrWhiteSpace(p.Ship))
                 .GroupBy(p => p.ShipTypeId!.Value)
                 .OrderByDescending(g => g.Count()).ThenBy(g => g.Key)
                 .Select(g => g.First().Ship!).Take(3).ToList();
-            var names  = gang.Select(p => p.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!).Distinct().ToList();
+            var names  = gang.Select(x => x.Pilot.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Select(n => n!).Distinct().ToList();
             var victim = string.IsNullOrWhiteSpace(e.VictimShip) ? null : e.VictimShip;
             var (near, jumpsOut, lyOut, from) = HowFar(e.SystemId, options.Jumps, zone);
-            var urgent = zone.Jumps.TryGetValue(e.SystemId, out var j) && j <= UrgentKillJumps;
+            var priority = zone.Priority.Contains(e.SystemId);
+            var urgent = priority || watch || (zone.Jumps.TryGetValue(e.SystemId, out var j) && j <= UrgentKillJumps);
 
             matches.Add(new AlarmMatch(
                 "intel:k:" + killId.ToString(CultureInfo.InvariantCulture),
@@ -540,6 +692,9 @@ public sealed class IntelCondition : IAlarmCondition
                     ["jumps"]         = jumpsOut,
                     ["ly"]            = lyOut,
                     ["near"]          = near,
+                    ["via"]           = zone.ViaWormhole.Contains(e.SystemId),
+                    ["priority"]      = priority,
+                    ["watch"]         = watch,
                     ["urgent"]        = urgent,
                     ["at"]            = e.At.UtcDateTime,
                 },
@@ -550,7 +705,9 @@ public sealed class IntelCondition : IAlarmCondition
         foreach (var system in snapshot.Systems.Values)
         {
             var id = system.SystemId;
-            if (!zone.Systems.Contains(id)) continue;
+            if (!InReach(id)) continue;
+            var watched  = Watched(id);
+            var priority = zone.Priority.Contains(id);
 
             var facts = system.Facts.Where(f => f.ExpiresAt > now).ToList();
             var flagBits = facts.Aggregate(0, (bits, f) => bits | (int)f.Flag);
@@ -571,64 +728,134 @@ public sealed class IntelCondition : IAlarmCondition
                 ["jumps"]     = jumpsOut,
                 ["ly"]        = lyOut,
                 ["near"]      = near,
+                ["via"]       = zone.ViaWormhole.Contains(id),
+                ["priority"]  = priority,
                 ["at"]        = at.UtcDateTime,
             };
 
-            // Who is there: alive, not a loss (a loss takes a pilot off the map), hostile to the
-            // character nearest, and seen rather than relayed when asked.
+            // Who is there: alive, not a loss (a loss takes a pilot off the map), firing for the character
+            // nearest, and seen rather than relayed when asked. Beyond the range, only the watch list's Always.
             var pilots = system.PilotIds
                 .Select(p => snapshot.Pilots.GetValueOrDefault(p))
                 .Where(p => p is not null && p.SystemId == id && p.ExpiresAt > now
                             && p.Source != IntelLastSeenSource.KillVictim
-                            && !(options.SkipNoVisual && p.NoVisual)
-                            && Hostile(id, p.CharacterId, p.CorporationId, p.AllianceId))
-                .Select(p => p!)
+                            && !(options.SkipNoVisual && p.NoVisual))
+                .Select(p => (Pilot: p!, Mark: Mark(p!.CharacterId, p.CorporationId, p.AllianceId, p.ShipTypeId)))
+                .Where(x => Fires(id, x.Pilot.CharacterId, x.Pilot.CorporationId, x.Pilot.AllianceId, x.Mark)
+                            && (watched || x.Mark == IntelWatchMark.Always))
                 .ToList();
             var unnamed = system.Unnamed is { Count: > 0 } u && u.ExpiresAt > now && !(options.SkipNoVisual && u.NoVisual) ? u : null;
+            // A count by the hulls it was said in: always alerted on when any is, ignored only when all are.
+            var countMark = unnamed is null || !options.WatchList ? IntelWatchMark.None : CountMark(snapshot, unnamed.Ships);
+            if (countMark == IntelWatchMark.Ignored || (!watched && countMark != IntelWatchMark.Always)) unnamed = null;
 
-            if (pilots.Count + (unnamed?.Count ?? 0) >= options.MinPlayers)
+            // The minimum counts everyone who fires; the watch list's Always fires below it.
+            var enough = pilots.Count + (unnamed?.Count ?? 0) >= options.MinPlayers;
+
+            foreach (var (p, mark) in pilots)
             {
-                foreach (var p in pilots)
+                var watch = mark == IntelWatchMark.Always;
+                if (!enough && !watch) continue;
+                var name = string.IsNullOrWhiteSpace(p.Name) ? null : p.Name;
+                var detail = Detail(KindPilot, 1, name is null ? [] : [name],
+                                    string.IsNullOrWhiteSpace(p.Ship) ? [] : [p.Ship!], flagBits, p.At);
+                detail["character_id"] = p.CharacterId;
+                detail["no_visual"]    = p.NoVisual;
+                detail["watch"]        = watch;
+                if (p.FromKill) detail["note"] = AlarmsText.IntelSaidOnKill;
+                var approach = Approach(id, p.PrevSystemId, p.PrevSeenAt, p.HeadingSystemId);
+                approach.Write(detail, snapshot);
+                matches.Add(new AlarmMatch(
+                    $"intel:p:{p.CharacterId.ToString(CultureInfo.InvariantCulture)}|{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(p.InSystemSince)}",
+                    $"{name ?? "1 pilot"} in {English(id)}{from}{(string.IsNullOrWhiteSpace(p.Ship) ? "" : $" ({p.Ship})")}{approach.English(English)}")
                 {
-                    var name = string.IsNullOrWhiteSpace(p.Name) ? null : p.Name;
-                    var detail = Detail(KindPilot, 1, name is null ? [] : [name],
-                                        string.IsNullOrWhiteSpace(p.Ship) ? [] : [p.Ship!], flagBits, p.At);
-                    detail["character_id"] = p.CharacterId;
-                    detail["no_visual"]    = p.NoVisual;
-                    if (p.FromKill) detail["note"] = AlarmsText.IntelSaidOnKill;
-                    matches.Add(new AlarmMatch(
-                        $"intel:p:{p.CharacterId.ToString(CultureInfo.InvariantCulture)}|{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(p.InSystemSince)}",
-                        $"{name ?? "1 pilot"} in {English(id)}{from}{(string.IsNullOrWhiteSpace(p.Ship) ? "" : $" ({p.Ship})")}")
-                    {
-                        // Said with the kill that placed them, never again on its own.
-                        Silent = onKills.Contains((p.CharacterId, id)),
-                        Detail = detail,
-                    });
-                }
-
-                if (unnamed is not null)
-                {
-                    var detail = Detail(KindCount, unnamed.Count, [],
-                                        [.. IntelDisplay.ParseShips(unnamed.Ships).Select(s => s.Name)], flagBits, unnamed.At);
-                    detail["no_visual"] = unnamed.NoVisual;
-                    matches.Add(new AlarmMatch(
-                        // The band of the most counted in the episode: a count that falls is not news.
-                        $"intel:n:{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(unnamed.EpisodeStart)}|{Band(Math.Max(unnamed.Peak, unnamed.Count)).ToString(CultureInfo.InvariantCulture)}",
-                        $"{(unnamed.Count == 1 ? "1 pilot" : $"{unnamed.Count} pilots")} in {English(id)}{from}")
-                    { Detail = detail });
-                }
+                    // Said with the kill that placed them, never again on its own.
+                    Silent = onKills.Contains((p.CharacterId, id)),
+                    Urgent = priority || watch || approach.Approaching,
+                    Detail = detail,
+                });
             }
 
-            // What was said besides who, on its own: each once per episode, whoever is there.
-            if (options.FlagReports)
+            if (unnamed is not null && (enough || countMark == IntelWatchMark.Always))
+            {
+                var detail = Detail(KindCount, unnamed.Count, [],
+                                    [.. IntelDisplay.ParseShips(unnamed.Ships).Select(s => s.Name)], flagBits, unnamed.At);
+                detail["no_visual"] = unnamed.NoVisual;
+                detail["watch"]     = countMark == IntelWatchMark.Always;
+                // Where the report said they came from, and where it said they were heading.
+                var move = system.Moves.FirstOrDefault(m => m.ReportId == unnamed.ReportId);
+                var approach = Approach(id, move?.FromSystemId, move?.At, system.HeadingSystemId);
+                approach.Write(detail, snapshot);
+                matches.Add(new AlarmMatch(
+                    // The band of the most counted in the episode: a count that falls is not news.
+                    $"intel:n:{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(unnamed.EpisodeStart)}|{Band(Math.Max(unnamed.Peak, unnamed.Count)).ToString(CultureInfo.InvariantCulture)}",
+                    $"{(unnamed.Count == 1 ? "1 pilot" : $"{unnamed.Count} pilots")} in {English(id)}{from}{approach.English(English)}")
+                {
+                    Urgent = priority || countMark == IntelWatchMark.Always || approach.Approaching,
+                    Detail = detail,
+                });
+            }
+
+            // What was said besides who, on its own: each once per episode, whoever is there. In the range only:
+            // the watch list says nothing about a flag.
+            if (options.FlagReports && watched)
                 foreach (var fact in facts.Where(f => FiringFlags.Contains(f.Flag)))
                     matches.Add(new AlarmMatch(
                         $"intel:f:{id.ToString(CultureInfo.InvariantCulture)}|{fact.Flag}|{Stamp(fact.EpisodeStart)}",
                         $"{string.Join(", ", IntelDisplay.FlagsEnglish((int)fact.Flag))} in {English(id)}{from}")
-                    { Detail = Detail(KindFlag, 0, [], [], flagBits, fact.At) });
+                    { Urgent = priority, Detail = Detail(KindFlag, 0, [], [], flagBits, fact.At) });
         }
 
         return Ordered(matches);
+    }
+
+    /// <summary>A count's watch-list mark by the hulls it was said in ("8× Hull"), as the views mark it: Always
+    /// when any is on Always; Ignored only when every hull said is ignored; otherwise nothing, since a count of
+    /// nobody in particular is something the list says nothing about.</summary>
+    private static IntelWatchMark CountMark(IntelSnapshot snapshot, string? ships)
+    {
+        var marks = IntelLens.SaidHullMarks(snapshot, ships);
+        if (marks.Contains(IntelWatchMark.Always)) return IntelWatchMark.Always;
+        return marks.Count > 0 && marks.All(m => m == IntelWatchMark.Ignored) ? IntelWatchMark.Ignored : IntelWatchMark.None;
+    }
+
+    /// <summary>
+    /// Which way a sighting is going, from the watched character nearest it.
+    /// </summary>
+    /// <param name="WasJumps">Seen nearer than before: how far out it was then.</param>
+    /// <param name="Heading">The system a report said it was heading for, when its distance is known.</param>
+    /// <param name="HeadingJumps">How far that system is from the same character.</param>
+    /// <param name="Closer">Seen nearer than where it was seen before.</param>
+    /// <param name="Toward">Heading for a system nearer the character.</param>
+    /// <param name="Away">Heading for a system farther from it.</param>
+    internal readonly record struct IntelApproach(int? WasJumps, int? Heading, int? HeadingJumps, bool Closer, bool Toward, bool Away)
+    {
+        /// <summary>Coming nearer, either way: urgent.</summary>
+        public bool Approaching => Closer || Toward;
+
+        public void Write(Dictionary<string, object?> detail, IntelSnapshot snapshot)
+        {
+            detail["approaching"] = Approaching;
+            detail["approach"]    = Approaching ? "closer" : Away ? "away" : null;
+            detail["away"]        = Away;
+            if (Closer) detail["was_jumps"] = WasJumps;
+            if (Heading is int h)
+            {
+                detail["heading"]       = snapshot.SystemName(h);
+                detail["heading_jumps"] = HeadingJumps;
+                detail["toward"]        = Toward;
+            }
+        }
+
+        /// <summary>For the English summary: ", approaching (was 4 jumps out)", ", heading away to X".</summary>
+        public string English(Func<int, string> systemName)
+        {
+            var text = "";
+            if (Toward && Heading is int to) text = $", approaching (heading to {systemName(to)})";
+            else if (Closer) text = $", approaching (was {WasJumps} jump{(WasJumps == 1 ? "" : "s")} out)";
+            if (Away && Heading is int away) text += $", heading away to {systemName(away)}";
+            return text;
+        }
     }
 
     /// <summary>The unnamed count's band: its lowest number, so the key changes only when the episode's
@@ -646,15 +873,22 @@ public sealed class IntelCondition : IAlarmCondition
     private static string Stamp(DateTimeOffset at) =>
         at.UtcDateTime.ToString("yyyyMMdd'T'HHmmss", CultureInfo.InvariantCulture);
 
-    /// <summary>Urgent first, then the nearest, then the newest: the order they are said in.</summary>
+    /// <summary>Priority systems first, then the watch list, then other urgent news, then the nearest, then
+    /// the newest: the order they are said in.</summary>
     internal static IReadOnlyList<AlarmMatch> Ordered(IReadOnlyList<AlarmMatch> matches) =>
         [.. matches
             .Select((m, i) => (m, i))
-            .OrderByDescending(x => x.m.Urgent)
+            .OrderByDescending(x => Rank(x.m))
             .ThenBy(x => JumpsOf(x.m) ?? int.MaxValue)
             .ThenByDescending(x => AtOf(x.m))
             .ThenBy(x => x.i)
             .Select(x => x.m)];
+
+    /// <summary>How early a match is said: 3 in a priority system, 2 on the watch list's Always, 1 other
+    /// urgent news (a kill within a jump, a pilot approaching), 0 the rest.</summary>
+    internal static int Rank(AlarmMatch m) => Flag(m, "priority") ? 3 : Flag(m, "watch") ? 2 : m.Urgent ? 1 : 0;
+
+    private static bool Flag(AlarmMatch m, string key) => m.Detail is { } d && d.TryGetValue(key, out var v) && v is true;
 
     private static string KindOf(AlarmMatch m) => Str(m.Detail, "kind");
     private static int? JumpsOf(AlarmMatch m) => m.Detail is { } d && d.TryGetValue("jumps", out var j) && j is int hops ? hops : null;
@@ -671,10 +905,13 @@ public sealed class IntelCondition : IAlarmCondition
     /// and the Universe Map's alert zone outline draws it, so the outline is exactly what would fire.</para>
     /// <para>Everything within range of each origin — the characters (or systems) the alarm is around
     /// — by threat distance (stargates, and Thera's and Turnur's open holes, when
-    /// <paramref name="distances"/> is given), and by light years when that is set. The nearer figure
-    /// wins when two origins reach the same system: two characters a jump apart, or a system listed
-    /// twice. Empty when nothing resolves (a misspelt system, every character docked), never
-    /// everything.</para>
+    /// <paramref name="distances"/> is given), and by light years when that is set; and the alarm's
+    /// priority systems, wherever the characters are. The nearer figure wins when two origins reach the
+    /// same system: two characters a jump apart, or a system listed twice. Empty when nothing resolves (a
+    /// misspelt system, every character docked, no priority system), never everything.</para>
+    /// <para>Beside the watched set: the systems out to the watch list's reach (where only its Always
+    /// entries fire, so the outline leaves them out), and each origin's walk, so how far a system a sighting
+    /// came from or is heading for is known (<see cref="IntelWatchedSystems.JumpsBetween"/>).</para>
     /// <para>The characters are where <paramref name="own"/> places them (the snapshot's own positions,
     /// the newer of ESI and the chat log); without it, where their last location poll did.</para>
     /// </summary>
@@ -685,15 +922,19 @@ public sealed class IntelCondition : IAlarmCondition
         var around = ReadAround(config);
         var jumps  = ReadJumps(config, around);
         var ly     = ReadLy(config);
+        var reach  = Math.Max(jumps, ReadWatchReach(config) ?? 0);
 
         var watched     = new HashSet<int>();
         var hopsTo      = new Dictionary<int, int>();      // from the nearest origin
         var via         = new HashSet<int>();              // the nearest way there goes through a hole
         var nearest     = new Dictionary<int, string>();   // the character that origin is, around characters
         var nearestId   = new Dictionary<int, long>();
+        var nearestFrom = new Dictionary<int, int>();      // the origin's system
         var lyDistances = new Dictionary<int, double>();   // light years from the nearest origin
         var lyNearest   = new Dictionary<int, string>();   // the character that is, around characters
         var lyNearestId = new Dictionary<int, long>();
+        var walks       = new Dictionary<int, IReadOnlyDictionary<int, IntelHop>>();
+        var originWho   = new Dictionary<int, (string? Name, long Id)>();
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         DbConnection? conn = null;
@@ -705,19 +946,34 @@ public sealed class IntelCondition : IAlarmCondition
         }
         var positions = ly is null ? null : await PositionsAsync(await ConnectionAsync(), ct);
 
+        void Place(int id, IntelHop hop, int origin)
+        {
+            if (hopsTo.TryGetValue(id, out var known)
+                && (hop.Jumps > known || (hop.Jumps == known && (hop.ViaWormhole || !via.Contains(id))))) return;
+            hopsTo[id] = hop.Jumps;
+            nearestFrom[id] = origin;
+            if (hop.ViaWormhole) via.Add(id); else via.Remove(id);
+            if (originWho.TryGetValue(origin, out var who) && who.Name is not null) { nearest[id] = who.Name; nearestId[id] = who.Id; }
+        }
+
         async Task SpreadAsync(int origin, string? who, long whoId)
         {
-            IEnumerable<(int Id, int Hops, bool Via)> reach = distances is not null
-                ? (await distances.JumpsFromAsync(origin, IntelGraphMode.Threat, null, ct))
-                    .Where(kv => kv.Value.Jumps <= jumps).Select(kv => (kv.Key, kv.Value.Jumps, kv.Value.ViaWormhole))
-                : (await graph.DistancesWithinAsync(origin, jumps, ct)).Select(kv => (kv.Key, kv.Value, false));
-            foreach (var (id, hops, hole) in reach)
+            originWho.TryAdd(origin, (who, whoId));
+            if (!walks.TryGetValue(origin, out var walk))
             {
-                watched.Add(id);
-                if (hopsTo.TryGetValue(id, out var known) && (hops > known || (hops == known && (hole || !via.Contains(id))))) continue;
-                hopsTo[id] = hops;
-                if (hole) via.Add(id); else via.Remove(id);
-                if (who is not null) { nearest[id] = who; nearestId[id] = whoId; }
+                // The whole walk from the distance service (it has no cap); over the stargates alone, a few jumps
+                // past the reach, for where a sighting came from.
+                walk = distances is not null
+                    ? await distances.JumpsFromAsync(origin, IntelGraphMode.Threat, null, ct)
+                    : (await graph.DistancesWithinAsync(origin, reach + ApproachMargin, ct))
+                        .ToDictionary(kv => kv.Key, kv => new IntelHop(kv.Value, false));
+                walks[origin] = walk;
+            }
+            foreach (var (id, hop) in walk)
+            {
+                if (hop.Jumps > reach) continue;
+                if (hop.Jumps <= jumps) watched.Add(id);
+                Place(id, hop, origin);
             }
 
             if (ly is not { } range || positions is null || !positions.TryGetValue(origin, out var o)) return;
@@ -747,11 +1003,32 @@ public sealed class IntelCondition : IAlarmCondition
                 await SpreadAsync(systemId, name, characterId);
         }
 
+        // Within the watch list's reach: every system placed so far (each is within it).
+        var watchReach = new HashSet<int>(hopsTo.Keys);
+
+        // The priority systems, watched wherever the characters are, at their distance from the nearest
+        // origin when any walk reaches them.
+        var priority = new HashSet<int>();
+        var priorityNames = ReadList(config, "priority_systems");
+        if (priorityNames.Count > 0)
+            foreach (var id in await ResolveSystemsAsync(await ConnectionAsync(), priorityNames, ct))
+            {
+                priority.Add(id);
+                watched.Add(id);
+                if (hopsTo.ContainsKey(id)) continue;
+                foreach (var (origin, walk) in walks)
+                    if (walk.TryGetValue(id, out var hop)) Place(id, hop, origin);
+            }
+
         return new IntelWatchedSystems(watched, hopsTo, nearest, lyDistances, lyNearest)
         {
             NearestCharacter           = nearestId,
             LightYearsNearestCharacter = lyNearestId,
             ViaWormhole                = via,
+            Priority                   = priority,
+            WatchReach                 = watchReach,
+            NearestOrigin              = nearestFrom,
+            Walks                      = walks,
         };
     }
 
@@ -799,8 +1076,9 @@ public sealed class IntelCondition : IAlarmCondition
     /// <summary>
     /// The sentence to be spoken, exactly. A kill as a kill: where, then what was lost to what.
     /// A sighting by system: count and system first, because that is what decides whether to warp
-    /// now; then what else was said; then the hulls; then the names. Never who reported it. Urgent
-    /// first, then newest.
+    /// now; then which way they are going; then what else was said; then the hulls; then the names.
+    /// Never who reported it. A priority system first, said as one, then the watch list's, said as
+    /// such; then other urgent news; then newest.
     /// </summary>
     public string? Announcement(JsonElement config, IReadOnlyList<AlarmMatch> matches)
         => ComposeAnnouncement(matches);
@@ -810,7 +1088,7 @@ public sealed class IntelCondition : IAlarmCondition
         var said = matches.Where(m => m.Detail is not null && !m.Silent).ToList();
         if (said.Count == 0) return null;
 
-        var items = new List<(bool Urgent, DateTime At, string Text)>();
+        var items = new List<(int Rank, DateTime At, string Text)>();
 
         foreach (var k in said.Where(m => KindOf(m) == KindKill))
         {
@@ -819,10 +1097,11 @@ public sealed class IntelCondition : IAlarmCondition
             var victim = Str(d, "victim_hull") is { Length: > 0 } v ? v : AlarmsText.HullShip;
             var hulls  = Names(d, "hulls").ToList();
             var by     = hulls.Count > 0 ? AlarmWords.List(hulls) : AlarmsText.IntelSaidKillHostiles;
-            var where  = Where(JumpsOf(k), d.TryGetValue("ly", out var l) && l is double far ? far : null, Str(d, "near"));
-            items.Add((k.Urgent, AtOf(k), where is null
+            var where  = Where(JumpsOf(k), d.TryGetValue("ly", out var l) && l is double far ? far : null, Str(d, "near"), Flag(k, "via"));
+            var rank   = Rank(k);
+            items.Add((rank, AtOf(k), Marked(rank, where is null
                 ? string.Format(AlarmsText.IntelSaidKill, system, victim, by)
-                : string.Format(AlarmsText.IntelSaidKillAt, system, where, victim, by)));
+                : string.Format(AlarmsText.IntelSaidKillAt, system, where, victim, by))));
         }
 
         foreach (var g in said.Where(m => KindOf(m) != KindKill)
@@ -844,8 +1123,9 @@ public sealed class IntelCondition : IAlarmCondition
             var jumps  = list.Select(JumpsOf).Where(j => j is not null).Min();
             var ly     = list.Select(m => m.Detail!.TryGetValue("ly", out var l) && l is double far ? far : (double?)null).Where(l => l is not null).Min();
             var near   = list.Select(m => Str(m.Detail, "near")).FirstOrDefault(n => n.Length > 0);
-            var where  = Where(jumps, ly, near);
+            var where  = Where(jumps, ly, near, list.Any(m => Flag(m, "via")));
             var facts  = IntelDisplay.Facts(flags, gate);
+            var rank   = list.Max(Rank);
 
             var sb = new System.Text.StringBuilder();
             if (count > 0)
@@ -853,6 +1133,7 @@ public sealed class IntelCondition : IAlarmCondition
                 sb.Append(where is null
                     ? Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedOther), count, system)
                     : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidReportedAtOther), count, system, where));
+                Way(sb, list, near);
                 // What else was said — "Bubbles, gate camp · on the QZ-X77 gate." — before the
                 // hulls: it decides how to go in.
                 if (facts is not null)
@@ -865,6 +1146,7 @@ public sealed class IntelCondition : IAlarmCondition
                 sb.Append(where is null
                     ? string.Format(AlarmsText.IntelSaidFlags, system, what)
                     : string.Format(AlarmsText.IntelSaidFlagsAt, system, where, what));
+                Way(sb, list, near);
             }
             if (hulls.Count > 0)
                 sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidFlying,
@@ -879,25 +1161,56 @@ public sealed class IntelCondition : IAlarmCondition
             foreach (var note in notes.Take(3))
                 sb.Append(' ').Append(string.Format(AlarmsText.SaidSentence, note));
 
-            items.Add((list.Any(m => m.Urgent), list.Max(AtOf), sb.ToString()));
+            items.Add((rank, list.Max(AtOf), Marked(rank, sb.ToString())));
         }
 
         return string.Join(" ", items
             .Select((x, i) => (x, i))
-            .OrderByDescending(x => x.x.Urgent).ThenByDescending(x => x.x.At).ThenBy(x => x.i)
+            .OrderByDescending(x => x.x.Rank).ThenByDescending(x => x.x.At).ThenBy(x => x.i)
             .Select(x => x.x.Text));
+
+        // A priority system's news said as one, the watch list's as its.
+        static string Marked(int rank, string text) => rank switch
+        {
+            3 => string.Format(AlarmsText.IntelSaidPriority, text),
+            2 => string.Format(AlarmsText.IntelSaidWatchList, text),
+            _ => text,
+        };
+
+        // Which way they are going, after where they are: coming nearer (by a heading toward the character, else
+        // by where they were seen before), then a heading away.
+        static void Way(System.Text.StringBuilder sb, List<AlarmMatch> list, string? near)
+        {
+            var toward = list.FirstOrDefault(m => Flag(m, "toward") && Str(m.Detail, "heading").Length > 0);
+            var closer = list.Where(m => Flag(m, "approaching") && m.Detail!.TryGetValue("was_jumps", out var w) && w is int)
+                             .Select(m => (int)m.Detail!["was_jumps"]!).DefaultIfEmpty(-1).Max();
+            if (toward is not null)
+            {
+                var then = toward.Detail!.TryGetValue("heading_jumps", out var h) && h is int hj ? Where(hj, null, near) : null;
+                sb.Append(' ').Append(then is null
+                    ? string.Format(AlarmsText.IntelSaidApproachingTo, Str(toward.Detail, "heading"))
+                    : string.Format(AlarmsText.IntelSaidApproachingToAt, Str(toward.Detail, "heading"), then));
+            }
+            else if (closer >= 0 && Where(closer, null, near) is { } was)
+                sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidApproachingWas, was));
+
+            var away = list.FirstOrDefault(m => Flag(m, "away") && Str(m.Detail, "heading").Length > 0);
+            if (away is not null && toward is null)
+                sb.Append(' ').Append(string.Format(AlarmsText.IntelSaidHeadingAway, Str(away.Detail, "heading")));
+        }
 
         static IEnumerable<string> Names(IReadOnlyDictionary<string, object?> d, string key)
             => d.TryGetValue(key, out var v) && v is IEnumerable<string> list ? list.Where(n => !string.IsNullOrWhiteSpace(n)) : [];
     }
 
     /// <summary>How far out, in the interface language: "2 jumps from Alpha", "where Alpha is",
-    /// "3 jumps out", "4.2 light years from Alpha"; null when there is no range to say it by.</summary>
-    private static string? Where(int? jumps, double? ly, string? near)
+    /// "3 jumps out", "4.2 light years from Alpha"; null when there is no range to say it by. A way that
+    /// goes through Thera or Turnur says so: "3 jumps from Alpha, through Thera or Turnur".</summary>
+    private static string? Where(int? jumps, double? ly, string? near, bool via = false)
     {
         near = string.IsNullOrEmpty(near) ? null : near;
         if (jumps is { } hops)
-            return near is not null
+            return via && hops > 0 ? string.Format(AlarmsText.IntelSaidViaWormhole, Where(hops, null, near)) : near is not null
                 ? hops == 0 ? string.Format(AlarmsText.IntelSaidWhereIs, near)
                             : Plurals.Format(AlarmsText.ResourceManager, nameof(AlarmsText.IntelSaidJumpsFromOther), hops, near)
                 : hops == 0 ? AlarmsText.IntelSaidHere
@@ -919,8 +1232,12 @@ public sealed class IntelCondition : IAlarmCondition
     private static (string? Near, int? Jumps, double? Ly, string From) HowFar(int systemId, int jumps, IntelWatchedSystems zone)
     {
         var near = zone.Nearest.GetValueOrDefault(systemId);
-        if (zone.Jumps.TryGetValue(systemId, out var hops) && (jumps > 0 || near is not null))
-            return (near, hops, null, near is null ? "" : hops == 0 ? $" (where {near} is)" : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near})");
+        if (zone.Jumps.TryGetValue(systemId, out var hops) && (jumps > 0 || near is not null || hops > 0))
+        {
+            var through = hops > 0 && zone.ViaWormhole.Contains(systemId) ? " through Thera or Turnur" : "";
+            return (near, hops, null, near is null ? "" : hops == 0 ? $" (where {near} is)"
+                : $" ({hops} jump{(hops == 1 ? "" : "s")} from {near}{through})");
+        }
         if (zone.Jumps.ContainsKey(systemId)) return (near, null, null, "");
 
         if (!zone.LightYears.TryGetValue(systemId, out var far)) return (null, null, null, "");
@@ -1151,6 +1468,26 @@ public sealed record IntelWatchedSystems(
 
     /// <summary>The systems whose nearest way goes through a Thera or Turnur hole.</summary>
     public IReadOnlySet<int> ViaWormhole { get; init; } = new HashSet<int>();
+
+    /// <summary>The alarm's priority systems: watched (in <see cref="Systems"/>) wherever the characters are.</summary>
+    public IReadOnlySet<int> Priority { get; init; } = new HashSet<int>();
+
+    /// <summary>Every system within the watch list's reach (the range's own included): where the watch
+    /// list's Always entries fire. Not part of the outline: nothing else fires there.</summary>
+    public IReadOnlySet<int> WatchReach { get; init; } = new HashSet<int>();
+
+    /// <summary>The system of the origin each placed system is nearest, by jumps.</summary>
+    public IReadOnlyDictionary<int, int> NearestOrigin { get; init; } = new Dictionary<int, int>();
+
+    /// <summary>Each origin's walk, by its system: every system it reaches (with the distance service, all of them).</summary>
+    public IReadOnlyDictionary<int, IReadOnlyDictionary<int, IntelHop>> Walks { get; init; } =
+        new Dictionary<int, IReadOnlyDictionary<int, IntelHop>>();
+
+    /// <summary>How far <paramref name="other"/> is from the origin <paramref name="system"/> is nearest: where a
+    /// sighting there came from, or is heading, measured from the same character. Null when not known.</summary>
+    public int? JumpsBetween(int system, int other) =>
+        NearestOrigin.TryGetValue(system, out var origin) && Walks.TryGetValue(origin, out var walk)
+        && walk.TryGetValue(other, out var hop) ? hop.Jumps : null;
 
     public static readonly IntelWatchedSystems None = new(new HashSet<int>(), new Dictionary<int, int>(),
         new Dictionary<int, string>(), new Dictionary<int, double>(), new Dictionary<int, string>());

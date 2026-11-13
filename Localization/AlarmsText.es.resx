@@ -2086,4 +2086,64 @@
   <data name="IntelQuieterFarNote" xml:space="preserve">
     <value>El sonido suena a todo volumen a un salto o menos, y más bajo cuanto más lejos: hasta el 40 % en el borde del alcance. La voz mantiene su propio volumen.</value>
   </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Hostil</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Qué pilotos nombrados cuentan, según los standings de tu personaje más cercano (o del personaje fijado en Ajustes → Intel). Los azules y tus propios personajes nunca cuentan; los recuentos sin nombre y los avisos sin pilotos, siempre.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral o peor</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Solo negativos</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Solo rojos</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Usar la lista de vigilancia</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>Lo que está en «Alertar siempre» salta dentro del alcance de la lista de vigilancia, sea cual sea el alcance, la elección de Hostil o el mínimo, se dice primero y nunca se retiene; lo que está en «Ignorar» nunca salta.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Alcance de la lista de vigilancia</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>A cuántos saltos saltan las entradas en «Alertar siempre», cuando es más lejos que el alcance. Como máximo 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Los pilotos que se acercan despiertan igual</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>Con «Despertar a menos de» activado: un piloto que se acerca (visto más cerca que antes, o informado rumbo a tu personaje) te despierta en cualquier punto del alcance.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Sistemas prioritarios</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Opcional. Sistemas vigilados siempre, estén donde estén tus personajes. Lo que se ve allí siempre te despierta, ninguna otra alarma de intel lo retiene y se dice primero.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Sistema prioritario: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Lista de vigilancia: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Se acerca: rumbo a {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Se acerca: rumbo a {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Se acerca: estaba {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Se aleja, hacia {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, a través de Thera o Turnur</value>
+  </data>
 </root>

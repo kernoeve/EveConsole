@@ -2086,4 +2086,64 @@
   <data name="IntelQuieterFarNote" xml:space="preserve">
     <value>Der Ton spielt innerhalb eines Sprungs mit voller Lautstärke und weiter draußen leiser: bis 40 % am Rand der Reichweite. Sprache behält deine Sprachlautstärke.</value>
   </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Feindlich</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Welche namentlich gemeldeten Piloten zählen, nach den Standings deines nächsten Charakters (oder des unter Einstellungen → Intel festgelegten Charakters). Blaue und deine eigenen Charaktere zählen nie; ungenannte Anzahlen und reine Hinweismeldungen immer.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral oder schlechter</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Nur negativ</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Nur rot</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Beobachtungsliste verwenden</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>Was auf „Immer alarmieren“ steht, löst innerhalb der Reichweite der Beobachtungsliste aus, unabhängig von Reichweite, Feindlich-Wahl und Mindestzahl, wird zuerst angesagt und nie zurückgehalten; was auf „Ignorieren“ steht, löst nie aus.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Reichweite der Beobachtungsliste</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>Wie viele Sprünge weit Einträge auf „Immer alarmieren“ auslösen, wenn das weiter ist als die Reichweite. Höchstens 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Näherkommende Piloten wecken trotzdem</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>Wenn „Wecken innerhalb von“ gesetzt ist: Ein Pilot, der näherkommt (näher gesehen als zuvor oder mit Kurs auf deinen Charakter gemeldet), weckt dich überall in der Reichweite.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Vorrangige Systeme</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Optional. Systeme, die immer beobachtet werden, egal wo deine Charaktere sind. Was dort gesehen wird, weckt dich immer, wird nie von einem anderen Intel-Alarm zurückgehalten und zuerst angesagt.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Vorrangiges System: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Beobachtungsliste: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Nähert sich: war {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Entfernt sich, nach {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, über Thera oder Turnur</value>
+  </data>
 </root>

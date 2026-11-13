@@ -365,7 +365,7 @@ public static class IntelLens
 
     /// <summary>The marks of the hulls a count was said in ("8× Muninn, Interdictor"): one per hull found
     /// by name. A name that is no hull gives none.</summary>
-    private static List<IntelWatchMark> SaidHullMarks(IntelSnapshot snapshot, string? ships)
+    internal static List<IntelWatchMark> SaidHullMarks(IntelSnapshot snapshot, string? ships)
     {
         var marks = new List<IntelWatchMark>();
         if (snapshot.Watch.IsEmpty || string.IsNullOrWhiteSpace(ships)) return marks;

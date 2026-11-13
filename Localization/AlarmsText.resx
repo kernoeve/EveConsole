@@ -2717,4 +2717,84 @@
     <value>The sound plays at full volume within a jump, and more quietly further out: down to 40% at the edge of the range. Speech keeps your voice volume.</value>
     <comment>Alarm editor, intel alarm: the description under Quieter further out.</comment>
   </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Hostile</value>
+    <comment>Alarm editor, intel alarm: label of a pick list choosing which named pilots count as hostile (OptionNeutralOrWorse, OptionNegativeOnly, OptionRedOnly).</comment>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Which named pilots count, by the standings of your character nearest them (or the standings character forced in Settings → Intel). Blues and your own characters never count; unnamed counts and flag-only reports always do.</value>
+    <comment>Alarm editor, intel alarm: the description under Hostile. 'Blues' = pilots with good standings. 'Settings → Intel' names the place in the Settings window.</comment>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral or worse</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: neutral, orange and red pilots count (the default).</comment>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Negative only</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: only orange and red pilots (negative standings) count.</comment>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Red only</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: only red pilots (terrible standings) count.</comment>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Use the watch list</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; the alarm follows the Intel tool's watch list (IntelText.TabWatch).</comment>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>What is on Always alert fires within the watch list reach, whatever the range, the Hostile choice or the minimum, is said first and is never held back; what is on Ignore never fires.</value>
+    <comment>Alarm editor, intel alarm: the description under Use the watch list. 'Always alert' and 'Ignore' must match IntelText.WatchModeAlways and IntelText.WatchModeIgnore; 'Hostile' must match IntelHostileFromLabel.</comment>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Watch list reach</value>
+    <comment>Alarm editor, intel alarm: label of a number of jumps; how far out the watch list's Always alert entries fire. Followed by the number and IntelWakeJumpsSuffix.</comment>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>How many jumps out the watch list's Always alert entries fire, when that is farther than the range. At most 15.</value>
+    <comment>Alarm editor, intel alarm: the description under Watch list reach. 'Always alert' must match IntelText.WatchModeAlways.</comment>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Approaching pilots still wake</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; a pilot coming nearer wakes the capsuleer even beyond Wake within (IntelWakeJumpsLabel).</comment>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>With Wake within set: a pilot coming nearer (seen closer than before, or reported heading toward your character) wakes you anywhere in the range.</value>
+    <comment>Alarm editor, intel alarm: the description under Approaching pilots still wake. 'Wake within' must match IntelWakeJumpsLabel.</comment>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Priority systems</value>
+    <comment>Alarm editor, intel alarm: label of a list of solar systems that are always watched and always wake.</comment>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Optional. Systems always watched, wherever your characters are. What is seen there always wakes you, is never held back by another intel alarm, and is said first.</value>
+    <comment>Alarm editor, intel alarm: the description under Priority systems.</comment>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Priority system: {0}</value>
+    <comment>Spoken by an intel alarm before news in one of its priority systems. {0} is the whole of what is said about that system (one or more sentences, with their full stops).</comment>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Watch list: {0}</value>
+    <comment>Spoken by an intel alarm before news about someone on the watch list's Always alert. {0} is the whole of what is said about that system (one or more sentences, with their full stops).</comment>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Approaching: heading to {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system nearer the capsuleer's character. {0} is that system.</comment>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Approaching: heading to {0}, {1}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system nearer the capsuleer's character. {0} is that system; {1} how far it is (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other or IntelSaidHere).</comment>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Approaching: was {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: they were seen farther away before. {0} is how far they were (IntelSaidJumpsFromOne/Other or IntelSaidJumpsOutOne/Other).</comment>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Heading away, to {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system farther from the capsuleer's character. {0} is that system.</comment>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, through Thera or Turnur</value>
+    <comment>Spoken by an intel alarm: how far away something is, when the shortest way there goes through a Thera or Turnur wormhole. {0} is the distance (IntelSaidJumpsFromOne/Other or IntelSaidJumpsOutOne/Other). Thera and Turnur are EVE system names; keep them as they are.</comment>
+  </data>
 </root>

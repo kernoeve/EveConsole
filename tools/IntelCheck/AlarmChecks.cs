@@ -18,8 +18,9 @@ namespace EveConsole.Tools.IntelCheck
 {
     internal static partial class AlarmChecks
     {
-        // Systems: S1 where Alpha is, S2 one jump, S3 two, S4 three, S5 six; S6 outside the alarm's reach.
-        private const int S1 = 30_000_101, S2 = 30_000_102, S3 = 30_000_103, S4 = 30_000_104, S5 = 30_000_105, S6 = 30_000_106;
+        // Systems: S1 where Alpha is, S2 one jump, S3 two, S4 three, S5 six; S6 outside the alarm's reach; S7 far off.
+        private const int S1 = 30_000_101, S2 = 30_000_102, S3 = 30_000_103, S4 = 30_000_104, S5 = 30_000_105, S6 = 30_000_106,
+                          S7 = 30_000_107;
 
         private const long A = 91_100_001, CorpA = 98_200_001;
         private const long FriendCorp = 98_200_009, FarCorp = 98_200_020;
@@ -37,7 +38,7 @@ namespace EveConsole.Tools.IntelCheck
 
         private static readonly Dictionary<int, string> Names = new()
         {
-            [S1] = "QZ-X77", [S2] = "XQ1-Z2", [S3] = "ZZQ-71", [S4] = "X2-QZ7", [S5] = "K7-QZP", [S6] = "Q2X-91",
+            [S1] = "QZ-X77", [S2] = "XQ1-Z2", [S3] = "ZZQ-71", [S4] = "X2-QZ7", [S5] = "K7-QZP", [S6] = "Q2X-91", [S7] = "Z9-QQ1",
         };
 
         private static IntelStandings Standings() => new(
@@ -114,6 +115,7 @@ namespace EveConsole.Tools.IntelCheck
                 Waking(c);
                 Memory(c);
                 Gate(c);
+                WhoAndWhere(c);
             }
             finally
             {
