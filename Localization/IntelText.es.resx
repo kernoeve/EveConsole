@@ -718,4 +718,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>Actualizado ahora mismo</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (sistema)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>o un sistema…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Contar los saltos desde un sistema en lugar de un personaje. Entonces no mira ningún personaje en concreto, así que los colores vienen de todos tus personajes: amistoso si lo es para alguno de ellos.</value>
+  </data>
 </root>

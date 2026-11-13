@@ -75,10 +75,11 @@ public sealed class IntelSnapshotService : IDisposable
     private readonly Dictionary<long, (int SystemId, DateTimeOffset Since)> _ownSince = [];
     private Task _resolving = Task.CompletedTask;
 
-    /// <summary>The gates, the groups and the system names: read once, and again after an SDE import.</summary>
+    /// <summary>The gates, the groups, the system names and the hulls: read once, and again after an SDE import.</summary>
     private sealed record SdeData(
         IReadOnlyDictionary<int, IReadOnlyList<IntelGate>> Gates, IntelSdeGroups Groups,
-        IReadOnlyDictionary<int, string> SystemNames, IReadOnlyDictionary<string, int> SystemIds);
+        IReadOnlyDictionary<int, string> SystemNames, IReadOnlyDictionary<string, int> SystemIds,
+        IReadOnlyDictionary<string, int> HullIds);
 
     public IntelSnapshotService(
         IDbContextFactory<AppDbContext> dbFactory, IntelStandingService standings,
@@ -284,7 +285,7 @@ public sealed class IntelSnapshotService : IDisposable
             Reports = reports, ReportPilots = reportPilots,
             LastSeen = [.. _lastSeen.Values],
             Kills = [.. _kills.Values],
-            Gates = sde.Gates, Groups = sde.Groups, SystemNames = sde.SystemNames,
+            Gates = sde.Gates, Groups = sde.Groups, SystemNames = sde.SystemNames, HullIds = sde.HullIds,
             Own = own, Names = new Dictionary<long, string>(_pilotNames), TypeNames = new Dictionary<int, string>(_typeNames),
             Affiliations = new Dictionary<long, (long, long)>(_affiliations),
             Officers = officers, Standings = standings,
@@ -325,12 +326,7 @@ public sealed class IntelSnapshotService : IDisposable
             || watermark <= 0) return [];
         var upTo = (int)Math.Min(watermark, int.MaxValue);
 
-        var lines = await db.ChatMessages.AsNoTracking()
-            .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage && m.Id <= upTo
-                        && string.Compare(m.OccurredAt, fromText) >= 0
-                        && !db.IntelReports.Any(r => r.ChatMessageId == m.Id))
-            .OrderByDescending(m => m.Id)
-            .Take(MaxChatter)
+        var lines = await ChatterQuery(db, channels, upTo, fromText)
             .Select(m => new { m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message })
             .ToListAsync(ct).ConfigureAwait(false);
         return [.. lines
@@ -338,6 +334,22 @@ public sealed class IntelSnapshotService : IDisposable
             .Select(l => new IntelChatter(l.Id, IntelSnapshotBuilder.TryParse(l.OccurredAt, out var at) ? at : default,
                                           l.ChannelName, l.SenderName, l.Message))];
     }
+
+    /// <summary>
+    /// The intel channels' lines up to <paramref name="upTo"/> since <paramref name="fromText"/> that no
+    /// report came from, newest first. Public for tools/IntelCheck, which proves its plan uses the index.
+    /// </summary>
+    /// <remarks>⚠️ "ChatMessageId &gt; 0" before the match: the only index on ChatMessageId is partial
+    /// (WHERE "ChatMessageId" &gt; 0, since pastes are stored with 0), and an engine may use a partial
+    /// index only when the query implies its condition. Without it, every line in the window scanned the
+    /// whole of IntelReports, every pass, on every PC.</remarks>
+    public static IQueryable<ChatMessage> ChatterQuery(AppDbContext db, IReadOnlyList<string> channels, int upTo, string fromText) =>
+        db.ChatMessages.AsNoTracking()
+            .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage && m.Id <= upTo
+                        && string.Compare(m.OccurredAt, fromText) >= 0
+                        && !db.IntelReports.Any(r => r.ChatMessageId > 0 && r.ChatMessageId == m.Id))
+            .OrderByDescending(m => m.Id)
+            .Take(MaxChatter);
 
     /// <summary>The most chatter lines a snapshot holds.</summary>
     public const int MaxChatter = 300;
@@ -482,6 +494,13 @@ public sealed class IntelSnapshotService : IDisposable
             .ToListAsync(ct).ConfigureAwait(false);
         var systems = await db.SdeSolarSystems.AsNoTracking()
             .Select(s => new { s.SolarSystemId, s.Name }).ToListAsync(ct).ConfigureAwait(false);
+        // The published hulls, as the parser's vocabulary reads them: a hull said in chat or listed by
+        // a pasted d-scan is stored by its English name, and a view finds its icon by it.
+        var hulls = await db.SdeTypes.AsNoTracking()
+            .Join(db.SdeGroups.AsNoTracking().Where(g => g.CategoryId == 6), t => t.GroupId, g => g.GroupId, (t, g) => t)
+            .Where(t => t.Published)
+            .Select(t => new { t.TypeId, t.Name })
+            .ToListAsync(ct).ConfigureAwait(false);
 
         return new SdeData(
             gates.GroupBy(g => g.SolarSystemId).ToDictionary(
@@ -490,7 +509,9 @@ public sealed class IntelSnapshotService : IDisposable
             await IntelSdeGroups.LoadAsync(db, ct).ConfigureAwait(false),
             systems.ToDictionary(s => s.SolarSystemId, s => s.Name),
             systems.GroupBy(s => s.Name, StringComparer.OrdinalIgnoreCase)
-                   .ToDictionary(g => g.Key, g => g.First().SolarSystemId, StringComparer.OrdinalIgnoreCase));
+                   .ToDictionary(g => g.Key, g => g.First().SolarSystemId, StringComparer.OrdinalIgnoreCase),
+            hulls.GroupBy(h => h.Name, StringComparer.OrdinalIgnoreCase)
+                 .ToDictionary(g => g.Key, g => g.Min(h => h.TypeId), StringComparer.OrdinalIgnoreCase));
     }
 
     // ── Own characters ───────────────────────────────────────────────────────

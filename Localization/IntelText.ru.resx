@@ -796,4 +796,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>Только что обновлено</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (система)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>или система…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Считать прыжки от системы, а не от персонажа. Тогда ни один персонаж не смотрит, поэтому цвета берутся от всех ваших персонажей: дружественный, если он дружественен хотя бы для одного из них.</value>
+  </data>
 </root>

@@ -224,6 +224,15 @@ public sealed class IntelPictureVm : ReactiveObject
             count > 1 ? string.Format(CultureInfo.CurrentCulture, IntelText.HullTimes, hull, count) : hull,
             typeId > 0 ? IntelText.TipOpenHull : null);
 
+    /// <summary>A hull said by its English name with no type id beside it (a report's "8× Muninn", a
+    /// pasted d-scan's ships as stored): its type found by name, so it shows its icon and its name in
+    /// the interface language. A name that is no hull (a class, or words) stays words, with no icon.</summary>
+    public static IntelPictureVm SaidHull(IntelSnapshot snapshot, string english, int count = 1)
+    {
+        var id = snapshot.HullId(english);
+        return Ship(id, id > 0 ? SdeNames.Type(id, english) : english, count);
+    }
+
     public static IntelPictureVm Words(string text) => new(Kinds.Words, 0, text, null);
 
     public Kinds  Kind { get; }
@@ -238,8 +247,10 @@ public sealed class IntelPictureVm : ReactiveObject
     /// <summary>A pilot or a hull with a known type, which opens their page.</summary>
     public bool IsLink => Kind == Kinds.Pilot && Id > 0 || Kind == Kinds.Ship && Id > 0;
 
-    /// <summary>A hull named with no type to show (said in chat, never recognised): its words alone.</summary>
-    public bool HasPictureSlot => Kind == Kinds.Pilot || Kind == Kinds.Ship;
+    /// <summary>Room for a portrait or an icon: only when there is one to fetch. A hull named with no
+    /// type to show (a class said in chat, never recognised as a hull) is its words alone, never an
+    /// empty square.</summary>
+    public bool HasPictureSlot => (Kind == Kinds.Pilot || Kind == Kinds.Ship) && Id > 0;
 
     private Bitmap? _picture;
     public Bitmap? Picture { get => _picture; private set => this.RaiseAndSetIfChanged(ref _picture, value); }
@@ -377,7 +388,8 @@ public sealed class IntelEventRowVm : ReactiveObject
                     var needs = p.Ship is { Length: > 0 } ? 2 : 1;
                     if (pictures.Count + needs > MaxPictures) break;
                     pictures.Add(IntelPictureVm.Pilot(p.CharacterId, p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture)));
-                    if (p.Ship is { Length: > 0 } ship) pictures.Add(IntelPictureVm.Ship(p.ShipTypeId ?? 0, ship));
+                    if (p.Ship is { Length: > 0 } ship)
+                        pictures.Add(p.ShipTypeId is > 0 and int type ? IntelPictureVm.Ship(type, ship) : IntelPictureVm.SaidHull(snapshot, ship));
                     shown++;
                 }
                 // Hulls said with nobody to fly them: "Muninn ×8".
@@ -386,7 +398,7 @@ public sealed class IntelEventRowVm : ReactiveObject
                     {
                         // Past the room: counted in "+N unnamed" when pilots were named too, else in "+N".
                         if (pictures.Count >= MaxPictures) { if (row.Pilots.Count == 0) more += n; continue; }
-                        pictures.Add(IntelPictureVm.Ship(0, hull, n));
+                        pictures.Add(IntelPictureVm.SaidHull(snapshot, hull, n));
                     }
                 more += row.Pilots.Count - shown;
                 if (e.Count > 0 && row.Pilots.Count > 0)

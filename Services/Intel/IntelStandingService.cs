@@ -86,6 +86,16 @@ public sealed class IntelStandings
 
     public OwnCharacter? Own(long characterId) => _own.GetValueOrDefault(characterId);
 
+    /// <summary>Whose jump bridges a walk from this origin may use: the character's alliance. A system
+    /// chosen with no character (0) uses the alliance every one of the user's characters is in, when
+    /// they are all in one; otherwise none, since nobody could say whose bridges they would be.</summary>
+    public long? BridgeAlliance(long characterId)
+    {
+        if (characterId > 0) return Own(characterId)?.AllianceId is long a and > 0 ? a : null;
+        var alliances = _own.Values.Select(o => o.AllianceId).Distinct().ToList();
+        return alliances is [> 0 and var only] ? only : null;
+    }
+
     /// <summary>The character whose standings a view uses: the forced one when set, else the one
     /// asked for (the row's nearest origin), else null for the rule with no viewer.</summary>
     public long? EffectiveViewer(long? requested) =>

@@ -1,7 +1,8 @@
 // The panel's rows: what an intel event says on a panel, its popup and the Intel tool. Each named pilot with
 // their portrait and then their hull with its icon, the first few then "+N"; counts said once; a flag-only
 // report's words without the system's name it starts with; a camp as new as its last kill; the jump bands, the
-// "…" while a walk is not ready, and what lights a row. Every name and id here is invented.
+// "…" while a walk is not ready, and what lights a row. Hulls said by name only, shown with their icons; distance
+// from a system, coloured by the rule with no viewer. Every name and id here is invented.
 using System.Globalization;
 using EveConsole.Localization;
 using EveConsole.Models;
@@ -26,8 +27,100 @@ namespace EveConsole.Tools.IntelCheck
             var culture = CultureInfo.CurrentUICulture;
             var format = CultureInfo.CurrentCulture;
             CultureInfo.CurrentUICulture = CultureInfo.CurrentCulture = new CultureInfo("en-US");
-            try { RowsInEnglish(c); }
+            try { RowsInEnglish(c); SaidHulls(c); SystemOrigin(c); }
             finally { CultureInfo.CurrentUICulture = culture; CultureInfo.CurrentCulture = format; }
+        }
+
+        /// <summary>Hulls said with nobody named ("8× Hull C, 2× Interdictor" as a report or a d-scan's paste
+        /// stores them, names only): each hull with its icon, found by name, on a feed line, a Board row and the
+        /// panel's single line; a class with no type is words alone, never an empty square.</summary>
+        private static void SaidHulls(Checks c)
+        {
+            var report = new IntelReport
+            {
+                Id = 900, ReportedAt = Iso(Ago(1)), ChannelName = "intelcheck", ReporterName = "Scout Alpha", SystemId = Home,
+                SystemName = "QZ-X77", PlayerCount = 10, Ships = "8× Hull C, 2× Interdictor", Kind = IntelReportKind.Sighting,
+                Message = "QZ-X77 10 in local 8x hull c 2x dictor",
+            };
+            var input = new IntelSnapshotInput
+            {
+                Now = Now, Settings = new IntelSettingsValues(), Reports = [report],
+                SystemNames = new Dictionary<int, string> { [Home] = "QZ-X77" },
+                Standings = new IntelStandings([new IntelStandings.OwnCharacter(Me, "Pilot A", MyCorp, 0)], [MyCorp], []),
+                Own = [new OwnPosition(Me, "Pilot A", Home, Ago(30), OwnPositionSource.ChatLog, MyCorp, 0)],
+            };
+            var hops = new Dictionary<int, IntelHop> { [Home] = new(0, false) };
+            var viewer = new IntelViewer { Origins = [new IntelOrigin(Me, Home)], StandingsCharacterId = Me };
+
+            string Says(IEnumerable<IntelPictureVm> pictures) =>
+                string.Join(",", pictures.Select(p => $"{p.Text}:{p.Id}:{(p.HasPictureSlot ? "icon" : "words")}"));
+
+            var known = IntelSnapshotBuilder.Build(input with
+            {
+                HullIds = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase) { ["Hull C"] = HullC },
+            }, new IntelCampRegister(), 1);
+            var view = IntelLens.Project(known, viewer, Now, _ => hops);
+            var line = new IntelEventRowVm(view.Feed.Single(), known, Now, false);
+            c.Check("said hulls: a hull named alone shows its icon, found by its name; a class is words, with no square",
+                Says(line.Pictures) == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words", Says(line.Pictures));
+            c.Check("said hulls: the icon is asked for by the type found",
+                line.Pictures[0].PictureUrl?.Contains($"/types/{HullC}/icon", StringComparison.Ordinal) == true, line.Pictures[0].PictureUrl ?? "no url");
+            var board = new IntelBoardRowVm(view.Systems.Single(), known, [.. view.Feed], null, Now, false, IntelRowActions.None);
+            c.Check("said hulls: the Board's row too", Says(board.Hulls) == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words", Says(board.Hulls));
+            var single = new IntelNearestVm(view.Systems.Single(), known, Now, false);
+            c.Check("said hulls: and the panel's single line", Says(single.Pictures) == $"Hull C ×8:{HullC}:icon,Interdictor ×2:0:words",
+                Says(single.Pictures));
+
+            var unknown = IntelSnapshotBuilder.Build(input, new IntelCampRegister(), 1);
+            var blind = new IntelEventRowVm(IntelLens.Project(unknown, viewer, Now, _ => hops).Feed.Single(), unknown, Now, false);
+            c.Check("said hulls: with no hull known by that name, words alone: never an empty square",
+                blind.Pictures.All(p => !p.HasPictureSlot && p.PictureUrl is null), Says(blind.Pictures));
+        }
+
+        /// <summary>Distance from a system: jumps from there, nobody named as the origin, and the colours by the
+        /// rule with no viewer (friendly if any character is), or the forced character when set.</summary>
+        private static void SystemOrigin(Checks c)
+        {
+            const long Other = 93_000_002, OtherCorp = 98_300_009, Ally = 99_300_001, FriendCorp = 98_300_010;
+            var report = new IntelReport
+            {
+                Id = 901, ReportedAt = Iso(Ago(1)), ChannelName = "intelcheck", ReporterName = "Scout Alpha", SystemId = Mid,
+                SystemName = "ZZQ-71", PlayerCount = 1, Kind = IntelReportKind.Sighting, Message = "ZZQ-71 Pilot Nine",
+            };
+            var named = new IntelReportCharacter { IntelReportId = 901, CharacterId = 94_000_009, CharacterName = "Pilot Nine" };
+            var seen = new IntelLastSeen
+            {
+                CharacterId = 94_000_009, Name = "Pilot Nine", SystemId = Mid, SeenAt = Iso(Ago(1)), Source = IntelLastSeenSource.Report,
+                SourceRank = IntelLastSeenSource.RankOf(IntelLastSeenSource.Report), ReportId = 901, CorporationId = FriendCorp, WrittenAt = Iso(Ago(1)),
+            };
+            // Pilot Nine's corporation: red to Me's corporation, blue to the other character's.
+            IntelStandings Standings(long forced = 0) => new(
+                [new IntelStandings.OwnCharacter(Me, "Pilot A", MyCorp, Ally), new IntelStandings.OwnCharacter(Other, "Pilot B", OtherCorp, Ally)],
+                [MyCorp, OtherCorp], [(MyCorp, FriendCorp, -10.0), (OtherCorp, FriendCorp, 10.0)], forced);
+            IntelSnapshot Snapshot(IntelStandings standings) => IntelSnapshotBuilder.Build(new IntelSnapshotInput
+            {
+                Now = Now, Settings = new IntelSettingsValues(), Reports = [report], ReportPilots = [named], LastSeen = [seen],
+                SystemNames = new Dictionary<int, string> { [Mid] = "ZZQ-71", [Far] = "XQ1-Z2" }, Standings = standings,
+                Own = [new OwnPosition(Me, "Pilot A", Home, Ago(30), OwnPositionSource.ChatLog, MyCorp, Ally)],
+            }, new IntelCampRegister(), 1);
+            var fromFar = new Dictionary<int, IntelHop> { [Far] = new(0, false), [Mid] = new(2, false) };
+            var viewer = new IntelViewer { Origins = [new IntelOrigin(0, Far)], Tiers = new HashSet<StandingTier>(Enum.GetValues<StandingTier>()) };
+
+            var row = IntelLens.Project(Snapshot(Standings()), viewer, Now, o => o.SystemId == Far ? fromFar : null).Systems.Single();
+            c.Check("from a system: jumps counted from it, with no character as the origin or the viewer",
+                row is { Jumps: 2, NearestOrigin: null, StandingsFrom: null }, $"{row.Jumps} {row.NearestOrigin} {row.StandingsFrom}");
+            c.Check("from a system: the colour is the friendliest any character gives (blue to one of them)",
+                row.Pilots.Single().Tier == StandingTier.Blue, row.Pilots.Single().Tier.ToString());
+            var forced = IntelLens.Project(Snapshot(Standings(Me)), viewer, Now, o => o.SystemId == Far ? fromFar : null).Systems.Single();
+            c.Check("from a system: the character the setting forces still decides",
+                forced is { StandingsFrom: Me } && forced.Pilots.Single().Tier == StandingTier.Red, $"{forced.StandingsFrom} {forced.Pilots.Single().Tier}");
+
+            c.Check("from a system: own bridges are the alliance all the characters share",
+                Standings().BridgeAlliance(0) == Ally && Standings().BridgeAlliance(Me) == Ally);
+            var split = new IntelStandings(
+                [new IntelStandings.OwnCharacter(Me, "Pilot A", MyCorp, Ally), new IntelStandings.OwnCharacter(Other, "Pilot B", OtherCorp, 0)], [], []);
+            c.Check("from a system: with the characters in different alliances, nobody's bridges",
+                split.BridgeAlliance(0) is null && split.BridgeAlliance(Me) == Ally && split.BridgeAlliance(Other) is null);
         }
 
         private static void RowsInEnglish(Checks c)

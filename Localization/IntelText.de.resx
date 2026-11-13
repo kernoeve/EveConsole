@@ -718,4 +718,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>Gerade aktualisiert</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (System)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>oder ein System…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Sprünge von einem System statt von einem Charakter zählen. Dann schaut kein einzelner Charakter, also kommen die Farben von all deinen Charakteren: freundlich, wenn es einer von ihnen ist.</value>
+  </data>
 </root>

@@ -1,6 +1,7 @@
 namespace EveConsole.Services.Intel;
 
-/// <summary>One place distances are measured from: a character, in the system it is in.</summary>
+/// <summary>One place distances are measured from: a character, in the system it is in; or a system
+/// chosen by itself, with CharacterId 0.</summary>
 public readonly record struct IntelOrigin(long CharacterId, int SystemId);
 
 /// <summary>
@@ -118,7 +119,7 @@ public static class IntelLens
     /// <summary>The projection with the distances the service has cached; never waits.</summary>
     public static IntelView Project(IntelSnapshot snapshot, IntelViewer viewer, IntelDistanceService? distances, DateTimeOffset now) =>
         Project(snapshot, viewer, now, origin => distances?.TryCached(origin.SystemId, viewer.Mode,
-            snapshot.Standings.Own(origin.CharacterId)?.AllianceId is long a and > 0 ? a : null));
+            snapshot.Standings.BridgeAlliance(origin.CharacterId)));
 
     /// <summary>The projection, with distances from <paramref name="hopsFrom"/> (null for a walk not
     /// ready yet).</summary>
@@ -141,8 +142,9 @@ public static class IntelLens
             foreach (var (o, hops) in walks)
             {
                 if (!hops.TryGetValue(systemId, out var h)) continue;
+                // A system origin has no character: nobody views the row, and the rule with no viewer colours it.
                 if (best is null || h.Jumps < best || (h.Jumps == best && via && !h.ViaWormhole))
-                    (best, via, from) = (h.Jumps, h.ViaWormhole, o.CharacterId);
+                    (best, via, from) = (h.Jumps, h.ViaWormhole, o.CharacterId > 0 ? o.CharacterId : (long?)null);
             }
             var drop = viewer.MaxJumps is int max && viewer.Origins.Count > 0
                 && (best is int j ? j > max : missing.Count == 0);

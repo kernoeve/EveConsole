@@ -145,6 +145,15 @@ public sealed record IntelSnapshot(
     /// channels the feed happens to hold.</summary>
     public IReadOnlyList<string> Channels { get; init; } = [];
 
+    /// <summary>Every published hull's type id by its English name, as reports store hulls said with
+    /// nobody named ("8× Muninn") and a d-scan's paste stores its ships: a view shows each with its icon.</summary>
+    public IReadOnlyDictionary<string, int> HullIds { get; init; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>A hull's type id from its English name; 0 for a name that is no hull (a class such as
+    /// "Interdictor", or words the parser kept).</summary>
+    public int HullId(string? englishName) =>
+        englishName is { Length: > 0 } n && HullIds.TryGetValue(n.Trim(), out var id) ? id : 0;
+
     /// <summary>A system's name in the interface language; its id when the names are not loaded.</summary>
     public string SystemName(int systemId) =>
         SystemNames.TryGetValue(systemId, out var english)
@@ -179,6 +188,9 @@ public sealed record IntelSnapshotInput
 
     /// <summary>System names in English, for matching a report's "on the X gate" to a gate.</summary>
     public IReadOnlyDictionary<int, string> SystemNames { get; init; } = new Dictionary<int, string>();
+
+    /// <summary>Published hulls' type ids by English name (case ignored).</summary>
+    public IReadOnlyDictionary<string, int> HullIds { get; init; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>Pulled affiliations, for pilots no last-seen row gives one.</summary>
     public IReadOnlyDictionary<long, (long Corporation, long Alliance)> Affiliations { get; init; } =
@@ -445,7 +457,8 @@ public static class IntelSnapshotBuilder
             IntelFeedStatus.From(s), input.Standings)
         {
             SystemNames = input.SystemNames,
-            Chatter = [.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
+            HullIds = input.HullIds,
+            Chatter =[.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
             Channels = input.Channels,
         };
     }

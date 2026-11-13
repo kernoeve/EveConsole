@@ -679,4 +679,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>방금 갱신</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (성계)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>또는 성계…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>캐릭터 대신 성계에서 점프 수를 셉니다. 이때는 특정 캐릭터의 시점이 없으므로 색은 모든 캐릭터 기준으로 정해집니다. 그중 하나라도 우호이면 우호입니다.</value>
+  </data>
 </root>

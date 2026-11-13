@@ -228,6 +228,18 @@
         <StackPanel Orientation="Horizontal" Spacing="6">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.DistanceFrom}" />
           <ComboBox ItemsSource="{Binding FromChoices}" SelectedItem="{Binding SelectedFrom}" FontSize="11" MinWidth="170" />
+          <AutoCompleteBox Text="{Binding FromSystemText}" ItemsSource="{Binding FromPlaces}" SelectedItem="{Binding FromPlace}"
+                           FilterMode="None" MinimumPrefixLength="2" FontSize="11" Width="150"
+                           Watermark="{x:Static loc:IntelText.FromSystemSearch}" ToolTip.Tip="{x:Static loc:IntelText.TipFromSystem}">
+            <AutoCompleteBox.ItemTemplate>
+              <DataTemplate x:DataType="svc:PlaceMatch">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                </StackPanel>
+              </DataTemplate>
+            </AutoCompleteBox.ItemTemplate>
+          </AutoCompleteBox>
         </StackPanel>
         <StackPanel Orientation="Horizontal" Spacing="6">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.Within}" />

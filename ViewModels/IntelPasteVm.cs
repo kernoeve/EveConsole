@@ -75,7 +75,7 @@ public sealed class IntelPasteVm : ReactiveObject
             };
             IsUnknown = kind == IntelPasteKind.Unknown;
             StatusText = "";
-            Later();
+            Stale();
         }
     }
 
@@ -104,7 +104,7 @@ public sealed class IntelPasteVm : ReactiveObject
             if (value is null || ReferenceEquals(value, _selectedSystem)) return;
             this.RaiseAndSetIfChanged(ref _selectedSystem, value);
             _systemId = value.Value;
-            Later();
+            Stale();
         }
     }
 
@@ -171,7 +171,7 @@ public sealed class IntelPasteVm : ReactiveObject
         {
             if (value is null || ReferenceEquals(value, _selectedCharacter)) return;
             this.RaiseAndSetIfChanged(ref _selectedCharacter, value);
-            Later();
+            Stale();
         }
     }
 
@@ -256,7 +256,14 @@ public sealed class IntelPasteVm : ReactiveObject
             var pick = SystemChoices.FirstOrDefault(c => c.Value == _systemId)
                        ?? SystemChoices.FirstOrDefault(c => c.Value == mine)
                        ?? SystemChoices.FirstOrDefault();
-            if (pick is not null) { _selectedSystem = pick; _systemId = pick.Value; this.RaisePropertyChanged(nameof(SelectedSystem)); }
+            if (pick is not null)
+            {
+                var moved = pick.Value != _systemId;
+                _selectedSystem = pick;
+                _systemId = pick.Value;
+                this.RaisePropertyChanged(nameof(SelectedSystem));
+                if (moved) Stale();
+            }
         }
         if (!_characterChosen && _selectedCharacter is null) SelectedCharacter = Default();
 
@@ -269,14 +276,25 @@ public sealed class IntelPasteVm : ReactiveObject
 
     // ── The preview ──────────────────────────────────────────────────────────
 
-    private void Later()
+    /// <summary>
+    /// The box, the system or the character changed: what is shown no longer describes what Save would
+    /// store, so Save is off until the new preview is on screen, and that preview comes after the pause.
+    /// ⚠️ The preview is the safeguard: a Local clears the system first, and only its "Replaces N" tells
+    /// the user a partial paste would clear it all the same. Nothing is ever saved that was not shown.
+    /// </summary>
+    private void Stale()
     {
+        CanSave = false;
         _debounce.Stop();
         _debounce.Start();
     }
 
-    /// <summary>The preview now, rather than after the pause: a check's, and Save's when it was pressed
-    /// before the pause ran out.</summary>
+    /// <summary>The preview is of what is in the box now, with the system and the character chosen now.</summary>
+    private bool IsCurrent(IntelPastePreview preview) =>
+        preview.Text == _text && preview.SystemId == _systemId && preview.ViewerCharacterId == (_selectedCharacter?.Value ?? 0);
+
+    /// <summary>The preview now, rather than after the pause: a check's, and Save's or Ctrl+Enter's when
+    /// pressed before the pause ran out (which shows it, and saves nothing).</summary>
     public Task PreviewNowAsync()
     {
         _debounce.Stop();
@@ -370,7 +388,8 @@ public sealed class IntelPasteVm : ReactiveObject
             foreach (var h in DscanHulls) _ = h.LoadAsync();
         }
         foreach (var g in Groups) _ = g.LoadPicturesAsync();
-        CanSave = preview?.CanSave ?? false;
+        // A preview that came back after the box changed again is shown, but Save waits for the next one.
+        CanSave = preview is { CanSave: true } && IsCurrent(preview);
         this.RaisePropertyChanged(nameof(HasPreview));
         this.RaisePropertyChanged(nameof(HasUnknown));
         this.RaisePropertyChanged(nameof(HasOwn));
@@ -427,29 +446,23 @@ public sealed class IntelPasteVm : ReactiveObject
     public string StatusText { get => _status; private set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
     public bool HasStatus => StatusText.Length > 0;
 
-    /// <summary>Ctrl+Enter in the box.</summary>
+    /// <summary>Ctrl+Enter in the box. Before the preview has caught up with the box, it shows the
+    /// preview and stops: a second Ctrl+Enter saves what is now on screen.</summary>
     public void SaveFromKeyboard()
     {
-        if (_debounce.IsEnabled || IsBusy) _ = SaveAfterPreviewAsync();
+        if (_debounce.IsEnabled || IsBusy || _preview is not { } shown || !IsCurrent(shown)) _ = PreviewNowAsync();
         else if (CanSave) SaveCommand.Execute().Subscribe(_ => { }, _ => { });
-    }
-
-    /// <summary>Save pressed before the preview had caught up with the text: the preview first.</summary>
-    private async Task SaveAfterPreviewAsync()
-    {
-        await PreviewNowAsync();
-        if (CanSave) await SaveAsync();
     }
 
     private async Task SaveAsync()
     {
         if (_service is null || _preview is not { CanSave: true } preview) return;
-        // The preview must be of what is in the box now, with the system and character chosen now.
-        if (preview.Text != _text || preview.SystemId != _systemId || preview.ViewerCharacterId != (_selectedCharacter?.Value ?? 0))
+        // Only the preview on screen, of what is in the box now with the system and character chosen
+        // now. Otherwise the fresh one is shown and nothing is saved: the user saves it once seen.
+        if (_debounce.IsEnabled || !IsCurrent(preview))
         {
             await PreviewNowAsync();
-            if (_preview is not { CanSave: true } again) return;
-            preview = again;
+            return;
         }
 
         await Task.Run(() => _service.SaveAsync(preview));

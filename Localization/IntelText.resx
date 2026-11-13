@@ -956,4 +956,16 @@
     <value>Updated just now</value>
     <comment>Intel tool status strip: the intel was read moments ago.</comment>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (system)</value>
+    <comment>Intel tool, Distance from: a system chosen to count jumps from, rather than a character. {0} is the system&apos;s name.</comment>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>or a system…</value>
+    <comment>Intel tool top bar: watermark of the box to count jumps from a system instead of a character.</comment>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Count jumps from a system instead of a character. No single character is looking then, so the colours come from all your characters: friendly if any of them is.</value>
+    <comment>Tooltip on the Intel tool&apos;s box for counting jumps from a system.</comment>
+  </data>
 </root>

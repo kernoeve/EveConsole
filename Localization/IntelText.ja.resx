@@ -679,4 +679,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>たった今更新</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0}（星系）</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>または星系…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>キャラクターではなく星系からジャンプ数を数えます。その場合は特定のキャラクターの視点がないため、色はすべてのキャラクターから決まります。いずれかにとって友好なら友好です。</value>
+  </data>
 </root>

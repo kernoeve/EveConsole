@@ -406,12 +406,12 @@ public sealed class IntelNearestVm : ReactiveObject
 
         // The hulls, each with its icon, as many as fit; then the unnamed hulls said.
         var hulls = row.Pilots.Where(p => p.Pilot.Ship is { Length: > 0 })
-            .GroupBy(p => (p.Pilot.ShipTypeId ?? 0, p.Pilot.Ship!))
+            .GroupBy(p => (p.Pilot.ShipTypeId is > 0 and int t ? t : snapshot.HullId(p.Pilot.Ship), p.Pilot.Ship!))
             .OrderByDescending(g => g.Count())
             .Select(g => IntelPictureVm.Ship(g.Key.Item1, g.Key.Item2, g.Count()))
             .ToList();
         if (row.Intel.Unnamed is { Ships: { Length: > 0 } said } && row.Unnamed > 0)
-            hulls.AddRange(EveConsole.Services.IntelDisplay.ParseShips(said).Select(s => IntelPictureVm.Ship(0, s.Name, s.Count)));
+            hulls.AddRange(EveConsole.Services.IntelDisplay.ParseShips(said).Select(s => IntelPictureVm.SaidHull(snapshot, s.Name, s.Count)));
         Pictures = [.. hulls.Take(MaxHulls)];
         MoreHulls = hulls.Count > MaxHulls ? "+" + (hulls.Count - MaxHulls).ToString(culture) : "";
 

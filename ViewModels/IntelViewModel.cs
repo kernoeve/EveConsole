@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia.Media;
 using Avalonia.Threading;
 using EveConsole.Data;
@@ -61,6 +62,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
     private readonly IntelSnapshotService? _snapshots;
     private readonly IntelDistanceService? _distances;
     private readonly IDbContextFactory<AppDbContext>? _dbFactory;
+    private readonly UniverseMapService? _map;
     private readonly DispatcherTimer _clock;
     private IDisposable? _subscription;
     private IntelSnapshot _snapshot = IntelSnapshot.Empty;
@@ -77,6 +79,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
         _snapshots = snapshots;
         _distances = distances;
         _dbFactory = dbFactory;
+        _map = map;
         _clock = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => Tick());
         _clock.Stop();
 
@@ -111,6 +114,9 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
         DismissWarningCommand = ReactiveCommand.Create(DismissWarning);
         OpenKillMailsCommand = ReactiveCommand.Create(() => OpenSettingsTab?.Invoke(SettingsText.TabKillMails));
+
+        this.WhenAnyValue(x => x.FromSystemText).Skip(1).Throttle(TimeSpan.FromMilliseconds(180))
+            .SelectMany(t => Observable.FromAsync(() => SuggestFromAsync(t))).Subscribe();
     }
 
     private static T Read<T>(Func<T> read, T fallback)
@@ -288,9 +294,12 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
     public ObservableCollection<IntelChoice<long>> FromChoices { get; } = [];
 
+    /// <summary>What "Distance from" holds: 0 for the nearest online character, a character's id, or a
+    /// system as its id negated (a character id and a system id can never be told apart otherwise).</summary>
     private long _fromId;
     private IntelChoice<long>? _selectedFrom;
-    /// <summary>Whom distances are counted from: the nearest online character (0), or one of them.</summary>
+    /// <summary>Whom distances are counted from: the nearest online character (0), one of them, or a
+    /// system (its id negated).</summary>
     public IntelChoice<long>? SelectedFrom
     {
         get => _selectedFrom;
@@ -307,8 +316,57 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
         }
     }
 
-    /// <summary>The character chosen in "Distance from", or 0 for the nearest.</summary>
-    public long FromCharacterId => _fromId;
+    /// <summary>The character chosen in "Distance from", or 0 for the nearest or a system.</summary>
+    public long FromCharacterId => _fromId > 0 ? _fromId : 0;
+
+    /// <summary>The system chosen in "Distance from", or 0 when it is a character or the nearest.</summary>
+    public int FromSystemId => _fromId < 0 ? (int)-_fromId : 0;
+
+    private string _fromSystemText = "";
+    /// <summary>A system to count from instead of a character, by name.</summary>
+    public string FromSystemText { get => _fromSystemText; set => this.RaiseAndSetIfChanged(ref _fromSystemText, value); }
+
+    public ObservableCollection<PlaceMatch> FromPlaces { get; } = [];
+
+    private PlaceMatch? _fromPlace;
+    public PlaceMatch? FromPlace
+    {
+        get => _fromPlace;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _fromPlace, value);
+            if (value is { IsSystem: true } place) FromSystem(place.SystemId);
+        }
+    }
+
+    /// <summary>Counts jumps from a system rather than a character. Nobody views the rows then, so
+    /// their colours follow the rule with no viewer: the forced character, else all of them.</summary>
+    public void FromSystem(int systemId)
+    {
+        if (systemId <= 0) return;
+        _fromId = -systemId;
+        Save(() => UiState.SetLong(KeyFrom, _fromId));
+        Paste.FromChanged();
+        Project();
+    }
+
+    private async Task SuggestFromAsync(string text)
+    {
+        if (_map is null || text.Trim().Length < 2) return;
+        try
+        {
+            var found = (await _map.SearchPlacesAsync(text, shownNames: true)).Where(p => p.IsSystem).ToList();
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                FromPlaces.Clear();
+                foreach (var p in found) FromPlaces.Add(p);
+            });
+        }
+        catch
+        {
+            // The old suggestions stay; the next keystroke asks again.
+        }
+    }
 
     public IReadOnlyList<IntelChoice<int?>> JumpsChoices { get; } =
     [
@@ -553,17 +611,21 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
     // ── Projection ───────────────────────────────────────────────────────────
 
-    /// <summary>The own characters the distances are counted from, as the snapshot has them.</summary>
+    /// <summary>What the distances are counted from: the own characters as the snapshot has them, or
+    /// the system chosen, with no character (so no single viewer for the standings).</summary>
     private IReadOnlyList<IntelOrigin> Origins(IntelSnapshot snapshot) =>
-        _fromId == 0
-            ? [.. snapshot.Own.Select(o => new IntelOrigin(o.CharacterId, o.SystemId))]
-            : [.. snapshot.Own.Where(o => o.CharacterId == _fromId).Select(o => new IntelOrigin(o.CharacterId, o.SystemId))];
+        _fromId == 0 ? [.. snapshot.Own.Select(o => new IntelOrigin(o.CharacterId, o.SystemId))]
+        : _fromId < 0 ? [new IntelOrigin(0, (int)-_fromId)]
+        : [.. snapshot.Own.Where(o => o.CharacterId == _fromId).Select(o => new IntelOrigin(o.CharacterId, o.SystemId))];
 
     private void SyncFrom(IntelSnapshot snapshot)
     {
         var wanted = new List<IntelChoice<long>> { FromChoices[0] };
         foreach (var o in snapshot.Own) wanted.Add(new IntelChoice<long>(o.CharacterId, o.Name));
-        if (_fromId != 0 && snapshot.Own.All(o => o.CharacterId != _fromId))
+        if (_fromId < 0)
+            wanted.Add(new IntelChoice<long>(_fromId, string.Format(CultureInfo.CurrentCulture, IntelText.FromSystemChoice,
+                                                                     snapshot.SystemName((int)-_fromId))));
+        else if (_fromId != 0 && snapshot.Own.All(o => o.CharacterId != _fromId))
         {
             var name = snapshot.Standings.Own(_fromId)?.Name ?? _fromId.ToString(CultureInfo.InvariantCulture);
             wanted.Add(new IntelChoice<long>(_fromId, string.Format(CultureInfo.CurrentCulture, IntelText.FromOffline, name)));
@@ -626,7 +688,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
     private void Walk(IntelOrigin origin, IntelGraphMode mode, IntelSnapshot snapshot)
     {
-        var alliance = snapshot.Standings.Own(origin.CharacterId)?.AllianceId is long a and > 0 ? a : (long?)null;
+        var alliance = snapshot.Standings.BridgeAlliance(origin.CharacterId);
         if (_distances is not { } distances || !_walking.Add((origin.SystemId, mode, alliance ?? 0))) return;
         _ = Task.Run(async () =>
         {
@@ -747,8 +809,9 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
         string note;
         if (snapshot.Version == 0 && _snapshots is not null) note = IntelText.PanelReading;
         else if (!snapshot.Settings.HasIntelChannels && snapshot.Channels.Count == 0) note = IntelText.ToolNoChannels;
+        else if (_fromId < 0) note = "";
         else if (snapshot.Own.Count == 0) note = IntelText.ToolNobodyOnline;
-        else if (_fromId != 0 && origins.Count == 0) note = IntelText.ToolFromOffline;
+        else if (_fromId > 0 && origins.Count == 0) note = IntelText.ToolFromOffline;
         else note = "";
         Note = note;
         BoardEmptyText = board.Count > 0 ? "" : search.Length > 0 ? IntelText.ToolNothingMatches : IntelText.ToolBoardEmpty;
@@ -830,8 +893,9 @@ public sealed class IntelBoardRowVm : ReactiveObject
         HostilesText = count > 0 ? count.ToString(culture) : IsClear ? "" : "–";
 
         // The hulls flown, most first, each with its icon: the named pilots', the camp's, then the ones said.
+        // A hull said with no type id (by name only) is found by its English name, for its icon.
         var hulls = row.Pilots.Where(p => p.Pilot.Ship is { Length: > 0 })
-            .GroupBy(p => (p.Pilot.ShipTypeId ?? 0, p.Pilot.Ship!))
+            .GroupBy(p => (p.Pilot.ShipTypeId is > 0 and int t ? t : snapshot.HullId(p.Pilot.Ship), p.Pilot.Ship!))
             .Select(g => (g.Key.Item1, g.Key.Item2, Count: g.Count()))
             .ToList();
         foreach (var c in row.Camps)
@@ -841,8 +905,11 @@ public sealed class IntelBoardRowVm : ReactiveObject
                                       ?? g.Key.ToString(CultureInfo.InvariantCulture), g.Count()));
         if (row.Intel.Unnamed is { Ships: { Length: > 0 } said } && row.Unnamed > 0)
             foreach (var (n, name) in IntelDisplay.ParseShips(said))
-                if (hulls.All(h => !string.Equals(h.Item2, name, StringComparison.OrdinalIgnoreCase)))
-                    hulls.Add((0, name, n));
+            {
+                var id = snapshot.HullId(name);
+                if (id > 0 ? hulls.All(h => h.Item1 != id) : hulls.All(h => !string.Equals(h.Item2, name, StringComparison.OrdinalIgnoreCase)))
+                    hulls.Add((id, id > 0 ? SdeNames.Type(id, name) : name, n));
+            }
         var ordered = hulls.OrderByDescending(h => h.Count).ThenBy(h => h.Item2, StringComparer.CurrentCulture).ToList();
         Hulls = [.. ordered.Take(MaxHulls).Select(h => IntelPictureVm.Ship(h.Item1, h.Item2, h.Count))];
         HullsMore = ordered.Count > MaxHulls ? "+" + (ordered.Count - MaxHulls).ToString(culture) : "";

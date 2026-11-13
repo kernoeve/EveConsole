@@ -547,6 +547,13 @@ namespace EveConsole.Tools.IntelCheck
                 await db.SdeCelestials.ExecuteDeleteAsync();
                 await db.SdeStargates.ExecuteDeleteAsync();
                 await db.SdeSolarSystems.ExecuteDeleteAsync();
+                await db.SdeTypes.Where(t => t.TypeId == SaidHull || t.TypeId == UnpublishedHull).ExecuteDeleteAsync();
+                await db.SdeGroups.Where(g => g.GroupId == SaidHullGroup).ExecuteDeleteAsync();
+
+                // A published hull a report may name with no type id beside it, and one never published.
+                db.SdeGroups.Add(new SdeGroup { GroupId = SaidHullGroup, CategoryId = 6, Name = "Invented Hull Class", Published = true });
+                db.SdeTypes.Add(new SdeType { TypeId = SaidHull, GroupId = SaidHullGroup, Name = "Hull Zeta", Published = true });
+                db.SdeTypes.Add(new SdeType { TypeId = UnpublishedHull, GroupId = SaidHullGroup, Name = "Hull Unseen", Published = false });
 
                 db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = S1, Name = "QZ-X77", RegionId = 1, ConstellationId = 1 });
                 db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = S2, Name = "XQ1-Z2", RegionId = 1, ConstellationId = 1 });
@@ -605,6 +612,12 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} service: the own character is where the chat log says, newer than ESI",
                 snap.Own is [{ CharacterId: A, SystemId: S2, Source: OwnPositionSource.ChatLog }],
                 string.Join(",", snap.Own.Select(o => $"{o.CharacterId}@{o.SystemId} {o.Source}")));
+            c.Check($"{engine} service: a published hull is found by its English name, any case, for its icon",
+                snap.HullId("Hull Zeta") == SaidHull && snap.HullId("hull zeta") == SaidHull, snap.HullId("Hull Zeta").ToString());
+            c.Check($"{engine} service: an unpublished type or a class name is no hull",
+                snap.HullId("Hull Unseen") == 0 && snap.HullId("Invented Hull Class") == 0);
+
+            await ChatterAsync(c, engine, options, now);
 
             // Written since: a new sighting, and a late one with an old time.
             await using (var db = new AppDbContext(options))
@@ -628,6 +641,47 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} service: the full feed on clears the warning's dismissal",
                 snap.FeedStatus is { FullFeed: true, Dismissed: false } && await prefs.ReadFreshAsync(IntelSettings.KeyFeedWarning) == "0");
             service.Dispose();
+        }
+
+        private const int SaidHull = 70_901, UnpublishedHull = 70_902, SaidHullGroup = 70_900;
+
+        /// <summary>Unlinked chatter: the lines no report came from, a paste's 0 never matching a line, and on
+        /// SQLite, the plan: each line's reports are found by the partial index, never by a scan of them all.</summary>
+        private static async Task ChatterAsync(Checks c, string engine, DbContextOptions<AppDbContext> options, DateTimeOffset now)
+        {
+            await using var db = new AppDbContext(options);
+            ChatMessage Line(string text, int n) => new()
+            {
+                OccurredAt = Iso(now.AddMinutes(-3)), ChannelName = "intelcheck chatter", SenderName = "Scout Alpha", Message = text,
+                SourceFile = "intelcheck-chatter.txt", LineNumber = n,
+            };
+            var talk = Line("anyone awake?", 1);
+            var intel = Line("QZ-X77 Pilot 1", 2);
+            db.ChatMessages.AddRange(talk, intel);
+            await db.SaveChangesAsync();
+            db.IntelReports.Add(new IntelReport
+            {
+                ReportedAt = Iso(now.AddMinutes(-3)), ChannelName = "intelcheck chatter", ReporterName = "Scout Alpha", SystemId = S1,
+                SystemName = "QZ-X77", PlayerCount = 1, Message = intel.Message, ChatMessageId = intel.Id,
+            });
+            await db.SaveChangesAsync();
+
+            var query = IntelSnapshotService.ChatterQuery(db, ["intelcheck chatter"], int.MaxValue, Iso(now.AddHours(-1)));
+            var ids = await query.Select(m => m.Id).ToListAsync();
+            c.Check($"{engine} service: unlinked chatter is the line no report came from, and only that",
+                ids.SequenceEqual([talk.Id]), string.Join(",", ids));
+
+            if (engine != "SQLite") return;
+            // PostgreSQL's planner chooses by table size, so on a scratch table its plan proves nothing; SQLite's
+            // choice of index is by shape alone, the same here as on a year of intel.
+            await db.Database.OpenConnectionAsync();
+            await using var cmd = query.CreateDbCommand();
+            cmd.CommandText = "EXPLAIN QUERY PLAN " + cmd.CommandText;
+            var plan = new List<string>();
+            await using (var r = await cmd.ExecuteReaderAsync())
+                while (await r.ReadAsync()) plan.Add(r.GetString(3));
+            c.Check("SQLite service: unlinked chatter finds a line's reports by the partial index, never scanning them all",
+                plan.Any(p => p.Contains("IX_IntelReports_ChatMessage", StringComparison.Ordinal)), string.Join(" | ", plan));
         }
 
         // ── Retention ──────────────────────────────────────────────────────────────────────────────────────

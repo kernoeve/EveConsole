@@ -679,4 +679,13 @@
   <data name="StatusUpdatedNow" xml:space="preserve">
     <value>刚刚更新</value>
   </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0}（星系）</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>或某个星系…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>从某个星系而不是角色计算跳数。此时没有单一角色在看，因此颜色取自你的所有角色：只要其中任何一个视为友好即为友好。</value>
+  </data>
 </root>
