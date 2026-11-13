@@ -238,58 +238,20 @@ public sealed class IntelCondition : IAlarmCondition
         var minimum = Math.Max(1, ReadInt(config, "min_players") ?? 1);
         var skipNv  = ReadBool(config, "ignore_no_visual");
 
-        await using var conn = AppDb.Connect();
-        await conn.OpenAsync(ct);
-
-        var watched   = new HashSet<int>();
-        var distances = new Dictionary<int, int>();      // from the nearest origin
-        var nearest   = new Dictionary<int, string>();   // the character that origin is, around characters
-
-        var lyDistances = new Dictionary<int, double>();   // light years from the nearest origin
-        var lyNearest   = new Dictionary<int, string>();   // the character that is, around characters
-        var positions   = ly is null ? null : await PositionsAsync(conn, ct);
-
-        // Everything within range of one origin: by gates, and by light years when that is set.
-        // The nearer figure wins when two origins reach the same system — two characters a jump
-        // apart, or a system listed twice.
-        async Task SpreadAsync(int origin, string? who)
-        {
-            foreach (var (id, hops) in await _graph.DistancesWithinAsync(origin, jumps, ct))
-            {
-                watched.Add(id);
-                if (distances.TryGetValue(id, out var known) && hops >= known) continue;
-                distances[id] = hops;
-                if (who is not null) nearest[id] = who;
-            }
-
-            if (ly is not { } reach || positions is null || !positions.TryGetValue(origin, out var o)) return;
-            foreach (var (id, p) in positions)
-            {
-                var dx = p.X - o.X; var dy = p.Y - o.Y; var dz = p.Z - o.Z;
-                var far = Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
-                if (far > reach) continue;
-                watched.Add(id);
-                if (lyDistances.TryGetValue(id, out var was) && far >= was) continue;
-                lyDistances[id] = far;
-                if (who is not null) lyNearest[id] = who;
-            }
-        }
-
-        if (around == AroundSystems)
-        {
-            foreach (var id in await ResolveSystemsAsync(conn, SystemNames(config), ct))
-                await SpreadAsync(id, null);
-        }
-        else
-        {
-            foreach (var (name, systemId) in await OriginsAsync(ctx, around, ReadList(config, "characters"), ct))
-                await SpreadAsync(systemId, name);
-        }
+        var zone        = await WatchedSystemsAsync(config, _graph, ctx.DbFactory, ct);
+        var watched     = zone.Systems;
+        var distances   = zone.Jumps;
+        var nearest     = zone.Nearest;
+        var lyDistances = zone.LightYears;
+        var lyNearest   = zone.LightYearsNearest;
 
         // No resolvable system means nothing to watch. Returning empty rather than everything
         // matters: a typo in a system name must go quiet, not alert on the whole cluster — and
         // every character docked must go quiet too, which is the point of watching undocked ones.
         if (watched.Count == 0) return [];
+
+        await using var conn = AppDb.Connect();
+        await conn.OpenAsync(ct);
 
         var lookback = around == AroundSystems ? Lookback : CharacterLookback;
         // ⚠️ In the column's own format. ReportedAt is TEXT, "2026-09-11T23:19:09Z", compared as
@@ -468,7 +430,7 @@ public sealed class IntelCondition : IAlarmCondition
     }
 
     private static async Task<List<AlarmMatch>> KillMatchesAsync(
-        AlarmEvaluationContext ctx, HashSet<int> watched, DateTimeOffset since, int minimum, int jumps,
+        AlarmEvaluationContext ctx, IReadOnlySet<int> watched, DateTimeOffset since, int minimum, int jumps,
         IReadOnlyDictionary<int, int> distances, IReadOnlyDictionary<int, string> nearest,
         IReadOnlyDictionary<int, double> lyDistances, IReadOnlyDictionary<int, string> lyNearest, CancellationToken ct)
     {
@@ -561,15 +523,78 @@ public sealed class IntelCondition : IAlarmCondition
     }
 
     /// <summary>
+    /// The systems one intel alarm watches, and how far each is from what it is watched around.
+    /// <para>⚠️ The one place the watched set is worked out: the alarm's own check matches against it,
+    /// and the Universe Map's alert zone outline draws it, so the outline is exactly what would fire.</para>
+    /// <para>Everything within range of each origin — the characters (or systems) the alarm is around
+    /// — by gates, and by light years when that is set. The nearer figure wins when two origins reach
+    /// the same system: two characters a jump apart, or a system listed twice. Empty when nothing
+    /// resolves (a misspelt system, every character docked), never everything.</para>
+    /// </summary>
+    public static async Task<IntelWatchedSystems> WatchedSystemsAsync(
+        JsonElement config, SystemGraph graph, IDbContextFactory<AppDbContext> dbFactory, CancellationToken ct = default)
+    {
+        var around = ReadAround(config);
+        var jumps  = ReadJumps(config, around);
+        var ly     = ReadLy(config);
+
+        var watched     = new HashSet<int>();
+        var distances   = new Dictionary<int, int>();      // from the nearest origin
+        var nearest     = new Dictionary<int, string>();   // the character that origin is, around characters
+        var lyDistances = new Dictionary<int, double>();   // light years from the nearest origin
+        var lyNearest   = new Dictionary<int, string>();   // the character that is, around characters
+
+        await using var conn = AppDb.Connect();
+        await conn.OpenAsync(ct);
+        var positions = ly is null ? null : await PositionsAsync(conn, ct);
+
+        async Task SpreadAsync(int origin, string? who)
+        {
+            foreach (var (id, hops) in await graph.DistancesWithinAsync(origin, jumps, ct))
+            {
+                watched.Add(id);
+                if (distances.TryGetValue(id, out var known) && hops >= known) continue;
+                distances[id] = hops;
+                if (who is not null) nearest[id] = who;
+            }
+
+            if (ly is not { } reach || positions is null || !positions.TryGetValue(origin, out var o)) return;
+            foreach (var (id, p) in positions)
+            {
+                var dx = p.X - o.X; var dy = p.Y - o.Y; var dz = p.Z - o.Z;
+                var far = Math.Sqrt(dx * dx + dy * dy + dz * dz) / MetresPerLightYear;
+                if (far > reach) continue;
+                watched.Add(id);
+                if (lyDistances.TryGetValue(id, out var was) && far >= was) continue;
+                lyDistances[id] = far;
+                if (who is not null) lyNearest[id] = who;
+            }
+        }
+
+        if (around == AroundSystems)
+        {
+            foreach (var id in await ResolveSystemsAsync(conn, SystemNames(config), ct))
+                await SpreadAsync(id, null);
+        }
+        else
+        {
+            foreach (var (name, systemId) in await OriginsAsync(dbFactory, around, ReadList(config, "characters"), ct))
+                await SpreadAsync(systemId, name);
+        }
+
+        return new IntelWatchedSystems(watched, distances, nearest, lyDistances, lyNearest);
+    }
+
+    /// <summary>
     /// The characters to draw the range around, with the system each is in: the capsuleer's own,
     /// online, and — around undocked characters — in space. Named ones only when names are
     /// given. A character logged off is not watched wherever they were left: nobody is there to
     /// warn.
     /// </summary>
     private static async Task<List<(string Name, int SystemId)>> OriginsAsync(
-        AlarmEvaluationContext ctx, string around, IReadOnlyList<string> named, CancellationToken ct)
+        IDbContextFactory<AppDbContext> dbFactory, string around, IReadOnlyList<string> named, CancellationToken ct)
     {
-        await using var db = await ctx.DbFactory.CreateDbContextAsync(ct);
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
         var rows = await (
             from s in db.CharacterStatuses.AsNoTracking()
             join c in db.Characters.AsNoTracking() on s.CharacterId equals c.Id
@@ -924,4 +949,16 @@ public sealed class IntelCondition : IAlarmCondition
     private static bool ReadBool(JsonElement e, string name) =>
         e.ValueKind == JsonValueKind.Object && e.TryGetProperty(name, out var p)
         && p.ValueKind == JsonValueKind.True;
+}
+
+/// <summary>The systems an intel alarm watches (<see cref="IntelCondition.WatchedSystemsAsync"/>): every one
+/// in range, the gate jumps and light years from the nearest origin, and the character that origin is when
+/// the alarm is around characters.</summary>
+public sealed record IntelWatchedSystems(
+    IReadOnlySet<int> Systems,
+    IReadOnlyDictionary<int, int> Jumps, IReadOnlyDictionary<int, string> Nearest,
+    IReadOnlyDictionary<int, double> LightYears, IReadOnlyDictionary<int, string> LightYearsNearest)
+{
+    public static readonly IntelWatchedSystems None = new(new HashSet<int>(), new Dictionary<int, int>(),
+        new Dictionary<int, string>(), new Dictionary<int, double>(), new Dictionary<int, string>());
 }

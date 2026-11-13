@@ -31,6 +31,11 @@ public sealed record MapNodeStyle(Color Fill, string? Caption = null, string? De
 /// <param name="Reported">Intel said something here — a spike, bubbles — though nobody was
 /// counted: the mark shows "!" instead of a number.</param>
 /// <param name="Officers">Officer NPCs seen on a killmail here since downtime.</param>
+/// <param name="State">How the hostile mark is drawn: filled, hollow for no visual, "!" for something
+/// said with nobody counted, or a check for a system called clear.</param>
+/// <param name="Tint">The mark's colour: the worst standings tier there. Null for the theme's Bad.</param>
+/// <param name="Freshness">1 for news just in, 0 at the end of its lifetime: the fill fades from full to
+/// 35% (0.35 + 0.65 × freshness) while the outline stays full, so an old mark is still seen.</param>
 public sealed record MapMarkers(
     int Hostiles, string? HostileTitle, string? HostileDetail,
     int Own,      string? OwnTitle,     string? OwnDetail,
@@ -38,7 +43,33 @@ public sealed record MapMarkers(
     IReadOnlyList<MapMarkRow>? OwnRows     = null,
     bool Reported = false,
     int Officers = 0, string? OfficerTitle = null, string? OfficerDetail = null,
-    IReadOnlyList<MapMarkRow>? OfficerRows = null);
+    IReadOnlyList<MapMarkRow>? OfficerRows = null,
+    MapMarkState State = MapMarkState.Hostile, Color? Tint = null, double Freshness = 1.0);
+
+/// <summary>How a system's intel mark is drawn.</summary>
+public enum MapMarkState
+{
+    /// <summary>Someone seen: a filled circle with the count.</summary>
+    Hostile,
+    /// <summary>Someone in Local, never seen on grid: a hollow circle with a dashed ring.</summary>
+    NoVisual,
+    /// <summary>Something said (bubbles, a camp, a spike) and nobody counted: "!".</summary>
+    FlagsOnly,
+    /// <summary>Called clear, and nothing newer: a green check.</summary>
+    Clear,
+}
+
+/// <summary>A gate camp, drawn as a thick stub on the gate's own line, from the camped system towards the
+/// system the gate leads to, with the kills counted on it.</summary>
+/// <param name="SystemId">The camped system.</param>
+/// <param name="ToSystemId">The system the gate leads to.</param>
+/// <param name="Tint">The worst standings tier among the campers: the kills tag's colour.</param>
+/// <param name="Freshness">1 at the last kill, 0 when the camp is over: the stub fades by it.</param>
+public sealed record MapCampMark(int SystemId, int ToSystemId, int Kills, Color Tint, double Freshness, string Title, string Detail);
+
+/// <summary>A reported direction: solid from where a pilot came from to where they were seen, dashed from
+/// there to where they were said to be heading. The arrowhead is at <paramref name="ToId"/>.</summary>
+public sealed record MapIntelArrow(int FromId, int ToId, bool Dashed, Color Tint, double Freshness, string Title, string Detail);
 
 /// <summary>The jump range tab's answer: where it is from, and every system in range.</summary>
 public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
@@ -216,6 +247,36 @@ public class MapCanvas : Control
         set => SetValue(AvoidedProperty, value);
     }
 
+    /// <summary>Gate camps, each a stub on its gate's line. Drawn where systems are drawn.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapCampMark>?> CampedGatesProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapCampMark>?>(nameof(CampedGates));
+
+    public IReadOnlyList<MapCampMark>? CampedGates
+    {
+        get => GetValue(CampedGatesProperty);
+        set => SetValue(CampedGatesProperty, value);
+    }
+
+    /// <summary>Where reported pilots came from and were heading. Drawn where systems are drawn.</summary>
+    public static readonly StyledProperty<IReadOnlyList<MapIntelArrow>?> IntelArrowsProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyList<MapIntelArrow>?>(nameof(IntelArrows));
+
+    public IReadOnlyList<MapIntelArrow>? IntelArrows
+    {
+        get => GetValue(IntelArrowsProperty);
+        set => SetValue(IntelArrowsProperty, value);
+    }
+
+    /// <summary>The systems the intel alarms watch, outlined with a thin dashed ring where systems are drawn.</summary>
+    public static readonly StyledProperty<IReadOnlyCollection<int>?> AlertZoneProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyCollection<int>?>(nameof(AlertZone));
+
+    public IReadOnlyCollection<int>? AlertZone
+    {
+        get => GetValue(AlertZoneProperty);
+        set => SetValue(AlertZoneProperty, value);
+    }
+
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapMarkers>?> MarkersProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapMarkers>?>(nameof(Markers));
 
@@ -266,7 +327,8 @@ public class MapCanvas : Control
 
     static MapCanvas()
     {
-        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, JumpRangeProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty);
+        AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, JumpRangeProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty,
+                                CampedGatesProperty, IntelArrowsProperty, AlertZoneProperty);
     }
 
     public MapCanvas()
@@ -841,6 +903,20 @@ public class MapCanvas : Control
             if (systemTier) DrawRangeRing(ctx, range.OriginId, RangeOriginPen);
         }
 
+        // Intel over the systems, where systems are drawn: the alert zone's outline, camped gates as stubs
+        // on their lines, then the reported directions. After the nodes, so a stub or an arrow starts at a
+        // box's edge rather than under it; under the marks, which stay readable on top.
+        var systemsDrawn = !g.IsContinuous || _activeTier == 1;
+        if (systemsDrawn && AlertZone is { Count: > 0 } zone)
+        {
+            var zonePen = new ImmutablePen(new ImmutableSolidColorBrush(Palette.Colour("Warn")), 1.2, new ImmutableDashStyle([3, 2.5], 0));
+            foreach (var id in zone) DrawZoneRing(ctx, id, zonePen);
+        }
+        if (systemsDrawn && CampedGates is { Count: > 0 } camps)
+            foreach (var camp in camps) DrawCampStub(ctx, camp);
+        if (systemsDrawn && IntelArrows is { Count: > 0 } arrows)
+            foreach (var arrow in arrows) DrawIntelArrow(ctx, arrow);
+
         // Avoided systems, ringed over their node, where systems are drawn.
         if (Avoided is { Count: > 0 } avoided && (!g.IsContinuous || _activeTier == 1))
             foreach (var id in avoided)
@@ -1373,20 +1449,196 @@ public class MapCanvas : Control
     private static readonly IBrush MarkInk = new ImmutableSolidColorBrush(Color.Parse("#ffffff"));
     private static readonly IPen   MarkPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.Parse("#0b0b10")), 1.5);
 
+    // ── Intel: the alert zone, camped gates, directions ──────────────────────
+
+    /// <summary>How far from a node's centre its drawn form ends, along a direction: the box's edge, or
+    /// the dot's rim.</summary>
+    private double EdgeOffset(int id, Vector dir)
+    {
+        if (!_nodeRects.TryGetValue(id, out var box)) return NodeRadius;
+        var hx = box.Width / 2;
+        var hy = box.Height / 2;
+        var tx = Math.Abs(dir.X) < 1e-9 ? double.MaxValue : hx / Math.Abs(dir.X);
+        var ty = Math.Abs(dir.Y) < 1e-9 ? double.MaxValue : hy / Math.Abs(dir.Y);
+        return Math.Min(tx, ty);
+    }
+
+    /// <summary>The fill's strength at a freshness: full when new, 35% at the end of its lifetime.</summary>
+    private static double FadeAlpha(double freshness) => 0.35 + 0.65 * Math.Clamp(freshness, 0, 1);
+
+    private static Color WithAlpha(Color c, double alpha) =>
+        Color.FromArgb((byte)Math.Round(Math.Clamp(alpha, 0, 1) * c.A), c.R, c.G, c.B);
+
+    /// <summary>What <paramref name="top"/> at <paramref name="alpha"/> shows as over <paramref name="under"/>.</summary>
+    private static Color Blend(Color top, Color under, double alpha)
+    {
+        alpha = Math.Clamp(alpha, 0, 1);
+        byte Mix(byte a, byte b) => (byte)Math.Round(a * alpha + b * (1 - alpha));
+        return Color.FromRgb(Mix(top.R, under.R), Mix(top.G, under.G), Mix(top.B, under.B));
+    }
+
+    /// <summary>A thin dashed ring outside the range ring's, so both read where they meet.</summary>
+    private void DrawZoneRing(DrawingContext ctx, int id, IPen pen)
+    {
+        if (!_byId.TryGetValue(id, out var n)) return;
+        if (_nodeRects.TryGetValue(id, out var box)) { ctx.DrawRectangle(null, pen, box.Inflate(8), 6, 6); return; }
+        var at = ToScreen(n.X, n.Y);
+        if (at.X < -20 || at.Y < -20 || at.X > Bounds.Width + 20 || at.Y > Bounds.Height + 20) return;
+        ctx.DrawEllipse(null, pen, at, NodeRadius + 9, NodeRadius + 9);
+    }
+
+    /// <summary>
+    /// A camped gate: a thick stub over the gate's line, from the camped system's edge two fifths of the
+    /// way to the system the gate leads to, fading as the camp ages, with the kills counted in a tag at its
+    /// middle. When the far system is not on the map, a short stub up and to the left.
+    /// </summary>
+    private void DrawCampStub(DrawingContext ctx, MapCampMark camp)
+    {
+        if (!_byId.TryGetValue(camp.SystemId, out var node)) return;
+        var p = ToScreen(node.X, node.Y);
+        if (p.X < -200 || p.Y < -200 || p.X > Bounds.Width + 200 || p.Y > Bounds.Height + 200) return;
+
+        Vector dir;
+        double length;
+        if (_byId.TryGetValue(camp.ToSystemId, out var far))
+        {
+            var q = ToScreen(far.X, far.Y);
+            var d = q - p;
+            var len = Math.Sqrt(d.X * d.X + d.Y * d.Y);
+            if (len < 1) return;
+            dir = d / len;
+            length = len * 0.4;
+        }
+        else
+        {
+            dir = new Vector(-0.7071, -0.7071);
+            length = 0;
+        }
+
+        // Long enough to clear the hostile mark beside a box, which sits on the same side for a gate to the east.
+        var edge  = EdgeOffset(camp.SystemId, dir);
+        var start = p + dir * (edge + 1);
+        var end   = p + dir * Math.Max(length, edge + 46);
+        var alpha = FadeAlpha(camp.Freshness);
+        // ⚠️ The stub in the theme's danger colour, whoever camps: a camp is a threat to anyone going through,
+        // and a neutral grey stub vanished into the grey gate line. The campers' tier is the tag's colour.
+        var pen   = new ImmutablePen(new ImmutableSolidColorBrush(WithAlpha(Palette.Colour("Bad"), alpha)), 4, lineCap: PenLineCap.Round);
+        ctx.DrawLine(StubShadowPen, start, end);
+        ctx.DrawLine(pen, start, end);
+
+        // The kills, in a tag at the stub's far end.
+        var tagFill = Blend(camp.Tint, Palette.Colour("SurfaceBase"), Math.Max(alpha, 0.75));
+        var text = new FormattedText(camp.Kills.ToString(CultureInfo.CurrentCulture), CultureInfo.CurrentCulture,
+                                     FlowDirection.LeftToRight, BoldFace, 9, PickInk(tagFill).Strong);
+        var w    = Math.Max(13, text.Width + 6);
+        var rect = new Rect(end.X - w / 2, end.Y - 6.5, w, 13);
+        ctx.DrawRectangle(new ImmutableSolidColorBrush(tagFill), MarkPen, new RoundedRect(rect, 3));
+        ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+        _badgeTips.Add((rect.Inflate(3), camp.Title, camp.Detail, null));
+    }
+
+    /// <summary>
+    /// A reported direction, from the edge of one system to the edge of the other, set a little to its left
+    /// so a move and a heading along the same gate both show; solid for a move, dashed for a heading, the
+    /// arrowhead at the system it points to. Fades with the report. Hover at its middle for the report.
+    /// </summary>
+    private void DrawIntelArrow(DrawingContext ctx, MapIntelArrow arrow)
+    {
+        if (!_byId.TryGetValue(arrow.FromId, out var a) || !_byId.TryGetValue(arrow.ToId, out var b)) return;
+        var pa = ToScreen(a.X, a.Y);
+        var pb = ToScreen(b.X, b.Y);
+        if ((pa.X < -200 && pb.X < -200) || (pa.Y < -200 && pb.Y < -200) ||
+            (pa.X > Bounds.Width + 200 && pb.X > Bounds.Width + 200) ||
+            (pa.Y > Bounds.Height + 200 && pb.Y > Bounds.Height + 200)) return;
+
+        var d   = pb - pa;
+        var len = Math.Sqrt(d.X * d.X + d.Y * d.Y);
+        if (len < 1) return;
+        var dir  = d / len;
+        var side = new Vector(dir.Y, -dir.X) * 4;
+        var from = pa + dir * (EdgeOffset(arrow.FromId, dir) + 3) + side;
+        var to   = pb - dir * (EdgeOffset(arrow.ToId, -dir) + 3) + side;
+        if (Math.Abs(to.X - from.X) + Math.Abs(to.Y - from.Y) < 10) return;
+
+        var colour = WithAlpha(arrow.Tint, FadeAlpha(arrow.Freshness));
+        var brush  = new ImmutableSolidColorBrush(colour);
+        const double head = 8, halfHead = 4;
+        var shaftEnd = to - dir * (head - 1);
+        var pen = arrow.Dashed
+            ? new ImmutablePen(brush, 2, new ImmutableDashStyle([3, 2], 0), PenLineCap.Flat)
+            : new ImmutablePen(brush, 2.2, lineCap: PenLineCap.Round);
+        ctx.DrawLine(pen, from, shaftEnd);
+
+        var normal = new Vector(-dir.Y, dir.X) * halfHead;
+        var tip = new StreamGeometry();
+        using (var s = tip.Open())
+        {
+            s.BeginFigure(to, true);
+            s.LineTo(to - dir * head + normal);
+            s.LineTo(to - dir * head - normal);
+            s.EndFigure(true);
+        }
+        ctx.DrawGeometry(brush, null, tip);
+
+        var mid = new Point((from.X + to.X) / 2, (from.Y + to.Y) / 2);
+        _badgeTips.Add((new Rect(mid.X - 7, mid.Y - 7, 14, 14), arrow.Title, arrow.Detail, null));
+    }
+
+    private static readonly IPen StubShadowPen = new ImmutablePen(new ImmutableSolidColorBrush(Color.FromArgb(0x99, 0x0b, 0x0b, 0x10)), 6, lineCap: PenLineCap.Round);
+
+    /// <summary>A tick drawn as a path: not every font has a check mark.</summary>
+    private static void DrawCheck(DrawingContext ctx, Point c, double r, IPen pen)
+    {
+        var geo = new StreamGeometry();
+        using (var s = geo.Open())
+        {
+            s.BeginFigure(new Point(c.X - r * 0.45, c.Y + r * 0.02), false);
+            s.LineTo(new Point(c.X - r * 0.12, c.Y + r * 0.36));
+            s.LineTo(new Point(c.X + r * 0.48, c.Y - r * 0.34));
+            s.EndFigure(false);
+        }
+        ctx.DrawGeometry(null, pen, geo);
+    }
+
     private void DrawMarkers(DrawingContext ctx, MapMarkers m, Rect anchor, bool isBox)
     {
         // Beside a box, vertically centred, clear of the docking bar above it and the services
         // below. Above a dot, where its label (to the right) does not run.
         var y = isBox ? anchor.Center.Y : anchor.Top - 5;
 
-        if (m.Hostiles > 0 || m.Reported)
+        if (m.State == MapMarkState.Clear)
         {
+            // Called clear: a green check, fading with the clear's lifetime.
+            const double r = 7.5;
+            var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
+            var c  = new Point(cx, y);
+            var alpha = FadeAlpha(m.Freshness);
+            ctx.DrawEllipse(new ImmutableSolidColorBrush(WithAlpha(Palette.Colour("Good"), alpha)), MarkPen, c, r, r);
+            DrawCheck(ctx, c, r, new ImmutablePen(new ImmutableSolidColorBrush(WithAlpha(Palette.Colour("SurfaceBase"), Math.Max(alpha, 0.8))), 1.8,
+                                                  lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round));
+            if (m.HostileTitle is { } clearTitle)
+                _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), clearTitle, m.HostileDetail ?? "", null));
+        }
+        else if (m.Hostiles > 0 || m.Reported)
+        {
+            var tint  = m.Tint ?? Palette.Colour("Bad");
+            var alpha = FadeAlpha(m.Freshness);
+            var hollow = m.State == MapMarkState.NoVisual;
+            var fill  = hollow ? WithAlpha(Palette.Colour("SurfaceBase"), 0.85) : WithAlpha(tint, alpha);
+            // Ink against the colour the fill really shows on the dark plate under it.
+            var ink   = hollow ? new ImmutableSolidColorBrush(WithAlpha(tint, Math.Max(alpha, 0.8)))
+                      : PickInk(Blend(tint, Palette.Colour("SurfaceBase"), alpha)).Strong;
             var text = new FormattedText(m.Hostiles > 0 ? m.Hostiles.ToString(CultureInfo.CurrentCulture) : "!",
-                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, MarkInk);
+                CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, ink);
             var r  = Math.Max(7.5, text.Width / 2 + 4);
             var cx = isBox ? anchor.Right + r + 3 : anchor.Right + r - 3;
             var c  = new Point(cx, y);
-            ctx.DrawEllipse(Palette.Bad, MarkPen, c, r, r);
+            ctx.DrawEllipse(new ImmutableSolidColorBrush(fill), MarkPen, c, r, r);
+            // The outline stays at full strength, so an old mark is still seen for what it is.
+            var ring = hollow
+                ? new ImmutablePen(new ImmutableSolidColorBrush(tint), 1.6, new ImmutableDashStyle([2, 1.5], 0))
+                : new ImmutablePen(new ImmutableSolidColorBrush(tint), 1.4);
+            ctx.DrawEllipse(null, ring, c, r - 0.9, r - 0.9);
             ctx.DrawText(text, new Point(c.X - text.Width / 2, c.Y - text.Height / 2));
             if (m.HostileTitle is { } title)
                 _badgeTips.Add((new Rect(c.X - r - 2, c.Y - r - 2, r * 2 + 4, r * 2 + 4), title, m.HostileDetail ?? "", m.HostileRows));

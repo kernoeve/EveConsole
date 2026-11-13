@@ -6,6 +6,7 @@ using Avalonia.Threading;
 using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Services;
+using EveConsole.Services.Intel;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -360,8 +361,14 @@ public sealed class RouteTabViewModel : MapTabViewModel
                                        UseBridges, Character?.AllianceId, UseWormholes, ShipSize.Value);
         var plan = await Task.Run(() => _planner.PlanAsync(request));
 
-        // Hostiles placed now, and the last hour's kills, beside each system.
-        var live  = Tool.Snapshot;
+        // Hostiles placed now, from the shared intel snapshot as the route's character sees them, and
+        // the last hour's kills, beside each system.
+        var intel = Tool.IntelSnapshots is { } snapshots
+            ? await Task.Run(() => snapshots.FreshAsync(LiveIntelService.MaxAge))
+            : null;
+        var characterId = Character?.Id;
+        var marks = intel is null ? new Dictionary<int, IntelRouteMark>()
+                  : await Task.Run(() => IntelMapView.Route(intel, plan.Steps.Select(s => s.SystemId), characterId, DateTimeOffset.UtcNow));
         var kills = _stats is null ? new Dictionary<int, MapStatsService.SystemActivity>()
                   : await Task.Run(() => _stats.GetActivityAsync(MapStatsService.BucketOf(DateTimeOffset.UtcNow.AddHours(-1))));
 
@@ -370,8 +377,8 @@ public sealed class RouteTabViewModel : MapTabViewModel
         var n = 0;
         foreach (var s in plan.Steps)
             Steps.Add(new RouteStepRowVm(this, s, n++,
-                live?.Hostiles.TryGetValue(s.SystemId, out var h) == true ? h.Count : 0,
-                kills.TryGetValue(s.SystemId, out var k) ? k.ShipKills + k.PodKills : 0));
+                marks.GetValueOrDefault(s.SystemId),
+                kills.TryGetValue(s.SystemId, out var k) ? k.ShipKills + k.PodKills : 0, intel?.At ?? DateTimeOffset.UtcNow));
         this.RaisePropertyChanged(nameof(HasRoute));
 
         PushRoute();
@@ -387,6 +394,36 @@ public sealed class RouteTabViewModel : MapTabViewModel
         Summary = string.Format(MapText.RouteSummary, plan.Jumps, plan.BridgeJumps, holes,
                                 lowest.ToString("0.0", CultureInfo.CurrentCulture));
         Message = plan.Steps.Any(s => s.Bridge is { AccessKnown: false }) ? MapText.RouteBridgeAccessUnknown : "";
+    }
+
+    private int _intelBusy;
+
+    /// <summary>
+    /// A new intel snapshot (UI thread, from the map tool's subscription): the hostiles column follows
+    /// it while a route is shown, worked out off the UI thread. A snapshot arriving while one is being
+    /// worked out is skipped; the next one, seconds later, catches up.
+    /// </summary>
+    public void ApplyIntel(IntelSnapshot snapshot)
+    {
+        if (_plan is not { NoRoute: false } plan || Steps.Count == 0) return;
+        if (Interlocked.Exchange(ref _intelBusy, 1) == 1) return;
+        var characterId = Character?.Id;
+        var systems = plan.Steps.Select(s => s.SystemId).ToList();
+        _ = Task.Run(() =>
+        {
+            try
+            {
+                var marks = IntelMapView.Route(snapshot, systems, characterId, DateTimeOffset.UtcNow);
+                Dispatcher.UIThread.Post(() =>
+                {
+                    // A route planned again meanwhile has rows of its own.
+                    if (!ReferenceEquals(_plan, plan)) return;
+                    foreach (var row in Steps) row.ApplyIntel(marks.GetValueOrDefault(row.Step.SystemId), snapshot.At);
+                });
+            }
+            catch (Exception ex) { Dispatcher.UIThread.Post(() => Message = string.Format(CommonText.ErrorWithMessage, ex.Message)); }
+            finally { Volatile.Write(ref _intelBusy, 0); }
+        });
     }
 
     /// <summary>The characters logged in now, read when asked: Set destination offers these.</summary>
@@ -425,9 +462,9 @@ public sealed class AvoidRowVm(int systemId, string name, int regionId, string r
 }
 
 /// <summary>One system of the planned route.</summary>
-public sealed class RouteStepRowVm
+public sealed class RouteStepRowVm : ReactiveObject
 {
-    public RouteStepRowVm(RouteTabViewModel tab, RouteStep s, int number, int hostiles, int kills)
+    public RouteStepRowVm(RouteTabViewModel tab, RouteStep s, int number, IntelRouteMark? intel, int kills, DateTimeOffset now)
     {
         Step        = s;
         Number      = number == 0 ? "" : number.ToString(CultureInfo.CurrentCulture);
@@ -435,8 +472,8 @@ public sealed class RouteStepRowVm
         RegionLabel = SdeNames.Region(s.RegionId, s.Region);
         Security    = s.Security;
         SecurityText = s.Security.ToString("0.0", CultureInfo.CurrentCulture);
-        Hostiles    = hostiles;
         Kills       = kills;
+        ApplyIntel(intel, now);
         Via = s.Hop switch
         {
             RouteHop.Start    => MapText.RouteViaStart,
@@ -462,11 +499,59 @@ public sealed class RouteStepRowVm
     public string    SecurityText { get; }
     public string    Via         { get; }
     public bool      IsJump      { get; }
-    public int       Hostiles    { get; }
     public int       Kills       { get; }
-    public string    HostilesText => Hostiles > 0 ? Hostiles.ToString(CultureInfo.CurrentCulture) : "";
     public string    KillsText    => Kills    > 0 ? Kills.ToString(CultureInfo.CurrentCulture)    : "";
-    public bool      HasHostiles => Hostiles > 0;
+
+    // ── Hostiles, from the intel snapshot, followed while the route is shown ──
+
+    private IntelRouteMark? _intel;
+    private DateTimeOffset _intelAt;
+
+    /// <summary>Takes the system's intel as it now stands; null when intel holds nothing live there.</summary>
+    public void ApplyIntel(IntelRouteMark? intel, DateTimeOffset now)
+    {
+        if (intel == _intel && now == _intelAt) return;
+        _intel   = intel;
+        _intelAt = now;
+        this.RaisePropertyChanged(nameof(Hostiles));
+        this.RaisePropertyChanged(nameof(HostilesText));
+        this.RaisePropertyChanged(nameof(HasHostiles));
+        this.RaisePropertyChanged(nameof(HostileBrush));
+        this.RaisePropertyChanged(nameof(HostilesTip));
+    }
+
+    /// <summary>Pilots placed here and counted, not blue and not ours.</summary>
+    public int Hostiles => _intel?.Hostiles ?? 0;
+
+    /// <summary>The count; "!" where something was said (bubbles, a camp) and nobody counted.</summary>
+    public string HostilesText => _intel is not { } i ? ""
+        : i.Hostiles > 0 ? i.Hostiles.ToString(CultureInfo.CurrentCulture)
+        : "!";
+
+    public bool HasHostiles => _intel is not null;
+
+    /// <summary>In the worst standings tier there, as on the map.</summary>
+    public Avalonia.Media.IBrush HostileBrush => _intel is { } i ? IntelTierColors.Of(i.Tier) : IntelTierColors.Neutral;
+
+    /// <summary>Whose standings, how new, no visual, a camp: what the number does not say.</summary>
+    public string? HostilesTip
+    {
+        get
+        {
+            if (_intel is not { } i) return null;
+            var lines = new List<string>
+            {
+                string.Format(MapText.LiveTierLine, IntelWords.TierName(i.Tier)),
+                string.Format(MapText.LiveNewestLine, MapToolViewModel.Ago(i.NewestAt, _intelAt)),
+            };
+            if (i.NoVisual) lines.Add(MapText.LiveNoVisualLine);
+            if (i.Camp) lines.Add(MapText.RouteIntelCamp);
+            if (i.State == IntelSystemState.FlagsOnly && EveConsole.Services.IntelDisplay.Facts(
+                    i.Row.Facts.Aggregate(0, (f, x) => f | (int)x.Flag), i.Row.Gate) is { } facts)
+                lines.Add(facts);
+            return string.Join("\n", lines);
+        }
+    }
 
     /// <summary>High, low or null security, for the colour of the number.</summary>
     public bool IsHighSec => Security >= 0.45;

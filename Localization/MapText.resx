@@ -2107,7 +2107,7 @@ Owned by {3}</value>
     <comment>Label in UniverseView's side panel, above the legend of the live marks on the map.</comment>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles placed here in the last 5 minutes, by intel or a killmail. Hover for who they are and what they fly. "!": intel said something here (a spike, bubbles, a camp) but counted nobody.</value>
+    <value>Hostiles placed here by intel or a killmail, in their standing's colour (red, orange, neutral grey), fading as the news ages. Hover for who they are and what they fly. "!": intel said something here (a spike, bubbles, a camp) but counted nobody.</value>
     <comment>Legend beside the red round mark on the map.</comment>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
@@ -3154,5 +3154,121 @@ No capital system, so no zone</value>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>In jump range of the Jump range tab's system (the heavier ring)</value>
     <comment>Map legend: the green ring the jump range tool draws.</comment>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>No visual: in Local, never seen on grid. The same mark, hollow, with a dashed ring.</value>
+    <comment>Universe Map legend: the hollow mark with a dashed ring. 'No visual' means a pilot reported in Local but not seen on grid.</comment>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>Called clear, and nothing said since. Fades over the clear's lifetime (Settings → Intel).</value>
+    <comment>Universe Map legend: the green check mark beside a system.</comment>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>A gate camp found from kills: a thick stub on the gate's line, from the camped system towards where the gate leads, with the kills counted on it.</value>
+    <comment>Universe Map legend: the thick stub drawn on a stargate's line for a gate camp.</comment>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>Where reported pilots came from: a solid arrow into the system they were seen in.</value>
+    <comment>Universe Map legend: the solid arrow from where a reported pilot came from to where they were seen.</comment>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>Where reported pilots were said to be heading: a dashed arrow out of the system they were seen in.</value>
+    <comment>Universe Map legend: the dashed arrow from where a pilot was seen to where they were said to be heading.</comment>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>Watched by an intel alarm now: what would make one go off.</value>
+    <comment>Universe Map legend: the thin dashed outline round the systems an intel alarm watches.</comment>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>Called clear: {0}</value>
+    <comment>Universe Map hover on the green check mark. {0} is the system.</comment>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>Called {0}; nothing said since.</value>
+    <comment>Universe Map hover on the green check mark. {0} is how long ago, as LiveJustNow or LiveMinutesAgo say it ("3 min ago").</comment>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>Newest: {0}</value>
+    <comment>Universe Map hover and route planner tooltip: when the newest news here came. {0} is how long ago, as LiveJustNow or LiveMinutesAgo say it ("3 min ago").</comment>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>No visual: in Local, not seen on grid</value>
+    <comment>Universe Map hover and route planner tooltip: every sighting here was 'no visual'.</comment>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>Standing: {0}</value>
+    <comment>Universe Map hover and route planner tooltip: the worst standings tier here, which gave the mark its colour. {0} is the tier's name (red, orange, neutral).</comment>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>Gate camp on the {0} gate in {1}</value>
+    <comment>Universe Map hover on a gate camp's stub. {0} is the system the gate leads to (the gate's name), {1} the camped system.</comment>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>Kills: {0} · last {1} · attackers: {2}</value>
+    <comment>Universe Map hover on a gate camp's stub. {0} how many kills, {1} how long ago the last was ("3 min ago"), {2} how many pilots attacked.</comment>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+    <comment>Universe Map hover on a solid move arrow. {0} where the pilots came from, {1} where they were seen.</comment>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+    <comment>Universe Map hover on a dashed heading arrow. {0} where the pilots were seen, {1} where they were said to be heading.</comment>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>Seen in {1}, came from {0} · {2}</value>
+    <comment>Universe Map hover on a solid move arrow. {0} where the pilots came from, {1} where they were seen, {2} how long ago ("3 min ago").</comment>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>Seen in {0}, heading for {1} · {2}</value>
+    <comment>Universe Map hover on a dashed heading arrow. {0} where the pilots were seen, {1} where they were said to be heading, {2} how long ago ("3 min ago").</comment>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Universe Map toolbar: the drop-down button holding the intel layers' switches (gate camps, arrows, alert zones).</comment>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>What the map draws from intel besides the marks</value>
+    <comment>Tooltip on the Universe Map toolbar's Intel drop-down button.</comment>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>The marks always take their standing's colour, fade with age and show clear and no-visual systems. These are drawn only where systems are shown, not on the regions.</value>
+    <comment>Note at the bottom of the Universe Map's Intel drop-down.</comment>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>Gate camps</value>
+    <comment>Universe Map Intel drop-down: switch for the gate camp stubs.</comment>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>A gate camp found from kills, drawn as a thick stub on the gate's line, fading as the camp ages</value>
+    <comment>Tooltip on the Gate camps switch of the Universe Map.</comment>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>Movement arrows</value>
+    <comment>Universe Map Intel drop-down: switch for the solid move arrows.</comment>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>A solid arrow from where a reported pilot came from to the system they were seen in</value>
+    <comment>Tooltip on the Movement arrows switch of the Universe Map.</comment>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>Heading arrows</value>
+    <comment>Universe Map Intel drop-down: switch for the dashed heading arrows.</comment>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>A dashed arrow from the system a pilot was seen in to where they were said to be heading</value>
+    <comment>Tooltip on the Heading arrows switch of the Universe Map.</comment>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>Alert zones</value>
+    <comment>Universe Map Intel drop-down: switch for the outline round the systems the intel alarms watch.</comment>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>A thin dashed outline round every system an enabled intel alarm watches now</value>
+    <comment>Tooltip on the Alert zones switch of the Universe Map.</comment>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>Gate camp in this system</value>
+    <comment>Route planner, tooltip on the hostiles column: an active gate camp in this system.</comment>
   </data>
 </root>

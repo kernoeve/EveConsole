@@ -2141,11 +2141,13 @@ public class MainWindowViewModel : ReactiveObject
         StartupTrace.Step("new JumpPlannerVm");
         JumpPlannerVm          = new JumpPlannerViewModel(jumpPlanner);
         StartupTrace.Step("new MapVm");
+        // The intel alarms' reach, for the map's alert zone outline: one for every copy of the map.
+        var intelZones         = new EveConsole.Services.Intel.IntelZoneService(dbFactory, systemGraph, errorLogger);
         MapVm                  = new MapToolViewModel(
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
-            JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
+            JumpPlannerVm, dbFactory, eveScout, sovCampaigns, intelZones);
         StartupTrace.Step("new IntelVm");
         IntelVm                = WireIntel(new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
                                                               dbFactory, CharacterVm.Characters, intelWatch));
@@ -2298,7 +2300,7 @@ public class MainWindowViewModel : ReactiveObject
             universeMapService, mapStatsService, appPrefs, NewSystemPage,
             liveIntel, errorLogger, jumpBridges,
             new RoutePlannerService(dbFactory, systemGraph, jumpBridges, esi, eveScout),
-            new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns));
+            new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns, intelZones));
         // Another Intel tool, on another monitor perhaps: it opens with the filters kept on this PC.
         CopyOf("intel", () => IntelVm, () => new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
                                                                dbFactory, CharacterVm.Characters, intelWatch));

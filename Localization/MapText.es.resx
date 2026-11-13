@@ -1582,7 +1582,7 @@ Propietario: {3}</value>
     <value>Marcas en directo</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles situados aquí en los últimos 5 minutos, por inteligencia o por un informe de muertes. Pasa el cursor para ver quiénes son y qué pilotan. «!»: la inteligencia informó de algo aquí (un pico, burbujas, un campeo) pero no contó a nadie.</value>
+    <value>Hostiles situados aquí por inteligencia o por un informe de muertes, en el color de su reputación (rojo, naranja, gris neutral), que se desvanece a medida que envejece la noticia. Pasa el cursor para ver quiénes son y qué pilotan. «!»: la inteligencia informó de algo aquí (un pico, burbujas, un campeo) pero no contó a nadie.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Tus personajes conectados aquí. Pasa el cursor para ver sus naves y si están acoplados.</value>
@@ -2368,5 +2368,92 @@ Sin sistema capital, así que sin zona</value>
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>Al alcance de salto del sistema de la pestaña Alcance de salto (el anillo más grueso)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>Sin visual: en Local, nunca visto en la cuadrícula. La misma marca, hueca, con un anillo discontinuo.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>Declarado despejado y sin noticias desde entonces. Se desvanece durante la vigencia del despejado (Ajustes → Inteligencia).</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>Un campeo de portal deducido de las muertes: un trazo grueso en la línea del portal, desde el sistema campeado hacia donde lleva el portal, con las muertes contadas.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>De dónde vinieron los pilotos informados: una flecha continua hacia el sistema en que se los vio.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>Hacia dónde se dijo que iban los pilotos informados: una flecha discontinua desde el sistema en que se los vio.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>Vigilado ahora por una alarma de inteligencia: lo que haría saltar una.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>Declarado despejado: {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>Declarado {0}; sin noticias desde entonces.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>Lo más reciente: {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>Sin visual: en Local, no visto en la cuadrícula</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>Reputación: {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>Campeo en el portal a {0} en {1}</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>Muertes: {0} · la última {1} · atacantes: {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>Visto en {1}, venía de {0} · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>Visto en {0}, rumbo a {1} · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>Lo que el mapa dibuja a partir de la inteligencia además de las marcas</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>Las marcas siempre llevan el color de su reputación, se desvanecen con la edad y muestran los sistemas despejados y sin visual. Estas capas solo se dibujan donde se muestran sistemas, no sobre las regiones.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>Campeos de portal</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>Un campeo de portal deducido de las muertes, dibujado como un trazo grueso en la línea del portal, que se desvanece con el tiempo</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>Flechas de movimiento</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>Una flecha continua desde donde vino un piloto informado hasta el sistema en que se le vio</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>Flechas de rumbo</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>Una flecha discontinua desde el sistema en que se vio a un piloto hasta donde se dijo que iba</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>Zonas de alerta</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>Un contorno fino y discontinuo alrededor de cada sistema que vigila ahora una alarma de inteligencia activa</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>Campeo de portal en este sistema</value>
   </data>
 </root>

@@ -1666,7 +1666,7 @@
     <value>Отметки в реальном времени</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Противники, замеченные здесь за последние 5 минут — по разведке или отчёту о бое. Наведите курсор, чтобы увидеть, кто это и на чём летает. «!» — разведка сообщила здесь о чём-то (всплеск, бублики, кемп), но никого не насчитала.</value>
+    <value>Противники, замеченные здесь по разведке или отчёту о бое, в цвете их репутации (красный, оранжевый, нейтральный серый); метка бледнеет по мере устаревания сведений. Наведите курсор, чтобы увидеть, кто это и на чём летает. «!» — разведка сообщила здесь о чём-то (всплеск, бублики, кемп), но никого не насчитала.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ваши персонажи в сети в этой системе. Наведите курсор, чтобы увидеть корабль и находится ли персонаж в доке.</value>
@@ -2452,5 +2452,92 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>В дальности прыжка от системы вкладки «Дальность прыжка» (толстое кольцо — сама система)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>Без визуала: в Local, но на гриде не видели. Та же метка, полая, с пунктирным кольцом.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>Объявлено чисто, и с тех пор ничего нового. Бледнеет в течение срока действия «чисто» (Настройки → Разведка).</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>Кемп на гейте, найденный по убийствам: толстый отрезок на линии гейта от системы с кемпом в сторону, куда ведёт гейт, с числом убийств.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>Откуда пришли замеченные пилоты: сплошная стрелка в систему, где их видели.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>Куда, по сообщениям, направляются пилоты: пунктирная стрелка из системы, где их видели.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>Сейчас под наблюдением тревоги по разведке: то, что её включит.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>Объявлено чисто: {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>Сообщено {0}; с тех пор ничего нового.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>Последнее: {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>Без визуала: в Local, на гриде не видели</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>Репутация: {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>Кемп на гейте в {0}, система {1}</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>Убийств: {0} · последнее {1} · атакующих: {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>Замечен в {1}, пришёл из {0} · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>Замечен в {0}, направляется в {1} · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>Что карта рисует по разведке помимо меток</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>Метки всегда окрашены по репутации, бледнеют со временем и показывают чистые системы и системы без визуала. Эти слои рисуются только там, где видны системы, а не на регионах.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>Кемпы на гейтах</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>Кемп на гейте, найденный по убийствам, — толстый отрезок на линии гейта, бледнеющий со временем</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>Стрелки перемещения</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>Сплошная стрелка оттуда, откуда пришёл замеченный пилот, в систему, где его видели</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>Стрелки направления</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>Пунктирная стрелка из системы, где видели пилота, туда, куда он, по сообщениям, направляется</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>Зоны тревоги</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>Тонкий пунктирный контур вокруг каждой системы, за которой сейчас следит включённая тревога по разведке</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>Кемп на гейте в этой системе</value>
   </data>
 </root>

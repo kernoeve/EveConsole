@@ -28,6 +28,10 @@ using Npgsql;
 if (args.Length == 3 && args[0] == PgChecks.WriterArg)
     return await PgChecks.WriterAsync(args[1], int.Parse(args[2], System.Globalization.CultureInfo.InvariantCulture));
 
+// The Universe Map's intel marks drawn to pictures, for a reviewer to look at: --map-render <folder> <label>.
+if (args.Length >= 2 && args[0] == MapRender.Arg)
+    return MapRender.Run(args[1], args.Length >= 3 ? args[2] : "map");
+
 var root = args.FirstOrDefault(a => !a.StartsWith('-')) is { } given && Directory.Exists(given) ? given : FindRepoRoot();
 if (root is null)
 {
@@ -109,6 +113,9 @@ try
 
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
     PanelChecks.Rows(c);
+
+    // ── The Universe Map and the route planner ──────────────────────────────────────────────────────────────
+    MapChecks.Run(c, root);
 
     var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
     await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();

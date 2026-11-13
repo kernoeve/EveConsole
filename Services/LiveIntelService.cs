@@ -27,7 +27,21 @@ public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilot
                                     string? Facts = null, string? Ships = null, double Freshness = 1.0)
 {
     public int Count => Pilots.Count + Unidentified;
+
+    /// <summary>The worst standings tier among the pilots and the camps' attackers; an unnamed count is
+    /// Neutral. What the map colours the mark by.</summary>
+    public StandingTier Tier { get; init; } = StandingTier.Neutral;
+
+    /// <summary>Seen, no visual only, or only something said (bubbles, a camp).</summary>
+    public IntelSystemState State { get; init; } = IntelSystemState.Hostile;
+
+    /// <summary>The newest news here, for "3 min ago".</summary>
+    public DateTimeOffset NewestAt { get; init; }
 }
+
+/// <summary>A system called clear, and nothing newer said of it.</summary>
+/// <param name="Freshness">1 when called, 0 when the clear lifetime is over: what the mark fades by.</param>
+public sealed record LiveClear(int SystemId, DateTimeOffset At, double Freshness);
 
 /// <summary>One of the user's own characters, online, and where it is.</summary>
 public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
@@ -45,7 +59,20 @@ public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>                  Hostiles,
     IReadOnlyDictionary<int, IReadOnlyList<OwnPilot>>         Own,
     DateTimeOffset                                             At,
-    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null);
+    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null)
+{
+    /// <summary>Systems called clear, with nothing newer: the map's green check.</summary>
+    public IReadOnlyDictionary<int, LiveClear> Clears { get; init; } = new Dictionary<int, LiveClear>();
+
+    /// <summary>Active gate camps, each drawn on the line of its gate.</summary>
+    public IReadOnlyList<IntelMapCamp> Camps { get; init; } = [];
+
+    /// <summary>Where reported pilots came from and were heading: the map's arrows.</summary>
+    public IReadOnlyList<IntelMapArrow> Arrows { get; init; } = [];
+
+    /// <summary>The shared snapshot this was read from: the route planner's hostiles column reads it too.</summary>
+    public IntelSnapshot? Intel { get; init; }
+}
 
 /// <summary>
 /// Who is where right now, in the form the Universe Map, the system pages and the route planner
@@ -67,9 +94,16 @@ public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextF
     /// under the map's five-second tick, so it never shows a picture a tick behind.</summary>
     public static readonly TimeSpan MaxAge = TimeSpan.FromSeconds(4);
 
-    public async Task<LiveMapSnapshot> GetSnapshotAsync(CancellationToken ct = default)
+    /// <summary>The shared snapshot itself, which the map subscribes to.</summary>
+    public IntelSnapshotService Snapshots => snapshots;
+
+    public async Task<LiveMapSnapshot> GetSnapshotAsync(CancellationToken ct = default) =>
+        await ToMapAsync(await snapshots.FreshAsync(MaxAge, ct).ConfigureAwait(false), ct).ConfigureAwait(false);
+
+    /// <summary>The map's form of a snapshot, with the hulls a report counted named in the interface
+    /// language. Reads the type names, so off the UI thread.</summary>
+    public async Task<LiveMapSnapshot> ToMapAsync(IntelSnapshot snapshot, CancellationToken ct = default)
     {
-        var snapshot = await snapshots.FreshAsync(MaxAge, ct).ConfigureAwait(false);
         Func<string, string> hullName = n => n;
         if (dbFactory is not null)
         {
@@ -84,16 +118,23 @@ public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextF
     }
 
     /// <summary>The map's form of a snapshot, seen with no viewer: every system with hostiles or
-    /// something said, every own character, every officer.</summary>
+    /// something said, the systems called clear, the active camps and the reports' arrows, every own
+    /// character, every officer.</summary>
     public static LiveMapSnapshot ToMap(IntelSnapshot snapshot, DateTimeOffset now, Func<string, string>? hullName = null)
     {
         hullName ??= n => n;
-        var view = IntelLens.Project(snapshot,
-            new IntelViewer { IncludeClear = false, SystemCap = int.MaxValue, FeedCap = 0 }, now, _ => null);
+        var viewer = IntelMapView.Viewer();
+        var view   = IntelLens.Project(snapshot, viewer, now, _ => null);
 
         var hostiles = new Dictionary<int, SystemHostiles>();
+        var clears   = new Dictionary<int, LiveClear>();
         foreach (var row in view.Systems)
         {
+            if (row.State == IntelSystemState.Clear)
+            {
+                clears[row.SystemId] = new LiveClear(row.SystemId, row.NewestAt, row.Freshness);
+                continue;
+            }
             var pilots = row.Pilots
                 .OrderByDescending(p => p.Pilot.At)
                 .Select(p => new LivePilot(
@@ -108,7 +149,10 @@ public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextF
                 row.SystemId, pilots, row.Unnamed,
                 IntelDisplay.Facts(flags, row.Gate),
                 row.Unnamed > 0 ? IntelDisplay.Ships(row.Intel.Unnamed?.Ships, hullName) : null,
-                row.Freshness);
+                row.Freshness)
+            {
+                Tier = row.Tier, State = row.State, NewestAt = row.NewestAt,
+            };
         }
 
         var own = snapshot.Own
@@ -118,7 +162,13 @@ public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextF
                 .Select(o => new OwnPilot(o.Name, o.SystemId, o.Hull, o.ShipName, o.Docked, o.Place,
                                           o.CharacterId, o.ShipTypeId, o.CorporationId, o.AllianceId))]);
 
-        return new LiveMapSnapshot(hostiles, own, now, snapshot.Officers);
+        return new LiveMapSnapshot(hostiles, own, now, snapshot.Officers)
+        {
+            Clears = clears,
+            Camps  = IntelMapView.Camps(snapshot, view, viewer, now),
+            Arrows = IntelMapView.Arrows(view),
+            Intel  = snapshot,
+        };
     }
 
     // ── Officer spawns ───────────────────────────────────────────────────────

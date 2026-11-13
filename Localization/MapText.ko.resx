@@ -1540,7 +1540,7 @@
     <value>실시간 표시</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
+    <value>인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 스탠딩 색(빨강, 주황, 중립 회색)으로 표시되며 정보가 오래될수록 흐려집니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
@@ -2326,5 +2326,92 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>점프 범위 탭의 성계에서 점프 범위 안(굵은 고리가 출발 성계)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>노 비주얼: 로컬에는 있지만 그리드에서는 보이지 않음. 같은 표시를 속이 빈 원과 점선 고리로 나타냅니다.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>클리어로 보고된 뒤 새 보고가 없음. 클리어 유효 시간(설정 → 인텔) 동안 점점 흐려집니다.</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>킬로 판단한 게이트 캠프: 캠프된 성계에서 게이트가 향하는 쪽으로 게이트 선 위에 굵은 선을 그리고 킬 수를 표시합니다.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>보고된 파일럿이 온 곳: 목격된 성계로 향하는 실선 화살표.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>보고된 파일럿이 향한다고 한 곳: 목격된 성계에서 나가는 점선 화살표.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>지금 인텔 알람이 감시하는 곳: 여기서 무언가 있으면 알람이 울립니다.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>클리어 보고: {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>보고: {0}. 이후 새 보고 없음.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>최신: {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>노 비주얼: 로컬에는 있지만 그리드에서는 보이지 않음</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>스탠딩: {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>{1}의 {0} 게이트 캠프</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>킬: {0} · 마지막 {1} · 공격자: {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>{1}에서 목격, {0}에서 옴 · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>{0}에서 목격, {1}(으)로 향함 · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>표시 외에 지도가 인텔로 그리는 것</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>표시는 항상 스탠딩 색을 따르고, 오래될수록 흐려지며, 클리어와 노 비주얼 성계도 보여 줍니다. 이 항목들은 성계가 보일 때만 그려지고 리전 화면에서는 그려지지 않습니다.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>킬로 판단한 게이트 캠프를 게이트 선 위의 굵은 선으로 그립니다. 시간이 지나면 흐려집니다</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>이동 화살표</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>보고된 파일럿이 온 곳에서 목격된 성계로 향하는 실선 화살표</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>진행 방향 화살표</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>파일럿이 목격된 성계에서 향한다고 한 곳으로 가는 점선 화살표</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>알람 구역</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>켜져 있는 인텔 알람이 지금 감시하는 모든 성계를 가는 점선으로 둘러쌉니다</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>이 성계에 게이트 캠프</value>
   </data>
 </root>

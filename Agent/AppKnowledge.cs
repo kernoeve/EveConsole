@@ -358,9 +358,15 @@ public static class AppKnowledge
         ### Universe Map
         Tabs of maps and system pages, two side by side if dragged apart. Overlays colour systems
         by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
-        intel. Live marks show hostiles placed in the last 5 minutes by intel or killmails, and
-        the user's online characters. A system page has tabs for its celestials, kills, industry
-        indices, graphs and intel.
+        intel. Live marks show hostiles placed by intel or killmails, coloured by the worst
+        standings tier there and fading as the news ages; a hollow dashed mark is no visual, a
+        green check a system called clear, and a blue square the user's online characters. The
+        toolbar's Intel drop-down switches gate camps (a thick stub on the camped gate's line),
+        movement arrows (solid, from where a pilot came from), heading arrows (dashed, to where
+        they were said to be going) and alert zones (a dashed outline round the systems the
+        enabled intel alarms watch; off by default). The route planner's Hostiles column reads the
+        same intel, coloured by the route character's standings. A system page has tabs for its
+        celestials, kills, industry indices, graphs and intel.
 
         ### Intel
         Live intel from the intel chat channels, Jabber and IRC rooms marked Intel, the kill feed

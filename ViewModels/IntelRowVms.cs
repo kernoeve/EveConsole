@@ -109,6 +109,9 @@ public static class IntelTierColors
         StandingTier.Own       => Own,
         _                      => Neutral,
     };
+
+    /// <summary>The tier's colour as a value, for drawing code (the Universe Map's marks).</summary>
+    public static Color Colour(StandingTier tier) => ((ISolidColorBrush)Of(tier)).Color;
 }
 
 /// <summary>How far away, in the bands every intel view colours jumps by. Display only.</summary>
