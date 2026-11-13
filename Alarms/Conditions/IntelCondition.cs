@@ -82,6 +82,10 @@ public sealed class IntelCondition : IAlarmCondition
     private static Dictionary<int, (double X, double Y, double Z)>? _positions;
     private static readonly SemaphoreSlim PositionsGate = new(1, 1);
 
+    /// <summary>Forgets the positions read, so the next light-year range reads them again: for
+    /// tools/IntelCheck, whose scratch databases each have space of their own.</summary>
+    internal static void ForgetPositions() => _positions = null;
+
     // What the range is drawn around. The strings are what the editor shows and what the config
     // stores; the reader is lenient about case and a few synonyms.
     internal const string AroundUndocked   = "Undocked characters";
@@ -463,11 +467,21 @@ public sealed class IntelCondition : IAlarmCondition
 
         // What is news to the capsuleer, as opposed to unseen by this alarm: remembered only while
         // something is watched, so a long dock (or every character logged off) begins it again.
-        // The watch list's farther reach counts as watched for this: an Always pilot is news when it comes into it.
-        var look = _memory.Observe(ctx.Alarm.Id, zone.WatchReach.Count == 0 ? zone.Systems : zone.Systems.Union(zone.WatchReach),
-                                   matches.Where(m => KindOf(m) == KindKill).Select(m => m.Key), ctx.Now);
+        var look = Observe(_memory, ctx.Alarm.Id, zone, options, matches, ctx.Now);
         return Waking(matches, zone, options, ctx.Now, TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds), look);
     }
+
+    /// <summary>
+    /// One look of an alarm into its memory: the range, the kills it matched, and — kept apart, when it
+    /// follows the watch list — the watch list's farther reach, where an Always pilot is news when its system
+    /// comes into that reach. ⚠️ The range is remembered on its own: the reach (ten jumps by default) is wider
+    /// than the range (five), so a system crossing into the range was almost always in the reach already, and
+    /// must still be news to the range then. Pure but for the memory: tools/IntelCheck runs it across a move.
+    /// </summary>
+    internal static IntelWatchMemory.Look Observe(IntelWatchMemory memory, long alarmId, IntelWatchedSystems zone,
+                                                  IntelAlarmOptions options, IReadOnlyList<AlarmMatch> matches, DateTimeOffset now) =>
+        memory.Observe(alarmId, zone.Systems, matches.Where(m => KindOf(m) == KindKill).Select(m => m.Key), now,
+                       options.WatchList ? zone.Systems.Union(zone.WatchReach) : null);
 
     /// <summary>
     /// Which matches wake the capsuleer and how loud, as against only being shown (see
@@ -475,7 +489,7 @@ public sealed class IntelCondition : IAlarmCondition
     /// <list type="bullet">
     /// <item><b>News only.</b> Quiet when older than <paramref name="fresh"/> (Settings → Intel, two
     /// minutes by default), counted from the later of when it was seen and when its system came into
-    /// reach (<paramref name="look"/>) — and, for a kill, when this alarm first caught it, since the
+    /// the range, or for a system beyond it into the watch list's reach (<paramref name="look"/>) — and, for a kill, when this alarm first caught it, since the
     /// kill feed brings a kill minutes after it happened. Urgent news is held to this too: what makes
     /// it urgent is how near it is, not how new.</item>
     /// <item><b>Within the wake range</b>, when the alarm sets one. A kill, a priority system and the watch
@@ -494,7 +508,8 @@ public sealed class IntelCondition : IAlarmCondition
             var seen   = AtOf(m) is var at && at != DateTime.MinValue
                 ? new DateTimeOffset(DateTime.SpecifyKind(at, DateTimeKind.Utc)) : DateTimeOffset.MinValue;
             var kill   = KindOf(m) == KindKill;
-            var news   = Later(seen, look.EnteredAt(system));
+            // From when the range took the system in; for one only the watch list's reach holds, from when that did.
+            var news   = Later(seen, look.NewsAt(system, zone.Systems.Contains(system)));
             if (kill) news = Later(news, look.CaughtAt(m.Key));
 
             int? jumps = zone.Jumps.TryGetValue(system, out var hops) ? hops : null;
@@ -1006,6 +1021,20 @@ public sealed class IntelCondition : IAlarmCondition
         // Within the watch list's reach: every system placed so far (each is within it).
         var watchReach = new HashSet<int>(hopsTo.Keys);
 
+        // ⚠️ A system only the light-year range caught keeps its light years: it is said, played and judged
+        // (whose standings) by them, as when the reach is no wider than the range. The walk placed it by jumps
+        // only because the watch list's reach goes farther; without this the same system would be said in jumps
+        // or light years depending on that reach.
+        foreach (var id in lyDistances.Keys)
+        {
+            if (!hopsTo.TryGetValue(id, out var hops) || hops <= jumps) continue;
+            hopsTo.Remove(id);
+            nearest.Remove(id);
+            nearestId.Remove(id);
+            nearestFrom.Remove(id);
+            via.Remove(id);
+        }
+
         // The priority systems, watched wherever the characters are, at their distance from the nearest
         // origin when any walk reaches them.
         var priority = new HashSet<int>();
@@ -1454,7 +1483,9 @@ public sealed class IntelCondition : IAlarmCondition
 
 /// <summary>The systems an intel alarm watches (<see cref="IntelCondition.WatchedSystemsAsync"/>): every one
 /// in range, the jumps and light years from the nearest origin, and the character that origin is when
-/// the alarm is around characters.</summary>
+/// the alarm is around characters. <see cref="Jumps"/> holds the systems within the jump range, the
+/// priority systems a walk reaches, and those out to the watch list's reach — but never one only the
+/// light-year range caught, which is said and judged by its <see cref="LightYears"/>.</summary>
 public sealed record IntelWatchedSystems(
     IReadOnlySet<int> Systems,
     IReadOnlyDictionary<int, int> Jumps, IReadOnlyDictionary<int, string> Nearest,

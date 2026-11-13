@@ -114,6 +114,7 @@ namespace EveConsole.Tools.IntelCheck
                 Config(c);
                 Waking(c);
                 Memory(c);
+                MoveIntoRange(c);
                 Gate(c);
                 WhoAndWhere(c);
             }

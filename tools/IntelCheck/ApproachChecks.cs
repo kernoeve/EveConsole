@@ -3,7 +3,8 @@
 // the watch list (Always fires out to its reach whatever the range, the tier or the minimum, a blue still never;
 // Ignore never fires); approach (seen nearer than before, or heading toward a watched character: urgent, worded as
 // approaching, waking beyond the wake range; heading away said and nothing else) and "through Thera or Turnur" from
-// the walk's wormhole flag. Every name and id here is invented.
+// the walk's wormhole flag; a system only the light-year range catches keeps its light years inside the watch list's
+// reach; a system crossing from that reach into the range is news then. Every name and id here is invented.
 using System.Text.Json;
 using EveConsole.Alarms;
 using EveConsole.Alarms.Conditions;
@@ -21,6 +22,8 @@ namespace EveConsole.Tools.IntelCheck
         // A second character of the user's, in a corporation of its own, and the corporations the two rate.
         private const long B = 91_100_002, CorpB = 98_200_002;
         private const long RedCorp = 98_200_030, OrangeCorp = 98_200_031, SplitCorp = 98_200_032;
+
+        private const double MetresPerLightYear = 9.4607304725808e15;
 
         /// <summary>Alpha rates RedCorp red and OrangeCorp orange; Bravo rates SplitCorp red, which Alpha has no
         /// standing with (neutral).</summary>
@@ -329,8 +332,12 @@ namespace EveConsole.Tools.IntelCheck
             await using (var db = new AppDbContext(options))
             {
                 await db.Database.EnsureCreatedAsync();
+                // In a straight line too, a light year apart: S1 at 0, S7 six light years out.
                 foreach (var (id, name) in Names)
-                    db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = id, Name = name, RegionId = 1, ConstellationId = 1 });
+                    db.SdeSolarSystems.Add(new SdeSolarSystem
+                    {
+                        SolarSystemId = id, Name = name, RegionId = 1, ConstellationId = 1, X = (id - S1) * MetresPerLightYear,
+                    });
                 await db.SaveChangesAsync();
             }
             var factory = new Factory(options);
@@ -375,6 +382,102 @@ namespace EveConsole.Tools.IntelCheck
             if (nobody is null) return;
             c.Check("watched: a priority system is watched with no character to watch around",
                 nobody.Systems.SetEquals([S6]) && !nobody.Jumps.ContainsKey(S6), Ids(nobody.Systems));
+
+            // ── The light-year range inside the watch list's reach ──
+            // Around Alpha alone (Bravo is docked): 2 jumps, 4.5 light years, the watch list out to 6 jumps. S4 and S5
+            // only the light years catch, though both are inside the watch list's reach: they keep their light years.
+            const string LyJson = """{"around":"Undocked characters","jumps":2,"ly":4.5,"watch_list_jumps":6}""";
+            IntelCondition.ForgetPositions();
+            IntelWatchedSystems? byLy;
+            try { byLy = await Zone(LyJson, "watched: the zone with a light-year range inside the watch list's reach"); }
+            finally { IntelCondition.ForgetPositions(); }
+            if (byLy is null) return;
+            c.Check("watched: what only the light years catch is watched, not placed by jumps, though inside the reach",
+                byLy.Systems.SetEquals([S1, S2, S3, S4, S5]) && !byLy.Jumps.ContainsKey(S4) && !byLy.Jumps.ContainsKey(S5)
+                && Math.Abs(byLy.LightYears.GetValueOrDefault(S5) - 4) < 1e-9 && byLy.LightYearsNearestCharacter.GetValueOrDefault(S5) == A
+                && !byLy.NearestCharacter.ContainsKey(S5),
+                $"{Ids(byLy.Systems)} / jumps {Ids(byLy.Jumps.Keys)}");
+            c.Check("watched: beyond the light years, the watch list's reach is still by jumps",
+                byLy.WatchReach.SetEquals([S1, S2, S3, S4, S5, S6, S7]) && byLy.Jumps.GetValueOrDefault(S6) == 5
+                && byLy.Jumps.GetValueOrDefault(S7) == 6, $"{Ids(byLy.WatchReach)} / jumps {Ids(byLy.Jumps.Keys)}");
+
+            using var lyDoc = JsonDocument.Parse(LyJson);
+            var lyOptions = IntelCondition.Options(lyDoc.RootElement);
+            var lySnap = Snap(seen: [Seen(P6, S5, Ago(0.5))]);
+            var lyMatches = IntelCondition.Waking(IntelCondition.Match(lySnap, byLy, lyOptions, Now), byLy, lyOptions, Now, Fresh,
+                                                  IntelWatchMemory.Look.AllAlong);
+            var inLy = Pilot(lyMatches, P6);
+            c.Check("watched: a sighting only the light years catch, inside the reach, is said in light years",
+                inLy is { } m5 && m5.Summary.Contains("4.0 ly from Pilot Alpha", StringComparison.Ordinal)
+                && m5.Detail?["jumps"] is null && m5.Detail?["ly"] is 4.0, inLy?.Summary ?? "none");
+            c.Check("watched: and played by its light years",
+                inLy is { } l5 && Math.Abs(l5.Loudness - IntelCondition.Loudness(null, 4, 2, 4.5)) < 1e-9
+                && Math.Abs(l5.Loudness - IntelCondition.Loudness(4, 4, 2, 4.5)) > 1e-3, inLy?.Loudness.ToString("0.000") ?? "none");
+        }
+
+        /// <summary>
+        /// A character moving toward a hostile already sitting in a system: the system crosses from the watch list's
+        /// reach into the range and is news from that moment, through the look the alarm's own evaluation takes.
+        /// </summary>
+        public static void MoveIntoRange(Checks c)
+        {
+            // A line S1 … S7. Alpha in S1, then a jump on in S2; the range 4, the watch list's reach 10.
+            IntelWatchedSystems Around(int at)
+            {
+                var line = new[] { S1, S2, S3, S4, S5, S6, S7 };
+                var here = Array.IndexOf(line, at);
+                var hops = line.Select((s, i) => (s, Hops: Math.Abs(i - here))).ToDictionary(x => x.s, x => x.Hops);
+                var range = hops.Where(kv => kv.Value <= 4).Select(kv => kv.Key).ToHashSet();
+                return new IntelWatchedSystems(range, hops, hops.ToDictionary(kv => kv.Key, _ => "Pilot Alpha"),
+                    new Dictionary<int, double>(), new Dictionary<int, string>())
+                {
+                    NearestCharacter = hops.ToDictionary(kv => kv.Key, _ => A),
+                    WatchReach       = hops.Keys.ToHashSet(),
+                    NearestOrigin    = hops.ToDictionary(kv => kv.Key, _ => at),
+                };
+            }
+            var options = new IntelCondition.IntelAlarmOptions(Jumps: 4);
+            // P6 has sat in S6 for five minutes: five jumps out of S1, four out of S2.
+            var snap = Snap(seen: [Seen(P6, S6, Ago(5))]);
+            var memory = new IntelWatchMemory();
+
+            var before = Around(S1);
+            var first = IntelCondition.Match(snap, before, options, Now.AddSeconds(-30));
+            var lookBefore = IntelCondition.Observe(memory, 1, before, options, first, Now.AddSeconds(-30));
+            c.Check("move: before the jump, beyond the range, the hostile is not matched",
+                Pilot(first, P6) is null && lookBefore.ReachedAt(S6) == DateTimeOffset.MinValue, Keys(first));
+
+            var after = Around(S2);
+            var matches = IntelCondition.Match(snap, after, options, Now);
+            var look = IntelCondition.Observe(memory, 1, after, options, matches, Now);
+            c.Check("move: the system crossing into the range is new to the range then, though the reach held it",
+                look.EnteredAt(S6) == Now && look.ReachedAt(S6) == DateTimeOffset.MinValue,
+                $"{look.EnteredAt(S6):O} / {look.ReachedAt(S6):O}");
+            var judged = IntelCondition.Waking(matches, after, options, Now, Fresh, look);
+            c.Check("move: the hostile sitting there five minutes is news, and wakes",
+                Pilot(judged, P6) is { Quiet: false }, Keys(judged.Where(m => !m.Quiet)));
+
+            // Back a jump: S6 leaves the range for the reach alone, and the next jump in is news again.
+            var back = Observe(before, Now.AddSeconds(15));
+            c.Check("move: leaving the range for the reach alone is not news to the reach", back.ReachedAt(S6) == DateTimeOffset.MinValue);
+            var again = Observe(after, Now.AddSeconds(30));
+            c.Check("move: coming back into the range is news again", again.EnteredAt(S6) == Now.AddSeconds(30));
+
+            // An Always pilot beyond the range is news from when its system came into the reach, not the range.
+            var farOnly = IntelWatchMemory.Look.AllAlong with
+            {
+                Reached = new Dictionary<int, DateTimeOffset> { [S7] = Now.AddSeconds(-10) },
+            };
+            var alwaysSnap = Snap(seen: [Seen(P7, S7, Ago(5))]) with { Watch = WatchList((IntelWatchKind.Pilot, P7, IntelWatchMode.Always)) };
+            var always = IntelCondition.Waking(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh, farOnly);
+            c.Check("move: an Always pilot beyond the range is news from when the reach took its system in",
+                Pilot(always, P7) is { Quiet: false }, Keys(always));
+            var stale = IntelCondition.Waking(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh,
+                IntelWatchMemory.Look.AllAlong with { Entered = new Dictionary<int, DateTimeOffset> { [S7] = Now.AddSeconds(-10) } });
+            c.Check("move: and not from the range's memory, which does not hold it", Pilot(stale, P7) is { Quiet: true }, Keys(stale));
+
+            IntelWatchMemory.Look Observe(IntelWatchedSystems zone, DateTimeOffset at) =>
+                IntelCondition.Observe(memory, 1, zone, options, IntelCondition.Match(snap, zone, options, at), at);
         }
     }
 }
