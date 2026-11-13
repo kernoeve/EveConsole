@@ -129,7 +129,15 @@ public sealed partial class GroupLineVm : ReactiveObject
         Channel = channel;
         IsMention = isMention && !IsDeleted;
         Links = IsDeleted ? [] : [.. UrlPattern().Matches(body).Select(x => x.Value.TrimEnd('.', ',', ')', ';', ':', '!', '?', '\'', '"')).Distinct()];
+        Pictures = ChatPictureVm.Of(Links);
     }
+
+    /// <summary>The pictures it links to, shown under it.</summary>
+    public IReadOnlyList<ChatPictureVm> Pictures { get; }
+    public bool HasPictures => Pictures.Count > 0;
+
+    /// <summary>The words, unless they are only a picture's link: the picture shows, with the link under it.</summary>
+    public bool ShowsBody => !(Pictures.Count == 1 && Body.Trim() == Pictures[0].Url);
 
     /// <summary>A deleted message keeps its place, and says so, as other clients show it.</summary>
     public bool IsDeleted { get; }
@@ -154,8 +162,11 @@ public sealed partial class GroupLineVm : ReactiveObject
     /// <summary>This account's latest message here, the only one the protocol lets it correct.</summary>
     public bool CanEdit { get => _canEdit; set => this.RaiseAndSetIfChanged(ref _canEdit, value); }
 
+    /// <summary>An IRC line this person said, on a server that lets it be taken back (REDACT).</summary>
+    public bool Redactable { get; init; }
+
     /// <summary>One of this account's, which it can take back.</summary>
-    public bool CanDelete => IsOutgoing && !IsDeleted && ReactTarget.Length > 0 && MessageId.Length > 0;
+    public bool CanDelete => !IsDeleted && (Redactable || IsOutgoing && ReactTarget.Length > 0 && MessageId.Length > 0);
 
     public bool CanReply => CanReact;
 
@@ -722,6 +733,7 @@ public sealed partial class GroupChatViewModel : ReactiveObject
         }
         else if (row is { IsRoom: true })
         {
+            if (JabberOf(row) is { State: JabberState.Connected } roomSession) _ = LearnRoomAsync(roomSession, row.Key);
             var page = await Task.Run(() => _jabber.LoadConversationAsync(row.ServerId, row.Key, limit: PageSize));
             if (!ReferenceEquals(SelectedRow, row)) return;
 
@@ -836,7 +848,9 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     /// <summary>Takes back one of this account's messages, for everyone. The room's copy back says it is gone.</summary>
     public async Task DeleteOwnAsync(GroupLineVm line)
     {
-        if (!line.CanDelete || SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
+        if (!line.CanDelete || SelectedRow is not { IsRoom: true } row) return;
+        if (row.IsIrc) { await IrcDeleteAsync(row, line); return; }
+        if (JabberOf(row) is not { } session) return;
 
         StatusText = "";
         try { await Task.Run(() => _jabber.DeleteOwnAsync(session, row.Key, true, line.ReactTarget, line.MessageId)); }
@@ -1042,6 +1056,11 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     /// <summary>Sends a file the person chose to the room open.</summary>
     public async Task SendFileAsync(Stream content, string fileName, long size)
     {
+        if (SelectedRow is { } ircRow && IrcOf(ircRow) is { } irc)
+        {
+            await IrcSendFileAsync(irc, ircRow, content, fileName, size);
+            return;
+        }
         if (SelectedRow is not { IsRoom: true } row || JabberOf(row) is not { } session) return;
 
         if (session.UploadService is { MaxBytes: > 0 } service && size > service.MaxBytes)
@@ -1232,7 +1251,22 @@ public sealed partial class GroupChatViewModel : ReactiveObject
     public JabberPersonRights RightsOver(JabberOccupantVm person) =>
         person.Person is { } them ? JabberRoomRights.Over(Me(), them) : JabberPersonRights.None;
 
-    public JabberRoomRightsSet RoomRights() => JabberRoomRights.OfRoom(Me());
+    public JabberRoomRightsSet RoomRights() =>
+        JabberRoomRights.OfRoom(Me(), OpenRoom() is (_, JabberRoomState state) ? _roomDetails.GetValueOrDefault(state.Room.RoomJid) : null);
+
+    /// <summary>What each room opened says of itself (members-only, and whether members may invite), asked once per room.</summary>
+    private readonly Dictionary<string, XmppRoomDetails> _roomDetails = new(StringComparer.Ordinal);
+
+    /// <summary>Asks a room about itself, for what its menu offers. Not waited on: the menu offers what it knows until then.</summary>
+    private async Task LearnRoomAsync(JabberSession session, string room)
+    {
+        if (_roomDetails.ContainsKey(room)) return;
+        try
+        {
+            if (await Task.Run(() => _jabber.RoomDetailsAsync(session, room)) is { } details) _roomDetails[room] = details;
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { /* the menu offers what it would have, and the room refuses if it must */ }
+    }
 
     /// <summary>The room open, as the menus and their questions name it.</summary>
     public string RoomName => Title;

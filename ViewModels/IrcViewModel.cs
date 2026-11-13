@@ -11,6 +11,9 @@ namespace EveConsole.ViewModels;
 
 public sealed record IrcLoginChoice(IrcLoginKind Kind, string Label);
 
+/// <summary>An EVE character whose portrait can be someone's picture on IRC.</summary>
+public sealed record IrcPortraitChoice(long Id, string Name);
+
 /// <summary>
 /// The IRC tab of Settings: every server down the left, and how each is set up on the right. Conversations are
 /// elsewhere, as Jabber's are: channels in Group Chat, people in Messages.
@@ -42,8 +45,12 @@ public sealed class IrcViewModel : ReactiveObject
             if (Selected() is { } s && NewNick.Trim().Length > 0) await _service.ChangeNickAsync(s, NewNick.Trim());
         });
 
+        SetPictureCommand = ReactiveCommand.CreateFromTask(() => SetPictureAsync(PictureLink));
+        RemovePictureCommand = ReactiveCommand.CreateFromTask(() => SetPictureAsync(""));
+
         foreach (var command in new IHandleObservableErrors[]
-                 { SaveServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, SetAwayCommand, SetBackCommand, ChangeNickCommand })
+                 { SaveServerCommand, DeleteServerCommand, DisconnectCommand, TrustCertificateCommand, SetAwayCommand, SetBackCommand, ChangeNickCommand,
+                   SetPictureCommand, RemovePictureCommand })
             command.ThrownExceptions.Subscribe(e => StatusText = e.Message);
 
         LoginChoices =
@@ -103,6 +110,11 @@ public sealed class IrcViewModel : ReactiveObject
             IsEditing = false;
             StatusText = "";
             AwayMessage = Selected()?.Server.AwayMessage ?? "";
+            PictureLink = Selected()?.Server.AvatarUrl ?? "";
+            _portrait = null;
+            this.RaisePropertyChanged(nameof(Portrait));
+            PictureStatus = "";
+            _ = LoadPortraitsAsync();
             NewNick = "";
             RaisePanes();
             RefreshDetail();
@@ -201,9 +213,81 @@ public sealed class IrcViewModel : ReactiveObject
             notes.Add(s.HasHistory ? IrcText.HistoryKept : IrcText.HistoryNone);
             if (!s.IsEncrypted) notes.Add(IrcText.NotEncrypted);
         }
+        if (!s.Server.Tls && StsNote(s.Server, IrcText.StsNote) is { } sts) notes.Add(sts);
         Notes = string.Join("\n", notes);
+
+        MyPicture = new EveConsole.Services.AvatarRef(IrcService.AvatarServiceName, s.Server.Id, "me", s.Nick.Length > 0 ? s.Nick : s.Server.Nickname);
+        PictureNotKept = IsConnected && !s.HasPictures;
         if (s.LastRefusal.Length > 0 && IsConnected) StatusText = s.LastRefusal;
     }
+
+    /// <summary>What the server's own encryption rule (STS) means here, in the words given: port, then until when. Null when it has none.</summary>
+    private static string? StsNote(IrcServer server, string words) =>
+        IrcService.StsPortOf(server) is { } port && DateTimeOffset.TryParse(server.StsUntil, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal, out var until)
+            ? string.Format(CultureInfo.CurrentCulture, words, port, until.ToLocalTime().ToString("d", CultureInfo.CurrentCulture))
+            : null;
+
+    // ── This person's picture ─────────────────────────────────────────────────
+
+    private string _pictureLink = "";
+    private bool _pictureNotKept;
+    private EveConsole.Services.AvatarRef? _myPicture;
+    private IrcPortraitChoice? _portrait;
+
+    /// <summary>A web link to this person's picture on the server selected.</summary>
+    public string PictureLink { get => _pictureLink; set => this.RaiseAndSetIfChanged(ref _pictureLink, value); }
+
+    /// <summary>Connected to a server that keeps no pictures: one set here waits for one that does.</summary>
+    public bool PictureNotKept { get => _pictureNotKept; private set => this.RaiseAndSetIfChanged(ref _pictureNotKept, value); }
+
+    public EveConsole.Services.AvatarRef? MyPicture { get => _myPicture; private set => this.RaiseAndSetIfChanged(ref _myPicture, value); }
+
+    /// <summary>The EVE characters added to this app, whose portraits are offered as a picture.</summary>
+    public ObservableCollection<IrcPortraitChoice> Portraits { get; } = [];
+    public bool HasPortraits => Portraits.Count > 0;
+
+    /// <summary>A character chosen: their portrait's link goes in the box, to be set.</summary>
+    public IrcPortraitChoice? Portrait
+    {
+        get => _portrait;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _portrait, value);
+            if (value is not null) PictureLink = IrcService.EvePortraitLink(value.Id);
+        }
+    }
+
+    /// <summary>Read again each time a server is picked: a character added since is offered too.</summary>
+    private async Task LoadPortraitsAsync()
+    {
+        try
+        {
+            var characters = await Task.Run(() => _service.EveCharactersAsync());
+            Portraits.Clear();
+            foreach (var (id, name) in characters) Portraits.Add(new IrcPortraitChoice(id, name));
+            this.RaisePropertyChanged(nameof(HasPortraits));
+        }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
+    }
+
+    private async Task SetPictureAsync(string url)
+    {
+        if (Selected() is not { } s) return;
+        StatusText = "";
+        url = url.Trim();
+        if (!IrcService.IsPictureLink(url)) { StatusText = IrcText.PictureLinkBad; return; }
+        await _service.SetAvatarUrlAsync(s, url);
+        PictureLink = url;
+        if (url.Length == 0) { _portrait = null; this.RaisePropertyChanged(nameof(Portrait)); }
+        PictureStatus = url.Length > 0 ? IrcText.PictureSaved : IrcText.PictureRemoved;
+    }
+
+    private string _pictureStatus = "";
+    public string PictureStatus { get => _pictureStatus; private set { this.RaiseAndSetIfChanged(ref _pictureStatus, value); this.RaisePropertyChanged(nameof(HasPictureStatus)); } }
+    public bool HasPictureStatus => PictureStatus.Length > 0;
+
+    public ReactiveCommand<Unit, Unit> SetPictureCommand { get; }
+    public ReactiveCommand<Unit, Unit> RemovePictureCommand { get; }
 
     // ── Adding and editing a server ───────────────────────────────────────────
 
@@ -231,10 +315,20 @@ public sealed class IrcViewModel : ReactiveObject
             else if (!value && EditPort == 6697) EditPort = 6667;
             this.RaiseAndSetIfChanged(ref _editTls, value);
             this.RaisePropertyChanged(nameof(ShowPlainWarning));
+            this.RaisePropertyChanged(nameof(StsEditNote));
+            this.RaisePropertyChanged(nameof(HasStsEditNote));
         }
     }
 
-    public bool ShowPlainWarning => !EditTls;
+    public bool ShowPlainWarning => !EditTls && !HasStsEditNote;
+
+    /// <summary>The server has asked to be reached encrypted (STS): whatever is ticked here, it will be, until the rule ends.</summary>
+    public string StsEditNote =>
+        !EditTls && _editingId > 0 && _service.SessionOf(_editingId)?.Server is { } server
+        && string.Equals(server.Host.Trim(), EditHost.Trim(), StringComparison.OrdinalIgnoreCase)
+            ? StsNote(server, IrcText.StsEditNote) ?? "" : "";
+
+    public bool HasStsEditNote => StsEditNote.Length > 0;
     public string EditNick { get => _editNick; set => this.RaiseAndSetIfChanged(ref _editNick, value); }
     public string EditUser { get => _editUser; set => this.RaiseAndSetIfChanged(ref _editUser, value); }
     public string EditReal { get => _editReal; set => this.RaiseAndSetIfChanged(ref _editReal, value); }
@@ -296,6 +390,9 @@ public sealed class IrcViewModel : ReactiveObject
         EditOnConnect = server.OnConnect;
         StatusText = "";
         IsEditing = true;
+        this.RaisePropertyChanged(nameof(StsEditNote));
+        this.RaisePropertyChanged(nameof(HasStsEditNote));
+        this.RaisePropertyChanged(nameof(ShowPlainWarning));
     }
 
     private async Task SaveAsync()

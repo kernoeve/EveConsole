@@ -33,16 +33,6 @@ public partial class MumbleServerBar : UserControl
         }
     }
 
-    /// <summary>
-    /// The server's name in green, as a panel's Mumble control shows it: the bar only shows while
-    /// connected, and the control shows the name grey when it isn't. The toolbar keeps it dim.
-    /// </summary>
-    public bool ShowsConnected
-    {
-        set => ServerName[!TextBlock.ForegroundProperty] =
-            new Avalonia.Markup.Xaml.MarkupExtensions.DynamicResourceExtension(value ? "GoodBrush" : "TextDimBrush");
-    }
-
     private Flyout? _openTree;
 
     private MumbleOverlayColumn? Column => DataContext as MumbleOverlayColumn;

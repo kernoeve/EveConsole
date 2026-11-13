@@ -47,6 +47,7 @@ public sealed class IrcClient : IAsyncDisposable
         "server-time", "message-tags", "echo-message", "batch", "away-notify", "account-notify", "account-tag",
         "extended-join", "multi-prefix", "userhost-in-names", "chghost", "cap-notify", "invite-notify", "setname",
         "draft/chathistory", "chathistory", "draft/event-playback", "standard-replies", "znc.in/self-message",
+        "draft/message-redaction", "draft/read-marker", "draft/multiline", "draft/metadata-2",
     ];
 
     private static readonly TimeSpan LoginTimeout = TimeSpan.FromSeconds(60);
@@ -56,7 +57,46 @@ public sealed class IrcClient : IAsyncDisposable
     private readonly HashSet<string> _offered = new(StringComparer.Ordinal);
     private readonly HashSet<string> _enabled = new(StringComparer.Ordinal);
     private readonly Dictionary<string, string> _batches = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, Multiline> _multiline = new(StringComparer.Ordinal);
+
+    /// <summary>
+    /// One message of several lines (draft/multiline) as it arrives: its batch's opening line carries who said it, to
+    /// whom, its id and time; its lines carry the words. A line marked draft/multiline-concat goes on without a break.
+    /// </summary>
+    private sealed class Multiline(IrcMessage opening)
+    {
+        private readonly StringBuilder _text = new();
+        private string _command = "";
+        private string _prefix = "";
+        private int _lines;
+
+        /// <summary>Most a message is let hold, whatever the server says: one that goes past this is cut there.</summary>
+        private const int MostChars = 64 * 1024;
+        private const int MostLines = 1000;
+
+        public void Add(IrcMessage line)
+        {
+            if (line.Command is not ("PRIVMSG" or "NOTICE") || _lines >= MostLines) return;
+            if (_command.Length == 0) { _command = line.Command; _prefix = line.Prefix; }
+            var joins = line.Tag("draft/multiline-concat") is not null;
+            // A line of spaces is a blank line: some clients send one so, as an empty line can be taken for no message.
+            var words = !joins && line.Last.Trim().Length == 0 ? "" : line.Last;
+            if (_lines > 0 && !joins) _text.Append('\n');
+            if (_text.Length + words.Length > MostChars) words = words[..Math.Max(0, MostChars - _text.Length)];
+            _text.Append(words);
+            _lines++;
+        }
+
+        /// <summary>The whole message, as one line would have carried it. Null when nothing was said in it.</summary>
+        /// <remarks>⚠️ To whom is the opening line's third parameter: BATCH +id draft/multiline #target.</remarks>
+        public IrcMessage? Joined() => _lines == 0 ? null : new IrcMessage(_command, opening[2], _text.ToString())
+        {
+            Prefix = opening.Prefix.Length > 0 ? opening.Prefix : _prefix,
+            Tags = opening.Tags,
+        };
+    }
     private DateTime _lastCtcpReply;
+    private string? _stsOffer;
 
     public IrcClient(IrcLogin login) => _login = login;
 
@@ -77,6 +117,50 @@ public sealed class IrcClient : IAsyncDisposable
     public bool HasTags => Has("message-tags");
     public bool HasEcho => Has("echo-message");
     public bool HasChatHistory => (Has("draft/chathistory") || Has("chathistory")) && Support.ChatHistory > 0;
+
+    /// <summary>Messages can be taken back (REDACT): the sender's own, or by a channel's operators where the server lets them.</summary>
+    public bool HasRedact => Has("draft/message-redaction") && HasTags;
+
+    /// <summary>
+    /// The server keeps where each conversation was read up to (MARKREAD), shared by every client of the account. Only
+    /// when logged in to one: a marker is the account's, and a server may refuse it otherwise.
+    /// </summary>
+    public bool HasReadMarker => Has("draft/read-marker") && LoggedInAs.Length > 0;
+
+    /// <summary>A message can hold several lines (a draft/multiline batch), within the server's limits.</summary>
+    public bool HasMultiline => Has("draft/multiline") && Has("batch") && MultilineMaxBytes > 0;
+
+    /// <summary>The most bytes of words one multiline message may hold, as the server said (max-bytes). 0 when it cannot.</summary>
+    public int MultilineMaxBytes { get; private set; }
+
+    /// <summary>The most lines one multiline message may hold (max-lines), or 0 for no limit beyond the bytes.</summary>
+    public int MultilineMaxLines { get; private set; }
+
+    /// <summary>
+    /// What the server said of encryption (STS) on an encrypted connection: how long it asks to be reached only so. Null
+    /// when it said nothing; zero when it takes back a rule given before.
+    /// </summary>
+    public TimeSpan? StsDuration { get; private set; }
+
+    /// <summary>The server keeps values for people and channels (draft/metadata-2): pictures among them.</summary>
+    public bool HasMetadata => Has("draft/metadata-2");
+
+    /// <summary>What the server offered with a capability ("max-bytes=4096,max-lines=100"), for those that say more.</summary>
+    private void OfferValue(string cap, string value)
+    {
+        if (cap == "sts") { _stsOffer = value; return; }
+        if (cap != "draft/multiline") return;
+        foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries))
+        {
+            var eq = part.IndexOf('=');
+            if (eq < 0 || !int.TryParse(part[(eq + 1)..], NumberStyles.None, CultureInfo.InvariantCulture, out var n)) continue;
+            switch (part[..eq])
+            {
+                case "max-bytes": MultilineMaxBytes = Math.Min(n, 64 * 1024); break;
+                case "max-lines": MultilineMaxLines = Math.Min(n, 1000); break;
+            }
+        }
+    }
 
     /// <summary>Every line after logging in, on the reading thread. A handler must not block.</summary>
     public event Action<IrcMessage>? Received;
@@ -146,9 +230,11 @@ public sealed class IrcClient : IAsyncDisposable
                     {
                         var eq = cap.IndexOf('=');
                         _offered.Add(eq < 0 ? cap : cap[..eq]);
+                        if (eq > 0) OfferValue(cap[..eq], cap[(eq + 1)..]);
                     }
                     if (m[2] == "*") break;   // more to come
 
+                    CheckSts();
                     var ask = Wanted.Where(_offered.Contains).ToList();
                     if (saslWanted && _offered.Contains("sasl")) ask.Add("sasl");
                     if (ask.Count == 0) { await SendRawAsync(new IrcMessage("CAP", "END"), ct); negotiating = false; }
@@ -224,6 +310,10 @@ public sealed class IrcClient : IAsyncDisposable
                     if (negotiating) { await SendRawAsync(new IrcMessage("CAP", "END"), ct); negotiating = false; }
                     break;
 
+                case "004" when m.Params.Count > 2:   // nick, server, program and version, then mode letters
+                    Support.Software = m[2];
+                    break;
+
                 case "005":
                     Support.Apply(m.Params.Skip(1).Take(Math.Max(0, m.Params.Count - 2)).ToList());
                     break;
@@ -237,6 +327,24 @@ public sealed class IrcClient : IAsyncDisposable
                     return;
             }
         }
+    }
+
+    /// <summary>
+    /// Strict transport security: a server can say it is to be reached only encrypted. ⚠️ Said on an unencrypted
+    /// connection it is an instruction to go and connect encrypted, now, on the port it names; said on an encrypted one it
+    /// is a rule, for how long, to keep for next time. Never kept from an unencrypted connection: anyone in the middle
+    /// could have written it.
+    /// </summary>
+    private void CheckSts()
+    {
+        if (StsOffer.Parse(_stsOffer) is not { } offer) return;
+        if (!_connection.IsEncrypted)
+        {
+            if (offer.Port is > 0 and <= 65535)
+                throw new IrcException(IrcFailure.Upgrade, "The server asks to be reached encrypted.") { UpgradePort = offer.Port };
+            return;
+        }
+        StsDuration = offer.Duration;
     }
 
     private async Task SendSaslAsync(CancellationToken ct)
@@ -299,6 +407,13 @@ public sealed class IrcClient : IAsyncDisposable
             Trace?.Invoke(line, false);
             if (IrcMessage.Parse(line) is not { } m) continue;
 
+            // A line of a message that holds several: gathered, and handed on as one when its batch ends.
+            if (m.Tag("batch") is { } inside && _multiline.TryGetValue(inside, out var gathering) && m.Command != "BATCH")
+            {
+                gathering.Add(m);
+                continue;
+            }
+
             switch (m.Command)
             {
                 case "PING":
@@ -333,8 +448,23 @@ public sealed class IrcClient : IAsyncDisposable
 
                 case "BATCH":
                     var reference = m[0];
-                    if (reference.StartsWith('+') && reference.Length > 1 && _batches.Count < MostBatches) _batches[reference[1..]] = m[1];
-                    else if (reference.StartsWith('-')) _batches.Remove(reference[1..]);
+                    if (reference.StartsWith('+') && reference.Length > 1 && _batches.Count < MostBatches)
+                    {
+                        _batches[reference[1..]] = m[1];
+                        if (m[1] == "draft/multiline" && m.Params.Count > 2) { _multiline[reference[1..]] = new Multiline(m); continue; }
+                    }
+                    else if (reference.StartsWith('-'))
+                    {
+                        // ⚠️ Joined before this batch is forgotten: the whole message is judged by the batch it sits in.
+                        if (_multiline.Remove(reference[1..], out var whole))
+                        {
+                            _batches.Remove(reference[1..]);
+                            if (whole.Joined() is not { } joined) continue;
+                            m = joined;
+                            break;
+                        }
+                        _batches.Remove(reference[1..]);
+                    }
                     break;
 
                 case "PRIVMSG" when IsCtcp(m.Last, out var ctcp, out var rest) && ctcp != "ACTION":
@@ -358,6 +488,9 @@ public sealed class IrcClient : IAsyncDisposable
 
     private void OnCapChange(IrcMessage m, CancellationToken ct)
     {
+        if (m[1] == "NEW")
+            foreach (var offer in m.Last.Split(' ', StringSplitOptions.RemoveEmptyEntries))
+                if (offer.IndexOf('=') is var eq and > 0) OfferValue(offer[..eq], offer[(eq + 1)..]);
         var caps = m.Last.Split(' ', StringSplitOptions.RemoveEmptyEntries).Select(c => c.Split('=')[0]).ToList();
         if (m[1] == "DEL") { foreach (var c in caps) { _offered.Remove(c); _enabled.Remove(c); } return; }
         if (m[1] == "ACK") { foreach (var c in caps) if (c.StartsWith('-')) _enabled.Remove(c[1..]); else _enabled.Add(c); return; }
@@ -453,6 +586,9 @@ public sealed class IrcClient : IAsyncDisposable
     /// <param name="replyTo">The message these answer, by its id, where the server passes tags on.</param>
     public async Task<IReadOnlyList<string>> SayAsync(string target, string text, bool action, string replyTo, CancellationToken ct)
     {
+        // Several lines, where the server takes them as one message: each line is a line of it, not a message of its own.
+        if (!action && HasMultiline && Lines(text).Count > 1) return await SayMultilineAsync(target, text, replyTo, ct);
+
         var sent = new List<string>();
         foreach (var piece in Split(target, text, action))
         {
@@ -472,32 +608,119 @@ public sealed class IrcClient : IAsyncDisposable
     /// <summary>The words split to fit, in order: by line, then by length.</summary>
     public IEnumerable<string> Split(string target, string text, bool action)
     {
-        // Room for what the server puts in front when it passes the line on: ":nick!user@host PRIVMSG target :".
-        var overhead = 1 + Math.Max(Nick.Length, Support.NickLength) + 1 + 10 + 1 + 63 + " PRIVMSG ".Length + target.Length + 2 + 2;
-        if (action) overhead += "ACTION ".Length + 2;   // and the two \x01 around it
-        var most = Math.Max(60, IrcMessage.MaxOutgoingBytes - overhead);
-
+        var most = MostWords(target, action);
         foreach (var raw in text.Replace("\r\n", "\n").Split('\n'))
         {
             var line = raw.TrimEnd();
             if (line.Length == 0) continue;
-            while (Encoding.UTF8.GetByteCount(line) > most)
-            {
-                var cut = 0;
-                var lastSpace = -1;
-                while (cut < line.Length)
-                {
-                    var next = cut + (char.IsHighSurrogate(line[cut]) && cut + 1 < line.Length ? 2 : 1);
-                    if (Encoding.UTF8.GetByteCount(line.AsSpan(0, next)) > most) break;
-                    if (line[cut] == ' ') lastSpace = cut;
-                    cut = next;
-                }
-                var at = lastSpace > most / 2 ? lastSpace : cut;
-                yield return line[..at];
-                line = line[at..].TrimStart();
-            }
-            if (line.Length > 0) yield return line;
+            foreach (var piece in Fit(line, most)) yield return piece;
         }
+    }
+
+    /// <summary>The most bytes of words one line can carry, leaving room for what the server puts in front when it passes it on.</summary>
+    private int MostWords(string target, bool action)
+    {
+        // ":nick!user@host PRIVMSG target :"
+        var overhead = 1 + Math.Max(Nick.Length, Support.NickLength) + 1 + 10 + 1 + 63 + " PRIVMSG ".Length + target.Length + 2 + 2;
+        if (action) overhead += "ACTION ".Length + 2;   // and the two \x01 around it
+        return Math.Max(60, IrcMessage.MaxOutgoingBytes - overhead);
+    }
+
+    /// <summary>One line cut into pieces of at most so many bytes, between words where it can be.</summary>
+    private static IEnumerable<string> Fit(string line, int most, bool keepSpace = false)
+    {
+        while (Encoding.UTF8.GetByteCount(line) > most)
+        {
+            var cut = 0;
+            var lastSpace = -1;
+            while (cut < line.Length)
+            {
+                var next = cut + (char.IsHighSurrogate(line[cut]) && cut + 1 < line.Length ? 2 : 1);
+                if (Encoding.UTF8.GetByteCount(line.AsSpan(0, next)) > most) break;
+                if (line[cut] == ' ') lastSpace = cut;
+                cut = next;
+            }
+            var at = lastSpace > most / 2 ? lastSpace : cut;
+            // ⚠️ Pieces joined again without a break (multiline-concat) keep the space they were cut at, or two words become one.
+            if (keepSpace && at == lastSpace)
+            {
+                yield return line[..(at + 1)];
+                line = line[(at + 1)..];
+                continue;
+            }
+            yield return line[..at];
+            line = line[at..].TrimStart();
+        }
+        if (line.Length > 0) yield return line;
+    }
+
+    /// <summary>The lines of what was typed, line ends trimmed, without blank lines at the start or end.</summary>
+    private static List<string> Lines(string text)
+    {
+        var lines = text.Replace("\r\n", "\n").Split('\n').Select(l => l.TrimEnd()).ToList();
+        while (lines.Count > 0 && lines[0].Length == 0) lines.RemoveAt(0);
+        while (lines.Count > 0 && lines[^1].Length == 0) lines.RemoveAt(lines.Count - 1);
+        return lines;
+    }
+
+    private int _batchCount;
+
+    /// <summary>
+    /// Sends words of several lines as one message (a draft/multiline batch): a line too long for the wire goes in
+    /// pieces marked to be joined again without a break. Past the server's limits it goes as several such messages.
+    /// Returns each message sent, its lines joined.
+    /// </summary>
+    private async Task<IReadOnlyList<string>> SayMultilineAsync(string target, string text, string replyTo, CancellationToken ct)
+    {
+        var most = MostWords(target, action: false);
+        var messages = new List<List<(string Piece, bool Joins)>>();
+        var current = new List<(string Piece, bool Joins)>();
+        var bytes = 0;
+        var lines = 0;
+
+        foreach (var line in Lines(text))
+        {
+            // A blank line goes as an empty line of the batch, which the spec allows.
+            List<string> pieces = line.Length == 0 ? [""] : [.. Fit(line, most, keepSpace: true)];
+            var size = pieces.Sum(p => Encoding.UTF8.GetByteCount(p)) + 1;
+            if (current.Count > 0 && (bytes + size > MultilineMaxBytes || MultilineMaxLines > 0 && lines + pieces.Count > MultilineMaxLines))
+            {
+                messages.Add(current);
+                current = [];
+                bytes = lines = 0;
+            }
+            for (var i = 0; i < pieces.Count; i++) current.Add((pieces[i], i > 0));
+            bytes += size;
+            lines += pieces.Count;
+        }
+        if (current.Count > 0) messages.Add(current);
+
+        var sent = new List<string>();
+        foreach (var message in messages)
+        {
+            var reference = "ml" + Interlocked.Increment(ref _batchCount).ToString(CultureInfo.InvariantCulture);
+            var opening = new Dictionary<string, string>();
+            if (replyTo.Length > 0 && HasTags) opening["+draft/reply"] = replyTo;
+            var batch = new List<IrcMessage> { new("BATCH", "+" + reference, "draft/multiline", target) { Tags = opening } };
+            foreach (var (piece, joins) in message)
+            {
+                var tags = new Dictionary<string, string> { ["batch"] = reference };
+                if (joins) tags["draft/multiline-concat"] = "";
+                batch.Add(new IrcMessage("PRIVMSG", target, piece) { Tags = tags });
+            }
+            batch.Add(new IrcMessage("BATCH", "-" + reference));
+            await _connection.SendAllAsync(batch, ct);
+
+            var whole = new StringBuilder();
+            for (var i = 0; i < message.Count; i++)
+            {
+                if (i > 0 && !message[i].Joins) whole.Append('\n');
+                whole.Append(message[i].Piece);
+            }
+            sent.Add(whole.ToString());
+            replyTo = "";   // the first answers; the rest follow it
+        }
+        return sent;
     }
 
     /// <summary>A message without words, carrying tags only: typing, a reaction. Only where the server passes tags on.</summary>
@@ -510,6 +733,20 @@ public sealed class IrcClient : IAsyncDisposable
     /// <summary>Adds a reaction to a message, or takes one back (+draft/unreact), as clients that show them do.</summary>
     public Task ReactAsync(string target, string msgid, string emoji, bool takeBack, CancellationToken ct) =>
         TagAsync(target, new Dictionary<string, string> { [takeBack ? "+draft/unreact" : "+draft/react"] = emoji, ["+draft/reply"] = msgid }, ct);
+
+    /// <summary>Takes a message back for everyone (REDACT), with why if a reason is given. Only where the server can.</summary>
+    public Task RedactAsync(string target, string msgid, string reason, CancellationToken ct) =>
+        !HasRedact || msgid.Length == 0 ? Task.CompletedTask
+        : SendRawAsync(reason.Length > 0 ? new IrcMessage("REDACT", target, msgid, reason) : new IrcMessage("REDACT", target, msgid), ct);
+
+    /// <summary>Tells the server a conversation has been read up to a time (MARKREAD), for every client of the account.</summary>
+    public Task MarkReadAsync(string target, DateTimeOffset upTo, CancellationToken ct) =>
+        !HasReadMarker ? Task.CompletedTask
+        : SendRawAsync(new IrcMessage("MARKREAD", target, "timestamp=" + upTo.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ss.fffZ", CultureInfo.InvariantCulture)), ct);
+
+    /// <summary>Asks where a conversation was read up to. The answer comes as a MARKREAD line.</summary>
+    public Task AskReadMarkerAsync(string target, CancellationToken ct) =>
+        !HasReadMarker ? Task.CompletedTask : SendRawAsync(new IrcMessage("MARKREAD", target), ct);
 
     public Task TopicAsync(string channel, string topic, CancellationToken ct) => SendRawAsync(new IrcMessage("TOPIC", channel, topic), ct);
 
@@ -530,6 +767,25 @@ public sealed class IrcClient : IAsyncDisposable
     public Task ListAsync(CancellationToken ct) => SendRawAsync(new IrcMessage("LIST"), ct);
 
     public Task WhoAsync(string target, CancellationToken ct) => SendRawAsync(new IrcMessage("WHO", target), ct);
+
+    /// <summary>
+    /// Asks the server who someone is. Their nickname twice: that asks the server they are connected to, which is the
+    /// one that knows how long they have been idle.
+    /// </summary>
+    public Task WhoisAsync(string nick, CancellationToken ct) => SendRawAsync(new IrcMessage("WHOIS", nick, nick), ct);
+
+    /// <summary>The keys of people's values this client wants told about as they change: their pictures.</summary>
+    public Task SubscribeMetadataAsync(CancellationToken ct) =>
+        HasMetadata ? SendRawAsync(new IrcMessage("METADATA", "*", "SUB", "avatar"), ct) : Task.CompletedTask;
+
+    /// <summary>Asks for someone's picture (or a channel's). The answer is a 761, or a 766 for none.</summary>
+    public Task AskAvatarAsync(string target, CancellationToken ct) =>
+        HasMetadata ? SendRawAsync(new IrcMessage("METADATA", target, "GET", "avatar"), ct) : Task.CompletedTask;
+
+    /// <summary>Sets this person's picture, as a web link, or takes it away with a blank one.</summary>
+    public Task SetAvatarAsync(string url, CancellationToken ct) =>
+        !HasMetadata ? Task.CompletedTask
+        : SendRawAsync(url.Length > 0 ? new IrcMessage("METADATA", "*", "SET", "avatar", url) : new IrcMessage("METADATA", "*", "SET", "avatar"), ct);
 
     /// <summary>Asks for what was said in a channel or with a person after a time, where the server keeps history.</summary>
     public Task HistoryAfterAsync(string target, DateTimeOffset after, int limit, CancellationToken ct) =>
@@ -576,4 +832,35 @@ public sealed class IrcClient : IAsyncDisposable
     }
 
     public ValueTask DisposeAsync() => _connection.DisposeAsync();
+}
+
+/// <summary>What a server offered as "sts": a port to go to encrypted, and how long to keep to encryption.</summary>
+public sealed record StsOffer(int Port, TimeSpan? Duration)
+{
+    /// <summary>Most a rule is kept for, whatever the server says: a typo of a few zeroes must not hold for centuries.</summary>
+    public static readonly TimeSpan Longest = TimeSpan.FromDays(400);
+
+    /// <summary>"port=6697,duration=2592000,preload" as its parts. Null for nothing usable.</summary>
+    public static StsOffer? Parse(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return null;
+        var port = 0;
+        TimeSpan? duration = null;
+        foreach (var part in value.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var eq = part.IndexOf('=');
+            if (eq < 0) continue;
+            var number = part[(eq + 1)..];
+            switch (part[..eq])
+            {
+                case "port" when int.TryParse(number, NumberStyles.None, CultureInfo.InvariantCulture, out var p):
+                    port = p;
+                    break;
+                case "duration" when long.TryParse(number, NumberStyles.None, CultureInfo.InvariantCulture, out var seconds):
+                    duration = TimeSpan.FromSeconds(Math.Min(seconds, (long)Longest.TotalSeconds));
+                    break;
+            }
+        }
+        return port == 0 && duration is null ? null : new StsOffer(port, duration);
+    }
 }

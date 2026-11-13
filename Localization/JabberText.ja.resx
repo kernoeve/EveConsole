@@ -438,4 +438,49 @@
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>個人とのやり取りのみ（他のクライアントと同様）：相手のクライアントで既読と表示されます。ルームでは送りません。</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>あなたの画像</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>画像を選ぶ…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>画像を削除</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE のポートレートを使う</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>選ぶとすぐ、正方形の小さな画像にして送ります。ここで操作しない限り、画像は変わりません。</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>画像を変更するには接続してください。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>画像を設定しました。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>画像を削除しました。</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>このアプリで読める画像ではありません (PNG、JPEG、GIF、WebP、BMP、20 MB 未満)。</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>EVE の画像サーバーからポートレートを取得できませんでした。少ししてからもう一度お試しください。</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>このサーバーはこれより小さい画像しか受け付けません。</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>このサーバーに登録していないため、画像は切断するまでしか保持されません。</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>ルームに拒否されました: そこではその操作は許可されていません。</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>ルームに拒否されました ({0})。</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>ルームに理由なく拒否されました。</value>
+  </data>
 </root>

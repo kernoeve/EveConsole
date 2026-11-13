@@ -109,8 +109,9 @@ public enum XmppRoomFailure { NickInUse, PasswordRequired, Banned, NotAMember, N
 public sealed record XmppRoomInfo(string Jid, string Name);
 
 /// <summary>What a room says about itself when asked. Each piece is there only if the server chose to say it.</summary>
+/// <param name="AllowsInvites">The room says its members may invite (muc#roomconfig_allowinvites), where it says at all.</param>
 public sealed record XmppRoomDetails(string Jid, string Name, string Description, string Subject, int? People,
-                                     bool NeedsPassword, bool MembersOnly, bool Moderated, bool Temporary);
+                                     bool NeedsPassword, bool MembersOnly, bool Moderated, bool Temporary, bool AllowsInvites = false);
 
 /// <summary>A room the account has saved on its server.</summary>
 public sealed record XmppBookmark(string Jid, string Name, string Nick, bool AutoJoin, string Password);
@@ -313,8 +314,53 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             from is null ? null : new XAttribute("to", from), payload));
     }
 
+    /// <summary>Messages sent that a refusal may answer, by id: the answer is the refusal's words.</summary>
+    private readonly ConcurrentDictionary<string, TaskCompletionSource<string>> _refusable = new();
+
+    /// <summary>How long a room is given to refuse an invitation. ⚠️ It says nothing when it passes one on, only when it will not.</summary>
+    public static TimeSpan RefusalWait { get; set; } = TimeSpan.FromSeconds(4);
+
+    /// <summary>
+    /// Sends a message a room or server may refuse, and waits a moment for that: throws with its words if it did.
+    /// Nothing comes back when it went through, so silence that long is taken for yes.
+    /// </summary>
+    private async Task SendRefusableAsync(XElement message, CancellationToken ct)
+    {
+        var id = NewId();
+        message.SetAttributeValue("id", id);
+        var refused = new TaskCompletionSource<string>(TaskCreationOptions.RunContinuationsAsynchronously);
+        _refusable[id] = refused;
+        try
+        {
+            await connection.WriteAsync(message, ct);
+            if (await Task.WhenAny(refused.Task, Task.Delay(RefusalWait, ct)) == refused.Task)
+                throw new XmppException(XmppFailure.Protocol, refused.Task.Result);
+        }
+        finally { _refusable.TryRemove(id, out _); }
+    }
+
+    /// <summary>The words of an error stanza: the server's own text, or what kind of refusal it was.</summary>
+    public static string RefusalWords(XElement? error)
+    {
+        if (error?.Element(Stanzas + "text")?.Value is { Length: > 0 } text) return text;
+        var kind = error?.Elements().FirstOrDefault(e => e.Name.Namespace == Stanzas)?.Name.LocalName;
+        return kind switch
+        {
+            "forbidden" or "not-allowed" => Localization.JabberText.RefusedNotAllowed,
+            null => Localization.JabberText.RefusedUnknown,
+            _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, Localization.JabberText.RefusedBecause, kind),
+        };
+    }
+
     private void HandleMessage(XElement stanza)
     {
+        // A refusal of something sent and waited on (an invitation): said to whoever waits.
+        if ((string?)stanza.Attribute("type") == "error" && (string?)stanza.Attribute("id") is { } errorId && _refusable.TryGetValue(errorId, out var waiting))
+        {
+            waiting.TrySetResult(RefusalWords(stanza.Element(Client + "error")));
+            return;
+        }
+
         if (stanza.Element(Mam + "result") is not null)
         {
             var archived = _archiveRoom is { } room
@@ -549,6 +595,61 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         catch (FormatException) { return null; }
     }
 
+    public static readonly XNamespace AvatarData     = "urn:xmpp:avatar:data";
+    public static readonly XNamespace AvatarMetadata = "urn:xmpp:avatar:metadata";
+
+    /// <summary>
+    /// The hash of this account's picture, said with every presence once this client has set one (XEP-0153), so other
+    /// clients know to fetch it: "" says there is none. Null until then: a presence without it says nothing either way.
+    /// </summary>
+    private string? _photoHash;
+
+    /// <summary>
+    /// Sets this account's picture, or takes it away with null: in its vCard, which every client reads, keeping the rest of
+    /// the vCard as it was; and as a published avatar (XEP-0084) for the clients that look there, where the server can.
+    /// Then says so with a presence, here and in the rooms given, so others fetch it.
+    /// </summary>
+    /// <param name="jpeg">The picture, a JPEG; null to take it away.</param>
+    public async Task SetPhotoAsync(byte[]? jpeg, IReadOnlyList<(string Room, string Nick)> rooms, CancellationToken ct)
+    {
+        // ⚠️ The vCard is read first and written back whole: setting one with only a picture in it would wipe the name,
+        // and anything else, that another client put there.
+        XElement card;
+        try { card = (await QueryAsync("get", null, new XElement(VCard + "vCard"), ct)).Element(VCard + "vCard") ?? new XElement(VCard + "vCard"); }
+        catch (XmppException) { card = new XElement(VCard + "vCard"); }
+        card = new XElement(card);
+        card.Elements(VCard + "PHOTO").Remove();
+        var hash = jpeg is null ? "" : Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(jpeg));
+        if (jpeg is not null)
+            card.Add(new XElement(VCard + "PHOTO", new XElement(VCard + "TYPE", "image/jpeg"), new XElement(VCard + "BINVAL", Convert.ToBase64String(jpeg))));
+        await QueryAsync("set", null, card, ct);
+
+        try { await PublishAvatarAsync(jpeg, hash, ct); }
+        catch (Exception e) when (e is XmppException or TimeoutException) { /* the vCard is what counts: not every server publishes */ }
+
+        _photoHash = hash;
+        await connection.WriteAsync(WithPresence(new XElement(Client + "presence")), ct);
+        foreach (var (room, nick) in rooms) await SetRoomPresenceAsync(room, nick, ct);
+    }
+
+    /// <summary>The same picture as a published avatar (XEP-0084): its data, then what it is. None publishes an empty one.</summary>
+    private async Task PublishAvatarAsync(byte[]? jpeg, string hash, CancellationToken ct)
+    {
+        if (jpeg is not null)
+            await QueryAsync("set", null, new XElement(PubSub + "pubsub",
+                new XElement(PubSub + "publish", new XAttribute("node", AvatarData.NamespaceName),
+                    new XElement(PubSub + "item", new XAttribute("id", hash), new XElement(AvatarData + "data", Convert.ToBase64String(jpeg))))), ct);
+
+        var metadata = new XElement(AvatarMetadata + "metadata");
+        if (jpeg is not null)
+            metadata.Add(new XElement(AvatarMetadata + "info",
+                new XAttribute("bytes", jpeg.Length), new XAttribute("id", hash), new XAttribute("type", "image/jpeg"),
+                new XAttribute("width", EveConsole.Services.OwnPicture.Side), new XAttribute("height", EveConsole.Services.OwnPicture.Side)));
+        await QueryAsync("set", null, new XElement(PubSub + "pubsub",
+            new XElement(PubSub + "publish", new XAttribute("node", AvatarMetadata.NamespaceName),
+                new XElement(PubSub + "item", new XAttribute("id", jpeg is null ? "none" : hash), metadata))), ct);
+    }
+
     /// <summary>Someone's picture from their vCard: at an address, or this account's own with none. Null for none or no answer.</summary>
     public async Task<byte[]?> VCardPhotoAsync(string? at, CancellationToken ct)
     {
@@ -670,7 +771,8 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
             features.Contains("muc_passwordprotected"),
             features.Contains("muc_membersonly"),
             features.Contains("muc_moderated"),
-            features.Contains("muc_temporary"));
+            features.Contains("muc_temporary"),
+            fields.GetValueOrDefault("muc#roomconfig_allowinvites") is "1" or "true");
     }
 
     public async Task<IReadOnlyList<XmppRoomInfo>> ItemsOfAsync(string to, CancellationToken ct)
@@ -747,6 +849,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         };
         if (word is not null) presence.Add(new XElement(Client + "show", word));
         if (status.Length > 0) presence.Add(new XElement(Client + "status", Clean(status)));
+        if (_photoHash is { } photo) presence.Add(new XElement(VCardUpdate + "x", new XElement(VCardUpdate + "photo", photo)));
         return presence;
     }
 

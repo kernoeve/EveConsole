@@ -160,4 +160,19 @@
   <data name="PickBanned" xml:space="preserve">
     <value>请从列表中选择。</value>
   </data>
+  <data name="ShowPicture" xml:space="preserve">
+    <value>显示图片</value>
+  </data>
+  <data name="ShowPictureTip" xml:space="preserve">
+    <value>从 {0} 加载。该网站将看到你的 IP 地址。</value>
+  </data>
+  <data name="PictureLoading" xml:space="preserve">
+    <value>正在加载图片…</value>
+  </data>
+  <data name="PictureFailed" xml:space="preserve">
+    <value>无法加载图片。下面的链接仍可打开它。</value>
+  </data>
+  <data name="OpenPictureTip" xml:space="preserve">
+    <value>在浏览器中以原始大小打开</value>
+  </data>
 </root>

@@ -10,7 +10,7 @@ namespace EveConsole.Services.Messages;
 ///
 /// <para>A conversation is keyed by the other person's nickname, folded the server's way, so case cannot split one in
 /// two. IRC has no contacts, no files and no correcting a message; it has typing and reactions where the server passes
-/// tags on.</para>
+/// tags on, and taking a message back where it also lets messages be taken back (REDACT).</para>
 /// </summary>
 public sealed class IrcDmSource : IDmSource
 {
@@ -23,7 +23,8 @@ public sealed class IrcDmSource : IDmSource
     public event Action? Changed;
     public event Action? UnreadChanged;
     public event Action<DmKey, DmLine, bool>? Arrived;
-    public event Action<DmKey>? Edited { add { } remove { } }   // IRC has no correcting what was said
+    /// <summary>A message taken back. IRC has no correcting what was said.</summary>
+    public event Action<DmKey>? Edited;
     public event Action<DmKey>? ReactionsChanged;
     public event Action<DmKey, bool>? Typing;
 
@@ -35,6 +36,10 @@ public sealed class IrcDmSource : IDmSource
         _service.MessageStored += row =>
         {
             if (!row.IsChannel) Arrived?.Invoke(KeyOf(row.ServerId, row.Conversation), ToLine(row), row is { IsAlert: true, IsRead: false });
+        };
+        _service.MessagesChanged += (server, conversation) =>
+        {
+            if (!IsChannel(server, conversation)) Edited?.Invoke(KeyOf(server, conversation));
         };
         _service.ReactionsChanged += (server, conversation) =>
         {
@@ -54,7 +59,7 @@ public sealed class IrcDmSource : IDmSource
     private static DmLine ToLine(IrcStoredMessage m) => new(
         m.Id,
         m.Kind switch { IrcMessageKind.Action => "* " + m.Sender, IrcMessageKind.Notice => "-" + m.Sender + "-", _ => m.Sender },
-        m.Body, m.SentAt, m.IsOutgoing, Target: m.MessageId, ReplyId: m.ReplyId);
+        m.Body, m.SentAt, m.IsOutgoing, m.Deleted, m.DeletedReason, Target: m.MessageId, ReplyId: m.ReplyId);
 
     /// <summary>The nickname as the person writes it: as seen in a channel or watched, else as last saved.</summary>
     private static string Shown(IrcSession? session, string folded, string fallback)
@@ -91,6 +96,7 @@ public sealed class IrcDmSource : IDmSource
         {
             Presence = !connected || online is null ? DmPresence.Unknown : online == false ? DmPresence.Offline : away ? DmPresence.Away : DmPresence.Online,
             Status = person?.AwayMessage ?? "",
+            CanAttach = connected && online != false && IrcService.CanSendFiles(session),
 
             // ⚠️ An IRC server delivers only to someone connected now, and keeps nothing for later (unless it keeps
             // history, which this cannot know for the other person). Said plainly rather than lost silently.
@@ -143,6 +149,15 @@ public sealed class IrcDmSource : IDmSource
         if (said.Length > 0) throw new InvalidOperationException(said);
     }
 
+    /// <summary>Only logged in to an account: a server knows a direct message was this person's by it.</summary>
+    public bool CanDeleteIn(DmKey key) => _service.SessionOf(key.ServerId) is { State: IrcState.Connected, CanRedact: true, LoggedIn: true };
+
+    public Task DeleteOwnAsync(DmKey key, string ownId, CancellationToken ct = default)
+    {
+        var session = SessionOf(key);
+        return _service.RedactAsync(session, Shown(session, key.Peer, key.Peer), ownId, "", ct);
+    }
+
     public Task SetTypingAsync(DmKey key, bool typing, CancellationToken ct = default) =>
         _service.SessionOf(key.ServerId) is { } session ? _service.SendTypingAsync(session, Shown(session, key.Peer, key.Peer), typing, ct) : Task.CompletedTask;
 
@@ -160,8 +175,12 @@ public sealed class IrcDmSource : IDmSource
             await _service.ReactAsync(session, peer, key.Peer, target, emoji, ct);
     }
 
-    public Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default) =>
-        throw new NotSupportedException("IRC has no way to send a file here.");
+    /// <summary>Puts the file on the server's file host and sends the person its address.</summary>
+    public Task SendFileAsync(DmKey key, Stream content, string fileName, long size, string contentType, CancellationToken ct = default)
+    {
+        var session = SessionOf(key);
+        return _service.SendFileAsync(session, Shown(session, key.Peer, key.Peer), content, fileName, size, contentType, ct);
+    }
 
     public Task AddContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;
     public Task RemoveContactAsync(DmKey key, CancellationToken ct = default) => Task.CompletedTask;

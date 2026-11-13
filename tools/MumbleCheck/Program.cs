@@ -401,6 +401,21 @@ static string RawFile(string path)
     Check("talk: read off the wire", MumbleVoicePacket.Decode(withSession) is { Target: 1, Session: 5 });
 }
 
+// ── This person's own picture ────────────────────────────────────────────────────────────
+{
+    using var wide = new SkiaSharp.SKBitmap(900, 500);
+    wide.Erase(SkiaSharp.SKColors.SteelBlue);
+    var png = wide.Encode(SkiaSharp.SKEncodedImageFormat.Png, 100).ToArray();
+    var ready = EveConsole.Services.OwnPicture.Prepare(png);
+    using var back = ready is null ? null : SkiaSharp.SKBitmap.Decode(ready);
+    Check("picture: made square and small, as a JPEG", back is { Width: 128, Height: 128 } && ready![0] == 0xFF && ready[1] == 0xD8 && ready.Length < 16_000, ready?.Length.ToString() ?? "none");
+    Check("picture: something that is not one is refused", EveConsole.Services.OwnPicture.Prepare([1, 2, 3]) is null && EveConsole.Services.OwnPicture.Prepare([]) is null);
+    var texture = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bytes(11, ready!)));
+    Check("picture: sent as the person's texture, the picture's own bytes", texture.UInt(1) == 7 && texture.Bytes(11) is { } t && t.SequenceEqual(ready!));
+    var none = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bytes(11, [])));
+    Check("picture: taken away as an empty texture", none.Bytes(11) is { Length: 0 });
+}
+
 // ── What is asked of a server about someone else ───────────────────────────────────────
 {
     var mute = new PbMessage(MumbleClient.UserStateMessage(7, m => m.Bool(6, true)));

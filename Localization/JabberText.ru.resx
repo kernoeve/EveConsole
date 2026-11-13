@@ -438,4 +438,49 @@
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>Только в личной переписке, как в других клиентах: у собеседника сообщение будет помечено как прочитанное. Никогда в комнатах.</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Ваше изображение</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Выбрать изображение…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Убрать изображение</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Взять портрет из EVE</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Отправляется сразу после выбора, квадратным и маленьким. Изображение меняется, только если вы сделаете это здесь.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Подключитесь, чтобы сменить изображение.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Изображение установлено.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Изображение убрано.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>Этот файл не изображение, которое может прочитать приложение (PNG, JPEG, GIF, WebP или BMP, до 20 МБ).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>Не удалось получить портрет с сервера изображений EVE. Попробуйте чуть позже.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>Этот сервер принимает только изображения поменьше.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>Вы не зарегистрированы на этом сервере, поэтому он хранит изображение только до отключения.</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Комната отказала: вам там это не разрешено.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Комната отказала ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Комната отказала без объяснения.</value>
+  </data>
 </root>

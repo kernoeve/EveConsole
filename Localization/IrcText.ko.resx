@@ -172,4 +172,544 @@
   <data name="ProblemNickname" xml:space="preserve">
     <value>연결 안 됨: 서버가 이 닉네임을 받지 않습니다. 편집에서 다른 것을 고르세요.</value>
   </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>이 서버에서는 메시지를 취소할 수 없습니다.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>창설자로 지정</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>창설자 해제</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>관리자로 지정</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>관리자 해제</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>+{0} 부여</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>+{0} 해제</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>채널 설정…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} 설정</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>이 서버에 있는 채널 모드입니다. 변경 사항은 저장을 누를 때 전송되며, 목록은 줄을 추가하거나 제거하는 즉시 바뀝니다. 권한으로 허용되지 않는 변경은 서버가 거부하고 그룹 채팅에 표시합니다.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>서버가 아직 이 채널의 설정을 알려주지 않아 체크가 빠져 있을 수 있습니다.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>{0} 님이 설정</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>차단</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>이 중 하나와 일치하는 사람은 참여할 수 없습니다 (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>차단 예외</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>이 중 하나와 일치하면 차단에 걸려도 참여할 수 있습니다 (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>초대 예외</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>이 중 하나와 일치하면 초대 전용 채널에 초대 없이 참여할 수 있습니다 (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>제거</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>서버에 묻는 중…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>이 목록은 비어 있습니다.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — *는 모든 것과 일치</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>참여 비밀번호</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>채널 키: 이를 입력한 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>새 비밀번호</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>표시</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>채널에 비밀번호가 있으며 표시되지 않습니다. 바꾸려면 새 비밀번호를 입력하세요.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>저장하면 이것이 참여 비밀번호가 됩니다.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>저장하면 비밀번호가 해제되어 누구나 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>참여에 필요한 비밀번호를 입력하세요.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>채널 비밀번호에는 공백을 넣을 수 없습니다.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: 값을 입력하거나 체크를 해제하세요.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: 정수를 입력하세요.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>초대 전용</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>초대받은 사람이나 초대 예외에 있는 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>발언권이 있는 사람과 운영자만 말하기</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>그 외 사람은 읽을 수만 있고 보낼 수는 없습니다.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>외부 메시지 금지</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>채널에 있는 사람만 메시지를 보낼 수 있습니다.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>운영자만 주제 변경</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>다른 사람은 채널 주제를 바꿀 수 없습니다.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>채널 목록에서 숨기기</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>서버의 채널 목록에도, 참여자 정보에도 표시되지 않습니다.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>비공개: 목록에는 나오지만 세부 정보 숨김</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>예전 방식의 숨김입니다. 목록에는 나올 수 있지만 외부 사람은 주제나 참여자를 볼 수 없습니다.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>계정에 로그인한 사람만 참여 가능</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>이 네트워크의 계정에 로그인하지 않은 사람은 참여할 수 없습니다.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>계정에 로그인한 사람만 말하기 가능</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>로그인하지 않은 사람도 참여해 읽을 수 있지만, 발언권이 없으면 말할 수 없습니다.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>프로그램 요청 차단 (버전, 핑)</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>IRC 프로그램이 모두의 프로그램에 보내는 요청(CTCP)을 채널에서 거부합니다. /me는 계속 됩니다.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>색이 있는 메시지 차단</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>색상이나 서식 코드가 있는 메시지는 거부됩니다.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>최대 인원</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>이 인원이 차면 더 이상 참여할 수 없습니다.</value>
+  </data>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>숫자 (예: 50)</value>
+  </data>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#채널</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>초 (예: 30)</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>메시지에서 색 제거</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>색상과 서식 코드는 제거되고 글은 그대로 전달됩니다.</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>롤플레이 명령 허용</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>멤버가 캐릭터로 말하거나 장면을 서술할 수 있습니다 (서버의 NPC, SCENE 명령).</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>참여자끼리 서로 숨기기</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>강당처럼, 발언권이 없는 사람에게는 멤버 목록에 운영자와 발언권 있는 사람만 보이고 출입도 보이지 않습니다.</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>발언권 없는 메시지는 운영자에게만 전달</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>발언권 없는 사람이 보낸 내용은 채널 운영자에게만 보이며 운영자가 전달할 수 있습니다. 다른 사람에게는 운영자와 발언권 있는 사람의 말만 보입니다.</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>채널의 누구나 초대 가능</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>운영자가 아닌 멤버도 초대할 수 있습니다.</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>암호화된 연결만</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>TLS로 서버에 연결된 사람만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>채널로 보내는 알림(NOTICE) 차단</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>채널 전체로 보내는 NOTICE 메시지는 거부됩니다.</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>다른 채널이 사람을 이곳으로 보낼 수 있음</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>이 채널 운영자의 채널이 아니어도, 참여하지 못한 사람을 이곳으로 보낼 수 있습니다.</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>다른 곳에서 보내진 사람 거부</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>다른 채널에서 이곳으로 보내진 사람은 들어올 수 없습니다.</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>더 긴 목록</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>네트워크 운영자가 설정: 채널의 차단 및 예외 목록에 더 많이 넣을 수 있습니다.</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>영구</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>네트워크 운영자가 설정: 모두 나가도 채널과 설정이 남습니다.</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>네트워크 운영자만</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>네트워크 운영자가 설정: 운영자만 참여할 수 있습니다.</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>말할 때까지 참여자 숨기기</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>참여한 사람은 처음 말할 때까지 멤버 목록에 나오지 않습니다.</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>닉네임 변경 금지</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>채널에 있는 동안에는 닉네임을 바꿀 수 없습니다.</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>아무도 강퇴할 수 없음</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>채널 운영자는 강퇴할 수 없고, 네트워크 운영자나 서비스만 할 수 있습니다.</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>입장 요청(노크) 금지</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>외부 사람은 KNOCK으로 운영자에게 입장을 요청할 수 없습니다.</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>초대 금지</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>아무도 이 채널로 초대할 수 없습니다.</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>대문자로 외치는 말 차단</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>대부분 대문자로 쓴 메시지는 거부됩니다.</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>욕설 검열</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>서버 목록에 있는 단어는 차단되거나 바뀝니다.</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>네트워크 서비스에 등록됨</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>네트워크 서비스가 설정: 채널이 소유자에게 등록되어 있습니다.</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>여기 모두 암호화 연결</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>서버가 설정: 채널의 모든 사람이 TLS로 연결되어 있습니다.</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>참여하지 못한 사람을 보낼 곳</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>참여할 수 없을 때(정원 초과, 초대 전용, 차단 등) 서버가 대신 이 채널로 보냅니다.</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>가득 찼을 때 보낼 곳</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>최대 인원이 차면 새로 온 사람은 이 채널로 보내집니다.</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>참여 속도 제한</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>지정한 초 안에 이만큼 참여하면 한동안 더 이상 받지 않습니다 (대량 참여 방지).</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>인원:초 (예: 5:10)</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>도배하면 강퇴</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>지정한 초 안에 이보다 많은 줄을 보내면 강퇴됩니다. 앞에 *를 붙이면 차단도 합니다.</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>줄:초 (예: 10:5)</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>도배 방지 규칙</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>UnrealIRCd 규칙: 콜론 뒤 초 안에 허용하는 참여(j), 메시지(m), 닉 변경(n) 등의 수.</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>예: [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>도배 방지 수준</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>서버에 이름이 붙은 수준 중 하나 (relaxed, normal, strict 등).</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>예: normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>닉네임 변경 속도 제한</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>지정한 초 안에 닉 변경이 이만큼 있으면 한동안 막습니다.</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>횟수:초 (예: 3:60)</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>강퇴 후 대기</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>강퇴된 사람은 이 초 동안 돌아올 수 없습니다.</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>새로 온 사람은 말하기 전 대기</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>참여한 사람은 이 초 동안 말할 수 없습니다.</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>새로 온 사람에게 최근 대화 보여주기</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>참여한 사람은 지정한 시간 안의 최근 대화를 이 줄 수까지 받습니다.</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>줄:시간 (예: 50:1d)</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>기타 모드 (IRC를 아는 사람용)</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>위에 이름이 없는 이 서버의 설정입니다. MODE 형식(예: +E, -U, +j 5:10)으로 입력하면 저장할 때 함께 보냅니다.</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+문자 또는 -문자, 그다음 값</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>기타 모드: + 또는 -와 모드 문자로 시작하고, 값은 공백 뒤에 쓰세요.</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>채널에 추가로 설정됨: {0}</value>
+  </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>이 사람은?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>{0} 정보</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>서버에 묻는 중…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>서버가 응답하지 않았습니다.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} 님은 온라인이 아닙니다.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>실명</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>계정</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>계정에 로그인하지 않음</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>자리 비움</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>조용한 시간</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>접속 시작</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>채널</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>주소</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>서버</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>암호화된 연결</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>네트워크 운영자</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>봇</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>예</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>기타</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0}초</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0}시간 {1}분</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0}일 {1}시간</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>내 사진</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>사진의 웹 링크입니다. 이 서버의 사람들은 IRC 프로그램이 사진을 보여주는 곳에서 볼 수 있습니다.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… 사진 링크</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE 초상화 사용</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>EVE 이미지 서버에 있는 캐릭터 초상화입니다. 게임에서 바꾸면 함께 바뀝니다.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>사진 설정</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>사진 제거</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>사진을 저장했습니다. 이 서버에 연결할 때마다 다시 설정됩니다.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>사진을 제거했습니다.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>이 서버는 사진을 저장하지 않습니다. 여기에 저장해 두었다가 서버가 지원하면 설정합니다.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>사진 링크는 https:// 또는 http://로 시작하고, 공백이 없으며, 400자 이하입니다.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>서버가 암호화된 연결만 요청해서 그렇게 합니다: 포트 {0}, {1}까지.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>이 서버는 {1}까지 암호화된 연결만 요청했으므로, 여기 설정과 상관없이 포트 {0}로 암호화해 연결합니다.</value>
+  </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>이 서버는 파일을 받지 않습니다.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>서버의 파일 호스트가 암호화되지 않아 아무것도 보내지 않습니다.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>파일 호스트가 파일을 받았지만 보관 위치를 알려 주지 않았습니다.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>서버의 파일 호스트는 다음만 받습니다: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>서버의 파일 호스트는 이 종류의 파일을 받지 않습니다.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>파일이 너무 커서 서버의 파일 호스트에 올릴 수 없습니다.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>서버의 파일 호스트가 거부했습니다. 파일을 보내려면 계정(SASL)으로 로그인하세요.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>서버의 파일 호스트가 거부했습니다 ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>서버의 파일 호스트가 도중에 파일 받기를 멈췄습니다. 파일이 너무 클 수 있습니다.</value>
+  </data>
 </root>
