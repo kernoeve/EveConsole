@@ -149,8 +149,8 @@ namespace EveConsole.Tools.IntelCheck
         };
 
         private static IntelKillAttacker Attacker(long id, int? ship = Hull, int? shipGroup = FrigateGroup,
-                                                  int? weapon = null, int? weaponGroup = null) =>
-            new(id, FarCorp, 0, ship, shipGroup, weapon, weaponGroup);
+                                                  int? weapon = null, int? weaponGroup = null, long corp = FarCorp) =>
+            new(id, corp, 0, ship, shipGroup, weapon, weaponGroup);
 
         private static IntelKill Kill(int id, DateTimeOffset at, long victim, double x, IntelKillAttacker[] attackers,
                                       int victimGroup = FrigateGroup, int system = S1) =>
@@ -500,6 +500,32 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("map: and the own characters", map.Own.TryGetValue(S1, out var o1) && o1.Single().CharacterId == A
                 && map.Own.ContainsKey(S9));
             c.Check("map: a system only called clear is not a mark", !map.Hostiles.ContainsKey(S1));
+
+            // A camp is judged by its attackers: our own corporation killing two hostiles on a gate is
+            // no camp to warn of, on a panel, the tool or the map; a hostile gang's is.
+            List<IntelKill> GateKills(long corp) =>
+            [
+                Kill(41, Ago(5), P1, 10_000, [Attacker(P5, corp: corp), Attacker(P6, corp: corp)]),
+                Kill(42, Ago(3), P2, 10_000, [Attacker(P6, corp: corp)]),
+            ];
+            var blueSnap = Build([], [], [], GateKills(CorpA));
+            var blueView = IntelLens.Project(blueSnap, Everyone, Now, Hops());
+            c.Check("camps: a camp whose attackers are all blue is found, but gives no row",
+                blueSnap.Camps.Count == 1 && blueView.Systems.All(r => r.SystemId != S1),
+                $"{blueSnap.Camps.Count} camps; rows {string.Join(",", blueView.Systems.Select(r => r.SystemId % 100))}");
+            c.Check("camps: nor a line in the feed", blueView.Feed.All(r => r.Event.Kind != IntelEventKind.CampFormed));
+            c.Check("camps: nor a mark on the map", !LiveIntelService.ToMap(blueSnap, Now).Hostiles.ContainsKey(S1));
+            var blueShown = IntelLens.Project(blueSnap, Everyone with { Tiers = Enum.GetValues<StandingTier>().ToHashSet() }, Now, Hops());
+            c.Check("camps: shown, blue, when the tiers ask for blues",
+                blueShown.Systems.FirstOrDefault(r => r.SystemId == S1) is { Camps.Count: 1, Tier: StandingTier.Blue });
+
+            var redSnap = Build([], [], [], GateKills(FarCorp));
+            var redRow = IntelLens.Project(redSnap, Everyone, Now, Hops()).Systems.FirstOrDefault(r => r.SystemId == S1);
+            c.Check("camps: a hostile gang's camp is a row at the worst tier of its attackers (P6 red to A)",
+                redRow is { Camps.Count: 1, State: IntelSystemState.FlagsOnly, Tier: StandingTier.Red },
+                redRow is null ? "no row" : $"{redRow.Camps.Count} {redRow.State} {redRow.Tier}");
+            c.Check("camps: and a camp mark on the map",
+                LiveIntelService.ToMap(redSnap, Now).Hostiles.ContainsKey(S1));
         }
 
         // ── The service, on a database ──────────────────────────────────────────────────────────────────────

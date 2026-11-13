@@ -52,7 +52,9 @@ public sealed record IntelEventPilotRow(IntelEventPilot Pilot, StandingTier Tier
 /// <param name="NearestOrigin">The character the jumps are counted from, for "3 jumps from …".</param>
 /// <param name="StandingsFrom">The character whose standings gave the colours; null for the rule
 /// with no viewer.</param>
-/// <param name="Tier">The worst tier among its named pilots; an unnamed count is Neutral.</param>
+/// <param name="Tier">The worst tier among its named pilots and its camps' attackers; an unnamed count
+/// is Neutral.</param>
+/// <param name="Camps">The active camps with at least one attacker of a tier shown.</param>
 /// <param name="IsFresh">News within the fresh time and within five jumps: what lights a panel row,
 /// and what an alarm would wake for.</param>
 public sealed record IntelSystemRow(
@@ -166,7 +168,20 @@ public static class IntelLens
                 .ToList();
             var unnamed = sys.Unnamed is { } u && u.ExpiresAt > now && viewer.Tiers.Contains(StandingTier.Neutral) ? u : null;
             var facts = sys.Facts.Where(f => f.ExpiresAt > now).ToList();
-            var camps = sys.Camps.Where(c => c.IsActive(now)).ToList();
+            // A camp is judged by its attackers, as its feed line is: kept when any of them is a tier
+            // shown, at the worst of those. A camp of blues killing hostiles on a gate is no threat.
+            var campTiers = new List<StandingTier>();
+            var camps = new List<GateCamp>();
+            foreach (var camp in sys.Camps.Where(c => c.IsActive(now)))
+            {
+                var shownTiers = camp.Attackers.Count == 0
+                    ? [StandingTier.Neutral]
+                    : camp.Attackers.Select(a => Tier(origin, a.CharacterId, a.CorporationId, a.AllianceId)).ToList();
+                shownTiers.RemoveAll(t => !viewer.Tiers.Contains(t));
+                if (shownTiers.Count == 0) continue;
+                camps.Add(camp);
+                campTiers.Add(shownTiers.Min());
+            }
 
             // (time, lifetime) of everything the row shows, for its age and fade.
             var items = new List<(DateTimeOffset At, TimeSpan Life)>();
@@ -192,7 +207,8 @@ public static class IntelLens
             var expires = items.Max(i => i.At + i.Life);
             var fresh   = items.Max(i => Freshness(i.At, i.Life, now));
             var opacity = items.Max(i => Opacity(i.At, i.Life, now));
-            var tier = pilots.Count > 0 ? pilots.Min(p => p.Tier) : StandingTier.Neutral;
+            var tiers = pilots.Select(p => p.Tier).Concat(campTiers).ToList();
+            var tier = tiers.Count > 0 ? tiers.Min() : StandingTier.Neutral;
             if (unnamed is not null && tier > StandingTier.Neutral) tier = StandingTier.Neutral;
 
             systems.Add(new IntelSystemRow(

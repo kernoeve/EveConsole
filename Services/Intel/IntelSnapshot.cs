@@ -400,11 +400,8 @@ public static class IntelSnapshotBuilder
 
         foreach (var c in camps)
         {
-            var attackers = c.AttackerIds.Select(id =>
-            {
-                var a = kills.SelectMany(k => k.Attackers).First(x => x.CharacterId == id);
-                return new IntelEventPilot(id, NameOf(id, null), a.ShipTypeId, ShipOf(a.ShipTypeId, null), a.CorporationId, a.AllianceId);
-            }).ToList();
+            var attackers = c.Attackers.Select(a => new IntelEventPilot(
+                a.CharacterId, NameOf(a.CharacterId, null), a.ShipTypeId, ShipOf(a.ShipTypeId, null), a.CorporationId, a.AllianceId)).ToList();
             feed.Add(new IntelEvent(
                 "c" + c.Key, IntelEventKind.CampFormed, c.FormedAt, s.Camp, c.SystemId, IntelSnapshot.SourceKills,
                 attackers, 0, (int)IntelRules.IntelFlags.Camp, false, false,

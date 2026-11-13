@@ -24,13 +24,21 @@ public sealed record IntelKill(
 /// <summary>The gate nearest a point, and how far it is.</summary>
 public readonly record struct IntelGateNear(long StargateId, int DestinationSystemId, double Km);
 
+/// <summary>A pilot on a camp, as on their newest kill there: who they fly for and in what. The
+/// affiliation is what a view judges the camp's standing by.</summary>
+public readonly record struct IntelCampAttacker(long CharacterId, long CorporationId, long AllianceId, int? ShipTypeId);
+
 /// <summary>Kills clustered on one gate, before the register gives the camp its identity.</summary>
+/// <param name="Attackers">Every player attacker once, by character id.</param>
 public sealed record IntelCampCluster(
     int SystemId, long StargateId, int GateSystemId,
     IReadOnlyList<IntelKill> Kills, IReadOnlyList<long> VictimIds,
     DateTimeOffset FirstKill, DateTimeOffset LastKill, DateTimeOffset FormedAt,
-    IReadOnlyList<long> AttackerIds, IReadOnlyList<int> AttackerShipTypeIds,
-    bool Smartbomb, bool Interdictor, bool Hic, bool Bubble);
+    IReadOnlyList<IntelCampAttacker> Attackers, IReadOnlyList<int> AttackerShipTypeIds,
+    bool Smartbomb, bool Interdictor, bool Hic, bool Bubble)
+{
+    public IEnumerable<long> AttackerIds => Attackers.Select(a => a.CharacterId);
+}
 
 /// <summary>
 /// A gate camp: kills on one gate by the same people, close together in time.
@@ -41,15 +49,18 @@ public sealed record IntelCampCluster(
 /// <param name="FormedAt">The kill that made it a camp: the one bringing the distinct victims to the
 /// minimum.</param>
 /// <param name="ExpiresAt">Thirty minutes (the camp lifetime) after the last kill.</param>
+/// <param name="Attackers">Every player attacker once, with the affiliation a view judges the camp by.</param>
 /// <param name="Reported">An intel report in the system also called a camp on this gate.</param>
 public sealed record GateCamp(
     string Key, int SystemId, long StargateId, int GateSystemId, DateTimeOffset EpisodeStart,
     IReadOnlyList<int> KillMailIds, IReadOnlyList<long> VictimIds,
     DateTimeOffset FirstKill, DateTimeOffset LastKill, DateTimeOffset FormedAt, DateTimeOffset ExpiresAt,
-    IReadOnlyList<long> AttackerIds, IReadOnlyList<int> AttackerShipTypeIds,
+    IReadOnlyList<IntelCampAttacker> Attackers, IReadOnlyList<int> AttackerShipTypeIds,
     bool Smartbomb, bool Interdictor, bool Hic, bool Bubble, bool Reported = false)
 {
     public bool IsActive(DateTimeOffset now) => now < ExpiresAt;
+
+    public IEnumerable<long> AttackerIds => Attackers.Select(a => a.CharacterId);
 }
 
 /// <summary>
@@ -169,14 +180,18 @@ public static class IntelCampDetector
             if (formed is null) continue;
 
             var attackers = kills.SelectMany(k => k.Attackers).Where(a => a.CharacterId > 0).ToList();
-            var hulls = attackers.GroupBy(a => a.CharacterId).Select(g => g.Last().ShipTypeId)
+            // Each pilot as on their newest kill here (kills are in time order).
+            var pilots = attackers.GroupBy(a => a.CharacterId).Select(g => g.Last())
+                .Select(a => new IntelCampAttacker(a.CharacterId, a.CorporationId, a.AllianceId, a.ShipTypeId))
+                .OrderBy(a => a.CharacterId).ToList();
+            var hulls = pilots.Select(a => a.ShipTypeId)
                 .Where(t => t is > 0).GroupBy(t => t!.Value)
                 .OrderByDescending(g => g.Count()).ThenBy(g => g.Key).Select(g => g.Key).ToList();
 
             camps.Add(new IntelCampCluster(
                 systemId, stargateId, gateSystemId, kills, victims,
                 kills[0].At, kills[^1].At, formed.Value,
-                [.. attackers.Select(a => a.CharacterId).Distinct().Order()], hulls,
+                pilots, hulls,
                 Smartbomb:   attackers.Any(a => groups.Is(a.WeaponGroupId, IntelSdeGroups.SmartBombName)),
                 Interdictor: attackers.Any(a => groups.Is(a.ShipGroupId, IntelSdeGroups.InterdictorName)),
                 Hic:         attackers.Any(a => groups.Is(a.ShipGroupId, IntelSdeGroups.HeavyInterdictorName)),
@@ -237,7 +252,7 @@ public sealed class IntelCampRegister
                     KeyOf(c.StargateId, episode.Start), c.SystemId, c.StargateId, c.GateSystemId, episode.Start,
                     [.. c.Kills.Select(k => k.KillMailId)], c.VictimIds,
                     c.FirstKill, c.LastKill, c.FormedAt, c.LastKill + lifetime,
-                    c.AttackerIds, c.AttackerShipTypeIds, c.Smartbomb, c.Interdictor, c.Hic, c.Bubble));
+                    c.Attackers, c.AttackerShipTypeIds, c.Smartbomb, c.Interdictor, c.Hic, c.Bubble));
             }
 
             foreach (var (gate, episodes) in _byGate.ToList())
