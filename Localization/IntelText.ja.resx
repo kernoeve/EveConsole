@@ -688,4 +688,235 @@
   <data name="TipFromSystem" xml:space="preserve">
     <value>キャラクターではなく星系からジャンプ数を数えます。その場合は特定のキャラクターの視点がないため、色はすべてのキャラクターから決まります。いずれかにとって友好なら友好です。</value>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>ウォッチリスト</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>パイロット、コーポレーション、アライアンス…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>表示期間</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 時間</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 時間</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 時間</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 日</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 日</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>検索中…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>各パイロットがインテルで最後に確認された場所：報告、貼り付けたローカル、またはキル</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>パイロットを読み込めませんでした: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>最新の {0} 件 · 検索で絞り込み</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>パイロット {0} 人</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>この期間に確認された人はいません。</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>最終確認星系</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>情報源</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>報告</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>ローカル貼り付け</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>キルの攻撃者</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>艦を喪失</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>視認なし</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>最終確認: {0}、{1} 前</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} 時間</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} 日</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>アクティブなキャンプ {0}</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>終了 {0}</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>ゲートでのキルと報告から · 終了したキャンプは最後のキルから 1 時間、薄く表示</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>過去 1 時間、この範囲にゲートキャンプはありません。</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>ゲートキャンプは見つかりません。キャンプはキルから判断され、zKillboard の全フィードがオフの間は、あなたかあなたのコーポレーションが関わるキルしか届きません。</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} ゲート</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>キル {0}</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} 人</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>報告</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>キルと報告</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>継続中</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>最終</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻撃者</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>キャンプのキルを戦闘レポートで開く</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>キルを戦闘レポートで開く</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>キルを開く</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>キルを開く</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>このコーポレーションを開く</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>このアライアンスを開く</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>常に警告</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>無視</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>パイロット、コーポレーション、アライアンス、船体、艦種グループ。このデータベースを使うすべての PC で共有されます。常に警告：太字で表示され、ウォッチリストを使うインテルアラームはより遠くからでも警告します。無視：薄く表示され、警告されません。パイロット自身の項目が最優先で、次にコーポレーション、アライアンス、船体、そのグループの順です。</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>艦種グループ</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>常に警告</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>無視</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>追加する名前…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>メモ（任意）</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>ウォッチリストはまだ空です。ここから追加するか、インテル内のパイロットを右クリックしてください。</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>ウォッチリストを変更できませんでした: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>ウォッチリストから外す</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>追加</value>
+  </data>
 </root>

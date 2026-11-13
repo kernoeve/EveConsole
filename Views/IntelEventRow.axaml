@@ -99,9 +99,9 @@
 
       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" ClipToBounds="True">
         <Button Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}">
-          <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+          <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="{Binding NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
         </Button>
-        <TextBlock Classes="state" Text="{Binding StateText}" FontSize="11" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+        <TextBlock Classes="state" Text="{Binding StateText}" FontSize="11" FontWeight="{Binding StateWeight}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
                    Classes.hostile="{Binding IsHostileState}" Classes.novisual="{Binding IsNoVisualState}"
                    Classes.camp="{Binding IsCampState}" Classes.kill="{Binding IsKillState}" Classes.clear="{Binding IsClear}" />
         <TextBlock Text="{Binding FollowUpText}" IsVisible="{Binding HasFollowUps}" FontSize="10" VerticalAlignment="Center"
@@ -121,20 +121,20 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="vm:IntelPictureVm">
-              <StackPanel Orientation="Horizontal" Spacing="4">
+              <StackPanel Orientation="Horizontal" Spacing="4" Opacity="{Binding TextOpacity}">
                 <Panel IsVisible="{Binding HasPictureSlot}" Width="16" Height="16" VerticalAlignment="Center">
                   <!-- A portrait round, a hull's icon square. -->
                   <Border IsVisible="{Binding IsPilot}" CornerRadius="8" ClipToBounds="True"
                           Background="{DynamicResource SurfacePanelAltBrush}">
                     <Image Source="{Binding Picture}" Width="16" Height="16" />
                   </Border>
-                  <Border IsVisible="{Binding IsShip}" CornerRadius="2" ClipToBounds="True"
+                  <Border IsVisible="{Binding IsSquare}" CornerRadius="2" ClipToBounds="True"
                           Background="{DynamicResource SurfacePanelAltBrush}">
                     <Image Source="{Binding Picture}" Width="16" Height="16" />
                   </Border>
                 </Panel>
                 <Button Classes="link" IsVisible="{Binding IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Tip}">
-                  <TextBlock Text="{Binding Text}" FontSize="10" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  <TextBlock Text="{Binding Text}" FontSize="10" FontWeight="{Binding TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
                 </Button>
                 <TextBlock Text="{Binding Text}" IsVisible="{Binding !IsLink}" FontSize="10" VerticalAlignment="Center"
                            Foreground="{DynamicResource TextSecondaryBrush}" />

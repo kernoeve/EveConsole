@@ -48,10 +48,17 @@ public sealed record IntelViewer
 }
 
 /// <summary>A pilot on a row, with the tier the row's viewing character gives them.</summary>
-public sealed record IntelPilotRow(PilotIntel Pilot, StandingTier Tier);
+public sealed record IntelPilotRow(PilotIntel Pilot, StandingTier Tier)
+{
+    /// <summary>What the watch list says of them: bold, dimmed, or neither.</summary>
+    public IntelWatchMark Watch { get; init; }
+}
 
 /// <summary>A feed line's pilot, with its tier.</summary>
-public sealed record IntelEventPilotRow(IntelEventPilot Pilot, StandingTier Tier);
+public sealed record IntelEventPilotRow(IntelEventPilot Pilot, StandingTier Tier)
+{
+    public IntelWatchMark Watch { get; init; }
+}
 
 /// <summary>One system as a viewer sees it.</summary>
 /// <param name="NearestOrigin">The character the jumps are counted from, for "3 jumps from …".</param>
@@ -67,13 +74,38 @@ public sealed record IntelSystemRow(
     StandingTier Tier, IntelSystemState State, double Freshness, double Opacity, bool IsFresh,
     IReadOnlyList<IntelPilotRow> Pilots, int Unnamed, bool UnnamedNoVisual,
     IReadOnlyList<IntelFact> Facts, IReadOnlyList<GateCamp> Camps,
-    string? Gate, int? HeadingSystemId, DateTimeOffset NewestAt, DateTimeOffset ExpiresAt, SystemIntel Intel);
+    string? Gate, int? HeadingSystemId, DateTimeOffset NewestAt, DateTimeOffset ExpiresAt, SystemIntel Intel)
+{
+    /// <summary>Always when anyone on it is on the watch list as Always; Ignored when everything on it
+    /// is ignored (shown dimmed, never fresh, never the nearest threat).</summary>
+    public IntelWatchMark Watch { get; init; }
+}
 
 /// <summary>One feed line as a viewer sees it, with its follow-ups nested under it.</summary>
 public sealed record IntelFeedRow(
     IntelEvent Event, int? Jumps, bool ViaWormhole, long? NearestOrigin, long? StandingsFrom,
     StandingTier Tier, IReadOnlyList<IntelEventPilotRow> Pilots,
-    double Freshness, double Opacity, bool Expired, bool IsFresh, IReadOnlyList<IntelFeedRow> FollowUps);
+    double Freshness, double Opacity, bool Expired, bool IsFresh, IReadOnlyList<IntelFeedRow> FollowUps)
+{
+    public IntelWatchMark Watch { get; init; }
+}
+
+/// <summary>
+/// A gate camp as a viewer sees it, for the Intel tool's Camps tab: one worked out from kills on a gate
+/// (<see cref="Camp"/>), or one only reported in a channel (<see cref="Fact"/>).
+/// </summary>
+/// <param name="Active">Within the camp lifetime of its last kill (or report). Ended camps stay, faded,
+/// until <see cref="IntelLens.CampKept"/> after it.</param>
+/// <param name="Reported">A report called a camp here too: the source is both, or reports alone.</param>
+/// <param name="LastAt">The last kill, or the last report of it.</param>
+public sealed record IntelCampRow(
+    int SystemId, GateCamp? Camp, IntelFact? Fact, string? ReportedGate,
+    int? Jumps, bool ViaWormhole, long? NearestOrigin, long? StandingsFrom, StandingTier Tier,
+    bool Active, bool Reported, DateTimeOffset LastAt, DateTimeOffset EndsAt, double Opacity)
+{
+    public string Key => Camp?.Key ?? "r" + SystemId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    public IntelWatchMark Watch { get; init; }
+}
 
 /// <param name="Nearest">The nearest live threat: the panel's single line.</param>
 /// <param name="MissingOrigins">Origins whose distances were not ready: the caller asks for them off
@@ -169,7 +201,10 @@ public static class IntelLens
             var pilots = sys.PilotIds
                 .Select(id => snapshot.Pilots.GetValueOrDefault(id))
                 .Where(p => p is not null && p.SystemId == sys.SystemId && p.ExpiresAt > now)
-                .Select(p => new IntelPilotRow(p!, Tier(origin, p!.CharacterId, p.CorporationId, p.AllianceId)))
+                .Select(p => new IntelPilotRow(p!, Tier(origin, p!.CharacterId, p.CorporationId, p.AllianceId))
+                {
+                    Watch = snapshot.WatchOf(p.CharacterId, p.CorporationId, p.AllianceId, p.ShipTypeId),
+                })
                 .Where(p => viewer.Tiers.Contains(p.Tier))
                 .OrderBy(p => p.Tier).ThenByDescending(p => p.Pilot.At)
                 .ToList();
@@ -218,12 +253,24 @@ public static class IntelLens
             var tier = tiers.Count > 0 ? tiers.Min() : StandingTier.Neutral;
             if (unnamed is not null && tier > StandingTier.Neutral) tier = StandingTier.Neutral;
 
+            // The watch list: each pilot, each camp by its attackers, the hulls a count was said in.
+            var marks = pilots.Select(p => p.Watch).ToList();
+            foreach (var camp in camps) marks.Add(CampWatch(snapshot, camp));
+            var unmarked = facts.Count > 0;
+            if (unnamed is not null)
+            {
+                var hulls = SaidHullMarks(snapshot, unnamed.Ships);
+                if (hulls.Count > 0 && hulls.All(m => m != IntelWatchMark.None)) marks.AddRange(hulls);
+                else { marks.AddRange(hulls.Where(m => m == IntelWatchMark.Always)); unmarked = true; }
+            }
+            var watch = state == IntelSystemState.Clear ? IntelWatchMark.None : IntelWatchSet.Combine(marks, unmarked);
+
             systems.Add(new IntelSystemRow(
                 sys.SystemId, jumps, via, origin, viewerId, tier, state, fresh, opacity,
-                state != IntelSystemState.Clear && Fresh(newest, jumps),
+                state != IntelSystemState.Clear && watch != IntelWatchMark.Ignored && Fresh(newest, jumps),
                 pilots, unnamed?.Count ?? 0, unnamed?.NoVisual ?? false, facts, camps,
                 facts.Count > 0 || pilots.Count > 0 || unnamed is not null ? sys.Gate : null,
-                sys.HeadingSystemId, newest, expires, sys));
+                sys.HeadingSystemId, newest, expires, sys) { Watch = watch });
         }
 
         systems = [.. systems
@@ -231,8 +278,9 @@ public static class IntelLens
             .ThenByDescending(r => r.NewestAt).ThenBy(r => r.SystemId)
             .Take(viewer.SystemCap)];
 
+        // The nearest live threat: never one the watch list ignores.
         var nearest = systems
-            .Where(r => r.State is IntelSystemState.Hostile or IntelSystemState.NoVisual)
+            .Where(r => r.State is IntelSystemState.Hostile or IntelSystemState.NoVisual && r.Watch != IntelWatchMark.Ignored)
             .OrderBy(r => r.Jumps is null ? 1 : 0).ThenBy(r => r.Jumps ?? 0).ThenByDescending(r => r.NewestAt)
             .FirstOrDefault();
 
@@ -252,7 +300,10 @@ public static class IntelLens
             var (jumps, via, origin, drop) = Distance(e.SystemId);
             if (drop) continue;
 
-            var pilots = e.Pilots.Select(p => new IntelEventPilotRow(p, Tier(origin, p.CharacterId, p.CorporationId, p.AllianceId))).ToList();
+            var pilots = e.Pilots.Select(p => new IntelEventPilotRow(p, Tier(origin, p.CharacterId, p.CorporationId, p.AllianceId))
+            {
+                Watch = snapshot.WatchOf(p.CharacterId, p.CorporationId, p.AllianceId, p.ShipTypeId),
+            }).ToList();
             var shown = pilots.Where(p => viewer.Tiers.Contains(p.Tier)).ToList();
             var visible = e.Kind == IntelEventKind.Clear
                 || shown.Count > 0
@@ -262,10 +313,24 @@ public static class IntelLens
 
             var tier = shown.Count > 0 ? shown.Min(p => p.Tier) : StandingTier.Neutral;
             if (e.Count > 0 && tier > StandingTier.Neutral) tier = StandingTier.Neutral;
+
+            // A kill is judged by its attackers, a report by who it named and the hulls it counted; a line with
+            // flags only, or a count of nobody in particular, the list says nothing about.
+            var marks = shown.Select(p => p.Watch).ToList();
+            var unmarked = e.Kind is not IntelEventKind.Kill and not IntelEventKind.CampFormed && e.Flags != 0;
+            if (e.Count > 0)
+            {
+                var hulls = SaidHullMarks(snapshot, e.Ships);
+                if (hulls.Count > 0 && hulls.All(m => m != IntelWatchMark.None)) marks.AddRange(hulls);
+                else { marks.AddRange(hulls.Where(m => m == IntelWatchMark.Always)); unmarked = true; }
+            }
+            var watch = e.Kind == IntelEventKind.Clear ? IntelWatchMark.None : IntelWatchSet.Combine(marks, unmarked);
+
             rows.Add(new IntelFeedRow(
                 e, jumps, via, origin, standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId), tier, shown,
                 Freshness(e.At, e.Lifetime, now), expired ? ExpiredOpacity : Opacity(e.At, e.Lifetime, now), expired,
-                !expired && e.Kind != IntelEventKind.Clear && Fresh(e.At, jumps), []));
+                !expired && e.Kind != IntelEventKind.Clear && watch != IntelWatchMark.Ignored && Fresh(e.At, jumps), [])
+            { Watch = watch });
         }
 
         // Follow-ups under the first report of their thread, when it is shown too: one level.
@@ -291,5 +356,117 @@ public static class IntelLens
             .ToList();
 
         return new IntelView(systems, feed, nearest, missing);
+    }
+
+    /// <summary>A camp's watch-list mark, by its attackers.</summary>
+    public static IntelWatchMark CampWatch(IntelSnapshot snapshot, GateCamp camp) =>
+        IntelWatchSet.Combine(camp.Attackers.Select(a => snapshot.WatchOf(a.CharacterId, a.CorporationId, a.AllianceId, a.ShipTypeId)),
+                              unmarked: camp.Attackers.Count == 0);
+
+    /// <summary>The marks of the hulls a count was said in ("8× Muninn, Interdictor"): one per hull found
+    /// by name. A name that is no hull gives none.</summary>
+    private static List<IntelWatchMark> SaidHullMarks(IntelSnapshot snapshot, string? ships)
+    {
+        var marks = new List<IntelWatchMark>();
+        if (snapshot.Watch.IsEmpty || string.IsNullOrWhiteSpace(ships)) return marks;
+        foreach (var (_, name) in EveConsole.Services.IntelDisplay.ParseShips(ships))
+            if (snapshot.HullId(name) is int id and > 0) marks.Add(snapshot.Watch.Hull(id, snapshot.GroupOf(id)));
+        return marks;
+    }
+
+    /// <summary>The camps with the distances the service has cached; never waits.</summary>
+    public static IReadOnlyList<IntelCampRow> ProjectCamps(IntelSnapshot snapshot, IntelViewer viewer, IntelDistanceService? distances,
+                                                           DateTimeOffset now, List<IntelOrigin>? missing = null) =>
+        ProjectCamps(snapshot, viewer, now, origin => distances?.TryCached(origin.SystemId, viewer.Mode,
+            snapshot.Standings.BridgeAlliance(origin.CharacterId)), missing);
+
+    /// <summary>How long an ended camp stays on the Camps tab, faded: an hour after its last kill.</summary>
+    public static readonly TimeSpan CampKept = TimeSpan.FromMinutes(60);
+
+    /// <summary>How strongly an ended camp is drawn.</summary>
+    public const double EndedCampOpacity = 0.45;
+
+    /// <summary>
+    /// The gate camps a viewer sees, for the Intel tool's Camps tab: every camp worked out from kills, active
+    /// (within the camp lifetime of its last kill) or ended (faded, until <see cref="CampKept"/> after its last
+    /// kill), and every camp only reported in a channel. Measured and coloured as the Board's rows are: a camp
+    /// is kept when any of its attackers is a tier shown, at the worst of those. Active first, then nearest,
+    /// then newest. <paramref name="missing"/> gets the origins whose distances were not ready.
+    /// </summary>
+    public static IReadOnlyList<IntelCampRow> ProjectCamps(IntelSnapshot snapshot, IntelViewer viewer, DateTimeOffset now,
+                                                           Func<IntelOrigin, IReadOnlyDictionary<int, IntelHop>?> hopsFrom,
+                                                           List<IntelOrigin>? missing = null)
+    {
+        var standings = snapshot.Standings;
+        var walks = new List<(IntelOrigin Origin, IReadOnlyDictionary<int, IntelHop> Hops)>();
+        var notReady = 0;
+        foreach (var o in viewer.Origins.Distinct())
+        {
+            if (hopsFrom(o) is { } hops) walks.Add((o, hops));
+            else { notReady++; missing?.Add(o); }
+        }
+
+        (int? Jumps, bool Via, long? Origin, bool Drop) Distance(int systemId)
+        {
+            int? best = null; var via = false; long? from = null;
+            foreach (var (o, hops) in walks)
+            {
+                if (!hops.TryGetValue(systemId, out var h)) continue;
+                if (best is null || h.Jumps < best || (h.Jumps == best && via && !h.ViaWormhole))
+                    (best, via, from) = (h.Jumps, h.ViaWormhole, o.CharacterId > 0 ? o.CharacterId : (long?)null);
+            }
+            var drop = viewer.MaxJumps is int max && viewer.Origins.Count > 0 && (best is int j ? j > max : notReady == 0);
+            return (best, via, from, drop);
+        }
+
+        var rows = new List<IntelCampRow>();
+        var withKills = new HashSet<int>();
+        foreach (var camp in snapshot.Camps)
+        {
+            if (now >= camp.LastKill + CampKept) continue;
+            withKills.Add(camp.SystemId);
+            var (jumps, via, origin, drop) = Distance(camp.SystemId);
+            if (drop) continue;
+            var shownTiers = camp.Attackers.Count == 0
+                ? [StandingTier.Neutral]
+                : camp.Attackers.Select(a => standings.TierFor(origin ?? viewer.StandingsCharacterId, a.CharacterId, a.CorporationId, a.AllianceId)).ToList();
+            shownTiers.RemoveAll(t => !viewer.Tiers.Contains(t));
+            if (shownTiers.Count == 0) continue;
+            if (viewer.Sources is { } sources && !sources.Contains(IntelSnapshot.SourceKills) && !camp.Reported) continue;
+
+            var active = camp.IsActive(now);
+            var sys = snapshot.Systems.GetValueOrDefault(camp.SystemId);
+            // A camp said in a channel with no gate named is taken to be this one.
+            var saidHere = sys?.Facts.Any(f => f.Flag == Monitoring.IntelRules.IntelFlags.Camp && f.ExpiresAt > now) == true
+                           && string.IsNullOrWhiteSpace(sys.Gate);
+            rows.Add(new IntelCampRow(
+                camp.SystemId, camp, null, null, jumps, via, origin, standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId),
+                shownTiers.Min(), active, camp.Reported || saidHere, camp.LastKill, camp.ExpiresAt,
+                active ? Opacity(camp.LastKill, camp.ExpiresAt - camp.LastKill, now) : EndedCampOpacity)
+            { Watch = CampWatch(snapshot, camp) });
+        }
+
+        // Camps only reported, where no kills show one.
+        if (viewer.Tiers.Contains(StandingTier.Neutral))
+            foreach (var sys in snapshot.Systems.Values)
+            {
+                if (withKills.Contains(sys.SystemId)) continue;
+                var fact = sys.Facts.Where(f => f.Flag == Monitoring.IntelRules.IntelFlags.Camp).OrderByDescending(f => f.At).FirstOrDefault();
+                if (fact is null || now >= fact.At + CampKept) continue;
+                if (sys.Clear is { } clear && clear.At > fact.At) continue;
+                if (viewer.Sources is { } sources && !snapshot.Feed.Any(e => e.ReportId == fact.ReportId && sources.Contains(e.SourceKey))) continue;
+                var (jumps, via, origin, drop) = Distance(sys.SystemId);
+                if (drop) continue;
+                var active = fact.ExpiresAt > now;
+                rows.Add(new IntelCampRow(
+                    sys.SystemId, null, fact, sys.Gate, jumps, via, origin, standings.EffectiveViewer(origin ?? viewer.StandingsCharacterId),
+                    StandingTier.Neutral, active, true, fact.At, fact.ExpiresAt,
+                    active ? Opacity(fact.At, fact.Lifetime, now) : EndedCampOpacity));
+            }
+
+        return [.. rows
+            .OrderBy(r => r.Active ? 0 : 1)
+            .ThenBy(r => r.Jumps is null ? 1 : 0).ThenBy(r => r.Jumps ?? 0)
+            .ThenByDescending(r => r.LastAt).ThenBy(r => r.Key, StringComparer.Ordinal)];
     }
 }

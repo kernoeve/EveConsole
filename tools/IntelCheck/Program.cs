@@ -101,6 +101,12 @@ try
     ReadSideChecks.SnapshotChecks(c);
     ReadSideChecks.LensChecks(c);
 
+    // ── The Pilots, Camps and Watch list tabs ─────────────────────────────────────────────────────────────────
+    ReadSideChecks.WatchSetChecks(c);
+    ReadSideChecks.WatchLensChecks(c);
+    ReadSideChecks.CampsTabChecks(c);
+    ReadSideChecks.LastSeenLineChecks(c);
+
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
     PanelChecks.Rows(c);
 
@@ -108,6 +114,8 @@ try
     await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
     await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
     await ReadSideChecks.RetentionAsync(c, "SQLite", rsOptions);
+    await ReadSideChecks.WatchTableAsync(c, "SQLite", rsOptions);
+    await ReadSideChecks.PilotSearchAsync(c, "SQLite", rsOptions);
 
     // ── Pasted Local and d-scan ──────────────────────────────────────────────────────────────────────────────
     PasteChecks.Classification(c);
@@ -237,7 +245,7 @@ namespace EveConsole.Tools.IntelCheck
             return [.. Regex.Matches(src, q3 + "(.*?)" + q3, RegexOptions.Singleline)
                 .Select(m => m.Groups[1].Value.Trim())
                 // Index names too ("IX_IntelReports_…"): a DROP names only the index.
-                .Where(s => s.Contains("IntelReports") || s.Contains("IntelLastSeen") || s.Contains("IntelReportCharacters"))
+                .Where(s => s.Contains("IntelReports") || s.Contains("IntelLastSeen") || s.Contains("IntelReportCharacters") || s.Contains("IntelWatchEntries"))
                 // Statements with braces are formatted or interpolated: not the startup list's.
                 .Where(s => !s.Contains('{'))];
         }
@@ -331,6 +339,15 @@ namespace EveConsole.Tools.IntelCheck
             var seenIdx = Indexes(conn, "IntelLastSeen");
             var absent = LastSeenIndexes.Where(n => !seenIdx.ContainsKey(n)).ToList();
             c.Check($"{label}: IntelLastSeen has its indexes", absent.Count == 0, string.Join(",", absent));
+
+            var watchCols = Columns(conn, "IntelWatchEntries");
+            missing = [.. Rows.ModelColumns<IntelWatchEntry>(options).Where(m => !watchCols.Contains(m))];
+            c.Check($"{label}: IntelWatchEntries exists with every column the model has", watchCols.Count > 0 && missing.Count == 0,
+                watchCols.Count == 0 ? "no table" : string.Join(",", missing));
+            var watchIdx = Indexes(conn, "IntelWatchEntries");
+            c.Check($"{label}: one watch entry per thing (unique on Kind, EntityId)",
+                watchIdx.TryGetValue("IX_IntelWatchEntries_Kind_Entity", out var we) && we.Unique && we.Columns == "Kind,EntityId",
+                string.Join("; ", watchIdx.Select(kv => $"{kv.Key}={kv.Value}")));
         }
 
         /// <summary>A database made by the build before this one, then this build's start, twice.</summary>
@@ -347,6 +364,7 @@ namespace EveConsole.Tools.IntelCheck
             // chat-message index unique over every row.
             Exec(conn, "DROP TABLE \"IntelReports\"");
             Exec(conn, "DROP TABLE \"IntelLastSeen\"");
+            Exec(conn, "DROP TABLE \"IntelWatchEntries\"");
             Exec(conn, """CREATE TABLE "IntelReports" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "ReportedAt" TEXT NOT NULL DEFAULT '', "ChannelName" TEXT NOT NULL DEFAULT '', "ReporterName" TEXT NOT NULL DEFAULT '', "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "PlayerCount" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "Obsolete" INTEGER NOT NULL DEFAULT 0, "ObsoleteSetOn" TEXT NULL, "ChatMessageId" INTEGER NOT NULL DEFAULT 0, "ReporterCharacterId" INTEGER NULL, "NoVisual" INTEGER NOT NULL DEFAULT 0, "Message" TEXT NOT NULL DEFAULT '', "Flags" INTEGER NOT NULL DEFAULT 0, "Gate" TEXT NULL, "Ships" TEXT NULL)""");
             Exec(conn, """CREATE UNIQUE INDEX "IX_IntelReports_ChatMessageId" ON "IntelReports" ("ChatMessageId")""");
 
@@ -672,6 +690,8 @@ namespace EveConsole.Tools.IntelCheck
                 await FollowUpChecks.DatabaseAsync(c, "PG threads", options);
                 await ReadSideChecks.ServiceAsync(c, "PG", options);
                 await ReadSideChecks.RetentionAsync(c, "PG", options);
+                await ReadSideChecks.WatchTableAsync(c, "PG", options);
+                await ReadSideChecks.PilotSearchAsync(c, "PG", options);
                 await PasteChecks.DatabaseAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
@@ -751,6 +771,15 @@ namespace EveConsole.Tools.IntelCheck
             var seenIdx = await IndexesAsync(cs, "IntelLastSeen");
             c.Check($"{label}: IntelLastSeen has its indexes", seenIdx.Keys.Count(k => k.StartsWith("IX_IntelLastSeen_", StringComparison.Ordinal)) == 6,
                 string.Join(",", seenIdx.Keys));
+            var watchCols = await ColumnsAsync(cs, "IntelWatchEntries");
+            missing = [.. Rows.ModelColumns<IntelWatchEntry>(options).Where(m => !watchCols.Contains(m))];
+            c.Check($"{label}: IntelWatchEntries has every column the model has", watchCols.Count > 0 && missing.Count == 0,
+                watchCols.Count == 0 ? "no table" : string.Join(",", missing));
+            var watchIdx = await IndexesAsync(cs, "IntelWatchEntries");
+            c.Check($"{label}: one watch entry per thing (unique on Kind, EntityId)",
+                watchIdx.TryGetValue("IX_IntelWatchEntries_Kind_Entity", out var wdef)
+                && wdef.Contains("UNIQUE", StringComparison.Ordinal) && wdef.Contains("\"Kind\", \"EntityId\"", StringComparison.Ordinal),
+                string.Join("; ", watchIdx.Values));
 
             // Pastes, and the next start.
             await ExecAsync(cs, "DELETE FROM \"IntelReports\"");
@@ -781,6 +810,7 @@ namespace EveConsole.Tools.IntelCheck
                 ALTER TABLE "IntelReports" DROP COLUMN "Kind", DROP COLUMN "Source", DROP COLUMN "ParentReportId",
                                            DROP COLUMN "FromSystemId", DROP COLUMN "HeadingSystemId";
                 DROP TABLE "IntelLastSeen";
+                DROP TABLE "IntelWatchEntries";
                 """);
             await using (var db = new AppDbContext(options)) PostgresSchema.Apply(db);
             await SchemaAsync(c, "PG upgrade", options, cs);

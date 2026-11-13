@@ -727,4 +727,250 @@
   <data name="TipFromSystem" xml:space="preserve">
     <value>Sprünge von einem System statt von einem Charakter zählen. Dann schaut kein einzelner Charakter, also kommen die Farben von all deinen Charakteren: freundlich, wenn es einer von ihnen ist.</value>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Camps</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Beobachtungsliste</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Pilot, Corporation oder Allianz…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Gesehen in den letzten</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 Stunde</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 Stunden</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 Stunden</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 Tage</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 Tage</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Suche…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Jeder Pilot dort, wo die Intel ihn zuletzt gesehen hat: Meldung, eingefügter Local oder Abschuss</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Die Piloten konnten nicht gelesen werden: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>Die neuesten {0} · zum Eingrenzen suchen</value>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} Pilot</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} Piloten</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>In dieser Zeit wurde niemand gesehen.</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Zuletzt in</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Gesehen</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>Wie</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Gemeldet</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Eingefügter Local</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Angreifer bei einem Abschuss</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Schiff verloren</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>keine Sicht</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Zuletzt gesehen in {0}, vor {1}</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} T</value>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} aktives Camp</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} aktive Camps</value>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} beendet</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} beendet</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>Aus Abschüssen an Toren und aus Meldungen · beendete Camps bleiben eine Stunde nach dem letzten Abschuss blass stehen</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>Keine Torcamps in dieser Entfernung in der letzten Stunde.</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>Keine Torcamps gesehen. Camps werden aus Abschüssen ermittelt, und ohne den vollen zKillboard-Feed kommen nur Abschüsse an, an denen du oder deine Corporation beteiligt seid.</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>Tor nach {0}</value>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} Abschuss</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} Abschüsse</value>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} Pilot</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} Piloten</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Gemeldet</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Abschüsse und Meldungen</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Beendet</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Camp</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Zuletzt</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Angreifer</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Die Abschüsse des Camps im Gefechtsbericht öffnen</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Den Abschuss im Gefechtsbericht öffnen</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Abschüsse öffnen</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Abschuss öffnen</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Diese Corporation öffnen</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Diese Allianz öffnen</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Immer alarmieren</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Ignorieren</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Piloten, Corporations, Allianzen, Rümpfe und Schiffsgruppen, gemeinsam für jeden PC an dieser Datenbank. Immer alarmieren: fett angezeigt, und Intel-Alarme mit Beobachtungsliste melden sie auch aus größerer Entfernung. Ignorieren: blass angezeigt und nie gemeldet. Zuerst zählt der Eintrag des Piloten, dann der seiner Corporation, seiner Allianz, seines Rumpfs und dessen Gruppe.</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Schiffsgruppe</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Immer alarmieren</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Ignorieren</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Name zum Hinzufügen…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Notiz (optional)</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Noch nichts auf der Beobachtungsliste. Hier hinzufügen oder überall in der Intel einen Piloten rechtsklicken.</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} auf {1}</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Die Beobachtungsliste konnte nicht geändert werden: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Von der Beobachtungsliste nehmen</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Art</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Notiz</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Hinzugefügt</value>
+  </data>
 </root>

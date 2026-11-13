@@ -688,4 +688,235 @@
   <data name="TipFromSystem" xml:space="preserve">
     <value>从某个星系而不是角色计算跳数。此时没有单一角色在看，因此颜色取自你的所有角色：只要其中任何一个视为友好即为友好。</value>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>关注列表</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>飞行员、军团或联盟…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>最近出现于</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 小时</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 小时</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 小时</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 天</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 天</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>正在搜索…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>每名飞行员最后一次出现的位置：报告、粘贴的本地频道或击杀</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>无法读取飞行员：{0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>最新 {0} 条 · 搜索以缩小范围</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} 名飞行员</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>这段时间内没有发现任何人。</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>最后出现于</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>粘贴的本地</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>击杀中的攻击者</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>损失舰船</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>无目视</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>最后出现于 {0}，{1} 前</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} 处活跃蹲守</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} 处已结束</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>来自星门击杀和报告 · 已结束的蹲守在最后一次击杀后淡化显示一小时</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>过去一小时内此范围内没有星门蹲守。</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>未发现星门蹲守。蹲守由击杀推断，关闭 zKillboard 完整推送时，只能收到你或你的军团参与的击杀。</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} 星门</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} 次击杀</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} 名飞行员</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>击杀和报告</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>已结束</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻击者</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>在战斗报告中打开蹲守的击杀</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>在战斗报告中打开该击杀</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>打开击杀</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>打开击杀</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>打开此军团</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>打开此联盟</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>始终警报</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>忽略</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>飞行员、军团、联盟、舰船和舰船类别，此数据库上的所有电脑共享。始终警报：以粗体显示，使用关注列表的情报警报会在更远距离发出警报。忽略：淡化显示，永不警报。优先采用飞行员本人的条目，其次是其军团、联盟、舰船及舰船类别的条目。</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>舰船类别</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>始终警报</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>忽略</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>要添加的名称…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>备注（可选）</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>关注列表暂无内容。可在此添加，或在情报中的任意位置右键点击飞行员。</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>无法更改关注列表：{0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>从关注列表移除</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>添加于</value>
+  </data>
 </root>

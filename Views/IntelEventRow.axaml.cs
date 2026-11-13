@@ -36,6 +36,13 @@ public partial class IntelEventRow : UserControl
         if (row.CanShowOnMap) items.Add(Item(IntelText.MenuShowOnMap, row.ShowOnMap));
         items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
         if (row.CanOpenInTool) items.Add(Item(IntelText.MenuOpenInTool, row.OpenInTool));
+        // On a pilot: "Always alert" and "Ignore" for them.
+        if (e.Source is Avalonia.StyledElement { DataContext: IntelPictureVm { IsPilot: true, Id: > 0 } pilot } && row.Actions.Watch is { } watch)
+        {
+            items.Add(new Separator());
+            items.Add(Item(IntelText.MenuOpenPilot, () => row.OpenPicture(pilot)));
+            items.AddRange(IntelWatchMenu.ForPilot(watch, row.WatchSet, pilot.Id, pilot.Text));
+        }
         new ContextMenu { ItemsSource = items }.Open(this);
     }
 

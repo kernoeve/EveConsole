@@ -139,6 +139,16 @@ public static class IntelWords
              : string.Format(culture, IntelText.AgeHours, seconds / 3600, seconds / 60 % 60);
     }
 
+    /// <summary>An age that may be days: as <see cref="Age"/> within the hour, then "5 h", then "3 d".</summary>
+    public static string LongAge(DateTimeOffset at, DateTimeOffset now)
+    {
+        var span = now - at;
+        var culture = CultureInfo.CurrentCulture;
+        return span < TimeSpan.FromHours(1) ? Age(at, now)
+             : span < TimeSpan.FromHours(48) ? string.Format(culture, IntelText.AgeHoursOnly, (int)span.TotalHours)
+             : string.Format(culture, IntelText.AgeDays, (int)span.TotalDays);
+    }
+
     /// <summary>The jumps as the badge shows them: a number, "…" while the walk is not ready, or
     /// nothing when there is nowhere to count from.</summary>
     public static string Jumps(int? jumps, bool pending) =>
@@ -197,6 +207,9 @@ public sealed class IntelRowActions
     /// <summary>After a link opened a page, as from a panel in front of the window it opened in.</summary>
     public Action? AfterNavigate { get; init; }
 
+    /// <summary>The watch list, for "Always alert" and "Ignore" on a pilot; null where it cannot be changed.</summary>
+    public IntelWatchList? Watch { get; init; }
+
     public static readonly IntelRowActions None = new();
 }
 
@@ -206,7 +219,7 @@ public sealed class IntelRowActions
 /// </summary>
 public sealed class IntelPictureVm : ReactiveObject
 {
-    public enum Kinds { Pilot, Ship, Words }
+    public enum Kinds { Pilot, Ship, Words, Corporation, Alliance }
 
     private IntelPictureVm(Kinds kind, long id, string text, string? tip)
     {
@@ -218,6 +231,27 @@ public sealed class IntelPictureVm : ReactiveObject
 
     public static IntelPictureVm Pilot(long characterId, string name) =>
         new(Kinds.Pilot, characterId, name, IntelText.TipOpenPilot);
+
+    /// <summary>A pilot with what the watch list says of them: bold for Always, dimmed for Ignore.</summary>
+    public static IntelPictureVm Pilot(long characterId, string name, IntelWatchMark watch)
+    {
+        var p = Pilot(characterId, name);
+        p.Watch = watch;
+        return p;
+    }
+
+    public static IntelPictureVm Corporation(long corporationId, string name) =>
+        new(Kinds.Corporation, corporationId, name, IntelText.TipOpenCorporation);
+
+    public static IntelPictureVm Alliance(long allianceId, string name) =>
+        new(Kinds.Alliance, allianceId, name, IntelText.TipOpenAlliance);
+
+    /// <summary>What the watch list says of a pilot shown: bold for Always, dimmed for Ignore.</summary>
+    public IntelWatchMark Watch { get; private set; }
+    public bool IsWatchAlways  => Watch == IntelWatchMark.Always;
+    public bool IsWatchIgnored => Watch == IntelWatchMark.Ignored;
+    public FontWeight TextWeight => IsWatchAlways ? FontWeight.Bold : FontWeight.Normal;
+    public double TextOpacity => IsWatchIgnored ? IntelEventRowVm.IgnoredOpacity : 1.0;
 
     public static IntelPictureVm Ship(int typeId, string hull, int count = 1) =>
         new(Kinds.Ship, typeId,
@@ -244,21 +278,26 @@ public sealed class IntelPictureVm : ReactiveObject
     public bool IsShip  => Kind == Kinds.Ship;
     public bool IsWords => Kind == Kinds.Words;
 
-    /// <summary>A pilot or a hull with a known type, which opens their page.</summary>
-    public bool IsLink => Kind == Kinds.Pilot && Id > 0 || Kind == Kinds.Ship && Id > 0;
+    /// <summary>A hull's icon or a corporation's or alliance's logo, drawn square; a portrait is round.</summary>
+    public bool IsSquare => Kind is Kinds.Ship or Kinds.Corporation or Kinds.Alliance;
+
+    /// <summary>A pilot, a corporation, an alliance, or a hull with a known type: each opens its page.</summary>
+    public bool IsLink => Kind != Kinds.Words && Id > 0;
 
     /// <summary>Room for a portrait or an icon: only when there is one to fetch. A hull named with no
     /// type to show (a class said in chat, never recognised as a hull) is its words alone, never an
     /// empty square.</summary>
-    public bool HasPictureSlot => (Kind == Kinds.Pilot || Kind == Kinds.Ship) && Id > 0;
+    public bool HasPictureSlot => Kind != Kinds.Words && Id > 0;
 
     private Bitmap? _picture;
     public Bitmap? Picture { get => _picture; private set => this.RaiseAndSetIfChanged(ref _picture, value); }
 
     public string? PictureUrl => Kind switch
     {
-        Kinds.Pilot when Id > 0 => $"https://images.evetech.net/characters/{Id}/portrait?size=32",
-        Kinds.Ship  when Id > 0 => $"https://images.evetech.net/types/{Id}/icon?size=32",
+        Kinds.Pilot       when Id > 0 => $"https://images.evetech.net/characters/{Id}/portrait?size=32",
+        Kinds.Ship        when Id > 0 => $"https://images.evetech.net/types/{Id}/icon?size=32",
+        Kinds.Corporation when Id > 0 => $"https://images.evetech.net/corporations/{Id}/logo?size=32",
+        Kinds.Alliance    when Id > 0 => $"https://images.evetech.net/alliances/{Id}/logo?size=32",
         _ => null,
     };
 
@@ -274,8 +313,13 @@ public sealed class IntelPictureVm : ReactiveObject
 
     public void Open()
     {
-        if (Kind == Kinds.Pilot) EntityNavigator.Instance.Entity(EntityKind.Pilot, Id);
-        else if (Kind == Kinds.Ship) EntityNavigator.Instance.Item((int)Id);
+        switch (Kind)
+        {
+            case Kinds.Pilot:       EntityNavigator.Instance.Entity(EntityKind.Pilot, Id); break;
+            case Kinds.Ship:        EntityNavigator.Instance.Item((int)Id); break;
+            case Kinds.Corporation: EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, Id); break;
+            case Kinds.Alliance:    EntityNavigator.Instance.Entity(EntityKind.Alliance, Id); break;
+        }
     }
 }
 
@@ -383,11 +427,12 @@ public sealed class IntelEventRowVm : ReactiveObject
 
                 // Each named pilot with their portrait, then their hull with its icon, as far as there is room.
                 var shown = 0;
-                foreach (var p in row.Pilots.OrderBy(p => p.Tier).Select(p => p.Pilot))
+                foreach (var named in row.Pilots.OrderBy(p => p.Tier))
                 {
+                    var p = named.Pilot;
                     var needs = p.Ship is { Length: > 0 } ? 2 : 1;
                     if (pictures.Count + needs > MaxPictures) break;
-                    pictures.Add(IntelPictureVm.Pilot(p.CharacterId, p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture)));
+                    pictures.Add(IntelPictureVm.Pilot(p.CharacterId, p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture), named.Watch));
                     if (p.Ship is { Length: > 0 } ship)
                         pictures.Add(p.ShipTypeId is > 0 and int type ? IntelPictureVm.Ship(type, ship) : IntelPictureVm.SaidHull(snapshot, ship));
                     shown++;
@@ -451,13 +496,28 @@ public sealed class IntelEventRowVm : ReactiveObject
         DetailText = detail ?? "";
         FollowUpText = row.FollowUps.Count > 0 ? string.Format(culture, IntelText.FollowUps, row.FollowUps.Count) : "";
         ToolTip = TipOf(row, culture);
-        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, e.Superseded,
-                                string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text)));
+        Watch = row.Watch;
+        WatchSet = snapshot.Watch;
+        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, e.Superseded, Watch,
+                                string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text + ":" + p.Watch)));
         Tick(now, snapshot.Settings.FreshSeconds);
     }
 
     public IntelRowActions Actions { get; }
     public string Key { get; }
+
+    /// <summary>How strongly a row or a pilot the watch list ignores is drawn, against its own fade.</summary>
+    public const double IgnoredOpacity = 0.45;
+
+    /// <summary>What the watch list says of the row: Always (bold) or Ignored (dimmed).</summary>
+    public IntelWatchMark Watch { get; }
+    public bool IsWatchAlways  => Watch == IntelWatchMark.Always;
+    public bool IsWatchIgnored => Watch == IntelWatchMark.Ignored;
+    public FontWeight StateWeight => IsWatchAlways ? FontWeight.Bold : FontWeight.Normal;
+    public FontWeight NameWeight  => IsWatchAlways ? FontWeight.ExtraBold : FontWeight.SemiBold;
+
+    /// <summary>The watch list as the row was built with, for the pilot menu's ticks.</summary>
+    public IntelWatchSet WatchSet { get; }
 
     public IntelEventKind Kind { get; }
 
@@ -551,9 +611,9 @@ public sealed class IntelEventRowVm : ReactiveObject
     public void Tick(DateTimeOffset now, int freshSeconds)
     {
         AgeText = IntelWords.Age(_newest, now);
-        Opacity = _superseded ? IntelLens.ExpiredOpacity : IntelLens.Opacity(_at, _lifetime, now);
+        Opacity = (_superseded ? IntelLens.ExpiredOpacity : IntelLens.Opacity(_at, _lifetime, now)) * (IsWatchIgnored ? IgnoredOpacity : 1.0);
         StatusText = _superseded ? IntelText.StatusSuperseded : now >= _at + _lifetime ? IntelText.StatusExpired : "";
-        IsFresh = _canBeFresh && _jumps is int j && j <= IntelViewer.FreshJumps
+        IsFresh = _canBeFresh && !IsWatchIgnored && _jumps is int j && j <= IntelViewer.FreshJumps
                   && now - _newest <= TimeSpan.FromSeconds(freshSeconds) && now < _at + _lifetime;
     }
 

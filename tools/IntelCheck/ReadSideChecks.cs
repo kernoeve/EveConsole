@@ -12,7 +12,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Tools.IntelCheck
 {
-    internal static class ReadSideChecks
+    internal static partial class ReadSideChecks
     {
         // Systems.
         private const int S1 = 30_000_001, S2 = 30_000_002, S3 = 30_000_003, S4 = 30_000_004, S5 = 30_000_005,

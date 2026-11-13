@@ -805,4 +805,280 @@
   <data name="TipFromSystem" xml:space="preserve">
     <value>Считать прыжки от системы, а не от персонажа. Тогда ни один персонаж не смотрит, поэтому цвета берутся от всех ваших персонажей: дружественный, если он дружественен хотя бы для одного из них.</value>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Кемпы</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Список наблюдения</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Пилот, корпорация или альянс…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Замечены за последние</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 час</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 часов</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 часа</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 дней</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 дней</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Поиск…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Где каждый пилот был замечен последним: доклад, вставленный Local или килл</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Не удалось прочитать пилотов: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>Последние {0} · уточните поиском</value>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} пилот</value>
+  </data>
+  <data name="PilotsCountFew" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="PilotsCountMany" xml:space="preserve">
+    <value>{0} пилотов</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>За это время никто не замечен.</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Последний раз в</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Замечен</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Доклад</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Вставленный Local</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Участник килла</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Потерял корабль</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>без визуала</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Последний раз в {0}, {1} назад</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} д</value>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} активный кемп</value>
+  </data>
+  <data name="CampsActiveFew" xml:space="preserve">
+    <value>{0} активных кемпа</value>
+  </data>
+  <data name="CampsActiveMany" xml:space="preserve">
+    <value>{0} активных кемпов</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} активного кемпа</value>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} закончился</value>
+  </data>
+  <data name="CampsEndedFew" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsEndedMany" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>По киллам на гейтах и докладам · закончившиеся кемпы видны бледными ещё час после последнего килла</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>За последний час на этом расстоянии кемпов на гейтах нет.</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>Кемпов на гейтах не видно. Кемпы определяются по киллам, а при выключенной полной ленте zKillboard приходят только киллы с участием вас или вашей корпорации.</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>Гейт в {0}</value>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} килл</value>
+  </data>
+  <data name="CampKillsFew" xml:space="preserve">
+    <value>{0} килла</value>
+  </data>
+  <data name="CampKillsMany" xml:space="preserve">
+    <value>{0} киллов</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} килла</value>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} пилот</value>
+  </data>
+  <data name="CampAttackersFew" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="CampAttackersMany" xml:space="preserve">
+    <value>{0} пилотов</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Киллы</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Доклад</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Киллы и доклады</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Активен</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Закончился</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Кемп</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Киллы</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Последний</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Атакующие</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Открыть киллы кемпа в боевом отчёте</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Открыть килл в боевом отчёте</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Открыть киллы</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Открыть килл</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Открыть эту корпорацию</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Открыть этот альянс</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Всегда оповещать</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Игнорировать</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Пилоты, корпорации, альянсы, корпуса и группы кораблей, общие для всех ПК на этой базе данных. Всегда оповещать: показаны жирным, и интел-оповещения со списком наблюдения сообщают о них с большего расстояния. Игнорировать: показаны бледными и никогда не вызывают оповещений. Сначала решает запись самого пилота, затем его корпорации, альянса, корпуса и группы корпуса.</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Группа кораблей</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Всегда оповещать</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Игнорировать</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Имя для добавления…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Заметка (необязательно)</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Список наблюдения пока пуст. Добавьте здесь или щёлкните правой кнопкой по пилоту в любом окне интела.</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} на {1}</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Не удалось изменить список наблюдения: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Убрать из списка наблюдения</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Заметка</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Добавлено</value>
+  </data>
 </root>

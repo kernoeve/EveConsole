@@ -1535,6 +1535,20 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
     private sealed record IntelRaw(string When, int SystemId, string System, string Channel,
                                    int ShipTypeId, string Ship, string Reporter);
 
+    /// <summary>
+    /// Where intel last placed a pilot, from any source (a report, a pasted Local, a kill), with the
+    /// system's name; null when intel never saw them.
+    /// </summary>
+    public async Task<(IntelLastSeen Row, string System)?> LastSeenAsync(long characterId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var row = await EveConsole.Services.Intel.IntelPilotSearch.OneAsync(db, characterId, ct);
+        if (row is null || row.SystemId <= 0) return null;
+        var english = await db.SdeSolarSystems.AsNoTracking().Where(s => s.SolarSystemId == row.SystemId)
+            .Select(s => s.Name).FirstOrDefaultAsync(ct);
+        return (row, SdeNames.SolarSystem(row.SystemId, english ?? row.SystemId.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+    }
+
     // Raw row shapes — property names match the SELECT aliases.
     private record PilotDetailRaw(string Name, int IsOurs, string LastSeen);
     private record GroupDetailRaw(string Name, int IsOurs);

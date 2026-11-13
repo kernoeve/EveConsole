@@ -172,6 +172,7 @@ public class AppDbContext : DbContext
     public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
     public DbSet<IntelLastSeen>        IntelLastSeens        => Set<IntelLastSeen>();
+    public DbSet<IntelWatchEntry>      IntelWatchEntries     => Set<IntelWatchEntry>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
@@ -1612,6 +1613,11 @@ public class AppDbContext : DbContext
             e.HasIndex(x => x.Name).HasDatabaseName("IX_IntelLastSeen_Name");
             e.HasIndex(x => x.CorporationId).HasDatabaseName("IX_IntelLastSeen_Corporation");
             e.HasIndex(x => x.AllianceId).HasDatabaseName("IX_IntelLastSeen_Alliance"); });
+
+        mb.Entity<IntelWatchEntry>(e => {
+            e.HasKey(x => x.Id);
+            // One entry per thing watched: choosing again changes its mode, never adds a second.
+            e.HasIndex(x => new { x.Kind, x.EntityId }).IsUnique().HasDatabaseName("IX_IntelWatchEntries_Kind_Entity"); });
 
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);

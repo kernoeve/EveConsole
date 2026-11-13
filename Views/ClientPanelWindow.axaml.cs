@@ -294,6 +294,7 @@ public partial class ClientPanelWindow : Window
                 main.ShowTool("intel");
                 main.IntelVm.ShowSystem(id);
             },
+            Watch = main.IntelWatch,
         };
         vm.OpenTool = () =>
         {

@@ -13,17 +13,17 @@
   <UserControl.Resources>
     <!-- A pilot with their portrait left of the name, a hull with its icon left of its name, or words. -->
     <DataTemplate x:Key="Picture" x:DataType="vm:IntelPictureVm">
-      <StackPanel Orientation="Horizontal" Spacing="4">
+      <StackPanel Orientation="Horizontal" Spacing="4" Opacity="{Binding TextOpacity}" ContextRequested="OnPictureContext">
         <Panel IsVisible="{Binding HasPictureSlot}" Width="16" Height="16" VerticalAlignment="Center">
           <Border IsVisible="{Binding IsPilot}" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
             <Image Source="{Binding Picture}" Width="16" Height="16" />
           </Border>
-          <Border IsVisible="{Binding IsShip}" CornerRadius="2" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+          <Border IsVisible="{Binding IsSquare}" CornerRadius="2" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
             <Image Source="{Binding Picture}" Width="16" Height="16" />
           </Border>
         </Panel>
         <Button Classes="link" IsVisible="{Binding IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Tip}">
-          <TextBlock Text="{Binding Text}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding Text}" FontSize="11" FontWeight="{Binding TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
         </Button>
         <TextBlock Text="{Binding Text}" IsVisible="{Binding !IsLink}" FontSize="11" VerticalAlignment="Center"
                    Foreground="{DynamicResource TextSecondaryBrush}" />
@@ -200,8 +200,14 @@
                    IsChecked="{Binding IsBoardTab, Mode=OneWay}" Click="OnTabBoard" />
       <RadioButton Classes="tab" GroupName="intelTabs" Content="{x:Static loc:IntelText.TabFeed}"
                    IsChecked="{Binding IsFeedTab, Mode=OneWay}" Click="OnTabFeed" />
+      <RadioButton Classes="tab" GroupName="intelTabs" Content="{x:Static loc:IntelText.TabPilots}"
+                   IsChecked="{Binding IsPilotsTab, Mode=OneWay}" Click="OnTabPilots" />
+      <RadioButton Classes="tab" GroupName="intelTabs" Content="{x:Static loc:IntelText.TabCamps}"
+                   IsChecked="{Binding IsCampsTab, Mode=OneWay}" Click="OnTabCamps" />
       <RadioButton Classes="tab" GroupName="intelTabs" Content="{x:Static loc:IntelText.TabPaste}"
                    IsChecked="{Binding IsPasteTab, Mode=OneWay}" Click="OnTabPaste" />
+      <RadioButton Classes="tab" GroupName="intelTabs" Content="{x:Static loc:IntelText.TabWatch}"
+                   IsChecked="{Binding IsWatchTab, Mode=OneWay}" Click="OnTabWatch" />
     </StackPanel>
 
     <!-- ══ The kill-feed warning: on every tab, until dismissed ══ -->
@@ -241,14 +247,14 @@
             </AutoCompleteBox.ItemTemplate>
           </AutoCompleteBox>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="6">
+        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsAreaFilters}">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.Within}" />
           <ComboBox ItemsSource="{Binding JumpsChoices}" SelectedItem="{Binding SelectedJumps}" FontSize="11" />
         </StackPanel>
         <CheckBox IsChecked="{Binding UseBridges}" FontSize="11" ToolTip.Tip="{x:Static loc:IntelText.TipBridges}">
           <TextBlock Text="{x:Static loc:IntelText.MyJumpBridges}" FontSize="11" />
         </CheckBox>
-        <StackPanel Orientation="Horizontal" Spacing="6">
+        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsAreaFilters}">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.Standings}" />
           <ToggleButton Classes="chip" IsChecked="{Binding ShowRed}">
             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -281,7 +287,7 @@
             </StackPanel>
           </ToggleButton>
         </StackPanel>
-        <StackPanel Orientation="Horizontal" Spacing="6">
+        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsAreaFilters}">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.Sources}" />
           <DropDownButton FontSize="11" Padding="8 3" MinWidth="170">
             <TextBlock Text="{Binding SourcesText}" FontSize="11" />
@@ -302,7 +308,7 @@
             </DropDownButton.Flyout>
           </DropDownButton>
         </StackPanel>
-        <TextBox Text="{Binding SearchText}" Watermark="{x:Static loc:IntelText.SearchHint}" FontSize="11" Width="210" />
+        <TextBox Text="{Binding SearchText}" Watermark="{Binding SearchHint}" FontSize="11" Width="210" IsVisible="{Binding ShowsSearch}" />
       </WrapPanel>
     </Border>
 
@@ -332,6 +338,20 @@
             <TextBlock Text="{x:Static loc:IntelText.UnlinkedChatter}" FontSize="11" />
           </CheckBox>
           <TextBlock Classes="label" Text="{Binding FeedCountText}" />
+          <TextBlock Classes="label" Text="{Binding WorkerText}" />
+        </WrapPanel>
+        <WrapPanel IsVisible="{Binding IsPilotsTab}" ItemSpacing="18" LineSpacing="4">
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Classes="label" Text="{x:Static loc:IntelText.PilotsSeenIn}" />
+            <ComboBox ItemsSource="{Binding PilotWindowChoices}" SelectedItem="{Binding SelectedPilotWindow}" FontSize="11" />
+          </StackPanel>
+          <TextBlock Classes="label" Text="{Binding PilotsCountText}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IntelText.PilotsSearching}" IsVisible="{Binding PilotsBusy}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IntelText.PilotsNote}" />
+        </WrapPanel>
+        <WrapPanel IsVisible="{Binding IsCampsTab}" ItemSpacing="18" LineSpacing="4">
+          <TextBlock Classes="label" Text="{Binding CampsCountText}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Classes="label" Text="{x:Static loc:IntelText.CampsNote}" />
           <TextBlock Classes="label" Text="{Binding WorkerText}" />
         </WrapPanel>
         <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" FontSize="11" TextWrapping="Wrap"
@@ -374,7 +394,7 @@
                       </Border>
                       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" ClipToBounds="True">
                         <Button Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}">
-                          <TextBlock Text="{Binding SystemName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+                          <TextBlock Text="{Binding SystemName}" FontSize="12" FontWeight="{Binding NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
                         </Button>
                         <TextBlock Classes="cell" Text="{Binding RegionText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}" />
                       </StackPanel>
@@ -382,7 +402,7 @@
                               Classes.novisual="{Binding IsNoVisualState}" Classes.clear="{Binding IsClear}">
                         <TextBlock Text="{Binding StateText}" />
                       </Border>
-                      <TextBlock Grid.Column="4" Classes="cell" Text="{Binding HostilesText}" FontWeight="SemiBold"
+                      <TextBlock Grid.Column="4" Classes="cell" Text="{Binding HostilesText}" FontWeight="{Binding CountWeight}"
                                  Foreground="{DynamicResource TextPrimaryBrush}" />
                       <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="8" ClipToBounds="True" VerticalAlignment="Center">
                         <ItemsControl ItemsSource="{Binding Hulls}" ItemTemplate="{StaticResource Picture}" VerticalAlignment="Center">
@@ -452,14 +472,14 @@
                   <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="6" ClipToBounds="True"
                               Margin="{Binding IsFollowUp, Converter={x:Static views:IntelToolView.IndentOf}}">
                     <Button Classes="link" Command="{Binding Row.OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}">
-                      <TextBlock Text="{Binding Row.SystemName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}" />
+                      <TextBlock Text="{Binding Row.SystemName}" FontSize="12" FontWeight="{Binding Row.NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
                     </Button>
                     <TextBlock Classes="kind" Text="{Binding Row.KindText}" Classes.kill="{Binding Row.IsKillState}"
                                Classes.camp="{Binding Row.IsCampState}" Classes.clear="{Binding Row.IsClear}" />
                   </StackPanel>
                   <WrapPanel Grid.Column="4" Orientation="Horizontal" ItemSpacing="8" VerticalAlignment="Center"
                              Margin="{Binding IsFollowUp, Converter={x:Static views:IntelToolView.IndentOf}}">
-                    <TextBlock Text="{Binding Row.StateText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding Row.StateText}" FontSize="11" FontWeight="{Binding Row.StateWeight}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
                     <ItemsControl ItemsSource="{Binding Row.Pictures}" ItemTemplate="{StaticResource Picture}" VerticalAlignment="Center">
                       <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
@@ -505,6 +525,185 @@
           </ItemsControl.DataTemplates>
         </ItemsControl>
         <TextBlock Text="{Binding FeedEmptyText}" FontSize="11" Margin="0 14" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+      </StackPanel>
+    </ScrollViewer>
+
+    <!-- ══ Pilots: where each pilot was last seen ══ -->
+    <Grid Grid.Row="5" IsVisible="{Binding IsPilotsTab}" RowDefinitions="Auto,*">
+      <Grid ColumnDefinitions="3,40,1.6*,1.1*,124,1.1*,1.2*,1.3*,1.3*" ColumnSpacing="10" Margin="16 6 16 6">
+        <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColJumps}" />
+        <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColPilot}" />
+        <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColLastSeenIn}" />
+        <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColSeen}" />
+        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColHull}" />
+        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColHow}" />
+        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColCorporation}" />
+        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColAlliance}" />
+      </Grid>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16 0 16 8">
+          <ItemsControl ItemsSource="{Binding PilotRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:IntelPilotListRowVm">
+                <Border Classes="feedLine" Padding="0 4 0 4" ContextRequested="OnPilotRowContext" DoubleTapped="OnPilotRowDoubleTapped">
+                  <Grid ColumnDefinitions="3,40,1.6*,1.1*,124,1.1*,1.2*,1.3*,1.3*" ColumnSpacing="10" Opacity="{Binding Opacity}" MinHeight="26">
+                    <Border Classes="stripe" Background="{Binding TierBrush}" ToolTip.Tip="{Binding StandingsTip}" />
+                    <Border Grid.Column="1" Classes="badge" IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
+                            Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
+                            Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
+                      <TextBlock Text="{Binding JumpsText}" />
+                    </Border>
+                    <ContentControl Grid.Column="2" Content="{Binding Pilot}" ContentTemplate="{StaticResource Picture}"
+                                    VerticalAlignment="Center" ClipToBounds="True" />
+                    <Button Grid.Column="3" Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}"
+                            HorizontalAlignment="Left">
+                      <TextBlock Text="{Binding SystemName}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <StackPanel Grid.Column="4" VerticalAlignment="Center">
+                      <TextBlock Text="{Binding AgeText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
+                      <TextBlock Text="{Binding TimeText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                 ToolTip.Tip="{x:Static loc:IntelText.TipEveTime}" />
+                    </StackPanel>
+                    <ContentControl Grid.Column="5" Content="{Binding Hull}" ContentTemplate="{StaticResource Picture}" IsVisible="{Binding HasHull}"
+                                    VerticalAlignment="Center" ClipToBounds="True" />
+                    <Button Grid.Column="6" Classes="link" Command="{Binding OpenSourceCommand}" ToolTip.Tip="{Binding SourceTip}" HorizontalAlignment="Left">
+                      <TextBlock Text="{Binding SourceText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+                    </Button>
+                    <ContentControl Grid.Column="7" Content="{Binding Corporation}" ContentTemplate="{StaticResource Picture}"
+                                    IsVisible="{Binding HasCorporation}" VerticalAlignment="Center" ClipToBounds="True" />
+                    <ContentControl Grid.Column="8" Content="{Binding Alliance}" ContentTemplate="{StaticResource Picture}"
+                                    IsVisible="{Binding HasAlliance}" VerticalAlignment="Center" ClipToBounds="True" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding PilotsEmptyText}" FontSize="11" Margin="0 14" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ══ Camps: gate camps from kills and reports, active and lately ended ══ -->
+    <Grid Grid.Row="5" IsVisible="{Binding IsCampsTab}" RowDefinitions="Auto,*">
+      <Grid ColumnDefinitions="3,40,1.5*,76,72,60,1.7*,1.1*,1*" ColumnSpacing="10" Margin="16 6 16 6">
+        <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColJumps}" />
+        <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColCamp}" />
+        <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColStatus}" />
+        <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColKills}" />
+        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColLastKill}" />
+        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColAttackers}" />
+        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColFlags}" />
+        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColSources}" />
+      </Grid>
+      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="16 0 16 8">
+          <ItemsControl ItemsSource="{Binding CampRows}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:IntelCampRowVm">
+                <Border Classes="feedLine" Padding="0 5 0 5" ContextRequested="OnCampRowContext" DoubleTapped="OnCampRowDoubleTapped">
+                  <Grid ColumnDefinitions="3,40,1.5*,76,72,60,1.7*,1.1*,1*" ColumnSpacing="10" Opacity="{Binding Opacity}" MinHeight="26">
+                    <Border Classes="stripe" Background="{Binding TierBrush}" ToolTip.Tip="{Binding StandingsTip}" />
+                    <Border Grid.Column="1" Classes="badge" IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
+                            Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
+                            Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
+                      <TextBlock Text="{Binding JumpsText}" />
+                    </Border>
+                    <StackPanel Grid.Column="2" VerticalAlignment="Center" ClipToBounds="True">
+                      <Button Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}" HorizontalAlignment="Left">
+                        <TextBlock Text="{Binding SystemName}" FontSize="12" FontWeight="{Binding NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
+                      </Button>
+                      <TextBlock Text="{Binding GateText}" IsVisible="{Binding HasGate}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                                 TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+                    <Border Grid.Column="3" Classes="state" Classes.camp="{Binding IsActive}">
+                      <TextBlock Text="{Binding StateText}" />
+                    </Border>
+                    <Button Grid.Column="4" Classes="link" Command="{Binding OpenKillsCommand}" IsEnabled="{Binding HasKills}"
+                            ToolTip.Tip="{x:Static loc:IntelText.TipOpenKills}" HorizontalAlignment="Left">
+                      <TextBlock Text="{Binding KillsText}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    </Button>
+                    <TextBlock Grid.Column="5" Classes="cell" Text="{Binding AgeText}" Foreground="{DynamicResource TextMutedBrush}" />
+                    <StackPanel Grid.Column="6" Orientation="Horizontal" Spacing="8" ClipToBounds="True" VerticalAlignment="Center">
+                      <TextBlock Classes="cell" Text="{Binding AttackersText}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <ItemsControl ItemsSource="{Binding Hulls}" ItemTemplate="{StaticResource Picture}" VerticalAlignment="Center">
+                        <ItemsControl.ItemsPanel>
+                          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                      </ItemsControl>
+                      <TextBlock Classes="cell" Text="{Binding HullsMore}" IsVisible="{Binding HasHullsMore}" Foreground="{DynamicResource TextMutedBrush}" />
+                    </StackPanel>
+                    <TextBlock Grid.Column="7" Classes="cell" Text="{Binding FlagsText}" Foreground="{DynamicResource WarnBrush}" />
+                    <TextBlock Grid.Column="8" Classes="cell" Text="{Binding SourceText}" Foreground="{DynamicResource TextMutedBrush}" />
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding CampsEmptyText}" FontSize="11" Margin="0 14 0 4" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+          <Button Classes="link" IsVisible="{Binding CampsNeedFeed}" Command="{Binding OpenKillMailsCommand}" HorizontalAlignment="Left">
+            <TextBlock Text="{x:Static loc:IntelText.FeedWarningOpen}" FontSize="11" Foreground="{DynamicResource AccentBrush}" />
+          </Button>
+        </StackPanel>
+      </ScrollViewer>
+    </Grid>
+
+    <!-- ══ Watch list: always alert, or ignore ══ -->
+    <ScrollViewer Grid.Row="5" IsVisible="{Binding IsWatchTab}" HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="16 14 16 16" Spacing="12" DataContext="{Binding WatchList}" x:DataType="vm:IntelWatchTabVm">
+        <TextBlock Text="{x:Static loc:IntelText.WatchIntro}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextSecondaryBrush}" />
+        <Border Classes="section" IsVisible="{Binding CanEdit}">
+          <WrapPanel ItemSpacing="12" LineSpacing="8">
+            <ComboBox ItemsSource="{Binding KindChoices}" SelectedItem="{Binding SelectedKind}" FontSize="11" MinWidth="130" />
+            <AutoCompleteBox Text="{Binding SearchText}" ItemsSource="{Binding Candidates}" SelectedItem="{Binding SelectedCandidate}"
+                             FilterMode="None" MinimumPrefixLength="2" FontSize="11" Width="260"
+                             Watermark="{x:Static loc:IntelText.WatchSearchHint}">
+              <AutoCompleteBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:IntelWatchCandidate">
+                  <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="{Binding Label}" FontSize="11.5" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding Detail}" FontSize="10" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </AutoCompleteBox.ItemTemplate>
+            </AutoCompleteBox>
+            <ComboBox ItemsSource="{Binding ModeChoices}" SelectedItem="{Binding SelectedMode}" FontSize="11" MinWidth="130" />
+            <TextBox Text="{Binding NoteText}" Watermark="{x:Static loc:IntelText.WatchNoteHint}" FontSize="11" Width="220" />
+            <Button Classes="action" Command="{Binding AddCommand}" Content="{x:Static loc:IntelText.WatchAdd}" />
+          </WrapPanel>
+        </Border>
+        <TextBlock Text="{Binding StatusText}" IsVisible="{Binding HasStatus}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource BadBrush}" />
+        <StackPanel>
+          <Grid ColumnDefinitions="110,1.6*,150,1.4*,1.2*,28" ColumnSpacing="10" Margin="0 0 0 6">
+            <TextBlock Classes="head" Text="{x:Static loc:IntelText.ColKind}" />
+            <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColName}" />
+            <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColMode}" />
+            <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColNote}" />
+            <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColAdded}" />
+          </Grid>
+          <ItemsControl ItemsSource="{Binding Entries}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:IntelWatchEntryVm">
+                <Border Classes="feedLine" Padding="0 4 0 4">
+                  <Grid ColumnDefinitions="110,1.6*,150,1.4*,1.2*,28" ColumnSpacing="10">
+                    <TextBlock Classes="cell" Text="{Binding KindText}" />
+                    <ContentControl Grid.Column="1" Content="{Binding Picture}" ContentTemplate="{StaticResource Picture}"
+                                    VerticalAlignment="Center" ClipToBounds="True" />
+                    <ComboBox Grid.Column="2" ItemsSource="{Binding ModeChoices}" SelectedItem="{Binding SelectedMode}" FontSize="11"
+                              HorizontalAlignment="Stretch" />
+                    <TextBlock Grid.Column="3" Classes="cell" Text="{Binding Note}" ToolTip.Tip="{Binding Note}" />
+                    <TextBlock Grid.Column="4" Classes="cell" Text="{Binding AddedText}" Foreground="{DynamicResource TextMutedBrush}" />
+                    <Button Grid.Column="5" Classes="link" Command="{Binding RemoveCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipRemoveWatch}"
+                            Padding="6 0">
+                      <Path Data="M0,0 L9,9 M9,0 L0,9" Stroke="{DynamicResource TextSecondaryBrush}" StrokeThickness="1.4" Width="9" Height="9" />
+                    </Button>
+                  </Grid>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <TextBlock Text="{Binding EmptyText}" FontSize="11" Margin="0 14" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+        </StackPanel>
       </StackPanel>
     </ScrollViewer>
 

@@ -1924,6 +1924,63 @@ public class IntelLastSeen
     public string  WrittenAt   { get; set; } = "";
 }
 
+/// <summary>
+/// One entry of the intel watch list, shared by every PC on the database: a pilot, a corporation,
+/// an alliance, a hull or a ship group that is always alerted for, or never.
+///
+/// <para>Views show a pilot it matches in bold (Always) or dimmed (Ignore). The intel alarms read it
+/// too: an Ignore entry never wakes anyone, an Always entry always does, from farther away.</para>
+///
+/// <para>A pilot is matched by id; a corporation and an alliance through the pilot's affiliation; a
+/// hull by the type flown, or said in a report; a group by the hull's group. When several entries
+/// match one pilot, the most particular decides: the pilot's own, then the corporation's, the
+/// alliance's, the hull's, the group's.</para>
+/// </summary>
+public class IntelWatchEntry
+{
+    public int     Id       { get; set; }
+
+    /// <summary>What <see cref="EntityId"/> is: see <see cref="IntelWatchKind"/>.</summary>
+    public string  Kind     { get; set; } = IntelWatchKind.Pilot;
+
+    /// <summary>A character, corporation or alliance id; a hull's type id; a ship group's id.</summary>
+    public long    EntityId { get; set; }
+
+    /// <summary>The name as it was chosen (a hull's or group's in English), for showing the list
+    /// without a lookup.</summary>
+    public string  Name     { get; set; } = "";
+
+    /// <summary>0 always alert, 1 ignore: see <see cref="IntelWatchMode"/>.</summary>
+    public int     Mode     { get; set; }
+
+    public string? Note     { get; set; }
+
+    /// <summary>The PC it was added on.</summary>
+    public string  AddedBy  { get; set; } = "";
+
+    /// <summary>ISO text, "yyyy-MM-ddTHH:mm:ssZ", like every intel time column.</summary>
+    public string  AddedAt  { get; set; } = "";
+}
+
+/// <summary>Values of <see cref="IntelWatchEntry.Kind"/>.</summary>
+public static class IntelWatchKind
+{
+    public const string Pilot       = "pilot";
+    public const string Corporation = "corp";
+    public const string Alliance    = "alliance";
+    public const string Hull        = "hull";
+    public const string Group       = "group";
+
+    public static readonly IReadOnlyList<string> All = [Pilot, Corporation, Alliance, Hull, Group];
+}
+
+/// <summary>Values of <see cref="IntelWatchEntry.Mode"/>.</summary>
+public static class IntelWatchMode
+{
+    public const int Always = 0;
+    public const int Ignore = 1;
+}
+
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in
 /// several, and because superseding works pilot by pilot.</summary>
 /// <summary>

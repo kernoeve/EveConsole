@@ -968,4 +968,332 @@
     <value>Count jumps from a system instead of a character. No single character is looking then, so the colours come from all your characters: friendly if any of them is.</value>
     <comment>Tooltip on the Intel tool&apos;s box for counting jumps from a system.</comment>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Intel tool tab: where each pilot was last seen.</comment>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Camps</value>
+    <comment>Intel tool tab: gate camps.</comment>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Watch list</value>
+    <comment>Intel tool tab: the shared list of pilots, corporations, alliances and ships always alerted for or ignored.</comment>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Pilot, corporation or alliance…</value>
+    <comment>Intel tool Pilots tab: the search box&apos;s hint.</comment>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Seen in the last</value>
+    <comment>Intel tool Pilots tab: label before the time window (1 hour … 60 days).</comment>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 hour</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 hours</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 hours</value>
+    <comment>Intel tool Pilots tab: time window choice (the default).</comment>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 days</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 days</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Searching…</value>
+    <comment>Intel tool Pilots tab: shown while the list is being read.</comment>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Each pilot where intel last placed them: a report, a pasted Local or a kill</value>
+    <comment>Intel tool Pilots tab: what the list is.</comment>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Could not read the pilots: {0}</value>
+    <comment>Intel tool Pilots tab: the list could not be read. {0} is the error.</comment>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>The newest {0} · search to narrow</value>
+    <comment>Intel tool Pilots tab: the list was cut at its limit. {0} is the limit.</comment>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} pilot</value>
+    <comment>Intel tool Pilots tab, one pilot listed. {0} is the number.</comment>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} pilots</value>
+    <comment>Intel tool Pilots tab: pilots listed. {0} is a number.</comment>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>Nobody was seen in this time.</value>
+    <comment>Intel tool Pilots tab, when nobody was seen in the window.</comment>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Last seen in</value>
+    <comment>Intel tool Pilots tab column: the system the pilot was last seen in.</comment>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Seen</value>
+    <comment>Intel tool Pilots tab column: how long ago, and the EVE time.</comment>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Intel tool Pilots tab column: the ship flown.</comment>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>How</value>
+    <comment>Intel tool Pilots tab column: how the pilot was seen (a report, a pasted Local, a kill).</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Reported</value>
+    <comment>Intel tool Pilots tab and pilot page: seen in an intel channel report.</comment>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Local paste</value>
+    <comment>Intel tool Pilots tab and pilot page: seen on a pasted Local list.</comment>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Attacker on a kill</value>
+    <comment>Intel tool Pilots tab and pilot page: seen as an attacker on a killmail.</comment>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Lost a ship</value>
+    <comment>Intel tool Pilots tab and pilot page: seen losing a ship on a killmail.</comment>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>no visual</value>
+    <comment>Intel tool Pilots tab: the sighting was without a visual (only in Local).</comment>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Last seen in {0}, {1} ago</value>
+    <comment>Pilot page, Intel tab: where intel last placed the pilot. {0} is the system, {1} how long ago (&quot;3 h&quot;).</comment>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} h</value>
+    <comment>An age in whole hours. {0} is the number.</comment>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} d</value>
+    <comment>An age in whole days. {0} is the number.</comment>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} active camp</value>
+    <comment>Intel tool Camps tab status, one active camp. {0} is the number.</comment>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} active camps</value>
+    <comment>Intel tool Camps tab status. {0} is a number of active camps.</comment>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} ended</value>
+    <comment>Intel tool Camps tab status, one camp that ended lately. {0} is the number.</comment>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} ended</value>
+    <comment>Intel tool Camps tab status. {0} is a number of camps that ended lately.</comment>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>From kills on gates and from reports · ended camps stay, faded, for an hour after the last kill</value>
+    <comment>Intel tool Camps tab: what is listed.</comment>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>No gate camps within this distance in the last hour.</value>
+    <comment>Intel tool Camps tab, when there are none.</comment>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>No gate camps seen. Camps are worked out from kills, and with the full zKillboard feed off only kills involving you or your corporation arrive.</value>
+    <comment>Intel tool Camps tab, empty while the full kill feed is off.</comment>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} gate</value>
+    <comment>Intel tool Camps tab: the gate a camp is on. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} kill</value>
+    <comment>Intel tool Camps tab, one kill in the camp. {0} is the number.</comment>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} kills</value>
+    <comment>Intel tool Camps tab: kills in the camp. {0} is a number.</comment>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} pilot</value>
+    <comment>Intel tool Camps tab, one pilot on the camp. {0} is the number.</comment>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} pilots</value>
+    <comment>Intel tool Camps tab: pilots on the camp. {0} is a number.</comment>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Intel tool Camps tab: the camp is known from kills.</comment>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Reported</value>
+    <comment>Intel tool Camps tab: the camp is only reported in a channel.</comment>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Kills and reports</value>
+    <comment>Intel tool Camps tab: the camp is known from kills and reported too.</comment>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Intel tool Camps tab: the camp is going on.</comment>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Ended</value>
+    <comment>Intel tool Camps tab: the camp has ended (no kill for the camp lifetime).</comment>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Camp</value>
+    <comment>Intel tool Camps tab column: the system and the gate.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Intel tool Camps tab column: active or ended.</comment>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Intel tool Camps tab column.</comment>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Last</value>
+    <comment>Intel tool Camps tab column: how long ago the last kill was.</comment>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Attackers</value>
+    <comment>Intel tool Camps tab column: who is on the camp, and in what.</comment>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Open the camp&apos;s kills in Battle Report</value>
+    <comment>Intel tool Camps tab tooltip.</comment>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Open the kill in Battle Report</value>
+    <comment>Intel tool Pilots tab tooltip on how the pilot was seen, when it was a kill.</comment>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Open kills</value>
+    <comment>Intel tool Camps tab, right-click menu.</comment>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Open the kill</value>
+    <comment>Intel tool Pilots tab, right-click menu, when the pilot was seen on a kill.</comment>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Open this corporation</value>
+    <comment>Tooltip on a corporation&apos;s name in an intel view.</comment>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Open this alliance</value>
+    <comment>Tooltip on an alliance&apos;s name in an intel view.</comment>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Always alert</value>
+    <comment>Right-click menu on a pilot in any intel view: put the pilot on the watch list as always alerted for (ticked when they are; choosing it again takes them off).</comment>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Ignore</value>
+    <comment>Right-click menu on a pilot in any intel view: put the pilot on the watch list as ignored (ticked when they are; choosing it again takes them off).</comment>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Pilots, corporations, alliances, hulls and ship groups, shared by every PC on this database. Always alert: shown in bold, and intel alarms using the watch list alert for them from farther away. Ignore: shown dimmed, and never alerted for. A pilot&apos;s own entry decides first, then their corporation&apos;s, their alliance&apos;s, their hull&apos;s and its group&apos;s.</value>
+    <comment>Intel tool Watch list tab: what the list does.</comment>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Pilot</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Intel tool Watch list tab: kind of entry, one ship type.</comment>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Ship group</value>
+    <comment>Intel tool Watch list tab: kind of entry, a ship group such as Interdictor.</comment>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Always alert</value>
+    <comment>Intel tool Watch list tab: the mode that always alerts.</comment>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Ignore</value>
+    <comment>Intel tool Watch list tab: the mode that never alerts.</comment>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Add</value>
+    <comment>Intel tool Watch list tab: button adding the chosen entry.</comment>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Name to add…</value>
+    <comment>Intel tool Watch list tab: hint in the name box.</comment>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Note (optional)</value>
+    <comment>Intel tool Watch list tab: hint in the note box.</comment>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Nothing on the watch list yet. Add from here, or right-click a pilot anywhere in intel.</value>
+    <comment>Intel tool Watch list tab, when the list is empty.</comment>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} on {1}</value>
+    <comment>Intel tool Watch list tab: when and where an entry was added. {0} is the date, {1} the PC&apos;s name.</comment>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Could not change the watch list: {0}</value>
+    <comment>Intel tool Watch list tab: a change could not be written. {0} is the error.</comment>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Take it off the watch list</value>
+    <comment>Intel tool Watch list tab: tooltip on the remove button.</comment>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Kind</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Mode</value>
+    <comment>Intel tool Watch list tab column: Always alert or Ignore.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Added</value>
+    <comment>Intel tool Watch list tab column: when and on which PC.</comment>
+  </data>
 </root>

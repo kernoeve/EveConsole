@@ -46,6 +46,9 @@ public sealed class IntelSnapshotService : IDisposable
     private readonly AppPreferencesService?          _prefs;
     private readonly AppErrorLogger?                 _errors;
     private readonly IntelService?                   _intel;
+    private readonly IntelWatchList?                 _watchList;
+    private IntelWatchSet _watch = IntelWatchSet.Empty;
+    private DateTimeOffset _watchAt = DateTimeOffset.MinValue;
 
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
     private readonly SemaphoreSlim _wake = new(0, int.MaxValue);
@@ -84,7 +87,7 @@ public sealed class IntelSnapshotService : IDisposable
     public IntelSnapshotService(
         IDbContextFactory<AppDbContext> dbFactory, IntelStandingService standings,
         IntelDistanceService? distances = null, IntelService? intel = null, CorpActivityService? names = null,
-        AppPreferencesService? prefs = null, AppErrorLogger? errors = null)
+        AppPreferencesService? prefs = null, AppErrorLogger? errors = null, IntelWatchList? watch = null)
     {
         _dbFactory = dbFactory;
         _standings = standings;
@@ -93,14 +96,24 @@ public sealed class IntelSnapshotService : IDisposable
         _prefs     = prefs;
         _errors    = errors;
         _intel     = intel;
+        _watchList = watch;
         if (intel is not null) intel.IntelChanged += Request;
+        if (watch is not null) watch.Changed += WatchChanged;
         SdeNames.Changed += SdeChanged;
     }
 
     public void Dispose()
     {
         if (_intel is not null) _intel.IntelChanged -= Request;
+        if (_watchList is not null) _watchList.Changed -= WatchChanged;
         SdeNames.Changed -= SdeChanged;
+    }
+
+    /// <summary>The watch list changed on this PC: read again on the next pass, now.</summary>
+    public void WatchChanged()
+    {
+        _watchAt = DateTimeOffset.MinValue;
+        Request();
     }
 
     private void SdeChanged() => _sde = null;
@@ -275,6 +288,21 @@ public sealed class IntelSnapshotService : IDisposable
             .Where(t => t > 0).ToHashSet();
         await TypeNamesAsync(db, typeIds, ct).ConfigureAwait(false);
 
+        // The watch list, every minute (at once after a change here), and the hulls' groups while a group is on it.
+        if (now - _watchAt >= SettingsEvery)
+        {
+            _watch = new IntelWatchSet(await db.IntelWatchEntries.AsNoTracking().ToListAsync(ct).ConfigureAwait(false));
+            _watchAt = now;
+        }
+        var typeGroups = new Dictionary<int, int>();
+        if (_watch.HasGroups)
+        {
+            typeIds.UnionWith(sde.HullIds.Values);
+            await GroupsOfTypesAsync(db, typeIds, ct).ConfigureAwait(false);
+            foreach (var t in typeIds)
+                if (_groupOfType.TryGetValue(t, out var g)) typeGroups[t] = g;
+        }
+
         var channels = settings.IntelChannels.Concat(_intel?.RoomChannels ?? [])
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var chatter = await ReadChatterAsync(db, channels, fromText, ct).ConfigureAwait(false);
@@ -289,6 +317,7 @@ public sealed class IntelSnapshotService : IDisposable
             Own = own, Names = new Dictionary<long, string>(_pilotNames), TypeNames = new Dictionary<int, string>(_typeNames),
             Affiliations = new Dictionary<long, (long, long)>(_affiliations),
             Officers = officers, Standings = standings,
+            Watch = _watch, TypeGroups = typeGroups,
         };
         return IntelSnapshotBuilder.Build(input, _register, Interlocked.Increment(ref _version));
     }

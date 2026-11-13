@@ -45,14 +45,18 @@ public sealed class IntelSourceChoice(string key, string label, bool isOn, Actio
 /// kept on this PC, and a copy of the tool opens with them.</para>
 ///
 /// <para>Tabs: the Board (a row per system), the Feed (every line, newest first, with what has expired
-/// or been replaced, faded), and Paste (Local or d-scan into a sighting).</para>
+/// or been replaced, faded), Pilots (where each pilot was last seen, read from the database), Camps
+/// (gate camps, active and lately ended), Paste (Local or d-scan into a sighting) and the Watch list.</para>
 /// </summary>
-public sealed class IntelViewModel : ReactiveObject, IDisposable
+public sealed partial class IntelViewModel : ReactiveObject, IDisposable
 {
     public const int BoardCap = 200;
     public const int FeedCap = 500;
 
-    public const int TabBoard = 0, TabFeed = 1, TabPaste = 2;
+    // ⚠️ The numbers are kept on this PC as the tab last shown: a new tab takes a new number, whatever its
+    // place in the strip.
+    public const int TabBoard = 0, TabFeed = 1, TabPaste = 2, TabPilots = 3, TabCamps = 4, TabWatch = 5;
+    private const int LastTab = TabWatch;
 
     private const string KeyTab = "intel.tab", KeyFrom = "intel.from", KeyMaxJumps = "intel.max_jumps",
         KeyBridges = "intel.bridges", KeyTiers = "intel.tiers", KeySourcesOff = "intel.sources_off",
@@ -74,16 +78,17 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
     public IntelViewModel(IntelSnapshotService? snapshots, IntelDistanceService? distances, IntelPasteService? paste,
                           UniverseMapService? map, IDbContextFactory<AppDbContext>? dbFactory,
-                          ObservableCollection<Character> characters)
+                          ObservableCollection<Character> characters, IntelWatchList? watch = null)
     {
         _snapshots = snapshots;
         _distances = distances;
         _dbFactory = dbFactory;
         _map = map;
+        _watchList = watch;
         _clock = new DispatcherTimer(TimeSpan.FromSeconds(1), DispatcherPriority.Background, (_, _) => Tick());
         _clock.Stop();
 
-        _selectedTab = (int)Math.Clamp(Read(() => UiState.GetLong(KeyTab, TabBoard), TabBoard), TabBoard, TabPaste);
+        _selectedTab = (int)Math.Clamp(Read(() => UiState.GetLong(KeyTab, TabBoard), TabBoard), TabBoard, LastTab);
         _fromId = Read(() => UiState.GetLong(KeyFrom, 0), 0L);
         var jumps = (int)Read(() => UiState.GetLong(KeyMaxJumps, 15), 15L);
         _selectedJumps = JumpsChoices.FirstOrDefault(c => (c.Value ?? 0) == jumps) ?? JumpsChoices[2];
@@ -117,6 +122,8 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
 
         this.WhenAnyValue(x => x.FromSystemText).Skip(1).Throttle(TimeSpan.FromMilliseconds(180))
             .SelectMany(t => Observable.FromAsync(() => SuggestFromAsync(t))).Subscribe();
+
+        InitTabs();
     }
 
     private static T Read<T>(Func<T> read, T fallback)
@@ -148,6 +155,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
     private IntelRowActions Actions => new()
     {
         ShowOnMap = ShowOnMap,
+        Watch = _watchList,
     };
 
     // ── Lifetime ─────────────────────────────────────────────────────────────
@@ -169,6 +177,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
             _clock.Start();
             _ = ReadRegionsAsync();
             Paste.OnScreen();
+            TabsOnScreen(true);
             Project();
         }
         else
@@ -178,6 +187,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
             _subscription?.Dispose();
             _subscription = null;
             _clock.Stop();
+            TabsOnScreen(false);
         }
     }
 
@@ -246,22 +256,41 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
         get => _selectedTab;
         set
         {
-            if (value < TabBoard || value > TabPaste) return;
+            if (value < TabBoard || value > LastTab) return;
             this.RaiseAndSetIfChanged(ref _selectedTab, value);
             this.RaisePropertyChanged(nameof(IsBoardTab));
             this.RaisePropertyChanged(nameof(IsFeedTab));
             this.RaisePropertyChanged(nameof(IsPasteTab));
+            this.RaisePropertyChanged(nameof(IsPilotsTab));
+            this.RaisePropertyChanged(nameof(IsCampsTab));
+            this.RaisePropertyChanged(nameof(IsWatchTab));
             this.RaisePropertyChanged(nameof(ShowsFilters));
+            this.RaisePropertyChanged(nameof(ShowsAreaFilters));
+            this.RaisePropertyChanged(nameof(ShowsSearch));
+            this.RaisePropertyChanged(nameof(SearchHint));
             Save(() => UiState.SetLong(KeyTab, value));
+            TabShown();
         }
     }
 
-    public bool IsBoardTab => _selectedTab == TabBoard;
-    public bool IsFeedTab  => _selectedTab == TabFeed;
-    public bool IsPasteTab => _selectedTab == TabPaste;
+    public bool IsBoardTab  => _selectedTab == TabBoard;
+    public bool IsFeedTab   => _selectedTab == TabFeed;
+    public bool IsPasteTab  => _selectedTab == TabPaste;
+    public bool IsPilotsTab => _selectedTab == TabPilots;
+    public bool IsCampsTab  => _selectedTab == TabCamps;
+    public bool IsWatchTab  => _selectedTab == TabWatch;
 
-    /// <summary>The top bar's filters: the Board and the Feed, not Paste.</summary>
-    public bool ShowsFilters => _selectedTab != TabPaste;
+    /// <summary>The top bar: the Board, the Feed, Pilots and Camps; not Paste or the Watch list.</summary>
+    public bool ShowsFilters => _selectedTab is TabBoard or TabFeed or TabPilots or TabCamps;
+
+    /// <summary>Within N jumps, the standings chips and the sources: what is near and live. Pilots is a
+    /// search of who was seen where, over days, and shows every pilot found.</summary>
+    public bool ShowsAreaFilters => _selectedTab is TabBoard or TabFeed or TabCamps;
+
+    public bool ShowsSearch => _selectedTab is TabBoard or TabFeed or TabPilots or TabCamps;
+
+    /// <summary>What the search box looks for on this tab.</summary>
+    public string SearchHint => _selectedTab == TabPilots ? IntelText.PilotsSearchHint : IntelText.SearchHint;
 
     public IntelPasteVm Paste { get; }
 
@@ -672,15 +701,18 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
         var now = Clock();
         var ticket = Interlocked.Increment(ref _projection);
         var distances = _distances;
-        _ = Task.Run(() => (Board: IntelLens.Project(snapshot, board, distances, now), Feed: IntelLens.Project(snapshot, feed, distances, now)))
+        _ = Task.Run(() => (Board: IntelLens.Project(snapshot, board, distances, now), Feed: IntelLens.Project(snapshot, feed, distances, now),
+                            Camps: IntelLens.ProjectCamps(snapshot, board, distances, now)))
             .ContinueWith(t =>
             {
                 if (t.IsFaulted || Interlocked.Read(ref _projection) != ticket) return;
-                var (boardView, feedView) = t.Result;
+                var (boardView, feedView, camps) = t.Result;
                 Dispatcher.UIThread.Post(() =>
                 {
                     if (Interlocked.Read(ref _projection) != ticket) return;
                     Show(snapshot, boardView, feedView, now);
+                    ShowCamps(snapshot, camps, now, boardView.Pending);
+                    ShowPilots(snapshot, now);
                     foreach (var missing in boardView.MissingOrigins) Walk(missing, mode, snapshot);
                 });
             }, TaskScheduler.Default);
@@ -841,6 +873,7 @@ public sealed class IntelViewModel : ReactiveObject, IDisposable
             if (line is IntelFeedLineVm l) l.Row.Tick(now, freshSeconds);
             else if (line is IntelChatterLineVm c) c.Tick(now);
         }
+        TickTabs(now);
         UpdatedText = _snapshot.Version == 0 ? ""
                     : now - _snapshot.At < TimeSpan.FromSeconds(10) ? IntelText.StatusUpdatedNow
                     : string.Format(CultureInfo.CurrentCulture, IntelText.StatusUpdated, IntelWords.Age(_snapshot.At, now));
@@ -946,14 +979,21 @@ public sealed class IntelBoardRowVm : ReactiveObject
         if (IsClear && row.Intel.Clear is { } clear) items.Add((clear.At, clear.Lifetime));
         _items = items;
 
+        Watch = row.Watch;
         Signature = string.Join("|", SystemId, JumpsText, row.Tier, StateText, HostilesText, FlagsText, MovingText, SourcesText,
-                                NearestName, RegionText, HullsMore, string.Join(",", Hulls.Select(h => h.Id + ":" + h.Text)),
+                                NearestName, RegionText, HullsMore, Watch, string.Join(",", Hulls.Select(h => h.Id + ":" + h.Text)),
                                 string.Join(",", Events.Select(e => e.Signature)));
         Tick(now, snapshot.Settings.FreshSeconds);
     }
 
     public IntelRowActions Actions { get; }
     public string Signature { get; }
+
+    /// <summary>What the watch list says of the system's pilots: Always (bold) or Ignored (dimmed).</summary>
+    public IntelWatchMark Watch { get; }
+    public bool IsWatchIgnored => Watch == IntelWatchMark.Ignored;
+    public FontWeight NameWeight => Watch == IntelWatchMark.Always ? FontWeight.ExtraBold : FontWeight.SemiBold;
+    public FontWeight CountWeight => Watch == IntelWatchMark.Always ? FontWeight.ExtraBold : FontWeight.SemiBold;
 
     public int SystemId { get; }
     public string SystemName { get; }
@@ -1020,7 +1060,8 @@ public sealed class IntelBoardRowVm : ReactiveObject
     public void Tick(DateTimeOffset now, int freshSeconds)
     {
         AgeText = IntelWords.Age(_newest, now);
-        Opacity = _items.Count == 0 ? 1 : _items.Max(i => IntelLens.Opacity(i.At, i.Life, now));
+        Opacity = (_items.Count == 0 ? 1 : _items.Max(i => IntelLens.Opacity(i.At, i.Life, now)))
+                  * (IsWatchIgnored ? IntelEventRowVm.IgnoredOpacity : 1.0);
         foreach (var e in Events) e.Tick(now, freshSeconds);
     }
 

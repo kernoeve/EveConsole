@@ -4350,6 +4350,10 @@ public class App : Application
                     """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Name" ON "IntelLastSeen" ("Name")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Corporation" ON "IntelLastSeen" ("CorporationId")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Alliance" ON "IntelLastSeen" ("AllianceId")""",
+                    // The intel watch list: pilots, corporations, alliances, hulls and groups always alerted
+                    // for, or ignored. Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "IntelWatchEntries" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Kind" TEXT NOT NULL DEFAULT '', "EntityId" INTEGER NOT NULL DEFAULT 0, "Name" TEXT NOT NULL DEFAULT '', "Mode" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "AddedBy" TEXT NOT NULL DEFAULT '', "AddedAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelWatchEntries_Kind_Entity" ON "IntelWatchEntries" ("Kind", "EntityId")""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the
@@ -5403,7 +5407,10 @@ public class App : Application
             sp.GetRequiredService<IntelService>(),
             sp.GetRequiredService<CorpActivityService>(),
             sp.GetRequiredService<AppPreferencesService>(),
-            sp.GetRequiredService<AppErrorLogger>()));
+            sp.GetRequiredService<AppErrorLogger>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelWatchList>()));
+        // The intel watch list: pilots, corporations, alliances, hulls and groups always alerted for, or ignored.
+        services.AddSingleton<EveConsole.Services.Intel.IntelWatchList>();
         // A pasted Local or d-scan, stored by the PC where it was pasted. Names through the parser's own
         // resolver (the name cache, then ESI), and every PC told when it is written.
         services.AddSingleton(sp =>

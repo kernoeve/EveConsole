@@ -688,4 +688,235 @@
   <data name="TipFromSystem" xml:space="preserve">
     <value>캐릭터 대신 성계에서 점프 수를 셉니다. 이때는 특정 캐릭터의 시점이 없으므로 색은 모든 캐릭터 기준으로 정해집니다. 그중 하나라도 우호이면 우호입니다.</value>
   </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>파일럿</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>캠프</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>감시 목록</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>파일럿, 코퍼레이션 또는 얼라이언스…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>최근 기간</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1시간</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6시간</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24시간</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7일</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60일</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>검색 중…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>각 파일럿이 정보에서 마지막으로 확인된 곳: 보고, 붙여넣은 로컬 또는 킬</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>파일럿을 읽을 수 없습니다: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>최신 {0}명 · 검색으로 좁히기</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>파일럿 {0}명</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>이 기간에 확인된 사람이 없습니다.</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>파일럿</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>마지막 확인 성계</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>확인</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>선체</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>출처</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>보고</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>로컬 붙여넣기</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>킬의 공격자</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>함선 손실</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>육안 확인 없음</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>마지막 확인: {0}, {1} 전</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0}일</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>활성 캠프 {0}개</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>종료 {0}개</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>게이트 킬과 보고 기준 · 종료된 캠프는 마지막 킬 후 1시간 동안 흐리게 표시</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>지난 1시간 동안 이 거리 안에 게이트 캠프가 없습니다.</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>게이트 캠프가 없습니다. 캠프는 킬로 판단하며, zKillboard 전체 피드가 꺼져 있으면 본인이나 코퍼레이션이 관련된 킬만 들어옵니다.</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} 게이트</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>킬 {0}회</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0}명</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>보고</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>킬과 보고</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>진행 중</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>종료</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>캠프</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>상태</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>킬</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>마지막</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>공격자</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>캠프의 킬을 전투 보고서에서 열기</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>킬을 전투 보고서에서 열기</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>킬 열기</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>킬 열기</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>이 코퍼레이션 열기</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>이 얼라이언스 열기</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>항상 알림</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>무시</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>파일럿, 코퍼레이션, 얼라이언스, 선체, 함선 그룹. 이 데이터베이스를 쓰는 모든 PC가 공유합니다. 항상 알림: 굵게 표시되며, 감시 목록을 쓰는 정보 알람이 더 먼 거리에서도 알립니다. 무시: 흐리게 표시되며 알리지 않습니다. 파일럿 본인 항목이 먼저 적용되고, 다음은 코퍼레이션, 얼라이언스, 선체, 그 그룹 순입니다.</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>파일럿</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>코퍼레이션</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>얼라이언스</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>선체</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>함선 그룹</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>항상 알림</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>무시</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>추가할 이름…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>메모(선택)</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>감시 목록이 아직 비어 있습니다. 여기서 추가하거나 정보 화면 어디서든 파일럿을 마우스 오른쪽 버튼으로 클릭하세요.</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>감시 목록을 변경할 수 없습니다: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>감시 목록에서 제거</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>종류</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>모드</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>메모</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>추가됨</value>
+  </data>
 </root>

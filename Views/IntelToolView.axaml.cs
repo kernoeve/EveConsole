@@ -74,6 +74,9 @@ public partial class IntelToolView : UserControl
     private void OnTabBoard(object? sender, RoutedEventArgs e) { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabBoard; }
     private void OnTabFeed(object? sender, RoutedEventArgs e)  { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabFeed; }
     private void OnTabPaste(object? sender, RoutedEventArgs e) { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabPaste; }
+    private void OnTabPilots(object? sender, RoutedEventArgs e) { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabPilots; }
+    private void OnTabCamps(object? sender, RoutedEventArgs e) { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabCamps; }
+    private void OnTabWatch(object? sender, RoutedEventArgs e) { if (Vm is { } vm) vm.SelectedTab = IntelViewModel.TabWatch; }
 
     // ── Pictures ─────────────────────────────────────────────────────────────
 
@@ -81,6 +84,62 @@ public partial class IntelToolView : UserControl
     {
         if ((sender as Control)?.DataContext is IntelPictureVm picture) picture.Open();
         e.Handled = true;
+    }
+
+    /// <summary>A pilot anywhere in the tool: open them, and "Always alert" / "Ignore".</summary>
+    private void OnPictureContext(object? sender, ContextRequestedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not IntelPictureVm { IsPilot: true, Id: > 0 } pilot || Vm is not { } vm) return;
+        e.Handled = true;
+        var items = new List<Control> { Item(IntelText.MenuOpenPilot, pilot.Open) };
+        if (vm.Watch is { } watch) items.AddRange(IntelWatchMenu.ForPilot(watch, vm.Snapshot.Watch, pilot.Id, pilot.Text));
+        new ContextMenu { ItemsSource = items }.Open(sender as Control ?? this);
+    }
+
+    // ── Pilots ───────────────────────────────────────────────────────────────
+
+    private void OnPilotRowContext(object? sender, ContextRequestedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not IntelPilotListRowVm row || Vm is not { } vm) return;
+        e.Handled = true;
+        var items = new List<Control>
+        {
+            Item(IntelText.MenuOpenPilot, row.OpenPilot),
+            Item(IntelText.MenuOpenSystem, row.OpenSystem),
+        };
+        if (row.KillMailId > 0) items.Add(Item(IntelText.MenuOpenKill, row.OpenSource));
+        if (row.CanShowOnMap) items.Add(Item(IntelText.MenuShowOnMap, row.ShowOnMap));
+        items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
+        if (vm.Watch is { } watch) items.AddRange(IntelWatchMenu.ForPilot(watch, row.WatchSet, row.CharacterId, row.Name));
+        new ContextMenu { ItemsSource = items }.Open(sender as Control ?? this);
+    }
+
+    private void OnPilotRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
+        if ((sender as Control)?.DataContext is IntelPilotListRowVm row) row.OpenPilot();
+    }
+
+    // ── Camps ────────────────────────────────────────────────────────────────
+
+    private void OnCampRowContext(object? sender, ContextRequestedEventArgs e)
+    {
+        if ((sender as Control)?.DataContext is not IntelCampRowVm row) return;
+        e.Handled = true;
+        var items = new List<Control>();
+        if (row.HasKills) items.Add(Item(IntelText.MenuOpenKills, row.OpenKills));
+        items.Add(Item(IntelText.MenuOpenSystem, row.OpenSystem));
+        if (row.CanShowOnMap) items.Add(Item(IntelText.MenuShowOnMap, row.ShowOnMap));
+        items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
+        new ContextMenu { ItemsSource = items }.Open(sender as Control ?? this);
+    }
+
+    private void OnCampRowDoubleTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Visual v && v.FindAncestorOfType<Button>(includeSelf: true) is not null) return;
+        if ((sender as Control)?.DataContext is not IntelCampRowVm row) return;
+        if (row.HasKills) row.OpenKills();
+        else row.OpenSystem();
     }
 
     // ── The Board ────────────────────────────────────────────────────────────

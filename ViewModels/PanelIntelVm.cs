@@ -322,7 +322,8 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         foreach (var row in fresh.Where(r => !held.ContainsKey(r.Key) || !ReferenceEquals(held[r.Key], r)))
             _ = row.LoadPicturesAsync();
 
-        var threats = view.Systems.Where(s => s.State != IntelSystemState.Clear).ToList();
+        // Who the watch list ignores is listed, dimmed, but is no threat to count or to put on the line.
+        var threats = view.Systems.Where(s => s.State != IntelSystemState.Clear && s.Watch != IntelWatchMark.Ignored).ToList();
         // The nearest someone; with nobody about, the nearest camp, cyno or bubbles, rather than "nothing".
         var nearest = own is null ? null : view.Nearest ?? view.Systems.FirstOrDefault(r => r.State == IntelSystemState.FlagsOnly);
         Nearest = nearest is null ? null : new IntelNearestVm(nearest, snapshot, now, pending);

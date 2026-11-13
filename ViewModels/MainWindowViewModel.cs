@@ -364,6 +364,9 @@ public class MainWindowViewModel : ReactiveObject
     /// <summary>The one shared read side of intel, and the jumps it is measured in: for the panels' Intel controls.</summary>
     public EveConsole.Services.Intel.IntelSnapshotService IntelSnapshots { get; }
     public EveConsole.Services.Intel.IntelDistanceService IntelDistances { get; }
+
+    /// <summary>The intel watch list, for "Always alert" and "Ignore" on a pilot in a panel.</summary>
+    public EveConsole.Services.Intel.IntelWatchList       IntelWatch     { get; }
     public MapStatsSettingsViewModel      MapStatsSettingsVm     { get; }
     public SlackService                   Slack                  { get; }
     public TtsService                     TtsService             { get; }
@@ -1821,7 +1824,8 @@ public class MainWindowViewModel : ReactiveObject
         EveConsole.Services.Intel.IntelSettings        intelSettings,
         EveConsole.Services.Intel.IntelSnapshotService intelSnapshots,
         EveConsole.Services.Intel.IntelDistanceService intelDistances,
-        EveConsole.Services.Intel.IntelPasteService    intelPaste)
+        EveConsole.Services.Intel.IntelPasteService    intelPaste,
+        EveConsole.Services.Intel.IntelWatchList       intelWatch)
     {
         StartupTrace.Step("main view model: its services resolved, body starts");
         // The main window's selection, as those who ask the main view model for it see it.
@@ -1853,6 +1857,7 @@ public class MainWindowViewModel : ReactiveObject
         IntelSettingsVm   = new IntelSettingsViewModel(intelSettings, intelSnapshots, dbFactory);
         IntelSnapshots    = intelSnapshots;
         IntelDistances    = intelDistances;
+        IntelWatch        = intelWatch;
         StartupTrace.Step("new MapStatsSettingsVm");
         MapStatsSettingsVm = new MapStatsSettingsViewModel(mapStatsSettings, mapStatsBackfill, mapStatsPolling, mapStatsService, eveScout);
         StartupTrace.Step("new AlertSettingsVm");
@@ -2143,7 +2148,7 @@ public class MainWindowViewModel : ReactiveObject
             JumpPlannerVm, dbFactory, eveScout, sovCampaigns);
         StartupTrace.Step("new IntelVm");
         IntelVm                = WireIntel(new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
-                                                              dbFactory, CharacterVm.Characters));
+                                                              dbFactory, CharacterVm.Characters, intelWatch));
         StartupTrace.Step("new AlarmsVm");
         AlarmsVm               = new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute);
         StartupTrace.Step("new SchedulerVm");
@@ -2296,7 +2301,7 @@ public class MainWindowViewModel : ReactiveObject
             new JumpPlannerViewModel(jumpPlanner), dbFactory, eveScout, sovCampaigns));
         // Another Intel tool, on another monitor perhaps: it opens with the filters kept on this PC.
         CopyOf("intel", () => IntelVm, () => new IntelViewModel(intelSnapshots, intelDistances, intelPaste, universeMapService,
-                                                               dbFactory, CharacterVm.Characters));
+                                                               dbFactory, CharacterVm.Characters, intelWatch));
         CopyOf("alarms", () => AlarmsVm, () => new AlarmsViewModel(dbFactory, alarmService, alarmSounds, alarmMute));
         CopyOf("scheduler", () => SchedulerVm, () => new SchedulerViewModel(dbFactory, schedulerService, blockRenderer, slackService, discordService,
             corpActivityService, salePostingService, errorLogger, batchAddService, parkCompare, onlineServices,

@@ -144,6 +144,9 @@ public sealed class QueryDatabaseTool : IAgentTool
             Local, 2 kill attacker, 3 kill victim), ReportId, KillMailId, ShipTypeId, ShipName,
             NoVisual, CorporationId, AllianceId, PrevSystemId, PrevSeenAt, InSystemSince
             - One row per pilot: where they were last seen, from any source.
+        IntelWatchEntries: Id, Kind('pilot','corp','alliance','hull','group'), EntityId, Name, Mode(0 always
+            alert, 1 ignore), Note, AddedBy(PC), AddedAt(ISO text)
+            - The shared intel watch list, one row per thing.
 
         ALARMS (see the manage_alarms tool rather than writing to these directly)
         Alarms: Id, Name, Enabled, ConditionType, ConditionJson, Repeat, PollSeconds,

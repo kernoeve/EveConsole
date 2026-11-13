@@ -145,6 +145,20 @@ public sealed record IntelSnapshot(
     /// channels the feed happens to hold.</summary>
     public IReadOnlyList<string> Channels { get; init; } = [];
 
+    /// <summary>The watch list as last read (every minute, and at once after a change on this PC):
+    /// what the lens marks rows Always (bold) or Ignored (dimmed) by.</summary>
+    public IntelWatchSet Watch { get; init; } = IntelWatchSet.Empty;
+
+    /// <summary>The group of each hull in the snapshot, read only while the watch list has a group on it.</summary>
+    public IReadOnlyDictionary<int, int> TypeGroups { get; init; } = new Dictionary<int, int>();
+
+    /// <summary>A hull's group, when known.</summary>
+    public int? GroupOf(int? typeId) => typeId is int t && TypeGroups.TryGetValue(t, out var g) ? g : null;
+
+    /// <summary>A pilot's watch-list mark.</summary>
+    public IntelWatchMark WatchOf(long characterId, long corporationId, long allianceId, int? shipTypeId) =>
+        Watch.Pilot(characterId, corporationId, allianceId, shipTypeId, GroupOf(shipTypeId));
+
     /// <summary>Every published hull's type id by its English name, as reports store hulls said with
     /// nobody named ("8× Muninn") and a d-scan's paste stores its ships: a view shows each with its icon.</summary>
     public IReadOnlyDictionary<string, int> HullIds { get; init; } = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
@@ -203,6 +217,9 @@ public sealed record IntelSnapshotInput
 
     public IReadOnlyList<IntelChatter> Chatter { get; init; } = [];
     public IReadOnlyList<string> Channels { get; init; } = [];
+
+    public IntelWatchSet Watch { get; init; } = IntelWatchSet.Empty;
+    public IReadOnlyDictionary<int, int> TypeGroups { get; init; } = new Dictionary<int, int>();
 }
 
 /// <summary>
@@ -460,6 +477,8 @@ public static class IntelSnapshotBuilder
             HullIds = input.HullIds,
             Chatter =[.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
             Channels = input.Channels,
+            Watch = input.Watch,
+            TypeGroups = input.TypeGroups,
         };
     }
 

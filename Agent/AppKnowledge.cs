@@ -372,10 +372,20 @@ public static class AppKnowledge
         Tabs: Board (one row per system: state, hostiles, hulls, flags, moving, age, nearest
         character, sources; a row opens to its reports, follow-ups and kills), Feed (every line
         newest first, 15/30/60 minutes, expired and superseded lines faded, Show kills, Unlinked
-        chatter) and Paste (the Local member list or a d-scan pasted into a box for a chosen
-        system; a Local clears the system and places everyone on it, saying first how many it
-        replaces; a d-scan adds an unnamed count of ships, with bubbles and cynos from what is on
-        scan; Save or Ctrl+Enter). The app never reads the clipboard itself.
+        chatter), Pilots (where each pilot was last seen, from reports, pastes and kills, over 1 h
+        to 60 days, 24 h by default, at most 500, searched by name, or by corporation or alliance
+        from three letters; jumps, hull, how they were seen, corporation and alliance), Camps (gate
+        camps from kills on a gate and from reports: active for 30 minutes after the last kill,
+        then shown faded as ended until an hour after it; kills, attackers and their hulls,
+        smartbombs and dictors; double-click opens the kills in Battle Report), Paste (the Local
+        member list or a d-scan pasted into a box for a chosen system; a Local clears the system
+        and places everyone on it, saying first how many it replaces; a d-scan adds an unnamed count
+        of ships, with bubbles and cynos from what is on scan; Save or Ctrl+Enter) and Watch list
+        (pilots, corporations, alliances, hulls and ship groups set to Always alert, shown in bold
+        everywhere, or Ignore, shown dimmed and never the panel's nearest threat; shared by every PC
+        on the database; a pilot's own entry decides first, then the corporation's, alliance's,
+        hull's and group's). Right-click a pilot anywhere in intel for Always alert or Ignore. The
+        app never reads the clipboard itself. A pilot's page shows where intel last saw them.
 
         ### Route Planner
         A Universe Map tab. Plans a route from system to system through gates, the jump bridges
