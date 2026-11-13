@@ -39,15 +39,20 @@ public sealed record PilotIntel(
 
 /// <summary>Pilots a report counted but did not name, in the newest report for the system.</summary>
 /// <param name="EpisodeStart">When this run of counts in the system began: reports one after
-/// another, each within the unnamed lifetime of the last, with no clear between.</param>
+/// another, each within the unnamed lifetime of the last, with no clear between. Kept by the
+/// <see cref="IntelEpisodeRegister"/> once its first reports leave the window.</param>
+/// <param name="Peak">The most this run has counted at once (also kept by the register): the intel
+/// alarm's band, so a count that falls is not news.</param>
 public sealed record UnnamedIntel(
     int Count, string? Ships, bool NoVisual, DateTimeOffset At, TimeSpan Lifetime, int ReportId, int Source,
-    DateTimeOffset EpisodeStart)
+    DateTimeOffset EpisodeStart, int Peak)
 {
     public DateTimeOffset ExpiresAt => At + Lifetime;
 }
 
 /// <summary>Something said about a system besides who: a camp, bubbles, a cyno, a spike.</summary>
+/// <param name="EpisodeStart">When this run of the flag began, kept by the <see cref="IntelEpisodeRegister"/>
+/// once its first reports leave the window.</param>
 public sealed record IntelFact(
     IntelRules.IntelFlags Flag, DateTimeOffset At, TimeSpan Lifetime, int ReportId, DateTimeOffset EpisodeStart)
 {
@@ -245,7 +250,10 @@ public static class IntelSnapshotBuilder
     private static readonly IntelRules.IntelFlags[] AllFlags =
         [.. Enum.GetValues<IntelRules.IntelFlags>().Where(f => f != IntelRules.IntelFlags.None)];
 
-    public static IntelSnapshot Build(IntelSnapshotInput input, IntelCampRegister register, long version)
+    /// <param name="episodes">What keeps a run of counts or of a flag going past the window's edge; without
+    /// one, a run begins at its oldest report read back.</param>
+    public static IntelSnapshot Build(IntelSnapshotInput input, IntelCampRegister register, long version,
+                                      IntelEpisodeRegister? episodes = null)
     {
         var s   = input.Settings;
         var now = input.Now;
@@ -360,6 +368,37 @@ public static class IntelSnapshotBuilder
         var campsIn = camps.GroupBy(c => c.SystemId).ToDictionary(g => g.Key, g => (IReadOnlyList<GateCamp>)[.. g]);
         systemIds.UnionWith(campsIn.Keys);
 
+        // ── Runs: each system's run of counts and of each flag, as far back as the window reads ──
+        // The register carries a run's start (and a count's peak) on once its first reports leave the window.
+        var runs = new List<IntelEpisodeRun>();
+        foreach (var (id, reps) in live)
+        {
+            var (newest, at) = reps[0];
+            var count = CountOf(newest);
+            if (count > 0)
+            {
+                var (start, peak) = (at, count);
+                for (var i = 1; i < reps.Count; i++)
+                {
+                    var n = CountOf(reps[i].R);
+                    if (n <= 0 || start - reps[i].At > s.Unnamed) break;
+                    start = reps[i].At;
+                    if (n > peak) peak = n;
+                }
+                runs.Add(new IntelEpisodeRun(id, IntelEpisodeRegister.Counts, start, at, peak));
+            }
+            foreach (var flag in AllFlags)
+            {
+                var with = reps.Where(x => (x.R.Flags & (int)flag) != 0).ToList();
+                if (with.Count == 0) continue;
+                var life = s.FlagLifetime(flag);
+                var start = with[0].At;
+                for (var i = 1; i < with.Count && start - with[i].At <= life; i++) start = with[i].At;
+                runs.Add(new IntelEpisodeRun(id, (int)flag, start, with[0].At, 0));
+            }
+        }
+        var carried = (episodes ?? new IntelEpisodeRegister()).Apply(runs, from);
+
         foreach (var id in systemIds)
         {
             live.TryGetValue(id, out var reps);
@@ -371,27 +410,17 @@ public static class IntelSnapshotBuilder
                 var (newest, at) = reps[0];
                 var count = CountOf(newest);
                 var moved = movedFrom.TryGetValue(id, out var left) && left > at;
-                if (count > 0 && !moved)
-                {
-                    var start = at;
-                    for (var i = 1; i < reps.Count; i++)
-                    {
-                        if (CountOf(reps[i].R) <= 0 || start - reps[i].At > s.Unnamed) break;
-                        start = reps[i].At;
-                    }
-                    unnamed = new UnnamedIntel(count, newest.Ships, newest.NoVisual, at, s.Unnamed, newest.Id, newest.Source, start);
-                }
+                if (count > 0 && !moved && carried.TryGetValue((id, IntelEpisodeRegister.Counts), out var run))
+                    unnamed = new UnnamedIntel(count, newest.Ships, newest.NoVisual, at, s.Unnamed, newest.Id, newest.Source,
+                                               run.Start, run.Peak);
             }
 
             var facts = new List<IntelFact>();
             foreach (var flag in AllFlags)
             {
-                var with = reps.Where(x => (x.R.Flags & (int)flag) != 0).ToList();
-                if (with.Count == 0) continue;
-                var life = s.FlagLifetime(flag);
-                var start = with[0].At;
-                for (var i = 1; i < with.Count && start - with[i].At <= life; i++) start = with[i].At;
-                facts.Add(new IntelFact(flag, with[0].At, life, with[0].R.Id, start));
+                var newest = reps.FirstOrDefault(x => (x.R.Flags & (int)flag) != 0);
+                if (newest.R is null || !carried.TryGetValue((id, (int)flag), out var run)) continue;
+                facts.Add(new IntelFact(flag, newest.At, s.FlagLifetime(flag), newest.R.Id, run.Start));
             }
 
             var clear = clears.Where(x => x.R.SystemId == id).OrderByDescending(x => x.At).ThenByDescending(x => x.R.Id)

@@ -53,6 +53,7 @@ public sealed class IntelSnapshotService : IDisposable
     private readonly SemaphoreSlim _refreshGate = new(1, 1);
     private readonly SemaphoreSlim _wake = new(0, int.MaxValue);
     private readonly IntelCampRegister _register = new();
+    private readonly IntelEpisodeRegister _episodes = new();
     private readonly object _loopLock = new();
     private int _subscribers;
     private DateTimeOffset _warmUntil = DateTimeOffset.MinValue;
@@ -343,7 +344,7 @@ public sealed class IntelSnapshotService : IDisposable
             Officers = officers, Standings = standings,
             Watch = _watch, TypeGroups = typeGroups,
         };
-        return IntelSnapshotBuilder.Build(input, _register, Interlocked.Increment(ref _version));
+        return IntelSnapshotBuilder.Build(input, _register, Interlocked.Increment(ref _version), _episodes);
     }
 
     private async Task<IntelSettingsValues> SettingsAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)

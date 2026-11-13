@@ -78,19 +78,20 @@ namespace EveConsole.Tools.IntelCheck
                 [.. gang.Select(g => new IntelKillAttacker(g.Pilot, g.Corp, 0, g.Hull, null, null, null))]);
 
         private static IntelSnapshot Snap(IEnumerable<IntelReport>? reports = null, IEnumerable<IntelLastSeen>? seen = null,
-                                          IEnumerable<IntelKill>? kills = null, IEnumerable<IntelReportCharacter>? named = null) =>
+                                          IEnumerable<IntelKill>? kills = null, IEnumerable<IntelReportCharacter>? named = null,
+                                          DateTimeOffset? at = null, IntelEpisodeRegister? episodes = null) =>
             IntelSnapshotBuilder.Build(new IntelSnapshotInput
             {
-                Now = Now, Settings = new IntelSettingsValues(),
+                Now = at ?? Now, Settings = new IntelSettingsValues(),
                 Reports = [.. reports ?? []], ReportPilots = [.. named ?? []], LastSeen = [.. seen ?? []], Kills = [.. kills ?? []],
                 Standings = Standings(), SystemNames = Names,
                 TypeNames = new Dictionary<int, string> { [HullA] = "Hull Alpha", [HullB] = "Hull Beta", [HullC] = "Hull Gamma" },
                 Names = Enumerable.Range(1, 11).ToDictionary(i => 92_100_000L + i, i => $"Pilot {i}"),
                 Own = [new OwnPosition(A, "Pilot Alpha", S1, Ago(30), OwnPositionSource.Esi, CorpA, 0)],
-            }, new IntelCampRegister(), 1);
+            }, new IntelCampRegister(), 1, episodes);
 
         private static IReadOnlyList<AlarmMatch> Match(IntelSnapshot snap, IntelCondition.IntelAlarmOptions? options = null) =>
-            IntelCondition.Match(snap, Zone(), options ?? Defaults, Now);
+            IntelCondition.Match(snap, Zone(), options ?? Defaults, snap.At);
 
         private static string Keys(IEnumerable<AlarmMatch> matches) => string.Join(" ", matches.Select(m => m.Key));
         private static string Kind(AlarmMatch m) => m.Detail?["kind"] as string ?? "";
@@ -106,6 +107,7 @@ namespace EveConsole.Tools.IntelCheck
                 PilotStays(c);
                 Flags(c);
                 Bands(c);
+                LongEpisodes(c);
                 Kills(c);
                 Filters(c);
                 Config(c);
@@ -204,6 +206,57 @@ namespace EveConsole.Tools.IntelCheck
                 new[] { 1, 2, 4, 5, 9, 10, 19, 20, 400 }.Select(IntelCondition.Band).SequenceEqual([1, 2, 2, 5, 5, 10, 10, 20, 20]));
             var after = KeyOf(Report(S5, Ago(40), count: 3), Report(S5, Ago(1), count: 3));
             c.Check("alarm: a count after the last one ended is a new episode", after == $"intel:n:{S5}|20261112T115900|2", after);
+
+            // A count that falls is no news: the band is the episode's highest.
+            var fell = KeyOf(Report(S5, Ago(4), count: 6), Report(S5, Ago(2), count: 3));
+            c.Check("alarm: an episode of 6 then 3 keeps the band-5 key", fell == $"intel:n:{S5}|20261112T115600|5", fell);
+        }
+
+        // ── An episode longer than the snapshot's window ─────────────────────────────────────────────────────
+
+        private static void LongEpisodes(Checks c)
+        {
+            // From 10:45 every 15 min to 12:15: a count (6 at first, then 3) in S5, bubbles in S4. Read every few
+            // seconds by the snapshot; the alarm evaluated at 11:44 (59 min in) and at 12:00 (75 min in, the first
+            // report gone from the hour's window).
+            var t0 = Ago(75);
+            var reports = Enumerable.Range(0, 7).SelectMany(i => new[]
+            {
+                Report(S5, t0.AddMinutes(15 * i), count: i == 0 ? 6 : 3),
+                Report(S4, t0.AddMinutes(15 * i), flags: (int)IntelRules.IntelFlags.Bubbles),
+            }).ToList();
+            IntelSnapshot At(double minutes, IntelEpisodeRegister register, IEnumerable<IntelReport>? extra = null)
+            {
+                var now = t0.AddMinutes(minutes);
+                return Snap([.. reports.Where(r => IntelSnapshotBuilder.TryParse(r.ReportedAt, out var a) && a <= now), .. extra ?? []],
+                            at: now, episodes: register);
+            }
+            string KeyOf(IntelSnapshot snap, string kind) => Match(snap).FirstOrDefault(m => Kind(m) == kind)?.Key ?? "none";
+
+            var episodes = new IntelEpisodeRegister();
+            for (var m = 0; m <= 59; m += 5) At(m, episodes);   // the readings before
+            var count59 = KeyOf(At(59, episodes), IntelCondition.KindCount);
+            var flag59  = KeyOf(At(59, episodes), IntelCondition.KindFlag);
+            for (var m = 60; m <= 75; m += 5) At(m, episodes);
+            var count75 = KeyOf(At(75, episodes), IntelCondition.KindCount);
+            var flag75  = KeyOf(At(75, episodes), IntelCondition.KindFlag);
+            c.Check("alarm: a count going on past the window's edge keeps its first start and its highest band",
+                count59 == $"intel:n:{S5}|20261112T104500|5" && count75 == count59, $"{count59} / {count75}");
+            c.Check("alarm: bubbles going on past the window's edge keep their first start",
+                flag59 == $"intel:f:{S4}|Bubbles|20261112T104500" && flag75 == flag59, $"{flag59} / {flag75}");
+
+            // Without the register the start would move with the window: what the check above guards.
+            var fresh = KeyOf(At(75, new IntelEpisodeRegister()), IntelCondition.KindCount);
+            c.Check("alarm: read cold at 75 min the run begins at its oldest report read back", fresh == $"intel:n:{S5}|20261112T110000|2", fresh);
+
+            // A clear ends the episode: the next count is news again.
+            var clear = Report(S5, t0.AddMinutes(78), kind: IntelReportKind.Clear);
+            At(78, episodes, [clear]);
+            var again = Report(S5, t0.AddMinutes(80), count: 3);
+            var next = KeyOf(At(80, episodes, [clear, again]), IntelCondition.KindCount);
+            c.Check("alarm: after a clear the same system's count is a new episode", next == $"intel:n:{S5}|20261112T120500|2", next);
+            c.Check("alarm: an episode no reading can continue is forgotten",
+                episodes.Apply([], t0.AddMinutes(200)).Count == 0 && episodes.Count == 0, episodes.Count.ToString(CultureInfo.InvariantCulture));
         }
 
         // ── Kills ────────────────────────────────────────────────────────────────────────────────────────────

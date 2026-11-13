@@ -27,10 +27,13 @@ namespace EveConsole.Alarms.Conditions;
 /// <item>a named pilot once per stay in a system (system + when the stay began, from the last-seen
 /// table's InSystemSince): called again by three people, or seen again on a kill there, it is not news;
 /// seen in another system, it is;</item>
-/// <item>a count of unnamed pilots once per size band (1, 2–4, 5–9, 10–19, 20+) in its episode: three
-/// rising to six is news, six to seven is not;</item>
+/// <item>a count of unnamed pilots once per size band (1, 2–4, 5–9, 10–19, 20+) in its episode, by the
+/// highest the episode has counted: three rising to six is news, six to seven is not, and six falling
+/// to three is not;</item>
 /// <item>a flag (a camp, bubbles, a cyno, a hot drop, a spike, combat probes) once per episode, even
 /// when the report counted nobody;</item>
+/// <item>an episode that goes on keeps its first start after its first reports leave the snapshot's
+/// window (<see cref="IntelEpisodeRegister"/>), so a long camp or count is not said again;</item>
 /// <item>a kill once, said as a kill. Its attackers are banked with it and not said again as a
 /// sighting.</item>
 /// </list>
@@ -469,7 +472,8 @@ public sealed class IntelCondition : IAlarmCondition
                                         [.. IntelDisplay.ParseShips(unnamed.Ships).Select(s => s.Name)], flagBits, unnamed.At);
                     detail["no_visual"] = unnamed.NoVisual;
                     matches.Add(new AlarmMatch(
-                        $"intel:n:{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(unnamed.EpisodeStart)}|{Band(unnamed.Count).ToString(CultureInfo.InvariantCulture)}",
+                        // The band of the most counted in the episode: a count that falls is not news.
+                        $"intel:n:{id.ToString(CultureInfo.InvariantCulture)}|{Stamp(unnamed.EpisodeStart)}|{Band(Math.Max(unnamed.Peak, unnamed.Count)).ToString(CultureInfo.InvariantCulture)}",
                         $"{(unnamed.Count == 1 ? "1 pilot" : $"{unnamed.Count} pilots")} in {English(id)}{from}")
                     { Detail = detail });
                 }
@@ -487,8 +491,8 @@ public sealed class IntelCondition : IAlarmCondition
         return Ordered(matches);
     }
 
-    /// <summary>The unnamed count's band: its lowest number, so the key changes only when the count
-    /// crosses into another (1, 2–4, 5–9, 10–19, 20+).</summary>
+    /// <summary>The unnamed count's band: its lowest number, so the key changes only when the episode's
+    /// highest count crosses into a higher one (1, 2–4, 5–9, 10–19, 20+).</summary>
     internal static int Band(int count) => count switch
     {
         <= 1  => 1,
