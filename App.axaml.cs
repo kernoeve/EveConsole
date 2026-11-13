@@ -370,52 +370,33 @@ public class App : Application
             // the same pass that stored the message rather than on a timer of its own — and any
             // intel alarm is then evaluated immediately rather than at its next interval, which
             // is the difference between hearing about a hostile in a second and in a minute.
+            //
+            // ⚠️ Only the worker parses (see IntelSignals). Every PC tails its own logs; on the worker
+            // the pass runs right here, and anywhere else the worker is told there is something new.
             var intel = Services.GetRequiredService<IntelService>();
-            chatLogs.AfterTail = async ct =>
+            chatLogs.AfterTail = async (stored, ct) =>
             {
-                var written = await intel.ProcessNewAsync(ct);
-                if (written > 0)
-                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
+                if (intel.IsWorker) await intel.ProcessNewAsync(ct);
+                else if (stored > 0) intel.LinesStored();
+            };
+
+            // ⚠️ The alarms follow "intel was written", never the pass itself. The pass publishes it,
+            // every PC hears it (the worker its own too), and only the worker evaluates: one pass, one
+            // evaluation, on whichever PC the intel was written.
+            intel.IntelChanged += () =>
+            {
+                if (intel.IsWorker) _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
             };
 
             // And after what a Jabber room marked Intel brings, which has nothing to do with the chat logs being on.
             // One pass for a burst, and it waits its turn: a pass already running may have read before this arrived.
             var jabberRooms = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>();
-            var intelPassQueued = 0;
-            jabberRooms.IntelLinesSaved += () =>
-            {
-                if (Interlocked.Exchange(ref intelPassQueued, 1) == 1) return;
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(300));
-                    Interlocked.Exchange(ref intelPassQueued, 0);
-                    try
-                    {
-                        if (await intel.ProcessNewAsync(waitForTurn: true) > 0)
-                            await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
-                    }
-                    catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after a Jabber room", ex); }
-                });
-            };
+            jabberRooms.IntelLinesSaved += intel.LinesStored;
             jabberRooms.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
 
             // An IRC channel marked Intel, the same way.
             var ircChannels = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>();
-            ircChannels.IntelLinesSaved += () =>
-            {
-                if (Interlocked.Exchange(ref intelPassQueued, 1) == 1) return;
-                _ = Task.Run(async () =>
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(300));
-                    Interlocked.Exchange(ref intelPassQueued, 0);
-                    try
-                    {
-                        if (await intel.ProcessNewAsync(waitForTurn: true) > 0)
-                            await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
-                    }
-                    catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after an IRC channel", ex); }
-                });
-            };
+            ircChannels.IntelLinesSaved += intel.LinesStored;
             ircChannels.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
 
             // An undock, likewise: the location poll is what knows, and it says so the moment
@@ -4323,7 +4304,6 @@ public class App : Application
                     """DELETE FROM "ChatMessages" WHERE "Id" IN (SELECT "Id" FROM (SELECT "Id", ROW_NUMBER() OVER (PARTITION BY "ChannelName", "OccurredAt", "SenderName", "Message" ORDER BY "Id") AS rn FROM "ChatMessages") WHERE rn > 1)""",
 
                     """CREATE TABLE IF NOT EXISTS "IntelReports" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "ReportedAt" TEXT NOT NULL DEFAULT '', "ChannelName" TEXT NOT NULL DEFAULT '', "ReporterName" TEXT NOT NULL DEFAULT '', "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "PlayerCount" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "Obsolete" INTEGER NOT NULL DEFAULT 0, "ObsoleteSetOn" TEXT NULL, "ChatMessageId" INTEGER NOT NULL DEFAULT 0)""",
-                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelReports_ChatMessageId" ON "IntelReports" ("ChatMessageId")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
 
@@ -4344,6 +4324,28 @@ public class App : Application
                     """ALTER TABLE "IntelReports" ADD COLUMN "Flags" INTEGER NOT NULL DEFAULT 0""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Gate" TEXT NULL""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Ships" TEXT NULL""",
+                    // Clears, pastes, follow-ups and direction. Mirrored for PostgreSQL in PostgresSchema.
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Kind" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Source" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "ParentReportId" INTEGER NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "FromSystemId" INTEGER NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "HeadingSystemId" INTEGER NULL""",
+                    // ⚠️ The chat-message index is unique only above 0: a paste has no chat message
+                    // and is stored with 0, as often as anyone pastes. The old index, unique over
+                    // every row, would refuse the second paste ever made.
+                    """DROP INDEX IF EXISTS "IX_IntelReports_ChatMessageId" """,
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelReports_ChatMessage" ON "IntelReports" ("ChatMessageId") WHERE "ChatMessageId" > 0""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Time" ON "IntelReports" ("ReportedAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Reporter" ON "IntelReports" ("ChannelName", "ReporterName", "ReportedAt")""",
+                    // Where each pilot was last seen, from reports, pastes and kills. Mirrored for
+                    // PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "IntelLastSeen" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NULL, "SeenAt" TEXT NOT NULL DEFAULT '', "SourceRank" INTEGER NOT NULL DEFAULT 0, "Source" INTEGER NOT NULL DEFAULT 0, "SystemId" INTEGER NOT NULL DEFAULT 0, "ReportId" INTEGER NULL, "KillMailId" INTEGER NULL, "ShipTypeId" INTEGER NULL, "ShipName" TEXT NULL, "NoVisual" INTEGER NOT NULL DEFAULT 0, "CorporationId" INTEGER NULL, "AllianceId" INTEGER NULL, "AffiliationAt" TEXT NULL, "AffiliationSource" INTEGER NOT NULL DEFAULT 0, "PrevSystemId" INTEGER NULL, "PrevSeenAt" TEXT NULL, "InSystemSince" TEXT NULL, "WrittenAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_SeenAt" ON "IntelLastSeen" ("SeenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_System" ON "IntelLastSeen" ("SystemId", "SeenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_WrittenAt" ON "IntelLastSeen" ("WrittenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Name" ON "IntelLastSeen" ("Name")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Corporation" ON "IntelLastSeen" ("CorporationId")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Alliance" ON "IntelLastSeen" ("AllianceId")""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the
@@ -4357,8 +4359,12 @@ public class App : Application
                     // messages on age"; Data Retention makes that false, and without the guard the
                     // first startup after a chat purge would silently destroy every intel report
                     // derived from the messages it removed.
-                    """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId") AND r."ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), ''))""",
-                    """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId") AND "ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), '')""",
+                    //
+                    // ⚠️ And ChatMessageId > 0. A paste has no chat message at all (it is stored with
+                    // 0), so without that guard every pasted Local and d-scan would read as an orphan
+                    // and be deleted on the next start.
+                    """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE r."ChatMessageId" > 0 AND NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId") AND r."ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), ''))""",
+                    """DELETE FROM "IntelReports" WHERE "ChatMessageId" > 0 AND NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId") AND "ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), '')""",
 
                     """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                     """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
@@ -4777,6 +4783,10 @@ public class App : Application
                     if (SdeNames.TryApplySignal(payload)) return;
                     if (Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().TryApplySignal(payload)) return;
                     if (Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().TryApplySignal(payload)) return;
+                    if (Services.GetRequiredService<IntelService>().TryApplySignal(payload)) return;
+                    // A PC that is not the worker asking it to evaluate now. Before the alarm path,
+                    // which would otherwise read it as an alarm firing.
+                    if (Services.GetRequiredService<AlarmService>().TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();
@@ -4876,6 +4886,14 @@ public class App : Application
             // displays everything the worker raises — while each condition is evaluated once, in
             // one place, instead of once per open window.
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
+
+            // Intel parsing belongs to the worker, and a PC that has just become it has whatever the
+            // others stored while nobody was: one pass now catches up, from the shared watermark.
+            Start("intel catch-up",     () => _ = Task.Run(async () =>
+            {
+                try { await Services.GetRequiredService<IntelService>().ProcessNewAsync(waitForTurn: true); }
+                catch (Exception ex) { errorLogger.Log(nameof(IntelService), "catching up as the new worker", ex); }
+            }));
 
             // Anything scheduled that came due while no client was the worker fires on this first
             // pass, which is why it starts here rather than waiting for the tool to be opened.
@@ -5439,8 +5457,7 @@ public class App : Application
         // would reach into a container that is still being built, and several of them are
         // themselves produced by factories.
         //
-        // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
-        // every client runs its own and the local status is the true one.
+        // Intel parsing is here too: every client stores its own chat, but only the worker parses.
         services.AddSingleton<BackgroundStatusSampler>();
         services.AddSingleton(sp => new WorkerActivityService(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
@@ -5487,6 +5504,10 @@ public class App : Application
                                          Count      = alarms.ArmedCount,
                                          LastRunUtc = alarms.LastFireAt,
                                          NextRunUtc = alarms.NextDueAt },
+                    new WorkerActivity { Key     = WorkerActivityService.Intel,
+                                         Status  = sp.GetRequiredService<IntelService>().StatusText,
+                                         Running = sp.GetRequiredService<IntelService>().IsRunning,
+                                         Count   = sp.GetRequiredService<IntelService>().Backlog },
                     new WorkerActivity { Key        = WorkerActivityService.OrderFulfilment,
                                          Status     = order.StatusText,
                                          LastRunUtc = order.LastRunAt == default ? null : order.LastRunAt,
@@ -5502,7 +5523,8 @@ public class App : Application
                 db.Database.GetConnectionString()!,
                 sp.GetRequiredService<AlarmConditionRegistry>(),
                 sp.GetRequiredService<AlarmActionRunner>(),
-                sp.GetRequiredService<AppErrorLogger>());
+                sp.GetRequiredService<AppErrorLogger>(),
+                sp.GetRequiredService<ClientSignals>());
         });
 
         services.AddSingleton<EntityNameBackfillService>();

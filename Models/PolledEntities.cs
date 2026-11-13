@@ -1789,6 +1789,111 @@ public class IntelReport
     /// <summary>Hulls and classes named with no pilot to fly them, as written for a reader:
     /// "3× Loki, Interdictor". Already counted in <see cref="PlayerCount"/>.</summary>
     public string? Ships { get; set; }
+
+    /// <summary>
+    /// What the row says: <see cref="IntelReportKind.Sighting"/> (someone is there) or
+    /// <see cref="IntelReportKind.Clear"/> (the system was called clear at this time).
+    ///
+    /// <para>⚠️ Anything that counts or places hostiles reads <c>Kind = 0</c> only. A clear names no
+    /// pilots and carries no count, but it is a row in the same table, and a reader that forgets
+    /// the filter shows a clear call as a sighting of nobody.</para>
+    /// </summary>
+    public int Kind { get; set; }
+
+    /// <summary>Where it came from: <see cref="IntelReportSource.Chat"/> (a channel line), or a
+    /// pasted Local or d-scan. A paste has no chat message behind it, so its
+    /// <see cref="ChatMessageId"/> is 0.</summary>
+    public int Source { get; set; }
+
+    /// <summary>A follow-up's thread: always the FIRST report of the thread, never a follow-up,
+    /// so nesting is one level whatever the length of the chain. Null on a report that started one.</summary>
+    public int? ParentReportId { get; set; }
+
+    /// <summary>The system they came from, when the line said so ("A -> B", "from A").</summary>
+    public int? FromSystemId { get; set; }
+
+    /// <summary>The system they were said to be heading for. Only intended: they are still in
+    /// <see cref="SystemId"/>.</summary>
+    public int? HeadingSystemId { get; set; }
+}
+
+/// <summary>Values of <see cref="IntelReport.Kind"/>.</summary>
+public static class IntelReportKind
+{
+    public const int Sighting = 0;
+    public const int Clear    = 1;
+}
+
+/// <summary>Values of <see cref="IntelReport.Source"/>.</summary>
+public static class IntelReportSource
+{
+    public const int Chat       = 0;
+    public const int LocalPaste = 1;
+    public const int DscanPaste = 2;
+}
+
+/// <summary>
+/// Where each pilot was last seen, one row per character, from every source at once: intel
+/// reports, pasted Local, and killmails (as attacker or victim).
+///
+/// <para>Kept rather than worked out on read because working it out means reading every report
+/// and every killmail a pilot was ever on, and the views that need it (the Pilots list, the
+/// panels, the alarms) need it for thousands of pilots at a time.</para>
+///
+/// <para>⚠️ Newer wins, and only newer. Reports are parsed late and kills arrive late, so a write
+/// that is OLDER than what the row holds changes nothing (except the affiliation, below). Ties in
+/// the same second go to the better source, by <see cref="SourceRank"/>: a kill, then a pasted
+/// Local, then a chat report.</para>
+///
+/// <para>⚠️ Every time column is ISO text, "yyyy-MM-ddTHH:mm:ssZ", like IntelReports.ReportedAt,
+/// so a comparison is the same text comparison on SQLite and PostgreSQL.</para>
+/// </summary>
+public class IntelLastSeen
+{
+    public long    CharacterId { get; set; }
+
+    /// <summary>The pilot's name as last written, so a list can show and search it without a lookup.</summary>
+    public string? Name        { get; set; }
+
+    public string  SeenAt      { get; set; } = "";
+
+    /// <summary>Breaks a tie in the same second: 0 report, 1 pasted Local, 2 killmail.</summary>
+    public int     SourceRank  { get; set; }
+
+    /// <summary>0 report, 1 pasted Local, 2 kill attacker, 3 kill victim.</summary>
+    public int     Source      { get; set; }
+
+    public int     SystemId    { get; set; }
+    public int?    ReportId    { get; set; }
+    public int?    KillMailId  { get; set; }
+    public int?    ShipTypeId  { get; set; }
+    public string? ShipName    { get; set; }
+
+    /// <summary>The sighting was "no visual". A flag on it, never a lifetime of its own.</summary>
+    public bool    NoVisual    { get; set; }
+
+    public long?   CorporationId { get; set; }
+    public long?   AllianceId    { get; set; }
+
+    /// <summary>When the affiliation above was true: the kill's time, or when it was pulled.</summary>
+    public string? AffiliationAt { get; set; }
+
+    /// <summary>0 pulled from ESI, 1 from a killmail. A kill's affiliation is never replaced by a
+    /// pulled one: a pulled one only fills a row that has none from a kill.</summary>
+    public int     AffiliationSource { get; set; }
+
+    /// <summary>The system before this one, and when they were seen there: what tells a pilot
+    /// moving closer from one sitting still.</summary>
+    public int?    PrevSystemId { get; set; }
+    public string? PrevSeenAt   { get; set; }
+
+    /// <summary>When this stay in <see cref="SystemId"/> began: reset when the system changes, or
+    /// when the pilot was gone longer than a sighting lasts and has come back.</summary>
+    public string? InSystemSince { get; set; }
+
+    /// <summary>When the row was last written, whatever time it describes. What lets a reader take
+    /// only the rows changed since it last looked, including a late kill with an old time.</summary>
+    public string  WrittenAt   { get; set; } = "";
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in

@@ -1060,8 +1060,9 @@ public class UniverseMapService(IDbContextFactory<AppDbContext> dbFactory)
         var cutoff = DateTimeOffset.UtcNow.AddMinutes(-minutes)
             .UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
 
+        // Sightings only: a clear is a row in the same table and counts nobody.
         var q = db.IntelReports.AsNoTracking()
-            .Where(r => string.Compare(r.ReportedAt, cutoff) >= 0);
+            .Where(r => r.Kind == IntelReportKind.Sighting && string.Compare(r.ReportedAt, cutoff) >= 0);
 
         if (!includeObsolete) q = q.Where(r => !r.Obsolete);
 

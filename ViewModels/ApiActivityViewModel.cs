@@ -888,14 +888,16 @@ public class ApiActivityViewModel : ReactiveObject
             ? DataText.IntelDisabled
             : intelChannels.Count == 0
                 ? DataText.IntelNoChannels
-                : _intel.IsRunning
+                : RelayRunning(WorkerActivityService.Intel, () => _intel.IsRunning)
                     ? DataText.IntelParsing
                     : DataText.IntelWatching;
 
+        // ⚠️ The worker's, relayed: only the worker parses, so this client's own parser is idle by design.
+        var intelBacklog  = RelayCount(WorkerActivityService.Intel, () => _intel.Backlog);
         IntelChannelsText = intelChannels.Count == 0 ? DataText.IntelChannelsNone : string.Join(", ", intelChannels);
-        IntelDetail       = _intel.StatusText;
-        IntelBacklogText  = _intel.Backlog > 0
-            ? string.Format(DataText.IntelBacklogCount, _intel.Backlog)
+        IntelDetail       = Relay(WorkerActivityService.Intel, () => _intel.StatusText);
+        IntelBacklogText  = intelBacklog > 0
+            ? string.Format(DataText.IntelBacklogCount, intelBacklog)
             : DataText.IntelCaughtUp;
 
         NameCacheState = Relay(WorkerActivityService.NameCache, () => _nameCache.StatusText);

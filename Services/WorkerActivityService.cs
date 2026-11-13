@@ -21,9 +21,9 @@ namespace EveConsole.Services;
 /// feels no slower than one that is. The table is how a window opened later finds out what is
 /// happening right now, which a signal cannot answer because it has no replay.</para>
 ///
-/// <para>Only leader-only loops belong here. Intel is deliberately absent: it is driven by chat-log
-/// import, which is host-bound, so every client runs its own and its local status is the true
-/// one.</para>
+/// <para>Only leader-only loops belong here. Intel parsing is one: every client stores its own
+/// chat, but only the worker parses it (see IntelSignals), so on any other client the local parser
+/// is idle by design and the true status is the worker's.</para>
 /// </summary>
 public sealed class WorkerActivityService
 {
@@ -41,6 +41,7 @@ public sealed class WorkerActivityService
     public const string NameCache       = "name.cache";
     public const string LpStore         = "lpstore";
     public const string Alarms          = "alarms";
+    public const string Intel           = "intel";
 
     // The status bar's five lines, one row each: the text as BackgroundStatus prints it and
     // whether the process is busy. Separate from the loops' own rows above, whose status is

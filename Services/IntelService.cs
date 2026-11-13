@@ -2,6 +2,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using EveConsole.Services.Intel;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using EveConsole.Localization;
@@ -25,8 +26,94 @@ public sealed class IntelService(
     IDbContextFactory<AppDbContext> dbFactory,
     EsiClient                       esi,
     MonitoringSettings              settings,
-    AppErrorLogger                  errorLogger) : ReactiveObject
+    AppErrorLogger                  errorLogger,
+    ClientSignals                   signals,
+    WorkerLease                     lease) : ReactiveObject
 {
+    // ── Who parses ───────────────────────────────────────────────────────────
+    //
+    // ⚠️ The worker only. Every PC stores its own chat (the logs are files on that machine), and the
+    // worker parses everything stored, from every PC. See IntelSignals for why two parsers cannot share.
+
+    /// <summary>Whether this process parses: it holds the worker lease (always, on SQLite).</summary>
+    public bool IsWorker => lease.IsHolder;
+
+    /// <summary>
+    /// Raised on every PC when intel has been written anywhere (a pass, and later a paste or a kill
+    /// batch). On a background thread. What shows intel refreshes on it; the worker also runs its
+    /// intel alarms on it, so one pass is evaluated once, wherever it was written.
+    /// </summary>
+    public event Action? IntelChanged;
+
+    /// <summary>Set while a pass or a signal is waiting to go, so a burst of lines costs one.</summary>
+    private int _passQueued;
+
+    /// <summary>
+    /// New lines were stored in an intel channel, here: from a Jabber or IRC room, or the chat logs.
+    /// On the worker a pass runs; anywhere else the worker is told. Either way a burst becomes one,
+    /// 300 ms after its first line, and the pass waits its turn: one already running may have read
+    /// before these arrived.
+    /// </summary>
+    public void LinesStored()
+    {
+        if (Interlocked.Exchange(ref _passQueued, 1) == 1) return;
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(300));
+            Interlocked.Exchange(ref _passQueued, 0);
+            try
+            {
+                if (IsWorker) await ProcessNewAsync(waitForTurn: true);
+                else await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Chat));
+            }
+            catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after new intel lines", ex); }
+        });
+    }
+
+    /// <summary>
+    /// Handles the intel signals; false for anything else. Raised on a background thread, on every PC,
+    /// including the one that sent it.
+    /// </summary>
+    public bool TryApplySignal(string payload)
+    {
+        switch (IntelSignals.KindOf(payload))
+        {
+            case IntelSignals.Chat:
+                // Another PC stored lines. Only the worker acts; the others hear it and do nothing.
+                if (IsWorker) LinesStored();
+                return true;
+
+            case IntelSignals.Reparse:
+                if (IsWorker)
+                    _ = Task.Run(async () =>
+                    {
+                        try { await BackfillAsync(); }
+                        catch (Exception ex) { errorLogger.Log(nameof(IntelService), "re-parse asked by another PC", ex); }
+                    });
+                return true;
+
+            case IntelSignals.Changed:
+                try { IntelChanged?.Invoke(); }
+                catch (Exception ex) { errorLogger.Log(nameof(IntelService), "intel changed", ex); }
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// The Settings button: re-parses here on the worker, and anywhere else asks the worker to. The
+    /// number of reports written, or null when the worker was asked (its progress then shows in
+    /// Background Processes, which relays the worker's intel line).
+    /// </summary>
+    public async Task<int?> ReparseAsync(IProgress<string>? progress = null, CancellationToken ct = default)
+    {
+        if (IsWorker) return await BackfillAsync(progress, ct);
+        await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Reparse), ct);
+        return null;
+    }
+
     // ── Observable state ─────────────────────────────────────────────────────
     // This runs off the chat importer's loop with no UI of its own, so without these it is
     // invisible: there is no way to tell a long backlog apart from a feature that is not
@@ -105,6 +192,9 @@ public sealed class IntelService(
     /// </summary>
     public async Task<int> ProcessNewAsync(CancellationToken ct = default, bool waitForTurn = false)
     {
+        // The worker parses; see IntelSignals. A PC that is not tells it instead (LinesStored).
+        if (!IsWorker) return 0;
+
         var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
@@ -276,6 +366,9 @@ public sealed class IntelService(
     public async Task<int> BackfillAsync(
         IProgress<string>? progress = null, CancellationToken ct = default)
     {
+        // The worker parses; anywhere else ReparseAsync asks it to.
+        if (!IsWorker) return 0;
+
         var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
@@ -305,8 +398,12 @@ public sealed class IntelService(
 
             // Channel-scoped as well as time-scoped: a report from a channel no longer configured
             // for intel would not be regenerated either, so it is not ours to delete.
+            //
+            // ⚠️ And never a paste (ChatMessageId 0): it came from no chat message, so nothing re-parsed
+            // would bring it back.
             var doomed = db.IntelReports
-                .Where(r => string.Compare(r.ReportedAt, oldest) >= 0 && channels.Contains(r.ChannelName));
+                .Where(r => r.ChatMessageId > 0
+                         && string.Compare(r.ReportedAt, oldest) >= 0 && channels.Contains(r.ChannelName));
 
             await db.IntelReportCharacters
                 .Where(c => doomed.Any(r => r.Id == c.IntelReportId))
@@ -314,7 +411,8 @@ public sealed class IntelService(
             await doomed.ExecuteDeleteAsync(ct);
         }
 
-        settings.IntelWatermark = 0;
+        // Awaited: the pass below reads the watermark from the database, not from this process.
+        await settings.ResetIntelWatermarkAsync();
         return await RunAsync(channels, once: false, progress, ct);
     }
 
@@ -334,7 +432,9 @@ public sealed class IntelService(
         {
             using var db = dbFactory.CreateDbContext();
 
-            var after = settings.IntelWatermark;
+            // ⚠️ From the database every time, never this process's copy: the worker can move to
+            // another PC, and the copy is wherever the watermark stood when this one started.
+            var after = await settings.ReadIntelWatermarkAsync(ct);
             var batch = await db.ChatMessages.AsNoTracking()
                 .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage && m.Id > after)
                 .OrderBy(m => m.Id)
@@ -471,7 +571,8 @@ public sealed class IntelService(
             // automatic checkpoint became a multi-second stall.
             await CheckpointAsync(db, ct);
 
-            settings.IntelWatermark = batch[^1].Id;
+            // Forward only, and awaited: the next batch reads it back from the database.
+            await settings.AdvanceIntelWatermarkAsync(batch[^1].Id, ct);
             seen += batch.Count;
 
             // One figure, published once, so the two rows in Background Processes cannot
@@ -499,6 +600,10 @@ public sealed class IntelService(
             using var db = dbFactory.CreateDbContext();
             await SupersedeAllAsync(db, ct);
             await CheckpointAsync(db, ct);
+
+            // Every PC refreshes what it shows, and the worker (this one) runs the intel alarms on
+            // hearing it: once per pass, wherever it was written. Nothing here calls the alarms itself.
+            await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Changed), ct);
         }
 
         return written;
@@ -670,16 +775,29 @@ public sealed class IntelService(
     ///
     /// Ties on ReportedAt fall to the higher Id, since chat timestamps are only accurate to the
     /// second and a pilot really does get called in two systems within one.
+    ///
+    /// <para>⚠️ Only the last <see cref="SupersedeWindow"/>, on both sides. The statement joins every
+    /// pilot's reports to every other report of that pilot, and over the whole history that is a
+    /// self-join of a table that only grows, run after every pass that writes anything. A report a
+    /// day old is history whatever came after it, and the views never look that far back.</para>
     /// </summary>
-    private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct) =>
+    private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct)
+    {
+        var since = DateTimeOffset.UtcNow - SupersedeWindow;
+        var sinceText = since.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         // ⚠️ The value, not a rendering of it. ObsoleteSetOn is a timestamptz on a server,
-        // and text does not implicitly convert into one.
-        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow], ct);
+        // and text does not implicitly convert into one. The bound is text: ReportedAt is.
+        return db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow, sinceText], ct);
+    }
+
+    /// <summary>How far back one report can still supersede another.</summary>
+    private static readonly TimeSpan SupersedeWindow = TimeSpan.FromHours(24);
 
     private const string SupersedeSql = """
         UPDATE "IntelReports"
         SET "Obsolete" = TRUE, "ObsoleteSetOn" = {0}
         WHERE "Obsolete" = FALSE
+          AND "ReportedAt" >= {1}
           AND EXISTS (
             SELECT 1
             FROM "IntelReportCharacters" c1
@@ -687,6 +805,7 @@ public sealed class IntelService(
             JOIN "IntelReports" r2        ON r2."Id" = c2."IntelReportId"
             WHERE c1."IntelReportId" = "IntelReports"."Id"
               AND r2."Id" <> "IntelReports"."Id"
+              AND r2."ReportedAt" >= {1}
               AND (r2."ReportedAt" > "IntelReports"."ReportedAt"
                 OR (r2."ReportedAt" = "IntelReports"."ReportedAt"
                     AND r2."Id" > "IntelReports"."Id")))

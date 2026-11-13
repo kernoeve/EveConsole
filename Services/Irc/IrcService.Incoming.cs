@@ -530,9 +530,10 @@ public sealed partial class IrcService
         if (lines.Count == 0) return;
         try
         {
+            // ⚠️ Through ChatMessageWrites: the intel watermark reads by id, so ids must commit in order.
             await using var db = await dbFactory.CreateDbContextAsync(ct);
             db.ChatMessages.AddRange(lines);
-            await db.SaveChangesAsync(ct);
+            await EveConsole.Data.ChatMessageWrites.SaveAsync(db, ct);
             IntelLinesSaved?.Invoke();
         }
         catch (Exception e) when (e is not OperationCanceledException)

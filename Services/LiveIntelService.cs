@@ -1,6 +1,7 @@
 using System.Globalization;
 using EveConsole.Data;
 using EveConsole.Localization;
+using EveConsole.Models;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 
@@ -93,8 +94,9 @@ public sealed class LiveIntelService(
 
         // ── Intel reports ────────────────────────────────────────────────────
         var cutoffText = cutoff.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
+        // Sightings only: a clear is a row in the same table and places nobody.
         var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => string.Compare(r.ReportedAt, cutoffText) >= 0)
+            .Where(r => r.Kind == IntelReportKind.Sighting && string.Compare(r.ReportedAt, cutoffText) >= 0)
             .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete, r.Flags, r.Gate, r.Ships })
             .ToListAsync(ct);
 

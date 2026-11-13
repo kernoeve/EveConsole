@@ -39,6 +39,10 @@ public sealed class AlarmService : ReactiveObject
     private readonly AlarmConditionRegistry          _registry;
     private readonly AlarmActionRunner               _actions;
     private readonly AppErrorLogger                  _errors;
+    private readonly ClientSignals?                  _signals;
+
+    /// <summary>Discriminator of the nudge a PC that is not the worker sends instead of evaluating.</summary>
+    public const string TriggerSignalKind = "alarm-trigger";
 
     private CancellationTokenSource? _cts;
     private Task?          _loop;
@@ -55,13 +59,15 @@ public sealed class AlarmService : ReactiveObject
         string                          connString,
         AlarmConditionRegistry          registry,
         AlarmActionRunner               actions,
-        AppErrorLogger                  errors)
+        AppErrorLogger                  errors,
+        ClientSignals?                  signals = null)
     {
         _dbFactory  = dbFactory;
         _connString = connString;
         _registry   = registry;
         _actions    = actions;
         _errors     = errors;
+        _signals    = signals;
     }
 
     public AlarmConditionRegistry Registry => _registry;
@@ -140,27 +146,23 @@ public sealed class AlarmService : ReactiveObject
     ///
     /// <para>A fixed interval is the fallback for sources that cannot say when they changed,
     /// which is most of them; anything that can say so should.</para>
+    ///
+    /// <para>⚠️ Alarms are evaluated on the worker only (the loop runs there). Anywhere else this
+    /// asks the worker, with an <see cref="TriggerSignalKind"/> signal, and evaluates nothing: a PC
+    /// that is not the worker evaluating its own copy would fire every alarm a second time, from a
+    /// second set of seen keys read a moment apart.</para>
     /// </summary>
     public async Task TriggerAsync(string conditionType, CancellationToken ct = default)
     {
+        if (_loop is null)
+        {
+            await PublishTriggerAsync(conditionType, ct);
+            return;
+        }
+
         try
         {
-            List<long> ids;
-            await using (var db = await _dbFactory.CreateDbContextAsync(ct))
-            {
-                var now = DateTimeOffset.Now;
-                ids = (await db.Alarms
-                    .Where(a => a.Enabled && a.ConditionType == conditionType)
-                    .ToListAsync(ct))
-                    .Where(a => a.IsActiveAt(now))
-                    .Select(a => a.Id)
-                    .ToList();
-            }
-
-            if (ids.Count == 0) return;
-
-            lock (_nextDue)
-                foreach (var id in ids) _nextDue.Remove(id);
+            if (!await ExpireDueTimesAsync(conditionType, ct)) return;
 
             // Evaluate immediately rather than waiting for the next tick, but never on top of a
             // pass already running — the seen-key diff is read-then-write and two overlapping
@@ -171,6 +173,72 @@ public sealed class AlarmService : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { _errors.Log("AlarmService", $"trigger {conditionType}", ex); }
+    }
+
+    private async Task PublishTriggerAsync(string conditionType, CancellationToken ct)
+    {
+        if (_signals is null) return;
+        try
+        {
+            await _signals.PublishAsync(JsonSerializer.Serialize(new TriggerSignal
+            {
+                Kind = TriggerSignalKind, Type = conditionType,
+            }), ct);
+        }
+        catch (OperationCanceledException) { }
+        catch (Exception ex) { _errors.Log("AlarmService", $"asking the worker to evaluate {conditionType}", ex); }
+    }
+
+    /// <summary>
+    /// The nudge from a PC that is not the worker; false for any other signal. On the worker the
+    /// alarms of that type are made due at once, and the loop's next tick (within
+    /// <see cref="TickInterval"/>) evaluates them, so a nudge never adds a pass of its own or meets
+    /// one already running. Anywhere else it is heard and ignored.
+    /// </summary>
+    public bool TryApplySignal(string payload)
+    {
+        if (!payload.Contains(TriggerSignalKind, StringComparison.Ordinal)) return false;
+
+        TriggerSignal? signal;
+        try { signal = JsonSerializer.Deserialize<TriggerSignal>(payload); }
+        catch (JsonException) { return false; }
+        if (signal is not { Kind: TriggerSignalKind }) return false;
+
+        if (_loop is not null && !string.IsNullOrEmpty(signal.Type))
+            _ = Task.Run(async () =>
+            {
+                try { await ExpireDueTimesAsync(signal.Type, CancellationToken.None); }
+                catch (Exception ex) { _errors.Log("AlarmService", $"nudged to evaluate {signal.Type}", ex); }
+            });
+        return true;
+    }
+
+    private sealed class TriggerSignal
+    {
+        public string Kind { get; set; } = "";
+        public string Type { get; set; } = "";
+    }
+
+    /// <summary>Makes every enabled, active alarm of the type due now; false when there is none.</summary>
+    private async Task<bool> ExpireDueTimesAsync(string conditionType, CancellationToken ct)
+    {
+        List<long> ids;
+        await using (var db = await _dbFactory.CreateDbContextAsync(ct))
+        {
+            var now = DateTimeOffset.Now;
+            ids = (await db.Alarms
+                .Where(a => a.Enabled && a.ConditionType == conditionType)
+                .ToListAsync(ct))
+                .Where(a => a.IsActiveAt(now))
+                .Select(a => a.Id)
+                .ToList();
+        }
+
+        if (ids.Count == 0) return false;
+
+        lock (_nextDue)
+            foreach (var id in ids) _nextDue.Remove(id);
+        return true;
     }
 
     /// <summary>

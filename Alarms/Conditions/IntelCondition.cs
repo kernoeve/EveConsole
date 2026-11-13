@@ -309,6 +309,7 @@ public sealed class IntelCondition : IAlarmCondition
                        "Flags", "Gate", "Ships"
                 FROM "IntelReports"
                 WHERE "ReportedAt" >= @cutoff
+                  AND "Kind" = 0
                   AND "SystemId" IN ({idList})
                   AND "PlayerCount" >= @minimum
                   {(skipNv ? """AND "NoVisual" = FALSE""" : "")}

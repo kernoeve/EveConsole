@@ -176,12 +176,25 @@ public sealed class MonitoringSettings(AppPreferencesService prefs)
 
     /// <summary>Highest ChatMessage.Id already considered for intel. A watermark rather than a
     /// left join because "clear" lines and unparseable chatter produce no report, and would
-    /// otherwise be reconsidered on every pass forever.</summary>
-    public long IntelWatermark
-    {
-        get => prefs.GetLong(KeyIntelWatermark, 0);
-        set => _ = prefs.SetLongAsync(KeyIntelWatermark, value);
-    }
+    /// otherwise be reconsidered on every pass forever.
+    ///
+    /// <para>⚠️ Read for display only. The parser reads it with <see cref="ReadIntelWatermarkAsync"/>
+    /// and moves it with <see cref="AdvanceIntelWatermarkAsync"/>: whichever PC is the worker parses,
+    /// and this copy is whatever it was when this process loaded its preferences.</para></summary>
+    public long IntelWatermark => prefs.GetLong(KeyIntelWatermark, 0);
+
+    /// <summary>The watermark as the database holds it now. Read at the start of every pass, so a
+    /// PC that has just become the worker starts where the last one stopped.</summary>
+    public Task<long> ReadIntelWatermarkAsync(CancellationToken ct = default) =>
+        prefs.ReadFreshLongAsync(KeyIntelWatermark, 0, ct);
+
+    /// <summary>Moves the watermark forward to <paramref name="messageId"/>, never back; the value it
+    /// holds afterwards.</summary>
+    public Task<long> AdvanceIntelWatermarkAsync(long messageId, CancellationToken ct = default) =>
+        prefs.SetLongIfGreaterAsync(KeyIntelWatermark, messageId, ct);
+
+    /// <summary>Back to the start, for a re-parse: the one move backwards there is.</summary>
+    public Task ResetIntelWatermarkAsync() => prefs.SetLongAsync(KeyIntelWatermark, 0);
 
     /// <summary>Channel names found by the last discovery scan. Cached because
     /// enumerating a chat log folder is slow — tens of thousands of files, often on

@@ -3934,4 +3934,7 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Удалять групповой чат старше</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>ПК, выполняющий фоновую работу, получил запрос на повторный разбор истории: разведку разбирает только он. Ход работы виден в разделе «Фоновые процессы».</value>
+  </data>
 </root>

@@ -1518,7 +1518,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                    r."ReporterName"              AS "Reporter"
             FROM "IntelReportCharacters" c
             JOIN "IntelReports" r ON r."Id" = c."IntelReportId"
-            WHERE c."CharacterId" = @id
+            WHERE c."CharacterId" = @id AND r."Kind" = 0
             ORDER BY r."ReportedAt" DESC
             LIMIT @lim
             """,

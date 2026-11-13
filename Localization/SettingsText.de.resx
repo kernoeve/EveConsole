@@ -3928,4 +3928,7 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Gruppenchat löschen, der älter ist als</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Der PC, der die Hintergrundarbeit erledigt, wurde gebeten, den Verlauf neu auszuwerten: Nur dieser PC wertet Aufklärung aus. Der Fortschritt erscheint unter Hintergrundprozesse.</value>
+  </data>
 </root>

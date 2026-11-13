@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Localization;
 
@@ -532,8 +533,9 @@ public class SystemViewService(
     {
         using var db = dbFactory.CreateDbContext();
 
+        // Sightings only: a clear is a row in the same table and names nobody.
         var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => r.SystemId == systemId)
+            .Where(r => r.SystemId == systemId && r.Kind == IntelReportKind.Sighting)
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
             .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
