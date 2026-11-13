@@ -115,6 +115,11 @@ public sealed record IntelView(
     IReadOnlyList<IntelOrigin> MissingOrigins)
 {
     public bool Pending => MissingOrigins.Count > 0;
+
+    /// <summary>Whether the viewer shows kills (kills on, and the sources filter keeps them): a row's kill marker
+    /// follows the same filter as the rows.</summary>
+    public bool KillsShown { get; init; } = true;
+
     public static readonly IntelView Empty = new([], [], null, []);
 }
 
@@ -358,7 +363,10 @@ public static class IntelLens
                 : r)
             .ToList();
 
-        return new IntelView(systems, feed, nearest, missing);
+        return new IntelView(systems, feed, nearest, missing)
+        {
+            KillsShown = viewer.IncludeKills && (viewer.Sources is not { } kept || kept.Contains(IntelSnapshot.SourceKills)),
+        };
     }
 
     /// <summary>A camp's watch-list mark, by its attackers.</summary>

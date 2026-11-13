@@ -30,8 +30,9 @@
       </StackPanel>
     </DataTemplate>
 
-    <!-- A who token on the Board: a pilot's portrait, round, with a smaller alliance or corporation logo on it; or a
-         group's logo, square, with how many beside it. 24 pixels, with a placeholder while it loads. -->
+    <!-- A who token's picture on the Board: a pilot's portrait, round, with a smaller alliance or corporation logo on
+         it; or a group's logo, square. 24 pixels, with a placeholder while it loads. The name and "×n" follow it in the
+         Who cell, where there is room. -->
     <DataTemplate x:Key="WhoPicture" x:DataType="vm:IntelWhoTokenVm">
       <StackPanel Orientation="Horizontal" Spacing="3" ToolTip.Tip="{Binding Tip}" Background="Transparent">
         <Panel Width="24" Height="24" VerticalAlignment="Center">
@@ -47,8 +48,6 @@
             <Image Source="{Binding Badge.Picture}" Width="12" Height="12" />
           </Border>
         </Panel>
-        <TextBlock Text="{Binding CountText}" IsVisible="{Binding HasCount}" FontSize="11" FontWeight="SemiBold"
-                   VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
       </StackPanel>
     </DataTemplate>
 
@@ -465,8 +464,8 @@
                   <StackPanel>
                     <Grid ColumnDefinitions="3,52,1.3*,84,52,1.7*,1.5*,0.9*,1*,56,1*,1*" ColumnSpacing="8" MinHeight="30"
                           Opacity="{Binding Opacity}">
-                      <Border Classes="stripe" Classes.clear="{Binding IsClear}" Background="{Binding TierBrush}"
-                              ToolTip.Tip="{Binding StandingsTip}" />
+                      <Border Classes="stripe" Background="{Binding TierBrush}" ToolTip.Tip="{Binding StandingsTip}" />
+                      <Border Classes="stripe clear" IsVisible="{Binding IsClear}" />
                       <Border Grid.Column="1" Classes="badge" IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
                               Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
                               Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
@@ -494,10 +493,15 @@
                         <TextBlock views:IntelFitPanel.Drop="2" Text="{Binding Who.First.Name}" IsVisible="{Binding Who.HasTokens}" FontSize="11"
                                    VerticalAlignment="Center" Margin="5 0 0 0" MaxWidth="150" TextTrimming="CharacterEllipsis"
                                    Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding Who.First.TimesText}" IsVisible="{Binding Who.First.HasCount, FallbackValue=False}" FontSize="11"
+                                   FontWeight="SemiBold" VerticalAlignment="Center" Margin="4 0 0 0" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <ContentControl views:IntelFitPanel.Drop="3" Content="{Binding Who.Second}" ContentTemplate="{StaticResource WhoPicture}"
                                         IsVisible="{Binding Who.HasSecond}" VerticalAlignment="Center" Margin="8 0 0 0" />
                         <TextBlock views:IntelFitPanel.Drop="1" Text="{Binding Who.Second.Name}" IsVisible="{Binding Who.HasSecond}" FontSize="11"
                                    VerticalAlignment="Center" Margin="5 0 0 0" MaxWidth="130" TextTrimming="CharacterEllipsis"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" />
+                        <TextBlock views:IntelFitPanel.Drop="3" Text="{Binding Who.Second.TimesText}" IsVisible="{Binding Who.Second.HasCount, FallbackValue=False}"
+                                   FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center" Margin="4 0 0 0"
                                    Foreground="{DynamicResource TextSecondaryBrush}" />
                         <TextBlock views:IntelFitPanel.Drop="3" Text="{Binding Who.MoreText}" IsVisible="{Binding Who.HasMore}" FontSize="11"
                                    VerticalAlignment="Center" Margin="6 0 0 0" Foreground="{DynamicResource TextMutedBrush}" />
@@ -536,13 +540,18 @@
                             Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1">
                       <StackPanel>
                         <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionPilots}" IsVisible="{Binding HasPilots}" />
-                        <ItemsControl ItemsSource="{Binding Pilots}" IsVisible="{Binding HasPilots}" Width="820" HorizontalAlignment="Left">
+                        <!-- As wide as the row allows, up to 820, from the left: a narrow Board trims the names rather than cutting
+                             off the age and kill columns (the Board does not scroll sideways). -->
+                        <Grid IsVisible="{Binding HasPilots}">
+                          <Grid.ColumnDefinitions><ColumnDefinition Width="*" MaxWidth="820" /></Grid.ColumnDefinitions>
+                        <ItemsControl ItemsSource="{Binding Pilots}">
                           <ItemsControl.ItemTemplate>
                             <DataTemplate x:DataType="vm:IntelHostilePilotVm">
                               <views:IntelHostileLine PictureSize="24" />
                             </DataTemplate>
                           </ItemsControl.ItemTemplate>
                         </ItemsControl>
+                        </Grid>
                         <TextBlock Classes="section" Text="{x:Static loc:IntelText.SectionEvents}" IsVisible="{Binding HasEvents}" />
                         <ItemsControl ItemsSource="{Binding Events}">
                           <ItemsControl.ItemTemplate>
@@ -573,8 +582,8 @@
               <Border Classes="feedLine" Classes.fresh="{Binding Row.IsFresh}" ToolTip.Tip="{Binding Row.ToolTip}"
                       ContextRequested="OnFeedLineContext">
                 <Grid ColumnDefinitions="3,70,40,170,*,Auto" ColumnSpacing="10" Opacity="{Binding Row.Opacity}">
-                  <Border Classes="stripe" Classes.clear="{Binding Row.IsClear}" Background="{Binding Row.TierBrush}"
-                          ToolTip.Tip="{Binding Row.StandingsTip}" />
+                  <Border Classes="stripe" Background="{Binding Row.TierBrush}" ToolTip.Tip="{Binding Row.StandingsTip}" />
+                  <Border Classes="stripe clear" IsVisible="{Binding Row.IsClear}" />
                   <StackPanel Grid.Column="1" VerticalAlignment="Center">
                     <TextBlock Text="{Binding Row.AgeText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" />
                     <TextBlock Text="{Binding Row.TimeText}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"

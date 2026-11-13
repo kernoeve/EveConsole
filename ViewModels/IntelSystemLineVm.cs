@@ -91,7 +91,10 @@ public sealed class IntelWhoTokenVm(IntelPictureVm picture, string name, string 
     public string Name { get; } = name;
     public string CountText { get; } = count;
     public bool HasCount => CountText.Length > 0;
-    public string Tip { get; } = tip;
+    /// <summary>"×4", after the name where there is room for it (the Board); empty for a pilot.</summary>
+    public string TimesText => HasCount ? "×" + CountText : "";
+    /// <summary>The token's own name and count; the first token's is the whole breakout, as it is the one never dropped.</summary>
+    public string Tip { get; internal set; } = tip;
 
     /// <summary>A single pilot's alliance (or corporation) logo, small, on their portrait.</summary>
     public IntelPictureVm? Badge { get; } = badge;
@@ -137,12 +140,15 @@ public sealed class IntelWhoVm
             var unknown = hostiles.Pilots.Count(p => p.AllianceId <= 0 && p.CorporationId <= 0);
             if (unknown > 0) tip.Add(string.Format(culture, IntelText.WhoTipUnknown, unknown));
         }
-        else if (hostiles.Pilots.Count > 1)
+        else if (hostiles.Pilots.Count > 0)
         {
+            // Several with no known affiliation; or one named among others counted, whose portrait carries a "1" so the
+            // line does not read as one person.
+            var counted = hostiles.Pilots.Count == 1 ? 1.ToString(culture) : "";
             foreach (var p in hostiles.Pilots.Take(maxTokens))
             {
                 var name = p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture);
-                tokens.Add(new IntelWhoTokenVm(IntelPictureVm.Pilot(p.CharacterId, name, p.Watch), name, "", name));
+                tokens.Add(new IntelWhoTokenVm(IntelPictureVm.Pilot(p.CharacterId, name, p.Watch), name, counted, name));
             }
             more = hostiles.Pilots.Count - tokens.Count;
             tip.AddRange(hostiles.Pilots.Select(p => p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture)));
@@ -152,7 +158,10 @@ public sealed class IntelWhoVm
         Tokens = tokens;
         MoreText = more > 0 ? "+" + more.ToString(culture) : "";
         Tip = tip.Count == 0 ? null : string.Join("\n", tip);
-        Signature = string.Join(",", tokens.Select(t => t.Picture.Kind + ":" + t.Picture.Id + ":" + t.Name + ":" + t.CountText + ":" + t.Badge?.Id)) + "|" + MoreText;
+        // The first token is never dropped from a narrow line, so it carries the whole breakout: the names, the second
+        // group and "+N" may all be gone.
+        if (Tip is not null && tokens.Count > 0) tokens[0].Tip = Tip;
+        Signature = string.Join(",", tokens.Select(t => t.Picture.Kind + ":" + t.Picture.Id + ":" + t.Name + ":" + t.CountText + ":" + t.Badge?.Id)) + "|" + MoreText + "|" + Tip;
     }
 
     public IReadOnlyList<IntelWhoTokenVm> Tokens { get; }
@@ -203,6 +212,7 @@ public sealed class IntelHostilePilotVm : ReactiveObject
         Hull = p.Ship is { Length: > 0 } ship
             ? p.ShipTypeId is > 0 and int type ? IntelPictureVm.Ship(type, ship) : IntelPictureVm.SaidHull(snapshot, ship)
             : null;
+        HullTip = Hull is null ? null : Hull.Text + "\n" + IntelText.TipOpenHull;
         OnKill = p.OnKill;
         NoVisual = p.NoVisual;
         TierBrush = IntelTierColors.Of(p.Tier);
@@ -225,6 +235,8 @@ public sealed class IntelHostilePilotVm : ReactiveObject
     public string? GroupTip { get; }
     public IntelPictureVm? Hull { get; }
     public bool HasHull => Hull is not null;
+    /// <summary>The hull's whole name (trimmed on a narrow line), and what clicking it does.</summary>
+    public string? HullTip { get; }
     public bool OnKill { get; }
     public bool NoVisual { get; }
     public IBrush TierBrush { get; }
@@ -266,8 +278,9 @@ public sealed class IntelSystemLineVm : ReactiveObject
     private readonly int? _jumps;
     private readonly bool _canBeFresh;
 
+    /// <param name="killsShown">Whether the view shows kills (<see cref="IntelView.KillsShown"/>): the kill marker follows it.</param>
     public IntelSystemLineVm(IntelSystemRow row, IntelSnapshot snapshot, IReadOnlyList<IntelFeedRow> events, string? region,
-                             DateTimeOffset now, bool pending, IntelRowActions actions)
+                             DateTimeOffset now, bool pending, IntelRowActions actions, bool killsShown = true)
     {
         var culture = CultureInfo.CurrentCulture;
         Actions = actions;
@@ -284,7 +297,7 @@ public sealed class IntelSystemLineVm : ReactiveObject
         StandingsTip = IsClear ? null : IntelWords.StandingsTip(snapshot.Standings, row.StandingsFrom);
         _canBeFresh = !IsClear;
 
-        var hostiles = IntelHostiles.Of(row, snapshot, now);
+        var hostiles = IntelHostiles.Of(row, snapshot, now, killsShown);
         Hostiles = hostiles;
         var count = hostiles.Count;
         CountText = count > 0 ? count.ToString(culture) : "";

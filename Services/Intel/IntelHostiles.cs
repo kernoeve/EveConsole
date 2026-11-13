@@ -34,8 +34,9 @@ public sealed record IntelSystemHostiles(
     /// <summary>Every hostile, named or counted.</summary>
     public int Count => Pilots.Count + Unnamed;
 
-    /// <summary>The one pilot named, shown by their portrait; null with none or several.</summary>
-    public IntelHostile? Single => Pilots.Count == 1 ? Pilots[0] : null;
+    /// <summary>The one pilot there, shown by their portrait; null with none, several, or one named among others only
+    /// counted (one portrait beside a count of 16 would read as one person).</summary>
+    public IntelHostile? Single => Pilots.Count == 1 && Unnamed == 0 ? Pilots[0] : null;
 
     /// <summary>The most flown hull, capsules last; null when no hull is known.</summary>
     public IntelHullCount? PrimaryHull => Hulls.Count > 0 ? Hulls[0] : null;
@@ -58,7 +59,31 @@ public static class IntelHostiles
 
     public static bool IsCapsule(int typeId) => Capsules.Contains(typeId);
 
-    public static IntelSystemHostiles Of(IntelSystemRow row, IntelSnapshot snapshot, DateTimeOffset now)
+    /// <summary>A hull said by a name the snapshot's English hull names (<see cref="IntelSnapshot.HullId"/>, the parser's
+    /// vocabulary, capsules among them) do not know: its capsule's type id when the name is a capsule's in the interface
+    /// language's SDE names; else 0. A capsule still counts, but is never the hull shown first.</summary>
+    public static int CapsuleId(string? name)
+    {
+        if (name is not { Length: > 0 }) return 0;
+        var trimmed = name.Trim();
+        foreach (var id in Capsules)
+            if (EveConsole.Localization.SdeNames.Type(id, "") is { Length: > 0 } local
+                && string.Equals(local, trimmed, StringComparison.CurrentCultureIgnoreCase)) return id;
+        return 0;
+    }
+
+    /// <summary>Each feed's kills by system, built once per snapshot (the feed is the snapshot's, never changed), so a
+    /// list of rows looks only at its own system's kills rather than the whole feed for every row.</summary>
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<IReadOnlyList<IntelEvent>, ILookup<int, IntelEvent>> KillIndex = new();
+
+    /// <summary>The snapshot's kills in one system, live or not.</summary>
+    public static IEnumerable<IntelEvent> KillsIn(IntelSnapshot snapshot, int systemId) =>
+        KillIndex.GetValue(snapshot.Feed, feed => feed.Where(e => e.Kind == IntelEventKind.Kill).ToLookup(e => e.SystemId))[systemId];
+
+    /// <summary>The hostiles of one system row.</summary>
+    /// <param name="killsShown">Whether the view shows kills at all (<see cref="IntelView.KillsShown"/>): a view whose
+    /// sources leave the kills out shows no kill marker either.</param>
+    public static IntelSystemHostiles Of(IntelSystemRow row, IntelSnapshot snapshot, DateTimeOffset now, bool killsShown = true)
     {
         var pilots = row.Pilots
             .Where(p => p.Pilot.Source != IntelLastSeenSource.KillVictim)
@@ -74,10 +99,9 @@ public static class IntelHostiles
 
         // A kill marks the system only when one of these hostiles was on it: blues killing a red here are no threat.
         var ids = pilots.Select(p => p.CharacterId).ToHashSet();
-        var kills = snapshot.Feed
-            .Where(e => e.Kind == IntelEventKind.Kill && e.SystemId == row.SystemId && e.ExpiresAt > now && e.At <= now
-                        && e.Pilots.Any(a => ids.Contains(a.CharacterId)))
-            .ToList();
+        List<IntelEvent> kills = !killsShown || ids.Count == 0 ? [] :
+            [.. KillsIn(snapshot, row.SystemId)
+                .Where(e => e.ExpiresAt > now && e.At <= now && e.Pilots.Any(a => ids.Contains(a.CharacterId)))];
 
         return new IntelSystemHostiles(pilots, row.Unnamed, groups, hulls, kills.Count,
                                        kills.Count > 0 ? kills.Max(k => k.At) : null);
@@ -106,12 +130,12 @@ public static class IntelHostiles
         foreach (var p in pilots)
         {
             if (p.Ship is not { Length: > 0 } ship) continue;
-            var id = p.ShipTypeId is > 0 and int t ? t : snapshot.HullId(ship);
+            var id = p.ShipTypeId is > 0 and int t ? t : snapshot.HullId(ship) is > 0 and int h ? h : CapsuleId(ship);
             Add(id, ship, 1);
         }
         foreach (var (n, english) in EveConsole.Services.IntelDisplay.ParseShips(said))
         {
-            var id = snapshot.HullId(english);
+            var id = snapshot.HullId(english) is > 0 and int h ? h : CapsuleId(english);
             Add(id, id > 0 ? EveConsole.Localization.SdeNames.Type(id, english) : english, n);
         }
         return [.. counts.Values

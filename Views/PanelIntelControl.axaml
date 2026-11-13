@@ -88,8 +88,8 @@
             <Border Classes="systemRow" Classes.open="{Binding IsOpen}"
                     Tapped="OnRowTapped" ContextRequested="OnRowContext">
               <Grid ColumnDefinitions="3,*">
-                <Border Classes="stripe" Classes.clear="{Binding IsClear}" Background="{Binding TierBrush}"
-                        ToolTip.Tip="{Binding StandingsTip}" />
+                <Border Classes="stripe" Background="{Binding TierBrush}" ToolTip.Tip="{Binding StandingsTip}" />
+                <Border Classes="stripe clear" IsVisible="{Binding IsClear}" />
                 <StackPanel Grid.Column="1">
                   <Border Classes="line" Classes.fresh="{Binding IsFresh}">
                     <views:IntelSystemLine Margin="5 2 8 2" Opacity="{Binding Opacity}" />

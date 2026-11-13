@@ -320,11 +320,9 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
     private void Show(IntelSnapshot snapshot, IntelView view, string? name, long? id, OwnPosition? own, DateTimeOffset now)
     {
         var culture = CultureInfo.CurrentCulture;
-        var pending = view.Pending;
 
         // One row per system: who is there leads, and its reports, kills and camp lines are its details. A camp's
         // kills are not each a line beside the camp's own.
-        var events = SystemEvents(view);
         var held = Rows.ToDictionary(r => r.SystemId);
         var fresh = Lines(snapshot, view, now, Actions)
             .Select(row =>
@@ -343,10 +341,9 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         var threats = view.Systems.Where(s => s.State != IntelSystemState.Clear && s.Watch != IntelWatchMark.Ignored).ToList();
         // The nearest someone; with nobody about, the nearest camp, cyno or bubbles, rather than "nothing".
         var nearest = own is null ? null : view.Nearest ?? view.Systems.FirstOrDefault(r => r.State == IntelSystemState.FlagsOnly);
-        // The list's own row for it: the single line reads exactly as the list does.
-        Nearest = nearest is null ? null
-            : fresh.FirstOrDefault(r => r.SystemId == nearest.SystemId)
-              ?? new IntelSystemLineVm(nearest, snapshot, events.GetValueOrDefault(nearest.SystemId) ?? [], null, now, pending, Actions);
+        // The list's own row for it, always among the rows (the lens picks the nearest from the systems it lists): the
+        // single line reads exactly as the list does, and shares its pictures, loaded once and kept with the row.
+        Nearest = nearest is null ? null : fresh.FirstOrDefault(r => r.SystemId == nearest.SystemId);
         var others = threats.Count - (nearest is null ? 0 : 1);
         MoreText = own is null || others <= 0 ? "" : string.Format(culture, IntelText.PanelMoreWithin, others, Range);
         MoreShort = MoreText.Length == 0 ? "" : "+" + others.ToString(culture);
@@ -393,7 +390,7 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
     {
         var events = SystemEvents(view);
         return [.. view.Systems.Select(s =>
-            new IntelSystemLineVm(s, snapshot, events.GetValueOrDefault(s.SystemId) ?? [], null, now, view.Pending, actions))];
+            new IntelSystemLineVm(s, snapshot, events.GetValueOrDefault(s.SystemId) ?? [], null, now, view.Pending, actions, view.KillsShown))];
     }
 
     /// <summary>Each system's feed lines, newest first, with a camp's kills left to the camp's own line.</summary>
@@ -411,7 +408,6 @@ public sealed class PanelIntelVm : ReactiveObject, IDisposable
         var now = Clock();
         var freshSeconds = _snapshot.Settings.FreshSeconds;
         foreach (var row in Rows) row.Tick(now, freshSeconds);
-        if (Nearest is { } n && !Rows.Contains(n)) n.Tick(now, freshSeconds);
         IsFresh = Rows.Any(r => r.IsFresh);
     }
 }

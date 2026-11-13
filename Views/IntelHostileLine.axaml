@@ -49,26 +49,31 @@
                  Foreground="{DynamicResource TextBrightBrush}" />
     </Button>
 
-    <StackPanel Grid.Column="3" Orientation="Horizontal" Spacing="5" IsVisible="{Binding HasGroup}" ClipToBounds="True"
-                ToolTip.Tip="{Binding GroupTip}">
+    <!-- Picture, then the name in what width is left: a Grid, not a StackPanel, so the name is measured to the
+         column and trims with an ellipsis rather than being cut mid-word. The whole name is in the tooltip. -->
+    <Grid Grid.Column="3" ColumnDefinitions="Auto,*" ColumnSpacing="5" IsVisible="{Binding HasGroup}"
+          Background="Transparent" ToolTip.Tip="{Binding GroupTip}">
       <Border CornerRadius="3" ClipToBounds="True" VerticalAlignment="Center" Background="{DynamicResource SurfacePanelAltBrush}"
               Width="{Binding $parent[views:IntelHostileLine].PictureSize}" Height="{Binding $parent[views:IntelHostileLine].PictureSize}">
         <Image Source="{Binding Group.Picture}" />
       </Border>
-      <Button Classes="link" Click="OnOpenPicture" DataContext="{Binding Group}">
+      <Button Grid.Column="1" Classes="link" Click="OnOpenPicture" DataContext="{Binding Group}" HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Left">
         <TextBlock Text="{Binding Text}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextSecondaryBrush}" />
       </Button>
-    </StackPanel>
+    </Grid>
 
-    <StackPanel Grid.Column="4" Orientation="Horizontal" Spacing="5" IsVisible="{Binding HasHull}" ClipToBounds="True">
+    <Grid Grid.Column="4" ColumnDefinitions="Auto,*" ColumnSpacing="5" IsVisible="{Binding HasHull}"
+          Background="Transparent" ToolTip.Tip="{Binding HullTip}">
       <Border CornerRadius="3" ClipToBounds="True" VerticalAlignment="Center" Background="{DynamicResource SurfacePanelAltBrush}"
               Width="{Binding $parent[views:IntelHostileLine].PictureSize}" Height="{Binding $parent[views:IntelHostileLine].PictureSize}">
         <Image Source="{Binding Hull.Picture}" />
       </Border>
-      <Button Classes="link" Click="OnOpenPicture" DataContext="{Binding Hull}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenHull}">
+      <Button Grid.Column="1" Classes="link" Click="OnOpenPicture" DataContext="{Binding Hull}" HorizontalAlignment="Stretch"
+              HorizontalContentAlignment="Left">
         <TextBlock Text="{Binding Text}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
       </Button>
-    </StackPanel>
+    </Grid>
 
     <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="4" VerticalAlignment="Center">
       <Panel Background="Transparent" IsVisible="{Binding OnKill}" ToolTip.Tip="{x:Static loc:IntelText.TipOnKill}">

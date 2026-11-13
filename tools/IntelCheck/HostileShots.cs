@@ -28,6 +28,8 @@ namespace EveConsole.Tools.IntelCheck
             Directory.CreateDirectory(profile);
             AppConfig.UseProfile(profile);
             Directory.CreateDirectory(outDir);
+            // The rows ask the image cache for their pictures as they are built: with invented ids, none is fetched.
+            EveImageCache.Offline = true;
             try
             {
                 AppBuilder.Configure<App>()
@@ -102,6 +104,7 @@ namespace EveConsole.Tools.IntelCheck
             }
             finally
             {
+                EveImageCache.Offline = false;
                 try { Directory.Delete(profile, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
             }
         }
@@ -129,8 +132,8 @@ namespace EveConsole.Tools.IntelCheck
             return failed;
         }
 
-        /// <summary>Lays the window out, gives the made-up pictures last (a fetch from the image cache that came back
-        /// meanwhile would otherwise show instead), and saves what it draws.</summary>
+        /// <summary>Lays the window out, gives the made-up pictures (the image cache is offline, so none is fetched), and
+        /// saves what it draws.</summary>
         private static int Capture(Window window, string path, Action give)
         {
             Dispatcher.UIThread.RunJobs();

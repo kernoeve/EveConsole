@@ -770,7 +770,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             .Select(r =>
             {
                 var fresh = new IntelBoardRowVm(r, snapshot, eventsBySystem.GetValueOrDefault(r.SystemId) ?? [],
-                                                _regions.GetValueOrDefault(r.SystemId), now, pending, actions);
+                                                _regions.GetValueOrDefault(r.SystemId), now, pending, actions, boardView.KillsShown);
                 if (held.TryGetValue(r.SystemId, out var old))
                 {
                     if (old.Signature == fresh.Signature) return old;
@@ -895,8 +895,9 @@ public sealed class IntelBoardRowVm : ReactiveObject
     private readonly DateTimeOffset _newest;
     private readonly IReadOnlyList<(DateTimeOffset At, TimeSpan Life)> _items;
 
+    /// <param name="killsShown">Whether the Board's sources show kills (<see cref="IntelView.KillsShown"/>): the kill marker follows it.</param>
     public IntelBoardRowVm(IntelSystemRow row, IntelSnapshot snapshot, IReadOnlyList<IntelFeedRow> events, string? region,
-                           DateTimeOffset now, bool pending, IntelRowActions actions)
+                           DateTimeOffset now, bool pending, IntelRowActions actions, bool killsShown = true)
     {
         var culture = CultureInfo.CurrentCulture;
         Actions = actions;
@@ -954,7 +955,7 @@ public sealed class IntelBoardRowVm : ReactiveObject
         FlagsText = IntelWords.Flags(flags, camp);
 
         // Who is there: the alliance breakout (or the one pilot), and each pilot for the opened row.
-        var hostiles = IntelHostiles.Of(row, snapshot, now);
+        var hostiles = IntelHostiles.Of(row, snapshot, now, killsShown);
         Who = new IntelWhoVm(hostiles, MaxWhoGroups);
         Pilots = [.. hostiles.Pilots.Select(p => new IntelHostilePilotVm(p, hostiles, snapshot, actions, now))];
         Flags = IntelFlagVm.Of(row, hostiles, snapshot);

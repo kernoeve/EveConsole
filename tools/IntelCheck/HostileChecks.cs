@@ -105,6 +105,36 @@ namespace EveConsole.Tools.IntelCheck
             var lonely = Of(Lone);
             c.Check("who: a system with nobody on a kill shows none", lonely.Kills == 0 && lonely.NewestKill is null);
 
+            // The kill marker follows the view's filter: a view whose sources leave the kills out shows none.
+            var noKills = IntelHostiles.Of(gangRow, snapshot, Now, killsShown: false);
+            c.Check("who: a view that hides kills shows no kill marker", noKills.Kills == 0 && noKills.NewestKill is null && noKills.Count == 7,
+                $"{noKills.Kills} {noKills.Count}");
+            var channelsOnly = IntelLens.Project(snapshot, new IntelViewer
+            {
+                Origins = [new IntelOrigin(Me, Home)], MaxJumps = 10, StandingsCharacterId = Me,
+                Sources = new HashSet<string>(snapshot.Feed.Select(e => e.SourceKey).Where(k => k != IntelSnapshot.SourceKills),
+                                              StringComparer.OrdinalIgnoreCase),
+            }, Now, _ => Hops());
+            c.Check("who: a view whose sources leave out the kills says so; one with every source shows them",
+                !channelsOnly.KillsShown && view.KillsShown);
+
+            // The first who token is never dropped from a narrow line, so its tooltip is the whole breakout.
+            c.Check("who: the first token's tooltip is the whole breakout", gangWho.First?.Tip == gangWho.Tip, gangWho.First?.Tip ?? "none");
+
+            // One named among others only counted: no lone portrait beside a count of 16.
+            var named = gang.Pilots.First(p => p.AllianceId == AllyA);
+            var oneOfMany = new IntelSystemHostiles([named], 15, IntelHostiles.Groups([named], snapshot), [], 0, null);
+            var oneOfManyWho = new IntelWhoVm(oneOfMany, 2);
+            c.Check("who: one named among fifteen counted is not shown as one pilot, but by their alliance with its count",
+                oneOfMany.Single is null && oneOfMany.Count == 16
+                && oneOfManyWho.First is { IsPilot: false, CountText: "1" } && oneOfManyWho.First.Picture.Id == AllyA
+                && oneOfManyWho.Tip!.Contains(string.Format(CultureInfo.CurrentCulture, IntelText.PlusUnnamed, 15)),
+                oneOfManyWho.First?.Name + "×" + oneOfManyWho.First?.CountText);
+            var unaffiliated = named with { CorporationId = 0, AllianceId = 0 };
+            var unknownWho = new IntelWhoVm(new IntelSystemHostiles([unaffiliated], 15, [], [], 0, null), 2);
+            c.Check("who: one named, not yet known, among others counted: their portrait carries a count",
+                unknownWho.First is { IsPilot: true, CountText: "1" }, unknownWho.First?.Name + "×" + unknownWho.First?.CountText);
+
             // Only counted: the count, no who.
             var counted = Of(Counted);
             c.Check("who: a count with nobody named has no who", counted is { Count: 5, Unnamed: 5, Pilots.Count: 0, Groups.Count: 0 }
