@@ -806,7 +806,9 @@ public sealed class IntelCondition : IAlarmCondition
 
                 var watch    = gang.Any(x => x.Mark == IntelWatchMark.Always);
                 var priority = zone.Priority.Contains(id);
-                var urgent   = priority || watch || (step is not null && step.Jumps <= (options.WakeJumps ?? CampUrgentJumps));
+                // Near on the route only when the jumps are how far the character is (see IntelRouteStep.Measured).
+                var urgent   = priority || watch
+                               || (step is { Measured: true } && step.Jumps <= (options.WakeJumps ?? CampUrgentJumps));
                 var who      = viewer ?? 0;
                 var hulls = gang.Where(x => x.Attacker.ShipTypeId is > 0)
                     .GroupBy(x => x.Attacker.ShipTypeId!.Value)
@@ -1213,8 +1215,18 @@ public sealed class IntelCondition : IAlarmCondition
                 foreach (var r in await CharacterRouteStore.ReadAsync(db, at, now ?? DateTimeOffset.UtcNow, ct))
                 {
                     if (!names.TryGetValue(r.CharacterId, out var name)) continue;
-                    foreach (var (id, hops) in r.Ahead) KeepNewest(route, id, new IntelRouteStep(r.CharacterId, name, hops, r.SetAt));
-                    KeepNewest(routeHere, r.Here, new IntelRouteStep(r.CharacterId, name, 0, r.SetAt, r.Next));
+                    // ⚠️ Off the route (sent from elsewhere, or the game chose other gates), the jumps along it are not
+                    // how far the character is: measured from where they are when their walk reaches the step, else
+                    // only along the route, which makes nothing urgent. And no step is theirs to leave by a gate.
+                    var walk = r.OnRoute || !at.TryGetValue(r.CharacterId, out var from) ? null : walks.GetValueOrDefault(from);
+                    foreach (var (id, hops) in r.Ahead)
+                    {
+                        var step = r.OnRoute ? new IntelRouteStep(r.CharacterId, name, hops, r.SetAt)
+                            : walk is not null && walk.TryGetValue(id, out var hop) ? new IntelRouteStep(r.CharacterId, name, hop.Jumps, r.SetAt)
+                            : new IntelRouteStep(r.CharacterId, name, hops, r.SetAt, Measured: false);
+                        KeepNewest(route, id, step);
+                    }
+                    if (r.Here is int system) KeepNewest(routeHere, system, new IntelRouteStep(r.CharacterId, name, 0, r.SetAt, r.Next));
                 }
             }
             foreach (var (id, step) in route)
@@ -1744,7 +1756,7 @@ public sealed record IntelWatchedSystems(
     public IReadOnlyDictionary<int, IntelRouteStep> Route { get; init; } = new Dictionary<int, IntelRouteStep>();
 
     /// <summary>The step each routed character is on, with the system the route leaves for: a gate camp on that gate
-    /// is on the route.</summary>
+    /// is on the route. Only a character seen on that step now: one off the route, or not yet on it, has none.</summary>
     public IReadOnlyDictionary<int, IntelRouteStep> RouteHere { get; init; } = new Dictionary<int, IntelRouteStep>();
 
     /// <summary>Each origin's walk, by its system: every system it reaches (with the distance service, all of them).</summary>

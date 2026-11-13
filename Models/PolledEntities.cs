@@ -2000,7 +2000,8 @@ public class CharacterRoute
     /// <summary>Every step's system id, start first, as a comma list.</summary>
     public string  SystemIds           { get; set; } = "";
 
-    /// <summary>The step the character was last seen at; the steps after it are ahead.</summary>
+    /// <summary>The step the character was last seen at; the steps after it are ahead. -1 until they are first
+    /// seen on the route: every step, the first included, is then ahead.</summary>
     public int     AtIndex             { get; set; }
 
     /// <summary>When it was sent, ISO text "yyyy-MM-ddTHH:mm:ssZ" like every intel time column.</summary>

@@ -12,39 +12,50 @@ namespace EveConsole.Services.Intel;
 /// <param name="SetAt">When the route was sent: part of a gate camp's key, so a new route through a known
 /// camp is said again.</param>
 /// <param name="AtIndex">The step the character was last seen at; when they are off the route, the last
-/// step they were seen at.</param>
-public sealed record CharacterRouteAhead(long CharacterId, DateTimeOffset SetAt, IReadOnlyList<int> Steps, int AtIndex)
+/// step they were seen at; -1 while they have not been seen on it (sent from somewhere else).</param>
+/// <param name="OnRoute">The character is known to be on the route now, at <see cref="AtIndex"/>. Only then
+/// is the jump count along the route how far they are, and the step they are on known.</param>
+public sealed record CharacterRouteAhead(long CharacterId, DateTimeOffset SetAt, IReadOnlyList<int> Steps, int AtIndex,
+                                         bool OnRoute = true)
 {
     /// <summary>At the destination: the route is done.</summary>
     public bool Arrived => AtIndex >= Steps.Count - 1;
 
-    /// <summary>The step the character was last seen at.</summary>
-    public int Here => Steps[AtIndex];
+    /// <summary>The step the character is on now; null when they are not known to be on the route.</summary>
+    public int? Here => OnRoute && AtIndex >= 0 ? Steps[AtIndex] : null;
 
-    /// <summary>The step after it: the gate the character leaves by.</summary>
-    public int? Next => AtIndex + 1 < Steps.Count ? Steps[AtIndex + 1] : null;
+    /// <summary>The step after the one the character is on: the gate they leave by. Null when they are not on
+    /// the route: the game picks its own gates from wherever they are.</summary>
+    public int? Next => Here is not null && AtIndex + 1 < Steps.Count ? Steps[AtIndex + 1] : null;
 
-    /// <summary>Every step still ahead, with how many jumps along the route it is.</summary>
+    /// <summary>Every step still ahead, with how many jumps along the route it is. Before the character is seen
+    /// on the route, every step is ahead, the first included.</summary>
     public IEnumerable<(int SystemId, int Jumps)> Ahead =>
         Steps.Skip(AtIndex + 1).Select((s, i) => (s, i + 1));
 }
 
 /// <summary>A system on a watched character's route ahead, as an intel alarm watches it.</summary>
-/// <param name="Jumps">How many jumps along the route it is from where the character was last seen on it;
-/// 0 for the step they are on.</param>
+/// <param name="Jumps">How many jumps along the route it is from the step the character is on (0 for that
+/// step); for a character off the route, how far it is from where they are when that is known, else how many
+/// jumps along the route from the step last seen at (from before the first step when none was).</param>
 /// <param name="NextSystemId">For the step the character is on: the system the route leaves for, whose gate
 /// is on the route.</param>
-public sealed record IntelRouteStep(long CharacterId, string Name, int Jumps, DateTimeOffset SetAt, int? NextSystemId = null);
+/// <param name="Measured"><paramref name="Jumps"/> is how far the character is. False when it is only a count
+/// along the route from where they are not: it makes nothing urgent.</param>
+public sealed record IntelRouteStep(long CharacterId, string Name, int Jumps, DateTimeOffset SetAt, int? NextSystemId = null,
+                                    bool Measured = true);
 
 /// <summary>
 /// The routes the Route Planner sent to the game (<see cref="CharacterRoute"/>): written when one is sent,
 /// read by the intel alarms for the part still ahead.
 ///
 /// <list type="bullet">
-/// <item>One row per character; a route sent replaces the one before, and begins at its first step.</item>
+/// <item>One row per character; a route sent replaces the one before, with the character not yet seen on it
+/// (a plan can be sent to a character somewhere else than its first step): every step is ahead.</item>
 /// <item>The step the character was last seen at moves with them (from the intel snapshot's positions on
 /// every read, and from each ESI location poll): only the steps after it are ahead. Off the route, the last
-/// step they were seen at holds, so the whole remainder is watched.</item>
+/// step they were seen at holds, so the whole remainder is watched, but they are not on any step and no gate
+/// out is theirs.</item>
 /// <item>Cleared when the character reaches the destination; ignored six hours after it was sent.</item>
 /// <item>A route set only in the game is not known: the game tells nobody what its autopilot is set to.</item>
 /// </list>
@@ -70,7 +81,8 @@ public static class CharacterRouteStore
     }
 
     /// <summary>
-    /// Stores the route just sent for a character, replacing theirs: begun at its first step, not cleared.
+    /// Stores the route just sent for a character, replacing theirs: not cleared, and with the character not yet
+    /// seen on it (AtIndex -1), since one plan can be sent to characters wherever they are.
     /// A route of one system (already there) goes nowhere, and only clears the one before.
     /// </summary>
     public static async Task SaveAsync(IDbContextFactory<AppDbContext> dbFactory, long characterId, IReadOnlyList<int> steps,
@@ -97,10 +109,10 @@ public static class CharacterRouteStore
         await db.Database.ExecuteSqlRawAsync(
             """
             INSERT INTO "CharacterRoutes" ("CharacterId", "DestinationSystemId", "SystemIds", "AtIndex", "SetAt", "ClearedAt")
-            VALUES ({0}, {1}, {2}, 0, {3}, NULL)
+            VALUES ({0}, {1}, {2}, -1, {3}, NULL)
             ON CONFLICT ("CharacterId") DO UPDATE SET
                 "DestinationSystemId" = excluded."DestinationSystemId", "SystemIds" = excluded."SystemIds",
-                "AtIndex" = 0, "SetAt" = excluded."SetAt", "ClearedAt" = NULL
+                "AtIndex" = -1, "SetAt" = excluded."SetAt", "ClearedAt" = NULL
             """,
             [characterId, steps[^1], Encode(steps), at], ct).ConfigureAwait(false);
     }
@@ -115,8 +127,12 @@ public static class CharacterRouteStore
         if (row.ClearedAt is not null || !TryParse(row.SetAt, out var setAt) || now - setAt > MaxAge) return null;
         var steps = Decode(row.SystemIds);
         if (steps.Count < 2) return null;
-        var at = systemId is int here && steps.IndexOf(here) is var i and >= 0 ? i : Math.Clamp(row.AtIndex, 0, steps.Count - 1);
-        return new CharacterRouteAhead(row.CharacterId, setAt, steps, at);
+        // ⚠️ On the route only when seen on a step now. Otherwise the last step seen holds (or none yet: -1), but
+        // the character is not there: that step's gate out is not theirs, and the jumps along the route are not
+        // how far they are.
+        if (systemId is int here && steps.IndexOf(here) is var i and >= 0)
+            return new CharacterRouteAhead(row.CharacterId, setAt, steps, i);
+        return new CharacterRouteAhead(row.CharacterId, setAt, steps, Math.Clamp(row.AtIndex, -1, steps.Count - 1), OnRoute: false);
     }
 
     /// <summary>

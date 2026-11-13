@@ -49,6 +49,34 @@ namespace EveConsole.Tools.IntelCheck
             };
         }
 
+        /// <summary>
+        /// Alpha somewhere else, sent the route S1 … S7 at <paramref name="setAt"/>: not yet on it, so every step is ahead
+        /// (S1 the first), counted only along the route (not how far Alpha is), and no step is Alpha's. As
+        /// WatchedSystemsAsync builds it when no walk reaches the steps: placed by those counts.
+        /// <paramref name="oldShape"/> builds it as before the fix (begun at S1: S1 Alpha's step, S2 … S7 ahead, measured).
+        /// </summary>
+        private static IntelWatchedSystems ElsewhereZone(DateTimeOffset setAt, bool oldShape = false)
+        {
+            var route = new Dictionary<int, IntelRouteStep>();
+            var routeHere = new Dictionary<int, IntelRouteStep>();
+            if (oldShape)
+            {
+                for (var i = 1; i < Line.Length; i++) route[Line[i]] = new IntelRouteStep(A, "Pilot Alpha", i, setAt);
+                routeHere[Line[0]] = new IntelRouteStep(A, "Pilot Alpha", 0, setAt, Line[1]);
+            }
+            else
+                for (var i = 0; i < Line.Length; i++) route[Line[i]] = new IntelRouteStep(A, "Pilot Alpha", i + 1, setAt, Measured: false);
+            var hops = route.ToDictionary(kv => kv.Key, kv => kv.Value.Jumps);
+            return new IntelWatchedSystems(route.Keys.ToHashSet(), hops, hops.ToDictionary(kv => kv.Key, _ => "Pilot Alpha"),
+                new Dictionary<int, double>(), new Dictionary<int, string>())
+            {
+                NearestCharacter = hops.ToDictionary(kv => kv.Key, _ => A),
+                WatchReach       = hops.Keys.ToHashSet(),
+                Route            = route,
+                RouteHere        = routeHere,
+            };
+        }
+
         /// <summary>A camp on the gate in <paramref name="system"/> to <paramref name="gateTo"/>: two pilots lost to
         /// <paramref name="attackers"/> (of <paramref name="corp"/>), the first <paramref name="firstAgo"/> minutes ago, the last
         /// <paramref name="lastAgo"/>.</summary>
@@ -99,13 +127,25 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("route: at the start, every step after it is ahead, by jumps along the route",
                 Ahead(start) == "102:1,103:2,104:3,105:4,106:5,107:6", Ahead(start));
             var mid = CharacterRouteStore.Follow(row, S3, Now);
-            c.Check("route: on the third step, the two before it are behind", mid is { AtIndex: 2, Next: S4 } && Ahead(mid) == "104:1,105:2,106:3,107:4",
-                Ahead(mid));
+            c.Check("route: on the third step, the two before it are behind",
+                mid is { AtIndex: 2, OnRoute: true, Here: S3, Next: S4 } && Ahead(mid) == "104:1,105:2,106:3,107:4", Ahead(mid));
             var off = CharacterRouteStore.Follow(Row(atIndex: 2), 30_000_999, Now);
             c.Check("route: off the route, the remainder from the step last seen at is ahead", off is { AtIndex: 2 } && Ahead(off) == "104:1,105:2,106:3,107:4",
                 Ahead(off));
+            c.Check("route: off the route, the character is on no step and leaves by no gate of it",
+                off is { OnRoute: false, Here: null, Next: null }, off is null ? "none" : $"{off.Here} {off.Next}");
             var unknown = CharacterRouteStore.Follow(Row(atIndex: 4), null, Now);
-            c.Check("route: where the character is not known, the step last seen at holds", unknown is { AtIndex: 4 }, Ahead(unknown));
+            c.Check("route: where the character is not known, the step last seen at holds, on no step",
+                unknown is { AtIndex: 4, OnRoute: false, Here: null }, Ahead(unknown));
+
+            // Sent to a character somewhere else than its first step: not yet on it, every step ahead, the first included.
+            var elsewhere = CharacterRouteStore.Follow(Row(atIndex: -1), 30_000_999, Now);
+            c.Check("route: sent to a character elsewhere, every step is ahead, the first included, and none is theirs",
+                elsewhere is { AtIndex: -1, OnRoute: false, Here: null, Next: null, Arrived: false }
+                && Ahead(elsewhere) == "101:1,102:2,103:3,104:4,105:5,106:6,107:7", Ahead(elsewhere));
+            var joined = CharacterRouteStore.Follow(Row(atIndex: -1), S1, Now);
+            c.Check("route: and once seen on its first step, that step is theirs",
+                joined is { AtIndex: 0, OnRoute: true, Here: S1, Next: S2 } && Ahead(joined) == "102:1,103:2,104:3,105:4,106:5,107:6", Ahead(joined));
             c.Check("route: at the destination it has arrived", CharacterRouteStore.Follow(row, S7, Now) is { Arrived: true });
             c.Check("route: six hours after it was sent it is ignored",
                 CharacterRouteStore.Follow(Row(setAgo: 6 * 60 + 1), S3, Now) is null
@@ -174,6 +214,22 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("camp: here, on another gate, is near", otherGate is not null && !Has(otherGate, "on_route"), otherGate?.Key ?? "none");
 
             c.Check("camp: without the route, one ahead beyond the range does not fire", On(aheadCamp, RouteZone(null)) is null);
+
+            // A route sent to a character somewhere else (one plan to everyone online): the plan's first step is not where
+            // they are. A camp there on the gate to the second step is on the route ahead, but nothing says how near.
+            var startCamp = Camp(S1, S2, 9, 6, FarCorp, P6);
+            var elsewhere = On(startCamp, ElsewhereZone(setAt));
+            c.Check("camp: sent from elsewhere, one at the plan's start on its way out fires on the route, not urgent",
+                elsewhere is { Urgent: false } && Has(elsewhere, "on_route"), elsewhere?.Key ?? "none");
+            var saidStart = elsewhere is null ? "" : IntelCondition.ComposeAnnouncement([elsewhere]) ?? "";
+            c.Check("camp: and said as ahead on the route, not where the character is",
+                saidStart.Contains("1 jump ahead on Pilot Alpha's route", StringComparison.Ordinal), saidStart);
+            c.Check("camp: sent from elsewhere, one two steps on is not urgent either",
+                On(Camp(S2, S3, 9, 6, FarCorp, P6), ElsewhereZone(setAt)) is { Urgent: false });
+            // ⚠️ Mutation: the zone as it was built before (the stored step taken for where the character is) says the
+            // camp is where they are, urgent.
+            c.Check("camp: (mutation) taking the plan's start for where the character is would make it urgent",
+                On(startCamp, ElsewhereZone(setAt, oldShape: true)) is { Urgent: true });
         }
 
         // ── A new route through a known camp ────────────────────────────────────────────────────────────────
@@ -288,10 +344,17 @@ namespace EveConsole.Tools.IntelCheck
             await CharacterRouteStore.SaveAsync(factory, A, [S1, S2, S3], Ago(30));
             await CharacterRouteStore.SaveAsync(factory, A, Line, Ago(10));
             var row = await RowAsync(A);
-            c.Check($"{label} routes: a route sent replaces the one before, begun at its start",
-                row is { DestinationSystemId: S7, AtIndex: 0, ClearedAt: null } && row.SystemIds == CharacterRouteStore.Encode(Line)
+            c.Check($"{label} routes: a route sent replaces the one before, the character not yet seen on it",
+                row is { DestinationSystemId: S7, AtIndex: -1, ClearedAt: null } && row.SystemIds == CharacterRouteStore.Encode(Line)
                 && row.SetAt == Iso(Ago(10)), row is null ? "none" : $"{row.SystemIds} {row.AtIndex} {row.SetAt}");
 
+            await using (var db = new AppDbContext(options))
+            {
+                var before = await CharacterRouteStore.ReadAsync(db, new Dictionary<long, int> { [A] = 30_000_999 }, Now);
+                c.Check($"{label} routes: read with the character elsewhere, every step is ahead and nothing is written",
+                    before is [{ AtIndex: -1, OnRoute: false }] && before[0].Ahead.Select(x => x.SystemId).SequenceEqual(Line));
+            }
+            c.Check($"{label} routes: (still not seen on it)", (await RowAsync(A))?.AtIndex == -1);
             await using (var db = new AppDbContext(options))
             {
                 var live = await CharacterRouteStore.ReadAsync(db, new Dictionary<long, int> { [A] = S3 }, Now);
@@ -310,7 +373,7 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{label} routes: and it is cleared", (await RowAsync(A))?.ClearedAt == Iso(Now));
 
             await CharacterRouteStore.SaveAsync(factory, A, Line, Ago(5));
-            c.Check($"{label} routes: a route sent after arrival is flown again", (await RowAsync(A)) is { ClearedAt: null, AtIndex: 0 });
+            c.Check($"{label} routes: a route sent after arrival is flown again", (await RowAsync(A)) is { ClearedAt: null, AtIndex: -1 });
             await CharacterRouteStore.SaveAsync(factory, A, [S3], Ago(4));
             c.Check($"{label} routes: a route of one system (already there) clears the one before", (await RowAsync(A))?.ClearedAt is not null);
 
@@ -389,6 +452,30 @@ namespace EveConsole.Tools.IntelCheck
             var docked = await Zone("""{"around":"Undocked characters","jumps":0,"watch_list":false}""", own, "watched: a docked character's route");
             c.Check("watched: a docked character's route is watched", docked is not null && docked.Route.ContainsKey(S2) && docked.Route[S2].CharacterId == B,
                 docked is null ? "none" : Ids(docked.Route.Keys));
+            c.Check("watched: seen on its first step, that step and its gate out are the character's",
+                docked is not null && docked.RouteHere.TryGetValue(S1, out var start) && start.CharacterId == B && start.NextSystemId == S2);
+
+            // Off the path: Alpha on S3, sent S5 … S7 (the game picks its own gates there). Every step is ahead, the first
+            // included, measured from where Alpha is; no step is Alpha's, so no gate out of one is on the route.
+            await CharacterRouteStore.SaveAsync(factory, A, [S5, S6, S7], Ago(2));
+            var offPath = await Zone("""{"around":"Characters","characters":["Pilot Alpha"],"jumps":1,"watch_list":false}""", own,
+                "watched: a character off the path");
+            c.Check("watched: off the path, the character is on no step of it", offPath is not null && offPath.RouteHere.Count == 0,
+                offPath is null ? "none" : Ids(offPath.RouteHere.Keys));
+            c.Check("watched: off the path, every step is ahead, the first included, measured from where the character is",
+                offPath is not null && Ids(offPath.Route.Keys) == "105,106,107" && offPath.Route[S5] is { Jumps: 2, Measured: true }
+                && offPath.Route[S7] is { Jumps: 4, Measured: true }, offPath is null ? "none" : Ids(offPath.Route.Keys));
+            await using (var db = new AppDbContext(options))
+                c.Check("watched: and nothing is written back for it", (await db.CharacterRoutes.AsNoTracking().FirstAsync(r => r.CharacterId == A)).AtIndex == -1);
+
+            // Bravo, docked where no walk starts (around undocked characters), sent a route elsewhere: the steps are counted
+            // along the route only, which is not how far Bravo is.
+            await CharacterRouteStore.SaveAsync(factory, B, [S4, S5, S6], Ago(1));
+            var unmeasured = await Zone("""{"around":"Undocked characters","jumps":0,"watch_list":false}""", own, "watched: a route with no walk");
+            c.Check("watched: no walk from the character, the steps are counted along the route, not measured, none theirs",
+                unmeasured is not null && unmeasured.Route.TryGetValue(S4, out var first) && first is { CharacterId: B, Jumps: 1, Measured: false }
+                && !unmeasured.RouteHere.Values.Any(s => s.CharacterId == B),
+                unmeasured is null ? "none" : string.Join(" ", unmeasured.Route.Select(kv => $"{kv.Key % 1000}:{kv.Value.CharacterId % 1000}:{kv.Value.Jumps}:{kv.Value.Measured}")));
 
             // Arrived: the route goes.
             var there = new List<OwnPosition> { own[0] with { SystemId = S7 } };
