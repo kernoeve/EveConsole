@@ -383,6 +383,10 @@ public static class IntelLens
     /// <summary>How long an ended camp stays on the Camps tab, faded: an hour after its last kill.</summary>
     public static readonly TimeSpan CampKept = TimeSpan.FromMinutes(60);
 
+    /// <summary>How long after its last kill (or report) a camp stays on the Camps tab: <see cref="CampKept"/>,
+    /// or its lifetime when that is set longer, so an active camp is never dropped.</summary>
+    private static TimeSpan Kept(TimeSpan lifetime) => lifetime > CampKept ? lifetime : CampKept;
+
     /// <summary>How strongly an ended camp is drawn.</summary>
     public const double EndedCampOpacity = 0.45;
 
@@ -423,7 +427,7 @@ public static class IntelLens
         var withKills = new HashSet<int>();
         foreach (var camp in snapshot.Camps)
         {
-            if (now >= camp.LastKill + CampKept) continue;
+            if (now >= camp.LastKill + Kept(camp.ExpiresAt - camp.LastKill)) continue;
             withKills.Add(camp.SystemId);
             var (jumps, via, origin, drop) = Distance(camp.SystemId);
             if (drop) continue;
@@ -452,7 +456,7 @@ public static class IntelLens
             {
                 if (withKills.Contains(sys.SystemId)) continue;
                 var fact = sys.Facts.Where(f => f.Flag == Monitoring.IntelRules.IntelFlags.Camp).OrderByDescending(f => f.At).FirstOrDefault();
-                if (fact is null || now >= fact.At + CampKept) continue;
+                if (fact is null || now >= fact.At + Kept(fact.Lifetime)) continue;
                 if (sys.Clear is { } clear && clear.At > fact.At) continue;
                 if (viewer.Sources is { } sources && !snapshot.Feed.Any(e => e.ReportId == fact.ReportId && sources.Contains(e.SourceKey))) continue;
                 var (jumps, via, origin, drop) = Distance(sys.SystemId);

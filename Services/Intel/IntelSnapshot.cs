@@ -347,7 +347,9 @@ public static class IntelSnapshotBuilder
 
         // ── Camps ────────────────────────────────────────────────────────────
         var clusters = IntelCampDetector.Detect(kills, input.Gates, input.Groups, s.CampGateKm, s.CampWindow, s.CampMinVictims);
-        var camps = register.Apply(clusters, now, s.Camp, s.CampWindow)
+        // The register also gives back a camp whose earlier kills have left the window, until the Camps tab
+        // lets it go: the kills read back alone would drop it long before then.
+        var camps = register.Apply(clusters, now, s.Camp, s.CampWindow, IntelLens.CampKept)
             .Select(c => c with { Reported = Reported(c) })
             .ToList();
         bool Reported(GateCamp c) =>

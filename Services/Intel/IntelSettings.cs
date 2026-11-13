@@ -69,8 +69,9 @@ public sealed record IntelSettingsValues
 
     /// <summary>
     /// How far back the snapshot reads: an hour, or the longest lifetime and five minutes when that
-    /// is longer. An hour because the tool's Feed shows up to one, and an ended camp stays on it,
-    /// faded, until an hour after its last kill.
+    /// is longer. An hour because the tool's Feed shows up to one. A camp's kills can leave this window
+    /// before the Camps tab lets the camp go (an hour after its last kill, faded once ended); the camp
+    /// register holds those camps, so the window need not cover them.
     /// </summary>
     public TimeSpan Window
     {

@@ -186,6 +186,8 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("camps tab: an hour after the last kill the camp is gone too",
                 IntelLens.ProjectCamps(snap, Everyone, Now.AddMinutes(58), Hops()).Count == 0);
 
+            SlidingCampChecks(c);
+
             var blue = Build([], [], [], GateKills(CorpA));
             c.Check("camps tab: a camp of blues gives no row", IntelLens.ProjectCamps(blue, Everyone, Now, Hops()).Count == 0);
             c.Check("camps tab: shown when the tiers ask for blues",
@@ -195,6 +197,64 @@ namespace EveConsole.Tools.IntelCheck
             var missing = new List<IntelOrigin>();
             IntelLens.ProjectCamps(snap, Everyone, Now, Hops(bReady: false), missing);
             c.Check("camps tab: an origin not walked yet is reported", missing.SequenceEqual([new IntelOrigin(B, S9)]));
+        }
+
+        /// <summary>
+        /// The Camps tab as the service runs it: the snapshot rebuilt as time passes with one register, so
+        /// the window slides past the camp's first kill. Kills nearly a camp window apart leave the window
+        /// soonest after the camp ends; the camp must stay, ended, until an hour after its last kill. With a
+        /// long camp window and lifetime, a camp still active must not drop out either.
+        /// </summary>
+        private static void SlidingCampChecks(Checks c)
+        {
+            List<IntelKill> Kills(DateTimeOffset first, double gapMinutes) =>
+            [
+                Kill(81, first, P10, 10_000, [Attacker(P5), Attacker(P6)]),
+                Kill(82, first.AddMinutes(gapMinutes), P11, 10_000, [Attacker(P6)]),
+            ];
+            IntelSnapshot Rebuild(IntelCampRegister register, List<IntelKill> kills, DateTimeOffset now, IntelSettingsValues settings) =>
+                IntelSnapshotBuilder.Build(new IntelSnapshotInput
+                {
+                    Now = now, Settings = settings, Reports = [], ReportPilots = [], LastSeen = [],
+                    Kills = [.. kills.Where(k => k.At <= now)],
+                    Gates = Gates, Groups = Groups(), Standings = Standings(),
+                    Own = [new OwnPosition(A, "Pilot Alpha", S1, now, OwnPositionSource.Esi, CorpA, AllyA)],
+                }, register, 1);
+
+            // Defaults: a 60-minute window, a 30-minute camp window and lifetime. The first kill leaves the
+            // window 32 minutes after the last.
+            var defaults = new IntelSettingsValues();
+            var last = Now;
+            var kills = Kills(last.AddMinutes(-28), 28);
+            var register = new IntelCampRegister();
+            var seen = new List<string>();
+            foreach (var after in new[] { 1, 20, 35, 45, 55, 59, 60, 65 })
+            {
+                var at = last.AddMinutes(after);
+                var snap = Rebuild(register, kills, at, defaults);
+                var row = IntelLens.ProjectCamps(snap, Everyone, at, Hops()).FirstOrDefault(r => r.Camp is not null);
+                seen.Add($"+{after}: {(row is null ? "gone" : row.Active ? "active" : "ended")}");
+            }
+            c.Check("camps tab: rebuilt as time passes, the camp is active, then ended and kept until an hour after its last kill",
+                seen.SequenceEqual(["+1: active", "+20: active", "+35: ended", "+45: ended", "+55: ended", "+59: ended", "+60: gone", "+65: gone"]),
+                string.Join(", ", seen));
+            c.Check("camps tab: once let go, the register holds nothing", register.Count == 0, register.Count.ToString());
+
+            // A long camp window and lifetime: kills 58 minutes apart, the first leaving the 65-minute window
+            // while the camp is still active.
+            var longer = new IntelSettingsValues { CampWindow = TimeSpan.FromMinutes(60), Camp = TimeSpan.FromMinutes(60) };
+            var longKills = Kills(last.AddMinutes(-58), 58);
+            var longRegister = new IntelCampRegister();
+            seen.Clear();
+            foreach (var after in new[] { 1, 10, 30, 59, 61 })
+            {
+                var at = last.AddMinutes(after);
+                var snap = Rebuild(longRegister, longKills, at, longer);
+                var row = IntelLens.ProjectCamps(snap, Everyone, at, Hops()).FirstOrDefault(r => r.Camp is not null);
+                seen.Add($"+{after}: {(row is null ? "gone" : row.Active ? "active" : "ended")}");
+            }
+            c.Check("camps tab: a camp still active is kept when its first kill leaves the window",
+                seen.SequenceEqual(["+1: active", "+10: active", "+30: active", "+59: active", "+61: gone"]), string.Join(", ", seen));
         }
 
         // ── The watch list on a database ────────────────────────────────────────────────────────────────────

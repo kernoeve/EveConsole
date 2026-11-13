@@ -212,19 +212,29 @@ namespace EveConsole.Tools.IntelCheck
             // one on the same gate after it ended is new.
             var register = new IntelCampRegister();
             var life = TimeSpan.FromMinutes(30);
-            var first = register.Apply(camps, Now, life, TimeSpan.FromMinutes(30)).Single();
+            var kept = IntelLens.CampKept;
+            var first = register.Apply(camps, Now, life, TimeSpan.FromMinutes(30), kept).Single();
             var later = new List<IntelKill>(kills.Where(k => k.KillMailId != 1))
             {
                 Kill(21, t0.AddMinutes(20), P10, 10_000, [Attacker(P7)]),
             };
             var slid = IntelCampDetector.Detect(later, Gates, g, 150, TimeSpan.FromMinutes(30), 2);
-            var again = register.Apply(slid, Now.AddMinutes(5), life, TimeSpan.FromMinutes(30));
+            var again = register.Apply(slid, Now.AddMinutes(5), life, TimeSpan.FromMinutes(30), kept);
             c.Check("camps: the same camp keeps its key after its first kill drops out",
                 again.Count == 1 && again[0].Key == first.Key && again[0].EpisodeStart == t0,
                 $"{first.Key} then {string.Join(",", again.Select(x => x.Key))}");
-            register.Apply([], Now.AddHours(2), life, TimeSpan.FromMinutes(30));
+            // Its last kill is at t0 + 20 (Now - 20): held, as last read, until an hour after that.
+            var held = register.Apply([], Now.AddMinutes(39), life, TimeSpan.FromMinutes(30), kept);
+            c.Check("camps: a camp no reading shows any more is held, as last read, ended",
+                held.Count == 1 && held[0].Key == first.Key && held[0].LastKill == t0.AddMinutes(20) && !held[0].IsActive(Now.AddMinutes(39)),
+                string.Join(",", held.Select(x => $"{x.Key} {x.LastKill:HH:mm}")));
+            c.Check("camps: an hour after its last kill the held camp is let go",
+                register.Apply([], Now.AddMinutes(40), life, TimeSpan.FromMinutes(30), kept).Count == 0 && register.Count == 0,
+                register.Count.ToString());
+            register.Apply(slid, Now.AddMinutes(5), life, TimeSpan.FromMinutes(30), kept);
+            register.Apply([], Now.AddHours(2), life, TimeSpan.FromMinutes(30), kept);
             c.Check("camps: an ended camp nobody shows is forgotten", register.Count == 0, register.Count.ToString());
-            var fresh = register.Apply(camps, Now.AddHours(2), life, TimeSpan.FromMinutes(30)).Single();
+            var fresh = register.Apply(camps, Now.AddHours(2), life, TimeSpan.FromMinutes(30), kept).Single();
             c.Check("camps: a camp read after that is keyed by its own first kill",
                 fresh.Key == IntelCampRegister.KeyOf(G1, t0) && fresh.ExpiresAt == t0.AddMinutes(11) + life);
         }

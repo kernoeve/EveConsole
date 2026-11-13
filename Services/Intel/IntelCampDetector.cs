@@ -207,11 +207,17 @@ public static class IntelCampDetector
 ///
 /// <para>Needed because the window slides: a camp running for an hour and a half loses its first
 /// kills from every reading, and a camp named by its first kill would turn into a new one each time.
-/// A cluster that overlaps an episode, or follows it within the camp window, continues it. An episode
-/// is forgotten once it has ended (its last kill a camp lifetime ago) and no reading still shows it.</para>
+/// A cluster that overlaps an episode, or follows it within the camp window, continues it.</para>
+///
+/// <para>It also holds each episode's camp as last read, and gives it back while no reading shows it
+/// any more, until <c>kept</c> after its last kill (or the camp lifetime, when that is longer). A
+/// camp leaves the kills read back as soon as its earlier kills leave the window, which can be minutes
+/// after it ended, or even while it is still active; the Camps tab keeps an ended camp, faded, for an
+/// hour after its last kill. The episode is forgotten after that.</para>
 ///
 /// <para>After a restart or a move to another PC the register starts empty, so a camp still going may
-/// be taken for a new one once: the same accepted risk as every other piece of worker memory.</para>
+/// be taken for a new one once, and an ended camp whose kills have left the window is not shown again:
+/// the same accepted risk as every other piece of worker memory.</para>
 /// </summary>
 public sealed class IntelCampRegister
 {
@@ -220,6 +226,8 @@ public sealed class IntelCampRegister
         public DateTimeOffset Start;
         public DateTimeOffset LastKill;
         public bool Seen;
+        /// <summary>The camps of this episode as last read: given back while no reading shows them.</summary>
+        public List<GateCamp> Last = [];
     }
 
     private readonly Dictionary<long, List<Episode>> _byGate = [];
@@ -227,8 +235,15 @@ public sealed class IntelCampRegister
 
     public int Count { get { lock (_lock) return _byGate.Values.Sum(l => l.Count); } }
 
-    public List<GateCamp> Apply(IReadOnlyList<IntelCampCluster> clusters, DateTimeOffset now, TimeSpan lifetime, TimeSpan window)
+    /// <summary>
+    /// The camps of this reading, with their keys, and every camp an earlier reading showed that this
+    /// one no longer does, as last read, until <paramref name="kept"/> (or <paramref name="lifetime"/>,
+    /// when longer) after its last kill.
+    /// </summary>
+    public List<GateCamp> Apply(IReadOnlyList<IntelCampCluster> clusters, DateTimeOffset now, TimeSpan lifetime, TimeSpan window,
+                                TimeSpan kept)
     {
+        var hold = kept > lifetime ? kept : lifetime;
         lock (_lock)
         {
             foreach (var list in _byGate.Values)
@@ -246,21 +261,27 @@ public sealed class IntelCampRegister
                 }
                 if (c.LastKill > episode.LastKill) episode.LastKill = c.LastKill;
                 if (c.FirstKill < episode.Start)   episode.Start    = c.FirstKill;
+                if (!episode.Seen) episode.Last = [];
                 episode.Seen = true;
 
-                camps.Add(new GateCamp(
+                var camp = new GateCamp(
                     KeyOf(c.StargateId, episode.Start), c.SystemId, c.StargateId, c.GateSystemId, episode.Start,
                     [.. c.Kills.Select(k => k.KillMailId)], c.VictimIds,
                     c.FirstKill, c.LastKill, c.FormedAt, c.LastKill + lifetime,
-                    c.Attackers, c.AttackerShipTypeIds, c.Smartbomb, c.Interdictor, c.Hic, c.Bubble));
+                    c.Attackers, c.AttackerShipTypeIds, c.Smartbomb, c.Interdictor, c.Hic, c.Bubble);
+                episode.Last.Add(camp);
+                camps.Add(camp);
             }
 
             foreach (var (gate, episodes) in _byGate.ToList())
             {
-                episodes.RemoveAll(e => !e.Seen && e.LastKill + lifetime < now);
+                episodes.RemoveAll(e => !e.Seen && now >= e.LastKill + hold);
                 if (episodes.Count == 0) _byGate.Remove(gate);
+                else
+                    foreach (var e in episodes.Where(e => !e.Seen))
+                        camps.AddRange(e.Last.Where(c => now < c.LastKill + hold));
             }
-            return camps;
+            return [.. camps.OrderBy(c => c.FirstKill).ThenBy(c => c.StargateId)];
         }
     }
 
