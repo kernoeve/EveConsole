@@ -386,7 +386,7 @@
     <value>Только участники этой группы сервера в этих каналах (необязательно)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>Канал, где я нахожусь</value>
+    <value>&lt;Текущий канал&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>Новая цель</value>

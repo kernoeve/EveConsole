@@ -386,7 +386,7 @@
     <value>해당 채널에 있는 이 서버 그룹의 구성원만 (선택 사항)</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>내가 있는 채널</value>
+    <value>&lt;현재 채널&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>새 대상</value>

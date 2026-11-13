@@ -131,7 +131,7 @@
                                 <ItemsControl.ItemTemplate>
                                   <DataTemplate x:DataType="vm:MumbleTargetChannelVm">
                                     <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="0 0 0 4">
-                                      <AutoCompleteBox Text="{Binding Text}" ItemsSource="{Binding Choices}" FilterMode="Contains" MinimumPrefixLength="0" />
+                                      <ComboBox SelectedItem="{Binding Text}" ItemsSource="{Binding Choices}" HorizontalAlignment="Stretch" />
                                       <CheckBox Grid.Column="1" IsChecked="{Binding Links}" FontSize="11" Margin="10 0 0 0" Content="{x:Static loc:MumbleText.TargetLinks}" />
                                       <CheckBox Grid.Column="2" IsChecked="{Binding Subchannels}" FontSize="11" Margin="10 0 0 0" Content="{x:Static loc:MumbleText.TargetSubchannels}" />
                                       <Button Grid.Column="3" Content="{x:Static loc:MumbleText.Delete}" Command="{Binding RemoveCommand}" Margin="10 0 0 0" />

@@ -386,7 +386,7 @@
     <value>それらのチャンネル内のこのサーバーグループのメンバーのみ（任意）</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>自分がいるチャンネル</value>
+    <value>&lt;現在のチャンネル&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>新しいターゲット</value>

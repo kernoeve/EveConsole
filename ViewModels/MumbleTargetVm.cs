@@ -32,12 +32,21 @@ public sealed class MumbleTargetChannelVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
     public ObservableCollection<string> Choices => _owner.ChannelChoices;
 
-    /// <summary>The channel as shown: the words for "where I am" or for the root, or its path.</summary>
+    /// <summary>The channel as picked: the words for the current channel or for the root, or its path.</summary>
+    /// <remarks>⚠️ No pick (null) is ignored: the list changing under the box clears its selection for a moment.</remarks>
     public string Text
     {
         get => _text;
-        set { this.RaiseAndSetIfChanged(ref _text, value ?? ""); _owner.Typed(); }
+        set
+        {
+            if (value is null || value == _text) return;
+            this.RaiseAndSetIfChanged(ref _text, value);
+            _owner.Touched();
+        }
     }
+
+    /// <summary>Shown again after the list changed under it, so the box finds its pick in the new list.</summary>
+    internal void Reshow() => this.RaisePropertyChanged(nameof(Text));
 
     public bool Links
     {
@@ -89,7 +98,7 @@ public sealed class MumbleTargetVm : ReactiveObject, IMumbleKeySlot
         RemoveCommand     = ReactiveCommand.Create(() => owner.RemoveTarget(this));
         AddChannelCommand = ReactiveCommand.Create(() =>
         {
-            Channels.Add(new MumbleTargetChannelVm(this, new MumbleTargetChannel { Path = MumbleTargets.RootPath }));
+            Channels.Add(new MumbleTargetChannelVm(this, new MumbleTargetChannel()));
             Touched();
         });
     }

@@ -386,7 +386,7 @@
     <value>仅这些频道中此服务器组的成员（可选）</value>
   </data>
   <data name="TargetWhereIAm" xml:space="preserve">
-    <value>我所在的频道</value>
+    <value>&lt;当前频道&gt;</value>
   </data>
   <data name="TargetNew" xml:space="preserve">
     <value>新目标</value>
