@@ -248,12 +248,7 @@ public sealed partial class IrcService
         $"https://images.evetech.net/characters/{characterId.ToString(CultureInfo.InvariantCulture)}/portrait?size=128";
 
     /// <summary>The EVE characters added to this app, by name, to offer their portraits.</summary>
-    public async Task<List<(long Id, string Name)>> EveCharactersAsync(CancellationToken ct = default)
-    {
-        await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var rows = await db.Characters.AsNoTracking().Select(c => new { c.Id, c.Name }).ToListAsync(ct);
-        return [.. rows.Where(r => r.Name.Length > 0).OrderBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase).Select(r => (r.Id, r.Name))];
-    }
+    public Task<List<(long Id, string Name)>> EveCharactersAsync(CancellationToken ct = default) => OwnPicture.EveCharactersAsync(dbFactory, ct);
 
     /// <summary>
     /// Sets this person's picture on a server, as a web link, kept so it is set again on every connection. Blank takes
@@ -358,6 +353,6 @@ public sealed partial class IrcService
 
         // The link's own hash says whether it changed: a new link is fetched, the same one is not.
         var hash = Convert.ToHexStringLower(SHA1.HashData(Encoding.UTF8.GetBytes(url)));
-        _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, hash, () => IrcPictures.FetchAsync(url, CancellationToken.None));
+        _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, hash, () => WebPictures.FetchAsync(url, CancellationToken.None));
     }
 }

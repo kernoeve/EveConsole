@@ -438,4 +438,40 @@
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>仅限与个人的对话（与其他客户端一样）：对方客户端会显示为已读。房间中从不发送。</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>你的头像</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>选择图片…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>移除头像</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>使用 EVE 肖像</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>选择后立即以小方图发送。除非你在这里更改，否则头像不会变化。</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>连接后才能更改头像。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>头像已设置。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>头像已移除。</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>该文件不是本应用可读取的图片（PNG、JPEG、GIF、WebP 或 BMP，小于 20 MB）。</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>无法从 EVE 图片服务器获取肖像。请稍后再试。</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>此服务器只接受比这更小的图片。</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>你未在此服务器注册，因此头像只保留到断开连接为止。</value>
+  </data>
 </root>

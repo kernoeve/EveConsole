@@ -2,18 +2,18 @@ using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
 
-namespace EveConsole.Services.Irc;
+namespace EveConsole.Services;
 
 /// <summary>
-/// Fetches the pictures people on IRC point to. A picture there is a web link anyone can set, so what is fetched is
-/// kept small, and only from the internet.
+/// Fetches pictures from the web: those people on IRC point to, and EVE portraits. A link there is anyone's to set, so
+/// what is fetched is kept small, and only from the internet.
 /// </summary>
 /// <remarks>
 /// ⚠️ Never from this machine or the local network: a link someone sets to http://192.168.1.1/... would otherwise have
 /// this app ask the router, or anything else inside, on their behalf. Checked on the address actually connected to, so a
 /// name that points inside after it was checked gets nowhere either.
 /// </remarks>
-public static class IrcPictures
+public static class WebPictures
 {
     /// <summary>For the checks only: lets a picture come from this machine, where their test server runs.</summary>
     public static bool AllowThisMachine { get; set; }
@@ -47,7 +47,7 @@ public static class IrcPictures
             },
         };
         var http = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(20) };
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("EveConsole-IRC/1.0");
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("EveConsole/1.0");
         return http;
     }
 

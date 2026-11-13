@@ -438,4 +438,40 @@ Vertraue ihm nur, wenn er mit der Angabe des Server-Admins übereinstimmt. Danac
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>Nur mit einzelnen Personen, wie andere Programme: deren Programm kann die Nachricht dann als gesehen anzeigen. Nie in Räumen.</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Dein Bild</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Bild auswählen …</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Bild entfernen</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE-Porträt verwenden</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Wird gesendet, sobald du es wählst, quadratisch und klein. Dein Bild ändert sich nur, wenn du es hier tust.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Verbinde dich, um dein Bild zu ändern.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Bild gesetzt.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Bild entfernt.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>Diese Datei ist kein Bild, das diese App lesen kann (PNG, JPEG, GIF, WebP oder BMP, unter 20 MB).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>Das Porträt konnte nicht vom Bildserver von EVE geholt werden. Versuch es gleich noch einmal.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>Dieser Server nimmt nur kleinere Bilder an.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>Du bist auf diesem Server nicht registriert, also behält er dein Bild nur bis zum Trennen.</value>
+  </data>
 </root>

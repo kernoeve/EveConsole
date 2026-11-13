@@ -80,6 +80,7 @@
             <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelComment}" />
             <TextBox Text="{Binding MyComment}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
             <Button Content="{x:Static loc:MumbleText.SaveComment}" Command="{Binding SaveCommentCommand}" HorizontalAlignment="Left" />
+            <views:OwnPictureChooser DataContext="{Binding Picture}" />
           </StackPanel>
         </StackPanel>
       </Panel>

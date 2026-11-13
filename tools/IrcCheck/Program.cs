@@ -362,9 +362,13 @@ try
     Check("one inside history is history", await Wait(() => stored.Any(m => m is { MessageId: "ml2", Conversation: "#fleet" } && m.Body == "old a\nold b" && !m.IsAlert)));
     var longLine = new string('x', 700);
     await irc.SendAsync(session, "#fleet", "first\n\nsecond\n" + longLine);
-    Check("several lines sent as one batch, a long line in joined pieces",
-        fake.Got.Any(l => l.StartsWith("BATCH +") && l.EndsWith("draft/multiline #fleet")) && fake.Got.Any(l => l.Contains("draft/multiline-concat") && l.Contains("PRIVMSG #fleet"))
-        && fake.Got.Any(l => l.StartsWith("BATCH -")), string.Join(" | ", fake.Got.Where(l => l.Contains("BATCH") || l.Contains("batch=")).Take(8)));
+    // ⚠️ Waited for: sent is not yet read by the scripted server, and it was checked a moment too soon once in a while.
+    Check("several lines sent as one batch, a long line in joined pieces", await Wait(() =>
+        {
+            lock (fake.Got)
+                return fake.Got.Any(l => l.StartsWith("BATCH +") && l.EndsWith("draft/multiline #fleet")) && fake.Got.Any(l => l.Contains("draft/multiline-concat") && l.Contains("PRIVMSG #fleet"))
+                       && fake.Got.Any(l => l.StartsWith("BATCH -"));
+        }), string.Join(" | ", fake.Got.Where(l => l.Contains("BATCH") || l.Contains("batch=")).Take(8)));
     Check("and saved once, as written", await Wait(() => stored.Count(m => m.IsOutgoing && m.Conversation == "#fleet" && m.Body == "first\n\nsecond\n" + longLine) == 1),
         string.Join(" | ", stored.Where(m => m.IsOutgoing && m.Body.StartsWith("first")).Select(m => m.Body.Length + ":" + m.Body[..Math.Min(20, m.Body.Length)].Replace("\n", "/"))));
     // ⚠️ A long line of words, cut between them: the pieces are joined again without a break, so each keeps its space.
@@ -552,11 +556,11 @@ try
 
     // ── Pictures (draft/metadata-2) ──
     {
-        Check("pictures: only from the internet", !IrcPictures.IsInternet(IPAddress.Parse("127.0.0.1")) && !IrcPictures.IsInternet(IPAddress.Parse("10.1.2.3"))
-            && !IrcPictures.IsInternet(IPAddress.Parse("192.168.1.1")) && !IrcPictures.IsInternet(IPAddress.Parse("172.20.0.1")) && !IrcPictures.IsInternet(IPAddress.Parse("169.254.1.1"))
-            && !IrcPictures.IsInternet(IPAddress.Parse("::1")) && !IrcPictures.IsInternet(IPAddress.Parse("fd00::1")) && !IrcPictures.IsInternet(IPAddress.Parse("fe80::1"))
-            && !IrcPictures.IsInternet(IPAddress.Parse("::ffff:192.168.0.1"))
-            && IrcPictures.IsInternet(IPAddress.Parse("8.8.8.8")) && IrcPictures.IsInternet(IPAddress.Parse("2606:4700::1111")) && IrcPictures.IsInternet(IPAddress.Parse("172.32.0.1")));
+        Check("pictures: only from the internet", !WebPictures.IsInternet(IPAddress.Parse("127.0.0.1")) && !WebPictures.IsInternet(IPAddress.Parse("10.1.2.3"))
+            && !WebPictures.IsInternet(IPAddress.Parse("192.168.1.1")) && !WebPictures.IsInternet(IPAddress.Parse("172.20.0.1")) && !WebPictures.IsInternet(IPAddress.Parse("169.254.1.1"))
+            && !WebPictures.IsInternet(IPAddress.Parse("::1")) && !WebPictures.IsInternet(IPAddress.Parse("fd00::1")) && !WebPictures.IsInternet(IPAddress.Parse("fe80::1"))
+            && !WebPictures.IsInternet(IPAddress.Parse("::ffff:192.168.0.1"))
+            && WebPictures.IsInternet(IPAddress.Parse("8.8.8.8")) && WebPictures.IsInternet(IPAddress.Parse("2606:4700::1111")) && WebPictures.IsInternet(IPAddress.Parse("172.32.0.1")));
         Check("pictures: what a link may be", IrcService.IsPictureLink("") && IrcService.IsPictureLink("https://example.org/a.png")
             && !IrcService.IsPictureLink("ftp://example.org/a.png") && !IrcService.IsPictureLink("https://example.org/a b.png") && !IrcService.IsPictureLink("not a link")
             && !IrcService.IsPictureLink("https://example.org/" + new string('a', 400)));
@@ -566,10 +570,10 @@ try
         var bobOne = $"http://127.0.0.1:{pictureHost.Port}/bob.png";
         var bobTwo = $"http://127.0.0.1:{pictureHost.Port}/bob2.png";
         var mine = $"http://127.0.0.1:{pictureHost.Port}/me.png";
-        Check("pictures: never from this machine", await IrcPictures.FetchAsync(bobOne, CancellationToken.None) is null && pictureHost.Served == 0);
-        IrcPictures.AllowThisMachine = true;
-        Check("pictures: fetched where allowed", await IrcPictures.FetchAsync(bobOne, CancellationToken.None) is { Length: > 0 });
-        Check("pictures: one too big is not taken", await IrcPictures.FetchAsync($"http://127.0.0.1:{pictureHost.Port}/huge.png", CancellationToken.None) is null);
+        Check("pictures: never from this machine", await WebPictures.FetchAsync(bobOne, CancellationToken.None) is null && pictureHost.Served == 0);
+        WebPictures.AllowThisMachine = true;
+        Check("pictures: fetched where allowed", await WebPictures.FetchAsync(bobOne, CancellationToken.None) is { Length: > 0 });
+        Check("pictures: one too big is not taken", await WebPictures.FetchAsync($"http://127.0.0.1:{pictureHost.Port}/huge.png", CancellationToken.None) is null);
 
         var logger = new AppErrorLogger(null!);
         var avatars = new AvatarService(factory, logger);
@@ -626,7 +630,7 @@ try
         await pictured.SetAvatarUrlAsync(ps, "");
         Check("pictures: taken away when cleared", await Wait(() => { lock (meta.Got) return meta.Got.Contains("METADATA * SET avatar"); }) && await WaitOwner("me", h => h is null));
         await pictured.DisconnectAsync(ps);
-        IrcPictures.AllowThisMachine = false;
+        WebPictures.AllowThisMachine = false;
     }
 
     // ── Under the worker lease: one process connects, every other client shows what it wrote and asks it ──────────

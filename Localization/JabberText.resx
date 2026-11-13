@@ -513,4 +513,40 @@ Trust it only if this matches what the server's admin published. From then on, o
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>With a person only, as other clients do: their client can then show the message as seen. Never in rooms.</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Your picture</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Choose a picture…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Remove picture</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Use an EVE portrait</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Sent as soon as you choose it, made square and small. Nothing changes your picture unless you do it here.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Connect to change your picture.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Picture set.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Picture removed.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>That file is not a picture this app can read (PNG, JPEG, GIF, WebP or BMP, under 20 MB).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>The portrait could not be fetched from EVE's image server. Try again in a moment.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>This server takes only smaller pictures than this one.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>You are not registered on this server, so it keeps your picture only until you disconnect.</value>
+  </data>
 </root>

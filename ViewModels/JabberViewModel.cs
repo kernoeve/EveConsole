@@ -102,6 +102,10 @@ public sealed class JabberViewModel : ReactiveObject
         _prefs   = prefs;
         _emotes  = emotes;
 
+        Picture = new OwnPictureVm(
+            jpeg => Session is { } s ? Task.Run(() => _service.SetPictureAsync(s, jpeg)) : throw new InvalidOperationException(JabberText.PictureNotConnected),
+            () => Task.Run(() => _service.EveCharactersAsync()));
+
         AddAccountCommand      = ReactiveCommand.Create(BeginAddAccount);
         EditAccountCommand     = ReactiveCommand.Create(BeginEditAccount);
         SaveAccountCommand     = ReactiveCommand.CreateFromTask(SaveAccountAsync);
@@ -341,11 +345,16 @@ public sealed class JabberViewModel : ReactiveObject
             this.RaisePropertyChanged(name);
 
         StatusText = "";
+        Picture.Reset();
+        _ = Picture.LoadPortraitsAsync();
         RefreshDetail();
 
         if (EmoteAccount != _emoteAccountShown) EmoteStatus = "";
         _ = LoadEmotePacksAsync();
     }
+
+    /// <summary>This account's own picture: set from a file or an EVE portrait, or taken away.</summary>
+    public OwnPictureVm Picture { get; }
 
     private string _status = "";
     public string StatusText { get => _status; set { this.RaiseAndSetIfChanged(ref _status, value); this.RaisePropertyChanged(nameof(HasStatus)); } }
@@ -441,6 +450,8 @@ public sealed class JabberViewModel : ReactiveObject
             AccountDetail = session.State == JabberState.Reconnecting || session is { State: JabberState.Failed, Problem: JabberProblem.Other } ? session.Detail : "";
             IsConnected   = session.State == JabberState.Connected;
             CanConnect    = session.State is JabberState.Offline or JabberState.Failed;
+            Picture.CanChange = IsConnected;
+            Picture.Preview = new AvatarRef(JabberService.AvatarServiceName, session.Account.Id, "me", session.Account.Address);
             HasCertificateProblem = session.Problem == JabberProblem.Certificate && session.CertificateFingerprint.Length > 0;
             CertificateText = HasCertificateProblem
                 ? string.Format(CultureInfo.CurrentCulture, JabberText.CertificateAsk, session.CertificateSubject, Grouped(session.CertificateFingerprint))

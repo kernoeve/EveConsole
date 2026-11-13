@@ -549,6 +549,61 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         catch (FormatException) { return null; }
     }
 
+    public static readonly XNamespace AvatarData     = "urn:xmpp:avatar:data";
+    public static readonly XNamespace AvatarMetadata = "urn:xmpp:avatar:metadata";
+
+    /// <summary>
+    /// The hash of this account's picture, said with every presence once this client has set one (XEP-0153), so other
+    /// clients know to fetch it: "" says there is none. Null until then: a presence without it says nothing either way.
+    /// </summary>
+    private string? _photoHash;
+
+    /// <summary>
+    /// Sets this account's picture, or takes it away with null: in its vCard, which every client reads, keeping the rest of
+    /// the vCard as it was; and as a published avatar (XEP-0084) for the clients that look there, where the server can.
+    /// Then says so with a presence, here and in the rooms given, so others fetch it.
+    /// </summary>
+    /// <param name="jpeg">The picture, a JPEG; null to take it away.</param>
+    public async Task SetPhotoAsync(byte[]? jpeg, IReadOnlyList<(string Room, string Nick)> rooms, CancellationToken ct)
+    {
+        // ⚠️ The vCard is read first and written back whole: setting one with only a picture in it would wipe the name,
+        // and anything else, that another client put there.
+        XElement card;
+        try { card = (await QueryAsync("get", null, new XElement(VCard + "vCard"), ct)).Element(VCard + "vCard") ?? new XElement(VCard + "vCard"); }
+        catch (XmppException) { card = new XElement(VCard + "vCard"); }
+        card = new XElement(card);
+        card.Elements(VCard + "PHOTO").Remove();
+        var hash = jpeg is null ? "" : Convert.ToHexStringLower(System.Security.Cryptography.SHA1.HashData(jpeg));
+        if (jpeg is not null)
+            card.Add(new XElement(VCard + "PHOTO", new XElement(VCard + "TYPE", "image/jpeg"), new XElement(VCard + "BINVAL", Convert.ToBase64String(jpeg))));
+        await QueryAsync("set", null, card, ct);
+
+        try { await PublishAvatarAsync(jpeg, hash, ct); }
+        catch (Exception e) when (e is XmppException or TimeoutException) { /* the vCard is what counts: not every server publishes */ }
+
+        _photoHash = hash;
+        await connection.WriteAsync(WithPresence(new XElement(Client + "presence")), ct);
+        foreach (var (room, nick) in rooms) await SetRoomPresenceAsync(room, nick, ct);
+    }
+
+    /// <summary>The same picture as a published avatar (XEP-0084): its data, then what it is. None publishes an empty one.</summary>
+    private async Task PublishAvatarAsync(byte[]? jpeg, string hash, CancellationToken ct)
+    {
+        if (jpeg is not null)
+            await QueryAsync("set", null, new XElement(PubSub + "pubsub",
+                new XElement(PubSub + "publish", new XAttribute("node", AvatarData.NamespaceName),
+                    new XElement(PubSub + "item", new XAttribute("id", hash), new XElement(AvatarData + "data", Convert.ToBase64String(jpeg))))), ct);
+
+        var metadata = new XElement(AvatarMetadata + "metadata");
+        if (jpeg is not null)
+            metadata.Add(new XElement(AvatarMetadata + "info",
+                new XAttribute("bytes", jpeg.Length), new XAttribute("id", hash), new XAttribute("type", "image/jpeg"),
+                new XAttribute("width", EveConsole.Services.OwnPicture.Side), new XAttribute("height", EveConsole.Services.OwnPicture.Side)));
+        await QueryAsync("set", null, new XElement(PubSub + "pubsub",
+            new XElement(PubSub + "publish", new XAttribute("node", AvatarMetadata.NamespaceName),
+                new XElement(PubSub + "item", new XAttribute("id", jpeg is null ? "none" : hash), metadata))), ct);
+    }
+
     /// <summary>Someone's picture from their vCard: at an address, or this account's own with none. Null for none or no answer.</summary>
     public async Task<byte[]?> VCardPhotoAsync(string? at, CancellationToken ct)
     {
@@ -747,6 +802,7 @@ public sealed partial class XmppClient(XmppConnection connection) : IAsyncDispos
         };
         if (word is not null) presence.Add(new XElement(Client + "show", word));
         if (status.Length > 0) presence.Add(new XElement(Client + "status", Clean(status)));
+        if (_photoHash is { } photo) presence.Add(new XElement(VCardUpdate + "x", new XElement(VCardUpdate + "photo", photo)));
         return presence;
     }
 
