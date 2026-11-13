@@ -584,6 +584,9 @@ public sealed class IntelService(
             // One affiliation pass for the whole batch rather than one per report.
             await EnsureAffiliationsAsync(db, seenCharacters, ct);
 
+            // After the affiliations, so a pilot first seen in this batch has the one just pulled.
+            await WriteLastSeenAsync(db, pending, ct);
+
             // Keeps the write-ahead log from running away over a long backfill. Left to grow it
             // reached 1.18 GB, at which point every read had to search it and the periodic
             // automatic checkpoint became a multi-second stall.
@@ -765,6 +768,35 @@ public sealed class IntelService(
 
         db.ChangeTracker.Clear();
         return pending.Count;
+    }
+
+    /// <summary>
+    /// Where each pilot named in the batch was last seen, after the reports are saved (the rows carry
+    /// their ids). A re-parse writes the same sightings again under new report ids, which the writer
+    /// takes as the same sighting, so the rows end up pointing at the reports that exist.
+    ///
+    /// <para>⚠️ Logged, never thrown: the reports are already saved, and a pass that failed here would
+    /// leave the watermark behind lines it has in fact written.</para>
+    /// </summary>
+    private async Task WriteLastSeenAsync(
+        AppDbContext db, List<(IntelReport Report, List<IntelReportCharacter> Pilots)> pending, CancellationToken ct)
+    {
+        var rows = pending
+            .SelectMany(p => p.Pilots.Select(c => IntelLastSeenFeed.ReportRow(
+                p.Report.Id, p.Report.ReportedAt, p.Report.SystemId, p.Report.Source, p.Report.NoVisual, c)))
+            .ToList();
+        if (rows.Count == 0) return;
+
+        try
+        {
+            rows = await IntelLastSeenFeed.WithPulledAffiliationsAsync(db, rows, ct);
+            await IntelLastSeenWriter.UpsertAsync(db, rows, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IntelService), "last seen", ex);
+        }
     }
 
     /// <summary>Applies the newest clear per system, one statement each rather than one per

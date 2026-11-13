@@ -26,6 +26,7 @@ public sealed class ZkillboardFirehoseService(
     ZkillboardApiClient         api,
     ZkillboardKillImportService importer,
     ZkillboardBackfillService   backfill,
+    Intel.IntelLastSeenFeed     lastSeen,
     AppErrorLogger              errorLogger) : ReactiveObject
 {
     // ⚠️ R2Z2's limit is 15 requests a second per IP, shared by every copy of the app on the
@@ -186,10 +187,13 @@ public sealed class ZkillboardFirehoseService(
             // per-kill version was two extra queries for every single kill imported.
             var (charIds, corpIds) = await ZkillboardKillImportService.GetTrackedIdsAsync(db, ct);
 
-            for (var i = 0; i < take; i++)
-                await importer.ImportAsync(db, entries[i].Kill!.Kill, entries[i].Kill!.Hash, charIds, corpIds, ct);
+            var added = await importer.ImportAsync(
+                db, entries.Take(take).Select(e => (e.Kill!.Kill, e.Kill!.Hash)), charIds, corpIds, ct);
 
             await db.SaveChangesAsync(ct);
+
+            // Live: every kill the stream brings is a sighting of whoever was on it.
+            await lastSeen.KillsStoredAsync(db, added, live: true, ct);
         }
 
         _cursor = start + take;

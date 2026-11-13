@@ -4899,6 +4899,14 @@ public class App : Application
                 catch (Exception ex) { errorLogger.Log(nameof(IntelService), "catching up as the new worker", ex); }
             }));
 
+            // Where each pilot was last seen starts from what the database already holds: once, in the
+            // shared database, on whichever PC is the worker first. In the background; it reads history.
+            Start("intel last seen",    () => _ = Task.Run(async () =>
+            {
+                try { await Services.GetRequiredService<EveConsole.Services.Intel.IntelLastSeenFeed>().SeedOnceAsync(); }
+                catch (Exception ex) { errorLogger.Log(nameof(EveConsole.Services.Intel.IntelLastSeenFeed), "seeding last seen", ex); }
+            }));
+
             // Anything scheduled that came due while no client was the worker fires on this first
             // pass, which is why it starts here rather than waiting for the tool to be opened.
             Start("scheduler",          () => Services.GetRequiredService<SchedulerService>().Start());
@@ -5369,6 +5377,8 @@ public class App : Application
         // allowlist — it stores other people's messages.
         services.AddSingleton<ChatLogImportService>();
         services.AddSingleton<IntelService>();
+        // Where each pilot was last seen, from the kills every importer stores, and its one-time seed.
+        services.AddSingleton<EveConsole.Services.Intel.IntelLastSeenFeed>();
 
         // zKillboard integration — optional supplement to the ESI-based kill pull (see
         // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"

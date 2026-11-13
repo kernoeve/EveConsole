@@ -3,7 +3,8 @@
 // What a review cannot see and a quick try never meets: a schema that works on a new database and not on a user's
 // existing one; a paste deleted by the next start because it has no chat message behind it; a watermark that one PC
 // moves backwards or another skips past; chat lines that commit out of id order and are never parsed; a PC that is not
-// the worker parsing or evaluating alarms anyway. Each is checked here, on a scratch SQLite file, and on a scratch
+// the worker parsing or evaluating alarms anyway; where a pilot was last seen moved back by a late report or kill,
+// or refused by PostgreSQL for naming a pilot twice. Each is checked here, on a scratch SQLite file, and on a scratch
 // PostgreSQL database this check makes and drops itself when EVECONSOLE_PG names a server. It never opens the database
 // that string names, and never the app's own.
 //
@@ -73,6 +74,17 @@ try
 
     // ── A channel ticked on another PC: the worker parses it from the next pass ────────────────────────────
     await ChannelsFromAnotherPc.CheckAsync(c, profile);
+
+    // ── Where each pilot was last seen ──────────────────────────────────────────────────────────
+    // On a database the model makes, and on the one the startup statements brought up from the build
+    // before (the table as users have it).
+    var lsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "lastseen.db")}").Options;
+    await using (var db = new AppDbContext(lsOptions)) await db.Database.EnsureCreatedAsync();
+    await LastSeenChecks.WriterAsync(c, "SQLite", lsOptions);
+    await LastSeenChecks.FeedAsync(c, "SQLite", lsOptions);
+    await LastSeenChecks.WriterAsync(c, "SQLite upgraded",
+        new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "upgrade.db")}").Options);
+    await LastSeenChecks.PassAsync(c, profile);
 
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
@@ -623,6 +635,9 @@ namespace EveConsole.Tools.IntelCheck
 
                 await SchemaAsync(c, "PG fresh", options, scratch);
                 await UpgradeAsync(c, options, scratch);
+                // After the upgrade: IntelLastSeen as the startup statements made it.
+                await LastSeenChecks.WriterAsync(c, "PG", options);
+                await LastSeenChecks.FeedAsync(c, "PG", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);

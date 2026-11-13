@@ -1832,6 +1832,34 @@ public static class IntelReportSource
     public const int DscanPaste = 2;
 }
 
+/// <summary>Values of <see cref="IntelLastSeen.Source"/>, and the rank each has in a tie.</summary>
+public static class IntelLastSeenSource
+{
+    public const int Report       = 0;
+    public const int LocalPaste   = 1;
+    public const int KillAttacker = 2;
+    public const int KillVictim   = 3;
+
+    /// <summary>
+    /// Which of two sightings in the same second wins: a kill, then a pasted Local, then a chat
+    /// report. A kill is a fact the server recorded; a Local paste is what the pilot's own client
+    /// listed; a chat report is someone's reading of either, typed a little after the fact.
+    /// </summary>
+    public static int RankOf(int source) => source switch
+    {
+        KillAttacker or KillVictim => 2,
+        LocalPaste                 => 1,
+        _                          => 0,
+    };
+}
+
+/// <summary>Values of <see cref="IntelLastSeen.AffiliationSource"/>.</summary>
+public static class IntelAffiliationSource
+{
+    public const int Pulled = 0;
+    public const int Kill   = 1;
+}
+
 /// <summary>
 /// Where each pilot was last seen, one row per character, from every source at once: intel
 /// reports, pasted Local, and killmails (as attacker or victim).
