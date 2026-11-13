@@ -4,7 +4,8 @@
 // existing one; a paste deleted by the next start because it has no chat message behind it; a watermark that one PC
 // moves backwards or another skips past; chat lines that commit out of id order and are never parsed; a PC that is not
 // the worker parsing or evaluating alarms anyway; where a pilot was last seen moved back by a late report or kill,
-// or refused by PostgreSQL for naming a pilot twice. Each is checked here, on a scratch SQLite file, and on a scratch
+// or refused by PostgreSQL for naming a pilot twice; a direction read the wrong way round, or a follow-up line given a
+// different parent live than in a re-parse. Each is checked here, on a scratch SQLite file, and on a scratch
 // PostgreSQL database this check makes and drops itself when EVECONSOLE_PG names a server. It never opens the database
 // that string names, and never the app's own.
 //
@@ -85,6 +86,12 @@ try
     await LastSeenChecks.WriterAsync(c, "SQLite upgraded",
         new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "upgrade.db")}").Options);
     await LastSeenChecks.PassAsync(c, profile);
+
+    // ── Direction, stored clears and follow-up lines ─────────────────────────────────────────────────────────
+    FollowUpChecks.Parser(c);
+    FollowUpChecks.Threads(c);
+    await FollowUpChecks.DatabaseAsync(c, "SQLite threads", lsOptions);
+    await FollowUpChecks.PassAsync(c, profile);
 
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
@@ -638,6 +645,7 @@ namespace EveConsole.Tools.IntelCheck
                 // After the upgrade: IntelLastSeen as the startup statements made it.
                 await LastSeenChecks.WriterAsync(c, "PG", options);
                 await LastSeenChecks.FeedAsync(c, "PG", options);
+                await FollowUpChecks.DatabaseAsync(c, "PG threads", options);
                 await Watermark.CheckAsync(c, "PG", options);
                 await TwoWritersAsync(c, options, scratch);
                 await RaceAsync(c, options);
