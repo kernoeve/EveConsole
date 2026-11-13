@@ -124,6 +124,18 @@ jobs:
       - name: Store need check
         run: dotnet run --project tools/StoreNeedCheck/StoreNeedCheck.csproj -c Release
 
+      # ⚠️ Does the Sales Tracker's By period summary put each sale on the right side, and count
+      # only real sales? A two-tag sale counted twice in its month, a sale with no cost adding a
+      # profit, or a trade between the user's own wallets read as a sale all change the for-profit
+      # share a payout is worked from. Constructed sales: no database.
+      - name: Sales summary check
+        run: dotnet run --project tools/SalesSummaryCheck/SalesSummaryCheck.csproj -c Release
+
+      # ⚠️ Are structure fuel tasks and the Corp Structures fuel columns right? Fuel due at the
+      # wrong level, the wrong number of blocks, or a list no longer read showing out of fuel.
+      - name: Structure task check
+        run: dotnet run --project tools/StructureTaskCheck/StructureTaskCheck.csproj -c Release
+
       # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
       # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
       # picks up all look like a finished report. This builds battles whose answers are known, on

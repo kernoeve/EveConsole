@@ -88,6 +88,19 @@ public static class WorklistPriority
     /// </summary>
     public const int Refining        = 110;
 
+    /// <summary>
+    /// A structure running out of fuel: below the work that unblocks other work, above an outbid
+    /// order. Services off is a structure's whole reason for being gone — its jump bridge, its
+    /// clone bay, its reactions — and the game's clock runs it down whether anyone looks or not.
+    /// </summary>
+    public const int StructureFuel   = 105;
+
+    /// <summary>A structure short of the ammo or fighters its fit carries: it defends itself with them.</summary>
+    public const int StructureAmmo   = 88;
+
+    /// <summary>A Metenox moon bay filling up: worth collecting, nothing lost until it is full.</summary>
+    public const int StructurePickup = 50;
+
     public const int Missing         = 90;
     public const int StandingProject = 85;
     public const int Housekeeping    = 30;

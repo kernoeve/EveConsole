@@ -2041,4 +2041,181 @@
   <data name="MenuDeleteItemsOther" xml:space="preserve">
     <value>删除 {0:N0} 件物品</value>
   </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>按期间</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>物品组</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>仅显示这些市场分组下物品的销售（所有标签页）。合同按其中最贵重的物品归类。</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>移除此分组</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>+ 分组</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>将销售限定到某个市场分组</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>添加分组</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>拆分方式</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>营利占比依据</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>计数依据</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>复制为文本</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>将两张表格以纯文本代码块复制，便于粘贴到聊天中。</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>导出 CSV</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>导出销售汇总</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>营利</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>非营利</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>营利占比</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>销售额 {0}</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>利润 {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>依据：{0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>全部销售</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>营利</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>非营利</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>期间</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>销售 ISK</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>成本</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>营利占比</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>营利</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>非营利</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>合计</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>售出数量</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>每格：数量，然后（营利·非营利）。只计算物品组内的物品。</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>无论“显示非营利”如何设置，这里都会计入非营利销售：非营利标记决定每笔销售归入哪一边。标签只是文本：每个出现的标签各占一行，带两个标签的销售会出现在两行下，但在其期间和合计中只计一次。成本采用上方选择的利润基准，按每笔销售当天的值计；利润 % 为利润与该成本之比。</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>标签</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>市场分组</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>买家</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>成本</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>销售 ISK</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>无标签</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>截至今日</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>拆分</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>营利销售 ISK</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>营利成本</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>非营利销售 ISK</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>非营利成本</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>无成本的销售</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>计数依据</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>汇总已复制到剪贴板。</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>汇总已导出到 {0}。</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>销售汇总 · {0} 至 {1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>行：{0} · 拆分：{1} · 营利占比依据：{2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>按{0}的售出数量（营利·非营利）</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>营利占比按什么计算：成本、销售 ISK 或售出数量。</value>
+  </data>
 </root>

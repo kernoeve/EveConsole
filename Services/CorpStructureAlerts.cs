@@ -95,8 +95,16 @@ public static partial class CorpStructureAlerts
 
                 if (s.StructureFuel)
                 {
+                    // ⚠️ A list no longer read says nothing of an expiry passed since: not raised.
+                    var structuresRead = await CorpStructures.ListReadAsync(dbFactory, corp.Id, CorpStructures.StructuresEndpoint, ct);
+                    var towersRead     = await CorpStructures.ListReadAsync(dbFactory, corp.Id, CorpStructures.StarbasesEndpoint, ct);
+                    bool Unknown(CorpStructureInfo i) =>
+                        (i.Kind == CorpStructureKind.Upwell ? structuresRead : i.Kind == CorpStructureKind.Tower ? towersRead : null)
+                            is { Stale: true } && (i.RunsOut is null || i.RunsOut <= now);
+
                     var horizon = now.AddDays(Math.Max(1, s.StructureFuelDays));
                     var low = infos
+                        .Where(i => !Unknown(i))
                         .Where(i => (i.RunsOut is { } r && r <= horizon && (i.IsPowered || i.NeedsFuel))
                                  || (i.Kind == CorpStructureKind.Upwell && !i.IsPowered && i.NeedsFuel))
                         .OrderBy(i => i.RunsOut ?? DateTimeOffset.MinValue)

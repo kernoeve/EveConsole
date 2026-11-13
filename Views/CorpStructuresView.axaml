@@ -53,6 +53,24 @@
                                           <Setter Property="FontWeight" Value="SemiBold" /></Style>
     <Style Selector="TextBlock.good">     <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" /></Style>
     <Style Selector="TextBlock.total">    <Setter Property="FontWeight" Value="SemiBold" /></Style>
+
+    <!-- A list cell that opens what it names: plain text until hovered, then underlined. -->
+    <Style Selector="Button.cellLink">
+      <Setter Property="Background"      Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Padding"         Value="0" />
+      <Setter Property="MinHeight"       Value="0" />
+      <Setter Property="Cursor"          Value="Hand" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+      <Setter Property="HorizontalContentAlignment" Value="Left" />
+    </Style>
+    <Style Selector="Button.cellLink:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.cellLink:pointerover TextBlock">
+      <Setter Property="TextDecorations" Value="Underline" />
+      <Setter Property="Foreground"      Value="{DynamicResource AccentBrush}" />
+    </Style>
   </UserControl.Styles>
 
   <Grid RowDefinitions="Auto,*">
@@ -109,7 +127,16 @@
       <!-- ── The list ─────────────────────────────────────────────── -->
       <!-- Fixed widths: a fill column pushes the ones after it off the grid once the tab is shown
            again. Templated columns name their clipboard text — they copy blank otherwise. -->
-      <DataGrid Grid.Column="0" ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
+      <DockPanel Grid.Column="0">
+      <!-- The list is a snapshot: when it was last read, why it stopped, and that what is below is
+           as it was then. -->
+      <Border DockPanel.Dock="Top" IsVisible="{Binding HasStaleNote}" Padding="12 6"
+              Background="{DynamicResource SurfacePanelBrush}"
+              BorderBrush="{DynamicResource WarnBrush}" BorderThickness="0 0 0 1">
+        <TextBlock Text="{Binding StaleNote}" FontSize="11" TextWrapping="Wrap"
+                   Foreground="{DynamicResource WarnBrush}" />
+      </Border>
+      <DataGrid ItemsSource="{Binding Rows}" SelectedItem="{Binding Selected}"
                 IsVisible="{Binding HasRows}" AutoGenerateColumns="False" IsReadOnly="True"
                 RowHeight="26" CanUserReorderColumns="False" SelectionMode="Single"
                 Background="{DynamicResource SurfaceBaseBrush}">
@@ -121,11 +148,51 @@
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColName}"     Binding="{Binding Name}"         Width="260" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColType}"     Binding="{Binding TypeName}"     Width="150" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColSystem}"   Binding="{Binding Location}"     Width="120" SortMemberPath="Location" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRegion}"   Binding="{Binding Region}"       Width="120" />
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColState}"    Binding="{Binding StateText}"    Width="130" />
+          <!-- Name, type, system and region open what they name: the structure (a tower or
+               skyhook, its system), the item, the system and the region. -->
+          <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColName}" Width="260"
+                                  SortMemberPath="Name" ClipboardContentBinding="{Binding Name}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CorpStructureRowVm">
+                <Button Classes="cellLink" Command="{Binding OpenName}">
+                  <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColType}" Width="150"
+                                  SortMemberPath="TypeName" ClipboardContentBinding="{Binding TypeName}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CorpStructureRowVm">
+                <Button Classes="cellLink" Command="{Binding OpenType}">
+                  <TextBlock Text="{Binding TypeName}" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColSystem}" Width="120"
+                                  SortMemberPath="Location" ClipboardContentBinding="{Binding Location}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CorpStructureRowVm">
+                <Button Classes="cellLink" Command="{Binding OpenSystem}">
+                  <TextBlock Text="{Binding Location}" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColRegion}" Width="120"
+                                  SortMemberPath="Region" ClipboardContentBinding="{Binding Region}">
+            <DataGridTemplateColumn.CellTemplate>
+              <DataTemplate x:DataType="vm:CorpStructureRowVm">
+                <Button Classes="cellLink" Command="{Binding OpenRegion}">
+                  <TextBlock Text="{Binding Region}" TextTrimming="CharacterEllipsis" />
+                </Button>
+              </DataTemplate>
+            </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColState}"    Binding="{Binding StateText}"    Width="150" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColStateEnds}" Binding="{Binding StateEnds}"   Width="190"
+                              SortMemberPath="StateEndsSort" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColServices}" Binding="{Binding ServicesText}" Width="70" />
           <!-- Info: a red icon where the structure is off the fit set for its type on the Config
                tab (a module missing or wrong, ammo or fighters low); what is wrong on hover. -->
@@ -144,21 +211,22 @@
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
           <DataGridTemplateColumn Header="{x:Static loc:CorpText.CsColFuelLeft}" Width="110"
-                                  SortMemberPath="RunsOutSort" ClipboardContentBinding="{Binding FuelLeft}">
+                                  SortMemberPath="FuelSort" ClipboardContentBinding="{Binding FuelLeft}">
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:CorpStructureRowVm">
-                <TextBlock Text="{Binding FuelLeft}" VerticalAlignment="Center"
+                <TextBlock Text="{Binding FuelLeft}" VerticalAlignment="Center" ToolTip.Tip="{Binding FuelTip}"
                            Classes.soon="{Binding IsSoon}" Classes.critical="{Binding IsCritical}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>
-          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRunsOut}"  Binding="{Binding RunsOutText}"  Width="130" SortMemberPath="RunsOutSort" />
+          <DataGridTextColumn Header="{x:Static loc:CorpText.CsColRunsOut}"  Binding="{Binding RunsOutText}"  Width="130" SortMemberPath="FuelSort" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColBlocksPerDay}" Binding="{Binding PerDay}"       Width="90"  SortMemberPath="PerDaySort" CellStyleClasses="num" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColIskPerDay}" Binding="{Binding IskPerDay}"  Width="90" SortMemberPath="IskPerDaySort" CellStyleClasses="num" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColPickupValue}"  Binding="{Binding PickupValue}"  Width="100" SortMemberPath="PickupValueSort"  CellStyleClasses="num" />
           <DataGridTextColumn Header="{x:Static loc:CorpText.CsColPickupVolume}" Binding="{Binding PickupVolume}" Width="110" SortMemberPath="PickupVolumeSort" CellStyleClasses="num" />
         </DataGrid.Columns>
       </DataGrid>
+      </DockPanel>
       <TextBlock Grid.Column="0" Text="{Binding EmptyText}" IsVisible="{Binding !HasRows}"
                  FontSize="12" Foreground="{DynamicResource TextMutedBrush}"
                  HorizontalAlignment="Center" VerticalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" />
