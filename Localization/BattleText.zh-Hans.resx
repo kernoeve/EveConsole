@@ -11,7 +11,7 @@
     <value>未知舰船</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>单击联盟可列出其军团。双击查看详情。</value>
+    <value>单击联盟可列出其军团。双击打开其页面。</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>打开击杀</value>

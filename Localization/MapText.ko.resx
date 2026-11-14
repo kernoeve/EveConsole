@@ -2418,7 +2418,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>♦ 랫</value>
   </data>
   <data name="TipNpcDiamondsToggle" xml:space="preserve">
-    <value>지난 5일 동안 ♦ 해적 NPC가 플레이어를 처치한 성계를 표시합니다. 표시는 본 것만 알려 줄 뿐, 그 뒤에 무엇이 있는지(소티요, 요새, 떠도는 무리)는 알려 주지 않습니다.</value>
+    <value>지난 5일 동안 ♦ 해적 NPC가 플레이어를 처치한 성계를 표시합니다. 표시는 본 것만 알려 줄 뿐, 그 뒤에 무엇이 있는지(요새, 떠도는 무리)는 알려 주지 않습니다.</value>
   </data>
   <data name="NpcCapitalsToggle" xml:space="preserve">
     <value>NPC 캐피탈</value>
@@ -2478,7 +2478,7 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
     <value>{0}: {1}, {2}</value>
   </data>
   <data name="LiveMarkDiamonds" xml:space="preserve">
-    <value>지난 5일 동안 여기서 ♦ 해적 NPC가 플레이어를 처치했습니다. 숫자는 연속 처치가 시작된 이후의 처치 수입니다(5일 넘는 공백 없음). 소티요, 요새, 떠도는 무리일 수 있습니다. 세력, 처치 수, 기간은 마우스를 올려 확인하세요.</value>
+    <value>지난 5일 동안 여기서 ♦ 해적 NPC가 플레이어를 처치했습니다. 숫자는 연속 처치가 시작된 이후의 처치 수입니다(5일 넘는 공백 없음). 요새나 떠도는 무리일 수 있습니다. 세력, 처치 수, 기간은 마우스를 올려 확인하세요.</value>
   </data>
   <data name="LiveMarkCapitals" xml:space="preserve">
     <value>다운타임(EVE 11:00) 이후 이곳 킬메일에 나온 NPC 타이탄(T), 슈퍼캐리어(S), 드레드노트(D). 세력, 선체, 처치 수, 마지막 처치는 마우스를 올려 확인하세요.</value>

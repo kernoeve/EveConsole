@@ -11,7 +11,7 @@
     <value>不明な艦船</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>アライアンスをクリックするとコーポレーションを表示します。ダブルクリックで詳細を開きます。</value>
+    <value>アライアンスをクリックするとコーポレーションを表示します。ダブルクリックでそのページを開きます。</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>キルを開く</value>

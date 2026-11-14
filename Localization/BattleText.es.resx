@@ -11,7 +11,7 @@
     <value>Nave desconocida</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>Haz clic en una alianza para ver sus corporaciones. Doble clic para ver detalles.</value>
+    <value>Haz clic en una alianza para ver sus corporaciones. Doble clic para abrir su página.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>Abrir el derribo</value>
