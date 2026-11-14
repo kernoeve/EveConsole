@@ -244,19 +244,27 @@ public partial class ClientPanelWindow : Window
                 return _around?.MainScreen is not { } groupMain ? null : PanelChatLine.GroupChat(groupMain);
 
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) is { } kind && ClientPanelItemView.Shows(kind):
+                // The background process line starts at the left: its text grows and shrinks as the
+                // processes come and go, and centered it moved about (user, 2026-11-13).
+                var across = kind == PanelControlKind.EsiStatus ? HorizontalAlignment.Left : HorizontalAlignment.Center;
                 var control = new ClientPanelItemView
                 {
                     DataContext = _around?.MainScreen,
-                    HorizontalAlignment = HorizontalAlignment.Center,
+                    HorizontalAlignment = across,
                     VerticalAlignment = VerticalAlignment.Center,
                 };
                 control.ShowOnly(kind);
 
-                // Centered in the room the layout gave it, and made smaller to fit when the room is
-                // smaller than it — never larger. ⚠️ Not clipped: a gear too tall for a thin bar, or for
-                // one whose edge keeps some of its height, was cut off at the top and the side.
+                // Centered (or at the left, above) in the room the layout gave it, and made smaller to
+                // fit when the room is smaller than it — never larger. ⚠️ Not clipped: a gear too tall
+                // for a thin bar, or for one whose edge keeps some of its height, was cut off at the top
+                // and the side.
                 var room = new Panel { Background = Brushes.Transparent };
-                room.Children.Add(new Viewbox { Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly, Child = control });
+                room.Children.Add(new Viewbox
+                {
+                    Stretch = Stretch.Uniform, StretchDirection = StretchDirection.DownOnly,
+                    HorizontalAlignment = across, Child = control,
+                });
                 return room;
 
             // A client's place is a hole in this window, and an empty cell is just more of the panel.
