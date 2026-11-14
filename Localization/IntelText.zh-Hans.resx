@@ -982,4 +982,10 @@
   <data name="KillAttackersTip" xml:space="preserve">
     <value>参与击杀者（按联盟或军团）：</value>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>未知飞行员</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>未知飞行员（角色 {0}）：名称尚未知晓</value>
+  </data>
 </root>

@@ -364,6 +364,21 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("snapshot: a loss lasts the victim lifetime (5 min)", snap.Pilots[P9].Lifetime == TimeSpan.FromMinutes(5));
             c.Check("snapshot: the clear is kept as the system's clear state", snap.Systems[S1].Clear?.ReportId == clear.Id);
 
+            // A clear relayed into another channel a minute later: read once, at its first time. A pilot called between
+            // the clear and its relay stands, and the Feed shows the clear once.
+            var first   = Report(S2, Ago(4), kind: IntelReportKind.Clear, channel: "intelcheck-a");
+            var between = Report(S2, Ago(3.5), count: 1, channel: "intelcheck-a");
+            var relay   = Report(S2, Ago(3), kind: IntelReportKind.Clear, channel: "intelcheck-b");
+            var apart   = Report(S2, Ago(3), kind: IntelReportKind.Clear, channel: "intelcheck-a");
+            snap = Build([first, between, relay], [Named(between, P3)], [Seen(P3, S2, Ago(3.5), reportId: between.Id)]);
+            c.Check("snapshot: a pilot called between a clear and its relay stands", snap.Pilots.ContainsKey(P3));
+            c.Check("snapshot: the relayed clear is read once, the first",
+                snap.Systems[S2].Clear?.ReportId == first.Id && snap.Feed.Count(e => e.ReportId == relay.Id) == 0,
+                $"clear {snap.Systems[S2].Clear?.ReportId}, first {first.Id}");
+            snap = Build([first, between, apart], [Named(between, P3)], [Seen(P3, S2, Ago(3.5), reportId: between.Id)]);
+            c.Check("snapshot: a second clear in the same channel is no relay: it takes out the pilot seen before it",
+                !snap.Pilots.ContainsKey(P3));
+
             // Unnamed counts: the newest report's, less its named pilots; gone when they are said to have moved on.
             var plus3a = Report(S4, Ago(10), count: 3);
             var plus3b = Report(S4, Ago(1), count: 4);

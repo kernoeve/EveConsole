@@ -982,4 +982,10 @@
   <data name="KillAttackersTip" xml:space="preserve">
     <value>킬 참여자 (얼라이언스 또는 코퍼레이션별):</value>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>알 수 없는 파일럿</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>알 수 없는 파일럿(캐릭터 {0}): 아직 이름을 알 수 없습니다</value>
+  </data>
 </root>

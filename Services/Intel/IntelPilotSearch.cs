@@ -6,7 +6,8 @@ namespace EveConsole.Services.Intel;
 
 /// <summary>What the Pilots tab found: the rows, and the names of the corporations and alliances (and of
 /// pilots whose row has none) they need.</summary>
-/// <param name="Hidden">Pilots read and left out by the standings filter: what "N hidden by standings" says.</param>
+/// <param name="Hidden">Pilots read and left out by a standings chip switched off: what "N hidden by standings" says.
+/// The user's own characters are left out too but not counted: no chip shows them, so none could bring them back.</param>
 /// <param name="Capped">The rows stopped at <see cref="IntelPilotSearch.MaxRows"/> with more left in the window.</param>
 public sealed record IntelPilotResults(IReadOnlyList<IntelLastSeen> Rows, IReadOnlyDictionary<long, string> Names,
                                        int Hidden = 0, bool Capped = false)
@@ -23,7 +24,7 @@ public sealed record IntelPilotResults(IReadOnlyList<IntelLastSeen> Rows, IReadO
 /// and pilots of a corporation or alliance whose name starts with it too. Newest first within each, at most
 /// <see cref="MaxRows"/>.</para>
 ///
-/// <para>With a standings filter (<c>keep</c>), the cap counts the pilots KEPT: the window is read newest first a
+/// <para>With a standings filter (<c>judge</c>), the cap counts the pilots KEPT: the window is read newest first a
 /// page at a time until <see cref="MaxRows"/> are kept or it runs out. A cap taken before the filter would let 500
 /// blues seen lately hide every red behind them.</para>
 ///
@@ -51,12 +52,12 @@ public static class IntelPilotSearch
     public const int MaxScanned = 40_000;
 
     public static async Task<IntelPilotResults> SearchAsync(AppDbContext db, string? text, DateTimeOffset since,
-                                                            Func<IntelLastSeen, bool>? keep = null, CancellationToken ct = default)
+                                                            Func<IntelLastSeen, IntelPilotVerdict>? judge = null, CancellationToken ct = default)
     {
         var sinceText = IntelLastSeenWriter.Format(since);
         var window = db.IntelLastSeens.AsNoTracking().Where(r => string.Compare(r.SeenAt, sinceText) >= 0);
         var term = (text ?? "").Trim();
-        var read = new Reader(keep);
+        var read = new Reader(judge);
         List<IntelLastSeen> rows;
         if (term.Length == 0)
         {
@@ -97,7 +98,7 @@ public static class IntelPilotSearch
             foreach (var n in await db.UniverseNames.AsNoTracking().Where(u => chunk.Contains(u.EntityId))
                          .Select(u => new { u.EntityId, u.Name }).ToListAsync(ct).ConfigureAwait(false))
                 names[n.EntityId] = n.Name;
-        return new IntelPilotResults(rows, names, read.Hidden.Count, read.More || (keep is null && rows.Count >= MaxRows));
+        return new IntelPilotResults(rows, names, read.Hidden.Count, read.More || (judge is null && rows.Count >= MaxRows));
     }
 
     /// <summary>
@@ -106,9 +107,10 @@ public static class IntelPilotSearch
     /// second rarely holds many), each pilot once, until enough are kept, the window runs out or
     /// <see cref="MaxScanned"/> rows have been read.
     /// </summary>
-    private sealed class Reader(Func<IntelLastSeen, bool>? keep)
+    private sealed class Reader(Func<IntelLastSeen, IntelPilotVerdict>? judge)
     {
-        /// <summary>Pilots read and left out by the filter, each once whichever query read them.</summary>
+        /// <summary>Pilots read and left out by a chip switched off, each once whichever query read them. Own
+        /// characters are left out without being counted.</summary>
         public HashSet<long> Hidden { get; } = [];
 
         /// <summary>A read stopped at its cap (or the scan's) with rows left in the window.</summary>
@@ -119,7 +121,7 @@ public static class IntelPilotSearch
         public async Task<List<IntelLastSeen>> TakeAsync(IQueryable<IntelLastSeen> query, int want, CancellationToken ct,
                                                          IReadOnlySet<long>? skip = null)
         {
-            if (keep is null)
+            if (judge is null)
                 return await query.OrderByDescending(r => r.SeenAt).Take(want).ToListAsync(ct).ConfigureAwait(false);
 
             var kept = new List<IntelLastSeen>();
@@ -144,7 +146,9 @@ public static class IntelPilotSearch
                     var r = rows[i];
                     if (!seen.Add(r.CharacterId) || skip?.Contains(r.CharacterId) == true) continue;
                     _scanned++;
-                    if (!keep(r)) { Hidden.Add(r.CharacterId); continue; }
+                    var verdict = judge(r);
+                    if (verdict == IntelPilotVerdict.Own) continue;
+                    if (verdict == IntelPilotVerdict.Hidden) { Hidden.Add(r.CharacterId); continue; }
                     kept.Add(r);
                     if (kept.Count == want)
                     {
@@ -190,5 +194,17 @@ public sealed class IntelPilotFilter(IntelStandings standings,
     }
 
     /// <summary>Whether the standings chips show this pilot. Own characters are never shown, as on the Board.</summary>
-    public bool Keeps(IntelLastSeen r) => Tiers.Contains(Place(r).Tier);
+    public bool Keeps(IntelLastSeen r) => Judge(r) == IntelPilotVerdict.Shown;
+
+    /// <summary>Shown, hidden by a chip switched off, or one of the user's own characters (never shown, and not
+    /// counted as hidden: no chip brings them back).</summary>
+    public IntelPilotVerdict Judge(IntelLastSeen r) => Judge(Place(r).Tier);
+
+    public IntelPilotVerdict Judge(StandingTier tier) =>
+        tier == StandingTier.Own ? IntelPilotVerdict.Own
+        : Tiers.Contains(tier) ? IntelPilotVerdict.Shown
+        : IntelPilotVerdict.Hidden;
 }
+
+/// <summary>What the Pilots tab's standings filter makes of a pilot.</summary>
+public enum IntelPilotVerdict { Shown, Hidden, Own }

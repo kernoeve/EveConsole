@@ -90,6 +90,19 @@ internal static class FollowUpChecks
         }
         foreach (var question in new[] { "QZ-X77 clr?", "QZ-X77 clear?", "QZ-X77 status?" })
             c.Check($"parse: \"{question}\" is a question, not a clear", IntelRules.Parse(question, lex) is null);
+
+        // A clear turned round, asked about anywhere in the line, waited for or not the line's whole claim is no clear:
+        // a false one retires the live sightings in that system and hides real hostiles.
+        foreach (var notClear in new[] { "QZ-X77 not clr", "QZ-X77 not clear", "QZ-X77 no clr", "QZ-X77 isnt clr", "QZ-X77 isn't clear",
+                                         "anyone know if QZ-X77 is clr", "QZ-X77 clr?? anyone", "QZ-X77 clr? anyone", "is QZ-X77 clr ?",
+                                         "wait for QZ-X77 to clr", "QZ-X77 will be clr soon", "XQ1-Z2 clr QZ-X77 red" })
+        {
+            var p = IntelRules.Parse(notClear, lex);
+            c.Check($"parse: \"{notClear}\" is not a clear", p is null || p.Kind != IntelRules.IntelKind.Clear,
+                p is null ? "null" : $"{p.Kind} {p.SystemName}");
+        }
+        foreach (var notClear in new[] { "not clr", "no clr", "clr?? anyone", "will be clr soon", "isnt clear" })
+            c.Check($"follow-up: \"{notClear}\" is not a clear", F(notClear) is not { Clear: true });
         var nv = IntelRules.Parse("QZ-X77 Zeltrix Quorvane nv", lex);
         c.Check("parse: no visual is still a flag on the sighting", nv is { NoVisual: true, PlayerCount: 1, FromSystem: null, HeadingSystem: null });
         c.Check("parse: a question is still not a report", IntelRules.Parse("QZ-X77 Update?", lex) is null);
@@ -530,6 +543,11 @@ internal static class FollowUpChecks
                     ("r26", ChB, "Scout Bravo", 2130, "X2-QZ7 clr"),
                     ("r27", ChA, "Scout Alpha", 2200, "XQ1-Z2 clear"),
                     ("r28", ChB, "Scout Bravo", 2290, "XQ1-Z2 clr"));
+        // A clear, a pilot called after it, and the clear relayed into the other channel a minute later: the relay is
+        // stored but retires nothing, so the pilot called in between stands.
+        await Lines(("r29", ChA, "Scout Alpha", 2500, "ZZQ-71 clr"),
+                    ("r30", ChA, "Scout Alpha", 2530, "ZZQ-71  Zeltrix Quorvane"));
+        await Lines(("r31", ChB, "Scout Bravo", 2560, "ZZQ-71 clr"));
         List<int> chatter;
         await using (var db = new AppDbContext(options))
             chatter = await IntelSnapshotService.ChatterQuery(db, [ChA, ChB], int.MaxValue, "0").Select(m => m.Id).ToListAsync();
@@ -582,6 +600,9 @@ internal static class FollowUpChecks
                 R(key) is { } x ? $"kind {x.Kind} in {x.SystemId}" : "no report");
         c.Check("pass: and none of them is chatter", new[] { "r25", "r26", "r27", "r28" }.All(k => !chatter.Contains(ids[k])),
             string.Join(",", chatter));
+        c.Check("pass: a relayed clear is stored, and the pilot called between the clear and its relay is not retired by it",
+            R("r31") is { Kind: IntelReportKind.Clear, SystemId: S3 } && R("r30") is { Kind: IntelReportKind.Sighting, Obsolete: false },
+            $"relay {R("r31")?.Kind}, between obsolete {R("r30")?.Obsolete}");
 
         // The same history re-parsed, twice: the same reports each time, and the same as live.
         var first = await worker.BackfillAsync();

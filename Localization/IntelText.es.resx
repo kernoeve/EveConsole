@@ -1039,4 +1039,10 @@
   <data name="KillAttackersTip" xml:space="preserve">
     <value>En la destrucción, por alianza (o corporación):</value>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Piloto desconocido</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Piloto desconocido (personaje {0}): aún no se conoce el nombre</value>
+  </data>
 </root>

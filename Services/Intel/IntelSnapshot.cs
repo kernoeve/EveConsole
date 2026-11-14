@@ -267,6 +267,25 @@ public static class IntelSnapshotBuilder
     private static readonly IntelRules.IntelFlags[] AllFlags =
         [.. Enum.GetValues<IntelRules.IntelFlags>().Where(f => f != IntelRules.IntelFlags.None)];
 
+    /// <summary>
+    /// Leaves out each clear that relays an earlier one (the same system, from another channel, within the copy window):
+    /// the clear is read once, at its first time. Stamped with the relay's later time it would also wipe every sighting
+    /// called between the two, and the Feed would show it twice.
+    /// </summary>
+    private static void DropRelayedClears(List<(IntelReport R, DateTimeOffset At)> reports)
+    {
+        var relayed = new HashSet<IntelReport>(ReferenceEqualityComparer.Instance);
+        foreach (var system in reports.Where(x => x.R.Kind == IntelReportKind.Clear).GroupBy(x => x.R.SystemId))
+        {
+            if (system.Count() < 2) continue;
+            var kept = new List<(IntelReport R, DateTimeOffset At)>();
+            foreach (var x in system.OrderBy(x => x.At).ThenBy(x => x.R.Id))
+                if (kept.Any(y => EveConsole.Monitoring.IntelDuplicates.RelaysClear(x.R, x.At, y.R, y.At))) relayed.Add(x.R);
+                else kept.Add(x);
+        }
+        if (relayed.Count > 0) reports.RemoveAll(x => relayed.Contains(x.R));
+    }
+
     /// <param name="episodes">What keeps a run of counts or of a flag going past the window's edge; without
     /// one, a run begins at its oldest report read back.</param>
     public static IntelSnapshot Build(IntelSnapshotInput input, IntelCampRegister register, long version,
@@ -280,6 +299,7 @@ public static class IntelSnapshotBuilder
         var reports = new List<(IntelReport R, DateTimeOffset At)>();
         foreach (var r in input.Reports)
             if (TryParse(r.ReportedAt, out var at) && at >= from) reports.Add((r, at));
+        DropRelayedClears(reports);
         var reportById = reports.ToDictionary(x => x.R.Id);
         var pilotsOf = input.ReportPilots.Where(p => reportById.ContainsKey(p.IntelReportId))
             .ToLookup(p => p.IntelReportId);

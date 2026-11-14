@@ -337,6 +337,8 @@ namespace EveConsole.Tools.IntelCheck
                 && !fromMe.Keeps(corpMate) && !fromMe.Keeps(allianceMate),
                 $"{fromMe.Place(corpMate).Tier} {fromMe.Place(allianceMate).Tier}");
             c.Check("pilots filter: an own character is never listed", fromMe.Place(own).Tier == StandingTier.Own && !fromMe.Keeps(own));
+            c.Check("pilots filter: an own character is left out as own, not hidden by a chip; a blue with Blue off is hidden",
+                fromMe.Judge(own) == IntelPilotVerdict.Own && fromMe.Judge(corpMate) == IntelPilotVerdict.Hidden && fromMe.Judge(red) == IntelPilotVerdict.Shown);
             var blueOn = new IntelPilotFilter(Standings(), [(new IntelOrigin(Me, Home), Hops())], new HashSet<StandingTier>(hostile) { StandingTier.Blue });
             c.Check("pilots filter: Blue switched on shows them, the own character still not", blueOn.Keeps(corpMate) && blueOn.Keeps(allianceMate) && !blueOn.Keeps(own));
             c.Check("pilots filter: measured from the origin, from its character", fromMe.Place(red) is { Jumps: 1, Nearest: Me });
@@ -393,6 +395,13 @@ namespace EveConsole.Tools.IntelCheck
                 kill.Pictures.First(p => p.Id == AllyA).PictureTip);
             c.Check("feed who: then the attackers' hulls, most flown first", said.EndsWith("^Raider QX ×5,^Lancer QX ×2,^Bastion QX", StringComparison.Ordinal), said);
             var brawl = view.Systems.Single(s => s.SystemId == Brawl);
+            // A victim whose name no cache has: "Unknown pilot", the id only in the tooltip, never shown as a name.
+            var killRow = view.Feed.First(r => r.Event.KillMailId == BrawlKill);
+            var nameless = new IntelEventRowVm(killRow with { Event = killRow.Event with { VictimId = 94_910_013, VictimName = null } }, snapshot, Now, false);
+            c.Check("feed who: a victim with no name known is \"Unknown pilot\", the id in the tooltip",
+                nameless.Pictures[0] is { IsPilot: true, Id: 94_910_013 } u && u.Text == IntelText.UnknownPilot
+                && u.PictureTip.Contains("94910013", StringComparison.Ordinal) && !Says(nameless).Contains("@94910013", StringComparison.Ordinal),
+                Says(nameless));
             c.Check("feed who: the victim stays out of the hostile counts", brawl.Pilots.Count == 8 && brawl.Pilots.All(p => p.Pilot.CharacterId != BrawlVictim)
                 && IntelHostiles.Of(brawl, snapshot, Now).Count == 8, brawl.Pilots.Count.ToString(CultureInfo.InvariantCulture));
 

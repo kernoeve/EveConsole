@@ -1384,4 +1384,12 @@
     <value>On the kill, by alliance (or corporation):</value>
     <comment>First line of the tooltip on a kill line&apos;s attackers, listed by group with how many of each.</comment>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Unknown pilot</value>
+    <comment>Shown in place of a pilot's name on an intel line (a kill's victim) while no name cache has it yet.</comment>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Unknown pilot (character {0}): the name is not known yet</value>
+    <comment>Tooltip on the portrait of a pilot whose name is not known yet. {0} is the character id (a number).</comment>
+  </data>
 </root>

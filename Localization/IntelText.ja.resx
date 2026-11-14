@@ -982,4 +982,10 @@
   <data name="KillAttackersTip" xml:space="preserve">
     <value>キルの参加者（アライアンスまたはコーポレーション別）:</value>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>不明なパイロット</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>不明なパイロット（キャラクター {0}）：名前はまだわかりません</value>
+  </data>
 </root>

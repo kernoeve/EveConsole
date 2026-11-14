@@ -412,7 +412,7 @@ namespace EveConsole.Tools.IntelCheck
             {
                 await using var db = new AppDbContext(options);
                 var sw = Stopwatch.StartNew();
-                var r = await IntelPilotSearch.SearchAsync(db, "", Now - window, keep);
+                var r = await IntelPilotSearch.SearchAsync(db, "", Now - window, x => keep(x) ? IntelPilotVerdict.Shown : IntelPilotVerdict.Hidden);
                 return (r, sw.ElapsedMilliseconds);
             }
             async Task<List<IntelLastSeen>> Window(TimeSpan window)
@@ -454,6 +454,15 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} pilots filtered: a filter that keeps nobody stops at its scan bound and says so",
                 none.Rows.Count == 0 && none.Capped && none.Hidden >= IntelPilotSearch.MaxScanned, $"hidden {none.Hidden}, {noneMs} ms");
             Console.WriteLine($"{engine} pilots filtered: one in fifty over 60 d read in the check above; nobody kept: {noneMs} ms");
+
+            // The user's own characters are left out and never counted hidden: no chip could bring them back.
+            await using (var db = new AppDbContext(options))
+            {
+                var own = await IntelPilotSearch.SearchAsync(db, "", Now - day,
+                    r => TenOld(r) ? IntelPilotVerdict.Own : IntelPilotVerdict.Shown);
+                c.Check($"{engine} pilots filtered: own characters are left out and not counted hidden",
+                    own.Hidden == 0 && own.Rows.Count > 0 && !own.Rows.Any(TenOld), $"{own.Rows.Count} rows, hidden {own.Hidden}");
+            }
 
             await using (var db = new AppDbContext(options))
             {

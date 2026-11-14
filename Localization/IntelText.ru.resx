@@ -1153,4 +1153,10 @@
   <data name="KillAttackersTip" xml:space="preserve">
     <value>Участники убийства, по альянсам (или корпорациям):</value>
   </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Неизвестный пилот</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Неизвестный пилот (персонаж {0}): имя пока неизвестно</value>
+  </data>
 </root>

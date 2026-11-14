@@ -40,7 +40,18 @@ public class AppPreferencesService(IServiceScopeFactory factory)
         => _cache.TryGetValue(key, out var v) ? v == "1" || v.Equals("true", StringComparison.OrdinalIgnoreCase)
                                               : defaultValue;
 
-    public async Task SetAsync(string key, string? value)
+    private readonly object _writeLock = new();
+    private Task _writes = Task.CompletedTask;
+
+    /// <summary>
+    /// Sets a preference: in the cache at once, in the database off the calling thread.
+    ///
+    /// <para>⚠️ The write runs on a pool thread, one after another in the order they were asked for. Called from
+    /// the UI thread (a click that saves a choice), the first save of a run built EF's save plan there and held
+    /// the UI for one to two seconds; and the database lookup often completes at once, so awaiting it did not
+    /// leave the UI thread either.</para>
+    /// </summary>
+    public Task SetAsync(string key, string? value)
     {
         if (value is null)
         {
@@ -51,24 +62,31 @@ public class AppPreferencesService(IServiceScopeFactory factory)
             _cache[key] = value;
         }
 
+        lock (_writeLock)
+            return _writes = _writes.ContinueWith(_ => WriteAsync(key, value), CancellationToken.None,
+                                                  TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+    }
+
+    private async Task WriteAsync(string key, string? value)
+    {
         using var scope = factory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         if (value is null)
         {
-            var existing = await db.AppPreferences.FindAsync(key);
+            var existing = await db.AppPreferences.FindAsync(key).ConfigureAwait(false);
             if (existing is not null) db.AppPreferences.Remove(existing);
         }
         else
         {
-            var existing = await db.AppPreferences.FindAsync(key);
+            var existing = await db.AppPreferences.FindAsync(key).ConfigureAwait(false);
             if (existing is null)
                 db.AppPreferences.Add(new AppPreference { Key = key, Value = value });
             else
                 existing.Value = value;
         }
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public Task SetLongAsync(string key, long? value)

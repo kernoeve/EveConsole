@@ -79,6 +79,26 @@ public static class IntelRules
         "clr", "clear", "cleared", "empty", "clrr", "crl", "cir", "cls", "clea",
     };
 
+    /// <summary>A word right before a clear word that turns it round: "QZ-X77 not clr" says the opposite.</summary>
+    private static readonly HashSet<string> ClearNegations = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "not", "no", "isnt", "isn't", "aint", "ain't", "never", "nt", "n't",
+    };
+
+    /// <summary>
+    /// The only other words a clear may carry. A clear has to be the line's whole claim — a system, the clear word,
+    /// and filler like this — because a false clear retires the live sightings in that system and hides real
+    /// hostiles from the Board and the alarms. Any other word makes it something else: a question ("anyone know if
+    /// QZ-X77 is clr"), a wait ("wait for QZ-X77 to clr", "QZ-X77 will be clr soon") or a second claim ("XQ1-Z2 clr
+    /// QZ-X77 red"). A clear dropped this way costs little: the sightings it would have retired still age out.
+    /// </summary>
+    private static readonly HashSet<string> ClearFiller = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "all", "still", "is", "its", "it's", "now", "rn", "atm", "again", "totally", "fully", "completely",
+        "o7", "o/", "7o", "ty", "thx", "thanks", "fyi", "and", "the", "on", "in", "dscan", "d-scan", "grid", "local",
+        "-", "–", "—", "=", "/",
+    };
+
     /// <summary>"No visual" — the reporter knows someone is there but cannot see them, usually
     /// because they are cloaked or off grid. Common enough to be worth its own field rather than
     /// being left as noise in the note.</summary>
@@ -515,11 +535,14 @@ public static class IntelRules
 
         // "XQ1-Z2 clr" — a system, nobody in it, and the word for it. Reported rather than
         // dropped so the caller can retire the standing sightings for that system: somebody has
-        // looked, and whoever was there has gone.
-        if (count == 0 && (s.SawClearWord || s.Flags == IntelFlags.None))
-            return s.SawClearWord
-                ? new ParsedIntel(IntelKind.Clear, location.Name, 0, [], s.NoVisual, string.Join(' ', note).Trim())
-                : null;
+        // looked, and whoever was there has gone. Only when the clear is the line's whole claim (see ClearHolds):
+        // "QZ-X77 not clr", "QZ-X77 clr?? anyone", "wait for QZ-X77 to clr" are not clears.
+        if (count == 0)
+        {
+            if (ClearHolds(s, note))
+                return new ParsedIntel(IntelKind.Clear, location.Name, 0, [], s.NoVisual, string.Join(' ', note).Trim());
+            if (s.SawClearWord || s.Flags == IntelFlags.None) return null;
+        }
 
         return new ParsedIntel(IntelKind.Sighting, location.Name, count, s.Pilots, s.NoVisual, string.Join(' ', note).Trim())
         {
@@ -552,14 +575,15 @@ public static class IntelRules
         var heading = s.Systems.Count > 0 ? s.Systems[0] : null;
 
         // A clear word with nobody counted: the system has emptied. With people named or counted it
-        // is something else ("Tester cleared the gate"), as it is for Parse.
+        // is something else ("Tester cleared the gate"), as it is for Parse; and only as the line's whole claim
+        // ("not clr", "clr soon" are not clears).
+        var drop = heading is null ? new HashSet<int>() : heading.Words.Select(w => s.NoteAt.GetValueOrDefault(w, -1)).ToHashSet();
+        var note = s.Note.Where((_, n) => !drop.Contains(n)).ToList();
         var counted = s.Pilots.Count > 0 || s.Plus > 0 || s.Total > 0 || s.Ships.Count > 0;
-        var clear   = s.SawClearWord && !counted;
+        var clear   = !counted && ClearHolds(s, note);
+        if (s.SawClearWord && !clear && !counted) return null;
 
         if (!counted && !clear && s.Flags == IntelFlags.None && !s.NoVisual && heading is null) return null;
-
-        var drop = heading is null ? new HashSet<int>() : heading.Words.Select(w => s.NoteAt.GetValueOrDefault(w, -1)).ToHashSet();
-        var note = s.Note.Where((_, n) => !drop.Contains(n));
 
         return new ParsedFollowUp(s.Pilots, s.Plus, s.Total, s.Ships, s.Flags, s.NoVisual, clear,
                                   heading?.Match.Name, string.Join(' ', note).Trim());
@@ -611,7 +635,16 @@ public static class IntelRules
         public bool       SawClearWord;
         public bool       NoVisual;
         public bool       IsQuestion;
+
+        /// <summary>A clear word turned round ("not clr") or a '?' anywhere in the line ("QZ-X77 clr?? anyone"):
+        /// whatever the line is, it is not a clear.</summary>
+        public bool       ClearDoubted;
     }
+
+    /// <summary>Whether the clear word is the line's whole claim: not doubted, and every word left in the note
+    /// (after the place's own words) is filler. See <see cref="ClearFiller"/>.</summary>
+    private static bool ClearHolds(Scanned s, IEnumerable<string> note) =>
+        s.SawClearWord && !s.ClearDoubted && note.All(w => Clean(w) is var c && (c.Length == 0 || ClearFiller.Contains(c)));
 
     /// <summary>The token <paramref name="back"/> places before (chunk, token), across chunks; null at
     /// the start of the line.</summary>
@@ -637,7 +670,7 @@ public static class IntelRules
         // anyone has eyes on a system, and reads to the parser exactly like a sighting with no
         // one in it. Only a count rescues it: "XQ1-Z2 +3?" is someone unsure of the number, and
         // that is still a sighting.
-        var s = new Scanned { IsQuestion = message.TrimEnd().EndsWith('?') };
+        var s = new Scanned { IsQuestion = message.TrimEnd().EndsWith('?'), ClearDoubted = message.Contains('?') };
 
         var systems = s.Systems;
         var pilots  = s.Pilots;
@@ -715,7 +748,12 @@ public static class IntelRules
                 // character names: "clr" is an actual pilot, and resolving it once put it in the
                 // shared name cache, after which every "SYSTEM clr" was read as a sighting of
                 // somebody called clr rather than as a system being called clear.
-                if (ClearWords.Contains(tok))    { s.SawClearWord = true; i++; last = Last.Other; continue; }
+                if (ClearWords.Contains(tok))
+                {
+                    s.SawClearWord = true;
+                    if (Before(chunks, ci, i, 1) is { } p && ClearNegations.Contains(chunks[p.Chunk][p.Token].Clean)) s.ClearDoubted = true;
+                    i++; last = Last.Other; continue;
+                }
                 if (NoVisualWords.Contains(tok)) { s.NoVisual     = true; i++; last = Last.Other; continue; }
 
                 if (i + 1 < chunk.Length && FlagWords.TryGetValue(Run(chunk, i, 2), out var phrase))

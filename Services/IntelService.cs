@@ -616,6 +616,8 @@ public sealed class IntelService(
 
                 // Pilots with their hulls, and the heading: a follow-up that adds only those is not a copy.
                 if (held.IsCopy(report, built.Pilots)) continue;
+                // Before it is held itself: a clear relaying one held already retires nothing of its own.
+                var relayedClear = held.RelaysClear(report);
                 held.Add(report, built.Pilots);
 
                 pending.Add(built);
@@ -623,9 +625,11 @@ public sealed class IntelService(
                 else threads.AddFollowUp(basis, report, built.Pilots, DateTimeOffset.UtcNow);
 
                 // A clear is a row now (Kind 1), standing for its own time; it still retires what
-                // was standing in its system before it.
+                // was standing in its system before it. A relay of a clear already held does not: stamped later, it
+                // would retire the sightings called between the clear and its relay.
                 if (report.Kind == IntelReportKind.Clear)
                 {
+                    if (relayedClear) continue;
                     if (!clears.TryGetValue(report.SystemId, out var prev) || string.CompareOrdinal(m.OccurredAt, prev) > 0)
                         clears[report.SystemId] = m.OccurredAt;
                     continue;

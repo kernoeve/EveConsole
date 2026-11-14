@@ -12,6 +12,7 @@ using Avalonia.Input;
 using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
+using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.Intel;
@@ -93,7 +94,8 @@ namespace EveConsole.Tools.IntelCheck
                 c.Check("tool grids: Pilots hides the blues (a corporation mate, an alliance mate) and the user's own character with Blue off",
                     !shown.Contains(CorpMate) && !shown.Contains(AllianceMate) && !shown.Contains(Me) && shown.Contains(A1),
                     $"{tool.PilotRows.Count} rows: {string.Join(",", tool.PilotRows.Select(r => r.Name))}");
-                c.Check("tool grids: and says how many it hid", tool.PilotsCountText.Contains("3 hidden by standings", StringComparison.Ordinal), tool.PilotsCountText);
+                c.Check("tool grids: and says how many the chips hid, the user's own character not among them",
+                    tool.PilotsCountText.Contains("2 hidden by standings", StringComparison.Ordinal), tool.PilotsCountText);
                 c.Check("tool grids: the standings chips show on the Pilots tab", tool.ShowsTierFilters && !tool.ShowsAreaFilters);
 
                 SetTier(tool, StandingTier.Blue, true);
@@ -101,6 +103,20 @@ namespace EveConsole.Tools.IntelCheck
                 shown = [.. tool.PilotRows.Select(r => r.CharacterId)];
                 c.Check("tool grids: Blue switched on lists them; the user's own character never",
                     shown.Contains(CorpMate) && shown.Contains(AllianceMate) && !shown.Contains(Me), tool.PilotsCountText);
+                SetTier(tool, StandingTier.LightBlue, true);
+                Settle(window, tool);
+                c.Check("tool grids: every chip on, nothing counted hidden (the user's own character is not)",
+                    !tool.PilotsCountText.Contains("hidden", StringComparison.Ordinal), tool.PilotsCountText);
+
+                // Every chip on and only the user's own character read: no hidden count, and not "switch on more standings".
+                tool.UsePilots(new IntelPilotResults([Row(Me, MyCorp, MyAlliance, Home, 0.1)], FeedInput().Names));
+                Settle(window, tool);
+                c.Check("tool grids: only the user's own character, every chip on: no hidden count and no \"switch on more standings\"",
+                    tool.PilotRows.Count == 0 && !tool.PilotsCountText.Contains("hidden", StringComparison.Ordinal)
+                    && tool.PilotsEmptyText != IntelText.PilotsAllHidden && tool.PilotsEmptyText.Length > 0,
+                    $"count '{tool.PilotsCountText}', empty '{tool.PilotsEmptyText}'");
+                tool.UsePilots(new IntelPilotResults(rows, FeedInput().Names));
+                SetTier(tool, StandingTier.LightBlue, false);
                 SetTier(tool, StandingTier.Blue, false);
                 Settle(window, tool);
 

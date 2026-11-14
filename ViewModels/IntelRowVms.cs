@@ -283,6 +283,16 @@ public sealed class IntelPictureVm : ReactiveObject
         return p;
     }
 
+    /// <summary>A pilot whose name no cache has yet: "Unknown pilot", with the character id in the tooltip, never the
+    /// bare id as if it were a name.</summary>
+    public static IntelPictureVm UnknownPilot(long characterId, IntelWatchMark watch, IntelPictureVm? badge)
+    {
+        var p = Pilot(characterId, IntelText.UnknownPilot, watch, badge);
+        var tip = string.Format(CultureInfo.CurrentCulture, IntelText.UnknownPilotTip, characterId);
+        p.PictureTip = badge is null ? tip : tip + "\n" + badge.Text;
+        return p;
+    }
+
     /// <summary>
     /// A group by its logo and how many fly for it ("×5"): its name only in the tooltip, as a line shows several of
     /// them side by side. <paramref name="tip"/> replaces the tooltip (the first group carries the whole breakout).
@@ -519,8 +529,12 @@ public sealed class IntelEventRowVm : ReactiveObject
                 State = IntelRowState.Kill;
                 StateText = gateName is null ? IntelText.StateKill : IntelText.StateGateKill;
                 if (e.VictimId > 0)
-                    pictures.Add(IntelPictureVm.Pilot(e.VictimId, e.VictimName ?? e.VictimId.ToString(CultureInfo.InvariantCulture),
-                                                      IntelWatchMark.None, GroupBadge(e.VictimCorporationId, e.VictimAllianceId, snapshot)));
+                {
+                    var badge = GroupBadge(e.VictimCorporationId, e.VictimAllianceId, snapshot);
+                    pictures.Add((e.VictimName ?? snapshot.EntityName(e.VictimId)) is { Length: > 0 } victim
+                        ? IntelPictureVm.Pilot(e.VictimId, victim, IntelWatchMark.None, badge)
+                        : IntelPictureVm.UnknownPilot(e.VictimId, IntelWatchMark.None, badge));
+                }
                 if (e.VictimShipTypeId > 0)
                     pictures.Add(IntelPictureVm.Ship(e.VictimShipTypeId, e.VictimShip ?? "?"));
                 pictures.Add(IntelPictureVm.Words(IntelText.KillLostTo));

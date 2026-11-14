@@ -91,7 +91,28 @@ public sealed class IntelDuplicates
     /// pilot still there later is still news.</summary>
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(2);
 
-    private sealed record Held(string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething);
+    private sealed record Held(string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething, bool IsClear = false);
+
+    /// <summary>
+    /// Whether a clear repeats an earlier clear of the same system from another channel within <see cref="Window"/>:
+    /// a relay of it, most likely. Such a clear is still stored (see <see cref="IsCopy(IntelReport, IEnumerable{long})"/>)
+    /// but retires nothing of its own: stamped with the relay's later time, it would also retire every sighting
+    /// called in between the clear and its relay.
+    /// </summary>
+    public bool RelaysClear(IntelReport report) =>
+        report.Kind == IntelReportKind.Clear
+        && IntelRooms.Parse(report.ReportedAt) is { } at
+        && _bySystem.TryGetValue(report.SystemId, out var list)
+        && list.Any(held => held.IsClear && Relays(report.ChannelName, at, held.Channel, held.At));
+
+    /// <summary><see cref="RelaysClear"/> for two clears already read: the later one relays the earlier one.</summary>
+    public static bool RelaysClear(IntelReport later, DateTimeOffset laterAt, IntelReport earlier, DateTimeOffset earlierAt) =>
+        later.Kind == IntelReportKind.Clear && earlier.Kind == IntelReportKind.Clear && later.SystemId == earlier.SystemId
+        && Relays(later.ChannelName, laterAt, earlier.ChannelName, earlierAt);
+
+    private static bool Relays(string laterChannel, DateTimeOffset laterAt, string earlierChannel, DateTimeOffset earlierAt) =>
+        !string.Equals(laterChannel, earlierChannel, StringComparison.OrdinalIgnoreCase)
+        && earlierAt <= laterAt && laterAt - earlierAt <= Window;
 
     private readonly Dictionary<int, List<Held>> _bySystem = [];
 
@@ -123,7 +144,8 @@ public sealed class IntelDuplicates
     {
         // ⚠️ A clear is never a copy. It names nobody and counts nothing, so a second one doubles nothing; and every
         // clear of a system has the same facts, so "<system> clr" called in a second channel was dropped here, left
-        // with no report, and shown in the Feed as chatter.
+        // with no report, and shown in the Feed as chatter. A relayed one is stored but retires nothing of its own
+        // (RelaysClear), and the Board and Feed read it as the clear it relays.
         if (report.Kind == IntelReportKind.Clear) return false;
 
         if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return false;
@@ -158,7 +180,7 @@ public sealed class IntelDuplicates
         var facts = $"{(int)report.Kind}|{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
         var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
                  || report.HeadingSystemId is not null;
-        return new Held(report.ChannelName, at, Words(report.Message), facts, says);
+        return new Held(report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear);
     }
 
     /// <summary>Letters and digits only, in lower case and single spaces: a copy may lose its capitals and its spacing.</summary>

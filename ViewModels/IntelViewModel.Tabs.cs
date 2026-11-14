@@ -129,7 +129,7 @@ public sealed partial class IntelViewModel
         _ = Task.Run(async () =>
         {
             await using var db = await factory.CreateDbContextAsync().ConfigureAwait(false);
-            return await IntelPilotSearch.SearchAsync(db, text, since, filter.Keeps).ConfigureAwait(false);
+            return await IntelPilotSearch.SearchAsync(db, text, since, filter.Judge).ConfigureAwait(false);
         }).ContinueWith(t => Dispatcher.UIThread.Post(() =>
         {
             if (Interlocked.Read(ref _pilotQuery) != ticket) return;
@@ -237,7 +237,7 @@ public sealed partial class IntelViewModel
     }
 
     /// <summary>The rows to show, off the UI thread: each measured and given its tier, those of a tier switched off
-    /// left out (counted), a row reading as one already shown kept, then sorted.</summary>
+    /// left out (counted), the user's own characters left out (not counted), a row reading as one already shown kept, then sorted.</summary>
     private static (List<IntelPilotListRowVm> Rows, int Hidden) BuildPilots(
         IntelPilotResults results, IntelPilotFilter filter, IntelSnapshot snapshot, IReadOnlyDictionary<long, IntelPilotListRowVm> held,
         bool pending, IntelRowActions actions, PilotColumn sort, bool descending, DateTimeOffset now)
@@ -247,7 +247,10 @@ public sealed partial class IntelViewModel
         foreach (var r in results.Rows)
         {
             var (jumps, via, from, tier) = filter.Place(r);
-            if (!filter.Tiers.Contains(tier)) { hidden++; continue; }
+            // The user's own characters: left out, not counted (no chip brings them back).
+            var verdict = filter.Judge(tier);
+            if (verdict == IntelPilotVerdict.Own) continue;
+            if (verdict == IntelPilotVerdict.Hidden) { hidden++; continue; }
             var row = new IntelPilotListRowVm(r, results.Names, snapshot, jumps, via, from, pending, actions, now);
             rows.Add(held.TryGetValue(r.CharacterId, out var old) && old.Signature == row.Signature ? old : row);
         }
