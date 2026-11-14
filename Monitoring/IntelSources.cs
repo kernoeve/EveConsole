@@ -95,7 +95,7 @@ public sealed class IntelDuplicates
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(2);
 
     private sealed record Held(IntelReport Report, string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething,
-                               bool IsClear = false);
+                               bool IsClear = false, int Named = 0);
 
     /// <summary>
     /// Whether a clear repeats an earlier clear of the same system from another channel within <see cref="Window"/>:
@@ -168,10 +168,51 @@ public sealed class IntelDuplicates
             .Where(held => !held.IsClear
                            && !string.Equals(held.Channel, candidate.Channel, StringComparison.OrdinalIgnoreCase)
                            && (held.At - candidate.At).Duration() <= Window
-                           && (held.Facts == candidate.Facts || SameWords(held, candidate)))
+                           && (held.Facts == candidate.Facts || (SameWords(held, candidate) && AddsNothing(candidate, held))))
             .OrderBy(held => held.At)
             .Select(held => held.Report)
             .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The report held from another channel within <see cref="Window"/> whose line has the very same words as this one,
+    /// of the same kind (a clear for a clear word): what a relayed follow-up ("+2", "nv", "heading XQ1-Z2", "clr")
+    /// repeats. Such a line names no system to look under, and often nobody, so only its words can say what it repeats.
+    /// The earliest when several do; null when none.
+    /// </summary>
+    public IntelReport? CopyOfLine(string channel, string reportedAt, string message, bool clear)
+    {
+        var words = Words(message);
+        if (words.Length == 0 || IntelRooms.Parse(reportedAt) is not { } at) return null;
+
+        return _bySystem.Values.SelectMany(list => list)
+            .Where(held => held.IsClear == clear && held.Words == words
+                           && !string.Equals(held.Channel, channel, StringComparison.OrdinalIgnoreCase)
+                           && (held.At - at).Duration() <= Window)
+            .OrderBy(held => held.At)
+            .Select(held => held.Report)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The report held that a stored copy repeats, for a copy whose link was lost: its original's chat log read again
+    /// from the start, which deletes the report and makes it anew under another id. A stored copy keeps none of the
+    /// facts, so it is found by its system and its words (as <see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/>
+    /// would match them), else the earliest sighting of its system from another channel within <see cref="Window"/>.
+    /// </summary>
+    public IntelReport? OriginalOfCopy(IntelReport copy)
+    {
+        if (IntelRooms.Parse(copy.ReportedAt) is not { } at || !_bySystem.TryGetValue(copy.SystemId, out var list)) return null;
+
+        var words = Words(copy.Message);
+        var near = list.Where(held => !held.IsClear
+                                      && !string.Equals(held.Channel, copy.ChannelName, StringComparison.OrdinalIgnoreCase)
+                                      && (held.At - at).Duration() <= Window)
+                       .OrderBy(held => held.At).ToList();
+        return (near.FirstOrDefault(held => held.Words == words
+                                            || held.Words.EndsWith(" " + words, StringComparison.Ordinal)
+                                            || words.EndsWith(" " + held.Words, StringComparison.Ordinal))
+                ?? near.FirstOrDefault())?.Report;
     }
 
     private static bool SameWords(Held a, Held b)
@@ -180,6 +221,25 @@ public sealed class IntelDuplicates
 
         var (longer, shorter) = a.Words.Length >= b.Words.Length ? (a, b) : (b, a);
         return shorter.SaysSomething && longer.Words.EndsWith(" " + shorter.Words, StringComparison.Ordinal);
+    }
+
+    /// <summary>
+    /// Whether <paramref name="candidate"/> says nothing <paramref name="held"/> does not: no flag it lacks, no more people
+    /// nobody named, no "no visual" it did not say, and no gate, hulls or heading of its own. ⚠️ What the words match
+    /// needs: it takes a line ending in the held one's words for the same report, so "camp QZ-X77 Zeltrix Quorvane" or
+    /// "+3 QZ-X77 Zeltrix Quorvane" in front of a held "QZ-X77 Zeltrix Quorvane" would be dropped as a copy, and the camp
+    /// or the three more with it. The pilots it names are left out of this: a relay's label in front of the line can
+    /// read as a name.
+    /// </summary>
+    private static bool AddsNothing(Held candidate, Held held)
+    {
+        var (c, h) = (candidate.Report, held.Report);
+        return (c.Flags & ~h.Flags) == 0
+               && Math.Max(0, c.PlayerCount - candidate.Named) <= Math.Max(0, h.PlayerCount - held.Named)
+               && (!c.NoVisual || h.NoVisual)
+               && (string.IsNullOrEmpty(c.Gate) || string.Equals(c.Gate, h.Gate, StringComparison.OrdinalIgnoreCase))
+               && (string.IsNullOrEmpty(c.Ships) || string.Equals(c.Ships, h.Ships, StringComparison.OrdinalIgnoreCase))
+               && (c.HeadingSystemId is null || c.HeadingSystemId == h.HeadingSystemId);
     }
 
     /// <summary>
@@ -192,13 +252,15 @@ public sealed class IntelDuplicates
     {
         if (IntelRooms.Parse(report.ReportedAt) is not { } at) return null;
 
-        var named = string.Join(',', pilots.OrderBy(p => p.Id).ThenBy(p => p.Hull)
+        var list  = pilots.ToList();
+        var named = string.Join(',', list.OrderBy(p => p.Id).ThenBy(p => p.Hull)
             .Select(p => p.Hull is { } hull ? $"{p.Id}:{hull}" : p.Id.ToString(CultureInfo.InvariantCulture)));
         // The kind is in it too, so a clear can never match a sighting.
         var facts = $"{(int)report.Kind}|{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
         var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
                  || report.HeadingSystemId is not null;
-        return new Held(report, report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear);
+        return new Held(report, report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear,
+                        list.Select(p => p.Id).Distinct().Count());
     }
 
     /// <summary>Letters and digits only, in lower case and single spaces: a copy may lose its capitals and its spacing.</summary>

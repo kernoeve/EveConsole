@@ -614,8 +614,10 @@ internal static class FollowUpChecks
         var twice = await ReportsAsync(options);
         var diff1 = Differences(live, again);
         var diff2 = Differences(again, twice);
-        c.Check("pass: a re-parse gives the same reports as the live passes", first == live.Reports.Count && diff1.Count == 0,
-            $"{first} written of {live.Reports.Count}; " + string.Join(" | ", diff1.Take(4)));
+        // The count it says is of reports: a relayed copy (u19) is written but is no report of its own.
+        var reportCount = live.Reports.Values.Count(r => r.Kind != IntelReportKind.Copy);
+        c.Check("pass: a re-parse gives the same reports as the live passes", first == reportCount && diff1.Count == 0,
+            $"{first} written of {reportCount}; " + string.Join(" | ", diff1.Take(4)));
         c.Check("pass: and a second re-parse the same again", diff2.Count == 0, string.Join(" | ", diff2.Take(4)));
 
         signals.Stop();

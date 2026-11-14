@@ -5,6 +5,7 @@
 // live and re-parsed.
 //
 // Every system, pilot, reporter and channel here is invented.
+using EveConsole.Alarms.Conditions;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
@@ -13,6 +14,7 @@ using EveConsole.Services.Intel;
 using EveConsole.ViewModels;
 using Microsoft.EntityFrameworkCore;
 using Npgsql;
+using Said = (string Key, string Channel, string Sender, int At, string Text);
 
 namespace EveConsole.Tools.IntelCheck;
 
@@ -77,6 +79,39 @@ internal static class CopyChecks
             one.CopyOf(Report(0, ChA, 30, IntelReportKind.Sighting, "QZ-X77 Zeltrix Quorvane", 1), [Zeltrix]) is null);
         c.Check("copy rule: nor after the copy window",
             one.CopyOf(Report(0, ChB, 121, IntelReportKind.Sighting, "QZ-X77 Zeltrix Quorvane", 1), [Zeltrix]) is null);
+
+        // A line saying MORE in front of a held one ends with its words, and is no copy: the camp, the bubbles, the three
+        // more or the "no visual" would go with it. Saying less, or a relay's label read as a name, it still is.
+        IntelReport Says(string message, int count = 1, IntelRules.IntelFlags flags = 0, bool noVisual = false, string? ships = null)
+        {
+            var r = Report(0, ChB, 20, IntelReportKind.Sighting, message, count);
+            (r.Flags, r.NoVisual, r.Ships) = ((int)flags, noVisual, ships);
+            return r;
+        }
+        c.Check("copy rule: 'camp' in front of a held line is not a copy of it",
+            one.CopyOf(Says("camp QZ-X77 Zeltrix Quorvane", flags: IntelRules.IntelFlags.Camp), [Zeltrix]) is null);
+        c.Check("copy rule: nor 'bubbles' in front",
+            one.CopyOf(Says("bubbles QZ-X77 Zeltrix Quorvane", flags: IntelRules.IntelFlags.Bubbles), [Zeltrix]) is null);
+        c.Check("copy rule: nor '+3' in front", one.CopyOf(Says("+3 QZ-X77 Zeltrix Quorvane", count: 4), [Zeltrix]) is null);
+        c.Check("copy rule: nor 'nv' in front", one.CopyOf(Says("nv QZ-X77 Zeltrix Quorvane", noVisual: true), [Zeltrix]) is null);
+        c.Check("copy rule: nor a hull in front", one.CopyOf(Says("Loki QZ-X77 Zeltrix Quorvane", ships: "Loki"), [Zeltrix]) is null);
+        c.Check("copy rule: a relay's label read as a pilot in front is still a copy",
+            ReferenceEquals(one.CopyOf(Says("Mirrel Okonda QZ-X77 Zeltrix Quorvane", count: 2), [Zeltrix, Mirrel]), original));
+
+        // A follow-up line names no system: what it repeats is found by its words alone, and only of its own kind.
+        var lines = new IntelDuplicates();
+        var plus = Report(20, ChA, 40, IntelReportKind.Sighting, "+2", 3);
+        var clr  = Report(21, ChA, 50, IntelReportKind.Clear, "clr");
+        lines.Add(plus, [Zeltrix]);
+        lines.Add(clr, Array.Empty<long>());
+        string T(int s) => ChatLogRules.FormatTimestamp(t0.AddSeconds(s));
+        c.Check("copy rule: a relayed '+2' is a copy of the '+2' it repeats", ReferenceEquals(lines.CopyOfLine(ChB, T(45), "+2", false), plus));
+        c.Check("copy rule: a relayed 'clr' is found as the clear it repeats", ReferenceEquals(lines.CopyOfLine(ChB, T(55), "clr", true), clr));
+        c.Check("copy rule: a '+2' in its own channel, or after the window, or a '+3', repeats nothing",
+            lines.CopyOfLine(ChA, T(45), "+2", false) is null && lines.CopyOfLine(ChB, T(200), "+2", false) is null
+            && lines.CopyOfLine(ChB, T(45), "+3", false) is null);
+        c.Check("copy rule: words of a clear are never a sighting's, nor the other way",
+            lines.CopyOfLine(ChB, T(55), "clr", false) is null && lines.CopyOfLine(ChB, T(45), "+2", true) is null);
     }
 
     // ── A parser pass, live and re-parsed, on either engine ──────────────────────────────────────────────────
@@ -162,7 +197,7 @@ internal static class CopyChecks
         var t0 = DateTimeOffset.UtcNow.AddMinutes(-20);
         string T(int s) => ChatLogRules.FormatTimestamp(t0.AddSeconds(s));
         var ids = new Dictionary<string, int>();
-        async Task Lines(params (string Key, string Channel, string Sender, int At, string Text)[] lines)
+        async Task Lines(params Said[] lines)
         {
             await using var db = new AppDbContext(options);
             var rows = lines.Select(l => (l.Key, Row: new ChatMessage
@@ -266,6 +301,9 @@ internal static class CopyChecks
         c.Check($"{engine} copies: said again after the copy window, it is a sighting", live.GetValueOrDefault(ids["c6"]).Kind == IntelReportKind.Sighting,
             $"{live.GetValueOrDefault(ids["c6"])}");
 
+        await FollowUpsAsync(c, engine, options, Lines, ids);
+        live = await LinksAsync(options);
+
         // Re-parsed twice: the same copies, linked to the same originals.
         await worker.BackfillAsync();
         var again = await LinksAsync(options);
@@ -275,10 +313,148 @@ internal static class CopyChecks
             string.Join(" ", d.OrderBy(kv => kv.Key).Select(kv => $"{kv.Key}:{kv.Value.Kind}/{kv.Value.Parent}/{kv.Value.Pilots}"));
         c.Check($"{engine} copies: a re-parse keeps every copy and its link", Show(live) == Show(again), $"{Show(live)} | {Show(again)}");
         c.Check($"{engine} copies: and a second one too", Show(again) == Show(twice), $"{Show(again)} | {Show(twice)}");
+
+        await RelinkAsync(c, engine, options, Lines, ids);
         c.Check($"{engine} copies: (setup) the links were there to keep",
             live.GetValueOrDefault(ids["c2"]).Parent == ids["c1"] && live.GetValueOrDefault(ids["c3"]).Parent == ids["c1"]);
 
         signals.Stop();
+    }
+
+    /// <summary>
+    /// Follow-ups around copies, in the same pass after its first lines: a relayed "+2" or "nv" naming nobody is a copy
+    /// (never chatter, never two more); a scout whose own call was taken as a copy still adds to it from their channel; a
+    /// copy of a follow-up stored in an earlier batch; a line saying more in front of a held one is a sighting; the same
+    /// line from one person in two channels in one second is a copy; a lost link is found again; and the alarm decides
+    /// the same with the copies as without them.
+    /// </summary>
+    private static async Task FollowUpsAsync(Checks c, string engine, DbContextOptions<AppDbContext> options,
+                                             Func<Said[], Task> lines, Dictionary<string, int> ids)
+    {
+        // A relay room copying channel A into B: the report, then "+2" and "nv", each relayed a few seconds later. The
+        // "nv" and its relay each in a batch of their own: a copy of a follow-up stored in an earlier batch.
+        await lines([("f1", ChA, "Scout Alpha", 500, "XQ1-Z2 Mirrel Okonda"),
+                     ("f2", ChB, "Relay Bot",   505, "XQ1-Z2 Mirrel Okonda"),
+                     ("f3", ChA, "Scout Alpha", 520, "+2"),
+                     ("f4", ChB, "Relay Bot",   525, "+2")]);
+        await lines([("f5", ChA, "Scout Alpha", 540, "nv")]);
+        await lines([("f6", ChB, "Relay Bot",   545, "nv")]);
+
+        // Scout Bravo's own call in B, the same words as Scout Alpha's in A a moment before: a copy. Bravo's "+2" after it
+        // is Bravo's own news, and adds to that report from B.
+        await lines([("g1", ChA, "Scout Alpha", 700, "QZ-X77 Zeltrix Quorvane"),
+                     ("g2", ChB, "Scout Bravo", 710, "QZ-X77 Zeltrix Quorvane")]);
+        await lines([("g3", ChB, "Scout Bravo", 740, "+2")]);
+
+        // More said in front of a held line: a sighting each, with what it adds.
+        await lines([("h1", ChA, "Scout Alpha",   900, "QZ-X77 Mirrel Okonda"),
+                     ("h2", ChB, "Scout Bravo",   905, "camp QZ-X77 Mirrel Okonda"),
+                     ("h3", ChC, "Scout Charlie", 910, "+3 QZ-X77 Mirrel Okonda"),
+                     ("h4", ChC, "Scout Charlie", 915, "nv QZ-X77 Mirrel Okonda")]);
+
+        // One person, one line, two channels, one second.
+        await lines([("k1", ChA, "Scout Alpha", 1000, "XQ1-Z2 Zeltrix Quorvane"),
+                     ("k2", ChB, "Scout Alpha", 1000, "XQ1-Z2 Zeltrix Quorvane")]);
+
+        List<IntelReport> reports = [];
+        List<IntelReportCharacter> pilots = [];
+        List<IntelLastSeen> seen = [];
+        List<int> chatter = [];
+        async Task Read()
+        {
+            await using var db = new AppDbContext(options);
+            reports = await db.IntelReports.AsNoTracking().ToListAsync();
+            pilots  = await db.IntelReportCharacters.AsNoTracking().ToListAsync();
+            seen    = await db.IntelLastSeens.AsNoTracking().ToListAsync();
+            chatter = await IntelSnapshotService.ChatterQuery(db, [ChA, ChB, ChC], int.MaxValue, "0").Select(m => m.Id).ToListAsync();
+        }
+        await Read();
+        IntelReport? R(string key) => reports.FirstOrDefault(r => r.ChatMessageId == ids[key]);
+        int? Id(string key) => R(key)?.Id;
+        string Label(string key) => R(key) is { } r ? $"kind {r.Kind} parent {r.ParentReportId} count {r.PlayerCount} nv {r.NoVisual} flags {r.Flags} ch {r.ChannelName}" : "no report";
+        bool NotChatter(params string[] keys) => keys.All(k => !chatter.Contains(ids[k]));
+
+        c.Check($"{engine} copy follow-ups: (setup) the report and its follow-ups in A",
+            R("f1") is { Kind: IntelReportKind.Sighting } && R("f3") is { Kind: IntelReportKind.Sighting, PlayerCount: 3 }
+            && R("f5") is { Kind: IntelReportKind.Sighting, NoVisual: true, PlayerCount: 3 }, $"{Label("f3")} / {Label("f5")}");
+        c.Check($"{engine} copy follow-ups: a relayed '+2' naming nobody is a copy of the '+2', not chatter",
+            R("f4") is { Kind: IntelReportKind.Copy } f4 && f4.ParentReportId == Id("f3") && NotChatter("f4"), Label("f4"));
+        c.Check($"{engine} copy follow-ups: a relayed 'nv' is a copy of the 'nv' stored a batch before, not chatter",
+            R("f6") is { Kind: IntelReportKind.Copy } f6 && f6.ParentReportId == Id("f5") && NotChatter("f6"), Label("f6"));
+        c.Check($"{engine} copy follow-ups: and the relays add nothing: no report counts five",
+            !reports.Any(r => r.SystemId == S2 && r.Kind == IntelReportKind.Sighting && r.PlayerCount > 3),
+            string.Join(",", reports.Where(r => r.SystemId == S2).Select(r => $"{r.Kind}/{r.PlayerCount}")));
+
+        c.Check($"{engine} copy follow-ups: (setup) Scout Bravo's call is a copy of Scout Alpha's",
+            R("g2") is { Kind: IntelReportKind.Copy } g2 && g2.ParentReportId == Id("g1"), Label("g2"));
+        c.Check($"{engine} copy follow-ups: Bravo's '+2' after it adds to that report, from B, not chatter",
+            R("g3") is { Kind: IntelReportKind.Sighting, PlayerCount: 3, ChannelName: ChB } g3 && g3.ParentReportId == Id("g1") && NotChatter("g3")
+            && pilots.Any(p => p.IntelReportId == g3.Id && p.CharacterId == Zeltrix), Label("g3"));
+        c.Check($"{engine} copy follow-ups: and what it restates is superseded", R("g1") is { Obsolete: true }, Label("g1"));
+
+        c.Check($"{engine} copy prefix: 'camp' in front of a held line is a sighting with the camp",
+            R("h2") is { Kind: IntelReportKind.Sighting } h2 && (h2.Flags & (int)IntelRules.IntelFlags.Camp) != 0, Label("h2"));
+        c.Check($"{engine} copy prefix: '+3' in front is a sighting of four", R("h3") is { Kind: IntelReportKind.Sighting, PlayerCount: 4 }, Label("h3"));
+        c.Check($"{engine} copy prefix: 'nv' in front is a sighting with no visual", R("h4") is { Kind: IntelReportKind.Sighting, NoVisual: true }, Label("h4"));
+
+        c.Check($"{engine} copies: one person's line in two channels in one second is a copy, not chatter",
+            R("k1") is { Kind: IntelReportKind.Sighting } && R("k2") is { Kind: IntelReportKind.Copy } k2 && k2.ParentReportId == Id("k1")
+            && NotChatter("k2"), $"{Label("k1")} / {Label("k2")}");
+
+        // The alarm: the same decisions with the copies as without them.
+        var now = DateTimeOffset.UtcNow;
+        IntelSnapshot Build(IEnumerable<IntelReport> from) => IntelSnapshotBuilder.Build(new IntelSnapshotInput
+        {
+            Now = now, Settings = new IntelSettingsValues(), Reports = [.. from], ReportPilots = pilots, LastSeen = seen,
+            SystemNames = new Dictionary<int, string> { [S1] = "QZ-X77", [S2] = "XQ1-Z2" },
+        }, new IntelCampRegister(), 1);
+        var zone = new IntelWatchedSystems(new HashSet<int> { S1, S2 }, new Dictionary<int, int> { [S1] = 0, [S2] = 1 },
+            new Dictionary<int, string> { [S1] = "Pilot Alpha", [S2] = "Pilot Alpha" }, new Dictionary<int, double>(), new Dictionary<int, string>());
+        string Alarms(IntelSnapshot s) => string.Join(" ", IntelCondition.Match(s, zone, new IntelCondition.IntelAlarmOptions(Jumps: 10), s.At)
+            .Select(m => $"{m.Key}{(m.Urgent ? "!" : "")}{(m.Silent ? "~" : "")}").Order(StringComparer.Ordinal));
+        var withCopies = Alarms(Build(reports));
+        var withoutCopies = Alarms(Build(reports.Where(r => r.Kind != IntelReportKind.Copy)));
+        c.Check($"{engine} copies: (setup) the alarm has something to decide", withoutCopies.Length > 0, withoutCopies);
+        c.Check($"{engine} copies: the alarm decides the same with the copies as without them: a copy wakes nothing",
+            withCopies == withoutCopies, $"{withCopies} | {withoutCopies}");
+    }
+
+    /// <summary>
+    /// A lost link found again: the original's log read again from the start (its report and chat line deleted, the line
+    /// imported anew), and a copy saved without its link by a pass that stopped between its two saves. After the re-parse
+    /// checks: the original imported anew comes after its copy in id order, so a re-parse would rightly swap the two.
+    /// </summary>
+    private static async Task RelinkAsync(Checks c, string engine, DbContextOptions<AppDbContext> options,
+                                          Func<Said[], Task> lines, Dictionary<string, int> ids)
+    {
+        List<IntelReport> reports = [];
+        async Task Read()
+        {
+            await using var db = new AppDbContext(options);
+            reports = await db.IntelReports.AsNoTracking().ToListAsync();
+        }
+        await Read();
+        IntelReport? R(string key) => reports.FirstOrDefault(r => r.ChatMessageId == ids[key]);
+        int? Id(string key) => R(key)?.Id;
+        string Label(string key) => R(key) is { } r ? $"kind {r.Kind} parent {r.ParentReportId}" : "no report";
+        c.Check($"{engine} copies relinked: (setup) the copies are linked",
+            R("k2")?.ParentReportId == Id("k1") && R("g2")?.ParentReportId == Id("g1"), $"{Label("k2")} / {Label("g2")}");
+
+        var (k1Report, k1Line, g2Report) = (Id("k1") ?? 0, ids["k1"], Id("g2") ?? 0);
+        await using (var db = new AppDbContext(options))
+        {
+            await db.IntelReportCharacters.Where(p => p.IntelReportId == k1Report).ExecuteDeleteAsync();
+            await db.IntelReports.Where(r => r.Id == k1Report).ExecuteDeleteAsync();
+            await db.ChatMessages.Where(m => m.Id == k1Line).ExecuteDeleteAsync();
+            await db.IntelReports.Where(r => r.Id == g2Report).ExecuteUpdateAsync(s => s.SetProperty(r => r.ParentReportId, (int?)null));
+        }
+        await lines([("k1", ChA, "Scout Alpha", 1000, "XQ1-Z2 Zeltrix Quorvane"),
+                     ("g9", ChC, "Scout Charlie", 720, "o7")]);   // chatter: only for the batch to reach back to g2's time
+        await Read();
+        c.Check($"{engine} copies: the original made anew from its log read again, its copy points at it again",
+            R("k1") is { Kind: IntelReportKind.Sighting } k1 && R("k2")?.ParentReportId == k1.Id, $"{Label("k1")} / {Label("k2")}");
+        c.Check($"{engine} copies: a copy saved without its link has it again after the next pass around its time",
+            R("g2")?.ParentReportId == Id("g1"), Label("g2"));
     }
 
     /// <summary>Each report by its chat message: its kind, the chat message of the report it points at, and how many pilots it names.</summary>

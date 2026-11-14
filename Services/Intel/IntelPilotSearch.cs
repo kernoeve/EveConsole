@@ -55,9 +55,10 @@ public static class IntelPilotSearch
                                                             Func<IntelLastSeen, IntelPilotVerdict>? judge = null, CancellationToken ct = default)
     {
         var sinceText = IntelLastSeenWriter.Format(since);
-        var window = db.IntelLastSeens.AsNoTracking().Where(r => string.Compare(r.SeenAt, sinceText) >= 0);
+        // The window's start is the reader's to add (see Reader): every query here is only what it looks for.
+        var window = db.IntelLastSeens.AsNoTracking();
         var term = (text ?? "").Trim();
-        var read = new Reader(judge);
+        var read = new Reader(judge, sinceText);
         List<IntelLastSeen> rows;
         if (term.Length == 0)
         {
@@ -106,8 +107,16 @@ public static class IntelPilotSearch
     /// was. With one, pages: each below the last page's oldest time, the rows at that time read by themselves (one
     /// second rarely holds many), each pilot once, until enough are kept, the window runs out or
     /// <see cref="MaxScanned"/> rows have been read.
+    ///
+    /// <para>⚠️ A page after the first is bounded by the last page's oldest time ALONE, never also by the window's
+    /// start: the rows read past the start are dropped here, and they end the read. A text column bounded on both
+    /// sides gets PostgreSQL's fixed guess of a few hundred rows whenever its statistics are missing or stale (a table
+    /// just filled, before the next automatic ANALYZE), and with that guess it reads the whole range and sorts it
+    /// for every page instead of walking the SeenAt index down to the page's end: 16 ms a page rather than 0.2, and
+    /// a filtered search on a busy table took most of a second. Bounded on one side, the index walk is its plan
+    /// whatever the statistics say.</para>
     /// </summary>
-    private sealed class Reader(Func<IntelLastSeen, IntelPilotVerdict>? judge)
+    private sealed class Reader(Func<IntelLastSeen, IntelPilotVerdict>? judge, string since)
     {
         /// <summary>Pilots read and left out by a chip switched off, each once whichever query read them. Own
         /// characters are left out without being counted.</summary>
@@ -122,22 +131,28 @@ public static class IntelPilotSearch
                                                          IReadOnlySet<long>? skip = null)
         {
             if (judge is null)
-                return await query.OrderByDescending(r => r.SeenAt).Take(want).ToListAsync(ct).ConfigureAwait(false);
+                return await query.Where(r => string.Compare(r.SeenAt, since) >= 0)
+                    .OrderByDescending(r => r.SeenAt).Take(want).ToListAsync(ct).ConfigureAwait(false);
 
             var kept = new List<IntelLastSeen>();
             var seen = new HashSet<long>();
             string? below = null;
             while (true)
             {
-                var page = below is null ? query : query.Where(r => string.Compare(r.SeenAt, below) < 0);
-                var rows = await page.OrderByDescending(r => r.SeenAt).Take(PageRows).ToListAsync(ct).ConfigureAwait(false);
+                var page = below is null ? query.Where(r => string.Compare(r.SeenAt, since) >= 0)
+                                         : query.Where(r => string.Compare(r.SeenAt, below) < 0);
+                var rows = await page.OrderByDescending(r => r.SeenAt).Take(PageRows).Select(Judged).ToListAsync(ct).ConfigureAwait(false);
                 var full = rows.Count == PageRows;
+
+                // Past the window's start: read only to keep the page's query one-sided, and the end of the read.
+                if (rows.RemoveAll(r => string.CompareOrdinal(r.SeenAt, since) < 0) > 0) full = false;
+
                 if (full)
                 {
                     // The page's oldest second may go on past it: that second whole, by itself, and the next page below it.
                     var last = rows[^1].SeenAt;
                     rows.RemoveAll(r => r.SeenAt == last);
-                    rows.AddRange(await query.Where(r => r.SeenAt == last).ToListAsync(ct).ConfigureAwait(false));
+                    rows.AddRange(await query.Where(r => r.SeenAt == last).Select(Judged).ToListAsync(ct).ConfigureAwait(false));
                     below = last;
                 }
 
@@ -153,12 +168,32 @@ public static class IntelPilotSearch
                     if (kept.Count == want)
                     {
                         if (i < rows.Count - 1 || full) More = true;
-                        return kept;
+                        return await WholeAsync(query, kept, ct).ConfigureAwait(false);
                     }
                 }
-                if (!full) return kept;
-                if (_scanned >= MaxScanned) { More = true; return kept; }
+                if (!full) return await WholeAsync(query, kept, ct).ConfigureAwait(false);
+                if (_scanned >= MaxScanned) { More = true; return await WholeAsync(query, kept, ct).ConfigureAwait(false); }
             }
+        }
+
+        /// <summary>
+        /// What the filter judges a row by, and the order: the pilot, the system, the corporation and alliance, and when.
+        /// ⚠️ Only these while paging: a filtered read takes tens of thousands of rows to keep a few hundred, and reading
+        /// each row whole cost more than finding it, most of all on PostgreSQL. The kept ones are read whole after.
+        /// </summary>
+        private static readonly System.Linq.Expressions.Expression<Func<IntelLastSeen, IntelLastSeen>> Judged = r => new IntelLastSeen
+        {
+            CharacterId = r.CharacterId, SeenAt = r.SeenAt, SystemId = r.SystemId, CorporationId = r.CorporationId, AllianceId = r.AllianceId,
+        };
+
+        /// <summary>The kept rows read whole, in the order kept. One that no longer matches (written over since) is left out.</summary>
+        private static async Task<List<IntelLastSeen>> WholeAsync(IQueryable<IntelLastSeen> query, List<IntelLastSeen> kept, CancellationToken ct)
+        {
+            if (kept.Count == 0) return kept;
+            var ids = kept.Select(r => r.CharacterId).ToList();
+            var whole = (await query.Where(r => ids.Contains(r.CharacterId)).ToListAsync(ct).ConfigureAwait(false))
+                .ToDictionary(r => r.CharacterId);
+            return [.. kept.Where(r => whole.ContainsKey(r.CharacterId)).Select(r => whole[r.CharacterId])];
         }
     }
 

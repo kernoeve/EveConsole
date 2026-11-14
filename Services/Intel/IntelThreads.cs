@@ -108,22 +108,36 @@ public sealed class IntelThreads
         var threads = new IntelThreads();
         if (since.Length == 0 || until.Length == 0) return threads;
 
-        // ⚠️ Compared as text on both engines: every intel time column is ISO text. Never a relayed copy: it names
-        // nobody, and its ParentReportId is the report it repeats, not a thread's first report.
-        var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => r.Kind != IntelReportKind.Copy
-                        && string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0)
+        // ⚠️ Compared as text on both engines: every intel time column is ISO text. A relayed copy is no entry: it
+        // names nobody, and its ParentReportId is the report it repeats, not a thread's first report. It is kept
+        // apart, as where its reporter last spoke (see AddCopy).
+        var all = await db.IntelReports.AsNoTracking()
+            .Where(r => string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0)
             .ToListAsync(ct);
-        if (reports.Count == 0) return threads;
+        if (all.Count == 0) return threads;
+        var reports = all.Where(r => r.Kind != IntelReportKind.Copy).ToList();
+        var copies  = all.Where(r => r.Kind == IntelReportKind.Copy && r.ParentReportId is not null).ToList();
 
-        var pilots = (await (from c in db.IntelReportCharacters.AsNoTracking()
-                             join r in db.IntelReports.AsNoTracking() on c.IntelReportId equals r.Id
-                             where string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
-                             select c).ToListAsync(ct))
-            .ToLookup(c => c.IntelReportId);
+        // The originals of copies in the span that are older than it: a copy is up to the copy window after its original.
+        var pilots = await (from c in db.IntelReportCharacters.AsNoTracking()
+                            join r in db.IntelReports.AsNoTracking() on c.IntelReportId equals r.Id
+                            where string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
+                            select c).ToListAsync(ct);
+
+        var loaded = reports.Select(r => r.Id).ToHashSet();
+        var older  = copies.Select(c => c.ParentReportId!.Value).Where(id => !loaded.Contains(id)).Distinct().ToList();
+        foreach (var chunk in older.Chunk(1000))
+        {
+            reports.AddRange(await db.IntelReports.AsNoTracking()
+                .Where(r => chunk.Contains(r.Id) && r.Kind != IntelReportKind.Copy).ToListAsync(ct));
+            pilots.AddRange(await db.IntelReportCharacters.AsNoTracking().Where(c => chunk.Contains(c.IntelReportId)).ToListAsync(ct));
+        }
+        var byReport = pilots.ToLookup(c => c.IntelReportId);
 
         foreach (var r in reports.OrderBy(r => r.Id))
-            threads.AddStored(r, [.. pilots[r.Id]]);
+            threads.AddStored(r, [.. byReport[r.Id]]);
+        foreach (var c in copies.OrderBy(c => c.Id))
+            threads.AddCopy(c, c.ParentReportId!.Value);
         return threads;
     }
 
@@ -161,22 +175,61 @@ public sealed class IntelThreads
         return entry;
     }
 
+    /// <summary>
+    /// Relayed copies (<see cref="IntelReportKind.Copy"/>): where and when each was said, its order, and the entry of the
+    /// report it repeats. Never entries: a copy is in no thread. But who said it, where, is as good as that report's
+    /// reporter for <see cref="BySameReporter"/>: a scout whose own call lost the race to the same words in another
+    /// channel, and so was stored as a copy of it, adds "+2" to that report like to their own.
+    /// </summary>
+    private readonly List<(IntelReport Copy, long Order, Entry Original)> _copies = [];
+
+    /// <summary>A copy this batch made of <paramref name="original"/>, saved or not. Nothing when the batch does not know the original.</summary>
+    public void AddCopy(IntelReport copy, IntelReport original)
+    {
+        if (Find(original) is { } entry) _copies.Add((copy, _nextOrder++, entry));
+    }
+
+    /// <summary>A copy stored before this batch, of the report with id <paramref name="originalId"/>.</summary>
+    private void AddCopy(IntelReport copy, int originalId)
+    {
+        if (_entries.FirstOrDefault(e => e.Report.Id == originalId) is { } entry) _copies.Add((copy, copy.Id, entry));
+    }
+
+    /// <summary>The batch's entry for a report: by its id once stored, else the very object the batch made.</summary>
+    private Entry? Find(IntelReport report) =>
+        report.Id > 0 ? _entries.FirstOrDefault(e => e.Report.Id == report.Id)
+                      : _entries.FirstOrDefault(e => ReferenceEquals(e.Report, report));
+
+    /// <summary>Whether <paramref name="report"/> is in the same thread as <paramref name="parent"/>. False when the batch does not know it.</summary>
+    public bool SameThread(IntelReport report, Entry parent) =>
+        Find(report) is { } entry && Equals(entry.HeadKey, parent.HeadKey);
+
     // ── Finding the parent ───────────────────────────────────────────────────
 
     /// <summary>
     /// The first rule: the reporter's own latest sighting in this channel, at most <paramref name="window"/>
     /// before <paramref name="at"/>. Null when there is none, or when its system has been called clear since.
+    ///
+    /// <para>A line of theirs stored as a relayed copy counts as theirs, at its own time: it stands for the report it
+    /// repeats (see <see cref="AddCopy(IntelReport, IntelReport)"/>).</para>
     /// </summary>
     public Entry? BySameReporter(string channel, string reporter, string at, TimeSpan window)
     {
         var since = Shift(at, -window);
         if (since is null) return null;
 
-        var latest = Latest(_entries.Where(e =>
-            e.Report.Kind == IntelReportKind.Sighting
-            && string.Equals(e.Report.ChannelName,  channel,  StringComparison.OrdinalIgnoreCase)
-            && string.Equals(e.Report.ReporterName, reporter, StringComparison.OrdinalIgnoreCase)
-            && Within(e.Report.ReportedAt, since, at)));
+        bool Theirs(IntelReport r) =>
+            string.Equals(r.ChannelName,  channel,  StringComparison.OrdinalIgnoreCase)
+            && string.Equals(r.ReporterName, reporter, StringComparison.OrdinalIgnoreCase)
+            && Within(r.ReportedAt, since, at);
+
+        var own = _entries.Where(e => e.Report.Kind == IntelReportKind.Sighting && Theirs(e.Report))
+            .Select(e => (At: e.Report.ReportedAt, e.Order, Entry: e));
+        var copied = _copies.Where(c => c.Original.Report.Kind == IntelReportKind.Sighting && Theirs(c.Copy))
+            .Select(c => (At: c.Copy.ReportedAt, c.Order, Entry: c.Original));
+        var latest = own.Concat(copied)
+            .OrderByDescending(x => x.At, StringComparer.Ordinal).ThenByDescending(x => x.Order)
+            .Select(x => x.Entry).FirstOrDefault();
 
         return latest is null || ClearedSince(latest, at) ? null : latest;
     }

@@ -428,10 +428,11 @@ public sealed class IntelService(
     private async Task<int> RunAsync(
         IReadOnlyList<string> channels, bool once, IProgress<string>? progress, CancellationToken ct)
     {
-        var written = 0;
-        var seen    = 0;
-        var total   = 0;
-        IsRunning   = true;
+        var written  = 0;   // rows, copies too: anything written means every PC refreshes
+        var reported = 0;   // reports, copies not: what the status line and the caller are told
+        var seen     = 0;
+        var total    = 0;
+        IsRunning    = true;
 
         try
         {
@@ -525,9 +526,12 @@ public sealed class IntelService(
             // was said, by whom, about where, and when. Doubles as the within-batch guard.
             var minAt = batch.Min(m => m.OccurredAt) ?? "";
             var maxAt = batch.Max(m => m.OccurredAt) ?? "";
+            //
+            // ⚠️ With the channel: the same person saying the same line in two channels in the same second is a relay,
+            // stored as a copy (below), not a line already parsed and dropped, which the Feed showed as chatter.
             var seenContent = (await db.Database.SqlQueryRaw<string>(
                     """
-                    SELECT "ReportedAt" || '|' || "ReporterName" || '|' || "SystemId" || '|' || "Message" AS "Value"
+                    SELECT "ReportedAt" || '|' || "ChannelName" || '|' || "ReporterName" || '|' || "SystemId" || '|' || "Message" AS "Value"
                     FROM "IntelReports" WHERE "ReportedAt" >= {0} AND "ReportedAt" <= {1}
                     """, minAt, maxAt)
                 .ToListAsync(ct))
@@ -577,6 +581,7 @@ public sealed class IntelService(
 
                 (IntelReport Report, List<IntelReportCharacter> Pilots) built;
                 IntelThreads.Entry? basis = null;
+                IntelReport? copyOf = null;
 
                 if (parsed is not null)
                 {
@@ -597,34 +602,61 @@ public sealed class IntelService(
                         parent = threads.ByPilot(namedIds, m.OccurredAt, namedLife, await KillsOf(namedIds));
                     }
 
-                    // ⚠️ Unattached: not stored as intel. A report with no system would break everything
-                    // that reads intel by system; the line itself stays in the chat it came from.
-                    if (parent is null) continue;
+                    // ⚠️ A relay of a follow-up held from another channel: the same words, so a copy of it. Asked before
+                    // the thread found is taken, or a relay's "+2" would add two more to the thread the first "+2" already
+                    // did (its reporter's earlier relayed line stands for that thread, see BySameReporter). And with no
+                    // thread found the line was dropped, so the Feed showed a relayed "+2" or "nv" as chatter.
+                    // Only when the thread found is the one the held line is in: a "+2" of another thread is not a copy.
+                    var repeats = held.CopyOfLine(m.ChannelName, m.OccurredAt, m.Message, follow.Clear);
+                    if (repeats is not null && (parent is null || threads.SameThread(repeats, parent)))
+                    {
+                        var line = Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message);
+                        line.SystemId   = repeats.SystemId;
+                        line.SystemName = repeats.SystemName;
+                        line.Source     = IntelReportSource.Chat;
+                        if (repeats.Kind == IntelReportKind.Clear)
+                        {
+                            // A relayed clear: a clear of the same system, which retires nothing of its own (RelaysClear below).
+                            line.Kind     = IntelReportKind.Clear;
+                            line.NoVisual = follow.NoVisual;
+                            line.Note     = string.IsNullOrWhiteSpace(follow.Note) ? null : follow.Note;
+                        }
+                        else copyOf = repeats;
+                        built = (line, []);
+                    }
+                    else
+                    {
+                        // ⚠️ Unattached: not stored as intel. A report with no system would break everything
+                        // that reads intel by system; the line itself stays in the chat it came from.
+                        if (parent is null) continue;
 
-                    // The report's pilots who have been called elsewhere or been on a kill since are not copied.
-                    basis = threads.Newest(parent, m.OccurredAt);
-                    HashSet<long> gone = basis.Pilots.Count == 0 ? []
-                        : threads.Gone(basis, m.OccurredAt, await KillsOf(basis.Pilots.Select(p => p.CharacterId)));
-                    built = IntelThreads.Restate(basis, follow, named,
-                                                 Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message),
-                                                 SystemIdOf(vocabulary, follow.HeadingSystem), gone);
+                        // The report's pilots who have been called elsewhere or been on a kill since are not copied.
+                        basis = threads.Newest(parent, m.OccurredAt);
+                        HashSet<long> gone = basis.Pilots.Count == 0 ? []
+                            : threads.Gone(basis, m.OccurredAt, await KillsOf(basis.Pilots.Select(p => p.CharacterId)));
+                        built = IntelThreads.Restate(basis, follow, named,
+                                                     Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message),
+                                                     SystemIdOf(vocabulary, follow.HeadingSystem), gone);
+                    }
                 }
 
                 var report = built.Report;
 
                 // Add returns false when this exact report is already stored, or has already
                 // been built earlier in this same batch.
-                if (!seenContent.Add($"{m.OccurredAt}|{m.SenderName}|{report.SystemId}|{m.Message}"))
+                if (!seenContent.Add($"{m.OccurredAt}|{m.ChannelName}|{m.SenderName}|{report.SystemId}|{m.Message}"))
                     continue;
 
                 // Pilots with their hulls, and the heading: a follow-up that adds only those is not a copy.
                 // ⚠️ A copy is stored, as a copy of its original and nothing more: no pilots, no count, no thread, no
                 // last seen, no clear. Dropped instead, the line had no report and the Feed showed it as chatter.
-                if (held.CopyOf(report, built.Pilots) is { } original)
+                // Its reporter's next follow-up in its channel still finds the original's thread (AddCopy).
+                if ((copyOf ?? held.CopyOf(report, built.Pilots)) is { } original)
                 {
                     var copy = Copy(report, original);
                     pending.Add((copy, []));
                     if (original.Id == 0) copies.Add((copy, original));
+                    threads.AddCopy(copy, original);
                     continue;
                 }
                 // Before it is held itself: a clear relaying one held already retires nothing of its own.
@@ -650,7 +682,11 @@ public sealed class IntelService(
                 if (report.ReporterCharacterId is { } rid) seenCharacters.Add(rid);
             }
 
-            written += await FlushAsync(db, pending, threads, copies, ct);
+            // Relayed copies are written but are no reports of their own: the status line counts reports, as the
+            // summary after the pass does.
+            reported += pending.Count(p => p.Report.Kind != IntelReportKind.Copy);
+            written  += await FlushAsync(db, pending, threads, copies, ct);
+            await RelinkCopiesAsync(db, held, minAt, maxAt, ct);
             await ApplyClearsAsync(db, clears, ct);
 
             // One affiliation pass for the whole batch rather than one per report.
@@ -676,8 +712,8 @@ public sealed class IntelService(
             var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
             var left = Backlog;
             StatusText = left > 0
-                ? string.Format(DataText.IntelStatusParsingMore, day, written, left)
-                : string.Format(DataText.IntelStatusParsing, day, written);
+                ? string.Format(DataText.IntelStatusParsingMore, day, reported, left)
+                : string.Format(DataText.IntelStatusParsing, day, reported);
             progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
@@ -699,7 +735,7 @@ public sealed class IntelService(
             await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Changed), ct);
         }
 
-        return written;
+        return reported;
         }
         finally
         {
@@ -734,6 +770,33 @@ public sealed class IntelService(
 
         foreach (var report in reports) held.Add(report, pilots[report.Id]);
         return held;
+    }
+
+    /// <summary>
+    /// Points stored copies around the batch whose link is lost at the report they repeat, once the batch's reports
+    /// are saved. Lost two ways: the original's chat log read again from the start (ChatLogImportService deletes its
+    /// report, and this pass makes it anew under another id), or a pass that stopped between FlushAsync's two saves
+    /// (the copy saved, its link not; the next pass skips the line as parsed). Either way the line was heard in one
+    /// place fewer than it was.
+    /// </summary>
+    private static async Task RelinkCopiesAsync(AppDbContext db, IntelDuplicates held, string minAt, string maxAt, CancellationToken ct)
+    {
+        if (IntelRooms.Parse(minAt) is not { } first || IntelRooms.Parse(maxAt) is not { } last) return;
+        var since = ChatLogRules.FormatTimestamp(first - IntelDuplicates.Window);
+        var until = ChatLogRules.FormatTimestamp(last + IntelDuplicates.Window);
+
+        var lost = await db.IntelReports.AsNoTracking()
+            .Where(r => r.Kind == IntelReportKind.Copy
+                        && string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
+                        && (r.ParentReportId == null || !db.IntelReports.Any(p => p.Id == r.ParentReportId)))
+            .ToListAsync(ct);
+
+        foreach (var copy in lost)
+        {
+            if (held.OriginalOfCopy(copy) is not { Id: > 0 } original) continue;
+            await db.IntelReports.Where(r => r.Id == copy.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ParentReportId, (int?)original.Id), ct);
+        }
     }
 
     /// <summary>What the status line says when nothing is running.</summary>
@@ -1164,6 +1227,10 @@ public sealed class IntelService(
         AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
     {
         var since = DateTimeOffset.UtcNow.AddDays(-365).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+        // Relayed copies count, on purpose: what is counted is the systems THIS channel names, one channel at a time,
+        // so nothing is counted twice. A relay room's lines are mostly copies, and they are what it talks about; left
+        // out, its hints would come from the few lines it carried first, and its shortened names be read worse.
         var frequency = await db.IntelReports.AsNoTracking()
             .Where(r => r.ChannelName == channel && string.Compare(r.ReportedAt, since) >= 0)
             .GroupBy(r => r.SystemId)
