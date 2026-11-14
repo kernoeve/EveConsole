@@ -935,7 +935,7 @@
     <value>Se dispara cuando alguien notifica un piloto cerca de lo que vigilas: tus personajes mientras están desacoplados, tus personajes estén donde estén, o una lista de sistemas, cada uno con un alcance en saltos. Lee los canales de inteligencia que ya se analizan en Ajustes → Registros de chat.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>También cuentan las muertes allí con pilotos hostiles entre los atacantes: una muerte sitúa a sus atacantes en ese sistema.</value>
+    <value>Una muerte allí con pilotos hostiles entre los atacantes siempre dispara la alarma y se anuncia como muerte: qué se perdió y contra qué. A un salto o menos se anuncia primero. Sus atacantes no se vuelven a anunciar como avistamiento.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Desacople de nave</value>
@@ -989,13 +989,13 @@
     <value>Saltos</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Cuántos saltos por portal estelar se vigilan desde cada personaje o sistema. 0 significa solo su propio sistema. Máximo 15: más allá deja de ser un vecindario.</value>
+    <value>Cuántos saltos se vigilan desde cada personaje o sistema, por portales estelares y por los agujeros de gusano abiertos de Thera y Turnur. 0 significa solo su propio sistema. Máximo 15: más allá deja de ser un vecindario.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Mín. de jugadores</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Solo se dispara cuando el informe es de al menos este número de pilotos. Predeterminado: 1.</value>
+    <value>Solo se dispara cuando hay al menos este número de hostiles en el sistema. Predeterminado: 1. Las muertes y los informes solo de avisos se disparan sea cual sea el número.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Ignorar «sin visual»</value>
@@ -2028,5 +2028,161 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Índices de hoy</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Cambio: la alarma se guía ahora por la información tal como está, así que un piloto visto después en otro lugar, o un sistema dado por despejado, ya no la dispara. Cada piloto se anuncia una vez mientras sigue en un sistema, un recuento de pilotos sin nombre solo de nuevo cuando supera 1, 4, 9 o 19, y también dispara un informe que solo menciona un campeo de puerta, burbujas, un cyno, un hotdrop, un pico en local o sondas de combate (Informes solo de avisos, abajo).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Informes solo de avisos</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Disparar también con un informe que no cuenta a nadie pero menciona un campeo de puerta, burbujas, un cyno, un hotdrop, un pico en local o sondas de combate. Cada uno se anuncia una vez mientras dura.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Muerte en {0}: {1} perdido contra {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Muerte en {0}, {1}: {2} perdido contra {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>hostiles</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>En {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>En {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Muerte notificada</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Muertes notificadas</value>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Solo lo nuevo te despierta (un sonido, voz, el agente, un cuadro de diálogo): algo visto, o que ha entrado en alcance, en los últimos dos minutos (Ajustes → Intel). Lo más antiguo solo se registra como Alerta. Las alarmas de intel se turnan: después de que una te despierte, las demás esperan unos segundos salvo que el aviso sea urgente, y un avistamiento que capten dos de ellas se dice una vez.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Dónde vigilar</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Qué la dispara</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Qué te despierta</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Despertar a menos de</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Opcional. Solo te despierta lo que esté a este número de saltos o menos; más lejos solo se registra como Alerta. Las muertes y los avisos urgentes siempre despiertan. Sin marcar, despierta todo el alcance.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>saltos</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Más bajo cuanto más lejos</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>El sonido suena a todo volumen a un salto o menos, y más bajo cuanto más lejos: hasta el 40 % en el borde del alcance. La voz mantiene su propio volumen.</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Hostil</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Qué pilotos nombrados cuentan, según los standings de tu personaje más cercano (o del personaje fijado en Ajustes → Intel). Los azules y tus propios personajes nunca cuentan; los recuentos sin nombre y los avisos sin pilotos, siempre.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral o peor</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Solo negativos</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Solo rojos</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Usar la lista de vigilancia</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>Lo que está en «Alertar siempre» salta dentro del alcance de la lista de vigilancia, sea cual sea el alcance, la elección de Hostil o el mínimo, se dice primero y nunca se retiene; lo que está en «Ignorar» nunca salta.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Alcance de la lista de vigilancia</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>A cuántos saltos saltan las entradas en «Alertar siempre», cuando es más lejos que el alcance. Como máximo 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Los pilotos que se acercan despiertan igual</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>Con «Despertar a menos de» activado: un piloto que se acerca (visto más cerca que antes, o informado rumbo a tu personaje) te despierta en cualquier punto del alcance.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Sistemas prioritarios</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Opcional. Sistemas vigilados siempre, estén donde estén tus personajes. Lo que se ve allí siempre te despierta, ninguna otra alarma de intel lo retiene y se dice primero.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Sistema prioritario: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Lista de vigilancia: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Se acerca: rumbo a {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Se acerca: rumbo a {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Se acerca: estaba {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Se aleja, hacia {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, a través de Thera o Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>También activado por defecto: los campeos de puerta deducidos de derribos, cerca de tus personajes o en una ruta por delante, y la propia ruta por delante, los sistemas que faltan por recorrer en la última ruta que el Planificador de rutas envió al juego (Campeos de puerta y Vigilar la ruta por delante, abajo).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Vigilar la ruta por delante</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Vigila también los sistemas que aún quedan por delante en la última ruta que el Planificador de rutas envió al juego para un personaje vigilado, a cualquier distancia: lo que se vea allí salta y se anuncia como tantos saltos por delante en la ruta. Solo la parte aún no recorrida; la ruta se descarta al llegar o seis horas después de enviarla. Una ruta fijada solo en el juego no se puede conocer.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Campeos de puerta</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Salta por un campeo de puerta deducido de derribos en una puerta, cerca de un personaje vigilado o en una ruta por delante. Se anuncia una vez por campeo, por personaje y por ruta, así que una ruta nueva que pase por un campeo conocido lo vuelve a anunciar. Uno en una ruta por delante dentro del alcance para despertar (5 saltos si no se ha fijado) es urgente.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Campeo de puerta en {0}, en la puerta de {1}.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Campeo de puerta en {0}, en la puerta de {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} derribo en {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} derribos en {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} minuto</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} minutos</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} salto por delante en la ruta de {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} saltos por delante en la ruta de {1}</value>
   </data>
 </root>

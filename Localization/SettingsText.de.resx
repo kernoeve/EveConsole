@@ -4129,4 +4129,7 @@ Die Anwendung wird neu gestartet.</value>
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>Den Connector {0} entfernen? Sein Schlüssel wird beendet, und die dafür gewählten Corporations, Allianzen und Funktionen sowie die verknüpften Charaktere, die er geliefert hat, werden vergessen. Das lässt sich nicht rückgängig machen.</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Der PC, der die Hintergrundarbeit erledigt, wurde gebeten, den Verlauf neu auszuwerten: Nur dieser PC wertet Aufklärung aus. Der Fortschritt erscheint unter Hintergrundprozesse.</value>
+  </data>
 </root>

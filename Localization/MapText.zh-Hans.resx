@@ -1540,7 +1540,7 @@
     <value>实时标记</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>过去 5 分钟内经情报或击毁报告确认位于此处的敌对人员。悬停查看是谁、驾驶什么舰船。“!”表示情报在此报告了某事（人数激增、拦截泡、蹲守），但未计入人数。</value>
+    <value>经情报或击毁报告确认位于此处的敌对人员，以其声望颜色显示（红、橙、中立灰），并随消息变旧而变淡。悬停查看是谁、驾驶什么舰船。“!”表示情报在此报告了某事（人数激增、拦截泡、蹲守），但未计入人数。</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>你在此处在线的角色。悬停查看舰船以及是否停靠。</value>
@@ -2326,5 +2326,164 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>在跳跃范围标签页所选星系的跳跃范围内（粗圈为出发星系）</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>无目视：在本地频道中，但未在网格上看到。同一标记，空心并带虚线圈。</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>已报告安全，此后无新消息。在安全报告的有效期内逐渐变淡（设置 → 情报）。</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>根据击毁判断出的星门蹲守：在星门连线上从被蹲守星系指向星门目的地画一段粗线，并标出击毁数。</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>被报告的驾驶员从哪里来：指向其被发现星系的实线箭头。</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>被报告的驾驶员据称前往的方向：从其被发现星系发出的虚线箭头。</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>当前由情报警报监视：此处的情况会触发警报。</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>已报告安全：{0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>报告于{0}；此后无新消息。</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>最新：{0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>无目视：在本地频道中，未在网格上看到</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>声望：{0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>{1}的{0}星门有蹲守</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>击毁：{0} · 最近一次 {1} · 攻击者：{2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>在{1}被发现，来自{0} · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>在{0}被发现，正前往{1} · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>除标记外，地图根据情报绘制的内容</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>标记始终采用声望颜色，随时间变淡，并显示安全和无目视的星系。以下内容仅在显示星系时绘制，不在星域视图中绘制。</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>根据击毁判断出的星门蹲守，以星门连线上的粗线绘制，随时间变淡</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>移动箭头</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>从被报告驾驶员来处指向其被发现星系的实线箭头</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>去向箭头</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>从驾驶员被发现的星系指向其据称前往之处的虚线箭头</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>警报区域</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>用细虚线圈出已启用的情报警报当前监视的每个星系</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>此星系有星门蹲守</value>
+  </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>♦ 海盗NPC</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>标记过去5天内♦海盗NPC击杀过玩家的星系。标记只说明看到了什么，而不是背后是什么：索迪约、据点或游荡的舰队。</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>NPC旗舰</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>标记自宕机维护（EVE时间11:00）以来NPC泰坦、超级航母或无畏舰击杀过玩家的星系。箭头用于选择类型。</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>泰坦</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>超级航母</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>无畏舰</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>泰</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>超</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>{0}的♦海盗NPC活动 — 被击杀玩家：{1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0}：{2}内击杀{1}名玩家 — 自{3} EVE起，最近{4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0}：超过{2}内击杀{1}名玩家 — 早于{3} EVE起，最近{4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>舰体：{0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0}：{1}，击杀{2}，最近{3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0}小时</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#}天</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>{0}天{1}小时前</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>自宕机维护以来{1}的NPC旗舰：{0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — 最近击杀 {2} EVE（{3}）· 宕机维护以来击杀：{4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0}：{1}，{2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>过去5天内♦海盗NPC在此击杀过玩家；数字为该轮活动开始以来的击杀数（无超过5天的间隔）。可能是索迪约、据点或游荡舰队。悬停查看势力、击杀数和时间段。</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>自宕机维护（EVE时间11:00）以来出现在此处击杀邮件上的NPC泰坦（泰）、超级航母（超）或无畏舰（无）。悬停查看势力、舰体、击杀数和各自最近一次击杀。</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0}：击杀1名玩家，{1} EVE（{2}）</value>
   </data>
 </root>

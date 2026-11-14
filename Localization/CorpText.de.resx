@@ -2578,4 +2578,40 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>Top 10 Solo-Abschüsse</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>{0} am Tag ({1} pro Stunde), aus dem Fit für seinen Typ</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>Unbekannt: Die Liste wurde zuletzt am {0} gelesen, und der Treibstoffablauf darin ist seither verstrichen.</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>Unbekannt: Die Liste wurde nicht von ESI gelesen.</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, wird abgebaut</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>Strukturliste zuletzt gelesen: {0}.</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>Turmliste zuletzt gelesen: {0}.</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>nie</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>Der Charakter, der diese Corporation liest, hat die dafür nötige Corp-Rolle verloren, daher wird ESI nicht mehr abgefragt.</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>ESI hat seitdem nicht dafür geantwortet.</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>Treibstoff, Zustände und Timer unten sind auf dem damaligen Stand.</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>Liste gelesen</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>Zustand endet</value>
+  </data>
 </root>

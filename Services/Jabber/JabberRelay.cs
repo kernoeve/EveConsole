@@ -795,6 +795,7 @@ public sealed partial class JabberService
             case "displayed":     if (session.Client is { } c) await c.SendDisplayedAsync(a.Conversation, a.Text, ct); break;
             case "sendurl":       await SendUrlAsync(session, a.Conversation, a.IsRoom, a.Text, ct); break;
             case "presence":      await SetPresenceAsync(session, a.Show, a.Status, ct); break;
+            case "picture":       await SetPictureAsync(session, a.Text.Length > 0 ? Convert.FromBase64String(a.Text) : null, ct); break;
             case "join":          await JoinSavedRoomAsync(session, a.Conversation, ct); break;
             case "leave":         await LeaveRoomAsync(session, a.Conversation, ct); break;
             case "invite":        await AnswerInviteAsync(session, a.Conversation, a.Accept, ct); break;

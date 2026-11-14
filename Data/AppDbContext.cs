@@ -171,6 +171,9 @@ public class AppDbContext : DbContext
     public DbSet<EveScoutConnection>   EveScoutConnections   => Set<EveScoutConnection>();
     public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+    public DbSet<IntelLastSeen>        IntelLastSeens        => Set<IntelLastSeen>();
+    public DbSet<IntelWatchEntry>      IntelWatchEntries     => Set<IntelWatchEntry>();
+    public DbSet<CharacterRoute>       CharacterRoutes       => Set<CharacterRoute>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
 
     // Which characters are one player's: see LinkedCharacterModels. Empty on most installs.
@@ -1597,10 +1600,38 @@ public class AppDbContext : DbContext
 
         mb.Entity<IntelReport>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
+            // Re-parsing cannot duplicate. Partial: a paste has no chat message behind it and is
+            // stored with ChatMessageId 0, any number of times.
+            e.HasIndex(x => x.ChatMessageId).IsUnique().HasFilter("\"ChatMessageId\" > 0")
+             .HasDatabaseName("IX_IntelReports_ChatMessage");
             e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
              .HasDatabaseName("IX_IntelReports_System_Time");
-            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time");
+            e.HasIndex(x => x.ReportedAt).HasDatabaseName("IX_IntelReports_Time");
+            // A follow-up's parent: the same reporter in the same channel, just before.
+            e.HasIndex(x => new { x.ChannelName, x.ReporterName, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Reporter"); });
+
+        mb.Entity<IntelLastSeen>(e => {
+            e.ToTable("IntelLastSeen");
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.HasIndex(x => x.SeenAt).HasDatabaseName("IX_IntelLastSeen_SeenAt");
+            e.HasIndex(x => new { x.SystemId, x.SeenAt }).HasDatabaseName("IX_IntelLastSeen_System");
+            e.HasIndex(x => x.WrittenAt).HasDatabaseName("IX_IntelLastSeen_WrittenAt");
+            e.HasIndex(x => x.Name).HasDatabaseName("IX_IntelLastSeen_Name");
+            e.HasIndex(x => x.CorporationId).HasDatabaseName("IX_IntelLastSeen_Corporation");
+            e.HasIndex(x => x.AllianceId).HasDatabaseName("IX_IntelLastSeen_Alliance"); });
+
+        mb.Entity<IntelWatchEntry>(e => {
+            e.HasKey(x => x.Id);
+            // One entry per thing watched: choosing again changes its mode, never adds a second.
+            e.HasIndex(x => new { x.Kind, x.EntityId }).IsUnique().HasDatabaseName("IX_IntelWatchEntries_Kind_Entity"); });
+
+        mb.Entity<CharacterRoute>(e => {
+            // One row per character: a route sent replaces the one before.
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("CharacterRoutes"); });
 
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);

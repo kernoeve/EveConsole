@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Settings window tab for the intel settings.</comment>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>How long intel lasts</value>
+    <comment>Settings → Intel section heading: how long each kind of intel counts as current.</comment>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Each kind of news counts as current for this long after it was reported, fading as it ages; then it drops off the panels and the map. Shared by every PC on this database. &quot;No visual&quot; is a flag on a sighting, not a lifetime of its own.</value>
+    <comment>Settings → Intel, under the lifetimes heading.</comment>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>A named pilot</value>
+    <comment>Settings → Intel lifetime row: a pilot reported by name.</comment>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>An unnamed count (&quot;+5&quot;)</value>
+    <comment>Settings → Intel lifetime row: pilots counted without names.</comment>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>A system called clear</value>
+    <comment>Settings → Intel lifetime row: a system someone called clear.</comment>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>A gate camp or bubbles</value>
+    <comment>Settings → Intel lifetime row: a gate camp or warp disruption bubbles.</comment>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>A cyno</value>
+    <comment>Settings → Intel lifetime row: a cynosural field.</comment>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>A pilot on a kill</value>
+    <comment>Settings → Intel lifetime row: a pilot placed by being an attacker on a killmail.</comment>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>A pilot who lost a ship</value>
+    <comment>Settings → Intel lifetime row: a pilot placed by being the victim of a killmail.</comment>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>minutes</value>
+    <comment>Unit after a number box on Settings → Intel.</comment>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>seconds</value>
+    <comment>Unit after a number box on Settings → Intel.</comment>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+    <comment>Unit after a number box on Settings → Intel: kilometres.</comment>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Follow-up lines</value>
+    <comment>Settings → Intel section heading: lines that add to an earlier report.</comment>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>A line with no system of its own (&quot;+2&quot;, &quot;nv&quot;, &quot;clr&quot;) adds to the same reporter&apos;s last report in the same channel when it comes within this time.</value>
+    <comment>Settings → Intel, under the follow-up heading. The quoted words are what people type in intel channels; keep them as they are.</comment>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Follow-up window</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Gate camps from kills</value>
+    <comment>Settings → Intel section heading: gate camps worked out from killmails.</comment>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Kills on one gate, each soon after the one before and sharing an attacker, are a camp once enough different pilots have been lost there. A single kill is not a camp.</value>
+    <comment>Settings → Intel, under the gate camp heading.</comment>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Within this distance of a gate</value>
+    <comment>Settings → Intel number box label: how near a stargate a kill must be.</comment>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Longest gap between kills</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Pilots lost before it is a camp</value>
+    <comment>Settings → Intel number box label: how many different pilots must be lost.</comment>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Standings</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Pilots are coloured by the standings of the character looking: the one a panel follows, or the nearest online character. Personal contacts come first, then the corporation&apos;s, then the alliance&apos;s. Choose a character here to use its standings everywhere instead.</value>
+    <comment>Settings → Intel, under the standings heading.</comment>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Standings from</value>
+    <comment>Settings → Intel picker label: whose standings colour pilots.</comment>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(each client&apos;s own character)</value>
+    <comment>First choice of the Standings from picker: no character forced.</comment>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Distance</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>How near a threat is counts stargates and every open Thera and Turnur connection, both ways. Travel distances can also count our own jump bridges, the ways the character&apos;s alliance may use.</value>
+    <comment>Settings → Intel, under the distance heading. Thera and Turnur are system names; keep them.</comment>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Use our jump bridges in travel distances</value>
+    <comment>Settings → Intel check box.</comment>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Intel alarms</value>
+    <comment>Settings → Intel section heading: numbers shared by every intel alarm.</comment>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Shared by every intel alarm. Only news this new wakes anyone (a sound, speech, a dialog) and lights up a panel row; older news is still shown. After one alarm wakes, the others wait this long, unless the news is urgent.</value>
+    <comment>Settings → Intel, under the intel alarms heading. To wake = to sound, speak or show a dialog.</comment>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Wake only for news newer than</value>
+    <comment>Settings → Intel number box label, followed by a number of seconds.</comment>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>Wait between wakes</value>
+    <comment>Settings → Intel number box label.</comment>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>seconds (0 for no wait)</value>
+    <comment>Unit and hint after the wait-between-wakes number box.</comment>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Kill feed warning</value>
+    <comment>Settings → Intel section heading.</comment>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>The Intel tool warns when zKillboard is not reading every kill in New Eden: kills anywhere else then never reach intel. The warning can be dismissed there, for every PC.</value>
+    <comment>Settings → Intel, under the kill feed warning heading.</comment>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Show the warning again</value>
+    <comment>Settings → Intel button.</comment>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>The warning will show again.</value>
+    <comment>Settings → Intel, after the show-again button was pressed.</comment>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Could not save: {0}</value>
+    <comment>Settings → Intel status when a value could not be written. {0} is the error.</comment>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>Intel history</value>
+    <comment>Settings → Data Retention section heading.</comment>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Removes intel reports, the pilots named in them, and where each pilot was last seen, once older than this. Chat messages and kills are kept by their own rules.</value>
+    <comment>Settings → Data Retention, under the intel history heading.</comment>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Purge intel history older than</value>
+    <comment>Settings → Data Retention check box, followed by a number of days.</comment>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>Removed {0:N0} intel rows older than {1:N0} days.</value>
+    <comment>Settings → Data Retention status after a purge. {0} the rows removed, {1} the days.</comment>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>now</value>
+    <comment>An intel row&apos;s age: just now.</comment>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} s</value>
+    <comment>An intel row&apos;s age in seconds. {0} is the seconds.</comment>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} min</value>
+    <comment>An intel row&apos;s age in minutes. {0} is the minutes.</comment>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+    <comment>An intel row&apos;s age past an hour. {0} is the hours, {1} the minutes.</comment>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0}j from {1}</value>
+    <comment>Tooltip on an intel row&apos;s jumps badge. {0} is the jumps, {1} the character they are counted from.</comment>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0}j from {1}, through Thera or Turnur</value>
+    <comment>Tooltip on an intel row&apos;s jumps badge when the shortest way uses a wormhole. {0} is the jumps, {1} the character.</comment>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Colour from {0}&apos;s standings</value>
+    <comment>Tooltip on an intel row&apos;s standings stripe. {0} is the character whose contacts gave the colour.</comment>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Colour from all your characters: friendly if any of them is</value>
+    <comment>Tooltip on an intel row&apos;s standings stripe when no single character views it.</comment>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>smartbombs</value>
+    <comment>A gate camp flag: an attacker fitted a smartbomb.</comment>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>dictor</value>
+    <comment>A gate camp flag: an interdictor is among the attackers.</comment>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>heavy dictor</value>
+    <comment>A gate camp flag: a heavy interdiction cruiser is among the attackers.</comment>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Open this pilot</value>
+    <comment>Tooltip on a pilot&apos;s name on an intel row.</comment>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Open this hull in the Item Browser</value>
+    <comment>Tooltip on a hull&apos;s name on an intel row.</comment>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+    <comment>A hull flown by several: {0} is the hull&apos;s name, {1} how many.</comment>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>clear</value>
+    <comment>An intel row&apos;s state: the system was called clear.</comment>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>called by {0}</value>
+    <comment>Under a clear row: who called it. {0} is the reporter.</comment>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>kill</value>
+    <comment>An intel row&apos;s state: a kill in the system.</comment>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>gate kill</value>
+    <comment>An intel row&apos;s state: a kill on a stargate.</comment>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>lost to</value>
+    <comment>On a kill row, between the victim&apos;s hull and the attackers&apos; hulls.</comment>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>near the {0} gate</value>
+    <comment>Where a kill or camp was. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>gate camp · {0}</value>
+    <comment>An intel row&apos;s state: a gate camp found from kills. {0} is the number of kills.</comment>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>{0} in Local</value>
+    <comment>An intel row&apos;s state: a pasted Local list. {0} is the pilots in it.</comment>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>{0} on d-scan</value>
+    <comment>An intel row&apos;s state: a pasted directional scan. {0} is the ships on it.</comment>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>reported</value>
+    <comment>An intel row&apos;s state: a report naming nobody and no flag.</comment>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} no visual</value>
+    <comment>An intel row&apos;s state: pilots in Local but not seen. {0} is how many.</comment>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>{0} hostile</value>
+    <comment>An intel row&apos;s state: pilots reported. {0} is how many.</comment>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} unnamed</value>
+    <comment>After the named pilots on an intel row: how many more were counted without names. {0} is the count.</comment>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} later</value>
+    <comment>On an intel row: later lines of the same report thread. {0} is how many; they are in the tooltip.</comment>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Lost by {0}, to {1} attackers</value>
+    <comment>Tooltip on a kill row. {0} is the victim, {1} the number of player attackers.</comment>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Pasted by {0}</value>
+    <comment>Tooltip on a pasted Local or d-scan row. {0} is the character it was pasted for.</comment>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Reported by {0} in {1}</value>
+    <comment>Tooltip on an intel report row. {0} is the reporter, {1} the channel.</comment>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Later:</value>
+    <comment>Tooltip on an intel row, heading the later lines of the same report thread.</comment>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0}j</value>
+    <comment>An Intel control&apos;s range, short. {0} is the jumps.</comment>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>No one logged in</value>
+    <comment>An Intel control&apos;s single line when no game client is logged in on its monitor.</comment>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} more within {1}j</value>
+    <comment>An Intel control&apos;s single line, after the nearest threat. {0} is how many other systems have threats, {1} the range in jumps.</comment>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} within {1}j</value>
+    <comment>An Intel control&apos;s header: how many systems have threats within its range. {0} is the systems, {1} the jumps.</comment>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>in {0}</value>
+    <comment>An Intel control&apos;s header, after the character: the system they are in. {0} is the system.</comment>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>location unknown</value>
+    <comment>An Intel control&apos;s header, after the character, when where they are is not known.</comment>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Location unknown: open the list for the newest intel</value>
+    <comment>An Intel control&apos;s single line when the character&apos;s system is not known.</comment>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>No one is logged in on this monitor.</value>
+    <comment>An Intel control&apos;s note when no game client on its monitor is logged in.</comment>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} isn&apos;t a character in EVE Console.</value>
+    <comment>An Intel control&apos;s note when the client&apos;s character is not added to the app. {0} is the character.</comment>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} isn&apos;t in EVE Console</value>
+    <comment>An Intel control&apos;s single line when the client&apos;s character is not added to the app. {0} is the character.</comment>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>No intel channels are set up, so nothing is reported here but kills.</value>
+    <comment>An Intel control&apos;s note when no intel channel is chosen in Settings → Chat Logs.</comment>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>Set them in Settings → Chat Logs</value>
+    <comment>Link under the note about missing intel channels; opens Settings at the Chat Logs tab.</comment>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Reading intel…</value>
+    <comment>An Intel control&apos;s note before the first intel has been read.</comment>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>Nothing reported within {0} jumps of {1}.</value>
+    <comment>An Intel control&apos;s note when there is nothing in range. {0} is the range in jumps, {1} the character.</comment>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Nothing within {0}j</value>
+    <comment>An Intel control&apos;s single line when there is nothing in range. {0} is the range in jumps.</comment>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>Nothing reported lately. Where {0} is isn&apos;t known yet.</value>
+    <comment>An Intel control&apos;s note when there is no intel at all and the character&apos;s system is not known. {0} is the character.</comment>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Blue and light blue hidden · distances by gate and Thera</value>
+    <comment>Foot of an Intel control: what it leaves out and how it counts jumps.</comment>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>where {0} is isn&apos;t known, so the newest intel shows without jumps</value>
+    <comment>Foot of an Intel control when the character&apos;s system is not known. {0} is the character.</comment>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>personal contacts unknown: colours from corporation and alliance contacts</value>
+    <comment>Foot of an Intel control when the character&apos;s own contacts are not readable (no contacts scope).</comment>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Open the system&apos;s page</value>
+    <comment>Tooltip on a system&apos;s name on an intel row.</comment>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Show on map</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Copy system name</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Open in the Intel tool</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>How far this control looks, in jumps by stargate and Thera or Turnur. Set in the layout editor.</value>
+    <comment>Tooltip on an Intel control&apos;s range.</comment>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Paste Local or d-scan</value>
+    <comment>Tooltip on an Intel control&apos;s paste icon; opens the Intel tool&apos;s Paste tab.</comment>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Open in the Intel tool</value>
+    <comment>Tooltip on an Intel control&apos;s open-tool icon.</comment>
+  </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>Board</value>
+    <comment>Intel tool tab: one row per system with live intel.</comment>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>Feed</value>
+    <comment>Intel tool tab: every intel line, newest first.</comment>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>Paste</value>
+    <comment>Intel tool tab: paste the Local member list or a d-scan.</comment>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>Intel is incomplete: the full zKillboard feed is off, so kills between other pilots near you are missing.</value>
+    <comment>Intel tool: yellow warning bar shown while zKillboard&apos;s scope is not every kill.</comment>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>Open Kill Mails settings</value>
+    <comment>Link on the Intel tool&apos;s warning bar; opens Settings at Kill Mails.</comment>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>Hide this on every PC until the full feed is switched on and off again</value>
+    <comment>Tooltip on the close button of the Intel tool&apos;s warning bar.</comment>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>Distance from</value>
+    <comment>Intel tool top bar: label of the choice of whom jumps are counted from.</comment>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>Nearest online character</value>
+    <comment>Intel tool: count jumps from whichever online character is nearest each system.</comment>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0} (not online)</value>
+    <comment>Intel tool: a chosen character who is not online now. {0} is the character&apos;s name.</comment>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>Within</value>
+    <comment>Intel tool top bar: label of the most jumps shown.</comment>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} jumps</value>
+    <comment>Intel tool: one choice of the most jumps shown. {0} is a number, 5 or more.</comment>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>Any distance</value>
+    <comment>Intel tool: no limit on jumps.</comment>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>My jump bridges</value>
+    <comment>Intel tool top bar: count the user&apos;s own alliance jump bridges in the jumps.</comment>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>Counts your own jump bridges: how far for travel. A threat&apos;s distance never uses them.</value>
+    <comment>Tooltip on the Intel tool&apos;s jump bridges check.</comment>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>Standings</value>
+    <comment>Intel tool top bar: label before the standings tier chips.</comment>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>Red</value>
+    <comment>Standings tier: terrible (below -5).</comment>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>Orange</value>
+    <comment>Standings tier: bad (-5 up to 0).</comment>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>Neutral</value>
+    <comment>Standings tier: no standing.</comment>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>Light blue</value>
+    <comment>Standings tier: good (above 0 up to +5).</comment>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>Blue</value>
+    <comment>Standings tier: excellent (above +5), or the viewer&apos;s own corporation or alliance.</comment>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>Own character</value>
+    <comment>One of the user&apos;s own characters, in a pasted Local.</comment>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Sources</value>
+    <comment>Intel tool top bar: label of the choice of channels, kills and pastes shown.</comment>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>All channels, kills, pastes</value>
+    <comment>Intel tool: every source is shown.</comment>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>No sources</value>
+    <comment>Intel tool: every source is switched off.</comment>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{0} of {1} sources</value>
+    <comment>Intel tool: some sources switched off. {0} shown, {1} in all.</comment>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>Kills (zKillboard and ESI)</value>
+    <comment>Intel tool sources list: kills from zKillboard and ESI.</comment>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>Pasted Local and d-scan</value>
+    <comment>Intel tool sources list: pastes made on the Paste tab.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Find system or pilot…</value>
+    <comment>Intel tool top bar: watermark of the search box.</comment>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>Updated {0} ago</value>
+    <comment>Intel tool status strip. {0} is an age such as &quot;3 s&quot;.</comment>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>Intel parsing: this PC</value>
+    <comment>Intel tool status strip: this PC is the worker that parses intel.</comment>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>Intel parsing: worker on {0}</value>
+    <comment>Intel tool status strip. {0} is the name of the PC that parses intel.</comment>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>Intel parsing: no worker</value>
+    <comment>Intel tool status strip: no PC is parsing intel right now.</comment>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Sort</value>
+    <comment>Intel tool Board: label of the sort choice.</comment>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>Nearest</value>
+    <comment>Intel tool Board sort: fewest jumps first.</comment>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Newest</value>
+    <comment>Intel tool Board sort: newest news first.</comment>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>Most hostiles</value>
+    <comment>Intel tool Board sort: most pilots first.</comment>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>{0} more beyond the limit</value>
+    <comment>Intel tool Board: rows left out past the row limit. {0} is a number.</comment>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>Jumps</value>
+    <comment>Intel tool Board column.</comment>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Intel tool Board column.</comment>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>State</value>
+    <comment>Intel tool Board column: hostile, no visual, camp, flags or clear.</comment>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Hostiles</value>
+    <comment>Intel tool Board column: how many pilots.</comment>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>Ships</value>
+    <comment>Intel tool Board column: the hulls flown.</comment>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>Flags</value>
+    <comment>Intel tool Board column: bubbles, cyno, gate camp and the like.</comment>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>Moving</value>
+    <comment>Intel tool Board column: where they came from or are heading.</comment>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>Age</value>
+    <comment>Intel tool Board column: how long ago.</comment>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Nearest</value>
+    <comment>Intel tool Board column: the character the jumps are counted from.</comment>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>Sources</value>
+    <comment>Intel tool Board column: the channels, kills and pastes it came from.</comment>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>Hostile</value>
+    <comment>Intel tool Board state chip: someone is there and was seen.</comment>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>No visual</value>
+    <comment>Intel tool Board state chip: someone is there, but nobody could see them.</comment>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>Camp</value>
+    <comment>Intel tool Board state chip: a gate camp.</comment>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>Flags</value>
+    <comment>Intel tool Board state chip: nobody counted, but bubbles, a cyno or the like was said.</comment>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Intel tool Board state chip: the system was called clear.</comment>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>from {0}</value>
+    <comment>Intel tool Board, Moving column: came from a system. {0} is the system.</comment>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>heading {0}</value>
+    <comment>Intel tool Board, Moving column: said to be heading for a system. {0} is the system.</comment>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>kills</value>
+    <comment>Intel tool Board, Sources column: kills from the kill feed.</comment>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>paste</value>
+    <comment>Intel tool Board, Sources column: a pasted Local or d-scan.</comment>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>No live intel within this distance.</value>
+    <comment>Intel tool Board with nothing to show.</comment>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>Nothing reported in this time within this distance.</value>
+    <comment>Intel tool Feed with nothing to show.</comment>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>Nothing matches the search.</value>
+    <comment>Intel tool: the search box leaves no rows.</comment>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>No intel channels are set: tick them in Settings → Chat Logs, or mark a Jabber or IRC room as Intel. Kills and pastes still show.</value>
+    <comment>Intel tool note when no intel channel is set anywhere.</comment>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>None of your characters is online, so there is nowhere to count jumps from: everything is listed, nearest first once someone logs in.</value>
+    <comment>Intel tool note when no own character is online.</comment>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>The character chosen in Distance from is not online: no jumps until they log in, or choose another.</value>
+    <comment>Intel tool note when the chosen origin character is offline.</comment>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Last</value>
+    <comment>Intel tool Feed: label of how far back the feed goes.</comment>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>Intel tool Feed: one choice of how far back. {0} is 15, 30 or 60.</comment>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>Show kills</value>
+    <comment>Intel tool Feed: show kills from the kill feed.</comment>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>Unlinked chatter</value>
+    <comment>Intel tool Feed: show the intel channels&apos; lines that gave no intel.</comment>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>Lines in the intel channels that gave no intel: talk, questions, a follow-up with nothing to attach to. Shown muted, never stored as intel.</value>
+    <comment>Tooltip on the Intel tool&apos;s Unlinked chatter check.</comment>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>EVE time</value>
+    <comment>Tooltip on the Intel tool Feed&apos;s time of a line.</comment>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>Report</value>
+    <comment>Intel tool Feed: the kind of line.</comment>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>Follow-up</value>
+    <comment>Intel tool Feed: a line adding to an earlier report.</comment>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Intel tool Feed: a system called clear.</comment>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>Local paste</value>
+    <comment>Intel tool: a pasted Local member list.</comment>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>D-scan</value>
+    <comment>Intel tool: a pasted d-scan.</comment>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>Kill</value>
+    <comment>Intel tool Feed: a kill from the kill feed.</comment>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>Camp</value>
+    <comment>Intel tool Feed: a gate camp worked out from kills.</comment>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>Chatter</value>
+    <comment>Intel tool Feed: a line in an intel channel that gave no intel.</comment>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+    <comment>Intel tool Feed: where a kill came from.</comment>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>Paste</value>
+    <comment>Intel tool Feed: a paste whose maker is not known.</comment>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>Paste · {0}</value>
+    <comment>Intel tool Feed: a paste. {0} is the character it was pasted for.</comment>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+    <comment>Intel tool Feed: where a line was said. {0} is the channel, {1} who said it.</comment>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>came from {0}</value>
+    <comment>Intel tool Feed: the pilots came from a system. {0} is the system.</comment>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>heading to {0}</value>
+    <comment>Intel tool Feed: the pilots are said to be heading for a system. {0} is the system.</comment>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>superseded</value>
+    <comment>Intel tool Feed: a later line restated or replaced this one.</comment>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>expired</value>
+    <comment>Intel tool Feed: this line is past its lifetime.</comment>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>Open system page</value>
+    <comment>Right-click menu on an intel row.</comment>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>Open pilot</value>
+    <comment>Right-click menu on an Intel tool Board row with one named pilot.</comment>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>System</value>
+    <comment>Intel tool Paste tab: label of the system the paste is for.</comment>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>Choose a system</value>
+    <comment>Intel tool Paste tab: placeholder of the system choice.</comment>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0} ({1} here)</value>
+    <comment>Intel tool Paste tab: a system where the user&apos;s characters are. {0} is the system, {1} the characters&apos; names.</comment>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>or another system…</value>
+    <comment>Intel tool Paste tab: watermark of the box for any other system.</comment>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>Pasted by</value>
+    <comment>Intel tool Paste tab: label of the character whose Local or d-scan it is.</comment>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>Paste Local (names, one per line) or a d-scan</value>
+    <comment>Intel tool Paste tab: label over the paste box.</comment>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>Select all in the game&apos;s Local member list or d-scan window, copy, and paste here with Ctrl+V.</value>
+    <comment>Intel tool Paste tab: watermark of the empty paste box.</comment>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>The app never reads the clipboard itself: only what you paste into the box is used.</value>
+    <comment>Intel tool Paste tab: a note under the box.</comment>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>Detected: Local list</value>
+    <comment>Intel tool Paste tab: the paste looks like the Local member list.</comment>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>Detected: d-scan</value>
+    <comment>Intel tool Paste tab: the paste looks like a d-scan.</comment>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>Not a Local list or a d-scan: a Local is one name per line, a d-scan has tab-separated columns.</value>
+    <comment>Intel tool Paste tab: the paste is neither.</comment>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>Choose the system this is from.</value>
+    <comment>Intel tool Paste tab: no system chosen yet.</comment>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>Replaces {0} reported there</value>
+    <comment>Intel tool Paste tab, a Local: it clears the system first; this many sightings there now go. {0} is a number.</comment>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>A Local paste is the whole roster: everyone reported in the system is taken out, then everyone on the list in the standings saved is placed. A partial paste clears just the same.</value>
+    <comment>Tooltip on the Intel tool Paste tab&apos;s &quot;Replaces N&quot;.</comment>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → bubbles</value>
+    <comment>Intel tool Paste tab, a d-scan: warp disruption bubbles on scan. {0} is a number.</comment>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → cyno</value>
+    <comment>Intel tool Paste tab, a d-scan: a lit cyno on scan. {0} is a number.</comment>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>A d-scan only adds an unnamed count of ships and never clears the system: d-scan does not see everyone.</value>
+    <comment>Intel tool Paste tab: what a d-scan paste does.</comment>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>Paste into the box: what it would store shows here before anything is saved.</value>
+    <comment>Intel tool Paste tab: before anything is pasted.</comment>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>Save (Ctrl+Enter)</value>
+    <comment>Intel tool Paste tab: button storing the paste as intel.</comment>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>Yours</value>
+    <comment>Intel tool Paste tab: the user&apos;s own characters in the Local.</comment>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>Unresolved</value>
+    <comment>Intel tool Paste tab: names that are no character.</comment>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>No alliance</value>
+    <comment>Intel tool Paste tab: pilots in no alliance.</comment>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>Counted as unnamed</value>
+    <comment>Intel tool Paste tab: names that are no character are counted as unnamed pilots.</comment>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>Recent pastes</value>
+    <comment>Intel tool Paste tab: heading of the last pastes made on any PC.</comment>
+  </data>
+  <data name="StatusSystemsOne" xml:space="preserve">
+    <value>{0} system with live intel</value>
+    <comment>Intel tool status strip, one system. {0} is the number.</comment>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>{0} systems with live intel</value>
+    <comment>Intel tool status strip. {0} is a number of systems.</comment>
+  </data>
+  <data name="StatusHostilesOne" xml:space="preserve">
+    <value>{0} hostile</value>
+    <comment>Intel tool status strip, one pilot. {0} is the number.</comment>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>{0} hostiles</value>
+    <comment>Intel tool status strip. {0} is a number of pilots.</comment>
+  </data>
+  <data name="StatusCampsOne" xml:space="preserve">
+    <value>{0} gate camp</value>
+    <comment>Intel tool status strip, one camp. {0} is the number.</comment>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>{0} gate camps</value>
+    <comment>Intel tool status strip. {0} is a number of camps.</comment>
+  </data>
+  <data name="PasteUnknownNamesOne" xml:space="preserve">
+    <value>{0} unknown name counted as unnamed</value>
+    <comment>Intel tool Paste tab: one name that is no character still counts. {0} is the number.</comment>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>{0} unknown names counted as unnamed</value>
+    <comment>Intel tool Paste tab: names that are no character still count. {0} is a number.</comment>
+  </data>
+  <data name="RecentPilotsOne" xml:space="preserve">
+    <value>{0} name</value>
+    <comment>Intel tool Paste tab, a recent Local of one name. {0} is the number.</comment>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} names</value>
+    <comment>Intel tool Paste tab, a recent Local. {0} is a number of names.</comment>
+  </data>
+  <data name="RecentShipsOne" xml:space="preserve">
+    <value>{0} ship</value>
+    <comment>Intel tool Paste tab, a recent d-scan of one ship. {0} is the number.</comment>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>{0} ships</value>
+    <comment>Intel tool Paste tab, a recent d-scan. {0} is a number of ships.</comment>
+  </data>
+  <data name="PasteDscanShipsOne" xml:space="preserve">
+    <value>{0} ship</value>
+    <comment>Intel tool Paste tab, a d-scan with one ship or capsule. {0} is the number.</comment>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>{0} ships</value>
+    <comment>Intel tool Paste tab, a d-scan: ships and capsules on it. {0} is a number.</comment>
+  </data>
+  <data name="PastePlacesOne" xml:space="preserve">
+    <value>Places {0} pilot in {1}</value>
+    <comment>Intel tool Paste tab, a Local with one pilot. {0} is the number, {1} the system.</comment>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>Places {0} pilots in {1}</value>
+    <comment>Intel tool Paste tab, a Local. {0} is a number of pilots, {1} the system.</comment>
+  </data>
+  <data name="FeedCountOne" xml:space="preserve">
+    <value>Newest first · {0} line</value>
+    <comment>Intel tool Feed with one line. {0} is the number.</comment>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>Newest first · {0} lines</value>
+    <comment>Intel tool Feed: how many lines. {0} is a number.</comment>
+  </data>
+  <data name="PasteSavedLocalOne" xml:space="preserve">
+    <value>Saved: a Local of {1}, {0} name.</value>
+    <comment>Intel tool Paste tab after saving a Local of one name. {0} is the number, {1} the system.</comment>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>Saved: a Local of {1}, {0} names.</value>
+    <comment>Intel tool Paste tab after saving a Local. {0} is a number of names, {1} the system.</comment>
+  </data>
+  <data name="PasteSavedDscanOne" xml:space="preserve">
+    <value>Saved: a d-scan of {1}, {0} ship.</value>
+    <comment>Intel tool Paste tab after saving a d-scan of one ship. {0} is the number, {1} the system.</comment>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>Saved: a d-scan of {1}, {0} ships.</value>
+    <comment>Intel tool Paste tab after saving a d-scan. {0} is a number of ships, {1} the system.</comment>
+  </data>
+  <data name="PasteNamesCountOne" xml:space="preserve">
+    <value>{0} name · {1} resolved · {2} unknown</value>
+    <comment>Intel tool Paste tab, one name pasted. {0} is the number, {1} how many are characters, {2} how many are not.</comment>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} names · {1} resolved · {2} unknown</value>
+    <comment>Intel tool Paste tab. {0} names pasted, {1} found to be characters, {2} not.</comment>
+  </data>
+  <data name="PasteDscanCountOne" xml:space="preserve">
+    <value>{0} ship · unknown types: {1}</value>
+    <comment>Intel tool Paste tab, a d-scan with one ship. {0} is the number, {1} lines whose type is not known.</comment>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>{0} ships · unknown types: {1}</value>
+    <comment>Intel tool Paste tab, a d-scan. {0} ships on it, {1} lines whose type is not known.</comment>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>Updated just now</value>
+    <comment>Intel tool status strip: the intel was read moments ago.</comment>
+  </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (system)</value>
+    <comment>Intel tool, Distance from: a system chosen to count jumps from, rather than a character. {0} is the system&apos;s name.</comment>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>or a system…</value>
+    <comment>Intel tool top bar: watermark of the box to count jumps from a system instead of a character.</comment>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Count jumps from a system instead of a character. No single character is looking then, so the colours come from all your characters: friendly if any of them is.</value>
+    <comment>Tooltip on the Intel tool&apos;s box for counting jumps from a system.</comment>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilots</value>
+    <comment>Intel tool tab: where each pilot was last seen.</comment>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Camps</value>
+    <comment>Intel tool tab: gate camps.</comment>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Watch list</value>
+    <comment>Intel tool tab: the shared list of pilots, corporations, alliances and ships always alerted for or ignored.</comment>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Pilot, corporation or alliance…</value>
+    <comment>Intel tool Pilots tab: the search box&apos;s hint.</comment>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Seen in the last</value>
+    <comment>Intel tool Pilots tab: label before the time window (1 hour … 60 days).</comment>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 hour</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 hours</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 hours</value>
+    <comment>Intel tool Pilots tab: time window choice (the default).</comment>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 days</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 days</value>
+    <comment>Intel tool Pilots tab: time window choice.</comment>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Searching…</value>
+    <comment>Intel tool Pilots tab: shown while the list is being read.</comment>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Each pilot where intel last placed them: a report, a pasted Local or a kill</value>
+    <comment>Intel tool Pilots tab: what the list is.</comment>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Could not read the pilots: {0}</value>
+    <comment>Intel tool Pilots tab: the list could not be read. {0} is the error.</comment>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>The newest {0} · search to narrow</value>
+    <comment>Intel tool Pilots tab: the list was cut at its limit. {0} is the limit.</comment>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} pilot</value>
+    <comment>Intel tool Pilots tab, one pilot listed. {0} is the number.</comment>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} pilots</value>
+    <comment>Intel tool Pilots tab: pilots listed. {0} is a number.</comment>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>Nobody was seen in this time.</value>
+    <comment>Intel tool Pilots tab, when nobody was seen in the window.</comment>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Last seen in</value>
+    <comment>Intel tool Pilots tab column: the system the pilot was last seen in.</comment>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Seen</value>
+    <comment>Intel tool Pilots tab column: how long ago, and the EVE time.</comment>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Intel tool Pilots tab column: the ship flown.</comment>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>How</value>
+    <comment>Intel tool Pilots tab column: how the pilot was seen (a report, a pasted Local, a kill).</comment>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Intel tool Pilots tab column.</comment>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Reported</value>
+    <comment>Intel tool Pilots tab and pilot page: seen in an intel channel report.</comment>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Local paste</value>
+    <comment>Intel tool Pilots tab and pilot page: seen on a pasted Local list.</comment>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Attacker on a kill</value>
+    <comment>Intel tool Pilots tab and pilot page: seen as an attacker on a killmail.</comment>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Lost a ship</value>
+    <comment>Intel tool Pilots tab and pilot page: seen losing a ship on a killmail.</comment>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>no visual</value>
+    <comment>Intel tool Pilots tab: the sighting was without a visual (only in Local).</comment>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Last seen in {0}, {1} ago</value>
+    <comment>Pilot page, Intel tab: where intel last placed the pilot. {0} is the system, {1} how long ago (&quot;3 h&quot;).</comment>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} h</value>
+    <comment>An age in whole hours. {0} is the number.</comment>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} d</value>
+    <comment>An age in whole days. {0} is the number.</comment>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} active camp</value>
+    <comment>Intel tool Camps tab status, one active camp. {0} is the number.</comment>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} active camps</value>
+    <comment>Intel tool Camps tab status. {0} is a number of active camps.</comment>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} ended</value>
+    <comment>Intel tool Camps tab status, one camp that ended lately. {0} is the number.</comment>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} ended</value>
+    <comment>Intel tool Camps tab status. {0} is a number of camps that ended lately.</comment>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>From kills on gates and from reports · ended camps stay, faded, for an hour after the last kill</value>
+    <comment>Intel tool Camps tab: what is listed.</comment>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>No gate camps within this distance in the last hour.</value>
+    <comment>Intel tool Camps tab, when there are none.</comment>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>No gate camps seen. Camps are worked out from kills, and with the full zKillboard feed off only kills involving you or your corporation arrive.</value>
+    <comment>Intel tool Camps tab, empty while the full kill feed is off.</comment>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} gate</value>
+    <comment>Intel tool Camps tab: the gate a camp is on. {0} is the system the gate leads to.</comment>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} kill</value>
+    <comment>Intel tool Camps tab, one kill in the camp. {0} is the number.</comment>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} kills</value>
+    <comment>Intel tool Camps tab: kills in the camp. {0} is a number.</comment>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} pilot</value>
+    <comment>Intel tool Camps tab, one pilot on the camp. {0} is the number.</comment>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} pilots</value>
+    <comment>Intel tool Camps tab: pilots on the camp. {0} is a number.</comment>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Intel tool Camps tab: the camp is known from kills.</comment>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Reported</value>
+    <comment>Intel tool Camps tab: the camp is only reported in a channel.</comment>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Kills and reports</value>
+    <comment>Intel tool Camps tab: the camp is known from kills and reported too.</comment>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Active</value>
+    <comment>Intel tool Camps tab: the camp is going on.</comment>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Ended</value>
+    <comment>Intel tool Camps tab: the camp has ended (no kill for the camp lifetime).</comment>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Camp</value>
+    <comment>Intel tool Camps tab column: the system and the gate.</comment>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+    <comment>Intel tool Camps tab column: active or ended.</comment>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Kills</value>
+    <comment>Intel tool Camps tab column.</comment>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Last</value>
+    <comment>Intel tool Camps tab column: how long ago the last kill was.</comment>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Attackers</value>
+    <comment>Intel tool Camps tab column: who is on the camp, and in what.</comment>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Open the camp&apos;s kills in Battle Report</value>
+    <comment>Intel tool Camps tab tooltip.</comment>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Open the kill in Battle Report</value>
+    <comment>Intel tool Pilots tab tooltip on how the pilot was seen, when it was a kill.</comment>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Open kills</value>
+    <comment>Intel tool Camps tab, right-click menu.</comment>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Open the kill</value>
+    <comment>Intel tool Pilots tab, right-click menu, when the pilot was seen on a kill.</comment>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Open this corporation</value>
+    <comment>Tooltip on a corporation&apos;s name in an intel view.</comment>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Open this alliance</value>
+    <comment>Tooltip on an alliance&apos;s name in an intel view.</comment>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Always alert</value>
+    <comment>Right-click menu on a pilot in any intel view: put the pilot on the watch list as always alerted for (ticked when they are; choosing it again takes them off).</comment>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Ignore</value>
+    <comment>Right-click menu on a pilot in any intel view: put the pilot on the watch list as ignored (ticked when they are; choosing it again takes them off).</comment>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Pilots, corporations, alliances, hulls and ship groups, shared by every PC on this database. Always alert: shown in bold, and intel alarms using the watch list alert for them from farther away. Ignore: shown dimmed, and never alerted for. A pilot&apos;s own entry decides first, then their corporation&apos;s, their alliance&apos;s, their hull&apos;s and its group&apos;s.</value>
+    <comment>Intel tool Watch list tab: what the list does.</comment>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Pilot</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Alliance</value>
+    <comment>Intel tool Watch list tab: kind of entry.</comment>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Hull</value>
+    <comment>Intel tool Watch list tab: kind of entry, one ship type.</comment>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Ship group</value>
+    <comment>Intel tool Watch list tab: kind of entry, a ship group such as Interdictor.</comment>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Always alert</value>
+    <comment>Intel tool Watch list tab: the mode that always alerts.</comment>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Ignore</value>
+    <comment>Intel tool Watch list tab: the mode that never alerts.</comment>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Add</value>
+    <comment>Intel tool Watch list tab: button adding the chosen entry.</comment>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Name to add…</value>
+    <comment>Intel tool Watch list tab: hint in the name box.</comment>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Note (optional)</value>
+    <comment>Intel tool Watch list tab: hint in the note box.</comment>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Nothing on the watch list yet. Add from here, or right-click a pilot anywhere in intel.</value>
+    <comment>Intel tool Watch list tab, when the list is empty.</comment>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} on {1}</value>
+    <comment>Intel tool Watch list tab: when and where an entry was added. {0} is the date, {1} the PC&apos;s name.</comment>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Could not change the watch list: {0}</value>
+    <comment>Intel tool Watch list tab: a change could not be written. {0} is the error.</comment>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Take it off the watch list</value>
+    <comment>Intel tool Watch list tab: tooltip on the remove button.</comment>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Kind</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Mode</value>
+    <comment>Intel tool Watch list tab column: Always alert or Ignore.</comment>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Note</value>
+    <comment>Intel tool Watch list tab column.</comment>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Added</value>
+    <comment>Intel tool Watch list tab column: when and on which PC.</comment>
+  </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+    <comment>An intel line's compact age badge, ten minutes or more. {0} is the minutes. Keep it as short as possible.</comment>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+    <comment>An intel line's compact age badge, an hour or more. {0} is the hours. Keep it as short as possible.</comment>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>The newest news here at {0} EVE time</value>
+    <comment>Tooltip on a system line's age badge. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Last seen at {0} EVE time</value>
+    <comment>Tooltip on a hostile pilot's age badge. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Hostiles here: {0} ({1} named, {2} counted but not named)</value>
+    <comment>Tooltip on a system line's hostile count. {0} is all of them, {1} the pilots named, {2} the ones only counted.</comment>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Kill here at {0} EVE time</value>
+    <comment>Tooltip on a system line's kill icon: the hostiles there killed someone. {0} is a time, HH:mm.</comment>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Kills here: {0}, the newest at {1} EVE time</value>
+    <comment>Tooltip on a system line's kill icon, several kills. {0} is how many, {1} the newest's time, HH:mm.</comment>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Gate camp</value>
+    <comment>Tooltip on a system line's camp icon, the gate not known.</comment>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Gate camp on the {0} gate</value>
+    <comment>Tooltip on a system line's camp icon. {0} is the system the camped gate leads to.</comment>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>No visual: reported, not seen</value>
+    <comment>Tooltip on the no-visual icon: the hostiles were reported but nobody saw them.</comment>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Called clear</value>
+    <comment>Tooltip on a system line's clear icon: someone said the system is clear.</comment>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Who is here, by alliance (or corporation):</value>
+    <comment>First line of the tooltip listing a system's hostiles by group.</comment>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Affiliation not known yet: {0}</value>
+    <comment>Line of the who tooltip: pilots whose corporation is not known yet. {0} is how many.</comment>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>On a kill here</value>
+    <comment>Tooltip on a hostile pilot's kill icon: they were on a kill in this system.</comment>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Pilots here</value>
+    <comment>Heading over the hostile pilots in an opened system row.</comment>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Reports and kills</value>
+    <comment>Heading over a system's reports, kills and camp lines in an opened system row.</comment>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Who</value>
+    <comment>Intel tool Board column: who the hostiles are, by alliance or corporation.</comment>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Sort by this column; click again for the other way round</value>
+    <comment>Tooltip on a sortable column header.</comment>
+  </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} hidden by standings</value>
+    <comment>Intel tool Pilots tab, after the count: one pilot found and left out because their standings tier is switched off. {0} is the number.</comment>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} hidden by standings</value>
+    <comment>Intel tool Pilots tab, after the count: pilots found and left out because their standings tier is switched off. {0} is a number.</comment>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Every pilot found is hidden by the standings filter: switch on more standings above to list them.</value>
+    <comment>Intel tool Pilots tab, when pilots were found but the standings chips leave every one of them out.</comment>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>On the kill, by alliance (or corporation):</value>
+    <comment>First line of the tooltip on a kill line&apos;s attackers, listed by group with how many of each.</comment>
+  </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Unknown pilot</value>
+    <comment>Shown in place of a pilot's name on an intel line (a kill's victim) while no name cache has it yet.</comment>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Unknown pilot (character {0}): the name is not known yet</value>
+    <comment>Tooltip on the portrait of a pilot whose name is not known yet. {0} is the character id (a number).</comment>
+  </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+    <comment>On an intel line: the same report was heard in this many channels in all, its own included (relayed copies). Never more hostiles. {0} is the number; the channels are in its tooltip.</comment>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Also heard in:</value>
+    <comment>Tooltip on an intel line, heading the other channels the same report was relayed into, one per line.</comment>
+  </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE Chat - {0}</value>
+    <comment>Intel: how a channel read from the game's chat logs is named (Sources choice, Feed and Board lines, tooltips). {0} is the channel's name. EVE is the game's name: keep it in capitals.</comment>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+    <comment>Intel: how a Jabber room or IRC channel is named (Sources choice, Feed and Board lines, tooltips). {0} is the server's name as set in its settings, {1} the room or channel.</comment>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Intel: a chat server's name when two servers are called the same, so they stay apart. {0} is the name, {1} its host (or login when the host is shared too).</comment>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Save:</value>
+    <comment>Intel tool Paste tab: label before the standings chips that choose which tiers a pasted Local saves.</comment>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Which standings a pasted Local saves, as the character pasting sees them. Pilots of the tiers switched off are not logged at all, and your own characters never are. Kept on this PC.</value>
+    <comment>Intel tool Paste tab: tooltip of the Save: standings chips and of the left-out line.</comment>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Intel tool Paste tab: small button by the paste box that empties it.</comment>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Empty the box and the preview. The system and Pasted by stay.</value>
+    <comment>Intel tool Paste tab: tooltip of the Clear button by the paste box.</comment>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} left out ({1})</value>
+    <comment>Intel tool Paste tab, a Local: names on it that are not saved. {0} is a number, {1} the standings tiers they are in, comma-separated (for example: Blue, Light blue).</comment>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Saves {0} as clear: nobody of the standings chosen is on it</value>
+    <comment>Intel tool Paste tab, a Local with nobody of the chosen standings on it: it is saved as a clear. {0} is the system.</comment>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>A Local lists everyone there, so saving it says the system is clear of the standings chosen and takes out what was reported there.</value>
+    <comment>Intel tool Paste tab: under the headline of a Local with nobody of the chosen standings on it.</comment>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Not saved</value>
+    <comment>Intel tool Paste tab: a standings tier switched off on the Save: chips, folded to one dimmed line with its count.</comment>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Never saved</value>
+    <comment>Intel tool Paste tab: the user's own characters in a Local, folded to one dimmed line with their count.</comment>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} of yours on it, never saved</value>
+    <comment>Intel tool Paste tab: the user's own characters in the Local, which are never saved. {0} is a number.</comment>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Saved: {0} is clear of the standings chosen.</value>
+    <comment>Intel tool Paste tab after saving a Local with nobody of the chosen standings on it. {0} is the system.</comment>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>The Save chips only sort named pilots: a d-scan names nobody, so every ship on it counts.</value>
+    <comment>Intel tool Paste tab, a d-scan: the Save: standings chips do not apply to it.</comment>
+  </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Save is off: every Save chip is off. Switch on the standings to save.</value>
+    <comment>Intel tool Paste tab, a Local: Save is off because every standings chip under Save is switched off.</comment>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Names not looked up yet: {0}. ESI did not answer, and they may be friends, so nothing is saved until they are. Trying again shortly.</value>
+    <comment>Intel tool Paste tab, a Local: Save waits because some names could not be looked up (ESI did not answer). {0} is the number of names.</comment>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Save is off: pilots left out who may be hostile: {0} ({1}). A Local takes out everyone reported in {2}, so saving it would drop them as though they had left. Switch their standings on to save it.</value>
+    <comment>Intel tool Paste tab, a Local: Save is off because the standings chips leave out pilots who may be hostile. {0} is a number of pilots, {1} their standings tiers comma-separated (for example: Neutral), {2} the system.</comment>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Not looked up yet</value>
+    <comment>Intel tool Paste tab: names on a Local that could not be looked up yet (ESI did not answer).</comment>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Waiting for ESI</value>
+    <comment>Intel tool Paste tab: beside names not looked up yet: their standing waits for ESI to answer.</comment>
+  </data>
+</root>

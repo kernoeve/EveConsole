@@ -2759,7 +2759,7 @@
     <value>Передать предметы другому персонажу или корпорации на станции, где они лежат</value>
   </data>
   <data name="TransferOneLine" xml:space="preserve">
-    <value>{0:N0} × {1}</value>
+    <value>{1} × {0:N0}</value>
   </data>
   <data name="TransferTypesOne" xml:space="preserve">
     <value>{0:N0} тип предметов</value>
@@ -2871,5 +2871,146 @@
   </data>
   <data name="IndustrySetupNoCharacters" xml:space="preserve">
     <value>Ни один персонаж не включён для производственных работ.</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>Структуры корпорации</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>Структура</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>Структура корпорации: топливо, лунный отсек, фит или боеприпасы</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>Заправить {0} — осталось {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>Заправить {0} — топливо кончилось</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{0} корпорации {1}. Топливо кончается {2}; заправить до {3} дн.</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>Привезти {0:N0} топливных блоков ({1} в час).</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>Расход неизвестен: задайте фит для {0} в «Структуры корпорации → Настройка», чтобы посчитать блоки.</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>Расход взят из фита, заданного для типа: имущество корпорации не читается.</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>Освободить лунный отсек {0} — заполнен на {1}%</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{0} корпорации {1}: {2} м³ на {3} ISK.</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>Исправить фит {0}</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>Не хватает: {0}.</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>Вместо {1} стоит {0}.</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>Сверено с {0} ({1}) — фитом для {2} корпорации {3}.</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>Пополнить боеприпасы и истребители в {0}</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>Мало: {0}. По фиту {1} для {2} корпорации {3}.</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0} из {2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}: список структур не читался с {1}</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}: список башен не читался с {1}</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>Персонаж, читающий эту корпорацию, потерял нужную ESI роль (Station Manager для структур, Starbase Equipment Config для башен), поэтому список не читается и топливо не отслеживается. Верните роль или поручите чтение персонажу с ней.</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>ESI давно не отвечал по списку, поэтому топливо нельзя отслеживать, пока он не будет прочитан снова.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Структуры</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>Задачи из «Структур корпорации». Заправке нужен только список структур, она работает для любой корпорации; остальные три читают содержимое структуры и появляются, только если читается имущество корпорации.</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>Все корпорации</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>Все корпорации, включая добавленные позже. Снимите, чтобы выбрать.</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>Заправка структур</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>Появляется, когда топливо структуры кончится раньше минимума, и заправляет до заданного уровня. Расход берётся из установленных модулей, а без имущества — из фита для типа в «Структуры корпорации → Настройка».</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>Мин. топливо</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>Структура с меньшим запасом топлива получает задачу.</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>Заправить до</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>До скольких дней топлива задача заправляет структуру.</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>Сбор реагентов</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Появляется, когда лунный отсек Metenox заполнен на заданную величину. Нужно имущество корпорации.</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>Забирать при</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>% заполнения</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>Объём</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>Рыночная стоимость</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>Сколько должно быть в отсеке, в выбранных единицах.</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>Пополнить дроны/боеприпасы</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>Появляется, когда боеприпасов или истребителей меньше доли фита из «Настройки → Оповещения». Нужно имущество корпорации.</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>Исправить фит</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>Появляется, когда в структуре нет модуля из фита её типа или вместо него стоит другой. Нужно имущество корпорации.</value>
   </data>
 </root>

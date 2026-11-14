@@ -135,6 +135,12 @@ internal static class GridWarning
     public static readonly IBrush Brush = new SolidColorBrush(Color.Parse("#e0902e"));
 }
 
+/// <summary>
+/// A picture before a cell's text: a drawn mark (a path on a 16-unit grid), or an image fetched
+/// for the row by URL. Either returns null for a row with nothing to show.
+/// </summary>
+internal sealed record CellIcon(Func<GridRow, string?>? Glyph = null, Func<GridRow, string?>? Url = null);
+
 internal sealed class SelectableCell : Border
 {
     private static readonly IBrush SelectionBrush =
@@ -151,6 +157,41 @@ internal sealed class SelectableCell : Border
     /// <summary>Where this cell's text goes when clicked. Null for an ordinary cell.</summary>
     private readonly Action<GridRow>? _onClick;
 
+    private readonly CellIcon? _icon;
+    private readonly Image? _picture;
+    private readonly Avalonia.Controls.Shapes.Path? _glyph;
+
+    /// <summary>
+    /// The row's picture, once per row rather than on every Refresh: Refresh runs on each
+    /// selection change and, for a countdown, every second.
+    ///
+    /// <para>⚠️ The grid recycles cells as it scrolls, so a picture that arrives after the cell
+    /// has moved on to another row is dropped, not shown on the wrong one.</para>
+    /// </summary>
+    private async void ShowIcon()
+    {
+        if (_icon is null || _picture is null || _glyph is null) return;
+        var row = DataContext as GridRow;
+        _picture.Source = null;
+        _picture.IsVisible = false;
+        _glyph.IsVisible = false;
+        if (row is null or { IsGroupHeader: true }) return;
+
+        if (_icon.Glyph?.Invoke(row) is { Length: > 0 } glyph)
+        {
+            _glyph.Data = PathGeometryConverter.Instance.Convert(glyph, typeof(Geometry), null,
+                                                                 System.Globalization.CultureInfo.InvariantCulture) as Geometry;
+            _glyph.IsVisible = _glyph.Data is not null;
+            return;
+        }
+
+        if (_icon.Url?.Invoke(row) is not { Length: > 0 } url) return;
+        // Space kept from the start, so the text doesn't jump right when the picture lands.
+        _picture.IsVisible = true;
+        var bmp = await EveConsole.Services.EveImageCache.GetAsync(url);
+        if (DataContext == row) _picture.Source = bmp;
+    }
+
     /// <param name="rightAlign">Right-justifies the text, for a column read by magnitude.
     /// ⚠️ Set on the TEXT rather than on the cell. Aligning the DataGridCell's content right would
     /// shrink this Border to the width of its text, and the Border IS the click target the
@@ -160,8 +201,9 @@ internal sealed class SelectableCell : Border
     /// in a link Button, because a Button swallows the pointer press the selection service needs —
     /// a linked column would lose cell selection and therefore Copy. The tap both selects and
     /// navigates, which is what clicking a name is asking for anyway.</param>
+    /// <param name="icon">A picture before the text, for a column naming something that has one.</param>
     public SelectableCell(DataGrid grid, string col, CellSelectionService svc,
-                          Action<GridRow>? onClick = null, bool rightAlign = false)
+                          Action<GridRow>? onClick = null, bool rightAlign = false, CellIcon? icon = null)
     {
         _grid            = grid;
         _col             = col;
@@ -179,7 +221,27 @@ internal sealed class SelectableCell : Border
             HorizontalAlignment = rightAlign ? HorizontalAlignment.Stretch : HorizontalAlignment.Left,
             TextAlignment       = rightAlign ? TextAlignment.Right         : TextAlignment.Left,
         };
-        Child = _tb;
+        _icon = icon;
+        if (icon is null) Child = _tb;
+        else
+        {
+            _picture = new Image { Width = 16, Height = 16, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center };
+            _glyph = new Avalonia.Controls.Shapes.Path
+            {
+                Width = 16, Height = 16, Margin = new Thickness(6, 0, 0, 0), VerticalAlignment = VerticalAlignment.Center,
+                StrokeThickness = 1.15, StrokeLineCap = PenLineCap.Round, StrokeJoin = PenLineJoin.Round,
+            };
+            // The worklist's kind marks' colour, from the theme.
+            _glyph.Bind(Avalonia.Controls.Shapes.Shape.StrokeProperty, _glyph.GetResourceObservable("BorderStrongBrush"));
+            var panel = new DockPanel { LastChildFill = true };
+            DockPanel.SetDock(_picture, Dock.Left);
+            DockPanel.SetDock(_glyph, Dock.Left);
+            panel.Children.Add(_picture);
+            panel.Children.Add(_glyph);
+            panel.Children.Add(_tb);
+            Child = panel;
+            DataContextChanged += (_, _) => ShowIcon();
+        }
 
         // ⚠️ Transparent, never null. A Border with no Background is not hit-tested in Avalonia:
         // the pointer passes straight through it to the DataGridCell behind, so Tapped and

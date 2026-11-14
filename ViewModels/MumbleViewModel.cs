@@ -257,6 +257,10 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
         _service = service;
         _prefs   = prefs;
 
+        Picture = new OwnPictureVm(
+            jpeg => Session is { } s ? Task.Run(() => _service.SetPictureAsync(s, jpeg)) : throw new InvalidOperationException(JabberText.PictureNotConnected),
+            () => Task.Run(() => _service.EveCharactersAsync()));
+
         _autoSave = new AutoSave(SaveEditedAsync, e => StatusText = e.Message);
         AddTargetCommand      = ReactiveCommand.Create(AddTarget);
         MuteKey   = new MumbleToggleKeyVm(this);
@@ -689,6 +693,7 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
                     Title = row.Text;
                     Subtitle = "";
                     SelectedIsMe = row.IsMe;
+                    if (row.IsMe && user is not null) ShowMyPicture(session, row, user);
                     if (user is not null)
                     {
                         UserVolume = session.VolumeOf(user) * 100;
@@ -700,6 +705,26 @@ public sealed class MumbleViewModel : ReactiveObject, IKeyCaptureHost
         finally { _loadingDetail = false; }
     }
 
+
+    // ── This person's own picture ─────────────────────────────────────────────
+
+    /// <summary>This person's own picture on the server selected: set from a file or an EVE portrait, or taken away.</summary>
+    public OwnPictureVm Picture { get; }
+    private string _pictureFor = "";
+
+    private void ShowMyPicture(MumbleSession session, MumbleRowVm row, MumbleUser me)
+    {
+        // Said again only on coming to it: this runs with every change, and would wipe what was just said.
+        if (_pictureFor != row.Identity)
+        {
+            _pictureFor = row.Identity;
+            Picture.Reset();
+            _ = Picture.LoadPortraitsAsync();
+        }
+        Picture.CanChange = true;
+        Picture.Preview = new AvatarRef(MumbleService.AvatarServiceName, session.Server.Id, "me", me.Name);
+        Picture.Note = me.UserId is null ? JabberText.PictureMumbleUnregistered : "";
+    }
 
     // ── What can be done to a person ──────────────────────────────────────────
 

@@ -94,6 +94,9 @@ public sealed class MumbleUser
 
     /// <summary>A picture too big to have come with the person, until asked for.</summary>
     public bool HasTextureToAsk { get; set; }
+
+    /// <summary>The server said this person's picture was taken away: to be forgotten once, then this goes false.</summary>
+    public bool TextureCleared { get; set; }
 }
 
 public sealed record MumbleLogin(
@@ -402,6 +405,7 @@ public sealed class MumbleClient : IAsyncDisposable
             case MumbleMessage.ServerConfig:
                 if (m.UInt(1) is { } bandwidth) MaxBandwidth = (int)bandwidth;
                 if (m.Text(2) is { } welcome) WelcomeText = welcome;
+                if (m.UInt(5) is { } imageLength) ImageMessageLength = (int)Math.Min(imageLength, int.MaxValue);
                 break;
 
             case MumbleMessage.Ping:
@@ -578,6 +582,7 @@ public sealed class MumbleClient : IAsyncDisposable
                 user.Texture = texture.Length > 0 ? texture : null;
                 if (m.Bytes(17) is null) user.TextureHash = "";
                 user.HasTextureToAsk = false;
+                user.TextureCleared = texture.Length == 0;
             }
             if (m.Bytes(17) is { } textureHash && Convert.ToHexStringLower(textureHash) is var hex && hex != user.TextureHash)
             {
@@ -726,6 +731,15 @@ public sealed class MumbleClient : IAsyncDisposable
     public Task RegisterUserAsync(uint session, CancellationToken ct) => SendUserStateAsync(session, m => m.UInt(4, 0), ct);
 
     public Task SetCommentAsync(string html, CancellationToken ct) => SendUserStateAsync(Session, m => m.Text(14, html), ct);
+
+    /// <summary>
+    /// The most bytes a picture or an image in a message may be, as the server said (image_message_length). 0 when it said
+    /// none, which is no limit of its own.
+    /// </summary>
+    public int ImageMessageLength { get; private set; }
+
+    /// <summary>Sets this person's picture (texture), or takes it away with none: an image file's bytes, as the standard client sends.</summary>
+    public Task SetTextureAsync(byte[] picture, CancellationToken ct) => SendUserStateAsync(Session, m => m.Bytes(11, picture), ct);
 
     /// <summary>Hears a channel without going there, for this connection.</summary>
     public Task SetListeningAsync(uint channel, bool listen, CancellationToken ct) =>

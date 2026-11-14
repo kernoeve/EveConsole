@@ -1,0 +1,1054 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>情报的有效时长</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>每种情报在报告后的这段时间内都视为当前情报，并随时间逐渐变淡；之后从面板和地图上消失。此数据库上的所有电脑共用此设置。“无视野”只是目击上的标记，没有单独的时长。</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>有名字的飞行员</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>未具名的人数（“+5”）</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>报告为安全的星系</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>星门蹲守或泡泡</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>诱导</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>参与击杀的飞行员</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>损失舰船的飞行员</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>分钟</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>公里</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>补充报告</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>没有自己星系的一行（“+2”“nv”“clr”）如果在这段时间内发出，会补充到同一频道中同一报告者的上一条报告。</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>补充报告时限</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>根据击杀判断星门蹲守</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>同一星门的击杀，若每次都紧接上一次且有共同的攻击者，当足够多的不同飞行员在那里损失后即视为蹲守。单次击杀不算蹲守。</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>距星门在此距离以内</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>击杀之间的最长间隔</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>构成蹲守所需的损失飞行员数</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>声望</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>飞行员按正在查看的角色的声望着色：面板所跟随的角色，或最近的在线角色。先看个人联系人，再看军团的，再看联盟的。在此选择一个角色即可在所有地方使用其声望。</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>声望来源</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>（每个客户端自己的角色）</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>距离</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>威胁的远近按星门以及所有开放的 Thera 和 Turnur 连接双向计算。旅行距离还可以计入我们自己的跳桥，按角色所在联盟可以使用的方向。</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>在旅行距离中使用我们的跳桥</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>情报警报</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>所有情报警报共用。只有不超过此时间的情报才会唤醒（声音、语音、对话框）并突出显示面板行；更早的情报仍会显示。一个警报唤醒后，除非情报紧急，其他警报会等待这段时间。</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>只为不早于此时间的情报唤醒</value>
+  </data>
+  <data name="SettingsWakeCooldown" xml:space="preserve">
+    <value>两次唤醒之间的间隔</value>
+  </data>
+  <data name="SettingsWakeCooldownHint" xml:space="preserve">
+    <value>秒（0 表示不等待）</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>击杀流警告</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>当 zKillboard 没有读取新伊甸的所有击杀时，情报工具会发出警告：此时其他地方的击杀永远不会进入情报。可以在那里为所有电脑关闭此警告。</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>再次显示警告</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>警告将再次显示。</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>无法保存：{0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>情报历史</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>删除早于此时长的情报报告、其中提到的飞行员以及每位飞行员最后被看到的位置。聊天消息和击杀按各自的规则保留。</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>清除早于此时长的情报历史</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>已删除 {0:N0} 行早于 {1:N0} 天的情报。</value>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>刚刚</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>距 {1} {0} 跳</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>距 {1} {0} 跳，经 Thera 或 Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>按 {0} 的声望着色</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>按你所有角色着色：任一角色友好即为友好</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>智能炸弹</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>拦截舰</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>重型拦截舰</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>打开该飞行员</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>在物品浏览器中打开该船体</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>无人</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>由 {0} 报告</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>星门击杀</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>被击毁于</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>在 {0} 星门附近</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>星门蹲守 · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>本地 {0} 人</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>定向扫描 {0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>已报告</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} 未目视</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>敌对 {0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} 未具名</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} 后续</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>{0} 损失，攻击者 {1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>由 {0} 粘贴</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>{0} 在 {1} 报告</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>后续：</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} 跳</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>无人登录</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>{1} 跳内另有 {0}</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{1} 跳内 {0}</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>在 {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>位置未知</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>位置未知：打开列表查看最新情报</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>此显示器上无人登录。</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} 不是 EVE Console 中的角色。</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} 不在 EVE Console 中</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>未设置情报频道，这里只显示击杀。</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>在 设置 → 聊天记录 中设置</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>正在读取情报…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>{1} 周围 {0} 跳内无报告。</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>{0} 跳内无情况</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>近期无报告。尚不知道 {0} 的位置。</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>已隐藏蓝色和浅蓝 · 距离按星门和 Thera 计算</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>不知道 {0} 的位置，最新情报不显示跳数</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>个人联系人未知：按军团和联盟联系人着色</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>打开星系页面</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>在地图上显示</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>复制星系名称</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>在情报工具中打开</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>此控件的查看范围（经星门和 Thera 或 Turnur 的跳数）。在布局编辑器中设置。</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>粘贴本地或定向扫描</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>在情报工具中打开</value>
+  </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>看板</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>动态</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>情报不完整：zKillboard 完整推送已关闭，附近其他飞行员之间的击杀会缺失。</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>打开击杀邮件设置</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>在所有电脑上隐藏，直到完整推送再次开启又关闭</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>距离起点</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>最近的在线角色</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0}（不在线）</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} 跳</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>任意距离</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>我的跳桥</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>计入你自己的跳桥：用于出行距离。威胁距离从不使用跳桥。</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>声望</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>红</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>橙</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>中立</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>浅蓝</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>蓝</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>自己的角色</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>所有频道、击杀、粘贴</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>无来源</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{1} 个来源中的 {0} 个</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>击杀（zKillboard 和 ESI）</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>粘贴的本地和定向扫描</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>查找星系或飞行员…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>{0} 前更新</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>情报解析：本机</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>情报解析：{0} 上的工作进程</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>情报解析：无工作进程</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>排序</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>最新</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>敌对最多</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>超出上限的还有 {0} 个</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>跳数</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>敌对</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>标记</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>动向</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>时长</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>最近角色</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>敌对</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>未目视</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>标记</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>无人</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>来自 {0}</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>前往 {0}</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>此距离内没有实时情报。</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>此时间段内此距离内没有报告。</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>没有符合搜索的内容。</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>未设置情报频道：请在 设置 → 聊天日志 中勾选，或将 Jabber 或 IRC 房间标记为情报。击杀和粘贴仍会显示。</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>你没有在线的角色，因此无法计算跳数：全部列出，有人上线后按距离排序。</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>“距离起点”中选择的角色不在线：在其上线或改选其他角色前不显示跳数。</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>显示击杀</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>未关联的聊天</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>情报频道中未形成情报的消息：闲聊、提问、无可关联的后续。以淡色显示，从不作为情报保存。</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>EVE 时间</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>后续</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>无人</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>本地粘贴</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>定向扫描</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>闲聊</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>粘贴</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>粘贴 · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>来自 {0}</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>正前往 {0}</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>已被取代</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>已过期</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>打开星系页面</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>打开飞行员</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>选择星系</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0}（{1} 在此）</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>或其他星系…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>粘贴者</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>粘贴本地（每行一个名字）或定向扫描</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>在游戏的本地成员列表或定向扫描窗口中全选并复制，然后在此按 Ctrl+V 粘贴。</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>本应用从不自行读取剪贴板：只使用你粘贴到框中的内容。</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>识别为：本地列表</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>识别为：定向扫描</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>既不是本地列表也不是定向扫描：本地为每行一个名字，定向扫描为制表符分隔的列。</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>请选择这来自哪个星系。</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>替换该处已报告的 {0} 个</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>粘贴的本地是完整名单：先移除该星系所有已报告的人，再放入名单上所保存声望的所有人。部分粘贴同样会清空。</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → 泡泡</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → 诱导</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>定向扫描只增加无名舰船数，从不清空星系：定向扫描看不到所有人。</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>粘贴到框中：保存前会在此显示将要保存的内容。</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>保存（Ctrl+Enter）</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>你的</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>未识别</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>无联盟</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>按无名计数</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>最近的粘贴</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>{0} 个星系有实时情报</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>{0} 个敌对</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>{0} 处星门蹲守</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>{0} 个未知名字按无名计数</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} 个名字</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>{0} 艘舰船</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>{0} 艘舰船</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>将 {0} 名飞行员置于 {1}</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>最新在前 · {0} 条</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>已保存：{1} 的本地，{0} 个名字。</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>已保存：{1} 的定向扫描，{0} 艘舰船。</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} 个名字 · 已识别 {1} · 未知 {2}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>{0} 艘舰船 · 未知类型 {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>刚刚更新</value>
+  </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0}（星系）</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>或某个星系…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>从某个星系而不是角色计算跳数。此时没有单一角色在看，因此颜色取自你的所有角色：只要其中任何一个视为友好即为友好。</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>关注列表</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>飞行员、军团或联盟…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>最近出现于</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 小时</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 小时</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 小时</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 天</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 天</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>正在搜索…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>每名飞行员最后一次出现的位置：报告、粘贴的本地频道或击杀</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>无法读取飞行员：{0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>最新 {0} 条 · 搜索以缩小范围</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} 名飞行员</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>这段时间内没有发现任何人。</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>最后出现于</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>时间</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>来源</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>粘贴的本地</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>击杀中的攻击者</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>损失舰船</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>无目视</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>最后出现于 {0}，{1} 前</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} 小时</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} 天</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} 处活跃蹲守</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} 处已结束</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>来自星门击杀和报告 · 已结束的蹲守在最后一次击杀后淡化显示一小时</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>过去一小时内此范围内没有星门蹲守。</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>未发现星门蹲守。蹲守由击杀推断，关闭 zKillboard 完整推送时，只能收到你或你的军团参与的击杀。</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} 星门</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} 次击杀</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} 名飞行员</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>报告</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>击杀和报告</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>进行中</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>已结束</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>蹲守</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>击杀</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>最近</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻击者</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>在战斗报告中打开蹲守的击杀</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>在战斗报告中打开该击杀</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>打开击杀</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>打开击杀</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>打开此军团</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>打开此联盟</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>始终警报</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>忽略</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>飞行员、军团、联盟、舰船和舰船类别，此数据库上的所有电脑共享。始终警报：以粗体显示，使用关注列表的情报警报会在更远距离发出警报。忽略：淡化显示，永不警报。优先采用飞行员本人的条目，其次是其军团、联盟、舰船及舰船类别的条目。</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>飞行员</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>舰船</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>舰船类别</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>始终警报</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>忽略</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>要添加的名称…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>备注（可选）</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>关注列表暂无内容。可在此添加，或在情报中的任意位置右键点击飞行员。</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>无法更改关注列表：{0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>从关注列表移除</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>类型</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>模式</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>备注</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>添加于</value>
+  </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}小时</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>此处最新消息：EVE时间 {0}</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>最后出现：EVE时间 {0}</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>此处敌对：{0}（已知姓名 {1}，仅计数 {2}）</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>此处击杀：EVE时间 {0}</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>此处击杀：{0}，最近一次 EVE时间 {1}</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>{0} 星门蹲守</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>无目视：有报告，未看到</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>已报告安全</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>此处人员（按联盟或军团）：</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>所属尚未知：{0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>参与了此处的击杀</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>此处飞行员</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>报告与击杀</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>谁</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>按此列排序；再次点击则反向</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} 人因声望被隐藏</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>找到的所有飞行员都被声望筛选隐藏：在上方开启更多声望即可列出。</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>参与击杀者（按联盟或军团）：</value>
+  </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>未知飞行员</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>未知飞行员（角色 {0}）：名称尚未知晓</value>
+  </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>也出现在：</value>
+  </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE 聊天 - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>保存：</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>粘贴的本地保存哪些声望（以粘贴者的角度）。关闭的等级的飞行员完全不记录，你自己的角色从不记录。记在这台电脑上。</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>清空输入框和预览。星系和粘贴者保持不变。</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} 人不保存（{1}）</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>将 {0} 保存为无人：没有所选声望的飞行员</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>本地列出那里的所有人：保存即表示该星系没有所选声望的人，并移除那里已报告的内容。</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>不保存</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>从不保存</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>其中 {0} 个是你的，从不保存</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>已保存：{0} 没有所选声望的人。</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>保存选项只筛选有名字的飞行员：定向扫描没有名字，所以其中每艘舰船都计入。</value>
+  </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>无法保存：保存的声望全部关闭。请打开声望后再保存。</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>尚未查到的名字：{0}。ESI 没有响应，他们可能是友方，因此查到之前不保存任何内容。稍后重试。</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>无法保存：被排除的飞行员中可能有敌对者：{0}（{1}）。本地会移除 {2} 中已报告的所有人，保存会让他们像已离开一样被移除。请打开他们的声望后再保存。</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>尚未查到</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>等待 ESI</value>
+  </data>
+</root>

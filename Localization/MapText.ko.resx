@@ -1540,7 +1540,7 @@
     <value>실시간 표시</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>최근 5분 동안 인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
+    <value>인텔 또는 킬 메일로 이곳에서 확인된 적대 세력입니다. 스탠딩 색(빨강, 주황, 중립 회색)으로 표시되며 정보가 오래될수록 흐려집니다. 마우스를 올리면 누가 무엇을 타고 있는지 표시합니다. "!"는 인텔이 이곳에서 무언가(급증, 버블, 캠프)를 보고했지만 인원은 세지 않았다는 뜻입니다.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>이곳에서 접속 중인 내 캐릭터입니다. 마우스를 올리면 함선과 정박 여부를 표시합니다.</value>
@@ -2326,5 +2326,164 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>점프 범위 탭의 성계에서 점프 범위 안(굵은 고리가 출발 성계)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>노 비주얼: 로컬에는 있지만 그리드에서는 보이지 않음. 같은 표시를 속이 빈 원과 점선 고리로 나타냅니다.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>클리어로 보고된 뒤 새 보고가 없음. 클리어 유효 시간(설정 → 인텔) 동안 점점 흐려집니다.</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>킬로 판단한 게이트 캠프: 캠프된 성계에서 게이트가 향하는 쪽으로 게이트 선 위에 굵은 선을 그리고 킬 수를 표시합니다.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>보고된 파일럿이 온 곳: 목격된 성계로 향하는 실선 화살표.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>보고된 파일럿이 향한다고 한 곳: 목격된 성계에서 나가는 점선 화살표.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>지금 인텔 알람이 감시하는 곳: 여기서 무언가 있으면 알람이 울립니다.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>클리어 보고: {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>보고: {0}. 이후 새 보고 없음.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>최신: {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>노 비주얼: 로컬에는 있지만 그리드에서는 보이지 않음</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>스탠딩: {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>{1}의 {0} 게이트 캠프</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>킬: {0} · 마지막 {1} · 공격자: {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>{1}에서 목격, {0}에서 옴 · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>{0}에서 목격, {1}(으)로 향함 · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>인텔</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>표시 외에 지도가 인텔로 그리는 것</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>표시는 항상 스탠딩 색을 따르고, 오래될수록 흐려지며, 클리어와 노 비주얼 성계도 보여 줍니다. 이 항목들은 성계가 보일 때만 그려지고 리전 화면에서는 그려지지 않습니다.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>킬로 판단한 게이트 캠프를 게이트 선 위의 굵은 선으로 그립니다. 시간이 지나면 흐려집니다</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>이동 화살표</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>보고된 파일럿이 온 곳에서 목격된 성계로 향하는 실선 화살표</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>진행 방향 화살표</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>파일럿이 목격된 성계에서 향한다고 한 곳으로 가는 점선 화살표</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>알람 구역</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>켜져 있는 인텔 알람이 지금 감시하는 모든 성계를 가는 점선으로 둘러쌉니다</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>이 성계에 게이트 캠프</value>
+  </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>♦ 랫</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>지난 5일 동안 ♦ 해적 NPC가 플레이어를 처치한 성계를 표시합니다. 표시는 본 것만 알려 줄 뿐, 그 뒤에 무엇이 있는지(소티요, 요새, 떠도는 무리)는 알려 주지 않습니다.</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>NPC 캐피탈</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>다운타임(EVE 11:00) 이후 NPC 타이탄, 슈퍼캐리어, 드레드노트가 플레이어를 처치한 성계를 표시합니다. 화살표로 종류를 고릅니다.</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>타이탄</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>슈퍼캐리어</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>드레드노트</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>{0}의 ♦ 랫 활동 — 처치된 플레이어: {1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0}: {2} 동안 플레이어 {1}명 처치 — {3} EVE부터, 최근 {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0}: {2} 넘게 플레이어 {1}명 처치 — {3} EVE 이전부터, 최근 {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>선체: {0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}명 처치, 최근 {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0}시간</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#}일</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>{0}일 {1}시간 전</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>다운타임 이후 {1}의 NPC 캐피탈: {0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — 마지막 처치 {2} EVE ({3}) · 다운타임 이후 처치: {4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>지난 5일 동안 여기서 ♦ 해적 NPC가 플레이어를 처치했습니다. 숫자는 연속 처치가 시작된 이후의 처치 수입니다(5일 넘는 공백 없음). 소티요, 요새, 떠도는 무리일 수 있습니다. 세력, 처치 수, 기간은 마우스를 올려 확인하세요.</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>다운타임(EVE 11:00) 이후 이곳 킬메일에 나온 NPC 타이탄(T), 슈퍼캐리어(S), 드레드노트(D). 세력, 선체, 처치 수, 마지막 처치는 마우스를 올려 확인하세요.</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0}: 플레이어 1명 처치, {1} EVE ({2})</value>
   </data>
 </root>

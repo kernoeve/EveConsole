@@ -19,7 +19,7 @@ public sealed partial class GroupChatViewModel
     private readonly IrcService? _irc;
     private List<IrcUnread> _ircUnread = [];
     private bool _addingIrc;
-    private readonly Dictionary<int, string> _refusalsShown = [];
+    private readonly Dictionary<int, int> _refusalsShown = [];
 
     /// <summary>Opens a conversation with someone on an IRC server in the Messages tool: server and nickname.</summary>
     public Action<int, string>? OpenIrcDirect { get; set; }
@@ -43,12 +43,13 @@ public sealed partial class GroupChatViewModel
         _irc.SessionChanged += session =>
         {
             QueueRefresh();
-            // Something the server refused (not an operator, no such nick) is said where it was asked.
-            var refusal = session.LastRefusal;
-            if (refusal.Length > 0 && _refusalsShown.GetValueOrDefault(session.Server.Id) != refusal)
+            // Something the server refused (not an operator, no such nick) is said where it was asked. ⚠️ Each one, by
+            // its count: the same words refused again must show again.
+            var (refusal, count) = (session.LastRefusal, session.RefusalCount);
+            if (refusal.Length > 0 && _refusalsShown.GetValueOrDefault(session.Server.Id) != count)
                 Dispatcher.UIThread.Post(() =>
                 {
-                    _refusalsShown[session.Server.Id] = refusal;
+                    _refusalsShown[session.Server.Id] = count;
                     if (SelectedRow is { IsIrc: true } open && open.ServerId == session.Server.Id) StatusText = refusal;
                 });
         };
@@ -58,6 +59,11 @@ public sealed partial class GroupChatViewModel
         _irc.ReactionsChanged += (server, conversation) => Dispatcher.UIThread.Post(() =>
         {
             if (SelectedRow is { IsIrc: true, IsRoom: true } row && row.ServerId == server && row.Key == conversation) _ = IrcLoadReactionsAsync(row);
+        });
+        // A message taken back: the channel open shows it so.
+        _irc.MessagesChanged += (server, conversation) => Dispatcher.UIThread.Post(() =>
+        {
+            if (SelectedRow is { IsIrc: true, IsRoom: true } row && row.ServerId == server && row.Key == conversation) _ = OpenSelectedAsync();
         });
     }
 
@@ -121,20 +127,32 @@ public sealed partial class GroupChatViewModel
     }
 
     /// <summary>
-    /// An IRC line as Group Chat shows it. ⚠️ No MessageId: IRC has no correcting or taking back a message, and the id
-    /// is what turns those on. Replying and reacting go by <see cref="GroupLineVm.ReactTarget"/>, where the server passes
-    /// tags on.
+    /// An IRC line as Group Chat shows it. ⚠️ No MessageId: IRC has no correcting a message, and the id is what turns
+    /// that on. Replying, reacting and taking back go by <see cref="GroupLineVm.ReactTarget"/>, where the server passes
+    /// tags on; taking back only where it also lets messages be taken back.
     /// </summary>
     private GroupLineVm ToIrcLine(IrcStoredMessage m, IrcSession? session) => new(
         m.Id,
         m.Kind switch { IrcMessageKind.Action => "* " + m.Sender, IrcMessageKind.Notice => "-" + m.Sender + "-", _ => m.Sender },
-        m.Body, ChatTime.Of(m.SentAt), "", m.IsMention)
+        m.Body, ChatTime.Of(m.SentAt), "", m.IsMention, deleted: m.Deleted, deletedReason: m.DeletedReason)
     {
         Avatar = new AvatarRef(IrcService.AvatarServiceName, m.ServerId, m.IsOutgoing ? "me" : "nick:" + m.Sender.ToLowerInvariant(), m.Sender),
         ReactTarget = session is { HasTags: true } ? m.MessageId : "",
         IsOutgoing = m.IsOutgoing,
+        Redactable = m.IsOutgoing && m.MessageId.Length > 0 && session is { CanRedact: true, State: IrcState.Connected }
+                     && (session.LoggedIn || IrcService.IsOperator(session, IrcService.MyRanks(session, m.Conversation))),
         ReplyText = ReplyTextFor(m.ReplyId, "", Lines, l => l.ReactTarget, l => l.Sender, l => l.Body),
     };
+
+    /// <summary>Takes back one of this person's lines in the channel open. The server's echo marks it so.</summary>
+    private async Task IrcDeleteAsync(GroupChatRowVm row, GroupLineVm line)
+    {
+        if (IrcOf(row) is not { } session) return;
+        StatusText = "";
+        var target = session.ChannelOf(row.Key)?.ServerName ?? row.Key;
+        try { await Task.Run(() => _irc!.RedactAsync(session, target, line.ReactTarget)); }
+        catch (Exception e) when (e is not OperationCanceledException) { StatusText = e.Message; }
+    }
 
     private void OnIrcMessage(IrcStoredMessage m)
     {
@@ -203,6 +221,23 @@ public sealed partial class GroupChatViewModel
         if (said.Length > 0) StatusText = said;
     }
 
+    /// <summary>Puts a file on the server's file host and sends its address to the channel open.</summary>
+    private async Task IrcSendFileAsync(IrcSession session, GroupChatRowVm row, Stream content, string fileName, long size)
+    {
+        var target = session.ChannelOf(row.Key)?.ServerName ?? row.Key;
+        StatusText = "";
+        SendingFile = string.Format(CultureInfo.CurrentCulture, JabberText.SendingFile, fileName);
+        try
+        {
+            await Task.Run(() => _irc!.SendFileAsync(session, target, content, fileName, size, JabberViewModel.ContentTypeOf(fileName)));
+        }
+        catch (Exception e) when (e is not OperationCanceledException || e is TaskCanceledException)
+        {
+            StatusText = string.Format(CultureInfo.CurrentCulture, JabberText.SendFileFailed, fileName, e.Message);
+        }
+        finally { SendingFile = ""; }
+    }
+
     private void ShowIrc(GroupChatRowVm row, IrcSession session)
     {
         ServerState = IrcViewModel.StateText(session);
@@ -219,7 +254,7 @@ public sealed partial class GroupChatViewModel
         var state = session.ChannelOf(row.Key);
         ChosenRoomType = RoomTypeChoices.FirstOrDefault(c => c.Type == row.ShownRoomType);
         CanSend = connected && state is { Joined: true };
-        CanAttach = false;
+        CanAttach = CanSend && IrcService.CanSendFiles(session);
         DraftHint = string.Format(CultureInfo.CurrentCulture, IrcText.MessageHint, state?.ServerName ?? row.Key);
         CannotSend = !connected ? string.Format(CultureInfo.CurrentCulture, MessagesText.CannotSendNotConnected, session.DisplayName)
                    : state is not { Joined: true } ? IrcText.NotInChannel
@@ -269,17 +304,56 @@ public sealed partial class GroupChatViewModel
     private (IrcSession Session, IrcChannelState State)? OpenIrcChannel() =>
         SelectedRow is { IsIrc: true, IsRoom: true } row && IrcOf(row) is { } session && session.ChannelOf(row.Key) is { } state ? (session, state) : null;
 
-    /// <summary>The ranks this person can hand out where they are an operator: operator, half-operator where the server has it, voice.</summary>
+    /// <summary>
+    /// The ranks this person can hand out where they are at least a half-operator: those below their own, and a founder's
+    /// own too (where the server lets founders share it). The server refuses what it does not allow, and says why.
+    /// </summary>
     public IReadOnlyList<(char Mode, string Give, string Take)> IrcRankChoices()
     {
-        if (OpenIrcChannel() is not (IrcSession session, IrcChannelState state) || !IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName))) return [];
+        if (OpenIrcChannel() is not (IrcSession session, IrcChannelState state)) return [];
+        var mine = IrcService.MyRanks(session, state.ServerName);
+        if (!IrcService.IsOperator(session, mine)) return [];
         var support = session.Support;
+        var top = mine.Select(support.RankOfMode).Where(r => r >= 0).DefaultIfEmpty(int.MaxValue).Min();
+        var from = top == 0 ? 0 : top + 1;
+
         var list = new List<(char, string, string)>();
-        if (support.RankOfMode('o') >= 0) list.Add(('o', IrcText.MenuGiveOperator, IrcText.MenuTakeOperator));
-        if (support.RankOfMode('h') >= 0) list.Add(('h', IrcText.MenuGiveHalfOperator, IrcText.MenuTakeHalfOperator));
-        if (support.RankOfMode('v') >= 0) list.Add(('v', GroupChatText.MenuGiveVoice, GroupChatText.MenuTakeVoice));
+        foreach (var (mode, _) in support.Ranks.Skip(from))
+            list.Add(mode switch
+            {
+                'q' => ('q', IrcText.MenuGiveFounder, IrcText.MenuTakeFounder),
+                'a' => ('a', IrcText.MenuGiveAdmin, IrcText.MenuTakeAdmin),
+                'o' => ('o', IrcText.MenuGiveOperator, IrcText.MenuTakeOperator),
+                'h' => ('h', IrcText.MenuGiveHalfOperator, IrcText.MenuTakeHalfOperator),
+                'v' => ('v', GroupChatText.MenuGiveVoice, GroupChatText.MenuTakeVoice),
+                var other => (other, string.Format(CultureInfo.CurrentCulture, IrcText.MenuGiveRank, other), string.Format(CultureInfo.CurrentCulture, IrcText.MenuTakeRank, other)),
+            });
         return list;
     }
+
+    // ── A channel's settings (modes) ──────────────────────────────────────────
+
+    /// <summary>The channel open, for its settings window: null when none is open or this person cannot change them.</summary>
+    public IrcChannelSettingsVm? IrcChannelSettings()
+    {
+        if (OpenIrcChannel() is not (IrcSession session, IrcChannelState state) || _irc is not { } irc) return null;
+        if (!IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName))) return null;
+        var modes = session.Locked(_ => new Dictionary<char, string>(state.Modes));
+        return new IrcChannelSettingsVm(irc, session, state.ServerName, session.Support, modes, state.ModesKnown);
+    }
+
+    /// <summary>
+    /// Whether the channel open lets this person change its topic: anyone, unless only operators may (+t). Offered when
+    /// its settings are not known yet: the server then says, and that is shown.
+    /// </summary>
+    public bool IrcCanChangeTopic() =>
+        OpenIrcChannel() is (IrcSession session, IrcChannelState state)
+        && (!session.Locked(_ => state.ModesKnown && state.Modes.ContainsKey('t')) || IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName)));
+
+    /// <summary>Whether the channel open lets this person invite: anyone, unless it is invite-only (+i), where operators do.</summary>
+    public bool IrcCanInvite() =>
+        OpenIrcChannel() is (IrcSession session, IrcChannelState state)
+        && (!session.Locked(_ => state.ModesKnown && state.Modes.ContainsKey('i')) || IrcService.IsOperator(session, IrcService.MyRanks(session, state.ServerName)));
 
     /// <summary>Whether this person can put others out of the channel open: half-operator or above.</summary>
     public bool IrcCanModerate() =>
@@ -301,6 +375,15 @@ public sealed partial class GroupChatViewModel
 
     public Task IrcBanAsync(JabberOccupantVm person, string reason) =>
         person.IrcMember is { } member ? IrcActAsync((s, channel) => _irc!.BanAsync(s, channel, member, reason)) : Task.CompletedTask;
+
+    /// <summary>Who someone in the channel open is, asked of the server for the window that shows it. Null when no channel is open.</summary>
+    public IrcWhoisVm? IrcWhois(JabberOccupantVm person)
+    {
+        if (person.IrcMember is not { } member || OpenIrcChannel() is not (IrcSession session, _) || _irc is not { } irc) return null;
+        var whois = new IrcWhoisVm(member.Nick);
+        _ = whois.LoadAsync(member.Nick, () => irc.WhoisAsync(session, member.Nick));
+        return whois;
+    }
 
     public Task IrcSetTopicAsync(string topic) => IrcActAsync((s, channel) => _irc!.SetTopicAsync(s, channel, topic));
 

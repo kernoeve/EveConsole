@@ -1,6 +1,8 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data.Converters;
 using Avalonia.Interactivity;
+using Avalonia.Media;
 using EveConsole.ViewModels;
 
 namespace EveConsole.Views;
@@ -29,6 +31,15 @@ public partial class PanelWorklistControl : UserControl
     {
         if (sender is Control { DataContext: WorklistRowVm row }) row.IsExpanded = !row.IsExpanded;
     }
+
+    private void OnToggleGroup(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: PanelWorklistGroupVm group }) group.IsExpanded = !group.IsExpanded;
+    }
+
+    /// <summary>A heading's arrow: pointing right while closed, down while open.</summary>
+    public static readonly IValueConverter OpenTurn = new FuncValueConverter<bool, ITransform>(
+        open => new RotateTransform(open ? 90 : 0));
 
     // The same links as the Worklist tool's rows; the tool they open goes where any tool opens.
     private void OnOpenRowItem(object? sender, RoutedEventArgs e) => ((sender as Control)?.DataContext as WorklistRowVm)?.OpenItem();

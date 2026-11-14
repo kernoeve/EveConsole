@@ -929,7 +929,7 @@
     <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>攻击者中有敌对飞行员的击毁也会计入：一次击毁说明其攻击者当时就在该星系。</value>
+    <value>攻击者中有敌对飞行员的击毁总会触发，并作为击毁播报：损失了什么、被什么击毁。在一跳以内时最先播报。其攻击者不会再作为目击重复播报。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>舰船出站</value>
@@ -983,13 +983,13 @@
     <value>跳数</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>从每个角色或星系向外经星门监视的跳数。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
+    <value>从每个角色或星系向外监视的跳数，经由星门以及 Thera 和 Turnur 的开放虫洞。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>仅当报告中的飞行员人数不少于此值时才触发。默认为 1。</value>
+    <value>仅当星系中的敌对人数不少于此值时才触发。默认为 1。击毁和仅含标记的报告无论人数都会触发。</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>忽略无目视</value>
@@ -1992,5 +1992,152 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>今日指数</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>已更改：警报现在依据当前的情报状况，因此之后在别处出现的飞行员、或被报告为清空的星系，不再触发。每名飞行员在留在某个星系期间只播报一次，未具名的人数只有在超过 1、4、9 或 19 时才会再次播报；仅提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针的报告也会触发（见下方“仅含标记的报告”）。</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>仅含标记的报告</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>报告中没有计入人数、但提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针时也会触发。每一项在有效期内只播报一次。</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>{0}发生击毁：{1}被{2}击毁。</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>{0}（{1}）发生击毁：{2}被{3}击毁。</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>敌对方</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>{0}（{1}）：{2}。</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>发生击毁</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>发生多起击毁</value>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>只有新情报才会唤醒你（声音、语音、代理、对话框）：最近两分钟内被看到或进入范围的情报（设置 → 情报）。更早的情报只记录为提醒。情报警报轮流发声：一个警报唤醒后，除非情报紧急，其他警报会等待几秒；两个警报捕捉到的同一目击只说一次。</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>监视位置</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>触发内容</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>唤醒条件</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>唤醒范围</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>可选。只有在此跳数以内的情报才会唤醒你；更远的只记录为提醒。击毁和紧急情报总会唤醒。不勾选时，整个范围都会唤醒。</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>跳</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>越远越轻</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>一跳以内以最大音量播放，越远越轻：到范围边缘为 40%。语音保持你设置的音量。</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>视为敌对</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>哪些被点名的飞行员算数，按离他们最近的你的角色（或在 设置 → Intel 中指定的角色）的声望判断。蓝色和你自己的角色从不算；未点名的人数和只有标记的报告始终算。</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>中立及更差</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>仅负面</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>仅红色</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>使用关注列表</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>设为“始终警报”的对象在关注列表范围内触发，不论范围、敌对选择或最少人数，最先播报且从不延后；设为“忽略”的对象从不触发。</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>关注列表范围</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>“始终警报”条目在多少跳以内触发（比范围更远时适用）。最多 15。</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>接近的飞行员仍然唤醒</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>设置了“唤醒范围”时：正在接近的飞行员（比之前离得更近，或被报告正朝你的角色而来）在范围内任何位置都会唤醒你。</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>优先星系</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>可选。无论你的角色在哪里都始终监视的星系。在那里看到的情况始终唤醒你，不会被其他情报警报延后，并最先播报。</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>优先星系：{0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>关注列表：{0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>正在接近：前往 {0}。</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>正在接近：前往 {0}，{1}。</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>正在接近：之前在 {0}。</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>正在远离，前往 {0}。</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}，经由 Thera 或 Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>默认同样开启：根据击毁推算出的、位于你的角色附近或前方路线上的星门蹲守，以及前方路线本身，即路线规划发送到游戏的最后一条路线上尚待飞行的星系（见下方“星门蹲守”和“监视前方路线”）。</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>监视前方路线</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>同时监视路线规划为受监视角色发送到游戏的最后一条路线上仍在前方的星系，无论多远：在那里看到的情况会触发，并以路线前方多少跳来播报。只包括尚未飞过的部分；到达后或发送六小时后路线即被丢弃。只在游戏中设置的路线无法得知。</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>当根据星门处的击毁推算出的星门蹲守位于受监视角色附近或前方路线上时触发。每个蹲守、每个角色、每条路线各播报一次，因此经过已知蹲守的新路线会再次播报。前方路线上、唤醒范围内（未设置时为 5 跳）的蹲守为紧急。</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守。</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守，{2}。</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1}内击毁 {0} 次。</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1} 的路线前方 {0} 跳</value>
   </data>
 </root>

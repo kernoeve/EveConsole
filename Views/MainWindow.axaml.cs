@@ -97,6 +97,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (!IsVisible) Show();
         if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
         Activate();
+        // Raised over a layout without a change of focus, when it already had it: Windows says
+        // nothing, so the taskbar is told here (see ClientPanelHost.Reconcile).
+        Services.ClientLayouts.FrontWindows.NoteRaised();
     }
 
     /// <summary>
@@ -284,24 +287,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         };
         vm.ShowWorkspaceRequested += ws =>
         {
-            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
+            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); Services.ClientLayouts.FrontWindows.NoteRaised(); }
             else if (ws.IsMain) ShowFromTray();
-            // A Tool Container: its panel comes in front, without taking focus from a game client.
-            else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForward();
+            // A Tool Container: its panel comes in front with the clients on its monitor, as a click
+            // on the panel brings them, without taking focus from a game client. The panel alone
+            // came forward over clients still buried under other windows.
+            else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForwardWithClients();
         };
         // Where a panel's menu set to "last used" opens tools.
         Activated += (_, _) => vm.LastUsedWorkspace = vm.Main;
     }
 
-    /// <summary>The Tool Containers on panels, which take dragged tabs as windows of tabs do.</summary>
-    private readonly List<(Window Window, WorkspaceView View)> _containerViews = [];
+    /// <summary>The Tool Containers on panels, which take dragged tabs as windows of tabs do.
+    /// <para>⚠️ Static: the panels are placed at startup, before the main window exists, and a
+    /// panel's container signing up with <c>MainWindow.Current</c> then went nowhere. The list stayed
+    /// empty, so a tool shown in a panel from the main window never brought the panel forward, and
+    /// a tab dragged onto a panel's container found no container there.</para></summary>
+    private static readonly List<(Window Window, WorkspaceView View)> _containerViews = [];
 
-    internal void AddContainerView(Window window, WorkspaceView view)
+    internal static void AddContainerView(Window window, WorkspaceView view)
     {
         if (!_containerViews.Any(x => x.View == view)) _containerViews.Add((window, view));
     }
 
-    internal void RemoveContainerView(WorkspaceView view) => _containerViews.RemoveAll(x => x.View == view);
+    internal static void RemoveContainerView(WorkspaceView view) => _containerViews.RemoveAll(x => x.View == view);
 
     private void OpenHost(MainWindowViewModel vm, TabWorkspace ws)
     {
@@ -782,6 +791,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             await vm.CharacterVm.RefreshTokenStateAsync();
             await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
             vm.CorpTop10SettingsVm.Load();
+            // Read off the UI thread: the intel settings are shared, and another PC may have changed them.
+            await vm.IntelSettingsVm.LoadAsync();
             var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
             // The Worklist tool's own industry view model, not a second one: the Industry tab edits
             // the character list that tool plans against, and two instances over one table would not
@@ -792,7 +803,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
                                                    vm.AlertSettingsVm, vm.PollingSettingsVm,
                                                    vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
                                                    vm.OnlineServicesSettingsVm,
-                                                   vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
+                                                   vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm, vm.IntelSettingsVm,
                                                    vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
                                                    // Over the shared preferences, which are already in memory.
                                                    new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),

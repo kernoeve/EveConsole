@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.IrcView"
              x:DataType="vm:IrcViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -66,6 +67,7 @@
           <NumericUpDown Value="{Binding EditPort}" Minimum="1" Maximum="65535" Increment="1" FormatString="0" Width="130" HorizontalAlignment="Left" />
           <CheckBox IsChecked="{Binding EditTls}" Content="{x:Static loc:IrcText.LabelTls}" Margin="0 8 0 0" />
           <TextBlock Classes="note" Text="{x:Static loc:IrcText.PlainWarning}" IsVisible="{Binding ShowPlainWarning}" Foreground="{DynamicResource WarnBrush}" />
+          <TextBlock Classes="note" Text="{Binding StsEditNote}" IsVisible="{Binding HasStsEditNote}" />
           <TextBlock Classes="label" Text="{x:Static loc:IrcText.LabelNick}" />
           <TextBox Text="{Binding EditNick}" />
           <TextBlock Classes="note" Text="{x:Static loc:IrcText.NickNote}" />
@@ -146,6 +148,31 @@
             </StackPanel>
             <TextBlock Classes="note" Text="{x:Static loc:IrcText.ChannelsAreInGroupChat}" Margin="0 10 0 0" />
           </StackPanel>
+
+          <!-- This person's picture on this server: a web link, or an EVE portrait. -->
+          <TextBlock Classes="label" Text="{x:Static loc:IrcText.PictureTitle}" Margin="0 14 0 3" />
+          <Grid ColumnDefinitions="Auto,*">
+            <views:AvatarView Of="{Binding MyPicture}" Size="48" VerticalAlignment="Top" Margin="0 2 12 0" />
+            <StackPanel Grid.Column="1" Spacing="6">
+              <TextBox Text="{Binding PictureLink}" Watermark="{x:Static loc:IrcText.PictureHint}" MaxLength="400" Width="420" HorizontalAlignment="Left" />
+              <StackPanel Orientation="Horizontal" Spacing="8" IsVisible="{Binding HasPortraits}">
+                <TextBlock Text="{x:Static loc:IrcText.PictureUseEve}" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                <ComboBox ItemsSource="{Binding Portraits}" SelectedItem="{Binding Portrait}" MinWidth="200" FontSize="12">
+                  <ComboBox.ItemTemplate>
+                    <DataTemplate x:DataType="vm:IrcPortraitChoice"><TextBlock Text="{Binding Name}" /></DataTemplate>
+                  </ComboBox.ItemTemplate>
+                </ComboBox>
+              </StackPanel>
+              <TextBlock Classes="note" Text="{x:Static loc:IrcText.PictureUseEveNote}" IsVisible="{Binding HasPortraits}" />
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{x:Static loc:IrcText.PictureSet}" Command="{Binding SetPictureCommand}" />
+                <Button Content="{x:Static loc:IrcText.PictureRemove}" Command="{Binding RemovePictureCommand}" />
+              </StackPanel>
+              <TextBlock Classes="note" Text="{x:Static loc:IrcText.PictureNote}" />
+              <TextBlock Classes="note" Text="{x:Static loc:IrcText.PictureNotKept}" IsVisible="{Binding PictureNotKept}" Foreground="{DynamicResource WarnBrush}" />
+              <TextBlock Classes="note" Text="{Binding PictureStatus}" IsVisible="{Binding HasPictureStatus}" Foreground="{DynamicResource GoodBrush}" />
+            </StackPanel>
+          </Grid>
         </StackPanel>
       </ScrollViewer>
 

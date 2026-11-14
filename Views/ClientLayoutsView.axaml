@@ -375,6 +375,27 @@
                   </ComboBox>
                 </StackPanel>
 
+                <!-- Intel: the list, or one line that drops it down; and how far it looks. -->
+                <StackPanel Spacing="6" IsVisible="{Binding IsIntelControl}">
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelIntelMode}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding IntelModes}" SelectedItem="{Binding SelectedIntelMode}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:IntelModeChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                  <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelIntelRange}" />
+                  <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding IntelRangeChoices}" SelectedItem="{Binding SelectedIntelRange}"
+                            ToolTip.Tip="{x:Static loc:ClientLayoutsText.TipIntelRange}">
+                    <ComboBox.ItemTemplate>
+                      <DataTemplate x:DataType="vm:IntelRangeChoice">
+                        <TextBlock Text="{Binding Label}" />
+                      </DataTemplate>
+                    </ComboBox.ItemTemplate>
+                  </ComboBox>
+                </StackPanel>
+
                 <!-- The menu: where it opens tools. -->
                 <StackPanel Spacing="6" IsVisible="{Binding IsMenuControl}">
                   <TextBlock Classes="label" Text="{x:Static loc:ClientLayoutsText.LabelMenuTarget}" />

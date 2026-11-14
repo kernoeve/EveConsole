@@ -935,7 +935,7 @@
     <value>Löst aus, wenn jemand einen Piloten in der Nähe dessen meldet, was Sie überwachen: Ihre Charaktere, solange sie abgedockt sind, Ihre Charaktere, wo immer sie sind, oder eine Liste von Systemen, jeweils mit einer Reichweite in Sprüngen. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Abschüsse dort mit feindlichen Piloten unter den Angreifern zählen ebenfalls: Ein Abschuss verortet seine Angreifer in diesem System.</value>
+    <value>Ein Abschuss dort mit feindlichen Piloten unter den Angreifern löst immer aus und wird als Abschuss angesagt: was verloren ging und wogegen. Innerhalb eines Sprungs wird er zuerst angesagt. Seine Angreifer werden nicht noch einmal als Sichtung angesagt.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Schiff dockt ab</value>
@@ -989,13 +989,13 @@
     <value>Sprünge</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Wie viele Torsprünge rund um jeden Charakter bzw. jedes System überwacht werden. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
+    <value>Wie viele Sprünge rund um jeden Charakter bzw. jedes System überwacht werden, über Stargates und die offenen Wurmlöcher von Thera und Turnur. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min. Spieler</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Nur auslösen, wenn die Meldung mindestens so viele Piloten nennt. Standard: 1.</value>
+    <value>Nur auslösen, wenn mindestens so viele Feinde im System sind. Standard: 1. Abschüsse und Nur-Hinweis-Meldungen lösen unabhängig von der Zahl aus.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>„Kein Sichtkontakt“ ignorieren</value>
@@ -2028,5 +2028,161 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Heutige Indizes</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Geändert: Der Alarm richtet sich jetzt nach dem aktuellen Stand der Aufklärung; ein Pilot, der inzwischen anderswo gesehen oder als frei gemeldet wurde, löst nicht mehr aus. Jeder Pilot wird einmal angesagt, solange er in einem System bleibt, eine Zahl ungenannter Piloten erst wieder, wenn sie über 1, 4, 9 oder 19 steigt, und auch eine Meldung nur eines Gate-Camps, von Bubbles, eines Cynos, eines Hotdrops, eines Spikes oder von Kampfsonden löst aus (Nur-Hinweis-Meldungen, unten).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Nur-Hinweis-Meldungen</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Auch bei einer Meldung auslösen, die niemanden zählt, aber ein Gate-Camp, Bubbles, ein Cyno, einen Hotdrop, einen Spike oder Kampfsonden nennt. Jedes wird einmal angesagt, solange es gilt.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Abschuss in {0}: {1} verloren gegen {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Abschuss in {0}, {1}: {2} verloren gegen {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>In {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>In {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Abschuss gemeldet</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Abschüsse gemeldet</value>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Nur Neues weckt dich (ein Ton, Sprache, der Agent, ein Dialog): etwas, das in den letzten zwei Minuten gesehen wurde oder in Reichweite kam (Einstellungen → Intel). Ältere Meldungen werden nur als Warnung festgehalten. Intel-Alarme wechseln sich ab: Nachdem einer geweckt hat, warten die anderen ein paar Sekunden, außer die Meldung ist dringend, und eine Sichtung, die zwei von ihnen erfassen, wird einmal angesagt.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Wo beobachten</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Was auslöst</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>Was dich weckt</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Wecken innerhalb von</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Optional. Nur Meldungen höchstens so viele Sprünge entfernt wecken dich; weiter draußen werden sie nur als Warnung festgehalten. Abschüsse und dringende Meldungen wecken immer. Nicht angehakt weckt die ganze Reichweite.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>Sprüngen</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Leiser in der Ferne</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Der Ton spielt innerhalb eines Sprungs mit voller Lautstärke und weiter draußen leiser: bis 40 % am Rand der Reichweite. Sprache behält deine Sprachlautstärke.</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Feindlich</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Welche namentlich gemeldeten Piloten zählen, nach den Standings deines nächsten Charakters (oder des unter Einstellungen → Intel festgelegten Charakters). Blaue und deine eigenen Charaktere zählen nie; ungenannte Anzahlen und reine Hinweismeldungen immer.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral oder schlechter</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Nur negativ</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Nur rot</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Beobachtungsliste verwenden</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>Was auf „Immer alarmieren“ steht, löst innerhalb der Reichweite der Beobachtungsliste aus, unabhängig von Reichweite, Feindlich-Wahl und Mindestzahl, wird zuerst angesagt und nie zurückgehalten; was auf „Ignorieren“ steht, löst nie aus.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Reichweite der Beobachtungsliste</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>Wie viele Sprünge weit Einträge auf „Immer alarmieren“ auslösen, wenn das weiter ist als die Reichweite. Höchstens 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Näherkommende Piloten wecken trotzdem</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>Wenn „Wecken innerhalb von“ gesetzt ist: Ein Pilot, der näherkommt (näher gesehen als zuvor oder mit Kurs auf deinen Charakter gemeldet), weckt dich überall in der Reichweite.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Vorrangige Systeme</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Optional. Systeme, die immer beobachtet werden, egal wo deine Charaktere sind. Was dort gesehen wird, weckt dich immer, wird nie von einem anderen Intel-Alarm zurückgehalten und zuerst angesagt.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Vorrangiges System: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Beobachtungsliste: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Nähert sich: war {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Entfernt sich, nach {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, über Thera oder Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Ebenfalls standardmäßig an: aus Abschüssen ermittelte Gate-Camps in der Nähe deiner Charaktere oder auf einer Route voraus, und die Route voraus selbst, also die noch zu fliegenden Systeme der letzten Route, die der Routenplaner an das Spiel geschickt hat (Gate-Camps und Route voraus beobachten, unten).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Route voraus beobachten</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Beobachtet auch die Systeme, die auf der letzten Route, die der Routenplaner für einen beobachteten Charakter an das Spiel geschickt hat, noch voraus liegen, egal wie weit: Was dort gesehen wird, löst aus und wird als so viele Sprünge voraus auf der Route angesagt. Nur der noch nicht geflogene Teil; die Route entfällt bei Ankunft oder sechs Stunden nach dem Senden. Eine nur im Spiel gesetzte Route kann nicht bekannt sein.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Gate-Camps</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Löst bei einem aus Abschüssen an einem Gate ermittelten Gate-Camp aus, in der Nähe eines beobachteten Charakters oder auf einer Route voraus. Einmal pro Camp, pro Charakter und pro Route angesagt, sodass eine neue Route durch ein bekanntes Camp es erneut ansagt. Eines auf einer Route voraus innerhalb der Weckreichweite (5 Sprünge, wenn keine gesetzt ist) ist dringend.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} Abschuss in {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} Abschüsse in {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} Minute</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} Minuten</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} Sprung voraus auf der Route von {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} Sprünge voraus auf der Route von {1}</value>
   </data>
 </root>

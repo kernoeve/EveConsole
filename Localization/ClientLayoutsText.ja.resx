@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>このレイアウトは新しい EVE Console で作成されました。インポートするには更新してください。</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>表示方法</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>脅威のライブ一覧</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>最も近い脅威を1行で表示し、クリックで一覧を表示</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>範囲</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0}ジャンプ</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>このモニターのクライアントのキャラクターから、スターゲートと開いているThera・Turnurの穴を通ってインテルを探すジャンプ数。ジャンプブリッジは数えません。</value>
+  </data>
 </root>

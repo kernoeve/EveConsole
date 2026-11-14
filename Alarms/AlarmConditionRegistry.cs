@@ -1,5 +1,6 @@
 using EveConsole.Alarms.Conditions;
 using EveConsole.Services;
+using EveConsole.Services.Intel;
 
 namespace EveConsole.Alarms;
 
@@ -19,10 +20,11 @@ public sealed class AlarmConditionRegistry
     }
 
     /// <summary>The built-in set, in the order they should appear in the editor.</summary>
-    public static AlarmConditionRegistry CreateDefault(SystemGraph graph) => new(
+    public static AlarmConditionRegistry CreateDefault(
+        SystemGraph graph, IntelSnapshotService? intelSnapshots = null, IntelDistanceService? intelDistances = null) => new(
     [
         new TimerCondition(),
-        new IntelCondition(graph),
+        new IntelCondition(graph, intelSnapshots, intelDistances),
         new ShipUndockCondition(),
         new ShipAdriftCondition(),
         new GameLogEventCondition(),

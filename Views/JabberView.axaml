@@ -3,6 +3,7 @@
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
              xmlns:jab="using:EveConsole.Services.Jabber"
+             xmlns:views="clr-namespace:EveConsole.Views"
              x:Class="EveConsole.Views.JabberView"
              x:DataType="vm:JabberViewModel"
              Background="{DynamicResource SurfaceBaseBrush}">
@@ -144,6 +145,9 @@
               </StackPanel>
             </StackPanel>
           </StackPanel>
+
+          <!-- This account's own picture -->
+          <views:OwnPictureChooser DataContext="{Binding Picture}" Margin="0 6 0 0" />
 
           <!-- This server's emote packs. Another server can have other packs, or none. -->
           <Border IsVisible="{Binding CanUseEmotes}" Margin="0 16 0 0" Padding="0 12 0 0" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 1 0 0">

@@ -66,9 +66,11 @@ public static class JabberRoomRights
     /// A moderator changes the topic. Some rooms let anyone, but a room does not say so to its members, so it is only
     /// offered to moderators. Anyone in a room may invite; only an admin or owner can see and lift bans.
     /// </summary>
-    public static JabberRoomRightsSet OfRoom(XmppOccupant? me) => new(
+    /// <param name="room">What the room says of itself, where known. ⚠️ A members-only room lets only its admins and
+    /// owners invite, unless it says its members may: offered to anyone else, it was refused without a word.</param>
+    public static JabberRoomRightsSet OfRoom(XmppOccupant? me, XmppRoomDetails? room = null) => new(
         ChangeTopic: me?.Role == "moderator",
-        Invite:      me is not null,
+        Invite:      me is not null && (room is not { MembersOnly: true } || room.AllowsInvites || Rank(me.Affiliation) >= 3),
         LiftBan:     me is not null && Rank(me.Affiliation) >= 3);
 }
 
@@ -116,7 +118,8 @@ public sealed partial class XmppClient
 
     public Task SetSubjectAsync(string room, string subject, CancellationToken ct) => connection.WriteAsync(SubjectMessage(room, subject), ct);
 
-    public Task InviteAsync(string room, string jid, string reason, CancellationToken ct) => connection.WriteAsync(InviteMessage(room, jid, reason), ct);
+    /// <summary>Invites someone through the room, which passes it on. Throws with the room's words when it refuses.</summary>
+    public Task InviteAsync(string room, string jid, string reason, CancellationToken ct) => SendRefusableAsync(InviteMessage(room, jid, reason), ct);
 }
 
 /// <summary>Running a room: what <see cref="JabberRoomRights"/> offers, done here or asked of the worker that holds the connection.</summary>

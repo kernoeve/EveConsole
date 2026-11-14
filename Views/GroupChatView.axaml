@@ -227,7 +227,24 @@
 <Border IsVisible="{Binding HasReply}" BorderBrush="{DynamicResource TextFaintBrush}" BorderThickness="2 0 0 0" Padding="6 0" Margin="0 1 0 2" HorizontalAlignment="Left">
                       <TextBlock Text="{Binding ReplyText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
                     </Border>
-                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" IsVisible="{Binding ShowsBody}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}">
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ChatPictureVm">
+                          <Panel HorizontalAlignment="Left" Margin="0 4 0 2">
+                            <Button IsVisible="{Binding NeedsClick}" Click="OnShowPicture" ToolTip.Tip="{Binding ShowTip}" Content="{x:Static loc:GroupChatText.ShowPicture}" FontSize="11" Padding="8 3" />
+                            <TextBlock IsVisible="{Binding IsLoading}" Text="{x:Static loc:GroupChatText.PictureLoading}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                            <TextBlock IsVisible="{Binding IsFailed}" Text="{x:Static loc:GroupChatText.PictureFailed}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                            <!-- A click opens it full size, in the browser. -->
+                            <Button IsVisible="{Binding IsShown}" Click="OnOpenPicture" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{x:Static loc:GroupChatText.OpenPictureTip}">
+                              <Border CornerRadius="4" ClipToBounds="True">
+                                <Image Source="{Binding Picture}" Width="{Binding ShownWidth}" Height="{Binding ShownHeight}" Stretch="Uniform" />
+                              </Border>
+                            </Button>
+                          </Panel>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
                     <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
                       <ItemsControl.ItemTemplate>
                         <DataTemplate x:DataType="x:String">

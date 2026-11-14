@@ -33,10 +33,28 @@ public partial class ClientPanelWindow : Window
     /// <summary>A click anywhere on the panel, whatever ends up handling it.</summary>
     public event Action? Pressed;
 
+    /// <summary>The click let go, which is when a button acts.</summary>
+    public event Action? Released;
+
+    /// <summary>Asked for by <see cref="BringForwardWithClients"/>; the host raises the monitor.</summary>
+    public event Action? MonitorForwardRequested;
+
+    /// <summary>
+    /// This panel, the others on its monitor and that monitor's clients in front, as a click on the
+    /// panel does: for a tool shown in the panel from the main window, which would otherwise come
+    /// forward alone, over clients still behind other windows. Focus stays where it was.
+    /// </summary>
+    public void BringForwardWithClients()
+    {
+        if (MonitorForwardRequested is null) BringForward();
+        else MonitorForwardRequested();
+    }
+
     public ClientPanelWindow()
     {
         InitializeComponent();
         AddHandler(PointerPressedEvent, (_, _) => Pressed?.Invoke(), RoutingStrategies.Tunnel);
+        AddHandler(PointerReleasedEvent, (_, _) => Released?.Invoke(), RoutingStrategies.Tunnel, handledEventsToo: true);
         ScalingChanged += (_, _) => BuildParts();
         Deactivated += (_, _) => StayOutOfTheWay();
         Closed += (_, _) => EveConsole.Services.UiScaleService.Changed -= OnUiScaleChanged;
@@ -68,11 +86,16 @@ public partial class ClientPanelWindow : Window
     /// itself: a window that never activates doesn't get raised either.
     /// ⚠️ Through always-on-top and straight back, and it doesn't stay on top. HWND_TOP does nothing
     /// here, because Windows ignores it from a program that isn't the one in front.
+    /// <para>⚠️ This panel only (SWP_NOOWNERZORDER). Every panel, on every monitor, is owned by the
+    /// one hidden window Avalonia parks out-of-taskbar windows under, and Windows moves an owner
+    /// with its owned windows: raising one monitor's panels raised all of them, over whatever was
+    /// in front on the other monitors (Slack, say). Activating a client then had the taskbar find a
+    /// marked panel on top of every monitor, and it dropped everywhere.</para>
     /// </summary>
     public void BringForward()
     {
         if (!OperatingSystem.IsWindows() || TryGetPlatformHandle()?.Handle is not { } handle) return;
-        const uint flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE;
+        const uint flags = SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER;
         SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, flags);
         SetWindowPos(handle, HWND_NOTOPMOST, 0, 0, 0, 0, flags);
     }
@@ -190,6 +213,9 @@ public partial class ClientPanelWindow : Window
                     ? new PanelWorklistLine(worklist)
                     : new PanelWorklistControl { DataContext = worklist };
 
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Intel:
+                return _around?.MainScreen is not { } intelMain ? null : BuildIntel(intelMain, part.Options, _around);
+
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Menu:
                 return _around?.MainScreen is not { } menuMain ? null : new PanelMenuControl(menuMain, part.Options, _around.MonitorKey);
 
@@ -239,6 +265,60 @@ public partial class ClientPanelWindow : Window
         }
     }
 
+    /// <summary>
+    /// An Intel control: live intel with jumps from the character in this monitor's client, as a
+    /// list or as one line that drops the list down. Its links open where any tool opens and bring
+    /// that window forward over the clients, putting the dropped list away. Its icons open the Intel
+    /// tool, and the tool's Paste tab with this panel's character and system chosen.
+    /// </summary>
+    private Control BuildIntel(MainWindowViewModel main, ControlOptions? options, PanelSurroundings around)
+    {
+        var vm = new PanelIntelVm(main.IntelSnapshots, main.IntelDistances, main.CharacterVm.Characters,
+                                  around.Focus, around.MonitorKey, options);
+        PanelIntelLine? line = null;
+        vm.Actions = new IntelRowActions
+        {
+            ShowOnMap = id =>
+            {
+                main.ShowTool("universe");
+                main.MapVm.ShowUniverseTab().Map.FocusSystems([id]);
+            },
+            AfterNavigate = () =>
+            {
+                line?.PutAway();
+                Avalonia.Threading.Dispatcher.UIThread.Post(main.BringForwardLastOpened, Avalonia.Threading.DispatcherPriority.Background);
+            },
+            OpenInTool = id =>
+            {
+                line?.PutAway();
+                main.ShowTool("intel");
+                main.IntelVm.ShowSystem(id);
+            },
+            Watch = main.IntelWatch,
+        };
+        vm.OpenTool = () =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+        };
+        // The panel never takes keyboard input: its paste icon opens the tool's Paste tab, with this
+        // panel's character and the system it is in already chosen, and the pasting happens there.
+        vm.OpenPaste = (characterId, systemId) =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+            main.IntelVm.ShowPaste(characterId, systemId);
+        };
+        vm.OpenChatLogSettings = () =>
+        {
+            line?.PutAway();
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen != null) main.OpenSettingsOnMonitor?.Invoke(screen.WorkingArea, SettingsText.TabChatLogs);
+        };
+        if (PanelControls.IntelModeOf(options) == IntelControlMode.SingleLine) return line = new PanelIntelLine(vm);
+        return new PanelIntelControl { DataContext = vm };
+    }
+
     /// <summary>Name and size, on one line if the panel is too thin for two.</summary>
     private static void AddLabel(StackPanel into, string name, LayoutRect rect)
     {
@@ -286,7 +366,7 @@ public partial class ClientPanelWindow : Window
 
     private const int GWL_EXSTYLE = -20, RGN_DIFF = 4;
     private const long WS_EX_NOACTIVATE = 0x08000000, WS_EX_TOOLWINDOW = 0x00000080;
-    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOSENDCHANGING = 0x0400;
+    private const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOZORDER = 0x0004, SWP_NOACTIVATE = 0x0010, SWP_NOOWNERZORDER = 0x0200, SWP_NOSENDCHANGING = 0x0400;
     private static readonly IntPtr HWND_TOPMOST = new(-1), HWND_NOTOPMOST = new(-2);
 
     [DllImport("user32.dll", EntryPoint = "GetWindowLongPtrW")] private static extern IntPtr GetWindowLongPtr(IntPtr h, int index);

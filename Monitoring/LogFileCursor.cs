@@ -51,8 +51,20 @@ public static class LogFileCursor
         foreach (var stamp in DateStamps())
             foreach (var pattern in new[] { $"*_{stamp}_*.txt", $"{stamp}_*.txt" })
                 foreach (var f in info.EnumerateFiles(pattern))
-                    if (f.LastWriteTimeUtc >= cutoffUtc && seen.Add(f.FullName))
-                        files.Add(f);
+                {
+                    if (!seen.Add(f.FullName)) continue;
+                    // ⚠️ Asked again, by path. A listing's size and write time come from the folder's
+                    // own entry for the file, which Windows brings up to date only now and then while
+                    // a writer holds the file open, as the client does all session. Read from the
+                    // listing, a log the client was still appending to stayed at the size and time it
+                    // had when it was last caught up: the tail saw "nothing new" for good, and intel
+                    // stopped while the game went on logging (2026-11-13). The listing only finds the
+                    // files now; their size and time come from the file itself.
+                    try { f.Refresh(); }
+                    catch (IOException) { continue; }
+                    catch (UnauthorizedAccessException) { continue; }
+                    if (f.Exists && f.LastWriteTimeUtc >= cutoffUtc) files.Add(f);
+                }
 
         return files;
     }

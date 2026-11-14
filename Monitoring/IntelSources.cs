@@ -16,9 +16,14 @@ public static class IntelRooms
     /// <summary>How many lines of one message are read: a relay can send several at once.</summary>
     private const int MostLines = 100;
 
+    /// <summary>What a Jabber room's and an IRC channel's stored channel names begin with. ⚠️ Stored, so never changed: what
+    /// is shown for them is IntelChannelLabels' business.</summary>
+    public const string JabberPrefix = "Jabber: ";
+    public const string IrcPrefix    = "IRC: ";
+
     /// <summary>The name its reports go under.</summary>
     public static string ChannelOf(JabberRoom room) =>
-        "Jabber: " + (room.Name.Length > 0 ? room.Name : room.RoomJid.Split('@')[0]);
+        JabberPrefix + (room.Name.Length > 0 ? room.Name : room.RoomJid.Split('@')[0]);
 
     /// <summary>
     /// A room message as chat lines, one per line of it. A line that is a chat log line relayed whole is read as what
@@ -28,7 +33,7 @@ public static class IntelRooms
         !message.IsRoom ? [] : ToChatLines(ChannelOf(room), $"jabber:{room.AccountId}:{room.RoomJid}", message.Id, message.Sender, message.SentAt, message.Body);
 
     /// <summary>The name an IRC channel's reports go under.</summary>
-    public static string ChannelOf(IrcChannel channel) => "IRC: " + channel.Name;
+    public static string ChannelOf(IrcChannel channel) => IrcPrefix + channel.Name;
 
     /// <summary>An IRC channel's message as chat lines, as a Jabber room's: a relayed chat log line is read as what it was.</summary>
     public static List<ChatMessage> ToChatLines(IrcChannel channel, IrcStoredMessage message) =>
@@ -84,6 +89,9 @@ public static class IntelRooms
 /// in front. A shorter line has to say something beyond the system: "QZ-X77" is not the same report as "Sampler QZ-X77".</para>
 ///
 /// <para>Within one channel nothing is a copy: two people calling the same pilot there is how a pilot stays on the map.</para>
+///
+/// <para>A copy is stored as <see cref="IntelReportKind.Copy"/>, pointing at the report it repeats (<see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/>
+/// says which): the line is no chatter, and it adds nothing but that the report was heard in one more place.</para>
 /// </summary>
 public sealed class IntelDuplicates
 {
@@ -91,28 +99,130 @@ public sealed class IntelDuplicates
     /// pilot still there later is still news.</summary>
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(2);
 
-    private sealed record Held(string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething);
+    private sealed record Held(IntelReport Report, string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething,
+                               bool IsClear = false, int Named = 0);
+
+    /// <summary>
+    /// Whether a clear repeats an earlier clear of the same system from another channel within <see cref="Window"/>:
+    /// a relay of it, most likely. Such a clear is still stored (see <see cref="IsCopy(IntelReport, IEnumerable{long})"/>)
+    /// but retires nothing of its own: stamped with the relay's later time, it would also retire every sighting
+    /// called in between the clear and its relay.
+    /// </summary>
+    public bool RelaysClear(IntelReport report) =>
+        report.Kind == IntelReportKind.Clear
+        && IntelRooms.Parse(report.ReportedAt) is { } at
+        && _bySystem.TryGetValue(report.SystemId, out var list)
+        && list.Any(held => held.IsClear && Relays(report.ChannelName, at, held.Channel, held.At));
+
+    /// <summary><see cref="RelaysClear"/> for two clears already read: the later one relays the earlier one.</summary>
+    /// <remarks>Only clears said in a channel: a pasted Local saved as a clear is the user's own look at Local, never a
+    /// relay of a channel's clear, nor relayed by one.</remarks>
+    public static bool RelaysClear(IntelReport later, DateTimeOffset laterAt, IntelReport earlier, DateTimeOffset earlierAt) =>
+        later.Kind == IntelReportKind.Clear && earlier.Kind == IntelReportKind.Clear && later.SystemId == earlier.SystemId
+        && later.Source == IntelReportSource.Chat && earlier.Source == IntelReportSource.Chat
+        && Relays(later.ChannelName, laterAt, earlier.ChannelName, earlierAt);
+
+    private static bool Relays(string laterChannel, DateTimeOffset laterAt, string earlierChannel, DateTimeOffset earlierAt) =>
+        !string.Equals(laterChannel, earlierChannel, StringComparison.OrdinalIgnoreCase)
+        && earlierAt <= laterAt && laterAt - earlierAt <= Window;
 
     private readonly Dictionary<int, List<Held>> _bySystem = [];
 
     /// <summary>Remembers a report, so later ones can be measured against it.</summary>
-    public void Add(IntelReport report, IEnumerable<long> pilots)
+    public void Add(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
+        Add(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+
+    /// <summary>Remembers a report whose pilots' hulls are not known.</summary>
+    public void Add(IntelReport report, IEnumerable<long> pilots) =>
+        Add(report, pilots.Select(id => (id, (int?)null)));
+
+    private void Add(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
-        if (Read(report, pilots) is not { } held) return;
+        // A copy is never held itself: a third channel's relay is a copy of the report, not of the copy, and a copy
+        // stored names no pilots, so its facts would not match anyway. A pasted Local saved as a clear is not held
+        // either: no channel's clear relays the user's own look at Local.
+        if (report.Kind == IntelReportKind.Copy || (report.Kind == IntelReportKind.Clear && report.Source != IntelReportSource.Chat)
+            || Read(report, pilots) is not { } held) return;
 
         if (!_bySystem.TryGetValue(report.SystemId, out var list)) _bySystem[report.SystemId] = list = [];
         list.Add(held);
     }
 
     /// <summary>Whether this report is already held from another channel.</summary>
-    public bool IsCopy(IntelReport report, IEnumerable<long> pilots)
-    {
-        if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return false;
+    public bool IsCopy(IntelReport report, IEnumerable<IntelReportCharacter> pilots) => CopyOf(report, pilots) is not null;
 
-        return list.Any(held =>
-            !string.Equals(held.Channel, candidate.Channel, StringComparison.OrdinalIgnoreCase)
-            && (held.At - candidate.At).Duration() <= Window
-            && (held.Facts == candidate.Facts || SameWords(held, candidate)));
+    /// <summary>Whether this report, whose pilots' hulls are not known, is already held from another channel.</summary>
+    public bool IsCopy(IntelReport report, IEnumerable<long> pilots) => CopyOf(report, pilots) is not null;
+
+    /// <summary>The report held from another channel that this one repeats, the earliest when several do; null when none.</summary>
+    public IntelReport? CopyOf(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
+        CopyOf(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+
+    /// <summary><see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/> for a report whose pilots' hulls are not known.</summary>
+    public IntelReport? CopyOf(IntelReport report, IEnumerable<long> pilots) =>
+        CopyOf(report, pilots.Select(id => (id, (int?)null)));
+
+    private IntelReport? CopyOf(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
+    {
+        // ⚠️ A clear is never a copy. It names nobody and counts nothing, so a second one doubles nothing; and every
+        // clear of a system has the same facts, so "<system> clr" called in a second channel was dropped here, left
+        // with no report, and shown in the Feed as chatter. A relayed one is stored but retires nothing of its own
+        // (RelaysClear), and the Board and Feed read it as the clear it relays.
+        if (report.Kind != IntelReportKind.Sighting) return null;
+
+        if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return null;
+
+        // ⚠️ Only a sighting is ever the original: a sighting worded like a clear ("QZ-X77 clr" with a pilot named after
+        // it) is not a copy of the clear, whatever the words.
+        return list
+            .Where(held => !held.IsClear
+                           && !string.Equals(held.Channel, candidate.Channel, StringComparison.OrdinalIgnoreCase)
+                           && (held.At - candidate.At).Duration() <= Window
+                           && (held.Facts == candidate.Facts || (SameWords(held, candidate) && AddsNothing(candidate, held))))
+            .OrderBy(held => held.At)
+            .Select(held => held.Report)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The report held from another channel within <see cref="Window"/> whose line has the very same words as this one,
+    /// of the same kind (a clear for a clear word): what a relayed follow-up ("+2", "nv", "heading XQ1-Z2", "clr")
+    /// repeats. Such a line names no system to look under, and often nobody, so only its words can say what it repeats.
+    /// The earliest when several do; null when none.
+    /// </summary>
+    public IntelReport? CopyOfLine(string channel, string reportedAt, string message, bool clear)
+    {
+        var words = Words(message);
+        if (words.Length == 0 || IntelRooms.Parse(reportedAt) is not { } at) return null;
+
+        return _bySystem.Values.SelectMany(list => list)
+            .Where(held => held.IsClear == clear && held.Words == words
+                           && !string.Equals(held.Channel, channel, StringComparison.OrdinalIgnoreCase)
+                           && (held.At - at).Duration() <= Window)
+            .OrderBy(held => held.At)
+            .Select(held => held.Report)
+            .FirstOrDefault();
+    }
+
+    /// <summary>
+    /// The report held that a stored copy repeats, for a copy whose link was lost: its original's chat log read again
+    /// from the start, which deletes the report and makes it anew under another id. A stored copy keeps none of the
+    /// facts, so it is found by its system and its words (as <see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/>
+    /// would match them), else the earliest sighting of its system from another channel within <see cref="Window"/>.
+    /// </summary>
+    public IntelReport? OriginalOfCopy(IntelReport copy)
+    {
+        if (IntelRooms.Parse(copy.ReportedAt) is not { } at || !_bySystem.TryGetValue(copy.SystemId, out var list)) return null;
+
+        var words = Words(copy.Message);
+        var near = list.Where(held => !held.IsClear
+                                      && !string.Equals(held.Channel, copy.ChannelName, StringComparison.OrdinalIgnoreCase)
+                                      && (held.At - at).Duration() <= Window)
+                       .OrderBy(held => held.At).ToList();
+        return (near.FirstOrDefault(held => held.Words == words
+                                            || held.Words.EndsWith(" " + words, StringComparison.Ordinal)
+                                            || words.EndsWith(" " + held.Words, StringComparison.Ordinal))
+                ?? near.FirstOrDefault())?.Report;
     }
 
     private static bool SameWords(Held a, Held b)
@@ -123,14 +233,44 @@ public sealed class IntelDuplicates
         return shorter.SaysSomething && longer.Words.EndsWith(" " + shorter.Words, StringComparison.Ordinal);
     }
 
-    private static Held? Read(IntelReport report, IEnumerable<long> pilots)
+    /// <summary>
+    /// Whether <paramref name="candidate"/> says nothing <paramref name="held"/> does not: no flag it lacks, no more people
+    /// nobody named, no "no visual" it did not say, and no gate, hulls or heading of its own. ⚠️ What the words match
+    /// needs: it takes a line ending in the held one's words for the same report, so "camp QZ-X77 Zeltrix Quorvane" or
+    /// "+3 QZ-X77 Zeltrix Quorvane" in front of a held "QZ-X77 Zeltrix Quorvane" would be dropped as a copy, and the camp
+    /// or the three more with it. The pilots it names are left out of this: a relay's label in front of the line can
+    /// read as a name.
+    /// </summary>
+    private static bool AddsNothing(Held candidate, Held held)
+    {
+        var (c, h) = (candidate.Report, held.Report);
+        return (c.Flags & ~h.Flags) == 0
+               && Math.Max(0, c.PlayerCount - candidate.Named) <= Math.Max(0, h.PlayerCount - held.Named)
+               && (!c.NoVisual || h.NoVisual)
+               && (string.IsNullOrEmpty(c.Gate) || string.Equals(c.Gate, h.Gate, StringComparison.OrdinalIgnoreCase))
+               && (string.IsNullOrEmpty(c.Ships) || string.Equals(c.Ships, h.Ships, StringComparison.OrdinalIgnoreCase))
+               && (c.HeadingSystemId is null || c.HeadingSystemId == h.HeadingSystemId);
+    }
+
+    /// <summary>
+    /// What a report says, to compare. ⚠️ Everything a follow-up line can add is in it: the heading and each pilot's
+    /// hull as well as the counts and flags. A follow-up restates the report it adds to, so one that adds only a
+    /// heading or a hull would otherwise look like a copy of that report and be dropped, when it came from another
+    /// channel within <see cref="Window"/>; a relayed copy of the follow-up itself still matches it.
+    /// </summary>
+    private static Held? Read(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         if (IntelRooms.Parse(report.ReportedAt) is not { } at) return null;
 
-        var named = string.Join(',', pilots.Order());
-        var facts = $"{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}";
-        var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0;
-        return new Held(report.ChannelName, at, Words(report.Message), facts, says);
+        var list  = pilots.ToList();
+        var named = string.Join(',', list.OrderBy(p => p.Id).ThenBy(p => p.Hull)
+            .Select(p => p.Hull is { } hull ? $"{p.Id}:{hull}" : p.Id.ToString(CultureInfo.InvariantCulture)));
+        // The kind is in it too, so a clear can never match a sighting.
+        var facts = $"{(int)report.Kind}|{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
+        var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
+                 || report.HeadingSystemId is not null;
+        return new Held(report, report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear,
+                        list.Select(p => p.Id).Distinct().Count());
     }
 
     /// <summary>Letters and digits only, in lower case and single spaces: a copy may lose its capitals and its spacing.</summary>

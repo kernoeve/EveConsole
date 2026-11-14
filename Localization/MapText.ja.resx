@@ -1540,7 +1540,7 @@
     <value>ライブ表示</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>過去5分間にインテルまたはキルレポートでここにいると分かった敵対者です。カーソルを合わせると、誰が何に乗っているかを表示します。「!」は、インテルがここで何か（急増、バブル、キャンプ）を報告したものの人数は数えていないことを示します。</value>
+    <value>インテルまたはキルレポートでここにいると分かった敵対者です。スタンディングの色（赤、オレンジ、中立のグレー）で表示し、情報が古くなるにつれて薄くなります。カーソルを合わせると、誰が何に乗っているかを表示します。「!」は、インテルがここで何か（急増、バブル、キャンプ）を報告したものの人数は数えていないことを示します。</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>ここでオンラインのあなたのキャラクターです。カーソルを合わせると、艦船と入港中かどうかを表示します。</value>
@@ -2326,5 +2326,164 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>ジャンプ範囲タブのシステムからジャンプ範囲内（太い輪がそのシステム）</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>ノービジュアル：ローカルにいるがグリッドでは見えていない。同じマークを中抜きにし、破線の輪で表示します。</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>クリアと報告され、その後何も報告がない。クリアの有効期間（設定 → インテル）にわたって薄くなります。</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>キルから判定したゲートキャンプ：キャンプされている星系からゲートの行き先へ向けて、ゲートの線上に太い線を描き、キル数を表示します。</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>報告されたパイロットがどこから来たか：目撃された星系へ向かう実線の矢印。</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>報告されたパイロットが向かっているとされる先：目撃された星系から出る破線の矢印。</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>現在インテルアラームが監視している範囲：ここで何かあるとアラームが鳴ります。</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>クリア報告：{0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>報告：{0}。その後の報告はありません。</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>最新：{0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>ノービジュアル：ローカルにいるがグリッドでは見えていない</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>スタンディング：{0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>{1}の{0}ゲートでゲートキャンプ</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>キル：{0} · 最終 {1} · 攻撃者：{2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>{1}で目撃、{0}から来た · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>{0}で目撃、{1}へ向かっている · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>マーク以外にマップがインテルから描くもの</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>マークは常にスタンディングの色で表示され、古くなると薄くなり、クリアやノービジュアルの星系も表示します。以下は星系が表示されている場合のみ描かれ、リージョン表示では描かれません。</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>ゲートキャンプ</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>キルから判定したゲートキャンプを、ゲートの線上の太い線で表示します。時間とともに薄くなります</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>移動の矢印</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>報告されたパイロットが来た場所から、目撃された星系への実線の矢印</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>進行方向の矢印</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>パイロットが目撃された星系から、向かっているとされる先への破線の矢印</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>アラーム範囲</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>有効なインテルアラームが現在監視しているすべての星系を細い破線で囲みます</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>この星系でゲートキャンプ</value>
+  </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>♦ラット</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>過去5日間に♦海賊NPCがプレイヤーを撃破した星系に印を付けます。印は見えたものだけを示し、その裏にあるもの（ソティヨ、拠点、巡回グループ）は示しません。</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>NPC主力艦</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>ダウンタイム（EVE時間11:00）以降にNPCのタイタン、スーパーキャリア、ドレッドノートがプレイヤーを撃破した星系に印を付けます。矢印で種類を選びます。</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>タイタン</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>スーパーキャリア</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>ドレッドノート</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>{0}の♦ラット活動 — 撃破されたプレイヤー：{1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0}：{2}でプレイヤー{1}人撃破 — {3} EVEから、最新 {4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0}：{2}以上でプレイヤー{1}人撃破 — {3} EVEより前から、最新 {4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>艦種：{0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0}：{1}、{2}人撃破、最新 {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#}日</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>{0}日{1}時間前</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>ダウンタイム以降の{1}のNPC主力艦：{0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — 最終撃破 {2} EVE（{3}）· ダウンタイム以降の撃破数：{4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0}：{1}、{2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>過去5日間にここで♦海賊NPCがプレイヤーを撃破しました。数字は一連の撃破が始まってからの撃破数です（5日を超える空白なし）。ソティヨ、拠点、巡回グループのいずれかの可能性があります。勢力・撃破数・期間はカーソルを合わせて確認。</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>ダウンタイム（EVE時間11:00）以降、ここのキルメールに載ったNPCのタイタン（T）、スーパーキャリア（S）、ドレッドノート（D）。勢力・艦種・撃破数・最終撃破はカーソルを合わせて確認。</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0}：プレイヤー1人撃破、{1} EVE（{2}）</value>
   </data>
 </root>

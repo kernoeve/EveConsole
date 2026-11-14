@@ -230,7 +230,7 @@
             <DataGridTemplateColumn.CellTemplate>
               <DataTemplate x:DataType="vm:RouteStepRowVm">
                 <TextBlock Text="{Binding HostilesText}" VerticalAlignment="Center" FontWeight="SemiBold"
-                           Foreground="{DynamicResource BadBrush}" />
+                           Foreground="{Binding HostileBrush}" ToolTip.Tip="{Binding HostilesTip}" />
               </DataTemplate>
             </DataGridTemplateColumn.CellTemplate>
           </DataGridTemplateColumn>

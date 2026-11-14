@@ -26,6 +26,7 @@ public partial class GroupChatView : UserControl
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
         EmoteBox.Target = DraftBox;
+        ChatPaste.Hook(DraftBox, () => _vm is { CanAttach: true, IsSendingFile: false }, (content, name, size) => _vm!.SendFileAsync(content, name, size));
 
         DataContextChanged += (_, _) => Adopt(DataContext as GroupChatViewModel);
     }
@@ -52,6 +53,7 @@ public partial class GroupChatView : UserControl
             _window.Activated   += OnWindowActivated;
             _window.Deactivated += OnWindowDeactivated;
         }
+        ChatPictureVm.AnyShown += OnPictureShown;
         Arrive();
     }
 
@@ -64,9 +66,30 @@ public partial class GroupChatView : UserControl
             _window.Activated   -= OnWindowActivated;
             _window.Deactivated -= OnWindowDeactivated;
         }
+        ChatPictureVm.AnyShown -= OnPictureShown;
         _window = null;
         if (_vm is not null) _vm.IsBeingLookedAt = false;
     }
+
+    // ── Pictures in messages ──────────────────────────────────────────────────
+
+    private void OnShowPicture(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ChatPictureVm picture }) picture.Show();
+    }
+
+    private void OnOpenPicture(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ChatPictureVm picture }) ExternalLinks.Open(picture.Url);
+    }
+
+    /// <summary>A picture arriving grows its line: a chat read at its end stays there, one scrolled back is left alone.</summary>
+    private void OnPictureShown()
+    {
+        if (LineList.Scroll is { } scroll && scroll.Extent.Height - scroll.Offset.Y - scroll.Viewport.Height < ChatPictureVm.MostHeight + 120)
+            ScrollToEnd();
+    }
+
 
     private void Arrive()
     {
@@ -208,6 +231,12 @@ public partial class GroupChatView : UserControl
         var member = person.IrcMember!;
         var lines = new List<Control>();
         if (!person.IsSelf) lines.Add(Line(GroupChatText.MenuDirectMessage, () => { vm.MessageOccupant(person); return Task.CompletedTask; }));
+        if (TopLevel.GetTopLevel(this) is Window host)
+            lines.Add(Line(IrcText.MenuWhois, () =>
+            {
+                if (vm.IrcWhois(person) is { } whois) IrcWhoisWindow.ShowFor(whois, host);
+                return Task.CompletedTask;
+            }));
 
         var admin = new List<Control>();
         foreach (var (mode, give, take) in vm.IrcRankChoices())
@@ -238,19 +267,18 @@ public partial class GroupChatView : UserControl
     private void ShowIrcChannelMenu(Control at, GroupChatViewModel vm, GroupChatRowVm row)
     {
         var room = row.ShownText;
-        var lines = new List<Control>
+        var lines = new List<Control>();
+        // ⚠️ Only what the channel lets this person do: +t keeps the topic to operators, +i the inviting.
+        if (vm.IrcCanChangeTopic()) lines.Add(Line(GroupChatText.MenuChangeTopic, async () =>
         {
-            Line(GroupChatText.MenuChangeTopic, async () =>
-            {
-                if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
-                    await vm.IrcSetTopicAsync(topic);
-            }),
-            Line(GroupChatText.MenuInvite, async () =>
-            {
-                if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
-                    await vm.IrcInviteAsync(who);
-            }),
-        };
+            if (await AskAsync(Format(GroupChatText.TopicTitle, room), "", GroupChatText.LabelTopic, "", null) is { Length: > 0 } topic)
+                await vm.IrcSetTopicAsync(topic);
+        }));
+        if (vm.IrcCanInvite()) lines.Add(Line(GroupChatText.MenuInvite, async () =>
+        {
+            if (await AskAsync(Format(GroupChatText.InviteTitle, room), "", IrcText.LabelInviteNick, "", vm.IrcKnownNicks()) is { Length: > 0 } who)
+                await vm.IrcInviteAsync(who);
+        }));
         if (vm.IrcCanModerate()) lines.Add(Line(GroupChatText.MenuLiftBan, async () =>
         {
             var bans = await vm.IrcBansAsync();
@@ -263,6 +291,9 @@ public partial class GroupChatView : UserControl
             if (bans.Any(b => b.Mask == mask)) await vm.IrcLiftBanAsync(mask);
             else vm.SetStatus(GroupChatText.PickBanned);
         }));
+        // Its settings and lists, for an operator: a window of their own, as there are many.
+        if (vm.IrcChannelSettings() is { } settings && TopLevel.GetTopLevel(this) is Window host)
+            lines.Add(Line(IrcText.MenuChannelSettings, () => { IrcChannelSettingsWindow.ShowFor(settings, host); return Task.CompletedTask; }));
         lines.AddRange(new List<Control>
         {
             new Separator(),

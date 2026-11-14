@@ -457,6 +457,71 @@ public class UniverseViewModel : ReactiveObject
 
     public IReadOnlyDictionary<int, MapCampaignMark>? VisibleCampaigns => _showCampaigns ? _campaigns : null;
 
+    // ── NPC marks ────────────────────────────────────────────────────────────
+    //
+    // Built by the map tool's tab from the live snapshot with these switches applied, so turning
+    // a class of capital off takes it out of the counts and the hover, not just the tag. Each is
+    // kept, and every map starts with the last choice.
+
+    private IReadOnlyDictionary<int, MapNpcMarks>? _npcMarks;
+    /// <summary>♦ rat activity and NPC capitals per system and region, pushed in by the map tool.</summary>
+    public IReadOnlyDictionary<int, MapNpcMarks>? NpcMarks
+    {
+        get => _npcMarks;
+        set => this.RaiseAndSetIfChanged(ref _npcMarks, value);
+    }
+
+    private bool _showDiamonds = UiState.GetBool(UiState.UniverseDiamonds, true);
+    /// <summary>Whether ♦ rat activity is marked.</summary>
+    public bool ShowDiamonds
+    {
+        get => _showDiamonds;
+        set { this.RaiseAndSetIfChanged(ref _showDiamonds, value); UiState.SetBool(UiState.UniverseDiamonds, value); }
+    }
+
+    private bool _showNpcCapitals = UiState.GetBool(UiState.UniverseNpcCapitals, true);
+    /// <summary>Whether NPC capitals are marked at all; the three below choose which.</summary>
+    public bool ShowNpcCapitals
+    {
+        get => _showNpcCapitals;
+        set { this.RaiseAndSetIfChanged(ref _showNpcCapitals, value); UiState.SetBool(UiState.UniverseNpcCapitals, value); }
+    }
+
+    private bool _showNpcTitans = UiState.GetBool(UiState.UniverseNpcTitans, true);
+    public bool ShowNpcTitans
+    {
+        get => _showNpcTitans;
+        set { this.RaiseAndSetIfChanged(ref _showNpcTitans, value); UiState.SetBool(UiState.UniverseNpcTitans, value); }
+    }
+
+    private bool _showNpcSupers = UiState.GetBool(UiState.UniverseNpcSupers, true);
+    public bool ShowNpcSupers
+    {
+        get => _showNpcSupers;
+        set { this.RaiseAndSetIfChanged(ref _showNpcSupers, value); UiState.SetBool(UiState.UniverseNpcSupers, value); }
+    }
+
+    private bool _showNpcDreads = UiState.GetBool(UiState.UniverseNpcDreads, true);
+    public bool ShowNpcDreads
+    {
+        get => _showNpcDreads;
+        set { this.RaiseAndSetIfChanged(ref _showNpcDreads, value); UiState.SetBool(UiState.UniverseNpcDreads, value); }
+    }
+
+    /// <summary>The capital classes the switches let through; empty when capitals are off.</summary>
+    public IReadOnlySet<NpcCapitalKind> NpcCapitalKinds
+    {
+        get
+        {
+            var kinds = new HashSet<NpcCapitalKind>();
+            if (!_showNpcCapitals) return kinds;
+            if (_showNpcTitans) kinds.Add(NpcCapitalKind.Titan);
+            if (_showNpcSupers) kinds.Add(NpcCapitalKind.Supercarrier);
+            if (_showNpcDreads) kinds.Add(NpcCapitalKind.Dreadnought);
+            return kinds;
+        }
+    }
+
     public IReadOnlyDictionary<int, MapHoleMark>? VisibleHoles     => _showHoles ? _holes : null;
     public IReadOnlyList<MapHoleLink>?            VisibleHoleLinks => _showHoles ? _holeLinks : null;
 
@@ -522,6 +587,101 @@ public class UniverseViewModel : ReactiveObject
 
     /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
     public IReadOnlyList<MapBridgeLine>? VisibleBridges => _showBridges ? _bridges : null;
+
+    // ── Intel layers ─────────────────────────────────────────────────────────
+    //
+    // The marks themselves (tier colours, fade, the clear and no-visual states) are always drawn;
+    // these are what the map draws besides them, each with its own switch, kept per PC.
+
+    private IReadOnlyList<MapCampMark>? _campedGates;
+    /// <summary>Active gate camps, pushed in by the map tool.</summary>
+    public IReadOnlyList<MapCampMark>? CampedGates
+    {
+        get => _campedGates;
+        set { this.RaiseAndSetIfChanged(ref _campedGates, value); this.RaisePropertyChanged(nameof(VisibleCampedGates)); }
+    }
+
+    private bool _showGateCamps = UiState.GetBool(UiState.UniverseGateCamps, true);
+    /// <summary>Camped gates drawn on their lines. On by default.</summary>
+    public bool ShowGateCamps
+    {
+        get => _showGateCamps;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showGateCamps, value);
+            UiState.SetBool(UiState.UniverseGateCamps, value);
+            this.RaisePropertyChanged(nameof(VisibleCampedGates));
+        }
+    }
+
+    public IReadOnlyList<MapCampMark>? VisibleCampedGates => _showGateCamps ? _campedGates : null;
+
+    private IReadOnlyList<MapIntelArrow>? _intelArrows;
+    /// <summary>Every reported direction, moves and headings, pushed in by the map tool.</summary>
+    public IReadOnlyList<MapIntelArrow>? IntelArrows
+    {
+        get => _intelArrows;
+        set { this.RaiseAndSetIfChanged(ref _intelArrows, value); this.RaisePropertyChanged(nameof(VisibleIntelArrows)); }
+    }
+
+    private bool _showIntelMoves = UiState.GetBool(UiState.UniverseIntelMoves, true);
+    /// <summary>Solid arrows from where a reported pilot came from. On by default.</summary>
+    public bool ShowIntelMoves
+    {
+        get => _showIntelMoves;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showIntelMoves, value);
+            UiState.SetBool(UiState.UniverseIntelMoves, value);
+            this.RaisePropertyChanged(nameof(VisibleIntelArrows));
+        }
+    }
+
+    private bool _showIntelHeadings = UiState.GetBool(UiState.UniverseIntelHeadings, true);
+    /// <summary>Dashed arrows to where a reported pilot was said to be heading. On by default.</summary>
+    public bool ShowIntelHeadings
+    {
+        get => _showIntelHeadings;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showIntelHeadings, value);
+            UiState.SetBool(UiState.UniverseIntelHeadings, value);
+            this.RaisePropertyChanged(nameof(VisibleIntelArrows));
+        }
+    }
+
+    /// <summary>The arrows the canvas draws: moves, headings, both or neither, as switched.</summary>
+    public IReadOnlyList<MapIntelArrow>? VisibleIntelArrows =>
+        _intelArrows is null || (!_showIntelMoves && !_showIntelHeadings) ? null
+        : _showIntelMoves && _showIntelHeadings ? _intelArrows
+        : [.. _intelArrows.Where(a => a.Dashed ? _showIntelHeadings : _showIntelMoves)];
+
+    private IReadOnlyCollection<int>? _alertZone;
+    /// <summary>The systems the intel alarms watch, pushed in by the map tool while any map shows them.</summary>
+    public IReadOnlyCollection<int>? AlertZone
+    {
+        get => _alertZone;
+        set { this.RaiseAndSetIfChanged(ref _alertZone, value); this.RaisePropertyChanged(nameof(VisibleAlertZone)); }
+    }
+
+    private bool _showAlertZones = UiState.GetBool(UiState.UniverseAlertZones, false);
+    /// <summary>The intel alarms' watched systems outlined. Off by default.</summary>
+    public bool ShowAlertZones
+    {
+        get => _showAlertZones;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showAlertZones, value);
+            UiState.SetBool(UiState.UniverseAlertZones, value);
+            this.RaisePropertyChanged(nameof(VisibleAlertZone));
+            if (value) AlertZonesWanted?.Invoke();
+        }
+    }
+
+    public IReadOnlyCollection<int>? VisibleAlertZone => _showAlertZones ? _alertZone : null;
+
+    /// <summary>Set by the map tool: asks for the alert zone to be read now, when the outline is switched on.</summary>
+    public Action? AlertZonesWanted { get; set; }
     /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map
     /// tool, which reads them once for every open tab.</summary>
     private IReadOnlyDictionary<int, MapMarkers>? _markers;

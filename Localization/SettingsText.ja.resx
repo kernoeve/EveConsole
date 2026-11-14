@@ -4126,4 +4126,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>コネクター {0} を削除しますか？そのキーは無効になり、選択したコーポレーション、アライアンス、機能、およびそのコネクターから得たリンクされたキャラクターは消去されます。元に戻すことはできません。</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>バックグラウンド処理を行っているPCに履歴の再解析を依頼しました。インテルを解析するのはそのPCだけです。進捗はバックグラウンド処理に表示されます。</value>
+  </data>
 </root>

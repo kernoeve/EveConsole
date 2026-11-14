@@ -1518,7 +1518,7 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
                    r."ReporterName"              AS "Reporter"
             FROM "IntelReportCharacters" c
             JOIN "IntelReports" r ON r."Id" = c."IntelReportId"
-            WHERE c."CharacterId" = @id
+            WHERE c."CharacterId" = @id AND r."Kind" = 0
             ORDER BY r."ReportedAt" DESC
             LIMIT @lim
             """,
@@ -1526,14 +1526,30 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             AppDb.Param("@lim", MaxDetailRows)).ToListAsync(ct);
 
         // The system and the hull in the interface language, where the parser recognised them;
-        // otherwise the words the reporter typed.
+        // otherwise the words the reporter typed. The channel as the Intel tool names it.
+        var labels = rows.Count == 0 ? EveConsole.Services.Intel.IntelChannelLabels.Empty
+            : await EveConsole.Services.Intel.IntelChannelLabels.ReadOrEmptyAsync(db, ct);
         return [.. rows.Select(r => new IntelSightingRow(
-            r.When, SdeNames.SolarSystem(r.SystemId, r.System), r.Channel,
+            r.When, SdeNames.SolarSystem(r.SystemId, r.System), labels.Label(r.Channel),
             SdeNames.Type(r.ShipTypeId, r.Ship), r.Reporter))];
     }
 
     private sealed record IntelRaw(string When, int SystemId, string System, string Channel,
                                    int ShipTypeId, string Ship, string Reporter);
+
+    /// <summary>
+    /// Where intel last placed a pilot, from any source (a report, a pasted Local, a kill), with the
+    /// system's name; null when intel never saw them.
+    /// </summary>
+    public async Task<(IntelLastSeen Row, string System)?> LastSeenAsync(long characterId, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        var row = await EveConsole.Services.Intel.IntelPilotSearch.OneAsync(db, characterId, ct);
+        if (row is null || row.SystemId <= 0) return null;
+        var english = await db.SdeSolarSystems.AsNoTracking().Where(s => s.SolarSystemId == row.SystemId)
+            .Select(s => s.Name).FirstOrDefaultAsync(ct);
+        return (row, SdeNames.SolarSystem(row.SystemId, english ?? row.SystemId.ToString(System.Globalization.CultureInfo.InvariantCulture)));
+    }
 
     // Raw row shapes — property names match the SELECT aliases.
     private record PilotDetailRaw(string Name, int IsOurs, string LastSeen);

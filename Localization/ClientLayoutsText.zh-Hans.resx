@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>该布局由较新版本的 EVE Console 创建。请更新后再导入。</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>显示方式</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>实时威胁列表</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>一行显示最近的威胁，点击展开列表</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} 跳</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>从本显示器客户端中的角色出发，经星门和开放的 Thera 或 Turnur 虫洞寻找情报的跳数。不计跳桥。</value>
+  </data>
 </root>

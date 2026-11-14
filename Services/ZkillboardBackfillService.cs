@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -35,6 +36,7 @@ public sealed class ZkillboardBackfillService(
     ZkillboardSettings          settings,
     ZkillboardApiClient         api,
     ZkillboardKillImportService importer,
+    Intel.IntelLastSeenFeed     lastSeen,
     AppErrorLogger              errorLogger) : ReactiveObject
 {
     // Kills per SaveChangesAsync flush, not rows — each kill also brings its attackers
@@ -324,6 +326,11 @@ public sealed class ZkillboardBackfillService(
         var sinceFlush = 0;
         var status     = new ZkillboardApiClient.DumpStatus();
 
+        // The kills newly stored since the last save, for last seen: only the recent ones, since
+        // history feeds it for its last week only (see IntelLastSeenFeed), and most days are older.
+        var recent = DateTimeOffset.UtcNow - Intel.IntelLastSeenFeed.KillHistory;
+        var added  = new List<EsiKillMailFull>();
+
         var dump = unfiltered
             ? api.GetDailyDumpAsync(date, status: status, ct: ct)
             : api.GetDailyDumpAsync(date, charIds, corpIds, status, ct);
@@ -333,7 +340,10 @@ public sealed class ZkillboardBackfillService(
             if (ct.IsCancellationRequested) break;
 
             if (await importer.ImportAsync(db, kill.Kill, kill.Hash, charIds, corpIds, ct, known))
+            {
                 imported++;
+                if (kill.Kill.KillMailTime >= recent) added.Add(kill.Kill);
+            }
             sinceFlush++;
 
             if (sinceFlush >= SaveBatchSize)
@@ -341,10 +351,15 @@ public sealed class ZkillboardBackfillService(
                 await db.SaveChangesAsync(ct);
                 db.ChangeTracker.Clear();
                 sinceFlush = 0;
+                await FeedLastSeenAsync(db, added, ct);
             }
         }
 
-        if (sinceFlush > 0) await db.SaveChangesAsync(ct);
+        if (sinceFlush > 0)
+        {
+            await db.SaveChangesAsync(ct);
+            await FeedLastSeenAsync(db, added, ct);
+        }
 
         // Only a day whose dump actually existed counts as fully imported. Advancing the
         // watermark past a day zKillboard had not published yet marked it permanently
@@ -357,6 +372,14 @@ public sealed class ZkillboardBackfillService(
             settings.LastFullDay = date;
 
         return imported;
+    }
+
+    /// <summary>Hands the kills saved since the last call to last seen, then forgets them.</summary>
+    private async Task FeedLastSeenAsync(AppDbContext db, List<EsiKillMailFull> added, CancellationToken ct)
+    {
+        if (added.Count == 0) return;
+        await lastSeen.KillsStoredAsync(db, added, live: false, ct);
+        added.Clear();
     }
 
     private static string Truncate(string s, int max = 80) => s.Length <= max ? s : s[..max];

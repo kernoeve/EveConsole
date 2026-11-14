@@ -89,10 +89,11 @@
       <TextBlock Classes="talker" Classes.channel="{Binding Me.TalksChannel}" Classes.shout="{Binding Me.TalksShout}" Classes.direct="{Binding Me.TalksDirect}" Text="{Binding Me.Name}" FontSize="13" VerticalAlignment="Center" Margin="0 0 4 0" />
     </StackPanel>
 
-    <!-- On the toolbar: where this client is, and how many there can hear. -->
+    <!-- On the toolbar and a panel's Mumble control: where this client is, and how many there can hear. The server's name
+         is green: the bar only shows while connected (a panel's control shows the name grey when it isn't). -->
     <StackPanel x:Name="Where" IsVisible="False" Orientation="Horizontal" Spacing="5" Margin="2 0 4 0" Background="Transparent"
                 ToolTip.Tip="{Binding StatusTip}" ToolTip.Placement="Bottom">
-      <TextBlock x:Name="ServerName" Text="{Binding Server}" FontSize="11" MaxWidth="110" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource TextDimBrush}" />
+      <TextBlock x:Name="ServerName" Text="{Binding Server}" FontSize="11" MaxWidth="110" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource GoodBrush}" />
       <TextBlock Text="{Binding Channel}" FontSize="11" MaxWidth="120" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
       <Path Data="M4 3.5 a2.5 2.5 0 1 0 5 0 a2.5 2.5 0 1 0 -5 0 z M1.5 12 v-1 a3.5 3.5 0 0 1 3.5 -3.5 h3 a3.5 3.5 0 0 1 3.5 3.5 v1 z"
             Fill="{DynamicResource TextDimBrush}" Width="11" Height="11" Stretch="Uniform" VerticalAlignment="Center" />

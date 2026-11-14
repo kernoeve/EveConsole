@@ -5442,4 +5442,8 @@ The application will restart.</value>
     <value>Remove the connector {0}? Its key is ended, and the corporations, alliances and functions chosen for it, and the linked characters it gave, are forgotten. This cannot be undone.</value>
     <comment>Settings, Connectors tab, confirm dialog. {0} is the connector's name.</comment>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Asked the PC doing the background work to re-parse the history: only that PC parses intel. Its progress shows in Background Processes.</value>
+    <comment>Chat Logs tab, intel status after Re-parse on a PC that is not the background worker; the worker does the parsing and reports progress in the Background Processes window.</comment>
+  </data>
 </root>

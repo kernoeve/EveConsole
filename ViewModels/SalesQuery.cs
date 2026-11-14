@@ -114,6 +114,23 @@ internal static class SalesQuery
             return SdeNames.MarketGroup(mgId.Value, mg.Name);   // item's group is already top-level
         }
 
+        // Every market group an item sits under, its own first, up to the root: what the item
+        // group filter matches against, so picking "Capital Ships" takes every hull below it.
+        var paths = new Dictionary<int, int[]>();
+        int[] PathOf(int typeId)
+        {
+            if (paths.TryGetValue(typeId, out var known)) return known;
+            var path = new List<int>();
+            var at = typeMg.TryGetValue(typeId, out var mgId) ? mgId : null;
+            // Bounded: the tree is a few levels deep, and a cycle in bad data must not hang the load.
+            while (at is int id && path.Count < 16 && !path.Contains(id) && mgAll.TryGetValue(id, out var g))
+            {
+                path.Add(id);
+                at = g.ParentGroupId;
+            }
+            return paths[typeId] = [.. path];
+        }
+
         // Nearest-day price snapshots for the sold types (resolved in memory — a correlated
         // "nearest date" subquery can't reference the outer sale date in SQLite).
         var snaps = await db.TypePriceSnapshots.AsNoTracking().Where(s => typeIds.Contains(s.TypeId))
@@ -154,6 +171,12 @@ internal static class SalesQuery
         var corpPersonal = allCorps.ToDictionary(c => (long)c.Id, c => c.IsPersonal);
         bool IsPersonal(long id, string type) => type == "corporation" && corpPersonal.TryGetValue(id, out var p) && p;
 
+        // Ours on both sides is not a sale (NotASale). A character, or a corporation marked
+        // personal, is the user; a corporation that is not personal is a separate party.
+        var ours = allChars.Select(c => (long)c.Id)
+            .Concat(allCorps.Where(c => c.IsPersonal).Select(c => (long)c.Id))
+            .ToHashSet();
+
         string OwnerName(long id, string type) => type == "corporation"
             ? (corpNames.TryGetValue(id, out var cn) ? cn : string.Format(SalesText.CorpNumbered, id))
             : (charNames.TryGetValue(id, out var pn) ? pn : string.Format(SalesText.CharNumbered, id));
@@ -185,6 +208,7 @@ internal static class SalesQuery
 
         foreach (var m in market)
         {
+            if (NotASale(m.OwnerId, m.BuyerId, ours)) continue;
             var (bu, mv) = Snap(m.TypeId, ParseDate(m.DateStr));
             rows.Add(new SaleRowVm(
                 ParseDate(m.DateStr), "Market", m.OwnerType, m.OwnerId, IsPersonal(m.OwnerId, m.OwnerType),
@@ -192,7 +216,11 @@ internal static class SalesQuery
                 TypeName(m.TypeId), m.Quantity.ToString("N0"), m.Quantity * m.UnitPrice,
                 bu is double b ? b * m.Quantity : null, mv is double v ? v * m.Quantity : null,
                 m.TypeId, GroupTwoUp(m.TypeId), m.SaleId,
-                m.LocationId, m.IsStation > 0, m.BuyerId, BuyerKind(m.BuyerId)));
+                m.LocationId, m.IsStation > 0, m.BuyerId, BuyerKind(m.BuyerId))
+            {
+                MarketGroupPath = PathOf(m.TypeId),
+                Parts           = [new SalePart(m.TypeId, TypeName(m.TypeId), m.Quantity, GroupTwoUp(m.TypeId), PathOf(m.TypeId))],
+            });
         }
 
         // CCP's adjusted prices: the last word on what an item is worth when no snapshot has one.
@@ -210,6 +238,7 @@ internal static class SalesQuery
 
         foreach (var c in contracts)
         {
+            if (NotASale(c.OwnerId, c.BuyerId, ours)) continue;
             var when = ParseDate(c.DateStr);
             // ⚠️ The most valuable item leads. Its name heads the row ("Avatar +3 more items"), and
             // its type and market group are the ones the Sales Tracker files the whole sale under.
@@ -233,6 +262,8 @@ internal static class SalesQuery
             {
                 ItemHead = its.Count > 1 ? TypeName(its[0].TypeId) : "",
                 ItemMore = Math.Max(0, its.Count - 1),
+                MarketGroupPath = firstType > 0 ? PathOf(firstType) : [],
+                Parts = its.Select(i => new SalePart(i.TypeId, TypeName(i.TypeId), i.Quantity, GroupTwoUp(i.TypeId), PathOf(i.TypeId))).ToList(),
             });
         }
 
@@ -291,6 +322,19 @@ internal static class SalesQuery
     }
 
     // Sum of the present values; null only when every item lacked a snapshot.
+    /// <summary>
+    /// Whether ISK moving from <paramref name="buyer"/> to <paramref name="seller"/> is only the
+    /// user paying themselves: the same party on both sides, or both sides <paramref name="ours"/>
+    /// (the user's characters and personal corporations).
+    ///
+    /// <para>Such a trade is usually a zero-ISK move and never reached here; one with a price, a
+    /// test or a transfer between the user's own wallets, counted as a sale with a profit that
+    /// never left the user. A corporation that is not personal is another party: what it sells to
+    /// the user, or buys from them, is a sale. Selling to itself is not.</para>
+    /// </summary>
+    internal static bool NotASale(long seller, long buyer, IReadOnlySet<long> ours) =>
+        buyer > 0 && (buyer == seller || (ours.Contains(seller) && ours.Contains(buyer)));
+
     private static double? SumOrNull(IEnumerable<double?> values)
     {
         double sum = 0; var any = false;

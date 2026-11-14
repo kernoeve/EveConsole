@@ -124,6 +124,18 @@ jobs:
       - name: Store need check
         run: dotnet run --project tools/StoreNeedCheck/StoreNeedCheck.csproj -c Release
 
+      # ⚠️ Does the Sales Tracker's By period summary put each sale on the right side, and count
+      # only real sales? A two-tag sale counted twice in its month, a sale with no cost adding a
+      # profit, or a trade between the user's own wallets read as a sale all change the for-profit
+      # share a payout is worked from. Constructed sales: no database.
+      - name: Sales summary check
+        run: dotnet run --project tools/SalesSummaryCheck/SalesSummaryCheck.csproj -c Release
+
+      # ⚠️ Are structure fuel tasks and the Corp Structures fuel columns right? Fuel due at the
+      # wrong level, the wrong number of blocks, or a list no longer read showing out of fuel.
+      - name: Structure task check
+        run: dotnet run --project tools/StructureTaskCheck/StructureTaskCheck.csproj -c Release
+
       # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
       # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
       # picks up all look like a finished report. This builds battles whose answers are known, on
@@ -172,6 +184,16 @@ jobs:
       # a run of malformed lines that must not end the connection. None of it shows until a real server sends it.
       - name: IRC check
         run: dotnet run --project tools/IrcCheck/IrcCheck.csproj -c Release
+
+      # ⚠️ Does intel still survive more than one PC, and the next start? A paste deleted by the next start because
+      # it has no chat message behind it, a watermark one PC moves backwards, or a PC that is not the worker parsing
+      # or evaluating alarms anyway: each looks like a working feature on one machine. This runs the startup's own
+      # statements on a database the previous build left and on a new one, on a scratch SQLite file. It also proves
+      # the one upsert of where each pilot was last seen: an older sighting never moves a pilot back, a tie in one
+      # second goes kill > pasted Local > chat report, a pilot named twice in a batch, the stay and the affiliation
+      # rules, the kills the importers hand on and the one-time seed. The Linux job runs it again against PostgreSQL.
+      - name: Intel check
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
 
   # ⚠️ Does the Linux target still compile?
   #
@@ -301,6 +323,15 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
+
+      # ⚠️ And intel on PostgreSQL, where several PCs write at once. Two writer processes insert chat lines while a
+      # reader takes them by watermark as the parser does: a line committed out of id order is skipped for good, and
+      # nothing on one machine shows it. The last-seen upsert runs here too: PostgreSQL refuses a statement that
+      # touches one pilot twice. The check makes a database of its own on this server and drops it after.
+      - name: Intel check on PostgreSQL
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
 
   # ── macOS ──────────────────────────────────────────────────────────────────────────
   #

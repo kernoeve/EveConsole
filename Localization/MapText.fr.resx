@@ -1582,7 +1582,7 @@ Propriétaire : {3}</value>
     <value>Marques en direct</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Hostiles signalés ici au cours des 5 dernières minutes, par les renseignements ou un rapport de victime. Survolez pour voir qui ils sont et ce qu'ils pilotent. « ! » : les renseignements signalent quelque chose ici (pic, bulles, camp) sans compter personne.</value>
+    <value>Hostiles placés ici par les renseignements ou un rapport de victime, dans la couleur de leur réputation (rouge, orange, gris neutre), s'estompant à mesure que l'information vieillit. Survolez pour voir qui ils sont et ce qu'ils pilotent. « ! » : les renseignements signalent quelque chose ici (pic, bulles, camp) sans compter personne.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Vos personnages connectés ici. Survolez pour voir leurs vaisseaux et s'ils sont amarrés.</value>
@@ -2368,5 +2368,164 @@ Pas de système capitale, donc pas de zone</value>
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>À portée de saut du système de l'onglet Portée de saut (l'anneau plus épais)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>Sans visuel : dans le Local, jamais vu sur la grille. La même marque, creuse, avec un anneau en pointillés.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>Déclaré dégagé, sans rien de nouveau depuis. S'estompe pendant la durée de validité du dégagé (Paramètres → Renseignements).</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>Un camp de portail déduit des victimes : un trait épais sur la ligne du portail, du système campé vers la destination du portail, avec le nombre de victimes.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>D'où venaient les pilotes signalés : une flèche pleine vers le système où ils ont été vus.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>Où les pilotes signalés se dirigeraient : une flèche en pointillés depuis le système où ils ont été vus.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>Surveillé en ce moment par une alarme de renseignements : ce qui en déclencherait une.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>Déclaré dégagé : {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>Signalé {0} ; rien de nouveau depuis.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>Le plus récent : {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>Sans visuel : dans le Local, pas vu sur la grille</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>Réputation : {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>Camp sur le portail vers {0} dans {1}</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>Victimes : {0} · dernière {1} · attaquants : {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>Vu à {1}, venant de {0} · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>Vu à {0}, en route vers {1} · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>Ce que la carte dessine à partir des renseignements en plus des marques</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>Les marques prennent toujours la couleur de leur réputation, s'estompent avec l'âge et montrent les systèmes dégagés et sans visuel. Ces calques ne sont dessinés que là où les systèmes sont affichés, pas sur les régions.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>Camps de portail</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>Un camp de portail déduit des victimes, dessiné comme un trait épais sur la ligne du portail, qui s'estompe avec le temps</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>Flèches de déplacement</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>Une flèche pleine d'où venait un pilote signalé jusqu'au système où il a été vu</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>Flèches de direction</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>Une flèche en pointillés du système où un pilote a été vu vers sa destination annoncée</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>Zones d'alerte</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>Un fin contour en pointillés autour de chaque système qu'une alarme de renseignements active surveille en ce moment</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>Camp de portail dans ce système</value>
+  </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>Rats ♦</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>Marque les systèmes où des PNJ pirates ♦ ont tué des joueurs ces 5 derniers jours. La marque indique ce qui a été vu, pas ce qui se cache derrière : un Sotiyo, une forteresse ou un groupe itinérant.</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>Capitaux PNJ</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>Marque les systèmes où des titans, superporte-vaisseaux ou dreadnoughts PNJ ont tué des joueurs depuis la maintenance (11:00 EVE). La flèche choisit lesquels.</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>Titans</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>Superporte-vaisseaux</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>Dreadnoughts</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>Activité de rats ♦ dans {0} — joueurs tués : {1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0} : {1} joueurs tués en {2} — depuis {3} EVE, dernier {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0} : {1} joueurs tués en plus de {2} — depuis avant {3} EVE, dernier {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>Coques : {0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0} : {1}, {2} tués, dernier {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#} jours</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>il y a {0} j {1} h</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>Capitaux PNJ dans {1} depuis la maintenance : {0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — dernier kill {2} EVE ({3}) · kills depuis la maintenance : {4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0} : {1}, {2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>Des PNJ pirates ♦ ont tué des joueurs ici ces 5 derniers jours ; le nombre est celui des kills depuis le début de la série (aucun creux de plus de 5 jours). Ce peut être un Sotiyo, une forteresse ou un groupe itinérant. Survolez pour la faction, les kills et la période.</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>Titans (T), superporte-vaisseaux (S) ou dreadnoughts (D) PNJ sur un killmail ici depuis la maintenance (11:00 EVE). Survolez pour la faction, la coque, les kills et le dernier de chacun.</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0} : 1 joueur tué, {1} EVE ({2})</value>
   </data>
 </root>

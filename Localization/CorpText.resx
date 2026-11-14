@@ -3425,4 +3425,52 @@
   <data name="StepTop10SoloKillers" xml:space="preserve">
     <value>Top10 solo killers</value>
   </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>{0} a day ({1} an hour), from the fit set for its type</value>
+    <comment>Corp Structures: a burn rate worked out from the fit set for the structure&apos;s type on Config, because the corporation&apos;s assets are not read. {0} units a day, {1} units an hour.</comment>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>Not known: the list was last read {0}, and the fuel expiry it held has passed since.</value>
+    <comment>Corp Structures: tooltip on a dash in the fuel columns when the structure list is no longer read from ESI. {0} is when it was last read.</comment>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>Not known: the list has not been read from ESI.</value>
+    <comment>Corp Structures: tooltip on a dash in the fuel columns when the structure list has never been read.</comment>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, unanchoring</value>
+    <comment>Corp Structures, State column: an Upwell structure that is unanchoring while in its state. {0} is the state, such as &quot;Shield vulnerable&quot;.</comment>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>Structure list last read {0}.</value>
+    <comment>Corp Structures: start of the banner over a list no longer read from ESI. {0} is when (a date) or &quot;never&quot;.</comment>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>Tower list last read {0}.</value>
+    <comment>Corp Structures: the same banner for starbase towers. {0} is when (a date) or &quot;never&quot;.</comment>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>never</value>
+    <comment>Corp Structures: in place of the date in CsStaleStructures/CsStaleTowers when the list was never read.</comment>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>The character that reads this corporation has lost the corporation role ESI needs for it, so ESI is no longer asked.</value>
+    <comment>Corp Structures banner: why the list stopped being read.</comment>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>ESI has not answered for it since.</value>
+    <comment>Corp Structures banner: the list stopped being read for another reason.</comment>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>Fuel, states and timers below are as they were then.</value>
+    <comment>Corp Structures banner: last sentence.</comment>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>List read</value>
+    <comment>Corp Structures detail, Status: label for when the structure list was last read, shown only while it is no longer being read.</comment>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>State ends</value>
+    <comment>Corp Structures column: when the state the structure is in ends — a reinforcement, anchoring or onlining timer, or unanchoring.</comment>
+  </data>
 </root>

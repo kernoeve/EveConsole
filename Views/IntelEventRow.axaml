@@ -1,0 +1,173 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             xmlns:loc="using:EveConsole.Localization"
+             x:Class="EveConsole.Views.IntelEventRow"
+             x:DataType="vm:IntelEventRowVm">
+  <!-- One intel event as every intel view shows it: the standings stripe, the jumps badge, the
+       system and what was said of it, its age; under them who and what, each pilot with their
+       portrait and each hull with its icon, then the flags. The colours are the theme's, but for
+       the stripe: the standings tiers keep the game's own colours. -->
+  <UserControl.Styles>
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
+    </Style>
+    <Style Selector="Border.badge > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+    <Style Selector="Border.badge.here">
+      <Setter Property="Background" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Border.badge.here > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" />
+    </Style>
+    <Style Selector="Border.badge.near">
+      <Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.badge.near > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="Border.badge.mid">
+      <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
+    </Style>
+    <Style Selector="Border.badge.mid > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+    <Style Selector="Border.badge.far">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
+    </Style>
+    <Style Selector="Border.badge.far > TextBlock, Border.badge.pending > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.state">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.hostile, TextBlock.state.kill">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.camp">
+      <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.novisual">
+      <Setter Property="Foreground" Value="{DynamicResource InfoBrush}" />
+    </Style>
+    <Style Selector="TextBlock.state.clear">
+      <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+    </Style>
+
+    <Style Selector="Border.stripe.clear">
+      <Setter Property="Background" Value="{DynamicResource GoodBrush}" />
+    </Style>
+    <Style Selector="Border.row">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Border.row.fresh">
+      <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
+    </Style>
+
+    <!-- A name that opens something: the cursor and the hover underline carry it, not the colour. -->
+    <Style Selector="Button.link">
+      <Setter Property="Background"          Value="Transparent" />
+      <Setter Property="BorderThickness"     Value="0" />
+      <Setter Property="Padding"             Value="0" />
+      <Setter Property="MinHeight"           Value="0" />
+      <Setter Property="Cursor"              Value="Hand" />
+      <Setter Property="VerticalAlignment"   Value="Center" />
+    </Style>
+    <Style Selector="Button.link:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+    </Style>
+    <Style Selector="Button.link:pointerover TextBlock">
+      <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+  </UserControl.Styles>
+
+  <Border Classes="row" Classes.fresh="{Binding IsFresh}"
+          BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
+          Padding="0 5 8 5" Opacity="{Binding Opacity}" ToolTip.Tip="{Binding ToolTip}">
+    <Grid ColumnDefinitions="3,26,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="3">
+      <Border Grid.RowSpan="2" Classes="stripe" Classes.clear="{Binding IsClear}" Background="{Binding TierBrush}"
+              ToolTip.Tip="{Binding StandingsTip}" />
+
+      <Border Grid.Column="1" Grid.RowSpan="2" Classes="badge" CornerRadius="3" Padding="0 1" VerticalAlignment="Top"
+              IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
+              Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
+              Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
+        <TextBlock Text="{Binding JumpsText}" FontSize="11" FontWeight="Bold" HorizontalAlignment="Center" />
+      </Border>
+
+      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6" ClipToBounds="True">
+        <Button Classes="link" Command="{Binding OpenSystemCommand}" ToolTip.Tip="{x:Static loc:IntelText.TipOpenSystem}">
+          <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="{Binding NameWeight}" Foreground="{DynamicResource TextBrightBrush}" />
+        </Button>
+        <TextBlock Classes="state" Text="{Binding StateText}" FontSize="11" FontWeight="{Binding StateWeight}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"
+                   Classes.hostile="{Binding IsHostileState}" Classes.novisual="{Binding IsNoVisualState}"
+                   Classes.camp="{Binding IsCampState}" Classes.kill="{Binding IsKillState}" Classes.clear="{Binding IsClear}" />
+        <TextBlock Text="{Binding FollowUpText}" IsVisible="{Binding HasFollowUps}" FontSize="10" VerticalAlignment="Center"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+        <!-- Heard in more than one place: "×2", the channels in its tooltip. Never more hostiles. -->
+        <Border IsVisible="{Binding HasEchoes}" Classes="badge" CornerRadius="3" Padding="4 0" VerticalAlignment="Center"
+                ToolTip.Tip="{Binding EchoTip}">
+          <TextBlock Text="{Binding EchoText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        </Border>
+      </StackPanel>
+      <TextBlock Grid.Column="3" Text="{Binding AgeText}" FontSize="10" VerticalAlignment="Center"
+                 Foreground="{DynamicResource TextMutedBrush}" />
+
+      <!-- Who and what: a pilot's portrait (their group's logo small on it) left of their name, a group's logo with how
+           many, a hull's icon left of its name. Narrow, the names give way and the pictures and counts stay; each
+           name is in its picture's tooltip. -->
+      <views:IntelFitPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" IsVisible="{Binding HasSecondLine}">
+        <ItemsControl views:IntelFitPanel.Shrinks="True" ItemsSource="{Binding Tokens}" VerticalAlignment="Center">
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <views:IntelFitPanel />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate x:DataType="vm:IntelTokenVm">
+              <Panel Opacity="{Binding Source.TextOpacity}" Margin="0 0 4 0">
+                <Button Classes="link" IsVisible="{Binding IsPicture}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.PictureTip}"
+                        Margin="2 0 0 0">
+                  <Panel Width="16" Height="16" VerticalAlignment="Center">
+                    <!-- A portrait round, a logo or a hull's icon square; a placeholder holds the space while it loads. -->
+                    <Border IsVisible="{Binding Source.IsPilot}" CornerRadius="8" ClipToBounds="True"
+                            Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+                    </Border>
+                    <Border IsVisible="{Binding Source.IsSquare}" CornerRadius="2" ClipToBounds="True"
+                            Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+                    </Border>
+                    <Border IsVisible="{Binding Source.HasBadge}" Width="9" Height="9" CornerRadius="2" ClipToBounds="True"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -3 -2"
+                            BorderBrush="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Badge.Picture}" Width="8" Height="8" />
+                    </Border>
+                  </Panel>
+                </Button>
+                <Panel IsVisible="{Binding IsName}">
+                  <Button Classes="link" IsVisible="{Binding Source.IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.Tip}">
+                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="{Binding Source.TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </Button>
+                  <TextBlock Text="{Binding Label}" IsVisible="{Binding !Source.IsLink}" FontSize="10" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+                </Panel>
+                <TextBlock IsVisible="{Binding IsCount}" Text="{Binding Source.CountText}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Margin="-2 0 0 0" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </Panel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TextBlock Text="{Binding MoreText}" IsVisible="{Binding HasMore}" FontSize="10" VerticalAlignment="Center" Margin="0 0 4 0"
+                   Foreground="{DynamicResource TextMutedBrush}" />
+        <TextBlock views:IntelFitPanel.Shrinks="True" Text="{Binding DetailText}" IsVisible="{Binding HasDetail}" FontSize="10"
+                   VerticalAlignment="Center" Margin="0 0 4 0" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+        <TextBlock Text="{Binding TailText}" IsVisible="{Binding HasTail}" FontSize="10" VerticalAlignment="Center"
+                   Foreground="{DynamicResource WarnBrush}" />
+      </views:IntelFitPanel>
+    </Grid>
+  </Border>
+</UserControl>

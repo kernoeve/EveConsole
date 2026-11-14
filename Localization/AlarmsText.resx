@@ -1245,8 +1245,8 @@
     <comment>Alarm editor, under the Check pick list when Intel report is picked. "Settings → Chat Logs" names the place in the Settings window.</comment>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Kills there with hostile pilots among the attackers count too: a kill places its attackers in that system.</value>
-    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentence. A kill (a killmail) whose attackers include hostile pilots counts as a sighting of them. Hostile = not yours and not at positive standing.</comment>
+    <value>A kill there with hostile pilots among the attackers always fires, said as a kill: what was lost, and to what. Within a jump it is said first. Its attackers are not said again as a sighting.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelNote as its next sentences. A kill (a killmail) whose attackers include hostile pilots fires the alarm by itself, worded as a kill. Hostile = not yours and not at positive standing.</comment>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Ship undocks</value>
@@ -1317,16 +1317,16 @@
     <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around each character or system.</comment>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>How many gate jumps out from each character or system to watch. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
-    <comment>Alarm editor, Intel report check, under Jumps.</comment>
+    <value>How many jumps out from each character or system to watch, through stargates and Thera's and Turnur's open wormholes. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
+    <comment>Alarm editor, intel alarm: the description under the Jumps field. Thera and Turnur are EVE system names; keep them as they are.</comment>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min players</value>
     <comment>Alarm editor, Intel report check: label of the least number of pilots a report must name.</comment>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Only fire when the report is of at least this many pilots. Default 1.</value>
-    <comment>Alarm editor, Intel report check, under Min players.</comment>
+    <value>Only fire when at least this many hostiles are in the system. Default 1. Kills and flag-only reports fire whatever the number.</value>
+    <comment>Alarm editor, intel alarm: the description under the Min players field.</comment>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Ignore no visual</value>
@@ -2640,5 +2640,213 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>Today's indices</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Changed: the alarm now goes by intel as it stands, so a pilot seen since somewhere else, or called clear, no longer fires. Each pilot is said once while they stay in a system, a count of unnamed pilots again only when it grows past 1, 4, 9 or 19, and a report of only a gate camp, bubbles, a cyno, a hot drop, a spike or combat probes fires too (Flag-only reports, below).</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelKillsNote. Tells people who already use intel alarms how they now behave by default. 'Flag-only reports' must match IntelFlagReportsLabel. 'Called clear' = a report saying a system is empty.</comment>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Flag-only reports</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default. A 'flag-only report' says something about a system (a gate camp, bubbles, a cyno) without counting or naming anyone.</comment>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Also fire for a report that counts nobody but says a gate camp, bubbles, a cyno, a hot drop, a spike or combat probes. Each is said once while it lasts.</value>
+    <comment>Alarm editor, intel alarm: the description under the Flag-only reports switch.</comment>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Kill in {0}: {1} lost to {2}.</value>
+    <comment>Spoken by an intel alarm: a kill near what it watches. {0} is the system; {1} the lost ship's hull name from the game (or HullShip); {2} the attackers' hull names as a list (ListAnd), or IntelSaidKillHostiles.</comment>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Kill in {0}, {1}: {2} lost to {3}.</value>
+    <comment>Spoken by an intel alarm: a kill near what it watches, with how far. {0} is the system; {1} how far (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other, IntelSaidHere, IntelSaidLyFrom or IntelSaidLyOut); {2} the lost ship's hull name (or HullShip); {3} the attackers' hull names as a list (ListAnd), or IntelSaidKillHostiles.</comment>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>hostiles</value>
+    <comment>Spoken: in IntelSaidKill and IntelSaidKillAt in place of the attackers' hull names, when none is known.</comment>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>In {0}: {1}.</value>
+    <comment>Spoken by an intel alarm: something said about a system with nobody counted. {0} is the system; {1} what was said (the map's intel flag words, and the gate: e.g. "bubbles, gate camp · on the QZ-X77 gate").</comment>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>In {0}, {1}: {2}.</value>
+    <comment>Spoken by an intel alarm: something said about a system with nobody counted, with how far. {0} is the system; {1} how far (as in IntelSaidKillAt); {2} what was said (as in IntelSaidFlags).</comment>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Kill reported</value>
+    <comment>Title of an intel alarm's alert or dialog when what fired is one kill; the systems follow after a dash.</comment>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Kills reported</value>
+    <comment>Title of an intel alarm's alert or dialog when what fired is several kills and nothing else; the systems follow after a dash.</comment>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>Only news wakes you (a sound, speech, the agent, a dialog): something seen, or come into range, in the last two minutes (Settings → Intel). Older news is only recorded as an Alert. Intel alarms take turns: after one wakes you the others wait a few seconds unless the news is urgent, and a sighting two of them catch is said once.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelChangedNote. To wake = to sound, speak, have the agent speak or show a dialog. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert). 'Settings → Intel' names the place in the Settings window.</comment>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Where to watch</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say where to watch (around what, how far).</comment>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>What fires</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say what kind of report fires the alarm.</comment>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>What wakes you</value>
+    <comment>Alarm editor, intel alarm: heading above the fields that say what wakes the capsuleer (sound, speech, a dialog) rather than only being recorded.</comment>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>Wake within</value>
+    <comment>Alarm editor, intel alarm: label of a tick box and a number of jumps; only news this near wakes the capsuleer. Followed by the number and IntelWakeJumpsSuffix.</comment>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>Optional. Only news this many jumps out or nearer wakes you; farther out it is only recorded as an Alert. Kills and urgent news always wake. Unticked, the whole range wakes.</value>
+    <comment>Alarm editor, intel alarm: the description under Wake within. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert).</comment>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>jumps</value>
+    <comment>Alarm editor, intel alarm: the unit after the Wake within number (gate jumps).</comment>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Quieter further out</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; the alarm sound plays more quietly for news further away.</comment>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>The sound plays at full volume within a jump, and more quietly further out: down to 40% at the edge of the range. Speech keeps your voice volume.</value>
+    <comment>Alarm editor, intel alarm: the description under Quieter further out.</comment>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Hostile</value>
+    <comment>Alarm editor, intel alarm: label of a pick list choosing which named pilots count as hostile (OptionNeutralOrWorse, OptionNegativeOnly, OptionRedOnly).</comment>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Which named pilots count, by the standings of your character nearest them (or the standings character forced in Settings → Intel). Blues and your own characters never count; unnamed counts and flag-only reports always do.</value>
+    <comment>Alarm editor, intel alarm: the description under Hostile. 'Blues' = pilots with good standings. 'Settings → Intel' names the place in the Settings window.</comment>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral or worse</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: neutral, orange and red pilots count (the default).</comment>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Negative only</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: only orange and red pilots (negative standings) count.</comment>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Red only</value>
+    <comment>Alarm editor, intel alarm, Hostile pick list: only red pilots (terrible standings) count.</comment>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Use the watch list</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; the alarm follows the Intel tool's watch list (IntelText.TabWatch).</comment>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>What is on Always alert fires within the watch list reach, whatever the range, the Hostile choice or the minimum, is said first and is never held back; what is on Ignore never fires.</value>
+    <comment>Alarm editor, intel alarm: the description under Use the watch list. 'Always alert' and 'Ignore' must match IntelText.WatchModeAlways and IntelText.WatchModeIgnore; 'Hostile' must match IntelHostileFromLabel.</comment>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Watch list reach</value>
+    <comment>Alarm editor, intel alarm: label of a number of jumps; how far out the watch list's Always alert entries fire. Followed by the number and IntelWakeJumpsSuffix.</comment>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>How many jumps out the watch list's Always alert entries fire, when that is farther than the range. At most 15.</value>
+    <comment>Alarm editor, intel alarm: the description under Watch list reach. 'Always alert' must match IntelText.WatchModeAlways.</comment>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>Approaching pilots still wake</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default; a pilot coming nearer wakes the capsuleer even beyond Wake within (IntelWakeJumpsLabel).</comment>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>With Wake within set: a pilot coming nearer (seen closer than before, or reported heading toward your character) wakes you anywhere in the range.</value>
+    <comment>Alarm editor, intel alarm: the description under Approaching pilots still wake. 'Wake within' must match IntelWakeJumpsLabel.</comment>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Priority systems</value>
+    <comment>Alarm editor, intel alarm: label of a list of solar systems that are always watched and always wake.</comment>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Optional. Systems always watched, wherever your characters are. What is seen there always wakes you, is never held back by another intel alarm, and is said first.</value>
+    <comment>Alarm editor, intel alarm: the description under Priority systems.</comment>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Priority system: {0}</value>
+    <comment>Spoken by an intel alarm before news in one of its priority systems. {0} is the whole of what is said about that system (one or more sentences, with their full stops).</comment>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Watch list: {0}</value>
+    <comment>Spoken by an intel alarm before news about someone on the watch list's Always alert. {0} is the whole of what is said about that system (one or more sentences, with their full stops).</comment>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Approaching: heading to {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system nearer the capsuleer's character. {0} is that system.</comment>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Approaching: heading to {0}, {1}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system nearer the capsuleer's character. {0} is that system; {1} how far it is (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other or IntelSaidHere).</comment>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Approaching: was {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: they were seen farther away before. {0} is how far they were (IntelSaidJumpsFromOne/Other or IntelSaidJumpsOutOne/Other).</comment>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Heading away, to {0}.</value>
+    <comment>Spoken by an intel alarm after where hostiles are: a report says they are heading for a system farther from the capsuleer's character. {0} is that system.</comment>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, through Thera or Turnur</value>
+    <comment>Spoken by an intel alarm: how far away something is, when the shortest way there goes through a Thera or Turnur wormhole. {0} is the distance (IntelSaidJumpsFromOne/Other or IntelSaidJumpsOutOne/Other). Thera and Turnur are EVE system names; keep them as they are.</comment>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Also on by default: gate camps worked out from kills, near your characters or on a route ahead, and the route ahead itself, the systems still to fly on the last route the Route Planner sent to the game (Gate camps and Watch the route ahead, below).</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelChangedNote. &apos;Gate camps&apos; must match IntelCampsLabel and &apos;Watch the route ahead&apos; IntelRouteLabel. &apos;Route Planner&apos; is the Universe Map&apos;s route tab (MapText.RoutePlannerTab). A gate camp = hostiles waiting at a stargate to kill whoever comes through.</comment>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Watch the route ahead</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default, shown when watching around characters. The route is the last one the Route Planner sent to the game&apos;s autopilot for a watched character.</comment>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Also watch the systems still ahead on the last route the Route Planner sent to the game for a watched character, however far: what is seen there fires, said as so many jumps ahead on the route. Only the part not yet flown; the route is dropped on arrival or six hours after it was sent. A route set only in the game cannot be known.</value>
+    <comment>Alarm editor, intel alarm: the description under Watch the route ahead. &apos;Route Planner&apos; must match MapText.RoutePlannerTab.</comment>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Gate camps</value>
+    <comment>Alarm editor, intel alarm: a switch, on by default. A gate camp = hostiles waiting at a stargate to kill whoever comes through, here worked out from kills close together on one gate.</comment>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Fire for a gate camp worked out from kills on a gate, near a watched character or on a route ahead. Said once per camp, per character and per route, so a new route through a known camp is said again. One on a route ahead within the wake range (5 jumps when none is set) is urgent.</value>
+    <comment>Alarm editor, intel alarm: the description under Gate camps. &apos;Wake range&apos; is the Wake within field (IntelWakeJumpsLabel).</comment>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Gate camp in {0} on the {1} gate.</value>
+    <comment>Spoken by an intel alarm: a gate camp worked out from kills. {0} is the system; {1} the system the camped stargate leads to (EVE names a gate for where it goes).</comment>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Gate camp in {0} on the {1} gate, {2}.</value>
+    <comment>Spoken by an intel alarm: a gate camp worked out from kills, with how far. {0} is the system; {1} the system the camped stargate leads to; {2} how far (IntelSaidJumpsFromOne/Other, IntelSaidWhereIs, IntelSaidJumpsOutOne/Other or IntelSaidOnRouteOne/Other).</comment>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} kill in {1}.</value>
+    <comment>Spoken after IntelSaidCamp: how many kills the camp has made, and over how long. {0} is the number of kills; {1} the time (IntelSaidMinutesOne/Other).</comment>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} kills in {1}.</value>
+    <comment>Spoken after IntelSaidCamp: how many kills the camp has made, and over how long. {0} is the number of kills; {1} the time (IntelSaidMinutesOne/Other).</comment>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} minute</value>
+    <comment>Spoken, in IntelSaidCampKillsOne/Other: a number of minutes. {0} is the number.</comment>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} minutes</value>
+    <comment>Spoken, in IntelSaidCampKillsOne/Other: a number of minutes. {0} is the number.</comment>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} jump ahead on {1}&apos;s route</value>
+    <comment>Spoken by an intel alarm: how far along a watched character&apos;s route a system is, for one still ahead on the route the Route Planner sent. {0} is the number of jumps; {1} the character&apos;s name.</comment>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} jumps ahead on {1}&apos;s route</value>
+    <comment>Spoken by an intel alarm: how far along a watched character&apos;s route a system is, for one still ahead on the route the Route Planner sent. {0} is the number of jumps; {1} the character&apos;s name.</comment>
   </data>
 </root>

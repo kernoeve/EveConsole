@@ -4129,4 +4129,7 @@ L'application va redémarrer.</value>
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>Retirer le connecteur {0} ? Sa clé est révoquée, et les corporations, alliances et fonctions choisies pour lui, ainsi que les personnages liés qu'il a fournis, sont oubliés. Cette action est irréversible.</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Le PC qui effectue le travail en arrière-plan a été invité à réanalyser l&apos;historique : seul ce PC analyse le renseignement. Sa progression apparaît dans Processus d'arrière-plan.</value>
+  </data>
 </root>

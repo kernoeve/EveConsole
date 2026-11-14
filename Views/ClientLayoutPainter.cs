@@ -159,6 +159,7 @@ internal sealed class ClientLayoutPainter(Control owner)
         PanelControlKind.Killmails => OverviewText.PersonalKillmails,
         PanelControlKind.GroupChatRoom => ClientLayoutsText.ItemGroupChatRoom,
         PanelControlKind.DirectMessageChat => ClientLayoutsText.ItemDirectMessageChat,
+        PanelControlKind.Intel => ClientLayoutsText.ItemIntel,
         _ => kind.ToString(),
     };
 

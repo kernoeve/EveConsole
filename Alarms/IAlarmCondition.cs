@@ -77,6 +77,19 @@ public interface IAlarmCondition
     /// the config stores and never changes. Null shows the value as it is.</summary>
     string? ScreenOption(string property, string value) => null;
 
+    /// <summary>The editor's heading for a group of fields, by the schema's <c>section</c> keyword on
+    /// them: shown above the first field of each section. Null shows the key as it is.</summary>
+    string? ScreenSection(string section) => null;
+
+    /// <summary>
+    /// The group of alarms that wake the capsuleer as one, or null (the default) for an alarm that
+    /// wakes on its own. Alarms of one group share a wake cooldown (<see cref="Services.AlarmWakeGate"/>):
+    /// after one wakes, the others hold their news until it lapses unless it is urgent, and a match
+    /// one of them already woke for is only shown by the others. Every intel alarm is in "intel":
+    /// three overlapping alarms must not talk over each other, nor say one sighting twice.
+    /// </summary>
+    string? WakeGroup => null;
+
     /// <summary>
     /// One-line summary of a configured instance, for the alarm list. ⚠️ The agent reads it too —
     /// manage_alarms lists and confirms alarms with it — so it stays English.

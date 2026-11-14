@@ -438,4 +438,49 @@ Faites-lui confiance seulement s'il correspond à ce que l'administrateur du ser
   <data name="ReadMarkersTip" xml:space="preserve">
     <value>Seulement avec une personne, comme les autres clients : son client peut alors afficher le message comme vu. Jamais dans les salons.</value>
   </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Votre image</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Choisir une image…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Retirer l’image</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Utiliser un portrait EVE</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Envoyée dès que vous la choisissez, carrée et réduite. Votre image ne change que si vous le faites ici.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Connectez-vous pour changer votre image.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Image définie.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Image retirée.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>Ce fichier n’est pas une image que cette application sait lire (PNG, JPEG, GIF, WebP ou BMP, moins de 20 Mo).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>Le portrait n’a pas pu être récupéré sur le serveur d’images d’EVE. Réessayez dans un instant.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>Ce serveur n’accepte que des images plus petites.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>Vous n’êtes pas enregistré sur ce serveur : il ne garde votre image que jusqu’à la déconnexion.</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Le salon a refusé : vous n’avez pas le droit de faire cela ici.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Le salon a refusé ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Le salon a refusé, sans dire pourquoi.</value>
+  </data>
 </root>

@@ -20,4 +20,26 @@ public sealed record AlarmMatch(string Key, string Summary)
     /// banked silently so the next evaluation does not announce them again as changes.
     /// </summary>
     public bool Silent { get; init; }
+
+    /// <summary>
+    /// Too close to wait: said before everything else in its firing, and never held back by a wake
+    /// cooldown shared between alarms. A kill within a jump of a watched character is one. A check
+    /// sets it; it changes nothing about whether the match is news.
+    /// </summary>
+    public bool Urgent { get; init; }
+
+    /// <summary>
+    /// Shown, never woken for: the firing records it and the Alert row shows it, but no sound, voice,
+    /// dialog or word to the agent is raised for it. A check sets it for news too old to wake anyone
+    /// for (seen long ago, only now caught) or too far out to; the service sets it too, for a match
+    /// another alarm of the same <see cref="IAlarmCondition.WakeGroup"/> already woke someone for.
+    /// </summary>
+    public bool Quiet { get; init; }
+
+    /// <summary>
+    /// How loud the Sound action plays for this match, 0 to 1, as a share of the action's own volume:
+    /// a check that knows how near a thing is plays the far ones quieter. A firing plays at its
+    /// loudest match's.
+    /// </summary>
+    public double Loudness { get; init; } = 1;
 }

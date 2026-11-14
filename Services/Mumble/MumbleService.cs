@@ -421,10 +421,35 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
                 _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, user.TextureHash, () => Task.FromResult<byte[]?>(bytes));
             }
             else if (user.HasTextureToAsk) client.AskTexture(user);
+            else if (user.TextureCleared)
+            {
+                user.TextureCleared = false;
+                List<string> persons = [UserKey(user), "name:" + user.Name];
+                if (user.Session == me) persons.Add("me");
+                _ = avatars.NoteAsync(AvatarServiceName, session.Server.Id, persons, "", () => Task.FromResult<byte[]?>(null));
+            }
         }
     }
 
     public static string UserKey(MumbleUser user) => user.Hash.Length > 0 ? user.Hash : $"name:{user.Name}";
+
+    /// <summary>
+    /// Sets this person's picture on a server, or takes it away with null. ⚠️ Never done unasked: a server can set one
+    /// itself (an EVE login's portrait), and that stays unless the person changes it here.
+    /// <para>A server keeps it between visits only for someone registered there; for anyone else it lasts the connection.</para>
+    /// </summary>
+    /// <param name="jpeg">A picture already made ready (<see cref="EveConsole.Services.OwnPicture.Prepare"/>), or null to take it away.</param>
+    /// <summary>The EVE characters added to this app, to offer their portraits as a picture.</summary>
+    public Task<List<(long Id, string Name)>> EveCharactersAsync(CancellationToken ct = default) => OwnPicture.EveCharactersAsync(dbFactory, ct);
+
+    public async Task SetPictureAsync(MumbleSession session, byte[]? jpeg, CancellationToken ct = default)
+    {
+        if (session.Client is not { Me: not null } client) throw new MumbleException(MumbleFailure.Network, Localization.JabberText.PictureNotConnected);
+        if (jpeg is not null && client.ImageMessageLength > 0 && jpeg.Length > client.ImageMessageLength)
+            throw new InvalidOperationException(Localization.JabberText.PictureTooBigForServer);
+        await client.SetTextureAsync(jpeg ?? [], ct);
+        // What the server says back about this person shows it, as for anyone: see NoteTextures.
+    }
 
     /// <summary>Loads the servers and connects the ones set to connect on their own.</summary>
     public async Task StartAsync(CancellationToken ct = default)

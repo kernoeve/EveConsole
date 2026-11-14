@@ -4129,4 +4129,7 @@ La aplicación se reiniciará.</value>
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>¿Quitar el conector {0}? Su clave se anula, y se olvidan las corporaciones, alianzas y funciones elegidas para él, así como los personajes vinculados que aportó. No se puede deshacer.</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Se ha pedido al PC que hace el trabajo en segundo plano que vuelva a analizar el historial: solo ese PC analiza la inteligencia. Su progreso aparece en Procesos en segundo plano.</value>
+  </data>
 </root>

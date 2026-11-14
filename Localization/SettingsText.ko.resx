@@ -4126,4 +4126,7 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>커넥터 {0}을(를) 제거할까요? 키가 종료되고, 이 커넥터에 선택한 코퍼레이션, 얼라이언스, 기능과 이 커넥터에서 받은 연결된 캐릭터가 삭제됩니다. 되돌릴 수 없습니다.</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>백그라운드 작업을 맡은 PC에 기록 재분석을 요청했습니다. 정보 분석은 그 PC만 합니다. 진행 상황은 백그라운드 프로세스에 표시됩니다.</value>
+  </data>
 </root>

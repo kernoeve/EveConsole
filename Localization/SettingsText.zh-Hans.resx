@@ -4126,4 +4126,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   <data name="ConnectorRemoveConfirm" xml:space="preserve">
     <value>要移除连接器 {0} 吗？它的密钥将被终止，为它选择的军团、联盟和功能，以及它提供的关联角色都会被清除。此操作无法撤销。</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>已请求执行后台工作的电脑重新解析历史记录：只有那台电脑解析情报。进度显示在“后台进程”中。</value>
+  </data>
 </root>

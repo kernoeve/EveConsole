@@ -27,6 +27,7 @@ public partial class MessagesView : UserControl
 
         DraftBox.AddHandler(KeyDownEvent, OnDraftKey, RoutingStrategies.Tunnel);
         EmoteBox.Target = DraftBox;
+        ChatPaste.Hook(DraftBox, () => _watching is { CanAttach: true, IsSendingFile: false }, (content, name, size) => _watching!.SendFileAsync(content, name, size));
         FindBox.AddHandler(KeyDownEvent, OnFindKey, RoutingStrategies.Tunnel);
 
         DataContextChanged += (_, _) => Adopt(DataContext as MessagesViewModel);
@@ -64,6 +65,7 @@ public partial class MessagesView : UserControl
             _window.Activated   += OnWindowActivated;
             _window.Deactivated += OnWindowDeactivated;
         }
+        ChatPictureVm.AnyShown += OnPictureShown;
         Arrive();
     }
 
@@ -76,9 +78,30 @@ public partial class MessagesView : UserControl
             _window.Activated   -= OnWindowActivated;
             _window.Deactivated -= OnWindowDeactivated;
         }
+        ChatPictureVm.AnyShown -= OnPictureShown;
         _window = null;
         if (_vm is not null) _vm.IsBeingLookedAt = false;
     }
+
+    // ── Pictures in messages ──────────────────────────────────────────────────
+
+    private void OnShowPicture(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ChatPictureVm picture }) picture.Show();
+    }
+
+    private void OnOpenPicture(object? sender, RoutedEventArgs e)
+    {
+        if (sender is Control { DataContext: ChatPictureVm picture }) ExternalLinks.Open(picture.Url);
+    }
+
+    /// <summary>A picture arriving grows its line: a chat read at its end stays there, one scrolled back is left alone.</summary>
+    private void OnPictureShown()
+    {
+        if (LineList.Scroll is { } scroll && scroll.Extent.Height - scroll.Offset.Y - scroll.Viewport.Height < ChatPictureVm.MostHeight + 120)
+            ScrollToEnd();
+    }
+
 
     private void Arrive()
     {
