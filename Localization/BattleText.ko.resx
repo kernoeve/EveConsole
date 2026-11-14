@@ -11,7 +11,7 @@
     <value>알 수 없는 함선</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>얼라이언스를 클릭하면 코퍼레이션을 표시합니다. 더블 클릭하면 세부 정보를 엽니다.</value>
+    <value>얼라이언스를 클릭하면 코퍼레이션을 표시합니다. 더블 클릭하면 해당 페이지를 엽니다.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>킬 열기</value>

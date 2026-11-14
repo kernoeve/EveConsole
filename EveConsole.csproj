@@ -200,7 +200,7 @@
   <!-- Layout templates, beside the executable in every build and release. The app copies each into
        the person's own "Layout Templates" folder once (see Services/ClientLayouts/LayoutTemplates.cs). -->
   <ItemGroup>
-    <None Update="LayoutTemplates\*.json">
+    <None Update="LayoutTemplates\*.json;LayoutTemplates\superseded.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
     </None>

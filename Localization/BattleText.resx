@@ -13,7 +13,7 @@
     <comment>The killmail does not say what this pilot was flying.</comment>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>Click an alliance to list its corporations. Double-click for details.</value>
+    <value>Click an alliance to list its corporations. Double-click to open its page.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>Open the kill</value>

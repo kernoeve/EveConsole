@@ -92,16 +92,10 @@
     <value>情报警报</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>所有情报警报共用。只有不超过此时间的情报才会唤醒（声音、语音、对话框）并突出显示面板行；更早的情报仍会显示。一个警报唤醒后，除非情报紧急，其他警报会等待这段时间。</value>
+    <value>所有情报警报共用。只有不超过此时间的情报才会触发警报并突出显示面板行；已经存在的不会播报，更早的情报仍会显示。</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>只为不早于此时间的情报唤醒</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>两次唤醒之间的间隔</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>秒（0 表示不等待）</value>
+    <value>仅限不早于此时间的情报</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>击杀流警告</value>

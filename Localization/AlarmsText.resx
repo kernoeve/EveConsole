@@ -1313,8 +1313,16 @@
     <comment>Alarm editor, Intel report check, under Systems (shown when Watch around is Systems). {0} and {1} are two systems' names, filled in as the game names them in the interface language (Jita, Amarr). "Jumps" is the setting below it (IntelJumpsLabel).</comment>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Jumps</value>
-    <comment>Alarm editor, Intel report check: label of the number of gate jumps to watch around each character or system.</comment>
+    <value>Thru</value>
+    <comment>Alarm editor, intel alarm: label of the farthest number of gate jumps to watch around each character or system, beside IntelJumpsFromLabel: Jumps from [0] Thru [5].</comment>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Jumps from</value>
+    <comment>Alarm editor, intel alarm: label of the nearest number of gate jumps watched, with IntelJumpsLabel (Thru) beside it: Jumps from [0] Thru [5]. Nearer systems are left out.</comment>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Optional. Nearer systems are left out, priority systems and the route ahead too. Two alarms can split a range: 0 thru 2 on one and 3 thru 5 on the other never both fire.</value>
+    <comment>Alarm editor, intel alarm: the description under Jumps from (IntelJumpsFromLabel). 'Jumps from' must match IntelJumpsFromLabel; 'thru' matches IntelJumpsLabel.</comment>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>How many jumps out from each character or system to watch, through stargates and Thera's and Turnur's open wormholes. 0 means their own system only. Capped at 15 — past that it stops being a neighbourhood.</value>
@@ -2681,9 +2689,9 @@
     <value>Kills reported</value>
     <comment>Title of an intel alarm's alert or dialog when what fired is several kills and nothing else; the systems follow after a dash.</comment>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>Only news wakes you (a sound, speech, the agent, a dialog): something seen, or come into range, in the last two minutes (Settings → Intel). Older news is only recorded as an Alert. Intel alarms take turns: after one wakes you the others wait a few seconds unless the news is urgent, and a sighting two of them catch is said once.</value>
-    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelChangedNote. To wake = to sound, speak, have the agent speak or show a dialog. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert). 'Settings → Intel' names the place in the Settings window.</comment>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Only news fires: something seen, or come into range, in the last two minutes (Settings → Intel); what was already there is not said. Every action of the alarm runs for everything it fires on. For something different nearer in, add another alarm with its own jump range.</value>
+    <comment>Alarm editor, under the Check pick list when Intel report is picked; follows CheckIntelRouteNote. 'Settings → Intel' names the place in the Settings window.</comment>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>Where to watch</value>
@@ -2692,18 +2700,6 @@
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>What fires</value>
     <comment>Alarm editor, intel alarm: heading above the fields that say what kind of report fires the alarm.</comment>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>What wakes you</value>
-    <comment>Alarm editor, intel alarm: heading above the fields that say what wakes the capsuleer (sound, speech, a dialog) rather than only being recorded.</comment>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>Wake within</value>
-    <comment>Alarm editor, intel alarm: label of a tick box and a number of jumps; only news this near wakes the capsuleer. Followed by the number and IntelWakeJumpsSuffix.</comment>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>Optional. Only news this many jumps out or nearer wakes you; farther out it is only recorded as an Alert. Kills and urgent news always wake. Unticked, the whole range wakes.</value>
-    <comment>Alarm editor, intel alarm: the description under Wake within. 'Alert' is the action that writes a row to the alerts list (CommonText.AlarmActionAlert).</comment>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>jumps</value>
@@ -2742,7 +2738,7 @@
     <comment>Alarm editor, intel alarm: a switch, on by default; the alarm follows the Intel tool's watch list (IntelText.TabWatch).</comment>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>What is on Always alert fires within the watch list reach, whatever the range, the Hostile choice or the minimum, is said first and is never held back; what is on Ignore never fires.</value>
+    <value>What is on Always alert fires within the watch list reach, whatever the range, the Hostile choice or the minimum, and is said first; what is on Ignore never fires.</value>
     <comment>Alarm editor, intel alarm: the description under Use the watch list. 'Always alert' and 'Ignore' must match IntelText.WatchModeAlways and IntelText.WatchModeIgnore; 'Hostile' must match IntelHostileFromLabel.</comment>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
@@ -2753,20 +2749,12 @@
     <value>How many jumps out the watch list's Always alert entries fire, when that is farther than the range. At most 15.</value>
     <comment>Alarm editor, intel alarm: the description under Watch list reach. 'Always alert' must match IntelText.WatchModeAlways.</comment>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>Approaching pilots still wake</value>
-    <comment>Alarm editor, intel alarm: a switch, on by default; a pilot coming nearer wakes the capsuleer even beyond Wake within (IntelWakeJumpsLabel).</comment>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>With Wake within set: a pilot coming nearer (seen closer than before, or reported heading toward your character) wakes you anywhere in the range.</value>
-    <comment>Alarm editor, intel alarm: the description under Approaching pilots still wake. 'Wake within' must match IntelWakeJumpsLabel.</comment>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>Priority systems</value>
     <comment>Alarm editor, intel alarm: label of a list of solar systems that are always watched and always wake.</comment>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>Optional. Systems always watched, wherever your characters are. What is seen there always wakes you, is never held back by another intel alarm, and is said first.</value>
+    <value>Optional. Systems always watched, wherever your characters are, but not nearer than Jumps from. What is seen there is said first.</value>
     <comment>Alarm editor, intel alarm: the description under Priority systems.</comment>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
@@ -2814,8 +2802,8 @@
     <comment>Alarm editor, intel alarm: a switch, on by default. A gate camp = hostiles waiting at a stargate to kill whoever comes through, here worked out from kills close together on one gate.</comment>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>Fire for a gate camp worked out from kills on a gate, near a watched character or on a route ahead. Said once per camp, per character and per route, so a new route through a known camp is said again. One on a route ahead within the wake range (5 jumps when none is set) is urgent.</value>
-    <comment>Alarm editor, intel alarm: the description under Gate camps. &apos;Wake range&apos; is the Wake within field (IntelWakeJumpsLabel).</comment>
+    <value>Fire for a gate camp worked out from kills on a gate, near a watched character or on a route ahead. Said once per camp, per character and per route, so a new route through a known camp is said again. One on a route ahead within 5 jumps is urgent: said first.</value>
+    <comment>Alarm editor, intel alarm: the description under Gate camps.</comment>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>Gate camp in {0} on the {1} gate.</value>

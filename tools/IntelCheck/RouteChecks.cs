@@ -202,8 +202,7 @@ namespace EveConsole.Tools.IntelCheck
                 behindNear?.Key ?? "none");
 
             var far = Camp(S7, S6, 9, 6, FarCorp, P6);
-            c.Check("camp: four jumps ahead is urgent with no wake range", On(far) is { Urgent: true });
-            c.Check("camp: beyond the wake range ahead it is not", On(far, o: options with { WakeJumps = 3 }) is { Urgent: false });
+            c.Check("camp: four jumps ahead is urgent (within five)", On(far) is { Urgent: true });
 
             // The step the character is on: a camp on the gate the route leaves by is on the route; on another gate, near.
             var outbound = On(Camp(S3, S4, 9, 6, FarCorp, P6));
@@ -252,30 +251,30 @@ namespace EveConsole.Tools.IntelCheck
             var bravo = KeyOf(RouteZone(null, range: 3, who: B, name: "Pilot Bravo"));
             c.Check("camp: near another character, a key of its own", bravo is not null && bravo != near, bravo ?? "none");
 
-            // Waking: the camp's last kill is six minutes old, past the fresh window. Seen first near, it only shows; a new
-            // route through it is news from when this alarm caught it, and wakes.
+            // News: the camp's last kill is six minutes old, past the fresh window. Seen first near, it is banked unsaid; a
+            // new route through it is news from when this alarm caught it, and fires.
             var memory = new IntelWatchMemory();
             IReadOnlyList<AlarmMatch> Look(IntelWatchedSystems zone, DateTimeOffset at)
             {
                 var matches = IntelCondition.Match(snap, zone, options, at);
                 var look = IntelCondition.Observe(memory, 7, zone, options, matches, at);
-                return IntelCondition.Waking(matches, zone, options, at, Fresh, look);
+                return IntelCondition.News(matches, zone, options, at, Fresh, look);
             }
             var before = CampMatch(Look(RouteZone(null, range: 3), Now));
-            c.Check("camp: (setup) a camp six minutes old, first seen near, only shows", before is { Quiet: true }, before?.Key ?? "none");
+            c.Check("camp: (setup) a camp six minutes old, first seen near, is banked unsaid", before is { Silent: true }, before?.Key ?? "none");
             var routeZone = RouteZone(Now.AddSeconds(10), range: 3);
             var routed = CampMatch(Look(routeZone, Now.AddSeconds(15)));
-            c.Check("camp: a new route through it wakes", routed is { Quiet: false }, routed?.Key ?? "none");
+            c.Check("camp: a new route through it fires", routed is { Silent: false }, routed?.Key ?? "none");
             var still = CampMatch(Look(routeZone, Now.AddSeconds(30)));
             c.Check("camp: and the same route a pass later keeps its key", still?.Key == routed?.Key);
             var next = CampMatch(Look(RouteZone(Now.AddMinutes(4), range: 3), Now.AddMinutes(4).AddSeconds(5)));
-            c.Check("camp: another new route through it wakes again", next is { Quiet: false } && next.Key != routed?.Key, next?.Key ?? "none");
+            c.Check("camp: another new route through it fires again", next is { Silent: false } && next.Key != routed?.Key, next?.Key ?? "none");
 
-            // ⚠️ Mutation: judged without when the alarm caught the key (a camp treated as a sighting), the new route stays quiet.
+            // ⚠️ Mutation: judged without when the alarm caught the key (a camp treated as a sighting), the new route stays unsaid.
             var matchesNow = IntelCondition.Match(snap, routeZone, options, Now.AddSeconds(15));
-            var blind = CampMatch(IntelCondition.Waking(matchesNow, routeZone, options, Now.AddSeconds(15), Fresh,
+            var blind = CampMatch(IntelCondition.News(matchesNow, routeZone, options, Now.AddSeconds(15), Fresh,
                 IntelWatchMemory.Look.AllAlong));
-            c.Check("camp: (mutation) without the catch time a new route through a camp would only show", blind is { Quiet: true });
+            c.Check("camp: (mutation) without the catch time a new route through a camp would be unsaid", blind is { Silent: true });
         }
 
         // ── What does not fire ───────────────────────────────────────────────────────────────────────────────

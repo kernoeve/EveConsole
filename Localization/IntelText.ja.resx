@@ -92,16 +92,10 @@
     <value>インテルアラーム</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>すべてのインテルアラームで共通です。これより新しい情報だけが誰かを起こし（音声、読み上げ、ダイアログ）、パネルの行を強調します。古い情報も表示はされます。あるアラームが起こした後、緊急でない限り、他のアラームはこの時間待ちます。</value>
+    <value>すべてのインテルアラームで共通です。これより新しい情報だけがアラームを発動し、パネルの行を強調します。すでにあったものは読み上げず、古い情報も表示はされます。</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>これより新しい情報でのみ起こす</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>起こす間隔</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>秒（0 で待たない）</value>
+    <value>これより新しい情報のみ</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>キルフィードの警告</value>

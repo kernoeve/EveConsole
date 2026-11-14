@@ -45,7 +45,7 @@
     <comment>{0} = a server's name.</comment>
   </data>
   <data name="CannotSendOffline" xml:space="preserve">
-    <value>{0} ist offline. Mumble kann nur an verbundene Personen zustellen.</value>
+    <value>{0} ist offline. Nachrichten können nur an verbundene Personen zugestellt werden.</value>
     <comment>{0} = a person's name.</comment>
   </data>
   <data name="CannotSendLeftRoom" xml:space="preserve">

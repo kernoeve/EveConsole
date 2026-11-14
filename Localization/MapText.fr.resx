@@ -2460,7 +2460,7 @@ Pas de système capitale, donc pas de zone</value>
     <value>Rats ♦</value>
   </data>
   <data name="TipNpcDiamondsToggle" xml:space="preserve">
-    <value>Marque les systèmes où des PNJ pirates ♦ ont tué des joueurs ces 5 derniers jours. La marque indique ce qui a été vu, pas ce qui se cache derrière : un Sotiyo, une forteresse ou un groupe itinérant.</value>
+    <value>Marque les systèmes où des PNJ pirates ♦ ont tué des joueurs ces 5 derniers jours. La marque indique ce qui a été vu, pas ce qui se cache derrière : une forteresse ou un groupe itinérant.</value>
   </data>
   <data name="NpcCapitalsToggle" xml:space="preserve">
     <value>Capitaux PNJ</value>
@@ -2520,7 +2520,7 @@ Pas de système capitale, donc pas de zone</value>
     <value>{0} : {1}, {2}</value>
   </data>
   <data name="LiveMarkDiamonds" xml:space="preserve">
-    <value>Des PNJ pirates ♦ ont tué des joueurs ici ces 5 derniers jours ; le nombre est celui des kills depuis le début de la série (aucun creux de plus de 5 jours). Ce peut être un Sotiyo, une forteresse ou un groupe itinérant. Survolez pour la faction, les kills et la période.</value>
+    <value>Des PNJ pirates ♦ ont tué des joueurs ici ces 5 derniers jours ; le nombre est celui des kills depuis le début de la série (aucun creux de plus de 5 jours). Ce peut être une forteresse ou un groupe itinérant. Survolez pour la faction, les kills et la période.</value>
   </data>
   <data name="LiveMarkCapitals" xml:space="preserve">
     <value>Titans (T), superporte-vaisseaux (S) ou dreadnoughts (D) PNJ sur un killmail ici depuis la maintenance (11:00 EVE). Survolez pour la faction, la coque, les kills et le dernier de chacun.</value>

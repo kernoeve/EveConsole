@@ -92,16 +92,10 @@
     <value>Alarmes d&apos;intel</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>Commun à toutes les alarmes d&apos;intel. Seules les informations aussi récentes réveillent quelqu&apos;un (un son, la voix, une fenêtre) et font ressortir une ligne de panneau ; les plus anciennes restent affichées. Après le réveil par une alarme, les autres attendent ce délai, sauf urgence.</value>
+    <value>Commun à toutes les alarmes d'intel. Seules les informations aussi récentes déclenchent une alarme et font ressortir une ligne de panneau ; ce qui était déjà là n'est pas annoncé, et les plus anciennes restent affichées.</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>Ne réveiller que pour les informations de moins de</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>Attente entre deux réveils</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>secondes (0 pour aucune attente)</value>
+    <value>Seulement les informations de moins de</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>Avertissement du flux de kills</value>

@@ -11,7 +11,7 @@
     <value>Неизвестный корабль</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>Щёлкните альянс, чтобы показать его корпорации. Двойной щелчок — сведения.</value>
+    <value>Щёлкните альянс, чтобы показать его корпорации. Двойной щелчок открывает его страницу.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>Открыть уничтожение</value>

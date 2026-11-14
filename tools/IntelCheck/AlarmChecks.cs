@@ -112,10 +112,9 @@ namespace EveConsole.Tools.IntelCheck
                 Kills(c);
                 Filters(c);
                 Config(c);
-                Waking(c);
+                News(c);
                 Memory(c);
                 MoveIntoRange(c);
-                Gate(c);
                 WhoAndWhere(c);
                 Routes(c);
             }
@@ -400,6 +399,23 @@ namespace EveConsole.Tools.IntelCheck
             zone = await IntelCondition.WatchedSystemsAsync(undocked.RootElement, new SystemGraph(factory), factory, distances, own);
             c.Check("watched: around undocked characters, the docked one is not watched (from the snapshot's positions)",
                 zone.Systems.SetEquals([S1]), string.Join(",", zone.Systems.Select(s => s % 1000)));
+
+            // Jumps from: nearer systems left out, so two alarms split a range and never both fire. Alpha is in S1, Bravo
+            // in S3 (both 0), S2 a jump from either, S5 two through the hole.
+            using var outer = JsonDocument.Parse("""{"around":"Characters","jumps":2,"jumps_from":1}""");
+            zone = await IntelCondition.WatchedSystemsAsync(outer.RootElement, new SystemGraph(factory), factory, distances, own);
+            c.Check("watched: jumps from 1 thru 2 leaves out the characters' own systems",
+                zone.Systems.SetEquals([S2, S5]), string.Join(",", zone.Systems.Select(s => s % 1000)));
+            using var inner = JsonDocument.Parse("""{"around":"Characters","jumps":0}""");
+            var innerZone = await IntelCondition.WatchedSystemsAsync(inner.RootElement, new SystemGraph(factory), factory, distances, own);
+            c.Check("watched: and 0 thru 0 is exactly those: the two alarms never share a system",
+                innerZone.Systems.SetEquals([S1, S3]) && !innerZone.Systems.Overlaps(zone.Systems),
+                string.Join(",", innerZone.Systems.Select(s => s % 1000)));
+            using var priority = JsonDocument.Parse("""{"around":"Characters","jumps":2,"jumps_from":2}""");
+            zone = await IntelCondition.WatchedSystemsAsync(priority.RootElement, new SystemGraph(factory), factory, distances, own);
+            c.Check("watched: 2 thru 2 is the ring two jumps out, and the watch list's reach leaves out the nearer too",
+                zone.Systems.SetEquals([S5]) && !zone.WatchReach.Contains(S1) && !zone.WatchReach.Contains(S2),
+                string.Join(",", zone.Systems.Select(s => s % 1000)) + " / reach " + string.Join(",", zone.WatchReach.Select(s => s % 1000)));
         }
 
         /// <summary>

@@ -2460,7 +2460,7 @@ Kein Hauptstadtsystem, daher keine Zone</value>
     <value>♦-Ratten</value>
   </data>
   <data name="TipNpcDiamondsToggle" xml:space="preserve">
-    <value>Systeme markieren, in denen ♦-Piraten-NPCs in den letzten 5 Tagen Spieler getötet haben. Die Markierung zeigt, was gesehen wurde, nicht was dahinter steckt: ein Sotiyo, eine Festung oder eine umherziehende Gruppe.</value>
+    <value>Systeme markieren, in denen ♦-Piraten-NPCs in den letzten 5 Tagen Spieler getötet haben. Die Markierung zeigt, was gesehen wurde, nicht was dahinter steckt: eine Festung oder eine umherziehende Gruppe.</value>
   </data>
   <data name="NpcCapitalsToggle" xml:space="preserve">
     <value>NPC-Großkampfschiffe</value>
@@ -2520,7 +2520,7 @@ Kein Hauptstadtsystem, daher keine Zone</value>
     <value>{0}: {1}, {2}</value>
   </data>
   <data name="LiveMarkDiamonds" xml:space="preserve">
-    <value>♦-Piraten-NPCs haben hier in den letzten 5 Tagen Spieler getötet; die Zahl sind die Abschüsse seit Beginn der Serie (keine Pause über 5 Tage). Es kann ein Sotiyo, eine Festung oder eine umherziehende Gruppe sein. Darüberfahren für Fraktion, Abschüsse und Zeitraum.</value>
+    <value>♦-Piraten-NPCs haben hier in den letzten 5 Tagen Spieler getötet; die Zahl sind die Abschüsse seit Beginn der Serie (keine Pause über 5 Tage). Es kann eine Festung oder eine umherziehende Gruppe sein. Darüberfahren für Fraktion, Abschüsse und Zeitraum.</value>
   </data>
   <data name="LiveMarkCapitals" xml:space="preserve">
     <value>NPC-Titanen (T), -Superträger (S) oder -Dreadnoughts (D) auf einer Killmail hier seit der Downtime (11:00 EVE). Darüberfahren für Fraktion, Rumpf, Abschüsse und letzten Abschuss.</value>

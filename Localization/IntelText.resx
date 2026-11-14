@@ -121,20 +121,12 @@
     <comment>Settings → Intel section heading: numbers shared by every intel alarm.</comment>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>Shared by every intel alarm. Only news this new wakes anyone (a sound, speech, a dialog) and lights up a panel row; older news is still shown. After one alarm wakes, the others wait this long, unless the news is urgent.</value>
-    <comment>Settings → Intel, under the intel alarms heading. To wake = to sound, speak or show a dialog.</comment>
+    <value>Shared by every intel alarm. Only news this new fires an alarm and lights up a panel row; what was already there is not said, and older news is still shown.</value>
+    <comment>Settings → Intel, under the intel alarms heading.</comment>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>Wake only for news newer than</value>
+    <value>Only news newer than</value>
     <comment>Settings → Intel number box label, followed by a number of seconds.</comment>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>Wait between wakes</value>
-    <comment>Settings → Intel number box label.</comment>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>seconds (0 for no wait)</value>
-    <comment>Unit and hint after the wait-between-wakes number box.</comment>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>Kill feed warning</value>

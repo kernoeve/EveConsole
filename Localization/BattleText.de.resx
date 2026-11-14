@@ -11,7 +11,7 @@
     <value>Unbekanntes Schiff</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>Klicken Sie auf eine Allianz, um ihre Corporations anzuzeigen. Doppelklick für Details.</value>
+    <value>Klicken Sie auf eine Allianz, um ihre Corporations anzuzeigen. Doppelklick öffnet ihre Seite.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>Abschuss öffnen</value>

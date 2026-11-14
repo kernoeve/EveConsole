@@ -45,7 +45,7 @@
     <comment>{0} = a server's name.</comment>
   </data>
   <data name="CannotSendOffline" xml:space="preserve">
-    <value>{0} не в сети. Mumble может доставлять только тем, кто подключён.</value>
+    <value>{0} не в сети. Сообщение можно доставить только тому, кто подключён.</value>
     <comment>{0} = a person's name.</comment>
   </data>
   <data name="CannotSendLeftRoom" xml:space="preserve">

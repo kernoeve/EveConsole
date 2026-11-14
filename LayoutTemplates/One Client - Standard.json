@@ -229,8 +229,8 @@
               1,
               1.1725053078556265,
               1.0737791932059446,
-              0.8842887473460728,
-              0.8694267515923562
+              0.8861464968152868,
+              0.8675690021231421
             ],
             "Rows": [
               1
@@ -350,7 +350,7 @@
                   "Name": "",
                   "Inside": null,
                   "Look": null,
-                  "Control": "Killmails",
+                  "Control": "Intel",
                   "Options": null
                 },
                 "Look": {
@@ -405,6 +405,8 @@
                     "MumbleServerId": null,
                     "MumbleMode": "List",
                     "WorklistMode": null,
+                    "IntelMode": null,
+                    "IntelMaxJumps": null,
                     "MenuTarget": null,
                     "ContainerTabs": null,
                     "ContainerSplit": null,
@@ -522,6 +524,8 @@
                         "MumbleServerId": null,
                         "MumbleMode": null,
                         "WorklistMode": null,
+                        "IntelMode": null,
+                        "IntelMaxJumps": null,
                         "MenuTarget": null,
                         "ContainerTabs": true,
                         "ContainerSplit": true,
@@ -572,6 +576,8 @@
                         "MumbleServerId": null,
                         "MumbleMode": null,
                         "WorklistMode": null,
+                        "IntelMode": null,
+                        "IntelMaxJumps": null,
                         "MenuTarget": null,
                         "ContainerTabs": true,
                         "ContainerSplit": true,

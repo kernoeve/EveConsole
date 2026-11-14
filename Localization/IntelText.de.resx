@@ -92,16 +92,10 @@
     <value>Intel-Alarme</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>Gilt für alle Intel-Alarme. Nur so neue Meldungen wecken jemanden (ein Ton, Sprache, ein Dialog) und heben eine Panel-Zeile hervor; ältere Meldungen werden weiter angezeigt. Nachdem ein Alarm geweckt hat, warten die anderen so lange, außer die Meldung ist dringend.</value>
+    <value>Gilt für alle Intel-Alarme. Nur so neue Meldungen lösen einen Alarm aus und heben eine Panel-Zeile hervor; was schon da war, wird nicht angesagt, und ältere Meldungen werden weiter angezeigt.</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>Nur wecken für Meldungen jünger als</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>Wartezeit zwischen Weckrufen</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>Sekunden (0 für keine Wartezeit)</value>
+    <value>Nur Meldungen jünger als</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>Warnung zum Kill-Feed</value>

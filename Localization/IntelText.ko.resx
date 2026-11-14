@@ -92,16 +92,10 @@
     <value>인텔 알람</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>모든 인텔 알람이 공유합니다. 이보다 새로운 정보만 누군가를 깨우고(소리, 음성, 대화 상자) 패널 줄을 강조합니다. 오래된 정보도 계속 표시됩니다. 한 알람이 깨운 뒤에는 긴급하지 않은 한 다른 알람이 이 시간만큼 기다립니다.</value>
+    <value>모든 인텔 알람이 공유합니다. 이보다 새로운 정보만 알람을 울리고 패널 줄을 강조합니다. 이미 있던 것은 안내하지 않으며, 오래된 정보도 계속 표시됩니다.</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>이보다 새로운 정보에만 깨우기</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>깨우기 사이 대기 시간</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>초(0이면 대기 없음)</value>
+    <value>이보다 새로운 정보만</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>킬 피드 경고</value>

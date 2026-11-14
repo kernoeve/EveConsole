@@ -980,7 +980,13 @@
     <value>監視するシステムです（例：{0}、{1}）。1つずつ追加します。ジャンプ数が0の場合は、これらのシステムのみを監視します。</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>ジャンプ数</value>
+    <value>まで</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>ジャンプ数：から</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>任意。これより近いシステムは除外されます（優先システムや前方ルートも含む）。2つのアラームで範囲を分けられます。一方を0〜2、もう一方を3〜5にすれば、両方が発動することはありません。</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>各キャラクターまたはシステムから、スターゲートとThera・Turnurの開いているワームホールを通って何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
@@ -2023,23 +2029,14 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>複数のキル発生</value>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>起こすのは新しい情報だけです（音、読み上げ、エージェント、ダイアログ）。直近2分以内に目撃された、または範囲に入ったものが対象です（設定 → インテル）。それより古い情報はアラートとして記録されるだけです。インテルアラームは順番に鳴ります。1つが起こした後、緊急でない限り他のアラームは数秒待ち、2つのアラームが捉えた同じ目撃は1回だけ読み上げます。</value>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>発動するのは新しい情報だけです。直近2分以内に目撃された、または範囲に入ったものが対象です（設定 → インテル）。すでにあったものは読み上げません。アラームのすべてのアクションは、発動したすべてに対して実行されます。近い範囲で別の動作をさせたいときは、独自のジャンプ範囲を持つアラームを追加してください。</value>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>監視する場所</value>
   </data>
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>発動する内容</value>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>起こす条件</value>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>起こす範囲</value>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>任意。このジャンプ数以内の情報だけが起こします。それより遠いものはアラートとして記録されるだけです。キルと緊急の情報は常に起こします。チェックしない場合は範囲全体で起こします。</value>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>ジャンプ</value>
@@ -2069,7 +2066,7 @@
     <value>ウォッチリストを使う</value>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>「常に警告」にあるものは、範囲・敵対の選択・最小人数に関係なくウォッチリストの範囲内で発動し、最初に読み上げられ、待たされることはありません。「無視」にあるものは発動しません。</value>
+    <value>「常に警告」にあるものは、範囲・敵対の選択・最小人数に関係なくウォッチリストの範囲内で発動し、最初に読み上げられます。「無視」にあるものは発動しません。</value>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
     <value>ウォッチリストの範囲</value>
@@ -2077,17 +2074,11 @@
   <data name="IntelWatchReachNote" xml:space="preserve">
     <value>「常に警告」の項目が発動する距離（ジャンプ数）。範囲より遠い場合に使われます。最大 15。</value>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>接近するパイロットは常に起こす</value>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>「起こす範囲」を設定しているとき、近づいてくるパイロット（前より近くで見られた、またはあなたのキャラクターに向かっていると報告された）は範囲内のどこでもあなたを起こします。</value>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>優先システム</value>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>任意。キャラクターがどこにいても常に監視するシステム。そこで見られたものは常にあなたを起こし、他のインテルアラームに待たされず、最初に読み上げられます。</value>
+    <value>任意。キャラクターがどこにいても常に監視するシステム（ただし「ジャンプ数：から」より近いものは除く）。そこで見られたものは最初に読み上げられます。</value>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
     <value>優先システム：{0}</value>
@@ -2123,7 +2114,7 @@
     <value>ゲートキャンプ</value>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>ゲートでのキルから割り出したゲートキャンプが、監視中のキャラクターの近くまたは前方のルート上にあると発動します。キャンプごと・キャラクターごと・ルートごとに一度読み上げるため、既知のキャンプを通る新しいルートでは再び読み上げます。起こす範囲（未設定なら5ジャンプ）内の前方ルート上のキャンプは緊急です。</value>
+    <value>ゲートでのキルから割り出したゲートキャンプが、監視中のキャラクターの近くまたは前方のルート上にあると発動します。キャンプごと・キャラクターごと・ルートごとに一度読み上げるため、既知のキャンプを通る新しいルートでは再び読み上げます。前方ルート上の5ジャンプ以内のキャンプは緊急で、最初に読み上げられます。</value>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>{0}の{1}ゲートでゲートキャンプ。</value>

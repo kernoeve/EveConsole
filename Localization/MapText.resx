@@ -3276,7 +3276,7 @@ No capital system, so no zone</value>
     <comment>Universe Map toolbar toggle: marks systems where ♦ pirate NPCs have killed players.</comment>
   </data>
   <data name="TipNpcDiamondsToggle" xml:space="preserve">
-    <value>Mark systems where ♦ pirate NPCs have killed players in the last 5 days. The mark says what was seen, not what is behind it: a Sotiyo, a Stronghold or a roaming group.</value>
+    <value>Mark systems where ♦ pirate NPCs have killed players in the last 5 days. The mark says what was seen, not what is behind it: a Stronghold or a roaming group.</value>
     <comment>Tooltip of NpcDiamondsToggle.</comment>
   </data>
   <data name="NpcCapitalsToggle" xml:space="preserve">
@@ -3356,7 +3356,7 @@ No capital system, so no zone</value>
     <comment>Universe Map, region-level NPC capital hover line. {0} the system, {1} the hull, {2} how long ago it last killed.</comment>
   </data>
   <data name="LiveMarkDiamonds" xml:space="preserve">
-    <value>♦ pirate NPCs have killed players here in the last 5 days; the number is the kills since the run began (no quiet spell over 5 days). It may be a Sotiyo, a Stronghold or a roaming group. Hover for faction, kills and period.</value>
+    <value>♦ pirate NPCs have killed players here in the last 5 days; the number is the kills since the run began (no quiet spell over 5 days). It may be a Stronghold or a roaming group. Hover for faction, kills and period.</value>
     <comment>Universe Map legend, LIVE MARKS: what the sky-blue ◆ tag means.</comment>
   </data>
   <data name="LiveMarkCapitals" xml:space="preserve">

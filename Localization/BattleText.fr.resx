@@ -11,7 +11,7 @@
     <value>Vaisseau inconnu</value>
   </data>
   <data name="TipOpenSide" xml:space="preserve">
-    <value>Cliquez sur une alliance pour lister ses corporations. Double-cliquez pour les détails.</value>
+    <value>Cliquez sur une alliance pour lister ses corporations. Double-cliquez pour ouvrir sa page.</value>
   </data>
   <data name="TipOpenKill" xml:space="preserve">
     <value>Ouvrir la destruction</value>
