@@ -6,6 +6,8 @@ namespace EveConsole.Models;
 //  characters, asked by a connector the user runs — see ConnectorService for asking, and
 //  LinkedCharacterStore for what is kept.
 //
+//  ⚠️ Each connector the user set up is its own source, kept apart from every other one.
+//
 //  ⚠️ Only the CURRENT links. Each import replaces everything one source said before, so a
 //  character moved to another account is simply under that account now, and a character the
 //  source no longer lists is gone. The history of moves belongs to the source, not here.
@@ -17,11 +19,17 @@ namespace EveConsole.Models;
 //  linked characters are other people's, with no token here, and never will have one.
 // ─────────────────────────────────────────────────────────────────────────────
 
-/// <summary>One source of links, and the file it last came from.</summary>
+/// <summary>One source of links, and the answer it last came from.</summary>
 public class LinkedSource
 {
-    /// <summary>What the file calls its source. Only a label: EVE Console knows nothing of it.</summary>
+    /// <summary>
+    /// Whose answer this is: <c>connector:{id}</c> for a connector entry (LinkedCharacterStore.SourceKey).
+    /// ⚠️ Never the label a connector sends: two connectors may send the same one.
+    /// </summary>
     public string         Source      { get; set; } = "";
+
+    /// <summary>What the answer calls its source. Only a label, for showing: EVE Console knows nothing of it.</summary>
+    public string         Label       { get; set; } = "";
 
     /// <summary>When the tool wrote what was imported. An older file is never imported over it.</summary>
     public DateTimeOffset GeneratedAt { get; set; }

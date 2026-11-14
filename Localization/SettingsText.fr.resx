@@ -3929,19 +3929,22 @@ L'application va redémarrer.</value>
     <value>Purger les discussions de groupe de plus de</value>
   </data>
   <data name="TabConnector" xml:space="preserve">
-    <value>Connecteur</value>
+    <value>Connecteurs</value>
   </data>
   <data name="ConnectorTitle" xml:space="preserve">
-    <value>Connecteur</value>
+    <value>Connecteurs</value>
   </data>
   <data name="ConnectorNote" xml:space="preserve">
     <value>Facultatif. Un connecteur est un programme distinct qui relie EVE Console aux services gérés par votre corporation ou alliance, comme le site où les membres enregistrent leurs personnages. Vous l'exécutez vous-même, généralement sur ce PC, ou votre corporation peut en héberger un pour ses membres. Sans connecteur, EVE Console fonctionne comme avant.</value>
   </data>
   <data name="ConnectorSharedNote" xml:space="preserve">
-    <value>Sur une base de données partagée par plusieurs PC, le processus d'arrière-plan se met à jour depuis le connecteur toutes les demi-heures. Exécutez le connecteur là où tourne ce processus, ou là où chaque PC peut l'atteindre. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
+    <value>Sur une base de données partagée par plusieurs PC, le processus d'arrière-plan se met à jour depuis chaque connecteur toutes les demi-heures. Exécutez un connecteur là où tourne ce processus, ou là où chaque PC peut l'atteindre. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
   </data>
   <data name="ConnectorUrl" xml:space="preserve">
     <value>Adresse du connecteur</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>Par exemple : http://localhost:5054/</value>
   </data>
   <data name="ConnectorConnect" xml:space="preserve">
     <value>Se connecter avec EVE</value>
@@ -3956,7 +3959,7 @@ L'application va redémarrer.</value>
     <value>Non connecté.</value>
   </data>
   <data name="ConnectorConnectedAs" xml:space="preserve">
-    <value>Connecté à {0} en tant que {1}.</value>
+    <value>Connecté en tant que {0}.</value>
   </data>
   <data name="ConnectorConnected" xml:space="preserve">
     <value>Connecté.</value>
@@ -4026,5 +4029,104 @@ L'application va redémarrer.</value>
   </data>
   <data name="ConnectorErrTooManyLogins" xml:space="preserve">
     <value>Trop de connexions ont été lancées sur le connecteur. Patientez quelques minutes, puis réessayez.</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>Vous pouvez ajouter plusieurs connecteurs, par exemple lorsque deux de vos corporations, ou une corporation et une alliance, gèrent chacune le leur. Chaque connecteur n'est utilisé que pour les corporations et alliances que vous choisissez pour lui, et seulement pour les fonctions que vous cochez. Il n'est jamais interrogé sur quiconque en dehors de celles-ci.</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Aperçu : les connecteurs sont une nouvelle interface, prise en charge de façon limitée pour l'instant.</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>Nouveau connecteur</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>Pour {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Utilise {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>Aucune fonction cochée.</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Inutilisé tant qu'aucune corporation ou alliance n'est choisie pour lui.</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Les personnages liés ne sont pas cochés pour ce connecteur ; aucun n'est donc lu depuis celui-ci.</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Inutilisé</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Problème</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Utilisé pour</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Alliances</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>Aucune corporation ni alliance de vos personnages n'est encore connue. Ajoutez d'abord un personnage dans Jetons ESI.</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (aucun de vos personnages actuellement)</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Fonctions</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>Cette version d'EVE Console n'utilise que les personnages liés. Les autres choix sont enregistrés pour des fonctionnalités à venir.</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Personnages liés</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Groupes d'authentification</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>Données ESI des membres</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>Données ESI de la corporation</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Participation aux flottes</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose pas cela.</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{0} pour {1} est déjà défini sur le connecteur {2}. Décochez-le d'abord là-bas.</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>Ce connecteur a été supprimé entre-temps, peut-être depuis un autre PC.</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Connectez-vous pour voir ce que propose ce connecteur.</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Interrogation du connecteur…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Déconnexion…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose actuellement aucune des fonctions cochées.</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Retirer le connecteur</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Retirer le connecteur {0} ? Sa clé est révoquée, et les corporations, alliances et fonctions choisies pour lui, ainsi que les personnages liés qu'il a fournis, sont oubliés. Cette action est irréversible.</value>
   </data>
 </root>

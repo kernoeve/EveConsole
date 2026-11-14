@@ -3111,48 +3111,190 @@
         <TextBlock Text="{x:Static loc:SettingsText.ConnectorTitle}"
                    FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
 
+        <!-- ⚠️ Temporary: remove (with ConnectorPreviewNote) once the app uses more connector functions
+             than linked characters. -->
+        <Border Background="{DynamicResource WarnSurfaceBrush}" BorderBrush="{DynamicResource WarnBrush}"
+                BorderThickness="1" CornerRadius="4" Padding="10,6">
+            <TextBlock TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{DynamicResource WarnBrush}"
+                       Text="{x:Static loc:SettingsText.ConnectorPreviewNote}" />
+        </Border>
         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
                    Text="{x:Static loc:SettingsText.ConnectorNote}" />
         <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
                    Text="{x:Static loc:SettingsText.ConnectorSharedNote}" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorSeveralNote}" />
 
-        <StackPanel Spacing="8">
-          <TextBlock Text="{x:Static loc:SettingsText.ConnectorUrl}" FontSize="12" />
-          <TextBox Text="{Binding ConnectorVm.Url}" IsEnabled="{Binding ConnectorVm.CanEditUrl}"
-                   Watermark="http://localhost:5054/" MaxWidth="420" HorizontalAlignment="Left" Width="420" />
+        <!-- The connectors: list + buttons. No header strip: the page title above already says "Connectors". -->
+        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+          <Border.Styles>
+            <!-- The badge is a plate of its own colour, so it reads the same on a selected row as on any other. -->
+            <Style Selector="Border.badge">
+              <Setter Property="CornerRadius" Value="3" />
+              <Setter Property="Padding" Value="6 1" />
+            </Style>
+            <Style Selector="Border.badge.good">
+              <Setter Property="Background" Value="{DynamicResource GoodSurfaceBrush}" />
+            </Style>
+            <Style Selector="Border.badge.warn">
+              <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
+            </Style>
+            <Style Selector="TextBlock.badge">
+              <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="TextBlock.badge.good">
+              <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style Selector="TextBlock.badge.warn">
+              <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+          </Border.Styles>
+          <Grid RowDefinitions="Auto,Auto">
+            <!-- ⚠️ Tall enough for four entries of four lines before it scrolls: three already filled 200. -->
+            <ListBox Grid.Row="0"
+                     ItemsSource="{Binding ConnectorVm.Entries}"
+                     SelectedItem="{Binding ConnectorVm.SelectedEntry}"
+                     MinHeight="60" MaxHeight="330"
+                     Background="Transparent" BorderThickness="0" CornerRadius="4 4 0 0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConnectorEntryViewModel">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="1" Margin="4 2">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <TextBlock Text="{Binding ConnectedAs}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                 IsVisible="{Binding IsConnected}" />
+                      <TextBlock Text="{Binding ScopesLine}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding FunctionsLine}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="badge"
+                            Classes.good="{Binding IsGood}" Classes.warn="{Binding IsWarn}"
+                            ToolTip.Tip="{Binding StatusTip}"
+                            VerticalAlignment="Center" Margin="8 0 4 0">
+                      <TextBlock Classes="badge"
+                                 Text="{Binding StatusLabel}"
+                                 Classes.good="{Binding IsGood}" Classes.warn="{Binding IsWarn}"
+                                 FontSize="11" />
+                    </Border>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
 
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <Button Content="{x:Static loc:SettingsText.ConnectorConnect}"
-                    Command="{Binding ConnectorVm.ConnectCommand}"
-                    IsVisible="{Binding ConnectorVm.CanConnect}"
-                    Padding="14 5" FontSize="12"
-                    Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
-                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
-            <Button Content="{x:Static loc:SettingsText.Cancel}"
-                    Command="{Binding ConnectorVm.CancelCommand}"
-                    IsVisible="{Binding ConnectorVm.IsConnecting}"
-                    Padding="12 5" FontSize="12"
-                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
-                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
-            <Button Content="{x:Static loc:SettingsText.ConnectorRefreshNow}"
-                    Command="{Binding ConnectorVm.RefreshNowCommand}"
-                    IsVisible="{Binding ConnectorVm.CanRefresh}"
-                    Padding="12 5" FontSize="12"
-                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
-                    BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
-            <Button Content="{x:Static loc:SettingsText.ConnectorDisconnect}"
-                    Command="{Binding ConnectorVm.DisconnectCommand}"
-                    IsVisible="{Binding ConnectorVm.CanDisconnect}"
-                    Padding="12 5" FontSize="12"
-                    Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
-                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
-          </StackPanel>
-          <TextBlock Text="{Binding ConnectorVm.Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                     TextWrapping="Wrap" />
-          <TextBlock Text="{Binding ConnectorVm.Detail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                     TextWrapping="Wrap"
-                     IsVisible="{Binding ConnectorVm.Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
-        </StackPanel>
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="8 6">
+              <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding ConnectorVm.AddCommand}"    Padding="14 4" />
+              <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding ConnectorVm.RemoveCommand}" Padding="14 4" />
+            </StackPanel>
+          </Grid>
+        </Border>
+        <TextBlock Text="{Binding ConnectorVm.ListStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding ConnectorVm.ListStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <!-- The selected connector -->
+        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
+                IsVisible="{Binding ConnectorVm.SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Grid RowDefinitions="Auto,Auto" x:DataType="vm:ConnectorEntryViewModel" DataContext="{Binding ConnectorVm.SelectedEntry}">
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+
+            <StackPanel Grid.Row="1" Spacing="8" Margin="10 8">
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorUrl}" FontSize="12" />
+              <!-- ⚠️ Not a disabled box once it cannot be changed: a greyed address is hard to read. It shows as
+                   text instead. The hint starts "For example": a bare address in grey reads as one already set. -->
+              <TextBox Text="{Binding Url}" IsVisible="{Binding CanEditUrl}"
+                       Watermark="{x:Static loc:SettingsText.ConnectorUrlWatermark}" MaxWidth="420" HorizontalAlignment="Left" Width="420" />
+              <SelectableTextBlock Text="{Binding Url}" IsVisible="{Binding !CanEditUrl}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{x:Static loc:SettingsText.ConnectorConnect}"
+                        Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding CanConnect}"
+                        Padding="14 5" FontSize="12"
+                        Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                        BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.Cancel}"
+                        Command="{Binding CancelCommand}"
+                        IsVisible="{Binding IsConnecting}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.ConnectorRefreshNow}"
+                        Command="{Binding RefreshNowCommand}"
+                        IsVisible="{Binding CanRefresh}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                        BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.ConnectorDisconnect}"
+                        Command="{Binding DisconnectCommand}"
+                        IsVisible="{Binding CanDisconnect}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                        BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+              </StackPanel>
+              <TextBlock Text="{Binding ConnectedAs}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{Binding Detail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+              <!-- What it is used for -->
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesLabel}" FontSize="12" FontWeight="SemiBold" Margin="0 6 0 0" />
+              <!-- Why the last tick was taken back, at the top of the choices it is about: at the bottom it was
+                   a screen away from the box clicked. Brought into view when it appears (code-behind). -->
+              <Border x:Name="ConnectorChoiceMessage"
+                      Background="{DynamicResource BadSurfaceBrush}" BorderBrush="{DynamicResource BadBrush}" BorderThickness="1"
+                      CornerRadius="3" Padding="8 4"
+                      IsVisible="{Binding ChoiceMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding ChoiceMessage}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+              </Border>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesCorporations}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         IsVisible="{Binding HasCorporationOptions}" />
+              <ItemsControl ItemsSource="{Binding CorporationOptions}" Margin="8 0 0 0" IsVisible="{Binding HasCorporationOptions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorScopeOptionViewModel">
+                    <CheckBox Content="{Binding Display}" IsChecked="{Binding IsChecked, Mode=TwoWay}" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesAlliances}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         IsVisible="{Binding HasAllianceOptions}" />
+              <ItemsControl ItemsSource="{Binding AllianceOptions}" Margin="8 0 0 0" IsVisible="{Binding HasAllianceOptions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorScopeOptionViewModel">
+                    <CheckBox Content="{Binding Display}" IsChecked="{Binding IsChecked, Mode=TwoWay}" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesNone}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" IsVisible="{Binding !HasScopeOptions}" />
+
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFunctionsLabel}" FontSize="12" FontWeight="SemiBold" Margin="0 6 0 0" />
+              <!-- Why every box is greyed before connecting, said where it shows, not only in a tooltip. -->
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFnConnectFirst}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" IsVisible="{Binding !IsConnected}" />
+              <ItemsControl ItemsSource="{Binding FunctionOptions}" Margin="8 0 0 0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorFunctionOptionViewModel">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding IsEnabled}"
+                              ToolTip.Tip="{Binding Tip}" ToolTip.ShowOnDisabled="True" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFunctionsNote}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Border>
 
       </StackPanel>
     </ScrollViewer>

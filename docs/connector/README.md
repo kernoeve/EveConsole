@@ -26,6 +26,14 @@ A connector serves two kinds of data:
 The rest is defined so connectors can offer it; the EVE Console features that read it, and the client
 rules that go with them (`offers`, the newer error codes), come later.
 
+**Several connectors.** A user may connect EVE Console to more than one connector, for example when two
+of their corporations, or a corporation and an alliance, each run their own. For each connector the user
+chooses which of their corporations and alliances it is used for, and which of its capabilities EVE
+Console uses from it; for a character, a connector chosen for its corporation comes before one chosen for
+its alliance. EVE Console asks a connector nothing about characters or corporations outside what the user
+chose for it, and keeps each connector's answers apart. A connector needs to do nothing for this: each
+connection is its own sign-in and its own key.
+
 ## Who trusts whom
 
 **The connector does not trust EVE Console.** EVE Console is a client anyone can run or change, so it is
@@ -43,7 +51,7 @@ rules below, and keeps data from a connector apart from the data of the user's o
 
 ## Connecting
 
-1. The user types the connector's address in **Settings → Connector** and chooses **Connect with EVE**.
+1. The user adds a connector in **Settings → Connectors**, types its address and chooses **Connect with EVE**.
 2. EVE Console calls `GET /v1/info` to confirm it is a connector that speaks version 1.
 3. EVE Console calls `POST /v1/auth/start`, optionally with `{"client": "EVE Console"}`, which the
    connector may show on its page. The connector starts a sign-in and answers with:
@@ -70,7 +78,7 @@ started it would be handed a key for whoever finished it. The page asks the user
 sign-in somebody else started is declined instead.
 
 The key belongs to the EVE Console database, not to one PC: on a database shared by several PCs, the
-PC holding the background worker lease re-reads `/v1/me` and the linked characters every 30 minutes,
+PC holding the background worker lease re-reads `/v1/me` and the linked characters of each connector every 30 minutes,
 and any PC can do so on demand.
 
 ## What a connector must do
@@ -247,13 +255,14 @@ Which characters belong to one player, and which is the main.
 account is read one at a time, with `GET /v1/characters/{character_id}/account` (below), which needs a
 `linked-characters` offer with `"subjects": "others"`; each such read is recorded.
 EVE Console replaces what it had before with this answer, in one step: a character left out is gone,
-and an empty `accounts` list empties it. One connector is connected at a time, so an answer also
-replaces links from any other `source`. Only current links: moves and their history stay with the
-source.
+and an empty `accounts` list empties it. It replaces only what the same connection gave before; answers
+from other connectors are kept apart, whatever `source` they name. Only current links: moves and their
+history stay with the source.
 
 A `404` (`not_offered`) from this call is read as the connector no longer offering linked characters.
-EVE Console keeps what it already has until the user disconnects; disconnecting, or connecting to a
-different connector, forgets it.
+EVE Console keeps what it already has until the user disconnects; disconnecting or removing that
+connector, pointing it at another address, or no longer using it for linked characters (unticking the
+function, or choosing no corporation or alliance for it) forgets it; other connectors' links stay.
 
 ```json
 {
@@ -270,7 +279,8 @@ different connector, forgets it.
 }
 ```
 
-- `source`: a short label (at most 64 characters) for where the links came from.
+- `source`: a short label (at most 64 characters) for where the links came from. EVE Console shows it,
+  but tells connectors apart by the connection, not by this label.
 - `generatedAt`: when the connector read them. EVE Console never stores an answer older than what it
   has for the same source, so return the time of the data, not of the request.
 - `accounts[].id`: the source's own account id, stable for as long as the account exists.

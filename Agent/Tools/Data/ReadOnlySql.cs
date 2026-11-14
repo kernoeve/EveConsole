@@ -23,14 +23,23 @@ public static class ReadOnlySql
             && !firstWord.Equals("WITH", StringComparison.OrdinalIgnoreCase))
             return "Only SELECT (or CTEs starting with WITH...SELECT) are permitted.";
 
+        // ⚠️ PostgreSQL's Unicode escapes spell a name without its letters: U&"\0043onnectors" is the Connectors
+        // table, and no check by name below would see it. Nothing the agent is asked about needs them.
+        if (sql.Contains("U&\"", StringComparison.OrdinalIgnoreCase) || sql.Contains("U&'", StringComparison.OrdinalIgnoreCase))
+            return "Query not run — U& escapes are not available.";
+
         // ⚠️ By name, wherever it appears: ValidateTables only looks after FROM and JOIN, and a subquery written
         // (TABLE x) has neither. What it holds is encrypted, and still has no business going to a model provider.
         if (sql.Contains(Services.SharedLogins.Table, StringComparison.OrdinalIgnoreCase))
             return "Query not run — no such table.";
 
         // ⚠️ The same for the shared preferences: among them are the keys this database signs in to the online
-        // services and to a connector with, and either would let whoever read it act as the owner there.
+        // services with, and any of them would let whoever read it act as the owner there.
         if (sql.Contains(AgentSchema.PreferencesTable, StringComparison.OrdinalIgnoreCase))
+            return "Query not run — no such table.";
+
+        // ⚠️ And for the connectors the user set up: the table holds each connector's key.
+        if (sql.Contains(AgentSchema.ConnectorsTable, StringComparison.OrdinalIgnoreCase))
             return "Query not run — no such table.";
 
         // ⚠️ And whatever runs a query built from a string, or shows a table's contents some other way, on

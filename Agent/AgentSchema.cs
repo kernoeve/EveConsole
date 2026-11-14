@@ -107,9 +107,16 @@ public sealed class AgentSchema
     /// </summary>
     /// <summary>
     /// The shared preferences, never shown and refused by name (<see cref="Tools.Data.ReadOnlySql"/>): they hold
-    /// the keys for the online services and for a connector. What the agent needs from them it reads in code.
+    /// the keys for the online services. (Connector keys live in <see cref="ConnectorsTable"/> now.) What the
+    /// agent needs from them it reads in code.
     /// </summary>
     public const string PreferencesTable = "AppPreferences";
+
+    /// <summary>
+    /// The connectors the user set up, with each connector's key: never shown, and refused by name
+    /// (<see cref="Tools.Data.ReadOnlySql"/>). A key lets whoever reads it act as the owner at that connector.
+    /// </summary>
+    public const string ConnectorsTable = "Connectors";
 
     public static AgentSchema Build(AppDbContext db)
     {
@@ -130,7 +137,8 @@ public sealed class AgentSchema
                 || table.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Linked", StringComparison.OrdinalIgnoreCase)
-                || table.Equals(PreferencesTable, StringComparison.OrdinalIgnoreCase)) continue;
+                || table.Equals(PreferencesTable, StringComparison.OrdinalIgnoreCase)
+                || table.Equals(ConnectorsTable, StringComparison.OrdinalIgnoreCase)) continue;
 
             var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
             var columns = new List<Column>();

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using System.Reactive;
 using EveConsole.Localization;
 using EveConsole.Services;
@@ -7,202 +8,125 @@ using ReactiveUI;
 namespace EveConsole.ViewModels;
 
 /// <summary>
-/// Settings → Connector: the address of the connector the user runs (or their corporation hosts), and
-/// connecting to it with EVE's sign-in. Covers every client attached to this database.
+/// Settings → Connectors: the connectors the user runs (or their corporations host), each used for the
+/// corporations, alliances and functions the user picks. Covers every client attached to this database.
+/// The selected one is set up in <see cref="ConnectorEntryViewModel"/>.
 /// </summary>
 public class ConnectorSettingsViewModel : ReactiveObject
 {
     private readonly ConnectorService     _connector;
     private readonly LinkedCharacterStore _store;
-
-    // EVE's page sends nothing back if its tab is simply closed, so the wait is always bounded,
-    // and can be abandoned.
-    private static readonly TimeSpan ConnectTimeout = TimeSpan.FromMinutes(16);   // past the longest sign-in a connector may allow (15 min)
-
-    private CancellationTokenSource? _connectCts;
+    private readonly SemaphoreSlim        _loadGate = new(1, 1);
 
     public ConnectorSettingsViewModel(ConnectorService connector, LinkedCharacterStore store)
     {
         _connector = connector;
         _store     = store;
 
-        // Another client, or the background refresh, connecting, disconnecting or storing links: an open
-        // page follows. Never while this page is in the middle of something of its own; it reads back after.
-        _connector.AccountChanged += Follow;
-        _store.Changed            += Follow;
+        // Another client, the background refresh, or this page: an entry added, connected, disconnected or
+        // chosen for something else, or links stored. An open page follows.
+        _connector.Changed += Follow;
+        _store.Changed     += Follow;
 
-        ConnectCommand    = ReactiveCommand.CreateFromTask(ConnectAsync);
-        CancelCommand     = ReactiveCommand.Create(() => { _connectCts?.Cancel(); });
-        DisconnectCommand = ReactiveCommand.CreateFromTask(DisconnectAsync);
-        RefreshNowCommand = ReactiveCommand.CreateFromTask(RefreshNowAsync);
+        AddCommand    = ReactiveCommand.CreateFromTask(AddAsync);
+        RemoveCommand = ReactiveCommand.CreateFromTask(RemoveAsync, this.WhenAnyValue(x => x.CanRemove));
     }
 
-    public ReactiveCommand<Unit, Unit> ConnectCommand    { get; }
-    public ReactiveCommand<Unit, Unit> CancelCommand     { get; }
-    public ReactiveCommand<Unit, Unit> DisconnectCommand { get; }
-    public ReactiveCommand<Unit, Unit> RefreshNowCommand { get; }
+    public ReactiveCommand<Unit, Unit> AddCommand    { get; }
+    public ReactiveCommand<Unit, Unit> RemoveCommand { get; }
 
-    private void Follow() => Avalonia.Threading.Dispatcher.UIThread.Post(() => { if (!IsBusy) _ = LoadAsync(); });
+    public ObservableCollection<ConnectorEntryViewModel> Entries { get; } = [];
 
-    private string _url = "";
-    public string Url { get => _url; set => this.RaiseAndSetIfChanged(ref _url, value); }
-
-    private bool _isConnected;
-    public bool IsConnected
+    private ConnectorEntryViewModel? _selectedEntry;
+    public ConnectorEntryViewModel? SelectedEntry
     {
-        get => _isConnected;
-        private set { this.RaiseAndSetIfChanged(ref _isConnected, value); RaiseStates(); }
+        get => _selectedEntry;
+        set { this.RaiseAndSetIfChanged(ref _selectedEntry, value); this.RaisePropertyChanged(nameof(CanRemove)); }
     }
 
-    private bool _isBusy;
-    public bool IsBusy
-    {
-        get => _isBusy;
-        private set { this.RaiseAndSetIfChanged(ref _isBusy, value); RaiseStates(); }
-    }
+    public bool CanRemove => SelectedEntry is { IsBusy: false };
 
-    private bool _isConnecting;
-    public bool IsConnecting
-    {
-        get => _isConnecting;
-        private set { this.RaiseAndSetIfChanged(ref _isConnecting, value); RaiseStates(); }
-    }
+    private string _listStatus = "";
+    public string ListStatus { get => _listStatus; private set => this.RaiseAndSetIfChanged(ref _listStatus, value); }
 
-    private bool _hasStoredLinks;
-    /// <summary>Links are kept from a connector, connected or not: after it stopped knowing the key, only
-    /// Disconnect can remove them.</summary>
-    public bool HasStoredLinks
-    {
-        get => _hasStoredLinks;
-        private set { this.RaiseAndSetIfChanged(ref _hasStoredLinks, value); RaiseStates(); }
-    }
+    private void Follow() => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync());
 
-    public bool CanConnect    => !IsConnected && !IsBusy;
-    public bool CanEditUrl    => !IsConnected && !IsBusy;
-    public bool CanRefresh    => IsConnected && !IsBusy;
-    public bool CanDisconnect => (IsConnected || HasStoredLinks) && !IsBusy;
-
-    private void RaiseStates()
-    {
-        this.RaisePropertyChanged(nameof(CanConnect));
-        this.RaisePropertyChanged(nameof(CanEditUrl));
-        this.RaisePropertyChanged(nameof(CanRefresh));
-        this.RaisePropertyChanged(nameof(CanDisconnect));
-    }
-
-    private string _status = SettingsText.ConnectorNotConnected;
-    public string Status { get => _status; private set => this.RaiseAndSetIfChanged(ref _status, value); }
-
-    private string _detail = "";
-    public string Detail { get => _detail; private set => this.RaiseAndSetIfChanged(ref _detail, value); }
-
-    /// <summary>Reads the connection and what is stored again: the window opening, and after a change.
-    /// A connection made from another client on this database turns up here. Asks the connector nothing.</summary>
+    /// <summary>Reads the connectors and what is stored again: the window opening, and after a change. A
+    /// connector set up from another client on this database turns up here. Asks no connector anything.</summary>
     public async Task LoadAsync()
     {
+        await _loadGate.WaitAsync();
         try
         {
-            var account = await _connector.AccountAsync();
-            IsConnected = account is not null;
-            // The address of what is connected, always; otherwise what was last used, unless something is typed.
-            if (account is not null)                       Url = account.Url.ToString();
-            else if (!IsConnecting && Url.Length == 0)     Url = await _connector.UrlAsync() ?? "";
+            var snaps   = await _connector.ListAsync();
+            var scopes  = await _connector.ScopeChoicesAsync();
+            var sources = (await _store.SourcesAsync()).ToDictionary(s => s.Source);
+            var choices = ConnectorEntryViewModel.ChoicesKey(snaps);
+            var selectedId = SelectedEntry?.Id;
 
-            Status = account is null
-                ? (IsConnecting ? Status : SettingsText.ConnectorNotConnected)
-                : string.Format(SettingsText.ConnectorConnectedAs, account.ConnectorName, account.CharacterName);
+            foreach (var gone in Entries.Where(e => snaps.All(s => s.Id != e.Id)).ToList())
+                Entries.Remove(gone);
 
-            Detail = await DetailAsync(account);
+            for (var i = 0; i < snaps.Count; i++)
+            {
+                var snap  = snaps[i];
+                var entry = Entries.FirstOrDefault(e => e.Id == snap.Id);
+                if (entry is null)
+                {
+                    entry = new ConnectorEntryViewModel(_connector, snap.Id, LoadAsync, () => this.RaisePropertyChanged(nameof(CanRemove)));
+                    Entries.Insert(Math.Min(i, Entries.Count), entry);
+                }
+                entry.Apply(snap, scopes, sources.GetValueOrDefault(LinkedCharacterStore.SourceKey(snap.Id)), _connector.LastResult(snap.Id), choices);
+            }
+
+            // The selection kept by id; otherwise the first, so the page never opens on nothing.
+            SelectedEntry = Entries.FirstOrDefault(e => e.Id == selectedId) ?? Entries.FirstOrDefault();
+            ListStatus = "";
         }
         catch (Exception ex)
         {
             // Nobody awaits this when the window opens, so the failure has to say so itself.
-            Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
+            ListStatus = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
+        finally { _loadGate.Release(); }
     }
 
-    private async Task<string> DetailAsync(ConnectorAccount? account)
+    private async Task AddAsync()
     {
-        var lines = new List<string>();
-        var sources = await _store.SourcesAsync();
-        HasStoredLinks = sources.Count > 0;
-        foreach (var source in sources)
-            lines.Add(string.Format(SettingsText.ConnectorLinkedLine,
-                source.Accounts, source.Characters, source.ImportedAt.ToLocalTime().ToString("g")));
-
-        if (account is not null && lines.Count == 0
-            && !account.Capabilities.Contains(ConnectorService.LinkedCharactersCapability))
-            lines.Add(SettingsText.ConnectorNothingOffered);
-        return string.Join(Environment.NewLine, lines);
-    }
-
-    private async Task ConnectAsync()
-    {
-        using var cts = new CancellationTokenSource(ConnectTimeout);
-        _connectCts  = cts;
-        IsBusy       = true;
-        IsConnecting = true;
-        Status = SettingsText.ConnectorStarting;
         try
         {
-            // The code arrives before the browser opens, so it is on screen when the page asks about it.
-            var result = await _connector.ConnectAsync(Url,
-                code => Avalonia.Threading.Dispatcher.UIThread.Post(() => Status = string.Format(SettingsText.ConnectorConfirmCode, code)),
-                cts.Token);
-            IsConnecting = false;
+            var id = await _connector.AddAsync();
             await LoadAsync();
-            // ⚠️ By what is true now, not by the result alone: the key can be stored and something after it fail.
-            if (!IsConnected) Status = result.Message;
-            else if (result.Message != SettingsText.ConnectorConnected) Status = $"{Status} {result.Message}";
-        }
-        catch (OperationCanceledException)
-        {
-            // ⚠️ Cancelled, or timed out, perhaps after the key was already stored: what is true now is read
-            // back before anything is said.
-            IsConnecting = false;
-            await LoadAsync();
-            if (!IsConnected) Status = SettingsText.OnlineSignInCancelled;
+            SelectedEntry = Entries.FirstOrDefault(e => e.Id == id) ?? SelectedEntry;
         }
         catch (Exception ex)
         {
-            Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
-        }
-        finally
-        {
-            _connectCts  = null;
-            IsConnecting = false;
-            IsBusy       = false;
+            ListStatus = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
     }
 
-    private async Task DisconnectAsync()
-    {
-        IsBusy = true;
-        try
-        {
-            await _connector.DisconnectAsync();
-            await LoadAsync();
-        }
-        catch (Exception ex)
-        {
-            Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
-        }
-        finally { IsBusy = false; }
-    }
+    /// <summary>Asks the user to confirm (title, message); set by the window. Without it, nothing is asked.</summary>
+    public Func<string, string, Task<bool>>? ShowConfirmDialog { get; set; }
 
-    private async Task RefreshNowAsync()
+    private async Task RemoveAsync()
     {
-        IsBusy = true;
+        if (SelectedEntry is not { } entry) return;
+        var index = Entries.IndexOf(entry);
         try
         {
-            var result = await _connector.RefreshAsync();
+            // ⚠️ Not undone: the key ends at the connector, and the choices and the links it gave go. Asked only
+            // when there is something to lose beyond a blank or disconnected entry's address and choices.
+            if ((entry.IsConnected || entry.HasStoredLinks) && ShowConfirmDialog is not null
+                && !await ShowConfirmDialog(SettingsText.ConnectorRemoveTitle, string.Format(SettingsText.ConnectorRemoveConfirm, entry.Title)))
+                return;
+
+            await _connector.RemoveAsync(entry.Id);
             await LoadAsync();
-            Status = IsConnected ? $"{Status} {result.Message}" : result.Message;
+            SelectedEntry = Entries.Count == 0 ? null : Entries[Math.Clamp(index, 0, Entries.Count - 1)];
         }
         catch (Exception ex)
         {
-            Status = string.Format(CommonText.ErrorWithMessage, ex.Message);
+            ListStatus = string.Format(CommonText.ErrorWithMessage, ex.Message);
         }
-        finally { IsBusy = false; }
     }
 }

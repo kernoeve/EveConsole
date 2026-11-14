@@ -2809,12 +2809,14 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "LinkedSources" (
                         "Source"      TEXT    NOT NULL PRIMARY KEY,
+                        "Label"       TEXT    NOT NULL DEFAULT '',
                         "GeneratedAt" TEXT    NOT NULL DEFAULT '',
                         "ImportedAt"  TEXT    NOT NULL DEFAULT '',
                         "Accounts"    INTEGER NOT NULL DEFAULT 0,
                         "Characters"  INTEGER NOT NULL DEFAULT 0
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "LinkedSources" ADD COLUMN "Label" TEXT NOT NULL DEFAULT '' """); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "LinkedAccounts" (
                         "Source"          TEXT    NOT NULL DEFAULT '',
@@ -2838,6 +2840,23 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_LinkedCharacters_Account" ON "LinkedCharacters" ("Source", "AccountId")""");
+                // The connectors the user set up, each with its key (hidden from the AI agent): see ConnectorService.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "Connectors" (
+                        "Id"              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Url"             TEXT    NOT NULL DEFAULT '',
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "Key"             TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"     INTEGER NOT NULL DEFAULT 0,
+                        "CharacterName"   TEXT    NOT NULL DEFAULT '',
+                        "Capabilities"    TEXT    NOT NULL DEFAULT '',
+                        "Offers"          TEXT    NOT NULL DEFAULT '',
+                        "Corporations"    TEXT    NOT NULL DEFAULT '',
+                        "Alliances"       TEXT    NOT NULL DEFAULT '',
+                        "Functions"       TEXT    NOT NULL DEFAULT '',
+                        "FunctionsChosen" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IrcServers" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -4891,8 +4910,8 @@ public class App : Application
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
             Start("EVE-Scout",          () => Services.GetRequiredService<EveScoutService>().Start());
 
-            // Linked characters from the connector the user runs, if any. Reads two preferences every
-            // half hour and does nothing more until somebody connects.
+            // Linked characters from the connectors the user set up, if any. Reads the connector list every
+            // half hour and does nothing more until one is connected.
             Start("connector",          () => Services.GetRequiredService<EveConsole.Services.Connector.ConnectorService>().Start());
 
             // Links pending orders to stock, jobs and the contracts that deliver them.

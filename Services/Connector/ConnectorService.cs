@@ -1,3 +1,5 @@
+using System.Collections.Concurrent;
+using System.Globalization;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
@@ -11,17 +13,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Connector;
 
-/// <summary>Who this database is connected to a connector as, and what that connector offers.</summary>
-public sealed record ConnectorAccount(
-    Uri                   Url,
-    string                ConnectorName,
-    long                  CharacterId,
-    string                CharacterName,
-    IReadOnlyList<string> Capabilities);
-
 public enum ConnectorRefreshOutcome
 {
-    /// <summary>No connector is connected.</summary>
+    /// <summary>The connector is not connected.</summary>
     NotConnected,
     /// <summary>New linked characters were stored.</summary>
     Imported,
@@ -29,6 +23,9 @@ public enum ConnectorRefreshOutcome
     Unchanged,
     /// <summary>The connector answered, and offers nothing this build stores.</summary>
     NothingOffered,
+    /// <summary>Connected, but no corporation or alliance is chosen for it, or linked characters are not
+    /// ticked: only <c>/v1/me</c> was asked.</summary>
+    NotUsed,
     /// <summary>The connector no longer knows the key: forgotten here, and Connect is needed again.</summary>
     SignedOut,
     /// <summary>The connector knows the key and refuses its character now, most likely having left.</summary>
@@ -45,26 +42,42 @@ public sealed record ConnectorRefreshResult(ConnectorRefreshOutcome Outcome, str
 /// <summary>A connect's result, in words fit to show.</summary>
 public sealed record ConnectorConnectResult(bool Ok, string Message);
 
+/// <summary>Whether the user's choices for a connector were saved, and if not, why, in words fit to show.</summary>
+public sealed record ConnectorChoicesResult(bool Ok, string Message);
+
+/// <summary>A corporation or alliance a connector can be chosen for. <see cref="OfOwnCharacter"/> is false for
+/// one that is only still chosen on some connector, with none of the user's characters in it now.</summary>
+public sealed record ConnectorScopeChoice(bool IsAlliance, int Id, string Name, bool OfOwnCharacter);
+
 /// <summary>
-/// A connector: a separate program that answers EVE Console's questions about services a corporation or
-/// alliance runs — first, which characters are one player's. The user runs it, usually on the same PC,
+/// Connectors: separate programs that answer EVE Console's questions about services a corporation or
+/// alliance runs — first, which characters are one player's. The user runs one, usually on the same PC,
 /// or their corporation hosts one. The interface is EVE Console's own and names no service: see
 /// <c>docs/connector/</c>. Nothing here does anything until somebody connects.
 ///
-/// <para><b>Connecting.</b> The connector runs EVE's sign-in, with its own EVE application and callback;
+/// <para><b>Several connectors.</b> The user may set up more than one (<see cref="ConnectorEntry"/>), for
+/// example when two of their corporations, or a corporation and an alliance, each run their own. Each is
+/// used only for the corporations and alliances the user chose for it, and only for the functions they
+/// ticked (<see cref="ConnectorFunctions"/>); <see cref="ConnectorRouter"/> says which one to use for a
+/// character. ⚠️ A connector is never asked about characters or corporations outside its scopes, and one
+/// with no scope is asked nothing but <c>/v1/info</c>, <c>/v1/me</c> and the sign-in. Each connector's
+/// answers are kept apart (<see cref="LinkedCharacterStore.SourceKey"/>).</para>
+///
+/// <para><b>Connecting.</b> Each connector runs EVE's sign-in, with its own EVE application and callback;
 /// EVE Console only opens the page and shows the code the person confirms there (see
 /// <see cref="ConnectAsync"/>). The connector decides whether that character may connect and hands EVE
 /// Console a key; every later call sends the key. The connector keeps checking that the character still
 /// may, and answers 403 once it may not.</para>
 ///
-/// <para>⚠️ The connection belongs to the database, not to the machine, as the online services' sign-in
-/// does: the refresh is background work, run by whichever client holds the worker lease. So it is read
+/// <para>⚠️ The connections belong to the database, not to the machine, as the online services' sign-in
+/// does: the refresh is background work, run by whichever client holds the worker lease. So they are read
 /// from the database each time, and a connector on <c>localhost</c> is only reachable from the PC that
 /// runs it — which, on a shared database, wants to be where the worker runs.</para>
 ///
 /// <para>⚠️ What a connector gave is kept in <see cref="LinkedCharacterStore"/> while it is down, and
-/// forgotten when it is disconnected. A key it no longer knows is forgotten here, but what it gave is
-/// kept: the person reconnects, and nothing they rely on vanished in the meantime.</para>
+/// forgotten when it is disconnected or removed, or no longer used for linked characters. A key it no
+/// longer knows is forgotten here, but what it gave is kept: the person reconnects, and nothing they rely
+/// on vanished in the meantime.</para>
 /// </summary>
 public sealed class ConnectorService
 {
@@ -75,14 +88,10 @@ public sealed class ConnectorService
     public const int    InterfaceVersion = 1;
 
     /// <summary>What a connector offers, by the names <c>/v1/me</c> lists.</summary>
-    public const string LinkedCharactersCapability = "linked-characters";
+    public const string LinkedCharactersCapability = ConnectorFunctions.LinkedCharacters;
 
-    private const string UrlPref          = "connector.url";
-    private const string KeyPref          = "connector.key";
-    private const string NamePref         = "connector.name";
-    private const string CharacterPref    = "connector.character_id";
-    private const string CharacterNamePref= "connector.character_name";
-    private const string CapabilitiesPref = "connector.capabilities";
+    /// <summary>The longest "offers" kept from <c>/v1/me</c>, in characters of JSON.</summary>
+    private const int MaxOffersLength = 64 * 1024;
 
     private static readonly TimeSpan Interval   = TimeSpan.FromMinutes(30);
     private static readonly TimeSpan FirstDelay = TimeSpan.FromSeconds(20);
@@ -95,10 +104,17 @@ public sealed class ConnectorService
 
     private CancellationTokenSource? _cts;
     private Task?                    _runTask;
-    private string?                  _lastProblem;
 
-    // One refresh, connect or disconnect at a time in this process. See RefreshAsync.
-    private readonly SemaphoreSlim _gate = new(1, 1);
+    // Per connector entry, by its id.
+    // One refresh, disconnect or remove at a time in this process for each entry. See RefreshAsync.
+    private readonly ConcurrentDictionary<int, SemaphoreSlim>          _gates         = new();
+    // Logged once per connector until it changes or clears.
+    private readonly ConcurrentDictionary<int, string>                 _lastProblem   = new();
+    private readonly ConcurrentDictionary<int, bool>                   _offersTooLong = new();
+    // The last refresh's result, for the list's status. In memory: a PC without the worker lease sees only its own.
+    private readonly ConcurrentDictionary<int, ConnectorRefreshResult> _lastResult    = new();
+
+    private SemaphoreSlim Gate(int id) => _gates.GetOrAdd(id, _ => new SemaphoreSlim(1, 1));
 
     public ConnectorService(
         IHttpClientFactory              httpFactory,
@@ -117,8 +133,12 @@ public sealed class ConnectorService
     private static void OpenInBrowser(Uri page) =>
         System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo(page.ToString()) { UseShellExecute = true });
 
-    /// <summary>Raised after connecting or disconnecting here, so what is on screen can follow.</summary>
-    public event Action? AccountChanged;
+    /// <summary>Raised after a connector entry was added, removed, connected or disconnected here, or had its
+    /// choices or capabilities saved, so what is on screen can follow.</summary>
+    public event Action? Changed;
+
+    /// <summary>The last refresh's result for an entry in this process, or null.</summary>
+    public ConnectorRefreshResult? LastResult(int id) => _lastResult.GetValueOrDefault(id);
 
 
     // ── The address ──────────────────────────────────────────────────────────
@@ -153,79 +173,234 @@ public sealed class ConnectorService
         return IPAddress.TryParse(uri.Host.Trim('[', ']'), out var ip) && IPAddress.IsLoopback(ip);
     }
 
-    // ── Who is connected ─────────────────────────────────────────────────────
+    // ── The entries ──────────────────────────────────────────────────────────
 
-    private async Task<Dictionary<string, string>> ReadPrefsAsync(CancellationToken ct)
+    /// <summary>Every connector entry, without keys, by id.</summary>
+    public async Task<IReadOnlyList<ConnectorSnapshot>> ListAsync(CancellationToken ct = default)
     {
         await using var db = await _dbFactory.CreateDbContextAsync(ct);
-        return await db.AppPreferences.AsNoTracking()
-            .Where(p => p.Key.StartsWith("connector."))
-            .ToDictionaryAsync(p => p.Key, p => p.Value, ct);
+        var rows = await db.Connectors.AsNoTracking().OrderBy(e => e.Id).ToListAsync(ct);
+        return rows.Select(ConnectorSnapshot.From).ToList();
+    }
+
+    /// <summary>One connector entry, without its key, or null when there is none by that id.</summary>
+    public async Task<ConnectorSnapshot?> GetAsync(int id, CancellationToken ct = default)
+        => await ReadEntryAsync(id, ct) is { } row ? ConnectorSnapshot.From(row) : null;
+
+    private async Task<ConnectorEntry?> ReadEntryAsync(int id, CancellationToken ct)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        return await db.Connectors.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
     }
 
     /// <summary>
-    /// Writes connector preferences together, in one transaction. With <paramref name="ifKey"/>, only while
-    /// that is still the stored key: what a refresh learned with one key must not land on a connection made,
-    /// or ended, since. With <paramref name="clearLinks"/>, every stored link goes in the same transaction.
+    /// The connector the user chose for <paramref name="function"/> for a character in this corporation and
+    /// alliance, or null. ⚠️ The one entry point later features call: see <see cref="ConnectorRouter.ForCharacter"/>.
+    /// To read linked characters for a character, read the rows whose Source is
+    /// <see cref="LinkedCharacterStore.SourceKey"/> of the connector this returns.
+    /// </summary>
+    public async Task<ConnectorSnapshot?> ForCharacterAsync(string function, int corporationId, int? allianceId, CancellationToken ct = default)
+        => ConnectorRouter.ForCharacter(await ListAsync(ct), function, corporationId, allianceId);
+
+    /// <summary>Adds a blank entry, not connected and chosen for nothing, and returns its id.</summary>
+    public async Task<int> AddAsync(CancellationToken ct = default)
+    {
+        var id = await SqliteBusy.RetryAsync(async () =>
+        {
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            var row = new ConnectorEntry();
+            db.Connectors.Add(row);
+            await db.SaveChangesAsync(ct);
+            return row.Id;
+        }, null, ct);
+        Changed?.Invoke();
+        return id;
+    }
+
+    /// <summary>
+    /// One entry changed in one transaction. With <paramref name="ifKey"/>, only while that is still this
+    /// entry's key: what a refresh learned with one key must not land on a connection made, or ended, since.
+    /// <paramref name="change"/> returns true when it cleared links. Returns the row after the change, or null
+    /// when the row is gone or <paramref name="ifKey"/> no longer matches.
     ///
     /// <para>⚠️ Under the store's lock, so the check and the write are one step for every client of a shared
     /// PostgreSQL database, and an import can never land between a clear here and the key written with it:
     /// another client's refresh then either finished before, and is cleared, or comes after, and finds a key
     /// that is not the one it was read with.</para>
     /// </summary>
-    private async Task WritePrefsAsync(IReadOnlyDictionary<string, string?> values, CancellationToken ct,
-                                       string? ifKey = null, bool clearLinks = false)
+    private async Task<ConnectorEntry?> WriteEntryAsync(int id, Func<AppDbContext, ConnectorEntry, Task<bool>> change,
+                                                        CancellationToken ct, string? ifKey = null)
     {
-        await SqliteBusy.RetryAsync(async () =>
+        var cleared = false;
+        var after = await SqliteBusy.RetryAsync<ConnectorEntry?>(async () =>
+        {
+            cleared = false;
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await LinkedCharacterStore.LockAsync(db, ct);
+
+            var row = await db.Connectors.FirstOrDefaultAsync(e => e.Id == id, ct);
+            if (row is null) return null;
+            if (ifKey is not null && row.Key != ifKey) return null;
+
+            cleared = await change(db, row);
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return row;
+        }, null, ct);
+
+        if (cleared) _store.RaiseChanged();
+        if (after is not null) Changed?.Invoke();
+        return after;
+    }
+
+    /// <summary>
+    /// Saves which corporations and alliances the entry is for, and which functions it is used for. Refused
+    /// when another connector already has one of those functions for one of those corporations, or for one of
+    /// those alliances (a corporation on one and its alliance on another is fine: the corporation wins).
+    ///
+    /// <para>Unknown function names are ignored. A new tick needs the connector to offer the function; one
+    /// already saved may stay ticked, or be unticked, after the connector stopped offering it. The check is on
+    /// the saved choices, not on what is offered now, so routing never meets two owners.</para>
+    ///
+    /// <para>⚠️ When the entry is no longer used for linked characters (unticked, or no scope left), what it
+    /// gave goes in the same transaction: the user chose to stop using them.</para>
+    /// </summary>
+    public async Task<ConnectorChoicesResult> SaveChoicesAsync(int id, IReadOnlyCollection<int> corporations, IReadOnlyCollection<int> alliances,
+                                                               IReadOnlyCollection<string> functions, CancellationToken ct = default)
+    {
+        var corps = corporations.Where(i => i > 0).Distinct().ToList();
+        var allis = alliances.Where(i => i > 0).Distinct().ToList();
+        var cleared = false;
+
+        var result = await SqliteBusy.RetryAsync(async () =>
+        {
+            cleared = false;
+            await using var db = await _dbFactory.CreateDbContextAsync(ct);
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await LinkedCharacterStore.LockAsync(db, ct);
+
+            var row = await db.Connectors.FirstOrDefaultAsync(e => e.Id == id, ct);
+            if (row is null) return new ConnectorChoicesResult(false, SettingsText.ConnectorRemovedMeanwhile);
+
+            var before = ConnectorSnapshot.From(row);
+            var fns = functions.Where(ConnectorFunctions.IsKnown).Where(f => before.Offers(f) || before.Chose(f)).Distinct().ToList();
+
+            var others = (await db.Connectors.AsNoTracking().Where(e => e.Id != id).ToListAsync(ct))
+                .Select(ConnectorSnapshot.From).ToList();
+            if (ConnectorRouter.FindConflict(others, corps, allis, fns) is { } conflict)
+            {
+                var names = await NamesAsync(db, conflict.IsAlliance ? [] : [conflict.EntityId], conflict.IsAlliance ? [conflict.EntityId] : [], ct);
+                return new ConnectorChoicesResult(false, string.Format(SettingsText.ConnectorConflict,
+                    ConnectorFunctions.Label(conflict.Function), ScopeName(names, conflict.IsAlliance, conflict.EntityId), conflict.OtherTitle));
+            }
+
+            row.Corporations = ConnectorLists.Join(corps);
+            row.Alliances    = ConnectorLists.Join(allis);
+            row.Functions    = ConnectorLists.Join(fns);
+            // Chosen only once the user could see something offered to tick: a save before /v1/me answered
+            // (just connected, or the connector unreachable) must not stop the defaults when it does.
+            if (row.Key.Length > 0 && before.Capabilities.Any(ConnectorFunctions.IsKnown)) row.FunctionsChosen = true;
+
+            var usedNow = (corps.Count > 0 || allis.Count > 0) && fns.Contains(ConnectorFunctions.LinkedCharacters);
+            if (!usedNow) cleared = await LinkedCharacterStore.ClearSourceAsync(db, LinkedCharacterStore.SourceKey(id), ct);
+
+            await db.SaveChangesAsync(ct);
+            await tx.CommitAsync(ct);
+            return new ConnectorChoicesResult(true, "");
+        }, null, ct);
+
+        if (cleared) _store.RaiseChanged();
+        if (result.Ok) Changed?.Invoke();
+        return result;
+    }
+
+    /// <summary>
+    /// The corporations and alliances of the user's own characters, which a connector can be chosen for, with
+    /// every one still chosen on some entry. Names from what is stored; asks ESI nothing.
+    /// </summary>
+    public async Task<IReadOnlyList<ConnectorScopeChoice>> ScopeChoicesAsync(CancellationToken ct = default)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        var chars = await db.Characters.AsNoTracking().Select(c => new { c.CorporationId, c.AllianceId }).ToListAsync(ct);
+        var ownCorps = chars.Select(c => c.CorporationId).Where(i => i > 0 && !IsNpcCorporation(i)).ToHashSet();
+        var ownAllis = chars.Where(c => c.AllianceId is > 0).Select(c => c.AllianceId!.Value).ToHashSet();
+
+        var saved = await db.Connectors.AsNoTracking().Select(e => new { e.Corporations, e.Alliances }).ToListAsync(ct);
+        var allCorps = ownCorps.Concat(saved.SelectMany(s => ConnectorLists.Ids(s.Corporations))).Distinct().ToList();
+        var allAllis = ownAllis.Concat(saved.SelectMany(s => ConnectorLists.Ids(s.Alliances))).Distinct().ToList();
+
+        // The user's own first, by name; then those still chosen with none of their characters in them now,
+        // whose names may be only a number ("Corp 98…"), which would otherwise sort ahead of every real name.
+        var names = await NamesAsync(db, allCorps, allAllis, ct);
+        return allCorps.Select(i => new ConnectorScopeChoice(false, i, ScopeName(names, false, i), ownCorps.Contains(i)))
+                       .OrderBy(c => !c.OfOwnCharacter).ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
+            .Concat(allAllis.Select(i => new ConnectorScopeChoice(true, i, ScopeName(names, true, i), ownAllis.Contains(i)))
+                            .OrderBy(c => !c.OfOwnCharacter).ThenBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase))
+            .ToList();
+    }
+
+    private static bool IsNpcCorporation(int id) => id is >= 1_000_000 and < 2_000_000;
+
+    /// <summary>The stored names of these corporations (the user's own corporations, then the name cache) and
+    /// alliances (the name cache).</summary>
+    private static async Task<(Dictionary<int, string> Corps, Dictionary<int, string> Allis)> NamesAsync(
+        AppDbContext db, IReadOnlyCollection<int> corps, IReadOnlyCollection<int> allis, CancellationToken ct)
+    {
+        var corpNames = new Dictionary<int, string>();
+        var alliNames = new Dictionary<int, string>();
+        if (corps.Count == 0 && allis.Count == 0) return (corpNames, alliNames);
+
+        var corpIds = corps.ToList();
+        foreach (var c in await db.Corporations.AsNoTracking().Where(c => corpIds.Contains(c.Id)).Select(c => new { c.Id, c.Name }).ToListAsync(ct))
+            if (c.Name.Length > 0) corpNames.TryAdd(c.Id, c.Name);
+
+        var cached = corps.Concat(allis).Select(i => (long)i).Distinct().ToList();
+        foreach (var u in await db.UniverseNames.AsNoTracking().Where(u => cached.Contains(u.EntityId)).Select(u => new { u.EntityId, u.Name }).ToListAsync(ct))
+        {
+            if (u.Name.Length == 0) continue;
+            var id = (int)u.EntityId;
+            if (corps.Contains(id)) corpNames.TryAdd(id, u.Name);
+            if (allis.Contains(id)) alliNames.TryAdd(id, u.Name);
+        }
+        return (corpNames, alliNames);
+    }
+
+    private static string ScopeName((Dictionary<int, string> Corps, Dictionary<int, string> Allis) names, bool isAlliance, int id) =>
+        isAlliance
+            ? names.Allis.GetValueOrDefault(id) ?? string.Format(CharactersText.SummaryAllianceNumbered, id)
+            : names.Corps.GetValueOrDefault(id) ?? string.Format(CharactersText.SummaryCorpNumbered, id);
+
+    /// <summary>
+    /// Once, on the worker: drops the preferences a single connector was kept in by earlier builds of this
+    /// branch, and any links not kept for an existing entry (the old label-keyed rows, and orphans of removed
+    /// entries), which nothing else would ever remove.
+    /// </summary>
+    public async Task CleanUpAsync(CancellationToken ct = default)
+    {
+        var forgot = await SqliteBusy.RetryAsync(async () =>
         {
             await using var db = await _dbFactory.CreateDbContextAsync(ct);
             await using var tx = await db.Database.BeginTransactionAsync(ct);
             await LinkedCharacterStore.LockAsync(db, ct);
 
-            var keys = values.Keys.Append(KeyPref).Distinct().ToList();
-            var rows = await db.AppPreferences.Where(p => keys.Contains(p.Key)).ToDictionaryAsync(p => p.Key, ct);
-            if (ifKey is not null && rows.GetValueOrDefault(KeyPref)?.Value != ifKey) return;
+            await db.AppPreferences.Where(p => p.Key.StartsWith("connector.")).ExecuteDeleteAsync(ct);
+            var keep = (await db.Connectors.Select(e => e.Id).ToListAsync(ct)).Select(LinkedCharacterStore.SourceKey).ToList();
+            var gone = await LinkedCharacterStore.ForgetOtherSourcesAsync(db, keep, ct);
 
-            if (clearLinks) await LinkedCharacterStore.ClearAsync(db, ct);
-            foreach (var (key, value) in values)
-            {
-                var row = rows.GetValueOrDefault(key);
-                if (value is null) { if (row is not null) db.AppPreferences.Remove(row); }
-                else if (row is null) db.AppPreferences.Add(new AppPreference { Key = key, Value = value });
-                else row.Value = value;
-            }
-            await db.SaveChangesAsync(ct);
             await tx.CommitAsync(ct);
+            return gone;
         }, null, ct);
-        if (clearLinks) _store.RaiseChanged();
-    }
-
-    /// <summary>The address last connected to or typed, for the settings page to start from.</summary>
-    public async Task<string?> UrlAsync(CancellationToken ct = default)
-        => (await ReadPrefsAsync(ct)).GetValueOrDefault(UrlPref);
-
-    /// <summary>The connection, or null when this database is not connected.</summary>
-    public async Task<ConnectorAccount?> AccountAsync(CancellationToken ct = default)
-        => Account(await ReadPrefsAsync(ct)).Account;
-
-    private static (ConnectorAccount? Account, string? Key) Account(Dictionary<string, string> p)
-    {
-        if (p.GetValueOrDefault(KeyPref) is not { Length: > 0 } key) return (null, null);
-        if (ParseUrl(p.GetValueOrDefault(UrlPref)).Url is not { } url) return (null, null);
-
-        long.TryParse(p.GetValueOrDefault(CharacterPref), out var id);
-        var caps = (p.GetValueOrDefault(CapabilitiesPref) ?? "")
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-        return (new ConnectorAccount(url, p.GetValueOrDefault(NamePref) ?? url.Host, id,
-                                     p.GetValueOrDefault(CharacterNamePref) ?? "", caps), key);
+        if (forgot) _store.RaiseChanged();
     }
 
     // ── Connecting ───────────────────────────────────────────────────────────
 
     /// <summary>
-    /// Connects to the connector at <paramref name="typedUrl"/>: checks it is one, asks it to start a sign-in,
-    /// shows the person the sign-in's code (<paramref name="showCode"/>), opens the connector's page in the
-    /// browser, and waits for the connector to hand over a key. Then refreshes. Throws only when cancelled.
+    /// Connects the entry <paramref name="id"/> to the connector at <paramref name="typedUrl"/>: checks it is
+    /// one, asks it to start a sign-in, shows the person the sign-in's code (<paramref name="showCode"/>), opens
+    /// the connector's page in the browser, and waits for the connector to hand over a key. Then refreshes.
+    /// Throws only when cancelled.
     ///
     /// <para>⚠️ EVE Console never takes part in the EVE sign-in itself. The connector runs it, with its own EVE
     /// application and its own callback, so who signed in is something it learned from EVE directly, and a
@@ -236,13 +411,15 @@ public sealed class ConnectorService
     /// sign-in and send the link to someone; the page shows that sign-in's code, and the person is asked to
     /// confirm it only if it is the one EVE Console is showing them.</para>
     /// </summary>
-    public async Task<ConnectorConnectResult> ConnectAsync(string typedUrl, Action<string>? showCode, CancellationToken ct)
+    public async Task<ConnectorConnectResult> ConnectAsync(int id, string typedUrl, Action<string>? showCode, CancellationToken ct)
     {
         var (url, urlError) = ParseUrl(typedUrl);
         if (url is null) return new(false, urlError!);
 
         try
         {
+            if (await ReadEntryAsync(id, ct) is null) return new(false, SettingsText.ConnectorRemovedMeanwhile);
+
             var info = await InfoAsync(url, ct);
             if (info.Error is not null) return new(false, info.Error);
 
@@ -255,12 +432,18 @@ public sealed class ConnectorService
             var (signedIn, pollError) = await PollAsync(url, login, ct);
             if (signedIn is null) return new(false, pollError!);
 
-            var replaced = await StoreKeyAsync(url, info.Name!, signedIn.Key, signedIn.Character, ct);
+            var (found, replaced) = await StoreKeyAsync(id, url, info.Name!, signedIn.Key, signedIn.Character, ct);
+            if (!found)
+            {
+                // Removed meanwhile, perhaps from another PC: the new key is ended where it came from.
+                await EndReplacedAsync(new Replaced(url, signedIn.Key), ct);
+                return new(false, SettingsText.ConnectorRemovedMeanwhile);
+            }
 
             // Connected either way from here; a refresh that went wrong, or a connector with nothing to give,
             // says so beside it.
             await EndReplacedAsync(replaced, ct);
-            var refreshed = await RefreshAsync(ct);
+            var refreshed = await RefreshAsync(id, ct);
             return new(true, refreshed.Outcome is ConnectorRefreshOutcome.Imported or ConnectorRefreshOutcome.Unchanged
                                  ? SettingsText.ConnectorConnected : refreshed.Message);
         }
@@ -369,7 +552,7 @@ public sealed class ConnectorService
     /// Ends a replaced key where it came from, so a connector's list of keys holds only ones in use. Best
     /// effort: unused, it expires there anyway.
     /// </summary>
-    private async Task EndReplacedAsync(Replaced? replaced, CancellationToken ct)
+    private async Task EndReplacedAsync(Replaced? replaced, CancellationToken ct, string context = "connect")
     {
         if (replaced is null) return;
         try
@@ -379,9 +562,14 @@ public sealed class ConnectorService
         }
         catch (Exception ex) when (!ct.IsCancellationRequested)
         {
-            _errors?.Warn(nameof(ConnectorService), "connect", "The key replaced was not ended at the connector: " + ex.Message);
+            _errors?.Warn(nameof(ConnectorService), context, "The key replaced was not ended at the connector: " + ex.Message);
         }
     }
+
+    /// <summary>The row's key, with its address, when it is not <paramref name="signedOut"/>: one stored meanwhile,
+    /// by a connect on another client of a shared database, that a disconnect or remove is about to drop.</summary>
+    private static Replaced? StoredSince(ConnectorEntry row, string signedOut) =>
+        row.Key.Length > 0 && row.Key != signedOut && ParseUrl(row.Url).Url is { } url ? new Replaced(url, row.Key) : null;
 
     /// <summary>What the connector says it is, or why it isn't one this build can use.</summary>
     private async Task<(string? Name, string? Error)> InfoAsync(Uri url, CancellationToken ct)
@@ -406,78 +594,156 @@ public sealed class ConnectorService
         }
     }
 
-    /// <summary>Stores the key a sign-in produced, and says which key it replaced, for ending afterwards.</summary>
-    private async Task<Replaced?> StoreKeyAsync(Uri url, string connectorName, string key, CharacterAnswer character, CancellationToken ct)
+    /// <summary>
+    /// Stores the key a sign-in produced in the entry, and says which key it replaced, for ending afterwards.
+    /// Found is false when the entry was removed meanwhile.
+    ///
+    /// <para>⚠️ Pointing an entry at a different connector forgets that entry's links, in the same transaction,
+    /// and only that entry's. And the address goes with the key, never before it: a key is only sent where it
+    /// came from.</para>
+    ///
+    /// <para>A new connection with nothing chosen yet is chosen for the signed-in character's corporation, when
+    /// that is one of the user's own characters here and not an NPC corporation.</para>
+    /// </summary>
+    private async Task<(bool Found, Replaced? Replaced)> StoreKeyAsync(int id, Uri url, string connectorName, string key,
+                                                                      CharacterAnswer character, CancellationToken ct)
     {
-        var prefs  = await ReadPrefsAsync(ct);
-        var before = Account(prefs);
-        var replaced = before is ({ } old, { } oldKey) && oldKey != key ? new Replaced(old.Url, oldKey) : null;
-
-        // ⚠️ Another connector's links go with this one's key arriving, in the same transaction: only one
-        // connector is connected at a time, and links from one it no longer is would otherwise stay for good.
-        // And the address goes with the key, never before it: a key is only sent where it came from.
-        var previous = prefs.GetValueOrDefault(UrlPref);
-        await WritePrefsAsync(new Dictionary<string, string?>
+        Replaced? replaced = null;
+        var after = await WriteEntryAsync(id, async (db, row) =>
         {
-            [UrlPref]           = url.ToString(),
-            [KeyPref]           = key,
-            [NamePref]          = connectorName,
-            [CharacterPref]     = character.Id.ToString(),
-            [CharacterNamePref] = character.Name ?? "",
-            [CapabilitiesPref]  = null,     // asked for next, by the refresh
-        }, ct, clearLinks: previous is not null && previous != url.ToString());
+            replaced = row.Key.Length > 0 && row.Key != key && ParseUrl(row.Url).Url is { } oldUrl ? new Replaced(oldUrl, row.Key) : null;
 
-        _lastProblem = null;
-        AccountChanged?.Invoke();
-        return replaced;
+            var cleared = false;
+            if (row.Url.Length > 0 && row.Url != url.ToString())
+                cleared = await LinkedCharacterStore.ClearSourceAsync(db, LinkedCharacterStore.SourceKey(id), ct);
+
+            row.Url           = url.ToString();
+            row.Key           = key;
+            row.Name          = connectorName;
+            row.CharacterId   = character.Id;
+            row.CharacterName = character.Name ?? "";
+            row.Capabilities  = "";      // asked for next, by the refresh
+            row.Offers        = "";
+
+            if (row.Corporations.Length == 0 && row.Alliances.Length == 0 && !row.FunctionsChosen)
+            {
+                var corp = await db.Characters.AsNoTracking().Where(c => c.Id == character.Id)
+                    .Select(c => (int?)c.CorporationId).FirstOrDefaultAsync(ct);
+                if (corp is > 0 && !IsNpcCorporation(corp.Value))
+                    row.Corporations = corp.Value.ToString(CultureInfo.InvariantCulture);
+            }
+            return cleared;
+        }, ct);
+
+        _lastProblem.TryRemove(id, out _);
+        return (after is not null, after is null ? null : replaced);
     }
 
     /// <summary>
-    /// Ends the key on the connector, forgets it here, and forgets what the connector gave. Also what is
-    /// left over after the connector stopped knowing the key: there is no key to end then, only links.
+    /// Ends the entry's key on the connector, forgets it here, and forgets what the connector gave. Also what is
+    /// left over after the connector stopped knowing the key: there is no key to end then, only links. The
+    /// address and the user's choices are kept, so connecting again is one click. Other connectors are untouched.
     ///
     /// <para>⚠️ Forgotten here whatever the connector says. Someone disconnecting from a connector that is
     /// down, or hung until the request times out, should still end up disconnected; the key is then simply
     /// never used again.</para>
+    ///
+    /// <para>⚠️ The sign-out can take until the request times out, and meanwhile another client of a shared
+    /// database may have connected this entry anew. Whatever key is stored when the write runs is the one
+    /// dropped, so that one is ended at the connector too, after the commit, as a connect ends the key it
+    /// replaced.</para>
     /// </summary>
-    public async Task DisconnectAsync(CancellationToken ct = default)
+    public async Task DisconnectAsync(int id, CancellationToken ct = default)
     {
-        await _gate.WaitAsync(ct);
+        var gate = Gate(id);
+        await gate.WaitAsync(ct);
         try
         {
-            var (account, key) = Account(await ReadPrefsAsync(ct));
-            if (account is not null && key is not null)
+            if (await ReadEntryAsync(id, ct) is not { } row) return;
+            await SignOutAsync(row, "disconnect", ct);
+
+            Replaced? since = null;
+            await WriteEntryAsync(id, async (db, r) =>
             {
-                try
-                {
-                    using var http = Authorised(key);
-                    using var res = await http.PostAsync(new Uri(account.Url, "v1/auth/sign-out"), null, ct);
-                }
-                catch (Exception ex) when (!ct.IsCancellationRequested)
-                {
-                    // A warning, not an error: disconnected here is what was asked, and it happened.
-                    _errors?.Warn(nameof(ConnectorService), "disconnect", "The connector was not told: " + ex.Message);
-                }
+                since = StoredSince(r, row.Key);
+                var cleared = await LinkedCharacterStore.ClearSourceAsync(db, LinkedCharacterStore.SourceKey(id), ct);
+                r.Key = ""; r.Name = ""; r.CharacterId = 0; r.CharacterName = ""; r.Capabilities = ""; r.Offers = "";
+                return cleared;
+            }, ct);
+            await EndReplacedAsync(since, ct, "disconnect");
+            _lastProblem.TryRemove(id, out _);
+            _lastResult.TryRemove(id, out _);
+        }
+        finally { gate.Release(); }
+    }
+
+    /// <summary>
+    /// Removes the entry: ends its key on the connector (best effort, as <see cref="DisconnectAsync"/>), and
+    /// forgets the entry and what it gave. Other connectors are untouched. A key stored meanwhile by another
+    /// client is ended too, as in <see cref="DisconnectAsync"/>.
+    /// </summary>
+    public async Task RemoveAsync(int id, CancellationToken ct = default)
+    {
+        var gate = Gate(id);
+        await gate.WaitAsync(ct);
+        try
+        {
+            var signedOut = "";
+            if (await ReadEntryAsync(id, ct) is { } row)
+            {
+                await SignOutAsync(row, "remove", ct);
+                signedOut = row.Key;
             }
 
-            await WritePrefsAsync(Forgotten, ct, clearLinks: true);
-            AccountChanged?.Invoke();
+            Replaced? since = null;
+            await SqliteBusy.RetryAsync(async () =>
+            {
+                await using var db = await _dbFactory.CreateDbContextAsync(ct);
+                await using var tx = await db.Database.BeginTransactionAsync(ct);
+                await LinkedCharacterStore.LockAsync(db, ct);
+                var current = await db.Connectors.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id, ct);
+                since = current is null ? null : StoredSince(current, signedOut);
+                await LinkedCharacterStore.ClearSourceAsync(db, LinkedCharacterStore.SourceKey(id), ct);
+                await db.Connectors.Where(e => e.Id == id).ExecuteDeleteAsync(ct);
+                await tx.CommitAsync(ct);
+            }, null, ct);
+            await EndReplacedAsync(since, ct, "remove");
+
+            _lastProblem.TryRemove(id, out _);
+            _lastResult.TryRemove(id, out _);
+            _offersTooLong.TryRemove(id, out _);
         }
-        finally { _gate.Release(); }
+        finally { gate.Release(); }
+
+        // The gate goes with the entry. Not disposed: a caller still waiting on it is let through, and finds no row.
+        _gates.TryRemove(id, out _);
+        _store.RaiseChanged();
+        Changed?.Invoke();
     }
 
-    // The key and who it was for. The address is kept: connecting again is one click.
-    private static readonly Dictionary<string, string?> Forgotten = new()
+    /// <summary>Tells the connector the entry's key is ended, if it has one. A warning when that fails, never
+    /// more: forgotten here is what was asked, and it happens.</summary>
+    private async Task SignOutAsync(ConnectorEntry row, string context, CancellationToken ct)
     {
-        [KeyPref] = null, [NamePref] = null, [CharacterPref] = null, [CharacterNamePref] = null, [CapabilitiesPref] = null,
-    };
-
-    /// <summary>Forgets the key and who it was for; with <paramref name="ifKey"/>, only if that is still it.</summary>
-    private async Task ForgetKeyAsync(string? ifKey, CancellationToken ct)
-    {
-        await WritePrefsAsync(Forgotten, ct, ifKey);
-        AccountChanged?.Invoke();
+        if (row.Key.Length == 0 || ParseUrl(row.Url).Url is not { } url) return;
+        try
+        {
+            using var http = Authorised(row.Key);
+            using var res = await http.PostAsync(new Uri(url, "v1/auth/sign-out"), null, ct);
+        }
+        catch (Exception ex) when (!ct.IsCancellationRequested)
+        {
+            _errors?.Warn(nameof(ConnectorService), context, "The connector was not told: " + ex.Message);
+        }
     }
+
+    /// <summary>Forgets the entry's key and who it was for, only if that is still its key. Links are kept.</summary>
+    private Task ForgetKeyAsync(int id, string ifKey, CancellationToken ct) =>
+        WriteEntryAsync(id, (_, r) =>
+        {
+            r.Key = ""; r.CharacterId = 0; r.CharacterName = ""; r.Capabilities = ""; r.Offers = "";
+            return Task.FromResult(false);
+        }, ct, ifKey);
 
     // ── Refreshing ───────────────────────────────────────────────────────────
 
@@ -485,74 +751,140 @@ public sealed class ConnectorService
     /// Asks the connector what it offers, and stores what this build keeps of it. Never throws for the
     /// connector's answer or its absence: the result says what happened.
     ///
-    /// <para>⚠️ One at a time in this process, with connecting and disconnecting: a refresh that had its
-    /// answer when Disconnect ran would otherwise store it after the links were cleared. Across clients of
-    /// a shared database, the store checks inside its own transaction that the key it was read with is
-    /// still the one connected.</para>
+    /// <para>⚠️ One at a time in this process for each entry, with disconnecting and removing it: a refresh
+    /// that had its answer when Disconnect ran would otherwise store it after the links were cleared. Across
+    /// clients of a shared database, the store checks inside its own transaction that the key it was read with
+    /// is still the one stored, and that the entry is still used for linked characters.</para>
     /// </summary>
-    public async Task<ConnectorRefreshResult> RefreshAsync(CancellationToken ct = default)
+    public async Task<ConnectorRefreshResult> RefreshAsync(int id, CancellationToken ct = default)
     {
-        await _gate.WaitAsync(ct);
-        try { return await RefreshLockedAsync(ct); }
-        finally { _gate.Release(); }
+        var gate = Gate(id);
+        await gate.WaitAsync(ct);
+        try
+        {
+            var result = await RefreshLockedAsync(id, ct);
+            _lastResult[id] = result;
+            return result;
+        }
+        finally { gate.Release(); }
     }
 
-    private async Task<ConnectorRefreshResult> RefreshLockedAsync(CancellationToken ct)
+    /// <summary>Refreshes every connected entry, one after another; a failure of one is logged and the next
+    /// one asked all the same.</summary>
+    public async Task RefreshAllAsync(CancellationToken ct = default)
     {
-        var (account, key) = Account(await ReadPrefsAsync(ct));
-        if (account is null || key is null) return new(ConnectorRefreshOutcome.NotConnected, SettingsText.ConnectorNotConnected);
+        foreach (var entry in await ListAsync(ct))
+        {
+            if (!entry.Connected) continue;
+            try { await RefreshAsync(entry.Id, ct); }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception ex) { _errors?.Log(nameof(ConnectorService), $"refresh {entry.Id}", ex); }
+        }
+    }
 
+    private async Task<ConnectorRefreshResult> RefreshLockedAsync(int id, CancellationToken ct)
+    {
+        var entry = await ReadEntryAsync(id, ct);
+        if (entry is not { Key.Length: > 0 } || ParseUrl(entry.Url).Url is not { } url)
+            return new(ConnectorRefreshOutcome.NotConnected, SettingsText.ConnectorNotConnected);
+
+        var key   = entry.Key;
+        var title = ConnectorSnapshot.From(entry).Title;
         try
         {
             using var http = Authorised(key);
 
-            using var meRes = await http.GetAsync(new Uri(account.Url, "v1/me"), ct);
-            if (await Refused(meRes, key, ct) is { } refusedMe) return refusedMe;
+            using var meRes = await http.GetAsync(new Uri(url, "v1/me"), ct);
+            if (await Refused(meRes, id, title, key, ct) is { } refusedMe) return refusedMe;
 
             var me = JsonSerializer.Deserialize<MeAnswer>(await meRes.Content.ReadAsStringAsync(ct), Json);
-            var caps = me?.Capabilities?.OfType<string>().Select(c => c.Trim()).Where(c => c.Length > 0).ToList() ?? [];
-            await WritePrefsAsync(new Dictionary<string, string?>
+            var caps = me?.Capabilities?.OfType<string>().Select(c => c.Trim())
+                .Where(c => c.Length > 0 && c.All(ch => ch is (>= 'a' and <= 'z') or (>= '0' and <= '9') or '-'))
+                .Distinct().ToList() ?? [];
+            var offers = OffersText(id, title, me?.Offers);
+
+            var after = await WriteEntryAsync(id, async (db, row) =>
             {
-                [CapabilitiesPref]  = string.Join(",", caps),
-                [CharacterNamePref] = me?.Character?.Name is { Length: > 0 } n ? n : account.CharacterName,
+                row.Capabilities = ConnectorLists.Join(caps);
+                row.Offers       = offers;
+                if (me?.Character?.Name is { Length: > 0 } n) row.CharacterName = n;
+
+                // The defaults after a new connection: what it offers, except what another connector already has
+                // for the same corporation or alliance. Not before it offers something this build knows: a
+                // connector that starts offering later still gets them.
+                if (!row.FunctionsChosen && caps.Any(ConnectorFunctions.IsKnown))
+                {
+                    var others = (await db.Connectors.AsNoTracking().Where(o => o.Id != id).ToListAsync(ct))
+                        .Select(ConnectorSnapshot.From).ToList();
+                    var corps = ConnectorLists.Ids(row.Corporations);
+                    var allis = ConnectorLists.Ids(row.Alliances);
+                    row.Functions = ConnectorLists.Join(ConnectorFunctions.All.Where(f => caps.Contains(f)
+                        && ConnectorRouter.FindConflict(others, corps, allis, [f]) is null));
+                    row.FunctionsChosen = true;
+                }
+                return false;
             }, ct, ifKey: key);
+            // Disconnected, removed, or connected anew, while this was asking: nothing to say about this answer.
+            if (after is null) return new(ConnectorRefreshOutcome.NotConnected, SettingsText.ConnectorNotConnected);
 
-            if (!caps.Contains(LinkedCharactersCapability))
-                return Settled(new(ConnectorRefreshOutcome.NothingOffered, SettingsText.ConnectorNothingOffered));
+            // ⚠️ Nothing more is asked of a connector chosen for no corporation or alliance.
+            var snap = ConnectorSnapshot.From(after);
+            if (!snap.HasScope)
+                return Settled(id, new(ConnectorRefreshOutcome.NotUsed, SettingsText.ConnectorNoScope));
+            if (!snap.Offers(ConnectorFunctions.LinkedCharacters))
+                return Settled(id, new(ConnectorRefreshOutcome.NothingOffered, SettingsText.ConnectorNothingOffered));
+            if (!snap.Chose(ConnectorFunctions.LinkedCharacters))
+                return Settled(id, new(ConnectorRefreshOutcome.NotUsed, SettingsText.ConnectorLinkedNotChosen));
 
-            using var linkedRes = await http.GetAsync(new Uri(account.Url, "v1/linked-characters"), ct);
+            using var linkedRes = await http.GetAsync(new Uri(url, "v1/linked-characters"), ct);
             if (linkedRes.StatusCode == HttpStatusCode.NotFound)
-                return Settled(new(ConnectorRefreshOutcome.NothingOffered, SettingsText.ConnectorNothingOffered));
-            if (await Refused(linkedRes, key, ct) is { } refusedLinked) return refusedLinked;
+                return Settled(id, new(ConnectorRefreshOutcome.NothingOffered, SettingsText.ConnectorNothingOffered));
+            if (await Refused(linkedRes, id, title, key, ct) is { } refusedLinked) return refusedLinked;
 
             var (snapshot, error) = LinkedCharacterStore.Parse(await linkedRes.Content.ReadAsStringAsync(ct));
             if (snapshot is null)
-                return Problem(new(ConnectorRefreshOutcome.Rejected, string.Format(SettingsText.ConnectorErrRejected, error)), error);
+                return Problem(id, title, new(ConnectorRefreshOutcome.Rejected, string.Format(SettingsText.ConnectorErrRejected, error)), error);
 
-            // ⚠️ Only while the key this was read with is still the one stored, checked inside the store's
-            // transaction: another client may have disconnected, or connected elsewhere, meanwhile. And it
-            // replaces every other source, since one connector is connected at a time.
-            var stored = await _store.ImportAsync(snapshot, ct, replaceOtherSources: true,
-                stillWanted: async (db, c) => (await db.AppPreferences.AsNoTracking()
-                    .FirstOrDefaultAsync(p => p.Key == KeyPref, c))?.Value == key);
+            // ⚠️ Stored as this entry's own source, whatever label the answer names, and only while the key this
+            // was read with is still the entry's and the entry is still used for linked characters, checked inside
+            // the store's transaction: another client may have disconnected, unticked, or connected anew meanwhile.
+            var stored = await _store.ImportAsync(snapshot, ct, sourceKey: LinkedCharacterStore.SourceKey(id),
+                stillWanted: async (db, c) =>
+                {
+                    var r = await db.Connectors.AsNoTracking().FirstOrDefaultAsync(x => x.Id == id, c);
+                    return r is not null && r.Key == key
+                        && ConnectorSnapshot.From(r) is { HasScope: true } s && s.Chose(ConnectorFunctions.LinkedCharacters);
+                });
             return stored switch
             {
-                LinkedStoreResult.Stored    => Settled(new(ConnectorRefreshOutcome.Imported,  SettingsText.ConnectorRefreshed)),
-                LinkedStoreResult.NotNewer  => Settled(new(ConnectorRefreshOutcome.Unchanged, SettingsText.ConnectorUnchanged)),
-                // Disconnected, or connected anew, while this was asking: nothing to say about this answer.
+                LinkedStoreResult.Stored    => Settled(id, new(ConnectorRefreshOutcome.Imported,  SettingsText.ConnectorRefreshed)),
+                LinkedStoreResult.NotNewer  => Settled(id, new(ConnectorRefreshOutcome.Unchanged, SettingsText.ConnectorUnchanged)),
                 _                           => new(ConnectorRefreshOutcome.NotConnected, SettingsText.ConnectorNotConnected),
             };
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or SocketException or JsonException)
         {
-            return Problem(new(ConnectorRefreshOutcome.Unreachable, string.Format(SettingsText.ConnectorErrUnreachable, account.Url.Authority)),
+            return Problem(id, title, new(ConnectorRefreshOutcome.Unreachable, string.Format(SettingsText.ConnectorErrUnreachable, url.Authority)),
                            ex.Message);
         }
     }
 
+    /// <summary>The raw "offers" array, kept for later features; "" when absent, not an array, or too long.</summary>
+    private string OffersText(int id, string title, JsonElement? offers)
+    {
+        if (offers is not { ValueKind: JsonValueKind.Array } array) { _offersTooLong.TryRemove(id, out _); return ""; }
+        var raw = array.GetRawText();
+        if (raw.Length <= MaxOffersLength) { _offersTooLong.TryRemove(id, out _); return raw; }
+
+        if (_offersTooLong.TryAdd(id, true))
+            _errors?.Warn(nameof(ConnectorService), "refresh",
+                $"Connector {title} (#{id}): \"offers\" is longer than {MaxOffersLength:N0} characters, so it is not kept.");
+        return "";
+    }
+
     /// <summary>A refusal by the connector, as a result; null for an answer to read.</summary>
-    private async Task<ConnectorRefreshResult?> Refused(HttpResponseMessage res, string key, CancellationToken ct)
+    private async Task<ConnectorRefreshResult?> Refused(HttpResponseMessage res, int id, string title, string key, CancellationToken ct)
     {
         if (res.IsSuccessStatusCode) return null;
         var body = await res.Content.ReadAsStringAsync(ct);
@@ -560,37 +892,37 @@ public sealed class ConnectorService
         if (res.StatusCode == HttpStatusCode.Unauthorized)
         {
             // Only the key that was refused: a newer one, from connecting again meanwhile, stays.
-            await ForgetKeyAsync(key, ct);
-            return Problem(new(ConnectorRefreshOutcome.SignedOut, SettingsText.ConnectorErrSignedOut), "the connector no longer knows the key");
+            await ForgetKeyAsync(id, key, ct);
+            return Problem(id, title, new(ConnectorRefreshOutcome.SignedOut, SettingsText.ConnectorErrSignedOut), "the connector no longer knows the key");
         }
         if (res.StatusCode == HttpStatusCode.Forbidden)
-            return Problem(new(ConnectorRefreshOutcome.NotAllowed, ErrorText(body, res.StatusCode)), "refused: " + body);
+            return Problem(id, title, new(ConnectorRefreshOutcome.NotAllowed, ErrorText(body, res.StatusCode)), "refused: " + body);
 
         // A redirect counts as a refusal: they are not followed, so a key never goes anywhere it wasn't issued.
-        return Problem(new(ConnectorRefreshOutcome.Unreachable, ErrorText(body, res.StatusCode)), $"{(int)res.StatusCode}: {body}");
+        return Problem(id, title, new(ConnectorRefreshOutcome.Unreachable, ErrorText(body, res.StatusCode)), $"{(int)res.StatusCode}: {body}");
     }
 
-    /// <summary>A problem, written to the error log once until it changes or clears.</summary>
-    private ConnectorRefreshResult Problem(ConnectorRefreshResult result, string? detail)
+    /// <summary>A problem, written to the error log once per connector until it changes or clears.</summary>
+    private ConnectorRefreshResult Problem(int id, string title, ConnectorRefreshResult result, string? detail)
     {
         var said = $"{result.Outcome}: {detail}";
-        if (said != _lastProblem)
-            _errors?.Warn(nameof(ConnectorService), "refresh", $"Connector refresh: {result.Outcome}", detail);
-        _lastProblem = said;
+        if (_lastProblem.GetValueOrDefault(id) != said)
+            _errors?.Warn(nameof(ConnectorService), "refresh", $"Connector {title} (#{id}) refresh: {result.Outcome}", detail);
+        _lastProblem[id] = said;
         return result;
     }
 
-    private ConnectorRefreshResult Settled(ConnectorRefreshResult result)
+    private ConnectorRefreshResult Settled(int id, ConnectorRefreshResult result)
     {
-        _lastProblem = null;
+        _lastProblem.TryRemove(id, out _);
         return result;
     }
 
     // ── The background refresh ───────────────────────────────────────────────
 
     /// <summary>
-    /// The refresh every half hour. ⚠️ Worker-lease only: it writes the shared cache, and one client doing
-    /// so is enough. Does nothing but read two preferences while nothing is connected.
+    /// The refresh of each connected entry every half hour. ⚠️ Worker-lease only: it writes the shared cache,
+    /// and one client doing so is enough. Does nothing but read the connector list while nothing is connected.
     /// </summary>
     public void Start()
     {
@@ -613,9 +945,13 @@ public sealed class ConnectorService
         try { await Task.Delay(FirstDelay, ct); }
         catch (OperationCanceledException) { return; }
 
+        try { await CleanUpAsync(ct); }
+        catch (OperationCanceledException) { return; }
+        catch (Exception ex) { _errors?.Log(nameof(ConnectorService), "clean up", ex); }
+
         while (!ct.IsCancellationRequested)
         {
-            try { await RefreshAsync(ct); }
+            try { await RefreshAllAsync(ct); }
             catch (OperationCanceledException) { break; }
             catch (Exception ex) { _errors?.Log(nameof(ConnectorService), "refresh", ex); }
 
@@ -669,6 +1005,6 @@ public sealed class ConnectorService
     private sealed record StartAnswer(string? LoginId, string? PollSecret, string? LoginUrl, string? Code, double? Interval, double? ExpiresIn);
     private sealed record PollAnswer(string? Status, string? Key, CharacterAnswer? Character);
     private sealed record CharacterAnswer(long Id, string? Name);
-    private sealed record MeAnswer(CharacterAnswer? Character, List<string?>? Capabilities);
+    private sealed record MeAnswer(CharacterAnswer? Character, List<string?>? Capabilities, JsonElement? Offers);
     private sealed record ErrorAnswer(string? Error, string? Message);
 }

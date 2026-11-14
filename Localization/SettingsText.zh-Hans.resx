@@ -3935,10 +3935,13 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>可选。连接器是一个独立程序，用于把 EVE Console 连接到你的军团或联盟运行的服务，例如成员登记角色的网站。通常由你自己在这台电脑上运行，也可以由军团为成员托管。没有连接器时，EVE Console 照常工作。</value>
   </data>
   <data name="ConnectorSharedNote" xml:space="preserve">
-    <value>当数据库由多台电脑共享时，后台工作进程每半小时从连接器刷新一次。请在后台工作进程所在的电脑上运行连接器，或放在每台电脑都能访问的位置。未加密的 http:// 只允许用于本机上的连接器。</value>
+    <value>当数据库由多台电脑共享时，后台工作进程每半小时从每个连接器刷新一次。请在后台工作进程所在的电脑上运行连接器，或放在每台电脑都能访问的位置。未加密的 http:// 只允许用于本机上的连接器。</value>
   </data>
   <data name="ConnectorUrl" xml:space="preserve">
     <value>连接器地址</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>例如：http://localhost:5054/</value>
   </data>
   <data name="ConnectorConnect" xml:space="preserve">
     <value>通过 EVE 连接</value>
@@ -3953,7 +3956,7 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
     <value>未连接。</value>
   </data>
   <data name="ConnectorConnectedAs" xml:space="preserve">
-    <value>已以 {1} 的身份连接到 {0}。</value>
+    <value>已以 {0} 的身份连接。</value>
   </data>
   <data name="ConnectorConnected" xml:space="preserve">
     <value>已连接。</value>
@@ -4023,5 +4026,104 @@ SQLite 数据库只会被读取，不会被修改。大型数据库需要一些�
   </data>
   <data name="ConnectorErrTooManyLogins" xml:space="preserve">
     <value>连接器上开始的登录过多。请等待几分钟后重试。</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>你可以添加多个连接器，例如你的两个军团，或一个军团和一个联盟，各自运行自己的连接器时。每个连接器只用于你为它选择的军团和联盟，也只用于你勾选的功能。它绝不会被问及这些范围之外的任何人。</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>预览：连接器是一个新接口，目前支持有限。</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>新连接器</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>用于 {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>使用 {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>未勾选任何功能。</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>在为它选择军团或联盟之前不会使用。</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>此连接器未勾选关联角色，因此不会从中读取任何关联角色。</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>未使用</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>有问题</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>用于</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>尚不知道你的角色所在的任何军团或联盟。请先在 ESI 令牌中添加角色。</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0}（目前没有你的角色）</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>功能</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>此版本的 EVE Console 只使用关联角色。其他选择会保存下来，供以后的功能使用。</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>关联角色</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>认证组</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>成员 ESI 数据</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>军团 ESI 数据</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>舰队参与</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>此连接器不提供此功能。</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{1} 的{0}已在连接器 {2} 上设置。请先在那里取消勾选。</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>此连接器在此期间已被删除，可能是在另一台电脑上删除的。</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>连接后即可看到此连接器提供的功能。</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>正在询问连接器…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>正在断开连接…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>此连接器目前不提供任何已勾选的功能。</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>移除连接器</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>要移除连接器 {0} 吗？它的密钥将被终止，为它选择的军团、联盟和功能，以及它提供的关联角色都会被清除。此操作无法撤销。</value>
   </data>
 </root>

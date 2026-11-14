@@ -177,6 +177,8 @@ public class AppDbContext : DbContext
     public DbSet<LinkedSource>    LinkedSources    => Set<LinkedSource>();
     public DbSet<LinkedAccount>   LinkedAccounts   => Set<LinkedAccount>();
     public DbSet<LinkedCharacter> LinkedCharacters => Set<LinkedCharacter>();
+    // The connectors the user set up, each with its key: see ConnectorModels.
+    public DbSet<ConnectorEntry>  Connectors       => Set<ConnectorEntry>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
     // ── Market pricing ───────────────────────────────────────────────
@@ -1617,6 +1619,11 @@ public class AppDbContext : DbContext
             // An account's characters, which is what every reader asks for.
             e.HasIndex(x => new { x.Source, x.AccountId }).HasDatabaseName("IX_LinkedCharacters_Account");
             e.ToTable("LinkedCharacters"); });
+
+        // ⚠️ Holds each connector's key: hidden from the AI agent (AgentSchema.ConnectorsTable).
+        mb.Entity<ConnectorEntry>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("Connectors"); });
 
         mb.Entity<EveScoutStorm>(e => {
             e.HasKey(x => x.Id);

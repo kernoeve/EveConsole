@@ -3935,10 +3935,13 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
     <value>任意です。コネクターは、EVE Console をコーポレーションやアライアンスが運営するサービス（メンバーがキャラクターを登録するサイトなど）とつなぐ別のプログラムです。通常はこの PC で自分で実行しますが、コーポレーションがメンバー向けに用意する場合もあります。コネクターがなくても EVE Console はこれまでどおり動作します。</value>
   </data>
   <data name="ConnectorSharedNote" xml:space="preserve">
-    <value>複数の PC で共有するデータベースでは、バックグラウンドワーカーが 30 分ごとにコネクターから更新します。コネクターはワーカーが動いている場所か、すべての PC から届く場所で実行してください。暗号化されない http:// は、この PC 上のコネクターにのみ使用できます。</value>
+    <value>複数の PC で共有するデータベースでは、バックグラウンドワーカーが 30 分ごとに各コネクターから更新します。コネクターはワーカーが動いている場所か、すべての PC から届く場所で実行してください。暗号化されない http:// は、この PC 上のコネクターにのみ使用できます。</value>
   </data>
   <data name="ConnectorUrl" xml:space="preserve">
     <value>コネクターのアドレス</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>例: http://localhost:5054/</value>
   </data>
   <data name="ConnectorConnect" xml:space="preserve">
     <value>EVE で接続</value>
@@ -3953,7 +3956,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
     <value>接続されていません。</value>
   </data>
   <data name="ConnectorConnectedAs" xml:space="preserve">
-    <value>{1} として {0} に接続しています。</value>
+    <value>{0} として接続しています。</value>
   </data>
   <data name="ConnectorConnected" xml:space="preserve">
     <value>接続しました。</value>
@@ -4023,5 +4026,104 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="ConnectorErrTooManyLogins" xml:space="preserve">
     <value>コネクターで開始されたサインインが多すぎます。数分待ってからもう一度お試しください。</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>コネクターは複数追加できます。たとえば、2 つのコーポレーション、あるいはコーポレーションとアライアンスがそれぞれ独自のコネクターを運営している場合です。各コネクターは、選んだコーポレーションとアライアンスにだけ、チェックした機能にだけ使われます。それ以外の人について問い合わせることはありません。</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>プレビュー：コネクターは新しいインターフェースで、現時点ではサポートが限られています。</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>新しいコネクター</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>対象: {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>使用: {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>チェックされた機能はありません。</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>コーポレーションかアライアンスを選ぶまで使われません。</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>このコネクターではリンクされたキャラクターがチェックされていないため、読み込みません。</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>未使用</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>問題あり</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>使用対象</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>あなたのキャラクターのコーポレーションやアライアンスはまだわかりません。まず ESIトークン でキャラクターを追加してください。</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0}（現在あなたのキャラクターはいません）</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>機能</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>このバージョンの EVE Console が使うのはリンクされたキャラクターだけです。その他の選択は今後の機能のために保存されます。</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>リンクされたキャラクター</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>認証グループ</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>メンバーの ESI データ</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>コーポレーションの ESI データ</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>フリート参加</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>このコネクターはこれを提供していません。</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{1} の {0} は、すでにコネクター {2} に設定されています。先にそちらのチェックを外してください。</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>このコネクターは、その間に削除されました（別の PC からかもしれません）。</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>接続すると、このコネクターが提供するものがわかります。</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>コネクターに問い合わせています…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>切断しています…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>チェックした機能は、現在どれもこのコネクターから提供されていません。</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>コネクターの削除</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>コネクター {0} を削除しますか？そのキーは無効になり、選択したコーポレーション、アライアンス、機能、およびそのコネクターから得たリンクされたキャラクターは消去されます。元に戻すことはできません。</value>
   </data>
 </root>

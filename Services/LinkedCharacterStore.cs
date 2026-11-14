@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EveConsole.Data;
@@ -10,7 +11,11 @@ namespace EveConsole.Services;
 /// Linked characters — which characters are one player's, and which is the main — as a connector last
 /// gave them, kept in <see cref="LinkedAccount"/> and <see cref="LinkedCharacter"/>. EVE Console never
 /// asks where players registered their characters itself: <see cref="Connector.ConnectorService"/> asks
-/// the connector the user runs, and this keeps its answer, so the links are there while it is down.
+/// each connector the user set up, and this keeps its answer, so the links are there while it is down.
+///
+/// <para>⚠️ Each connector's answer is its own source, keyed by the connector entry
+/// (<see cref="SourceKey"/>), never by the label the answer carries. An answer replaces only what THAT
+/// connector gave before. Readers pick the connector with <see cref="Connector.ConnectorRouter"/>.</para>
 ///
 /// <para><b>The data</b>, version 1, as <c>GET /v1/linked-characters</c> answers:</para>
 /// <code>
@@ -52,17 +57,23 @@ public sealed class LinkedCharacterStore(IDbContextFactory<AppDbContext> dbFacto
     public event Action? Changed;
 
     /// <summary>
-    /// Replaces what <paramref name="snapshot"/>'s source said before, unless what is stored is as new
-    /// or newer. True when it was stored.
+    /// The key a connector entry's links are stored under. ⚠️ Rows are keyed by the connector entry, never by
+    /// the label the connector sends: two connectors may send the same label.
+    /// </summary>
+    public static string SourceKey(int connectorId) => "connector:" + connectorId.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>
+    /// Replaces what the source <paramref name="sourceKey"/> (by default, the label <paramref name="snapshot"/>
+    /// names) said before, unless what is stored is as new or newer. Every other source is left alone.
     ///
     /// <para><paramref name="stillWanted"/> is asked inside the transaction, after the lock: false stores
-    /// nothing. <paramref name="replaceOtherSources"/> also removes every other source, for a caller
-    /// that is the only one giving links.</para>
+    /// nothing.</para>
     /// </summary>
     public async Task<LinkedStoreResult> ImportAsync(
         LinkedSnapshot snapshot, CancellationToken ct = default,
-        Func<AppDbContext, CancellationToken, Task<bool>>? stillWanted = null, bool replaceOtherSources = false)
+        Func<AppDbContext, CancellationToken, Task<bool>>? stillWanted = null, string? sourceKey = null)
     {
+        var key   = sourceKey ?? snapshot.Source;
         var first = false;
         var imported = await SqliteBusy.RetryAsync(async () =>
         {
@@ -72,36 +83,27 @@ public sealed class LinkedCharacterStore(IDbContextFactory<AppDbContext> dbFacto
 
             if (stillWanted is not null && !await stillWanted(db, ct)) return LinkedStoreResult.NotWanted;
 
-            if (replaceOtherSources)
-            {
-                await db.LinkedCharacters.Where(c => c.Source != snapshot.Source).ExecuteDeleteAsync(ct);
-                await db.LinkedAccounts.Where(a => a.Source != snapshot.Source).ExecuteDeleteAsync(ct);
-                await db.LinkedSources.Where(s => s.Source != snapshot.Source).ExecuteDeleteAsync(ct);
-            }
-
             // ⚠️ Compared here, in memory: SQLite cannot compare a DateTimeOffset in a query.
-            var current = await db.LinkedSources.FirstOrDefaultAsync(s => s.Source == snapshot.Source, ct);
+            var current = await db.LinkedSources.FirstOrDefaultAsync(s => s.Source == key, ct);
             if (current is not null && current.GeneratedAt >= snapshot.GeneratedAt)
-            {
-                await tx.CommitAsync(ct);   // other sources removed, if asked; this one left alone
                 return LinkedStoreResult.NotNewer;
-            }
 
-            await db.LinkedCharacters.Where(c => c.Source == snapshot.Source).ExecuteDeleteAsync(ct);
-            await db.LinkedAccounts.Where(a => a.Source == snapshot.Source).ExecuteDeleteAsync(ct);
+            await db.LinkedCharacters.Where(c => c.Source == key).ExecuteDeleteAsync(ct);
+            await db.LinkedAccounts.Where(a => a.Source == key).ExecuteDeleteAsync(ct);
 
             db.LinkedAccounts.AddRange(snapshot.Accounts.Select(a => new LinkedAccount
             {
-                Source = a.Source, AccountId = a.AccountId, Name = a.Name, MainCharacterId = a.MainCharacterId,
+                Source = key, AccountId = a.AccountId, Name = a.Name, MainCharacterId = a.MainCharacterId,
             }));
             db.LinkedCharacters.AddRange(snapshot.Characters.Select(c => new LinkedCharacter
             {
-                Source = c.Source, CharacterId = c.CharacterId, AccountId = c.AccountId, Name = c.Name,
+                Source = key, CharacterId = c.CharacterId, AccountId = c.AccountId, Name = c.Name,
                 IsMain = c.IsMain, CorporationId = c.CorporationId, AllianceId = c.AllianceId, TokenValid = c.TokenValid,
             }));
 
             first = current is null;
-            current ??= db.LinkedSources.Add(new LinkedSource { Source = snapshot.Source }).Entity;
+            current ??= db.LinkedSources.Add(new LinkedSource { Source = key }).Entity;
+            current.Label       = snapshot.Source;
             current.GeneratedAt = snapshot.GeneratedAt;
             current.ImportedAt  = DateTimeOffset.UtcNow;
             current.Accounts    = snapshot.Accounts.Count;
@@ -114,13 +116,48 @@ public sealed class LinkedCharacterStore(IDbContextFactory<AppDbContext> dbFacto
 
         // Once, the first time a source arrives: afterwards LinkedSources says when it last did.
         if (imported == LinkedStoreResult.Stored && first)
-            errors?.Note("LinkedCharacters", snapshot.Source,
-                $"Linked characters stored: {snapshot.Accounts.Count:N0} accounts, {snapshot.Characters.Count:N0} characters.");
+            errors?.Note("LinkedCharacters", key,
+                $"Linked characters stored from \"{snapshot.Source}\": {snapshot.Accounts.Count:N0} accounts, {snapshot.Characters.Count:N0} characters.");
         if (imported == LinkedStoreResult.Stored) Changed?.Invoke();
         return imported;
     }
 
-    /// <summary>Forgets every source: the connector was disconnected, and what it gave goes with it.</summary>
+    /// <summary>Forgets one source: its connector was disconnected or removed, and what it gave goes with it.</summary>
+    public async Task ClearSourceAsync(string source, CancellationToken ct = default)
+    {
+        await SqliteBusy.RetryAsync(async () =>
+        {
+            await using var db = await dbFactory.CreateDbContextAsync(ct);
+            await using var tx = await db.Database.BeginTransactionAsync(ct);
+            await LockAsync(db, ct);
+            await ClearSourceAsync(db, source, ct);
+            await tx.CommitAsync(ct);
+            return true;
+        }, null, ct);
+        Changed?.Invoke();
+    }
+
+    /// <summary>One source's links, inside a transaction the caller holds, with <see cref="LockAsync"/> taken.
+    /// True when anything was deleted.</summary>
+    internal static async Task<bool> ClearSourceAsync(AppDbContext db, string source, CancellationToken ct)
+    {
+        var n  = await db.LinkedCharacters.Where(c => c.Source == source).ExecuteDeleteAsync(ct);
+        n     += await db.LinkedAccounts.Where(a => a.Source == source).ExecuteDeleteAsync(ct);
+        n     += await db.LinkedSources.Where(s => s.Source == source).ExecuteDeleteAsync(ct);
+        return n > 0;
+    }
+
+    /// <summary>Every source but <paramref name="keep"/>, inside a transaction the caller holds, with
+    /// <see cref="LockAsync"/> taken. True when anything was deleted.</summary>
+    internal static async Task<bool> ForgetOtherSourcesAsync(AppDbContext db, IReadOnlyCollection<string> keep, CancellationToken ct)
+    {
+        var n  = await db.LinkedCharacters.Where(c => !keep.Contains(c.Source)).ExecuteDeleteAsync(ct);
+        n     += await db.LinkedAccounts.Where(a => !keep.Contains(a.Source)).ExecuteDeleteAsync(ct);
+        n     += await db.LinkedSources.Where(s => !keep.Contains(s.Source)).ExecuteDeleteAsync(ct);
+        return n > 0;
+    }
+
+    /// <summary>Forgets every source.</summary>
     public async Task ClearAsync(CancellationToken ct = default)
     {
         await SqliteBusy.RetryAsync(async () =>
@@ -148,7 +185,7 @@ public sealed class LinkedCharacterStore(IDbContextFactory<AppDbContext> dbFacto
 
     /// <summary>
     /// ⚠️ On PostgreSQL, one import or clear at a time across every client of the database, held to the end
-    /// of the transaction; the connector's preference writes take it too. Without it two clients refreshing
+    /// of the transaction; every write to the connector entries takes it too. Without it two clients refreshing
     /// together both see no newer row, and one fails on the other's keys or puts the older answer back; and a
     /// clear, or a key ending, can land between another client's check and its write. SQLite needs nothing: this process holds the file alone, and a write transaction there
     /// already excludes every other.
