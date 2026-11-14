@@ -22,19 +22,11 @@ public sealed record AlarmMatch(string Key, string Summary)
     public bool Silent { get; init; }
 
     /// <summary>
-    /// Too close to wait: said before everything else in its firing, and never held back by a wake
-    /// cooldown shared between alarms. A kill within a jump of a watched character is one. A check
-    /// sets it; it changes nothing about whether the match is news.
+    /// Too close to wait: said before everything else in its firing. A kill within a jump of a watched
+    /// character is one. A check sets it; it changes nothing about whether the match is news, nor which
+    /// of the alarm's actions run: every one of them runs for every match (user, 2026-11-13).
     /// </summary>
     public bool Urgent { get; init; }
-
-    /// <summary>
-    /// Shown, never woken for: the firing records it and the Alert row shows it, but no sound, voice,
-    /// dialog or word to the agent is raised for it. A check sets it for news too old to wake anyone
-    /// for (seen long ago, only now caught) or too far out to; the service sets it too, for a match
-    /// another alarm of the same <see cref="IAlarmCondition.WakeGroup"/> already woke someone for.
-    /// </summary>
-    public bool Quiet { get; init; }
 
     /// <summary>
     /// How loud the Sound action plays for this match, 0 to 1, as a share of the action's own volume:

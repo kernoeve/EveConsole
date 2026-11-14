@@ -138,10 +138,10 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("priority: said first, ahead of a newer sighting a jump out", matches.Count > 0 && Has(matches[0], "priority"), Keys(matches));
             c.Check("priority: a system outside the range and not a priority still does not fire", Pilot(matches, P3) is null, Keys(matches));
 
-            var judged = IntelCondition.Waking(matches, zone, Six with { WakeJumps = 1 }, Now, Fresh, IntelWatchMemory.Look.AllAlong);
-            c.Check("priority: it wakes beyond the wake range, at full loudness", Pilot(judged, P1) is { Quiet: false, Loudness: 1 });
-            var stale = IntelCondition.Waking(matches, zone, Six, Now.AddMinutes(5), Fresh, IntelWatchMemory.Look.AllAlong);
-            c.Check("priority: stale, it only shows", Pilot(stale, P1) is { Quiet: true });
+            var judged = IntelCondition.News(matches, zone, Six, Now, Fresh, IntelWatchMemory.Look.AllAlong);
+            c.Check("priority: it fires, at full loudness", Pilot(judged, P1) is { Silent: false, Loudness: 1 });
+            var stale = IntelCondition.News(matches, zone, Six, Now.AddMinutes(5), Fresh, IntelWatchMemory.Look.AllAlong);
+            c.Check("priority: stale, it is banked unsaid", Pilot(stale, P1) is { Silent: true });
 
             var said = IntelCondition.ComposeAnnouncement(matches) ?? "";
             c.Check("priority: said first, as a priority system",
@@ -195,8 +195,8 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("watch: with the watch list off, Always beyond the range does not fire and Ignore does",
                 Pilot(off, P1) is null && Pilot(off, P2) is not null && off.Any(m => m.Key == $"intel:k:{K1}"), Keys(off));
 
-            var judged = IntelCondition.Waking(matches, FarZone(), Six with { WakeJumps = 2 }, Now, Fresh, IntelWatchMemory.Look.AllAlong);
-            c.Check("watch: Always wakes beyond the wake range", Pilot(judged, P1) is { Quiet: false, Loudness: 1 });
+            var judged = IntelCondition.News(matches, FarZone(), Six, Now, Fresh, IntelWatchMemory.Look.AllAlong);
+            c.Check("watch: Always beyond the range fires, at full loudness", Pilot(judged, P1) is { Silent: false, Loudness: 1 });
 
             var said = IntelCondition.ComposeAnnouncement(matches) ?? "";
             c.Check("watch: said as the watch list's, ahead of the rest", said.StartsWith("Watch list: ", StringComparison.Ordinal), said);
@@ -269,13 +269,10 @@ namespace EveConsole.Tools.IntelCheck
                 Pilot(matches, P1)!.Summary.Contains("approaching (was 3 jumps out)", StringComparison.Ordinal)
                 && Pilot(matches, P5)!.Summary.Contains("heading away to X2-QZ7", StringComparison.Ordinal), Pilot(matches, P1)!.Summary);
 
-            // Waking: approaching wakes beyond the wake range unless the alarm says not; heading away does not.
-            var narrow = IntelCondition.Waking(matches, zone, Six with { WakeJumps = 0 }, Now, Fresh, IntelWatchMemory.Look.AllAlong);
-            c.Check("approach: wakes beyond the wake range", Pilot(narrow, P1) is { Quiet: false } && Pilot(narrow, P4) is { Quiet: false });
-            c.Check("approach: heading away keeps its normal waking (outside the wake range: shown only)", Pilot(narrow, P5) is { Quiet: true });
-            var strict = IntelCondition.Waking(matches, zone, Six with { WakeJumps = 0, ApproachWakes = false }, Now, Fresh,
-                IntelWatchMemory.Look.AllAlong);
-            c.Check("approach: with 'approaching pilots still wake' off, the wake range holds", Pilot(strict, P1) is { Quiet: true });
+            // Approaching or heading away, news is news: every action runs for both.
+            var judged = IntelCondition.News(matches, zone, Six, Now, Fresh, IntelWatchMemory.Look.AllAlong);
+            c.Check("approach: approaching and heading away both fire",
+                Pilot(judged, P1) is { Silent: false } && Pilot(judged, P4) is { Silent: false } && Pilot(judged, P5) is { Silent: false });
 
             // Through Thera or Turnur: from the walk's wormhole flag.
             var via = IntelCondition.Match(Snap(seen: [Seen(P6, S3, Ago(0.5))]), FarZone(viaHole: true), Six, Now);
@@ -302,8 +299,8 @@ namespace EveConsole.Tools.IntelCheck
                 using var doc = JsonDocument.Parse(json);
                 return IntelCondition.ReadWatchReach(doc.RootElement);
             }
-            c.Check("config: by default neutral or worse, the watch list on, approaching pilots wake",
-                Read("{}") is { HostileFrom: StandingTier.Neutral, WatchList: true, ApproachWakes: true });
+            c.Check("config: by default neutral or worse, the watch list on",
+                Read("{}") is { HostileFrom: StandingTier.Neutral, WatchList: true });
             c.Check("config: negative only and red only are read",
                 Read("""{"hostile_from":"Negative only"}""").HostileFrom == StandingTier.Orange
                 && Read("""{"hostile_from":"Red only"}""").HostileFrom == StandingTier.Red);
@@ -314,7 +311,7 @@ namespace EveConsole.Tools.IntelCheck
             IAlarmCondition condition = new IntelCondition(null!);
             var props = JsonSerializer.SerializeToElement(condition.ParameterSchema).GetProperty("properties");
             c.Check("editor: the new fields are there, with words in the interface language",
-                new[] { "hostile_from", "watch_list", "watch_list_jumps", "approach_wakes", "priority_systems" }
+                new[] { "hostile_from", "watch_list", "watch_list_jumps", "jumps_from", "priority_systems" }
                     .All(p => props.TryGetProperty(p, out _) && condition.ScreenField(p)?.Label is { Length: > 0 }));
             c.Check("editor: the hostility choices have words of their own",
                 new[] { IntelCondition.HostileNeutral, IntelCondition.HostileNegative, IntelCondition.HostileRed }
@@ -404,7 +401,7 @@ namespace EveConsole.Tools.IntelCheck
             using var lyDoc = JsonDocument.Parse(LyJson);
             var lyOptions = IntelCondition.Options(lyDoc.RootElement);
             var lySnap = Snap(seen: [Seen(P6, S5, Ago(0.5))]);
-            var lyMatches = IntelCondition.Waking(IntelCondition.Match(lySnap, byLy, lyOptions, Now), byLy, lyOptions, Now, Fresh,
+            var lyMatches = IntelCondition.News(IntelCondition.Match(lySnap, byLy, lyOptions, Now), byLy, lyOptions, Now, Fresh,
                                                   IntelWatchMemory.Look.AllAlong);
             var inLy = Pilot(lyMatches, P6);
             c.Check("watched: a sighting only the light years catch, inside the reach, is said in light years",
@@ -453,9 +450,9 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("move: the system crossing into the range is new to the range then, though the reach held it",
                 look.EnteredAt(S6) == Now && look.ReachedAt(S6) == DateTimeOffset.MinValue,
                 $"{look.EnteredAt(S6):O} / {look.ReachedAt(S6):O}");
-            var judged = IntelCondition.Waking(matches, after, options, Now, Fresh, look);
-            c.Check("move: the hostile sitting there five minutes is news, and wakes",
-                Pilot(judged, P6) is { Quiet: false }, Keys(judged.Where(m => !m.Quiet)));
+            var judged = IntelCondition.News(matches, after, options, Now, Fresh, look);
+            c.Check("move: the hostile sitting there five minutes is news, and fires",
+                Pilot(judged, P6) is { Silent: false }, Keys(judged.Where(m => !m.Silent)));
 
             // Back a jump: S6 leaves the range for the reach alone, and the next jump in is news again.
             var back = Observe(before, Now.AddSeconds(15));
@@ -469,12 +466,12 @@ namespace EveConsole.Tools.IntelCheck
                 Reached = new Dictionary<int, DateTimeOffset> { [S7] = Now.AddSeconds(-10) },
             };
             var alwaysSnap = Snap(seen: [Seen(P7, S7, Ago(5))]) with { Watch = WatchList((IntelWatchKind.Pilot, P7, IntelWatchMode.Always)) };
-            var always = IntelCondition.Waking(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh, farOnly);
+            var always = IntelCondition.News(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh, farOnly);
             c.Check("move: an Always pilot beyond the range is news from when the reach took its system in",
-                Pilot(always, P7) is { Quiet: false }, Keys(always));
-            var stale = IntelCondition.Waking(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh,
+                Pilot(always, P7) is { Silent: false }, Keys(always));
+            var stale = IntelCondition.News(IntelCondition.Match(alwaysSnap, before, options, Now), before, options, Now, Fresh,
                 IntelWatchMemory.Look.AllAlong with { Entered = new Dictionary<int, DateTimeOffset> { [S7] = Now.AddSeconds(-10) } });
-            c.Check("move: and not from the range's memory, which does not hold it", Pilot(stale, P7) is { Quiet: true }, Keys(stale));
+            c.Check("move: and not from the range's memory, which does not hold it", Pilot(stale, P7) is { Silent: true }, Keys(stale));
 
             IntelWatchMemory.Look Observe(IntelWatchedSystems zone, DateTimeOffset at) =>
                 IntelCondition.Observe(memory, 1, zone, options, IntelCondition.Match(snap, zone, options, at), at);

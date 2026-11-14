@@ -980,7 +980,13 @@
     <value>要监视的星系，例如 {0} 或 {1}。逐个添加；跳数为 0 时只监视这些星系。</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>跳数</value>
+    <value>到</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>跳数：从</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>可选。更近的星系不计入，优先星系和前方路线也一样。两个警报可以这样分担范围：一个设 0 到 2，另一个设 3 到 5，就不会同时触发。</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>从每个角色或星系向外监视的跳数，经由星门以及 Thera 和 Turnur 的开放虫洞。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
@@ -2023,23 +2029,14 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>发生多起击毁</value>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>只有新情报才会唤醒你（声音、语音、代理、对话框）：最近两分钟内被看到或进入范围的情报（设置 → 情报）。更早的情报只记录为提醒。情报警报轮流发声：一个警报唤醒后，除非情报紧急，其他警报会等待几秒；两个警报捕捉到的同一目击只说一次。</value>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>只有新情报会触发：最近两分钟内看到或进入范围的情况（设置 → 情报）；已经存在的不会播报。警报的每个动作都会对其触发的所有内容执行。若想在更近处有不同反应，请再添加一个有自己跳数范围的警报。</value>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>监视位置</value>
   </data>
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>触发内容</value>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>唤醒条件</value>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>唤醒范围</value>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>可选。只有在此跳数以内的情报才会唤醒你；更远的只记录为提醒。击毁和紧急情报总会唤醒。不勾选时，整个范围都会唤醒。</value>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>跳</value>
@@ -2069,7 +2066,7 @@
     <value>使用关注列表</value>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>设为“始终警报”的对象在关注列表范围内触发，不论范围、敌对选择或最少人数，最先播报且从不延后；设为“忽略”的对象从不触发。</value>
+    <value>设为“始终警报”的对象在关注列表范围内触发，不论范围、敌对选择或最少人数，最先播报；设为“忽略”的对象从不触发。</value>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
     <value>关注列表范围</value>
@@ -2077,17 +2074,11 @@
   <data name="IntelWatchReachNote" xml:space="preserve">
     <value>“始终警报”条目在多少跳以内触发（比范围更远时适用）。最多 15。</value>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>接近的飞行员仍然唤醒</value>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>设置了“唤醒范围”时：正在接近的飞行员（比之前离得更近，或被报告正朝你的角色而来）在范围内任何位置都会唤醒你。</value>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>优先星系</value>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>可选。无论你的角色在哪里都始终监视的星系。在那里看到的情况始终唤醒你，不会被其他情报警报延后，并最先播报。</value>
+    <value>可选。无论你的角色在哪里都始终监视的星系（但不近于“跳数：从”）。在那里看到的情况最先播报。</value>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
     <value>优先星系：{0}</value>
@@ -2123,7 +2114,7 @@
     <value>星门蹲守</value>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>当根据星门处的击毁推算出的星门蹲守位于受监视角色附近或前方路线上时触发。每个蹲守、每个角色、每条路线各播报一次，因此经过已知蹲守的新路线会再次播报。前方路线上、唤醒范围内（未设置时为 5 跳）的蹲守为紧急。</value>
+    <value>当根据星门处的击毁推算出的星门蹲守位于受监视角色附近或前方路线上时触发。每个蹲守、每个角色、每条路线各播报一次，因此经过已知蹲守的新路线会再次播报。前方路线上 5 跳以内的蹲守为紧急，最先播报。</value>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>{0} 的 {1} 星门有星门蹲守。</value>

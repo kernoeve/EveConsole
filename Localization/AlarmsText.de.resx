@@ -986,7 +986,13 @@
     <value>Zu überwachende Systeme, z. B. {0} oder {1}. Fügen Sie jedes einzeln hinzu; bei 0 Sprüngen werden nur diese Systeme überwacht.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Sprünge</value>
+    <value>Bis</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Sprünge von</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Optional. Nähere Systeme werden ausgelassen, auch Prioritätssysteme und die Route voraus. So teilen sich zwei Alarme eine Reichweite: 0 bis 2 bei einem und 3 bis 5 beim anderen lösen nie beide aus.</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>Wie viele Sprünge rund um jeden Charakter bzw. jedes System überwacht werden, über Stargates und die offenen Wurmlöcher von Thera und Turnur. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
@@ -2059,23 +2065,14 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Abschüsse gemeldet</value>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>Nur Neues weckt dich (ein Ton, Sprache, der Agent, ein Dialog): etwas, das in den letzten zwei Minuten gesehen wurde oder in Reichweite kam (Einstellungen → Intel). Ältere Meldungen werden nur als Warnung festgehalten. Intel-Alarme wechseln sich ab: Nachdem einer geweckt hat, warten die anderen ein paar Sekunden, außer die Meldung ist dringend, und eine Sichtung, die zwei von ihnen erfassen, wird einmal angesagt.</value>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Nur Neues löst aus: etwas, das in den letzten zwei Minuten gesehen wurde oder in Reichweite kam (Einstellungen → Intel); was schon da war, wird nicht angesagt. Jede Aktion des Alarms läuft für alles, wofür er auslöst. Für etwas anderes in der Nähe lege einen weiteren Alarm mit eigener Sprungreichweite an.</value>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>Wo beobachten</value>
   </data>
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>Was auslöst</value>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>Was dich weckt</value>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>Wecken innerhalb von</value>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>Optional. Nur Meldungen höchstens so viele Sprünge entfernt wecken dich; weiter draußen werden sie nur als Warnung festgehalten. Abschüsse und dringende Meldungen wecken immer. Nicht angehakt weckt die ganze Reichweite.</value>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>Sprüngen</value>
@@ -2105,7 +2102,7 @@
     <value>Beobachtungsliste verwenden</value>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>Was auf „Immer alarmieren“ steht, löst innerhalb der Reichweite der Beobachtungsliste aus, unabhängig von Reichweite, Feindlich-Wahl und Mindestzahl, wird zuerst angesagt und nie zurückgehalten; was auf „Ignorieren“ steht, löst nie aus.</value>
+    <value>Was auf „Immer alarmieren“ steht, löst innerhalb der Reichweite der Beobachtungsliste aus, unabhängig von Reichweite, Feindlich-Wahl und Mindestzahl, wird zuerst angesagt; was auf „Ignorieren“ steht, löst nie aus.</value>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
     <value>Reichweite der Beobachtungsliste</value>
@@ -2113,17 +2110,11 @@
   <data name="IntelWatchReachNote" xml:space="preserve">
     <value>Wie viele Sprünge weit Einträge auf „Immer alarmieren“ auslösen, wenn das weiter ist als die Reichweite. Höchstens 15.</value>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>Näherkommende Piloten wecken trotzdem</value>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>Wenn „Wecken innerhalb von“ gesetzt ist: Ein Pilot, der näherkommt (näher gesehen als zuvor oder mit Kurs auf deinen Charakter gemeldet), weckt dich überall in der Reichweite.</value>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>Vorrangige Systeme</value>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>Optional. Systeme, die immer beobachtet werden, egal wo deine Charaktere sind. Was dort gesehen wird, weckt dich immer, wird nie von einem anderen Intel-Alarm zurückgehalten und zuerst angesagt.</value>
+    <value>Optional. Systeme, die immer beobachtet werden, egal wo deine Charaktere sind, aber nicht näher als „Sprünge von“. Was dort gesehen wird, wird zuerst angesagt.</value>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
     <value>Vorrangiges System: {0}</value>
@@ -2159,7 +2150,7 @@
     <value>Gate-Camps</value>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>Löst bei einem aus Abschüssen an einem Gate ermittelten Gate-Camp aus, in der Nähe eines beobachteten Charakters oder auf einer Route voraus. Einmal pro Camp, pro Charakter und pro Route angesagt, sodass eine neue Route durch ein bekanntes Camp es erneut ansagt. Eines auf einer Route voraus innerhalb der Weckreichweite (5 Sprünge, wenn keine gesetzt ist) ist dringend.</value>
+    <value>Löst bei einem aus Abschüssen an einem Gate ermittelten Gate-Camp aus, in der Nähe eines beobachteten Charakters oder auf einer Route voraus. Einmal pro Camp, pro Charakter und pro Route angesagt, sodass eine neue Route durch ein bekanntes Camp es erneut ansagt. Eines auf einer Route voraus innerhalb von 5 Sprüngen ist dringend: zuerst angesagt.</value>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>Gate-Camp in {0} am {1}-Gate.</value>

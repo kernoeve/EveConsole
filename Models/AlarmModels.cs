@@ -26,21 +26,6 @@ public enum AlarmActionKind
     TtsDirect   = 4,
 }
 
-/// <summary>What each kind of alarm action does to the capsuleer.</summary>
-public static class AlarmActionKinds
-{
-    /// <summary>
-    /// Whether the action wakes someone — a sound, speech, the agent speaking, a dialog over the
-    /// game — or only shows: the Alert row, a record read when wanted. A match too old or too far
-    /// out to wake for (<see cref="Alarms.AlarmMatch.Quiet"/>) runs the showing actions only.
-    /// </summary>
-    public static bool Wakes(AlarmActionKind kind) => kind switch
-    {
-        AlarmActionKind.Sound or AlarmActionKind.AgentNotify or AlarmActionKind.Dialog or AlarmActionKind.TtsDirect => true,
-        _ => false,
-    };
-}
-
 /// <summary>
 /// A user- or agent-defined alarm. The condition is stored as a registry key plus a JSON
 /// parameter blob so new condition types can be added without a schema change.

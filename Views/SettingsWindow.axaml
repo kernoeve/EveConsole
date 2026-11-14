@@ -1969,14 +1969,10 @@
               <StackPanel Margin="12 10 12 12" Spacing="8">
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
                            Text="{x:Static loc:IntelText.SettingsAlertsNote}" />
-                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto" RowSpacing="6">
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto" RowSpacing="6">
                   <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsFresh}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
                   <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding FreshSeconds}" Minimum="{Binding MinFresh}" Maximum="{Binding MaxFresh}" Increment="15" FormatString="0" FontSize="12" />
                   <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsSeconds}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
-
-                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsWakeCooldown}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
-                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding WakeCooldownSeconds}" Minimum="0" Maximum="{Binding MaxWakeCooldown}" Increment="5" FormatString="0" FontSize="12" />
-                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsWakeCooldownHint}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
                 </Grid>
               </StackPanel>
             </StackPanel>

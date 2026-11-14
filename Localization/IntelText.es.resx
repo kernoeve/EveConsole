@@ -92,16 +92,10 @@
     <value>Alarmas de intel</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>Compartido por todas las alarmas de intel. Solo los avisos así de recientes despiertan a alguien (un sonido, voz, un diálogo) y resaltan una fila del panel; los avisos más antiguos se siguen mostrando. Después de que una alarma despierte, las demás esperan este tiempo, salvo que el aviso sea urgente.</value>
+    <value>Compartido por todas las alarmas de intel. Solo los avisos así de recientes hacen saltar una alarma y resaltan una fila del panel; lo que ya estaba no se anuncia, y los avisos más antiguos se siguen mostrando.</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>Despertar solo con avisos de menos de</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>Espera entre despertares</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>segundos (0 sin espera)</value>
+    <value>Solo avisos de menos de</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>Aviso del feed de killmails</value>

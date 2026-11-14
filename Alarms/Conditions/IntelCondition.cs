@@ -44,10 +44,11 @@ namespace EveConsole.Alarms.Conditions;
 /// Planner sent for one of them are watched too, however far (<see cref="CharacterRouteStore"/>): only the
 /// part not yet flown, until arrival or six hours. A route set only in the game is not known.</para>
 ///
-/// <para><b>Showing versus waking.</b> Every match is recorded and shown on the Alert row; only news
-/// wakes anyone (<see cref="Waking"/>): seen, or come into range, within the fresh window of Settings →
-/// Intel, and inside the wake range when one is set. Every intel alarm is in one wake group, so they
-/// share a wake cooldown and say a sighting two of them catch once (<see cref="Services.AlarmWakeGate"/>).</para>
+/// <para><b>News only, and every action for it.</b> Only news fires (<see cref="News"/>): seen, or come into
+/// the range, within the fresh window of Settings → Intel; what was already there is banked unsaid. ⚠️ Every
+/// action of the alarm runs for everything it fires on: none is kept for nearer or newer news, and no intel
+/// alarm holds another back. Something else for nearer news is another alarm, with its own jumps from and
+/// thru (0 thru 2 on one, 3 thru 5 on another): how the alarms split the work is the user's (2026-11-13).</para>
 /// </summary>
 public sealed class IntelCondition : IAlarmCondition
 {
@@ -132,11 +133,6 @@ public sealed class IntelCondition : IAlarmCondition
         _memory    = memory ?? new IntelWatchMemory();
     }
 
-    /// <summary>The wake group every intel alarm is in: one shared wake cooldown, and a sighting two of
-    /// them catch said once.</summary>
-    public const string WakeGroupName = "intel";
-    public string? WakeGroup => WakeGroupName;
-
     /// <summary>The Sound action's share of its volume at the edge of the range; 1 within a jump.</summary>
     internal const double FarLoudness = 0.4;
 
@@ -147,27 +143,26 @@ public sealed class IntelCondition : IAlarmCondition
         "Fires when someone reports a hostile pilot within a jump range — or a light-year range, for what " +
         "is in jump-drive reach — of what you are watching: your characters while they are " +
         "undocked (the default), named characters wherever they are, or a list of systems. Either " +
-        "range catching a report is enough. A jump range of 0 watches just those systems. Reads the intel " +
+        "range catching a report is enough. A jump range of 0 watches just those systems; jumps_from leaves out the systems " +
+        "nearer than it (around characters or systems, the route ahead and priority systems alike), so two alarms can split " +
+        "the range, 0 thru 2 and 3 thru 5, and never both fire. Reads the intel " +
         "channels already being parsed under Settings → Chat Logs, as they stand now: a pilot seen since " +
         "elsewhere, or called clear, is gone. Each pilot is said once while they stay in a system, a count " +
         "of unnamed pilots again when it grows past 1, 4, 9 or 19, and a report of only a gate camp, bubbles, " +
         "a cyno, a hot drop, a spike or combat probes fires too (flag_reports). A kill there with hostile " +
         "attackers always fires, said as a kill, and first when it is within a jump; its attackers are not " +
-        "said again as a sighting. Only news wakes the capsuleer (sound, speech, the agent, a dialog): seen, or " +
-        "come into range, within the last two minutes by default (Settings → Intel), and within wake_jumps when " +
-        "that is set; older or farther matches are only written to Alerts. Intel alarms share one wake cooldown " +
-        "(15 s by default; urgent news skips it) and a sighting two of them catch is said once. The sound plays " +
-        "quieter further out (quieter_far). Hostile is neutral or worse by default (hostile_from), by the standings " +
-        "of the watched character nearest. Urgent, said first and never held back: anything in a priority system " +
+        "said again as a sighting. Only news fires: seen, or come into range, within the last two minutes by " +
+        "default (Settings → Intel); what was already there is not said. Every action of the alarm runs for all it " +
+        "fires on. The sound plays quieter further out (quieter_far). Hostile is neutral or worse by default (hostile_from), by the standings " +
+        "of the watched character nearest. Urgent, said first: anything in a priority system " +
         "(priority_systems, always watched), anyone on the watch list's Always alert (within watch_list_jumps, " +
         "whatever the range or minimum; Ignore never fires), and a pilot approaching (seen closer than before, or " +
-        "reported heading toward a watched character), which wakes beyond wake_jumps unless approach_wakes is off. " +
+        "reported heading toward a watched character). " +
         "A pilot heading away is said so. A distance through Thera or Turnur is said so. Around characters, the systems " +
         "still ahead on the last route the Route Planner sent for one of them are watched too, however far (route; dropped " +
         "on arrival or after six hours; a route set only in the game is not known). A gate camp worked out from kills " +
         "fires when it is in what is watched or on a route ahead (camps): once per camp, per character and per route, " +
-        "so a new route through a known camp is said again; one on a route ahead within the wake range (5 jumps when " +
-        "none is set) is urgent.";
+        "so a new route through a known camp is said again; one on a route ahead within 5 jumps is urgent.";
 
     public object ParameterSchema => new
     {
@@ -207,11 +202,23 @@ public sealed class IntelCondition : IAlarmCondition
                 description = "System names to watch around, e.g. [\"Jita\", \"Amarr\"]. Used when " +
                               "'around' is \"Systems\".",
             },
+            jumps_from = new
+            {
+                section     = SectionWhere,
+                type        = "integer",
+                optional    = true,
+                title       = "Jumps from",
+                description = "Optional. The nearest jumps out to watch; nearer systems are left out, the route ahead's " +
+                              "and priority systems too. 0 (the default) starts at the system itself. Two alarms split " +
+                              "a range this way: 0 thru 2 and 3 thru 5 never both fire.",
+            },
             jumps = new
             {
                 section     = SectionWhere,
                 type        = "integer",
                 @default    = DefaultJumps,
+                beside      = "jumps_from",
+                title       = "Thru",
                 description = "How many jumps out from each character or system to watch, through " +
                               "stargates and Thera's and Turnur's open wormholes. 0 means their own system " +
                               "only. Capped at 15 — past that it stops being a neighbourhood.",
@@ -220,7 +227,6 @@ public sealed class IntelCondition : IAlarmCondition
             {
                 section     = SectionWhere,
                 type        = "number",
-                beside      = "jumps",
                 title       = "Light years",
                 description = "Optional. Also watch every system within this many light years of each " +
                               "character or system, however many gates away — what a jump drive or a " +
@@ -237,6 +243,16 @@ public sealed class IntelCondition : IAlarmCondition
                               "for a watched character, however far: what is seen there fires, said as so many jumps " +
                               "ahead on the route. Only the part not yet flown; the route is dropped on arrival or six " +
                               "hours after it was sent. A route set only in the game is not known. Default true.",
+            },
+            priority_systems = new
+            {
+                section     = SectionWhere,
+                type        = "array",
+                items       = new { type = "string" },
+                format      = "system-name",
+                title       = "Priority systems",
+                description = "Optional. Systems always watched, wherever the characters are (but not nearer than " +
+                              "jumps_from); what is seen there is said first.",
             },
             min_players = new
             {
@@ -271,7 +287,7 @@ public sealed class IntelCondition : IAlarmCondition
                 description = "Fire for a gate camp worked out from kills on a gate (two or more pilots lost to the same " +
                               "attackers within half an hour), in what is watched or on a route ahead. Said once per camp, " +
                               "per character and per route, so a new route through a known camp is said again. One on a " +
-                              "route ahead within wake_jumps (5 jumps when that is not set) is urgent. Default true.",
+                              "route ahead within 5 jumps is urgent. Default true.",
             },
             hostile_from = new
             {
@@ -293,7 +309,7 @@ public sealed class IntelCondition : IAlarmCondition
                 title       = "Use the watch list",
                 description = "Follow the Intel tool's watch list: pilots, corporations, alliances, hulls and " +
                               "ship groups on Always alert fire within watch_list_jumps whatever the range, the " +
-                              "hostility choice or min_players, said first and never held back; those on Ignore " +
+                              "hostility choice or min_players, said first; those on Ignore " +
                               "never fire. Default true.",
             },
             watch_list_jumps = new
@@ -306,64 +322,33 @@ public sealed class IntelCondition : IAlarmCondition
                 description = "How many jumps out the watch list's Always entries fire, when that is farther than " +
                               "jumps. Default 10, capped at 15.",
             },
-            wake_jumps = new
-            {
-                section     = SectionWaking,
-                type        = "integer",
-                optional    = true,
-                title       = "Wake within",
-                description = "Optional. Only matches this many jumps out or nearer wake you (sound, speech, the " +
-                              "agent, a dialog); farther ones are only written to Alerts. Kills and urgent news " +
-                              "always wake. Left out, the whole range wakes.",
-            },
-            approach_wakes = new
-            {
-                section     = SectionWaking,
-                type        = "boolean",
-                @default    = true,
-                title       = "Approaching pilots still wake",
-                description = "With wake_jumps set: a pilot coming nearer (seen closer than before, or reported " +
-                              "heading toward a watched character) wakes you anywhere in the range. Default true.",
-            },
             quieter_far = new
             {
-                section     = SectionWaking,
+                section     = SectionWhat,
                 type        = "boolean",
                 @default    = true,
                 title       = "Quieter further out",
                 description = "The sound plays at full volume within a jump, and more quietly further out: down to " +
                               "40% at the edge of the jump range. Speech keeps its own volume. Default true.",
             },
-            priority_systems = new
-            {
-                section     = SectionWaking,
-                type        = "array",
-                items       = new { type = "string" },
-                format      = "system-name",
-                title       = "Priority systems",
-                description = "Optional. Systems always watched, wherever the characters are; what is seen there " +
-                              "always wakes you, is never held back by another intel alarm, and is said first.",
-            },
         },
         required = Array.Empty<string>(),
     };
 
-    // The editor's sections: where to watch, what fires, and what wakes.
+    // The editor's sections: where to watch, and what fires.
     internal const string SectionWhere  = "where";
     internal const string SectionWhat   = "what";
-    internal const string SectionWaking = "waking";
 
-    // The editor's words; the three above are the agent's and stay English.
+    // The editor's words; the two above are the agent's and stay English.
     public string ScreenName        => AlarmsText.CheckIntel;
     public string ScreenDescription => Sentences.Join(Sentences.Join(Sentences.Join(
         Sentences.Join(AlarmsText.CheckIntelNote, AlarmsText.CheckIntelKillsNote), AlarmsText.CheckIntelChangedNote),
-        AlarmsText.CheckIntelRouteNote), AlarmsText.CheckIntelWakeNote);
+        AlarmsText.CheckIntelRouteNote), AlarmsText.CheckIntelNewsNote);
 
     public string? ScreenSection(string section) => section switch
     {
         SectionWhere  => AlarmsText.IntelSectionWhere,
         SectionWhat   => AlarmsText.IntelSectionWhat,
-        SectionWaking => AlarmsText.IntelSectionWaking,
         _             => null,
     };
 
@@ -374,6 +359,7 @@ public sealed class IntelCondition : IAlarmCondition
         // Examples as the game names them in the interface language: names the box takes.
         "systems"          => new(AlarmsText.IntelSystemsLabel,     string.Format(AlarmsText.IntelSystemsNote,
                                   SdeNames.SolarSystem(30000142, "Jita"), SdeNames.SolarSystem(30002187, "Amarr"))),
+        "jumps_from"       => new(AlarmsText.IntelJumpsFromLabel,   AlarmsText.IntelJumpsFromNote),
         "jumps"            => new(AlarmsText.IntelJumpsLabel,       AlarmsText.IntelJumpsNote),
         "ly"               => new(AlarmsText.IntelLyLabel,          AlarmsText.IntelLyNote),
         "min_players"      => new(AlarmsText.IntelMinPlayersLabel,  AlarmsText.IntelMinPlayersNote),
@@ -381,12 +367,10 @@ public sealed class IntelCondition : IAlarmCondition
         "flag_reports"     => new(AlarmsText.IntelFlagReportsLabel, AlarmsText.IntelFlagReportsNote),
         "route"            => new(AlarmsText.IntelRouteLabel,       AlarmsText.IntelRouteNote),
         "camps"            => new(AlarmsText.IntelCampsLabel,       AlarmsText.IntelCampsNote),
-        "wake_jumps"       => new(AlarmsText.IntelWakeJumpsLabel,   AlarmsText.IntelWakeJumpsNote, AlarmsText.IntelWakeJumpsSuffix),
         "quieter_far"      => new(AlarmsText.IntelQuieterFarLabel,  AlarmsText.IntelQuieterFarNote),
         "hostile_from"     => new(AlarmsText.IntelHostileFromLabel, AlarmsText.IntelHostileFromNote),
         "watch_list"       => new(AlarmsText.IntelWatchListLabel,   AlarmsText.IntelWatchListNote),
         "watch_list_jumps" => new(AlarmsText.IntelWatchReachLabel,  AlarmsText.IntelWatchReachNote, AlarmsText.IntelWakeJumpsSuffix),
-        "approach_wakes"   => new(AlarmsText.IntelApproachWakesLabel, AlarmsText.IntelApproachWakesNote),
         "priority_systems" => new(AlarmsText.IntelPrioritySystemsLabel, AlarmsText.IntelPrioritySystemsNote),
         _                  => null,
     };
@@ -412,8 +396,10 @@ public sealed class IntelCondition : IAlarmCondition
         var jumps   = ReadJumps(config, around);
         var minimum = ReadInt(config, "min_players") ?? 1;
         var ly      = ReadLy(config);
+        var from    = ReadJumpsFrom(config, jumps);
         var reach   = new List<string>();
-        if (jumps > 0) reach.Add($"{jumps} jump{(jumps == 1 ? "" : "s")}");
+        if (from > 0) reach.Add($"{from} to {jumps} jumps");
+        else if (jumps > 0) reach.Add($"{jumps} jump{(jumps == 1 ? "" : "s")}");
         if (ly is { } l) reach.Add($"{l.ToString("0.#", CultureInfo.InvariantCulture)} ly");
         var range   = reach.Count > 0 ? $"within {string.Join(" or ", reach)} of " : "";
 
@@ -434,13 +420,11 @@ public sealed class IntelCondition : IAlarmCondition
 
         var text = minimum > 1 ? $"Intel {where}, {minimum}+ pilots" : $"Intel {where}";
         if (!ReadBool(config, "flag_reports", true)) text += ", no flag-only reports";
-        if (ReadWakeJumps(config) is { } wakes) text += $", wakes within {wakes} jump{(wakes == 1 ? "" : "s")}";
         if (!ReadBool(config, "quieter_far", true)) text += ", same loudness near or far";
         var hostile = ReadHostileFrom(config);
         if (hostile != StandingTier.Neutral) text += hostile == StandingTier.Red ? ", red only" : ", negative only";
         if (ReadWatchReach(config) is not { } watchReach) text += ", no watch list";
         else if (watchReach != DefaultWatchReach) text += $", watch list within {watchReach} jump{(watchReach == 1 ? "" : "s")}";
-        if (ReadWakeJumps(config) is not null && !ReadBool(config, "approach_wakes", true)) text += ", approaching pilots wake only within that";
         var priority = ReadList(config, "priority_systems");
         if (priority.Count > 0) text += $", {priority.Count} priority system{(priority.Count == 1 ? "" : "s")}";
         if (around != AroundSystems && !ReadBool(config, "route", true)) text += ", not the route ahead";
@@ -506,7 +490,7 @@ public sealed class IntelCondition : IAlarmCondition
         // What is news to the capsuleer, as opposed to unseen by this alarm: remembered only while
         // something is watched, so a long dock (or every character logged off) begins it again.
         var look = Observe(_memory, ctx.Alarm.Id, zone, options, matches, ctx.Now);
-        return Waking(matches, zone, options, ctx.Now, TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds), look);
+        return News(matches, zone, options, ctx.Now, TimeSpan.FromSeconds(snapshot.Settings.FreshSeconds), look);
     }
 
     /// <summary>
@@ -522,21 +506,21 @@ public sealed class IntelCondition : IAlarmCondition
                        options.WatchList ? zone.Systems.Union(zone.WatchReach) : null);
 
     /// <summary>
-    /// Which matches wake the capsuleer and how loud, as against only being shown (see
-    /// <see cref="AlarmMatch.Quiet"/>). Pure: tools/IntelCheck runs it on matches built by hand.
+    /// Which matches are news, and how loud. Pure: tools/IntelCheck runs it on matches built by hand.
     /// <list type="bullet">
-    /// <item><b>News only.</b> Quiet when older than <paramref name="fresh"/> (Settings → Intel, two
-    /// minutes by default), counted from the later of when it was seen and when its system came into
-    /// the range, or for a system beyond it into the watch list's reach (<paramref name="look"/>) — and, for a kill, when this alarm first caught it, since the
-    /// kill feed brings a kill minutes after it happened. Urgent news is held to this too: what makes
-    /// it urgent is how near it is, not how new.</item>
-    /// <item><b>Within the wake range</b>, when the alarm sets one. A kill, a priority system and the watch
-    /// list's Always always wake; a pilot approaching does too unless the alarm turns that off.</item>
+    /// <item><b>News only.</b> Older than <paramref name="fresh"/> (Settings → Intel, two minutes by default),
+    /// counted from the later of when it was seen and when its system came into the range, or for a system
+    /// beyond it into the watch list's reach (<paramref name="look"/>) — and, for a kill, when this alarm first
+    /// caught it, since the kill feed brings a kill minutes after it happened — a match is banked unsaid
+    /// (<see cref="AlarmMatch.Silent"/>): what was already there when the alarm came to look. Urgent news is
+    /// held to this too: what makes it urgent is how near it is, not how new.</item>
     /// <item><b>Loudness</b>, when the alarm plays far news quieter: 1 within a jump, down to
     /// <see cref="FarLoudness"/> at the edge of the range (<see cref="Loudness"/>); urgent news at 1.</item>
     /// </list>
+    /// <para>⚠️ Nothing here picks which of the alarm's actions run: all of them run for all the news
+    /// (user, 2026-11-13). Nearer news treated otherwise is another alarm with its own jumps from and thru.</para>
     /// </summary>
-    internal static IReadOnlyList<AlarmMatch> Waking(
+    internal static IReadOnlyList<AlarmMatch> News(
         IReadOnlyList<AlarmMatch> matches, IntelWatchedSystems zone, IntelAlarmOptions options, DateTimeOffset now,
         TimeSpan fresh, IntelWatchMemory.Look look)
     {
@@ -555,11 +539,9 @@ public sealed class IntelCondition : IAlarmCondition
             int? jumps = zone.Jumps.TryGetValue(system, out var hops) ? hops : null;
             double? ly = zone.LightYears.TryGetValue(system, out var far) ? far : null;
 
-            var anywhere = kill || Flag(m, "priority") || Flag(m, "watch") || (options.ApproachWakes && Flag(m, "approaching"));
-            var quiet = now - news > fresh
-                     || (!anywhere && options.WakeJumps is int within && (jumps is not int j || j > within));
+            var stale = now - news > fresh;
             var loud  = m.Urgent || !options.QuieterFar ? 1.0 : Loudness(jumps, ly, options.Jumps, options.Ly);
-            return m with { Quiet = quiet, Loudness = loud };
+            return m with { Silent = m.Silent || stale, Loudness = loud };
         })];
 
         static DateTimeOffset Later(DateTimeOffset a, DateTimeOffset b) => a >= b ? a : b;
@@ -588,18 +570,16 @@ public sealed class IntelCondition : IAlarmCondition
     // ── Matching ─────────────────────────────────────────────────────────────
 
     /// <summary>What one alarm's config asks for, read once.</summary>
-    /// <param name="WakeJumps">The wake range: farther matches only show. Null for the whole range.</param>
     /// <param name="QuieterFar">The sound plays quieter further out.</param>
     /// <param name="Ly">The light-year range, when set: what a system only it caught is as far as.</param>
     /// <param name="HostileFrom">The worst tier a named pilot may be and still not count: Neutral lets
     /// red, orange and neutral count, Orange red and orange, Red red alone.</param>
     /// <param name="WatchList">The watch list is followed: Always fires farther and first, Ignore never.</param>
-    /// <param name="ApproachWakes">A pilot approaching wakes beyond the wake range.</param>
     /// <param name="Camps">Gate camps worked out from kills fire, in what is watched or on a route ahead.</param>
     internal sealed record IntelAlarmOptions(int Jumps, int MinPlayers = 1, bool SkipNoVisual = false, bool FlagReports = true,
-                                             int? WakeJumps = null, bool QuieterFar = true, double? Ly = null,
+                                             bool QuieterFar = true, double? Ly = null,
                                              StandingTier HostileFrom = StandingTier.Neutral, bool WatchList = true,
-                                             bool ApproachWakes = true, bool Camps = true);
+                                             bool Camps = true);
 
     internal static IntelAlarmOptions Options(JsonElement config)
     {
@@ -609,21 +589,20 @@ public sealed class IntelCondition : IAlarmCondition
             Math.Max(1, ReadInt(config, "min_players") ?? 1),
             ReadBool(config, "ignore_no_visual"),
             ReadBool(config, "flag_reports", true),
-            ReadWakeJumps(config),
             ReadBool(config, "quieter_far", true),
             ReadLy(config),
             ReadHostileFrom(config),
             ReadBool(config, "watch_list", true),
-            ReadBool(config, "approach_wakes", true),
             ReadBool(config, "camps", true));
     }
 
-    /// <summary>How many jumps ahead on a route a gate camp is urgent when the alarm sets no wake range.</summary>
+    /// <summary>How many jumps ahead on a route a gate camp is urgent: said first.</summary>
     internal const int CampUrgentJumps = 5;
 
-    /// <summary>The wake range, capped like the range; null when it is not set (the whole range wakes).</summary>
-    private static int? ReadWakeJumps(JsonElement config) =>
-        ReadInt(config, "wake_jumps") is int n ? Math.Clamp(n, 0, MaxJumps) : null;
+    /// <summary>The nearest jumps out the alarm watches, 0 (the default) to its range: nearer systems are left
+    /// out, so two alarms can split a range (0 thru 2, 3 thru 5) and never both fire.</summary>
+    internal static int ReadJumpsFrom(JsonElement config, int jumps) =>
+        Math.Clamp(ReadInt(config, "jumps_from") ?? 0, 0, jumps);
 
     /// <summary>How far the watch list's Always entries fire, capped like the range; null when the alarm
     /// does not follow the watch list.</summary>
@@ -808,7 +787,7 @@ public sealed class IntelCondition : IAlarmCondition
                 var priority = zone.Priority.Contains(id);
                 // Near on the route only when the jumps are how far the character is (see IntelRouteStep.Measured).
                 var urgent   = priority || watch
-                               || (step is { Measured: true } && step.Jumps <= (options.WakeJumps ?? CampUrgentJumps));
+                               || (step is { Measured: true } && step.Jumps <= CampUrgentJumps);
                 var who      = viewer ?? 0;
                 var hulls = gang.Where(x => x.Attacker.ShipTypeId is > 0)
                     .GroupBy(x => x.Attacker.ShipTypeId!.Value)
@@ -1237,6 +1216,18 @@ public sealed class IntelCondition : IAlarmCondition
                 nearest[id] = step.Name;
                 nearestId[id] = step.CharacterId;
             }
+        }
+
+        // Nearer than jumps from: left out, whatever put them in (the range, the route ahead, a priority system,
+        // the watch list's reach), so an alarm on 3 thru 5 and one on 0 thru 2 never both fire, and the map's
+        // outline is the band. A system only the light-year range caught has no jumps and stays.
+        if (ReadJumpsFrom(config, jumps) is var fromJumps && fromJumps > 0)
+        {
+            bool Near(int id) => hopsTo.TryGetValue(id, out var hops) && hops < fromJumps;
+            watched.RemoveWhere(Near);
+            watchReach.RemoveWhere(Near);
+            priority.RemoveWhere(Near);
+            foreach (var id in route.Keys.Where(Near).ToList()) route.Remove(id);
         }
 
         return new IntelWatchedSystems(watched, hopsTo, nearest, lyDistances, lyNearest)

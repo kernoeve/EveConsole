@@ -986,7 +986,13 @@
     <value>Systèmes à surveiller, p. ex. {0} ou {1}. Ajoutez-les un par un ; avec Sauts à 0, seuls ces systèmes sont surveillés.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Sauts</value>
+    <value>Jusqu'à</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Sauts de</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Facultatif. Les systèmes plus proches sont laissés de côté, systèmes prioritaires et itinéraire à venir compris. Deux alarmes se partagent ainsi une portée : 0 jusqu'à 2 sur l'une et 3 jusqu'à 5 sur l'autre ne se déclenchent jamais toutes les deux.</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>Nombre de sauts à surveiller autour de chaque personnage ou système, par les portails stellaires et les trous de ver ouverts de Thera et Turnur. 0 signifie leur propre système uniquement. Limité à 15 — au-delà, ce n'est plus un voisinage.</value>
@@ -2059,23 +2065,14 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Destructions signalées</value>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>Seule la nouveauté vous réveille (un son, la voix, l'agent, une boîte de dialogue) : ce qui a été vu, ou est entré à portée, dans les deux dernières minutes (Paramètres → Intel). Le reste n'est enregistré que comme Alerte. Les alarmes d'intel se relaient : après le réveil par l'une, les autres attendent quelques secondes sauf urgence, et un signalement capté par deux d'entre elles n'est dit qu'une fois.</value>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Seul le nouveau déclenche : ce qui a été vu, ou est entré dans la portée, dans les deux dernières minutes (Paramètres → Intel) ; ce qui était déjà là n'est pas annoncé. Chaque action de l'alarme s'exécute pour tout ce qui la déclenche. Pour autre chose plus près, ajoutez une autre alarme avec sa propre portée en sauts.</value>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>Où surveiller</value>
   </data>
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>Ce qui déclenche</value>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>Ce qui vous réveille</value>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>Réveiller à moins de</value>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>Facultatif. Seules les informations à ce nombre de sauts ou moins vous réveillent ; plus loin, elles ne sont enregistrées que comme Alerte. Les destructions et les informations urgentes réveillent toujours. Décoché, toute la portée réveille.</value>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>sauts</value>
@@ -2105,7 +2102,7 @@
     <value>Utiliser la liste de surveillance</value>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>Ce qui est en « Toujours alerter » se déclenche dans la portée de la liste de surveillance, quels que soient la portée, le choix Hostile ou le minimum, est annoncé en premier et n'est jamais retenu ; ce qui est en « Ignorer » ne se déclenche jamais.</value>
+    <value>Ce qui est en « Toujours alerter » se déclenche dans la portée de la liste de surveillance, quels que soient la portée, le choix Hostile ou le minimum, est annoncé en premier ; ce qui est en « Ignorer » ne se déclenche jamais.</value>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
     <value>Portée de la liste de surveillance</value>
@@ -2113,17 +2110,11 @@
   <data name="IntelWatchReachNote" xml:space="preserve">
     <value>À combien de sauts se déclenchent les entrées en « Toujours alerter », quand c'est plus loin que la portée. 15 au plus.</value>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>Les pilotes qui approchent réveillent quand même</value>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>Avec « Réveiller à moins de » réglé : un pilote qui approche (vu plus près qu'avant, ou signalé en route vers votre personnage) vous réveille partout dans la portée.</value>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>Systèmes prioritaires</value>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>Facultatif. Systèmes toujours surveillés, où que soient vos personnages. Ce qui y est vu vous réveille toujours, n'est jamais retenu par une autre alarme d'intel et est annoncé en premier.</value>
+    <value>Facultatif. Systèmes toujours surveillés, où que soient vos personnages, mais pas plus près que « Sauts de ». Ce qui y est vu est annoncé en premier.</value>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
     <value>Système prioritaire : {0}</value>
@@ -2159,7 +2150,7 @@
     <value>Camps de portail</value>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>Se déclenche pour un camp de portail déduit des destructions sur un portail, près d&apos;un personnage surveillé ou sur un itinéraire à venir. Annoncé une fois par camp, par personnage et par itinéraire, si bien qu&apos;un nouvel itinéraire passant par un camp connu l&apos;annonce de nouveau. Un camp sur un itinéraire à venir dans la portée de réveil (5 sauts si aucune n&apos;est définie) est urgent.</value>
+    <value>Se déclenche pour un camp de portail déduit des destructions sur un portail, près d&apos;un personnage surveillé ou sur un itinéraire à venir. Annoncé une fois par camp, par personnage et par itinéraire, si bien qu&apos;un nouvel itinéraire passant par un camp connu l&apos;annonce de nouveau. Un camp sur un itinéraire à venir à 5 sauts ou moins est urgent : annoncé en premier.</value>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>Camp de portail dans {0}, sur le portail de {1}.</value>

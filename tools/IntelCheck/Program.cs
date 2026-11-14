@@ -182,7 +182,7 @@ try
             new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, name)}").Options;
         await AlarmChecks.WatchedAsync(c, Scratch("alarmwatch.db"));
         await AlarmChecks.EvaluateAsync(c, Scratch("alarmeval.db"));
-        await AlarmChecks.WakeServiceAsync(c, Scratch("alarmwake.db"));
+        await AlarmChecks.NewsServiceAsync(c, Scratch("alarmnews.db"));
         await AlarmChecks.WhoAndWhereWatchedAsync(c, Scratch("alarmwho.db"));
         await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
         await AlarmChecks.RouteStoreAsync(c, "SQLite", Scratch("routes.db"));

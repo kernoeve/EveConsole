@@ -92,16 +92,10 @@
     <value>Тревоги разведки</value>
   </data>
   <data name="SettingsAlertsNote" xml:space="preserve">
-    <value>Общее для всех тревог разведки. Будят (звук, речь, окно) и подсвечивают строку панели только сведения не старше этого; более старые по-прежнему показываются. После того как одна тревога разбудила, остальные ждут столько, если сведения не срочные.</value>
+    <value>Общее для всех тревог разведки. Тревогу запускают и подсвечивают строку панели только сведения не старше этого; то, что уже было, не озвучивается, а более старые сведения по-прежнему показываются.</value>
   </data>
   <data name="SettingsFresh" xml:space="preserve">
-    <value>Будить только для сведений не старше</value>
-  </data>
-  <data name="SettingsWakeCooldown" xml:space="preserve">
-    <value>Пауза между пробуждениями</value>
-  </data>
-  <data name="SettingsWakeCooldownHint" xml:space="preserve">
-    <value>секунд (0 — без паузы)</value>
+    <value>Только сведения не старше</value>
   </data>
   <data name="SettingsFeedWarningHeading" xml:space="preserve">
     <value>Предупреждение о ленте киллов</value>

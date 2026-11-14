@@ -95,11 +95,6 @@ public sealed class AlarmActionRunner
     /// Title and body supplied by the condition, used wherever the user has not written their
     /// own. Resolved by the caller, which is what holds the registry.
     /// </param>
-    /// <param name="wake">
-    /// What of <paramref name="matches"/> wakes the capsuleer, when that is not all of them: the
-    /// Alert row shows every match, and the sound, the voice, the agent and the dialog run on these
-    /// alone — not at all when there are none. Null: every match wakes, as for any check but intel.
-    /// </param>
     public async Task RunAsync(
         Alarm                        alarm,
         IReadOnlyList<AlarmAction>   actions,
@@ -109,25 +104,20 @@ public sealed class AlarmActionRunner
         string?                      announcement = null,
         AlarmStageInfo?              stage        = null,
         string?                      agentPrompt  = null,
-        CancellationToken            ct           = default,
-        AlarmWakeSet?                wake         = null)
+        CancellationToken            ct           = default)
     {
-        // What the waking actions say and play: everything, unless the service split the firing.
-        wake ??= new AlarmWakeSet(matches, defaults, announcement);
-        announcement = wake.Announcement;
-
-        // What {summary} and {count} say in the waking actions: the matches that wake, when the service
-        // split the firing. The Alert row keeps the event's, which is all that is shown: a sighting
-        // another alarm already said, or a stale one, must not be read out again inside the summary.
-        var wakeSummary = wake.Summary ?? evt.Summary;
-        var wakeCount   = wake.Summary is null ? evt.MatchCount : wake.Matches.Count;
+        // ⚠️ Every action the alarm defines runs for every match it fired on: none is kept for some news
+        // and not other. Different behaviour for different news is more alarms, each with its own range
+        // (user, 2026-11-13).
+        // The Sound action's share of its volume: the loudest match's, when the check says how near it is.
+        var loudness = matches.Count == 0 ? 1 : Math.Clamp(matches.Max(m => m.Loudness), 0, 1);
 
         // A staged firing is one situation; its summary is that, not the whole evaluation's.
         var signal = new AlarmSignal
         {
             AlarmId = alarm.Id,
             Name    = alarm.Name,
-            Summary = stage is null ? wakeSummary : string.Join("; ", matches.Take(3).Select(m => m.Summary)),
+            Summary = stage is null ? evt.Summary : string.Join("; ", matches.Take(3).Select(m => m.Summary)),
         };
 
         // A staged firing carries what an acknowledgement would name, so every client can take
@@ -148,10 +138,6 @@ public sealed class AlarmActionRunner
         {
             if (ct.IsCancellationRequested) break;
 
-            // A show-only firing — news too old or too far out to wake for, or already said by
-            // another alarm — runs the Alert row and nothing that makes a sound or takes the screen.
-            if (wake.Matches.Count == 0 && AlarmActionKinds.Wakes(action.Kind)) continue;
-
             JsonElement cfg;
             try { cfg = JsonDocument.Parse(action.ConfigJson ?? "{}").RootElement.Clone(); }
             catch { cfg = default; }
@@ -170,16 +156,16 @@ public sealed class AlarmActionRunner
                     case AlarmActionKind.Sound:
                         signal.SoundKey    = Str(cfg, "sound")  ?? AlarmSoundService.DefaultKey;
                         // Quieter for what is further out, when the check says how near it is: the
-                        // action's volume times the loudest waking match's share.
-                        signal.SoundVolume = (int)Math.Round((Int(cfg, "volume") ?? 100) * wake.Loudness);
+                        // action's volume times the loudest match's share.
+                        signal.SoundVolume = (int)Math.Round((Int(cfg, "volume") ?? 100) * loudness);
                         // Only a staged firing can be acknowledged, so only one can loop.
                         signal.SoundLoop   = stage is not null && Bool(cfg, "loop");
                         somethingElse      = true;
                         break;
 
                     case AlarmActionKind.Dialog:
-                        signal.DialogTitle  = Expand(Str(cfg, "title")   ?? wake.Defaults.Title, alarm, evt, wakeSummary, wakeCount);
-                        signal.DialogBody   = Expand(Str(cfg, "message") ?? wake.Defaults.Body,  alarm, evt, wakeSummary, wakeCount);
+                        signal.DialogTitle  = Expand(Str(cfg, "title")   ?? defaults.Title, alarm, evt);
+                        signal.DialogBody   = Expand(Str(cfg, "message") ?? defaults.Body,  alarm, evt);
                         signal.DialogButton = stage is not null ? AlarmsText.ButtonAcknowledge : null;
                         somethingElse       = true;
                         break;
@@ -188,8 +174,8 @@ public sealed class AlarmActionRunner
                         // The user's own words if they wrote any, else what the check composed,
                         // else the check's default title and body read as a sentence.
                         signal.DirectText = Str(cfg, "message") is { Length: > 0 } template
-                            ? Expand(template, alarm, evt, wakeSummary, wakeCount)
-                            : announcement ?? DefaultSpeech(wake.Defaults);
+                            ? Expand(template, alarm, evt)
+                            : announcement ?? DefaultSpeech(defaults);
                         signal.ReplyAcknowledges = stage is not null;
                         somethingElse = true;
                         break;
@@ -213,7 +199,7 @@ public sealed class AlarmActionRunner
                         else if (announcement is not null && string.IsNullOrWhiteSpace(Str(cfg, "instruction")))
                             signal.SpeakText = announcement;
                         else
-                            signal.AgentText = ComposeAgentPrompt(alarm, wakeSummary, wake.Matches, cfg, announcement);
+                            signal.AgentText = ComposeAgentPrompt(alarm, evt.Summary, matches, cfg, announcement);
                         break;
                 }
             }
@@ -229,7 +215,7 @@ public sealed class AlarmActionRunner
         {
             signal.AgentOnly     = true;
             signal.FallbackTitle = alarm.Name;
-            signal.FallbackBody  = wakeSummary + "\n\n" + AlarmsText.AgentNotConfiguredNote;
+            signal.FallbackBody  = evt.Summary + "\n\n" + AlarmsText.AgentNotConfiguredNote;
         }
 
         // ⚠️ The fallback is decided here rather than by each client, and only by a worker that
@@ -699,13 +685,11 @@ public sealed class AlarmActionRunner
     /// Substitutes the placeholders a user may put in a dialog or alert message. Unknown
     /// placeholders are left alone rather than blanked, so a typo is visible instead of silent.
     /// </summary>
-    /// <para><paramref name="summary"/> and <paramref name="count"/>, when given, stand in for the
-    /// event's: what a waking action says is only what wakes.</para>
-    private static string Expand(string template, Alarm alarm, AlarmEvent evt, string? summary = null, int? count = null) =>
+    private static string Expand(string template, Alarm alarm, AlarmEvent evt) =>
         template
             .Replace("{alarm}",   alarm.Name,                                StringComparison.OrdinalIgnoreCase)
-            .Replace("{summary}", summary ?? evt.Summary,                    StringComparison.OrdinalIgnoreCase)
-            .Replace("{count}",   (count ?? evt.MatchCount).ToString(),      StringComparison.OrdinalIgnoreCase)
+            .Replace("{summary}", evt.Summary,                               StringComparison.OrdinalIgnoreCase)
+            .Replace("{count}",   evt.MatchCount.ToString(),                 StringComparison.OrdinalIgnoreCase)
             .Replace("{time}",    evt.FiredAt.ToLocalTime().ToString("HH:mm"), StringComparison.OrdinalIgnoreCase)
             .Replace("{date}",    evt.FiredAt.ToLocalTime().ToString(CommonText.DateFull), StringComparison.OrdinalIgnoreCase);
 
@@ -728,21 +712,4 @@ public sealed class AlarmActionRunner
         e.ValueKind == JsonValueKind.Object
         && e.TryGetProperty(name, out var p)
         && p.ValueKind == JsonValueKind.True;
-}
-
-/// <summary>
-/// The part of a firing that wakes the capsuleer, as the service hands it to the runner: the matches
-/// that wake (a subset of all the firing shows), the dialog's default wording for them, and the words
-/// to say. The waking actions (<see cref="AlarmActionKinds.Wakes"/>) run on these; the Alert row shows
-/// everything. Empty: a show-only firing, whose waking actions do not run at all.
-/// </summary>
-/// <para><see cref="Summary"/> is what <c>{summary}</c> says in the waking actions, built from
-/// <see cref="Matches"/> alone; null keeps the event's summary and count, as for a firing not split.</para>
-public sealed record AlarmWakeSet(
-    IReadOnlyList<AlarmMatch> Matches, (string Title, string Body) Defaults, string? Announcement, string? Summary = null)
-{
-    public static readonly AlarmWakeSet None = new([], ("", ""), null);
-
-    /// <summary>The share of the Sound action's volume to play at: the loudest waking match's, 0 to 1.</summary>
-    public double Loudness => Matches.Count == 0 ? 1 : Math.Clamp(Matches.Max(m => m.Loudness), 0, 1);
 }

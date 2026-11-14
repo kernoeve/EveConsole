@@ -48,7 +48,6 @@ public sealed class IntelSettingsViewModel : ReactiveObject
     public int MaxCampWindow => IntelSettings.MaxCampWindowMinutes;
     public int MinCampVictims => IntelSettings.MinCampMinVictims;
     public int MaxCampVictims => IntelSettings.MaxCampMinVictims;
-    public int MaxWakeCooldown => IntelSettings.MaxWakeCooldownSeconds;
     public int MinFresh => IntelSettings.MinFreshSeconds;
     public int MaxFresh => IntelSettings.MaxFreshSeconds;
 
@@ -96,7 +95,6 @@ public sealed class IntelSettingsViewModel : ReactiveObject
             CampWindowMinutes   = (int)v.CampWindow.TotalMinutes;
             CampMinVictims      = v.CampMinVictims;
             UseBridges          = v.UseBridges;
-            WakeCooldownSeconds = v.WakeCooldownSeconds;
             FreshSeconds        = v.FreshSeconds;
             SelectedStandings   = StandingsChoices.FirstOrDefault(c => c.CharacterId == v.StandingsCharacterId)
                                   ?? StandingsChoices[0];
@@ -227,19 +225,6 @@ public sealed class IntelSettingsViewModel : ReactiveObject
     }
 
     // ── Alerts ───────────────────────────────────────────────────────────────
-
-    private int _wakeCooldown;
-    public int WakeCooldownSeconds
-    {
-        get => _wakeCooldown;
-        set
-        {
-            var v = Math.Clamp(value, 0, IntelSettings.MaxWakeCooldownSeconds);
-            if (_wakeCooldown == v) return;
-            this.RaiseAndSetIfChanged(ref _wakeCooldown, v);
-            Save(() => _settings.SetWakeCooldownSecondsAsync(v));
-        }
-    }
 
     private int _fresh;
     public int FreshSeconds

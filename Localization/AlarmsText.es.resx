@@ -986,7 +986,13 @@
     <value>Sistemas que vigilar, p. ej., {0} o {1}. Añade cada uno; con Saltos en 0 solo se vigilan estos sistemas.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Saltos</value>
+    <value>Hasta</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Saltos desde</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Opcional. Se dejan fuera los sistemas más cercanos, también los prioritarios y los de la ruta por delante. Así dos alarmas se reparten un alcance: 0 hasta 2 en una y 3 hasta 5 en la otra nunca saltan las dos.</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
     <value>Cuántos saltos se vigilan desde cada personaje o sistema, por portales estelares y por los agujeros de gusano abiertos de Thera y Turnur. 0 significa solo su propio sistema. Máximo 15: más allá deja de ser un vecindario.</value>
@@ -2059,23 +2065,14 @@
   <data name="IntelKillsReported" xml:space="preserve">
     <value>Muertes notificadas</value>
   </data>
-  <data name="CheckIntelWakeNote" xml:space="preserve">
-    <value>Solo lo nuevo te despierta (un sonido, voz, el agente, un cuadro de diálogo): algo visto, o que ha entrado en alcance, en los últimos dos minutos (Ajustes → Intel). Lo más antiguo solo se registra como Alerta. Las alarmas de intel se turnan: después de que una te despierte, las demás esperan unos segundos salvo que el aviso sea urgente, y un avistamiento que capten dos de ellas se dice una vez.</value>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Solo salta lo nuevo: algo visto, o que entró en el alcance, en los dos últimos minutos (Ajustes → Intel); lo que ya estaba no se anuncia. Cada acción de la alarma se ejecuta para todo lo que la hace saltar. Para algo distinto más cerca, añade otra alarma con su propio alcance en saltos.</value>
   </data>
   <data name="IntelSectionWhere" xml:space="preserve">
     <value>Dónde vigilar</value>
   </data>
   <data name="IntelSectionWhat" xml:space="preserve">
     <value>Qué la dispara</value>
-  </data>
-  <data name="IntelSectionWaking" xml:space="preserve">
-    <value>Qué te despierta</value>
-  </data>
-  <data name="IntelWakeJumpsLabel" xml:space="preserve">
-    <value>Despertar a menos de</value>
-  </data>
-  <data name="IntelWakeJumpsNote" xml:space="preserve">
-    <value>Opcional. Solo te despierta lo que esté a este número de saltos o menos; más lejos solo se registra como Alerta. Las muertes y los avisos urgentes siempre despiertan. Sin marcar, despierta todo el alcance.</value>
   </data>
   <data name="IntelWakeJumpsSuffix" xml:space="preserve">
     <value>saltos</value>
@@ -2105,7 +2102,7 @@
     <value>Usar la lista de vigilancia</value>
   </data>
   <data name="IntelWatchListNote" xml:space="preserve">
-    <value>Lo que está en «Alertar siempre» salta dentro del alcance de la lista de vigilancia, sea cual sea el alcance, la elección de Hostil o el mínimo, se dice primero y nunca se retiene; lo que está en «Ignorar» nunca salta.</value>
+    <value>Lo que está en «Alertar siempre» salta dentro del alcance de la lista de vigilancia, sea cual sea el alcance, la elección de Hostil o el mínimo, se dice primero; lo que está en «Ignorar» nunca salta.</value>
   </data>
   <data name="IntelWatchReachLabel" xml:space="preserve">
     <value>Alcance de la lista de vigilancia</value>
@@ -2113,17 +2110,11 @@
   <data name="IntelWatchReachNote" xml:space="preserve">
     <value>A cuántos saltos saltan las entradas en «Alertar siempre», cuando es más lejos que el alcance. Como máximo 15.</value>
   </data>
-  <data name="IntelApproachWakesLabel" xml:space="preserve">
-    <value>Los pilotos que se acercan despiertan igual</value>
-  </data>
-  <data name="IntelApproachWakesNote" xml:space="preserve">
-    <value>Con «Despertar a menos de» activado: un piloto que se acerca (visto más cerca que antes, o informado rumbo a tu personaje) te despierta en cualquier punto del alcance.</value>
-  </data>
   <data name="IntelPrioritySystemsLabel" xml:space="preserve">
     <value>Sistemas prioritarios</value>
   </data>
   <data name="IntelPrioritySystemsNote" xml:space="preserve">
-    <value>Opcional. Sistemas vigilados siempre, estén donde estén tus personajes. Lo que se ve allí siempre te despierta, ninguna otra alarma de intel lo retiene y se dice primero.</value>
+    <value>Opcional. Sistemas vigilados siempre, estén donde estén tus personajes, pero no más cerca que «Saltos desde». Lo que se ve allí se dice primero.</value>
   </data>
   <data name="IntelSaidPriority" xml:space="preserve">
     <value>Sistema prioritario: {0}</value>
@@ -2159,7 +2150,7 @@
     <value>Campeos de puerta</value>
   </data>
   <data name="IntelCampsNote" xml:space="preserve">
-    <value>Salta por un campeo de puerta deducido de derribos en una puerta, cerca de un personaje vigilado o en una ruta por delante. Se anuncia una vez por campeo, por personaje y por ruta, así que una ruta nueva que pase por un campeo conocido lo vuelve a anunciar. Uno en una ruta por delante dentro del alcance para despertar (5 saltos si no se ha fijado) es urgente.</value>
+    <value>Salta por un campeo de puerta deducido de derribos en una puerta, cerca de un personaje vigilado o en una ruta por delante. Se anuncia una vez por campeo, por personaje y por ruta, así que una ruta nueva que pase por un campeo conocido lo vuelve a anunciar. Uno en una ruta por delante a 5 saltos o menos es urgente: se dice primero.</value>
   </data>
   <data name="IntelSaidCamp" xml:space="preserve">
     <value>Campeo de puerta en {0}, en la puerta de {1}.</value>

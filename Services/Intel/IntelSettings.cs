@@ -45,7 +45,6 @@ public sealed record IntelSettingsValues
     public bool     FeedWarningDismissed { get; init; }
 
     /// <summary>The intel alarms' shared wake cooldown, in seconds; 0 for none.</summary>
-    public int      WakeCooldownSeconds { get; init; } = IntelSettings.DefaultWakeCooldownSeconds;
 
     /// <summary>How new news must be to wake anyone, and to light up a panel row.</summary>
     public int      FreshSeconds { get; init; } = IntelSettings.DefaultFreshSeconds;
@@ -122,7 +121,6 @@ public sealed class IntelSettings(AppPreferencesService prefs)
     public const string KeyStandings    = "intel.standings.character";
     public const string KeyBridges      = "intel.distance.bridges";
     public const string KeyFeedWarning  = "intel.zkb_warning_dismissed";
-    public const string KeyWakeCooldown = "alarms.wake_cooldown_s.intel";
     public const string KeyFresh        = "intel.alert.fresh_s";
 
     public const int DefaultNamedMinutes        = IntelLastSeenWriter.DefaultNamedMinutes;
@@ -145,8 +143,6 @@ public sealed class IntelSettings(AppPreferencesService prefs)
     public const int    MinCampMinVictims        = 2;
     public const int    MaxCampMinVictims        = 20;
 
-    public const int DefaultWakeCooldownSeconds = 15;
-    public const int MaxWakeCooldownSeconds     = 600;
     public const int DefaultFreshSeconds        = 120;
     public const int MinFreshSeconds            = 15;
     public const int MaxFreshSeconds            = 1800;
@@ -158,7 +154,7 @@ public sealed class IntelSettings(AppPreferencesService prefs)
     [
         KeyNamed, KeyUnnamed, KeyClear, KeyCamp, KeyCyno, KeyKillAttacker, KeyKillVictim, KeyFollowUp,
         KeyCampGateKm, KeyCampWindow, KeyCampVictims, KeyStandings, KeyBridges, KeyFeedWarning,
-        KeyWakeCooldown, KeyFresh, ZkillboardSettings.KeyEnabled, ZkillboardSettings.KeyScope,
+        KeyFresh, ZkillboardSettings.KeyEnabled, ZkillboardSettings.KeyScope,
         EveConsole.Monitoring.MonitoringSettings.KeyChatIntelChannels,
     ];
 
@@ -207,7 +203,6 @@ public sealed class IntelSettings(AppPreferencesService prefs)
             StandingsCharacterId = Long(KeyStandings, 0, 0, long.MaxValue),
             UseBridges           = Bool(KeyBridges, false),
             FeedWarningDismissed = Bool(KeyFeedWarning, false),
-            WakeCooldownSeconds  = (int)Long(KeyWakeCooldown, DefaultWakeCooldownSeconds, 0, MaxWakeCooldownSeconds),
             FreshSeconds         = (int)Long(KeyFresh, DefaultFreshSeconds, MinFreshSeconds, MaxFreshSeconds),
             ZkbEnabled = Bool(ZkillboardSettings.KeyEnabled, true),
             ZkbScope   = raw.TryGetValue(ZkillboardSettings.KeyScope, out var scope) && scope == "All" ? ZkbScope.All : ZkbScope.MineAndCorp,
@@ -242,8 +237,6 @@ public sealed class IntelSettings(AppPreferencesService prefs)
 
     public Task SetFeedWarningDismissedAsync(bool dismissed) => prefs.SetBoolAsync(KeyFeedWarning, dismissed);
 
-    public Task SetWakeCooldownSecondsAsync(int seconds) =>
-        prefs.SetLongAsync(KeyWakeCooldown, Math.Clamp(seconds, 0, MaxWakeCooldownSeconds));
 
     public Task SetFreshSecondsAsync(int seconds) =>
         prefs.SetLongAsync(KeyFresh, Math.Clamp(seconds, MinFreshSeconds, MaxFreshSeconds));
