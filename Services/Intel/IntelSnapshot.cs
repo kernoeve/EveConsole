@@ -451,8 +451,13 @@ public static class IntelSnapshotBuilder
         var clusters = IntelCampDetector.Detect(kills, input.Gates, input.Groups, s.CampGateKm, s.CampWindow, s.CampMinVictims);
         // The register also gives back a camp whose earlier kills have left the window, until the Camps tab
         // lets it go: the kills read back alone would drop it long before then.
+        // A clear in the system after a camp's last kill ends the camp there and then: every view reads its end,
+        // so the system line, the map and the alarms let it go, and the Camps tab shows it ended. A kill on
+        // the gate after the clear makes it active again (user, 2026-11-13: a camp still showed under a clear).
         var camps = register.Apply(clusters, now, s.Camp, s.CampWindow, IntelLens.CampKept)
             .Select(c => c with { Reported = Reported(c) })
+            .Select(c => lastClear.TryGetValue(c.SystemId, out var cleared) && cleared > c.LastKill && cleared < c.ExpiresAt
+                ? c with { ExpiresAt = cleared } : c)
             .ToList();
         bool Reported(GateCamp c) =>
             live.TryGetValue(c.SystemId, out var list)
