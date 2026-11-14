@@ -30,6 +30,14 @@ public partial class SettingsWindow : Window
         // service's list is the model's name, which can also be typed), and a text value waits for
         // the typing pause. A pick in any drop-down saves what is waiting.
         AddHandler(SelectingItemsControl.SelectionChangedEvent, OnPicked, RoutingStrategies.Bubble, handledEventsToo: true);
+
+        // A connector choice refused: its reason scrolled into view, wherever the box clicked was. Posted: it is
+        // measured only once it shows.
+        Avalonia.AvaloniaObjectExtensions.GetObservable(ConnectorChoiceMessage, IsVisibleProperty).Subscribe(shown =>
+        {
+            if (shown) Avalonia.Threading.Dispatcher.UIThread.Post(() => ConnectorChoiceMessage.BringIntoView(),
+                                                                   Avalonia.Threading.DispatcherPriority.Background);
+        });
     }
 
     private void OnFieldLostFocus(object? sender, RoutedEventArgs e)
@@ -88,6 +96,16 @@ public partial class SettingsWindow : Window
 
         _disposables.Add(scopeHandler);
         _disposables.Add(confirmHandler);
+
+        if (vm.ConnectorVm is { } connectorVm)
+        {
+            connectorVm.ShowConfirmDialog = async (title, message) =>
+            {
+                var dlg = new ConfirmDialog(message) { Title = title };
+                return await dlg.ShowDialog<bool>(this);
+            };
+            _disposables.Add(Disposable.Create(() => connectorVm.ShowConfirmDialog = null));
+        }
 
         _ = vm.AlertsVm.LoadAsync();
     }

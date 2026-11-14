@@ -5174,6 +5174,274 @@ The application will restart.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purge group chat older than</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connectors</value>
+    <comment>Settings window, tab header for the connector settings.</comment>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connectors</value>
+    <comment>Settings, Connector tab, section title.</comment>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Optional. A connector is a separate program that links EVE Console to services your corporation or alliance runs, such as the site where members register their characters. You run it yourself, usually on this PC, or your corporation may host one for its members. Without one, EVE Console works as it always has.</value>
+    <comment>Settings, Connector tab, explanation under the title.</comment>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>On a database shared by several PCs, the background worker refreshes from each connector every half hour. Run a connector where the worker runs, or where every PC can reach it. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, second note: where to run the connector on a shared database.</comment>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Connector address</value>
+    <comment>Settings, Connector tab, label above the address box.</comment>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>For example: http://localhost:5054/</value>
+    <comment>Settings, Connectors tab, grey hint in the empty address box. Keep the address as it is.</comment>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Connect with EVE</value>
+    <comment>Settings, Connector tab, button that opens EVE's sign-in to connect.</comment>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Refresh Now</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Not connected.</value>
+    <comment>Settings, Connector tab, status.</comment>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Connected as {0}.</value>
+    <comment>Settings, Connectors tab, status under the connector's name. {0} is the character's name.</comment>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Connected.</value>
+    <comment>Settings, Connector tab, status after connecting.</comment>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Linked characters: {0:N0} accounts, {1:N0} characters, last updated {2}.</value>
+    <comment>Settings, Connector tab, what is stored. {0} accounts, {1} characters, {2} the date and time of the last update.</comment>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>This connector offers nothing this version of EVE Console uses.</value>
+    <comment>Settings, Connector tab, the connector answered but offers nothing this build uses.</comment>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Updated.</value>
+    <comment>Settings, Connector tab, after Refresh Now stored new data.</comment>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Already up to date.</value>
+    <comment>Settings, Connector tab, after Refresh Now found nothing new.</comment>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Enter the connector's full address, starting with http:// or https://.</value>
+    <comment>Settings, Connector tab, the address typed is not a web address.</comment>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Use https:// for a connector on another device. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, http:// was used for another device.</comment>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>The connector at {0} could not be reached.</value>
+    <comment>Settings, Connector tab, error. {0} is the connector's host and port.</comment>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} did not answer as a connector.</value>
+    <comment>Settings, Connector tab, error. {0} is the host and port that answered.</comment>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>This connector needs a newer version of EVE Console.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>The connector does not allow this character.</value>
+    <comment>Settings, Connector tab, error: the connector refused the character.</comment>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>The connector could not confirm your EVE sign-in. Try again.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>The connector could not reach the service it reads from. It will be tried again.</value>
+    <comment>Settings, Connector tab, error: the connector's own source is down.</comment>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>The connector no longer accepts this connection. Connect again.</value>
+    <comment>Settings, Connector tab, error: the connector no longer knows the key.</comment>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>The connector's linked characters were not stored: {0}</value>
+    <comment>Settings, Connector tab, error. {0} is the reason, in English.</comment>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>The connector answered with an error ({0}).</value>
+    <comment>Settings, Connector tab, error. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>The connector did not understand EVE Console's request. One of them may need updating.</value>
+    <comment>Settings, Connector tab, error: the connector did not understand the request.</comment>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Asking the connector to start a sign-in…</value>
+    <comment>Settings, Connector tab, status while asking the connector to start a sign-in.</comment>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>In the page that opened, check that the connector shows the code {0}, confirm it there, and sign in with EVE. Never confirm a code that EVE Console did not show you.</value>
+    <comment>Settings, Connector tab, status while the person signs in on the connector's page. {0} is a short code such as K7P-4QX.</comment>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>The sign-in was declined on the connector's page.</value>
+    <comment>Settings, Connector tab, error: the code was declined on the connector's page.</comment>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>The sign-in was not finished in time. Connect again.</value>
+    <comment>Settings, Connector tab, error: the sign-in was not finished in time.</comment>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>The connector gave a sign-in page EVE Console will not open: {0}</value>
+    <comment>Settings, Connector tab, error: the connector named a sign-in page EVE Console will not open. {0} is that address.</comment>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>The connector has had too many sign-ins started. Wait a few minutes and try again.</value>
+    <comment>Settings, Connector tab, error: the connector refuses to start more sign-ins for now.</comment>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>You can add several connectors, for example when two of your corporations, or a corporation and an alliance, each run their own. Each connector is used only for the corporations and alliances you choose for it, and only for the functions you tick. It is never asked about anyone outside them.</value>
+    <comment>Settings, Connectors tab, third note.</comment>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Preview: connectors are a new interface with limited support for now.</value>
+    <comment>Settings, Connectors tab, disclaimer at the top. Removed once more connector functions are used.</comment>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>New connector</value>
+    <comment>Settings, Connectors tab, title of a connector not yet connected and with no address.</comment>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>For {0}</value>
+    <comment>Settings, Connectors tab, list line. {0} is the corporation and alliance names, comma separated.</comment>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Uses {0}</value>
+    <comment>Settings, Connectors tab, list line. {0} is the function names, comma separated.</comment>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>No functions ticked.</value>
+    <comment>Settings, Connectors tab, list line when no function is ticked.</comment>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Not used until a corporation or alliance is chosen for it.</value>
+    <comment>Settings, Connectors tab: a connector with no corporation or alliance chosen is asked nothing.</comment>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Linked characters are not ticked for this connector, so none are read from it.</value>
+    <comment>Settings, Connectors tab, status: the Linked characters function is not ticked.</comment>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Connected</value>
+    <comment>Settings, Connectors tab, list badge.</comment>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Not connected</value>
+    <comment>Settings, Connectors tab, list badge.</comment>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Not used</value>
+    <comment>Settings, Connectors tab, list badge: connected, but no corporation or alliance chosen.</comment>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Problem</value>
+    <comment>Settings, Connectors tab, list badge: the last refresh went wrong; the tooltip carries the message.</comment>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Used for</value>
+    <comment>Settings, Connectors tab, section label above the corporation and alliance check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Settings, Connectors tab, label above the corporation check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Alliances</value>
+    <comment>Settings, Connectors tab, label above the alliance check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>No corporation or alliance of your characters is known yet. Add a character under ESI Tokens first.</value>
+    <comment>Settings, Connectors tab: no corporation or alliance to choose from yet.</comment>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (none of your characters now)</value>
+    <comment>Settings, Connectors tab, check box. {0} is a corporation or alliance name still chosen, with none of the user's characters in it now.</comment>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Functions</value>
+    <comment>Settings, Connectors tab, section label above the function check boxes.</comment>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>This version of EVE Console only uses Linked characters. The other choices are saved for features still to come.</value>
+    <comment>Settings, Connectors tab, note under the function check boxes.</comment>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Linked characters</value>
+    <comment>Settings, Connectors tab, function: which characters are one player's.</comment>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Auth groups</value>
+    <comment>Settings, Connectors tab, function: the groups a player has on the corporation's or alliance's sign-in service.</comment>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>Member ESI data</value>
+    <comment>Settings, Connectors tab, function: ESI data about members' characters.</comment>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>Corporation ESI data</value>
+    <comment>Settings, Connectors tab, function: ESI data about the corporation.</comment>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Fleet participation</value>
+    <comment>Settings, Connectors tab, function: who was in which fleets.</comment>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>This connector does not offer this.</value>
+    <comment>Settings, Connectors tab, tooltip on a function the connector does not offer.</comment>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{0} for {1} is already set on the connector {2}. Untick it there first.</value>
+    <comment>Settings, Connectors tab, refusal. {0} is a function name, {1} a corporation or alliance name, {2} the other connector's name.</comment>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>This connector was removed meanwhile, perhaps from another PC.</value>
+    <comment>Settings, Connectors tab, error: the connector entry was removed while this was going on.</comment>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Connect to see what this connector offers.</value>
+    <comment>Settings, Connectors tab, tooltip on a function check box while the connector is not connected: nothing is known yet about what it offers.</comment>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Asking the connector…</value>
+    <comment>Settings, Connectors tab, status while Refresh now waits for the connector's answer.</comment>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Disconnecting…</value>
+    <comment>Settings, Connectors tab, status while Disconnect ends the key at the connector.</comment>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>None of the functions ticked is offered by this connector now.</value>
+    <comment>Settings, Connectors tab, tooltip on the Not used badge: functions are ticked, but the connector offers none of them now.</comment>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Remove connector</value>
+    <comment>Settings, Connectors tab, title of the dialog that confirms removing a connector.</comment>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Remove the connector {0}? Its key is ended, and the corporations, alliances and functions chosen for it, and the linked characters it gave, are forgotten. This cannot be undone.</value>
+    <comment>Settings, Connectors tab, confirm dialog. {0} is the connector's name.</comment>
+  </data>
   <data name="ChatIntelAskedWorker" xml:space="preserve">
     <value>Asked the PC doing the background work to re-parse the history: only that PC parses intel. Its progress shows in Background Processes.</value>
     <comment>Chat Logs tab, intel status after Re-parse on a PC that is not the background worker; the worker does the parsing and reports progress in the Background Processes window.</comment>

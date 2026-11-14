@@ -2820,6 +2820,58 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsRead" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
+                // Which characters are one player's, as a connector last gave them: see LinkedCharacterStore.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedSources" (
+                        "Source"      TEXT    NOT NULL PRIMARY KEY,
+                        "Label"       TEXT    NOT NULL DEFAULT '',
+                        "GeneratedAt" TEXT    NOT NULL DEFAULT '',
+                        "ImportedAt"  TEXT    NOT NULL DEFAULT '',
+                        "Accounts"    INTEGER NOT NULL DEFAULT 0,
+                        "Characters"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "LinkedSources" ADD COLUMN "Label" TEXT NOT NULL DEFAULT '' """); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedAccounts" (
+                        "Source"          TEXT    NOT NULL DEFAULT '',
+                        "AccountId"       INTEGER NOT NULL DEFAULT 0,
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "MainCharacterId" INTEGER NULL,
+                        PRIMARY KEY ("Source", "AccountId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedCharacters" (
+                        "Source"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                        "AccountId"     INTEGER NOT NULL DEFAULT 0,
+                        "Name"          TEXT    NOT NULL DEFAULT '',
+                        "IsMain"        INTEGER NOT NULL DEFAULT 0,
+                        "CorporationId" INTEGER NOT NULL DEFAULT 0,
+                        "AllianceId"    INTEGER NULL,
+                        "TokenValid"    INTEGER NULL,
+                        PRIMARY KEY ("Source", "CharacterId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_LinkedCharacters_Account" ON "LinkedCharacters" ("Source", "AccountId")""");
+                // The connectors the user set up, each with its key (hidden from the AI agent): see ConnectorService.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "Connectors" (
+                        "Id"              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Url"             TEXT    NOT NULL DEFAULT '',
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "Key"             TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"     INTEGER NOT NULL DEFAULT 0,
+                        "CharacterName"   TEXT    NOT NULL DEFAULT '',
+                        "Capabilities"    TEXT    NOT NULL DEFAULT '',
+                        "Offers"          TEXT    NOT NULL DEFAULT '',
+                        "Corporations"    TEXT    NOT NULL DEFAULT '',
+                        "Alliances"       TEXT    NOT NULL DEFAULT '',
+                        "Functions"       TEXT    NOT NULL DEFAULT '',
+                        "FunctionsChosen" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IrcServers" (
                         "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -4930,6 +4982,10 @@ public class App : Application
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
             Start("EVE-Scout",          () => Services.GetRequiredService<EveScoutService>().Start());
 
+            // Linked characters from the connectors the user set up, if any. Reads the connector list every
+            // half hour and does nothing more until one is connected.
+            Start("connector",          () => Services.GetRequiredService<EveConsole.Services.Connector.ConnectorService>().Start());
+
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
@@ -5018,6 +5074,7 @@ public class App : Application
                 Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
                 Halt("EVE-Scout",           Services.GetRequiredService<EveScoutService>(),           s => s.StopAsync()),
+                Halt("connector",           Services.GetRequiredService<EveConsole.Services.Connector.ConnectorService>(), s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
                 Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
@@ -5221,6 +5278,19 @@ public class App : Application
             client.Timeout = TimeSpan.FromSeconds(60);
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
+
+        // Named HTTP client for the connector the user runs. No BaseAddress: the address is a setting,
+        // and every call is made absolute from it. A timeout of its own, so a connector that has hung
+        // fails the refresh rather than holding it.
+        //
+        // ⚠️ Redirects are not followed. A 307 would post a sign-in's poll secret again to wherever it pointed,
+        // and any redirect could take the key to a host it was never issued by, or to plain http on a network
+        // after the address was checked. A connector that has moved is typed in again.
+        services.AddHttpClient(EveConsole.Services.Connector.ConnectorService.ClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        }).ConfigurePrimaryHttpMessageHandler(() => new System.Net.Http.SocketsHttpHandler { AllowAutoRedirect = false });
 
         // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
         // absolute URL, and no Authorization header — the link is the whole credential. A timeout
@@ -5537,6 +5607,11 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<EveScoutService>();
+        services.AddSingleton(sp => new LinkedCharacterStore(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(), sp.GetRequiredService<AppErrorLogger>()));
+        services.AddSingleton(sp => new EveConsole.Services.Connector.ConnectorService(
+            sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<LinkedCharacterStore>(), sp.GetRequiredService<AppErrorLogger>()));
         services.AddSingleton<SovCampaignService>();
         services.AddHttpClient("eve-scout", c =>
         {

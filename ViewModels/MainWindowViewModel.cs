@@ -355,6 +355,7 @@ public class MainWindowViewModel : ReactiveObject
     public CorpTop10SettingsViewModel     CorpTop10SettingsVm    { get; }
     public SlackSettingsViewModel         SlackSettingsVm        { get; }
     public OnlineServicesSettingsViewModel OnlineServicesSettingsVm { get; }
+    public ConnectorSettingsViewModel     ConnectorSettingsVm    { get; }
     public DiscordSettingsViewModel       DiscordSettingsVm      { get; }
     public GameLogSettingsViewModel       GameLogSettingsVm      { get; }
     public ChatLogSettingsViewModel       ChatLogSettingsVm      { get; }
@@ -1785,6 +1786,8 @@ public class MainWindowViewModel : ReactiveObject
         SlackService                    slackService,
         DiscordService                  discordService,
         OnlineServices                  onlineServices,
+        EveConsole.Services.Connector.ConnectorService connectorService,
+        LinkedCharacterStore            linkedCharacterStore,
         MonitoringSettings              monitoringSettings,
         GameLogImportService            gameLogImport,
         ChatLogImportService            chatLogImport,
@@ -1846,6 +1849,7 @@ public class MainWindowViewModel : ReactiveObject
         SlackSettingsVm   = new SlackSettingsViewModel(slackService);
         StartupTrace.Step("new OnlineServicesSettingsVm");
         OnlineServicesSettingsVm = new OnlineServicesSettingsViewModel(onlineServices);
+        ConnectorSettingsVm      = new ConnectorSettingsViewModel(connectorService, linkedCharacterStore);
         StartupTrace.Step("new DiscordSettingsVm");
         DiscordSettingsVm = new DiscordSettingsViewModel(discordService);
         StartupTrace.Step("new GameLogSettingsVm");

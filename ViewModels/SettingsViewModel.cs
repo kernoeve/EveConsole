@@ -20,6 +20,7 @@ public class SettingsViewModel : ReactiveObject
     public SlackSettingsViewModel         SlackVm         { get; }
     public DiscordSettingsViewModel       DiscordVm       { get; }
     public OnlineServicesSettingsViewModel OnlineVm       { get; }
+    public ConnectorSettingsViewModel?    ConnectorVm    { get; }
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
@@ -72,8 +73,10 @@ public class SettingsViewModel : ReactiveObject
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
         GlobalHotkeyService?          hotkey  = null,
-        IrcViewModel?                 ircVm   = null)
+        IrcViewModel?                 ircVm   = null,
+        ConnectorSettingsViewModel?   connectorVm = null)
     {
+        ConnectorVm    = connectorVm;
         IrcVm          = ircVm;
         JabberVm       = jabberVm;
         MumbleVm       = mumbleVm;
