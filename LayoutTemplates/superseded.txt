@@ -1,0 +1,9 @@
+# Earlier versions of the shipped layout templates: the SHA-256 of the file's text with LF line endings, then
+# its name. A copy in a person's Layout Templates folder that is still exactly one of these was never changed by
+# them, so the version shipped now replaces it (Services/ClientLayouts/LayoutTemplates.cs). When a template
+# changes, add the version it replaces here.
+10fc00a3c25c211d2f0280c26f74958c0a8d24ff81c36b69c47899deeac907fb Four Clients - Minimal.json
+cd346886cf8c4732db72f42277ba294abc523685af02cb9660b2033d65d97020 One Client - Minimal.json
+97c6f6056e0e1dc4bcf8896981c0c88b5302ad088a809f9f4f19f3a5ee5d8ad8 One Client - Standard.json
+e848ad0999810a07a71763935a923ba1d0c511c1bb5649d1999a07ed5ba792e8 Two Clients - Horizontal - Minimal.json
+48991979897f3c6e60cc08169f45cca9cb9fafe43eb767267bbb68b789c27431 Two Clients - Vertical - Minimal.json
