@@ -22,7 +22,9 @@
       <!-- Eve amber replaces Fluent blue everywhere: tab underlines, focus rings, checkbox
            fills, progress bar fill and selection highlights. ⚠️ The SystemAccentColor family
            now lives in Themes/Palette.axaml, declared once per theme: a Color element parses
-           its content as a literal, so there is no way to point one at a token from here. -->
+           its content as a literal, so there is no way to point one at a token from here.
+           ⚠️ And the worn theme's set is copied up to these resources by ThemeService on every
+           switch: Fluent's own brushes ask for Dark's or Light's accent, never the worn theme's. -->
 
       <!-- How much room every column header reserves for its sort arrow.
            Fluent's default is 32, against a glyph the same theme draws at 12 high — and the

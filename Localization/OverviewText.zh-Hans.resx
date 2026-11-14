@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ 自定义布局</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>布局 {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>布局：</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>名称：</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>新建一个布局，初始为此布局的副本。</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>此概览显示哪个已保存的布局</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>活动摘要</value>
   </data>
@@ -484,6 +511,9 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>你有 {0} 封未读的 EVE 邮件。</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>你有 {0} 条未读 Jabber 消息。</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0}（{1}）的燃料将在 {2} 后耗尽</value>
   </data>
@@ -928,5 +958,9 @@
   </data>
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} 个行星开发角色有未使用的殖民地栏位。</value>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>你有 {0} 条未读私信。</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

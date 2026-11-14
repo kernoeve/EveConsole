@@ -1780,6 +1780,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>Limité par la durée de travail de {0:0.#} jours.</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Dimensionné sur ce qui manque aux travaux. Le reste ne fait que remplir le niveau et attend son tour.</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Dimensionné sur un plan entièrement recherché (TE{0}) — aucun n'est possédé.</value>
   </data>
@@ -2497,6 +2500,9 @@
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0} (pour la copie)</value>
   </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (pour la fabrication)</value>
+  </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Usage</value>
   </data>
@@ -2676,5 +2682,257 @@
   </data>
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
+  </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Transferts</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Transfert</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Remettre des objets à un autre personnage ou à une autre corporation, dans la station où ils se trouvent</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{1} × {0:N0}</value>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} type d&apos;objet</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} types d&apos;objets</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} à {1}, {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0} : déplace ceci de ton propre hangar vers le hangar de {1} à {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} n&apos;est pas dans {1} : remets ceci à {1} avec un contrat d&apos;échange d&apos;objets à {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, pour {1} : remets ceci à {2} avec un contrat d&apos;échange d&apos;objets à {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0} : prends ceci du hangar de {1} dans le tien à {2}, comme le prévoit ton niveau de personnage.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0} : prends ceci dans le hangar de {1} et remets-le à {2} avec un contrat d&apos;échange d&apos;objets à {3}. {2} n&apos;est pas dans {1} : pour ses travaux, seul son propre hangar compte.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Niveaux de personnage</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Corporation par défaut</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>La corporation qui doit détenir les objets de la liste de travail (ceux des commandes et des niveaux d&apos;inventaire), pour que chaque personnage qui en fait partie puisse construire avec : un personnage ne peut utiliser que son propre hangar et celui de sa corporation. Un objet détenu par un personnage, dans son hangar ou dans la soute d&apos;un vaisseau à quai, reçoit un transfert vers cette corporation dans toute station où elle a un hangar, sauf ce qu&apos;un niveau de personnage ci-dessous garde à ce personnage. Les modules équipés, les plans et les vaisseaux assemblés ne sont jamais déplacés.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>Aucune</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Tes autres corporations remettent aussi les leurs</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Désactivé : seuls les hangars et soutes des personnages sont vidés dans la corporation par défaut. Activé : les objets de la liste de travail de tes autres corporations reçoivent aussi des transferts, faits par un de tes personnages dans cette corporation.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Garde les niveaux d&apos;un groupe chez un personnage dans une station, dans son propre hangar, pour ses travaux seulement. C&apos;est ainsi qu&apos;un personnage hors de la corporation par défaut obtient de quoi construire. Le transport amène la quantité à la station, en plus d&apos;un éventuel niveau de station, et un transfert donne au personnage ce qui lui manque depuis le hangar de la corporation par défaut.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Choisis un personnage.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>Déjà dans la corporation par défaut</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>Actif</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>Aucun niveau de personnage pour l&apos;instant.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} niveau de personnage</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} niveaux de personnage</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>Un personnage n&apos;est pas réapprovisionné tant qu&apos;il n&apos;est pas descendu de ce pourcentage sous son niveau, puis reçoit de quoi le remplir entièrement. Zéro donne au moindre manque.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>Ce qu&apos;un personnage détient au-delà de son niveau lui reste tant qu&apos;il ne le dépasse pas de ce pourcentage, puis l&apos;excédent retourne à la corporation par défaut. Zéro renvoie le moindre excédent.</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Certains sont dans la soute d&apos;un vaisseau.</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Dont {0:N0} en offres de la boutique, comptés comme à venir.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Il manque {0:N0} exécutions de copie.</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Plus {0:N0} exécutions de copie pour son niveau de stock ou des commandes.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} pour des commandes en attente</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Rien ne le fabrique ; {0:N0} en stock</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>La planification industrielle n&apos;est pas configurée</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} règle(s) de fabrication et {1:N0} commande(s) en attente patientent.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>Aucun parc industriel n&apos;est choisi pour la Liste de tâches et aucun n&apos;est marqué dans les parcs industriels.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>Aucun personnage n&apos;est activé pour les travaux industriels.</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>Structures de corporation</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>Structure</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>Une structure de corporation : carburant, soute lunaire, fit ou munitions</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>Ravitailler {0} — reste {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>Ravitailler {0} — à court de carburant</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{0} de {1}. Vide {2} ; à remplir jusqu&apos;à {3} jours.</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>maintenant</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>Apporter {0:N0} blocs de carburant ({1} par heure).</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>Le rythme de consommation est inconnu : définissez un fit pour {0} dans Structures de corporation → Configuration pour compter les blocs.</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>La consommation vient du fit de son type : les biens de la corporation ne sont pas lus.</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>Vider la soute lunaire de {0} — pleine à {1} %</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{0} de {1} : {2} m³ d&apos;une valeur de {3} ISK.</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>Corriger le fit de {0}</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>Manquant : {0}.</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{0} monté à la place de {1}.</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>Comparé à {0} ({1}), le fit défini pour {2} de {3}.</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>Ajouter munitions et chasseurs à {0}</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>Bas : {0}. D&apos;après {1}, le fit défini pour {2} de {3}.</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0} sur {2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0} : liste des structures non lue depuis {1}</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0} : liste des tours non lue depuis {1}</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>Le personnage qui lit cette corporation a perdu le rôle qu&apos;ESI exige (Station Manager pour les structures, Starbase Equipment Config pour les tours) : la liste n&apos;est plus lue et le carburant ne peut pas être suivi. Rendez-lui le rôle ou faites lire la corporation par un personnage qui l&apos;a.</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>ESI n&apos;a pas répondu récemment pour la liste : le carburant ne peut pas être suivi avant une nouvelle lecture.</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Structures</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>Tâches issues des Structures de corporation. Le ravitaillement n&apos;a besoin que de la liste des structures et marche pour toute corporation ; les trois autres lisent le contenu d&apos;une structure et ne sont créées que là où les biens de la corporation sont lus.</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>Toutes les corporations</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>Toutes les corporations, y compris celles ajoutées plus tard. Décochez pour choisir.</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>Tâches</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>Ravitaillement des structures</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>Créée quand le carburant d&apos;une structure s&apos;épuise sous le minimum ; elle le remonte au niveau de remplissage. La consommation vient des modules montés ou, sans biens, du fit du type dans Structures de corporation → Configuration.</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>Carburant minimum</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>Une structure avec moins de carburant que ceci reçoit une tâche.</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>Remplir jusqu&apos;à</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>Combien de jours de carburant la tâche donne à la structure.</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>Collecte de réactifs</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Créée quand la soute lunaire d&apos;un Metenox contient autant que réglé ici. Nécessite les biens de la corporation.</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>Collecter à partir de</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>% plein</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>Volume</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>Valeur marchande</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>Ce que la soute doit contenir, dans l&apos;unité choisie.</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>Ajouter drones/munitions</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>Créée quand munitions ou chasseurs passent sous la part du fit réglée dans Paramètres → Alertes. Nécessite les biens de la corporation.</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>Corriger le fit</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>Créée quand il manque à une structure un module du fit de son type, ou qu&apos;un autre est à sa place. Nécessite les biens de la corporation.</value>
   </data>
 </root>

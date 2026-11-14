@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Typing" xml:space="preserve">
+    <value>{0} печатает…</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>Прикрепить</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>Размещает файл на этом сервере и отправляет его адрес. Открыть его сможет любой, у кого есть адрес.</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>Отправка {0}…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>Размер {0}: {1}. Этот сервер принимает файлы до {2}.</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} не отправлен: {1}</value>
+  </data>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>В сети</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>Готов общаться</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>Отошёл</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>Отошёл надолго</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>Не беспокоить</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>Когда упомянут моё имя или ключевое слово</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>Каждое сообщение</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>Никогда</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>Хочет добавить вас</value>
+  </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} приглашает вас</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Связь потеряна, повтор в {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Сервер отклонил вход. Проверьте пароль.</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Сертификат сервера не является доверенным.</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Сервер не поддерживает шифрование, поэтому ничего не отправлено.</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>Отключено: этот вход выполнен из другого места.</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>Этот ник уже занят.</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>Для этой комнаты нужен пароль.</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>Вам запрещён вход в эту комнату.</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>Эта комната только для участников.</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>Такой комнаты нет.</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>Не удалось войти в комнату.</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>Вы</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Нет подключения, сообщение не отправлено.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Сертификат для {0}, отпечаток:
+{1}
+
+Доверяйте ему, только если он совпадает с опубликованным администратором сервера. После этого будет приниматься только этот сертификат.</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>Адрес должен выглядеть как name@domain.</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Введите пароль для этого входа.</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>Удалить «{0}» и все сохранённые сообщения? Это действие нельзя отменить.</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>Удалить {0} из контактов?</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>Сервер не показывает комнаты. Можно ввести имя вручную.</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добавьте сервер Jabber, чтобы общаться здесь без отдельного клиента.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Добавить сервер</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Выберите сервер слева.</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Изменить</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Отмена</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Доверять этому сертификату</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Войти</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>Выйти из комнаты</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>Добавить контакт</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>Удалить контакт</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>Принять</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Отклонить</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>Загрузить предыдущие сообщения</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>Логин (name@domain)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Пароль</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить текущий пароль.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Хост сервера (необязательно)</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>Если пусто, сервер определяется по домену логина. Заполните, если ваша группа указала конкретный хост.</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Порт</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>Шифрование с самого начала (обычно порт 5223)</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>Ник в комнатах (необязательно)</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>Ресурс (необязательно)</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Подключаться при запуске приложения</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Иначе подключается только по запросу. В обоих случаях при потере связи переподключается сам, пока вы не отключитесь.</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>Ключевые слова для оповещений, через запятую</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>Оповещать</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>Адрес (name@domain)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Звук для сообщений, требующих внимания</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Введите сообщение. Enter — отправить, Shift+Enter — новая строка.</value>
+  </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Этот сервер хранит архив личных сообщений, поэтому пропущенные будут получены при подключении.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Этот сервер не хранит архив личных сообщений. Сообщения, отправленные, пока вы не в сети, он всё же может сохранять.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>Архив хранят комнат: {0} из {1}. Пропущенные в них сообщения будут получены при подключении; остальные показывают только то, что повторяют при входе.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Эта комната хранит архив: пропущенные сообщения будут получены при подключении.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Эта комната не хранит архив: вы видите только то, что она повторяет при входе.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>У этой комнаты есть архив, но она не открывает его этой учётной записи: вы видите только то, что она повторяет при входе.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Если принять, этот человек будет видеть, когда вы в сети, а вы запросите доступ к его статусу. Если отклонить, ваш статус останется для него скрытым. Переписываться можно в любом случае.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>Чем вы заняты, это видят ваши контакты (необязательно). Enter — применить.</value>
+    <comment>Under the status choice.</comment>
+  </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>Ожидание фонового процесса</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Это не тема смайликов Pidgin: в ней нет файла с именем theme.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>Файл theme слишком большой для темы смайликов.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>Набор слишком большой. В наборе может быть до 5 000 картинок и 64 МБ.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>Этот файл не удалось открыть как zip.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>Ни одну из картинок, перечисленных в теме, нельзя использовать, поэтому ничего не загружено.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Поиск смайлов</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>Нет смайла с таким названием.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Смайлы (или наберите : и первые буквы)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>Кодов: {0:N0} · картинок: {1:N0}</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Наборы смайлов</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Коды вроде :wave: показываются картинками в комнатах и сообщениях этого сервера, и их можно выбрать при наборе. Наборы — это темы смайликов Pidgin. Если в двух наборах один и тот же код, побеждает тот, что выше.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>У этого сервера нет наборов смайлов, поэтому коды показываются обычным текстом.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Выше: важнее наборов под ним</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Убрать</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Загрузить набор…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Тема смайликов Pidgin: её zip или файл theme в распакованной папке. Загруженный один раз, набор есть на каждом ПК с этой базой данных.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Дать этому серверу набор, уже загруженный для другого</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Загрузка набора…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>Загружен {0}: кодов {1:N0}, картинок {2:N0}.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} обновлён этой копией для всех серверов, где он есть: кодов {1:N0}, картинок {2:N0}.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>Картинок из темы нет в наборе: {0:N0}; они пропущены.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>Файлов, которые не картинки или слишком велики для смайла: {0:N0}; они пропущены.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>Убрать {0}? Он больше ни у одного сервера не используется, поэтому будет удалён. Чтобы вернуть, загрузите его снова.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} убран и удалён, так как других серверов с ним нет.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} убран с этого сервера. У других серверов, где он есть, он остаётся.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Загрузить набор смайлов</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Тема смайликов Pidgin</value>
+  </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Это сообщение удалено.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Удалено модератором.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Удалено модератором: {0}</value>
+  </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Отреагировать</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Поиск эмодзи (английские названия)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Смайлы</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Люди и жесты</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Сердца и знаки</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Животные и природа</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Еда и напитки</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Занятия</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Путешествия и места</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Предметы</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Символы</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Вас выгнали из этой комнаты.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>Служба комнаты закрыла её.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>участник {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Этот человек удалил сообщение, но ваш клиент не может это показать.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Ответить</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Изменить (или стрелка вверх в пустом поле)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Удалить у всех</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Ответ для {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Изменение сообщения</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>сообщение, которого здесь нет</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Удалить это сообщение у всех? Поддерживающие клиенты уберут его, а старые, например Pidgin, будут показывать дальше.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Просмотрено</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Сообщать, что я прочитал сообщения</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Только в личной переписке, как в других клиентах: у собеседника сообщение будет помечено как прочитанное. Никогда в комнатах.</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Ваше изображение</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Выбрать изображение…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Убрать изображение</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Взять портрет из EVE</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Отправляется сразу после выбора, квадратным и маленьким. Изображение меняется, только если вы сделаете это здесь.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Подключитесь, чтобы сменить изображение.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Изображение установлено.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Изображение убрано.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>Этот файл не изображение, которое может прочитать приложение (PNG, JPEG, GIF, WebP или BMP, до 20 МБ).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>Не удалось получить портрет с сервера изображений EVE. Попробуйте чуть позже.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>Этот сервер принимает только изображения поменьше.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>Вы не зарегистрированы на этом сервере, поэтому он хранит изображение только до отключения.</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Комната отказала: вам там это не разрешено.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Комната отказала ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Комната отказала без объяснения.</value>
+  </data>
+</root>

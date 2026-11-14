@@ -25,6 +25,7 @@ public class SchedulerService(
     ScheduledBlockRenderer          renderer,
     SlackService                    slack,
     DiscordService                  discord,
+    OnlineServices                  online,
     AppErrorLogger                  errors)
 {
     private static readonly TimeSpan Tick = TimeSpan.FromMinutes(1);
@@ -149,80 +150,155 @@ public class SchedulerService(
 
         var viaWebhook = cfg.DestinationKind == SlackDestination.KindWebhook;
 
-        var render = await renderer.RenderAsync(cfg.Blocks, now, ct);
-        var body   = render.Text.Trim();
+        // A webhook cannot carry a file, only the address of an image. So its pictures go through
+        // the online services, which is only possible once this database has signed in.
+        var canDraw = !viaWebhook || await online.AccountAsync(ct) is not null;
 
         // ⚠️ Charts are drawn BEFORE anything is decided, because whether they came out is part
         // of whether there is anything to post. A task of nothing but charts renders no text at
         // all, and testing the text alone would have declared it empty and stopped.
-        var charts  = cfg.Blocks.Where(b => b.HasPictures).ToList();
-        var drawn   = new List<(byte[] Png, string Title)>();
-        var skipped = 0;
+        var plan    = await renderer.PlanPostAsync(cfg.Blocks, now, "Slack", canDraw, viaWebhook, ct);
+        var skipped = plan.Skipped;
 
-        foreach (var b in charts)
-        {
-            ct.ThrowIfCancellationRequested();
-
-            // No point drawing what cannot be sent. The count is still reported, so a task
-            // pointed at a webhook says what it could not do rather than looking complete.
-            if (viaWebhook) { skipped++; continue; }
-
-            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
-        }
-
-        if (body.Length == 0 && drawn.Count == 0)
+        if (!plan.AnyWords && !plan.AnyPictures)
             return (true, WithSkipped(AlarmsText.RunRenderedEmpty, skipped));
 
         // Asked for, and only then: a task whose static text is the point should still go out on a
         // quiet month. A chart that drew counts as something to say. ⚠️ Counts as the run either
         // way — it got as far as deciding what to send, and deciding to send nothing is a
         // decision, not a failure to retry.
-        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
+        if (cfg.SkipIfNoDynamicContent && !plan.AnyDynamicContent && !plan.AnyPictures)
             return (true, WithSkipped(AlarmsText.RunNothingDynamic, skipped));
 
-        var what = AlarmsText.RunPosted;
+        var posted     = 0;
+        var characters = 0;
+        var anyRich    = false;
+        var refused    = "";
+        var uploaded   = 0;
+        var failed     = new List<string>();
+        var total      = plan.Segments.Sum(s => s.Messages.Count > 0 ? s.Messages.Count : SlackMessageSplitter.Split(s.Text).Count);
 
-        if (body.Length > 0)
+        string Outcome()
         {
-            // ⚠️ In parts, never whole. Slack splits a long message by length alone, through the
-            // middle of a code block, so a weekly post whose lists had grown arrived as two
-            // messages with every table in both broken. The splitter ends each part cleanly.
-            var sent = await SlackMessageSplitter.PostAsync(body, (part, token) => viaWebhook
+            var what = posted == 0 ? AlarmsText.RunPosted
+                     : anyRich     ? string.Format(AlarmsText.RunPostedRich, posted)
+                     : posted > 1  ? string.Format(AlarmsText.RunPostedMessages, characters, posted)
+                     :               string.Format(AlarmsText.RunPostedCharacters, characters);
+
+            if (refused.Length > 0) what = string.Format(AlarmsText.RunRichRefused, refused) + " " + what;
+
+            // Each outcome is a sentence of its own, after the one before.
+            if (uploaded > 0)     what += " " + string.Format(AlarmsText.RunChartsUploaded, uploaded);
+            if (failed.Count > 0) what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
+            return WithSkipped(what, skipped);
+        }
+
+        // ⚠️ In parts, never whole. Slack splits a long message by length alone, through the
+        // middle of a code block, so a weekly post whose lists had grown arrived as two messages
+        // with every table in both broken. The splitter ends each part cleanly.
+        Task<SlackPartsResult> PostTextAsync(string text) =>
+            SlackMessageSplitter.PostAsync(text, (part, token) => viaWebhook
                 ? PostWebhookAsync(cfg.DestinationId, part, token)
                 : slack.PostMessageAsync(cfg.DestinationId, part, ct: token), ct);
 
-            // Nothing reached the channel, so the next pass can try the whole thing again.
-            if (sent.Posted == 0) return (false, string.Format(AlarmsText.RunSlackRefused, sent.Error));
-
-            // ⚠️ Some of it did. Failing the run would post those parts again on every retry, so
-            // the run counts, and says what never arrived.
-            what = !sent.AllPosted
-                ? string.Format(AlarmsText.RunPostedPart, sent.Posted, sent.Total, sent.Characters, sent.Error)
-                : sent.Total > 1
-                    ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
-                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
-        }
-
-        // After the text, so the message reads in the order it was composed: the words, then the
-        // pictures under them.
-        var failed = new List<string>();
-
-        foreach (var (png, title) in drawn)
+        foreach (var segment in plan.Segments)
         {
-            var error = await slack.UploadFileAsync(
-                cfg.DestinationId, png,
-                filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
-                title:    title,
-                ct:       ct);
+            ct.ThrowIfCancellationRequested();
 
-            if (error is not null) failed.Add($"{title}: {error}");
+            var hasWords = segment.Messages.Count > 0 || segment.Text.Length > 0;
+
+            // The same second between posts as a long message's parts.
+            if (hasWords && (posted > 0 || uploaded > 0)) await Task.Delay(TimeSpan.FromSeconds(1), ct);
+
+            if (hasWords)
+            {
+                SlackPartsResult sent;
+                if (segment.Messages.Count > 0)
+                {
+                    sent = await PostRichAsync(segment.Messages, (message, token) => viaWebhook
+                        ? PostWebhookAsync(cfg.DestinationId, message.Fallback, token, message.Blocks)
+                        : slack.PostMessageAsync(cfg.DestinationId, message.Fallback, blocks: message.Blocks, ct: token), ct);
+
+                    if (sent.Posted == 0 && SlackRichBlocks.RefusedForFormat(sent.Error))
+                    {
+                        // ⚠️ Slack would not take the format. The numbers are still worth more than
+                        // a post that never comes, so they go as text, and the result says why it
+                        // looks different.
+                        refused = sent.Error ?? "";
+                        sent = await PostTextAsync((await renderer.RenderAsync(segment.Sections, now, ct, "Slack", segment.PicturesFollow)).Text);
+                    }
+                    else if (sent.Posted > 0) anyRich = true;
+                }
+                else
+                {
+                    sent = await PostTextAsync(segment.Text);
+                }
+
+                posted     += sent.Posted;
+                characters += sent.Characters;
+
+                if (!sent.AllPosted)
+                {
+                    // Nothing reached the channel, so the next pass can try the whole thing again.
+                    if (posted == 0 && uploaded == 0) return (false, string.Format(AlarmsText.RunSlackRefused, sent.Error));
+
+                    // ⚠️ Some of it did. Failing the run would post those parts again on every
+                    // retry, so the run counts, and says what never arrived. Nothing goes after a
+                    // gap: it would read as though nothing were missing.
+                    return (true, WithSkipped(anyRich
+                        ? string.Format(AlarmsText.RunPostedRichPart, posted, total, sent.Error)
+                        : string.Format(AlarmsText.RunPostedPart, posted, total, characters, sent.Error), skipped));
+                }
+            }
+
+            // Straight after the section they belong to, before the next one starts.
+            foreach (var (png, title) in segment.Pictures)
+            {
+                var error = viaWebhook
+                    ? await PostHostedPictureAsync(cfg.DestinationId, png, title, ct)
+                    : await slack.UploadFileAsync(
+                        cfg.DestinationId, png,
+                        filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
+                        title:    title,
+                        ct:       ct);
+
+                if (error is null) uploaded++;
+                else failed.Add($"{title}: {error}");
+            }
         }
 
-        // Each outcome is a sentence of its own, after the one before.
-        if (drawn.Count > failed.Count) what += " " + string.Format(AlarmsText.RunChartsUploaded, drawn.Count - failed.Count);
-        if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
+        return (true, Outcome());
+    }
 
-        return (true, WithSkipped(what, skipped));
+    /// <summary>
+    /// Posts rich messages in order, as <see cref="SlackMessageSplitter"/> posts parts: a second
+    /// apart, a later one tried twice since the ones before it are already in the channel, and
+    /// stopping at the first refused, since anything after a gap would read as nothing missing.
+    /// </summary>
+    public static async Task<SlackPartsResult> PostRichAsync(
+        IReadOnlyList<SlackRichMessage> messages,
+        Func<SlackRichMessage, CancellationToken, Task<SlackPostResult>> post,
+        CancellationToken ct = default,
+        TimeSpan? gap = null)
+    {
+        var between = gap ?? TimeSpan.FromSeconds(1);
+
+        for (var i = 0; i < messages.Count; i++)
+        {
+            if (i > 0) await Task.Delay(between, ct);
+
+            var res = await post(messages[i], ct);
+
+            if (!res.Ok && i > 0)
+            {
+                await Task.Delay(between * 3, ct);
+                res = await post(messages[i], ct);
+            }
+
+            if (!res.Ok) return new SlackPartsResult(i, messages.Count, 0, res.Error);
+        }
+
+        return new SlackPartsResult(messages.Count, messages.Count, 0, null);
     }
 
     /// <summary>
@@ -243,56 +319,63 @@ public class SchedulerService(
         var hook = await discord.FindAsync(hookId, ct);
         if (hook is null) return (false, string.Format(AlarmsText.RunDiscordRefused, AlarmsText.RunWebhookDeleted));
 
-        var render = await renderer.RenderAsync(cfg.Blocks, now, ct, "Discord");
-        var body   = render.Text.Trim();
+        var plan = await renderer.PlanPostAsync(cfg.Blocks, now, "Discord", canDraw: true, forWebhook: false, ct);
 
-        var drawn = new List<(byte[] Png, string Title)>();
-        foreach (var b in cfg.Blocks.Where(b => b.HasPictures))
-        {
-            ct.ThrowIfCancellationRequested();
-            drawn.AddRange(await renderer.RenderPicturesAsync(b, ct));
-        }
+        if (!plan.AnyWords && !plan.AnyPictures) return (true, AlarmsText.RunRenderedEmpty);
 
-        if (body.Length == 0 && drawn.Count == 0) return (true, AlarmsText.RunRenderedEmpty);
-
-        if (cfg.SkipIfNoDynamicContent && !render.AnyDynamicContent && drawn.Count == 0)
+        if (cfg.SkipIfNoDynamicContent && !plan.AnyDynamicContent && !plan.AnyPictures)
             return (true, AlarmsText.RunNothingDynamic);
 
-        var what = AlarmsText.RunPosted;
+        var posted     = 0;
+        var characters = 0;
+        var uploaded   = 0;
+        var total      = 0;
+        var failed     = new List<string>();
 
-        if (body.Length > 0)
+        foreach (var segment in plan.Segments)
         {
-            var sent = await discord.PostAsync(hook.Url, body, hook.Name, ct);
+            ct.ThrowIfCancellationRequested();
 
-            // Nothing reached the channel, so the next pass can try the whole thing again.
-            if (sent.Posted == 0) return (false, string.Format(AlarmsText.RunDiscordRefused, sent.Error));
+            if (segment.Text.Length > 0)
+            {
+                var sent = await discord.PostAsync(hook.Url, segment.Text, hook.Name, ct);
 
-            // ⚠️ Some of it did: the run counts, as on Slack, so a retry does not repeat it.
-            what = !sent.AllPosted
-                ? string.Format(AlarmsText.RunPostedPartDiscord, sent.Posted, sent.Total, sent.Characters, sent.Error)
-                : sent.Total > 1
-                    ? string.Format(AlarmsText.RunPostedMessages, sent.Characters, sent.Total)
-                    : string.Format(AlarmsText.RunPostedCharacters, sent.Characters);
+                posted     += sent.Posted;
+                characters += sent.Characters;
+                total      += sent.Total;
+
+                if (!sent.AllPosted)
+                {
+                    // Nothing reached the channel, so the next pass can try the whole thing again.
+                    if (posted == 0 && uploaded == 0) return (false, string.Format(AlarmsText.RunDiscordRefused, sent.Error));
+
+                    // ⚠️ Some of it did: the run counts, as on Slack, so a retry does not repeat it.
+                    return (true, string.Format(AlarmsText.RunPostedPartDiscord, posted, total, characters, sent.Error));
+                }
+            }
+
+            // Straight after the section they belong to. Each is a message of its own with its
+            // title above it.
+            foreach (var (png, title) in segment.Pictures)
+            {
+                var res = await discord.UploadAsync(
+                    hook.Url, png,
+                    filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
+                    text:     $"**{title}**",
+                    name:     hook.Name,
+                    ct:       ct);
+
+                if (res.Ok) uploaded++;
+                else failed.Add($"{title}: {res.Error}");
+            }
         }
 
-        // After the text, so the message reads in the order it was composed. Each chart is a
-        // message of its own with its title above it.
-        var failed = new List<string>();
+        var what = posted == 0 ? AlarmsText.RunPosted
+                 : posted > 1  ? string.Format(AlarmsText.RunPostedMessages, characters, posted)
+                 :               string.Format(AlarmsText.RunPostedCharacters, characters);
 
-        foreach (var (png, title) in drawn)
-        {
-            var res = await discord.UploadAsync(
-                hook.Url, png,
-                filename: $"{title.Replace(' ', '-').ToLowerInvariant()}.png",
-                text:     $"**{title}**",
-                name:     hook.Name,
-                ct:       ct);
-
-            if (!res.Ok) failed.Add($"{title}: {res.Error}");
-        }
-
-        if (drawn.Count > failed.Count) what += " " + string.Format(AlarmsText.RunChartsUploaded, drawn.Count - failed.Count);
-        if (failed.Count > 0)           what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
+        if (uploaded > 0)     what += " " + string.Format(AlarmsText.RunChartsUploaded, uploaded);
+        if (failed.Count > 0) what += " " + string.Format(AlarmsText.RunChartsFailed, failed.Count, string.Join("; ", failed));
 
         return (true, what);
     }
@@ -343,7 +426,7 @@ public class SchedulerService(
         return (true, AlarmsText.RunAlertRaised);
     }
 
-    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct)
+    private async Task<SlackPostResult> PostWebhookAsync(string hookId, string body, CancellationToken ct, object? blocks = null)
     {
         if (!int.TryParse(hookId, out var id)) return new SlackPostResult(false, null, null, AlarmsText.RunNoWebhook);
 
@@ -352,6 +435,45 @@ public class SchedulerService(
 
         return hook is null
             ? new SlackPostResult(false, null, null, AlarmsText.RunWebhookDeleted)
-            : await slack.PostWebhookAsync(hook.Url, body, null, ct);
+            : await slack.PostWebhookAsync(hook.Url, body, blocks, ct);
+    }
+
+    /// <summary>
+    /// One picture through a webhook: uploaded to the online services, then posted by its address.
+    /// Returns null on success, or why it failed.
+    ///
+    /// <para>⚠️ Titled on purpose. Slack shows a size and a collapse arrow beside an image with or
+    /// without a title, and the title at least names the chart.</para>
+    ///
+    /// <para>⚠️ An upload Slack then refuses is deleted again, so a post that keeps failing does
+    /// not spend the day's uploads and the storage on images nobody can see. It still counts
+    /// against the day: deleting never gives uploads back.</para>
+    /// </summary>
+    private async Task<string?> PostHostedPictureAsync(string hookId, byte[] png, string title, CancellationToken ct)
+    {
+        // The same second between posts as the text's parts.
+        await Task.Delay(TimeSpan.FromSeconds(1), ct);
+
+        var uploaded = await online.UploadImageAsync(png, ct);
+
+        // Trimmed: the result's sentence that lists these ends with its own full stop.
+        if (!uploaded.Ok) return uploaded.Error?.TrimEnd('.', '。');
+
+        object[] blocks =
+        [
+            new
+            {
+                type      = "image",
+                image_url = uploaded.Url,
+                alt_text  = title,
+                title     = new { type = "plain_text", text = title },
+            },
+        ];
+
+        var posted = await PostWebhookAsync(hookId, title, ct, blocks);
+        if (posted.Ok) return null;
+
+        if (uploaded.Id is { } id) await online.DeleteImageAsync(id, ct);
+        return posted.Error;
     }
 }

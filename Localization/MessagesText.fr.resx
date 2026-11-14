@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Messages</value>
+    <comment>The window, and the main menu.</comment>
+  </data>
+  <data name="AllConversations" xml:space="preserve">
+    <value>Toutes les conversations</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Rechercher par nom ou serveur</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NoConversations" xml:space="preserve">
+    <value>Aucune conversation enregistrée pour l'instant. Cliquez sur Nouvelle conversation, ou faites un clic droit sur quelqu'un dans un salon ou sur un serveur Mumble.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NothingOpen" xml:space="preserve">
+    <value>Choisissez une conversation ou appuyez sur Nouvelle conversation pour écrire à une personne en ligne.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="ToggleList" xml:space="preserve">
+    <value>Conversations</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Fermer cet onglet. La conversation reste enregistrée.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Jouer un son pour les nouveaux messages directs</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>Envoyer un message</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CannotSendNotConnected" xml:space="preserve">
+    <value>Pas de connexion à {0} : rien ne peut être envoyé pour le moment.</value>
+    <comment>{0} = a server's name.</comment>
+  </data>
+  <data name="CannotSendOffline" xml:space="preserve">
+    <value>{0} est hors ligne. Un message ne peut être livré qu'aux personnes connectées.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="CannotSendLeftRoom" xml:space="preserve">
+    <value>{0} a quitté le salon : cette conversation privée ne peut pas continuer.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="NoteOfflineHeld" xml:space="preserve">
+    <value>{0} est hors ligne. Le serveur devrait conserver votre message jusqu'à sa prochaine connexion.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="PresenceOnline" xml:space="preserve">
+    <value>En ligne</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceAway" xml:space="preserve">
+    <value>Absent</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceOffline" xml:space="preserve">
+    <value>Hors ligne</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Nouvelle conversation</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Nom d'une personne en ligne</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Personne en ligne ne correspond.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>Personne d'autre n'est en ligne sur les serveurs connectés.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0} de plus. Saisissez davantage du nom pour affiner.</value>
+  </data>
+</root>

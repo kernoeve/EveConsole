@@ -1,0 +1,49 @@
+<!-- What can be done to what was right-clicked in the channel tree. ⚠️ One menu for both: each line says when it shows, and
+     what the server would only refuse is not offered. The server's answer on that can arrive after this has opened. -->
+<ContextMenu xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.MumbleRowMenu"
+             x:DataType="vm:MumbleViewModel">
+
+  <!-- A person -->
+  <MenuItem Header="{x:Static loc:MessagesText.SendMessage}" Command="{Binding MessagePersonCommand}" IsVisible="{Binding ShowOtherPerson}" />
+  <MenuItem Header="{x:Static loc:MumbleText.LocalMute}" Command="{Binding ToggleLocalMuteCommand}" IsVisible="{Binding ShowOtherPerson}">
+    <MenuItem.Icon><Path IsVisible="{Binding IsPersonLocalMuted}" Data="M1 6 L4.5 9.5 L11 2.5" Stroke="{DynamicResource TextPrimaryBrush}" StrokeThickness="1.6" Width="12" Height="12" /></MenuItem.Icon>
+  </MenuItem>
+  <MenuItem Header="{x:Static loc:MumbleText.IgnoreMessages}" Command="{Binding ToggleIgnoreCommand}" IsVisible="{Binding ShowOtherPerson}">
+    <MenuItem.Icon><Path IsVisible="{Binding IsPersonIgnored}" Data="M1 6 L4.5 9.5 L11 2.5" Stroke="{DynamicResource TextPrimaryBrush}" StrokeThickness="1.6" Width="12" Height="12" /></MenuItem.Icon>
+  </MenuItem>
+  <MenuItem Header="{x:Static loc:MumbleText.MenuVolumeDetails}" Click="OnDetails" IsVisible="{Binding ShowOtherPerson}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuDetails}" Click="OnDetails" IsVisible="{Binding ShowMe}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuRegisterName}" Click="OnRegister" IsVisible="{Binding CanRegister}" />
+
+  <Separator IsVisible="{Binding ShowPersonAdmin}" />
+  <MenuItem Header="{x:Static loc:MumbleText.ServerMute}" Command="{Binding ToggleServerMuteCommand}" IsVisible="{Binding CanServerMute}">
+    <MenuItem.Icon><Path IsVisible="{Binding IsServerMuted}" Data="M1 6 L4.5 9.5 L11 2.5" Stroke="{DynamicResource TextPrimaryBrush}" StrokeThickness="1.6" Width="12" Height="12" /></MenuItem.Icon>
+  </MenuItem>
+  <MenuItem Header="{x:Static loc:MumbleText.ServerDeafen}" Command="{Binding ToggleServerDeafCommand}" IsVisible="{Binding CanServerMute}">
+    <MenuItem.Icon><Path IsVisible="{Binding IsServerDeaf}" Data="M1 6 L4.5 9.5 L11 2.5" Stroke="{DynamicResource TextPrimaryBrush}" StrokeThickness="1.6" Width="12" Height="12" /></MenuItem.Icon>
+  </MenuItem>
+  <MenuItem Header="{x:Static loc:MumbleText.PrioritySpeaker}" Command="{Binding TogglePriorityCommand}" IsVisible="{Binding CanServerMute}">
+    <MenuItem.Icon><Path IsVisible="{Binding IsPriority}" Data="M1 6 L4.5 9.5 L11 2.5" Stroke="{DynamicResource TextPrimaryBrush}" StrokeThickness="1.6" Width="12" Height="12" /></MenuItem.Icon>
+  </MenuItem>
+  <MenuItem Header="{x:Static loc:MumbleText.MoveToMine}" Command="{Binding MoveToMineCommand}" IsVisible="{Binding CanMovePerson}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuMoveTo}" Click="OnMove" IsVisible="{Binding CanMovePerson}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuKick}" Click="OnKick" IsVisible="{Binding CanKick}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuBan}" Click="OnBan" IsVisible="{Binding CanBan}" />
+
+  <!-- A channel -->
+  <MenuItem Header="{x:Static loc:MumbleText.JoinChannel}" Command="{Binding JoinChannelCommand}" IsVisible="{Binding CanJoin}" />
+  <MenuItem Header="{Binding ListenText}" Command="{Binding ToggleListenCommand}" IsVisible="{Binding CanListen}" />
+  <MenuItem Header="{Binding LinkText}" Command="{Binding ToggleLinkCommand}" IsVisible="{Binding CanLinkChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuDetails}" Click="OnDetails" IsVisible="{Binding ShowChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuServerInfo}" Click="OnServerInfo" IsVisible="{Binding ShowRootChannel}" />
+
+  <Separator IsVisible="{Binding ShowChannelAdmin}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuNewChannel}" Click="OnNewChannel" IsVisible="{Binding CanMakeChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuNewTempChannel}" Click="OnNewTempChannel" IsVisible="{Binding CanMakeTempChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuRemoveChannel}" Click="OnRemoveChannel" IsVisible="{Binding CanRemoveChannel}" />
+  <MenuItem Header="{x:Static loc:MumbleText.MenuPermissions}" Click="OnPermissions" IsVisible="{Binding CanEditAcl}" />
+</ContextMenu>

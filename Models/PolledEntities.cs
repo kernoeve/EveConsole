@@ -379,6 +379,58 @@ public class CharacterAsset
     // never seen, or a hangar in another player's ship — not "in space", which has a system.
     public int?   SolarSystemId    { get; set; }
     public int?   RegionId         { get; set; }
+
+    /// <summary>
+    /// Null for a row exactly as the owner's asset poll gave it. <c>"added"</c> or
+    /// <c>"changed"</c> for one written since, by something done in the game that the poll has
+    /// not caught up with — a job started or delivered, a contract, a haul ticked off. See
+    /// AssetActivity. The next asset poll replaces every row, these with them.
+    ///
+    /// <para>⚠️ Some of an added row is a default, not the truth: where in the station it is (a
+    /// corporation's first hangar division, a character's hangar) and its item id, which is a
+    /// made-up negative number until the poll gives the real one.</para>
+    /// </summary>
+    public string? Pending      { get; set; }
+
+    /// <summary>What wrote it, when <see cref="Pending"/> is set: "job 123", "contract 456",
+    /// "haul" — several, comma-separated, when more than one touched the same row.</summary>
+    public string? PendingFrom  { get; set; }
+}
+
+/// <summary>
+/// When an owner's asset (or blueprint) list was current: ESI's own time for the copy it
+/// answered with (its Last-Modified header), which can be most of an hour before the poll that
+/// fetched it. What has happened in the game since then is written on top — see AssetActivity.
+/// </summary>
+public class AssetSnapshot
+{
+    public long   OwnerId   { get; set; }
+    public string OwnerType { get; set; } = "";
+    /// <summary>"assets" or "blueprints".</summary>
+    public string Kind      { get; set; } = "";
+    /// <summary>When ESI made the copy; the poll time when it did not say.</summary>
+    public DateTimeOffset AsOf     { get; set; }
+    public DateTimeOffset PolledAt { get; set; }
+    /// <summary>What activity was last written on top of the rows, so it is written again only
+    /// when that changes. Empty when none has been.</summary>
+    public string AppliedKey { get; set; } = "";
+}
+
+/// <summary>
+/// When an order was first and last seen by an orders poll, as of the time ESI's copy was made.
+///
+/// <para>⚠️ For telling a new sell order from one whose price was changed: ESI gives a changed
+/// order a new issue date, so "issued since the asset copy" alone would take its items out of the
+/// hangar a second time. Only an order first seen after the asset copy is new. See AssetActivity.</para>
+/// </summary>
+public class MarketOrderSighting
+{
+    public long OrderId { get; set; }
+    /// <summary>The first orders copy that listed it; long ago for one already open when the
+    /// app first polled that owner's orders, which is not known to be new.</summary>
+    public DateTimeOffset FirstSeenAt { get; set; }
+    /// <summary>The last orders copy that listed it open.</summary>
+    public DateTimeOffset LastSeenAt  { get; set; }
 }
 
 public class CharacterBlueprint
@@ -1737,6 +1789,235 @@ public class IntelReport
     /// <summary>Hulls and classes named with no pilot to fly them, as written for a reader:
     /// "3× Loki, Interdictor". Already counted in <see cref="PlayerCount"/>.</summary>
     public string? Ships { get; set; }
+
+    /// <summary>
+    /// What the row says: <see cref="IntelReportKind.Sighting"/> (someone is there) or
+    /// <see cref="IntelReportKind.Clear"/> (the system was called clear at this time).
+    ///
+    /// <para>⚠️ Anything that counts or places hostiles reads <c>Kind = 0</c> only. A clear names no
+    /// pilots and carries no count, but it is a row in the same table, and a reader that forgets
+    /// the filter shows a clear call as a sighting of nobody.</para>
+    ///
+    /// <para>⚠️ <see cref="IntelReportKind.Copy"/> is a line that only repeated a report already held, from another
+    /// channel (a relay): stored so the line is known for what it is, never chatter, and linked to that report by
+    /// <see cref="ParentReportId"/>. It names no pilots, counts nothing and says nothing of its own: it adds no
+    /// information anywhere, only that the report was heard in one more place.</para>
+    /// </summary>
+    public int Kind { get; set; }
+
+    /// <summary>Where it came from: <see cref="IntelReportSource.Chat"/> (a channel line), or a
+    /// pasted Local or d-scan. A paste has no chat message behind it, so its
+    /// <see cref="ChatMessageId"/> is 0.</summary>
+    public int Source { get; set; }
+
+    /// <summary>A follow-up's thread: always the FIRST report of the thread, never a follow-up,
+    /// so nesting is one level whatever the length of the chain. Null on a report that started one.
+    /// On a <see cref="IntelReportKind.Copy"/>: the very report it repeats (which may itself be a follow-up).</summary>
+    public int? ParentReportId { get; set; }
+
+    /// <summary>The system they came from, when the line said so ("A -> B", "from A").</summary>
+    public int? FromSystemId { get; set; }
+
+    /// <summary>The system they were said to be heading for. Only intended: they are still in
+    /// <see cref="SystemId"/>.</summary>
+    public int? HeadingSystemId { get; set; }
+}
+
+/// <summary>Values of <see cref="IntelReport.Kind"/>.</summary>
+public static class IntelReportKind
+{
+    public const int Sighting = 0;
+    public const int Clear    = 1;
+
+    /// <summary>A relayed copy of the report its <see cref="IntelReport.ParentReportId"/> names: no information of its own.</summary>
+    public const int Copy     = 2;
+}
+
+/// <summary>Values of <see cref="IntelReport.Source"/>.</summary>
+public static class IntelReportSource
+{
+    public const int Chat       = 0;
+    public const int LocalPaste = 1;
+    public const int DscanPaste = 2;
+}
+
+/// <summary>Values of <see cref="IntelLastSeen.Source"/>, and the rank each has in a tie.</summary>
+public static class IntelLastSeenSource
+{
+    public const int Report       = 0;
+    public const int LocalPaste   = 1;
+    public const int KillAttacker = 2;
+    public const int KillVictim   = 3;
+
+    /// <summary>
+    /// Which of two sightings in the same second wins: a kill, then a pasted Local, then a chat
+    /// report. A kill is a fact the server recorded; a Local paste is what the pilot's own client
+    /// listed; a chat report is someone's reading of either, typed a little after the fact.
+    /// </summary>
+    public static int RankOf(int source) => source switch
+    {
+        KillAttacker or KillVictim => 2,
+        LocalPaste                 => 1,
+        _                          => 0,
+    };
+}
+
+/// <summary>Values of <see cref="IntelLastSeen.AffiliationSource"/>.</summary>
+public static class IntelAffiliationSource
+{
+    public const int Pulled = 0;
+    public const int Kill   = 1;
+}
+
+/// <summary>
+/// Where each pilot was last seen, one row per character, from every source at once: intel
+/// reports, pasted Local, and killmails (as attacker or victim).
+///
+/// <para>Kept rather than worked out on read because working it out means reading every report
+/// and every killmail a pilot was ever on, and the views that need it (the Pilots list, the
+/// panels, the alarms) need it for thousands of pilots at a time.</para>
+///
+/// <para>⚠️ Newer wins, and only newer. Reports are parsed late and kills arrive late, so a write
+/// that is OLDER than what the row holds changes nothing (except the affiliation, below). Ties in
+/// the same second go to the better source, by <see cref="SourceRank"/>: a kill, then a pasted
+/// Local, then a chat report.</para>
+///
+/// <para>⚠️ Every time column is ISO text, "yyyy-MM-ddTHH:mm:ssZ", like IntelReports.ReportedAt,
+/// so a comparison is the same text comparison on SQLite and PostgreSQL.</para>
+/// </summary>
+public class IntelLastSeen
+{
+    public long    CharacterId { get; set; }
+
+    /// <summary>The pilot's name as last written, so a list can show and search it without a lookup.</summary>
+    public string? Name        { get; set; }
+
+    public string  SeenAt      { get; set; } = "";
+
+    /// <summary>Breaks a tie in the same second: 0 report, 1 pasted Local, 2 killmail.</summary>
+    public int     SourceRank  { get; set; }
+
+    /// <summary>0 report, 1 pasted Local, 2 kill attacker, 3 kill victim.</summary>
+    public int     Source      { get; set; }
+
+    public int     SystemId    { get; set; }
+    public int?    ReportId    { get; set; }
+    public int?    KillMailId  { get; set; }
+    public int?    ShipTypeId  { get; set; }
+    public string? ShipName    { get; set; }
+
+    /// <summary>The sighting was "no visual". A flag on it, never a lifetime of its own.</summary>
+    public bool    NoVisual    { get; set; }
+
+    public long?   CorporationId { get; set; }
+    public long?   AllianceId    { get; set; }
+
+    /// <summary>When the affiliation above was true: the kill's time, or when it was pulled.</summary>
+    public string? AffiliationAt { get; set; }
+
+    /// <summary>0 pulled from ESI, 1 from a killmail. A kill's affiliation is never replaced by a
+    /// pulled one: a pulled one only fills a row that has none from a kill.</summary>
+    public int     AffiliationSource { get; set; }
+
+    /// <summary>The system before this one, and when they were seen there: what tells a pilot
+    /// moving closer from one sitting still.</summary>
+    public int?    PrevSystemId { get; set; }
+    public string? PrevSeenAt   { get; set; }
+
+    /// <summary>When this stay in <see cref="SystemId"/> began: reset when the system changes, or
+    /// when the pilot was gone longer than a sighting lasts and has come back.</summary>
+    public string? InSystemSince { get; set; }
+
+    /// <summary>When the row was last written, whatever time it describes. What lets a reader take
+    /// only the rows changed since it last looked, including a late kill with an old time.</summary>
+    public string  WrittenAt   { get; set; } = "";
+}
+
+/// <summary>
+/// One entry of the intel watch list, shared by every PC on the database: a pilot, a corporation,
+/// an alliance, a hull or a ship group that is always alerted for, or never.
+///
+/// <para>Views show a pilot it matches in bold (Always) or dimmed (Ignore). The intel alarms read it
+/// too: an Ignore entry never wakes anyone, an Always entry always does, from farther away.</para>
+///
+/// <para>A pilot is matched by id; a corporation and an alliance through the pilot's affiliation; a
+/// hull by the type flown, or said in a report; a group by the hull's group. When several entries
+/// match one pilot, the most particular decides: the pilot's own, then the corporation's, the
+/// alliance's, the hull's, the group's.</para>
+/// </summary>
+public class IntelWatchEntry
+{
+    public int     Id       { get; set; }
+
+    /// <summary>What <see cref="EntityId"/> is: see <see cref="IntelWatchKind"/>.</summary>
+    public string  Kind     { get; set; } = IntelWatchKind.Pilot;
+
+    /// <summary>A character, corporation or alliance id; a hull's type id; a ship group's id.</summary>
+    public long    EntityId { get; set; }
+
+    /// <summary>The name as it was chosen (a hull's or group's in English), for showing the list
+    /// without a lookup.</summary>
+    public string  Name     { get; set; } = "";
+
+    /// <summary>0 always alert, 1 ignore: see <see cref="IntelWatchMode"/>.</summary>
+    public int     Mode     { get; set; }
+
+    public string? Note     { get; set; }
+
+    /// <summary>The PC it was added on.</summary>
+    public string  AddedBy  { get; set; } = "";
+
+    /// <summary>ISO text, "yyyy-MM-ddTHH:mm:ssZ", like every intel time column.</summary>
+    public string  AddedAt  { get; set; } = "";
+}
+
+/// <summary>Values of <see cref="IntelWatchEntry.Kind"/>.</summary>
+public static class IntelWatchKind
+{
+    public const string Pilot       = "pilot";
+    public const string Corporation = "corp";
+    public const string Alliance    = "alliance";
+    public const string Hull        = "hull";
+    public const string Group       = "group";
+
+    public static readonly IReadOnlyList<string> All = [Pilot, Corporation, Alliance, Hull, Group];
+}
+
+/// <summary>Values of <see cref="IntelWatchEntry.Mode"/>.</summary>
+public static class IntelWatchMode
+{
+    public const int Always = 0;
+    public const int Ignore = 1;
+}
+
+/// <summary>
+/// The last route the Route Planner sent to the game for one character, shared by every PC on the
+/// database: what the intel alarms watch ahead of that character.
+///
+/// <para>One row per character: sending another route replaces it. Only the part still ahead is
+/// watched (<see cref="AtIndex"/>); the route is cleared when the character reaches its destination,
+/// and ignored six hours after it was sent. A route set only in the game is not known: the game does
+/// not tell anyone what its autopilot is set to.</para>
+/// </summary>
+public class CharacterRoute
+{
+    public long    CharacterId         { get; set; }
+
+    /// <summary>The last step: where the route ends.</summary>
+    public int     DestinationSystemId { get; set; }
+
+    /// <summary>Every step's system id, start first, as a comma list.</summary>
+    public string  SystemIds           { get; set; } = "";
+
+    /// <summary>The step the character was last seen at; the steps after it are ahead. -1 until they are first
+    /// seen on the route: every step, the first included, is then ahead.</summary>
+    public int     AtIndex             { get; set; }
+
+    /// <summary>When it was sent, ISO text "yyyy-MM-ddTHH:mm:ssZ" like every intel time column.</summary>
+    public string  SetAt               { get; set; } = "";
+
+    /// <summary>When the character arrived (ISO text); null while the route is being flown.</summary>
+    public string? ClearedAt           { get; set; }
 }
 
 /// <summary>A pilot named on an intel report. Separate table because one line often drags in

@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ レイアウトをカスタマイズ</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>レイアウト</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>レイアウト{0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>レイアウト：</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>名前：</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>このレイアウトのコピーから新しいレイアウトを作成します。</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>この概要に表示する保存済みのレイアウト</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>活動の概要</value>
   </data>
@@ -484,6 +511,9 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>未読の EVE メールが {0} 件あります。</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>未読の Jabber メッセージが {0} 件あります。</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0}（{1}）の燃料が {2} 後に切れます</value>
   </data>
@@ -928,5 +958,9 @@
   </data>
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>未使用のコロニースロットがあるPIキャラクターが{0}人います。</value>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>未読のダイレクトメッセージが {0} 件あります。</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

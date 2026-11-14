@@ -18,6 +18,7 @@ public partial class SettingsWindow : Window
     public SettingsWindow()
     {
         InitializeComponent();
+        KeyCaptureHook.Attach(AgentSettingsPane);
 
         // Every tab saves as it is changed, and text once typing pauses. Leaving a box saves it
         // now: a pause is no promise the next thing done is not closing the window, or reading
@@ -29,6 +30,14 @@ public partial class SettingsWindow : Window
         // service's list is the model's name, which can also be typed), and a text value waits for
         // the typing pause. A pick in any drop-down saves what is waiting.
         AddHandler(SelectingItemsControl.SelectionChangedEvent, OnPicked, RoutingStrategies.Bubble, handledEventsToo: true);
+
+        // A connector choice refused: its reason scrolled into view, wherever the box clicked was. Posted: it is
+        // measured only once it shows.
+        Avalonia.AvaloniaObjectExtensions.GetObservable(ConnectorChoiceMessage, IsVisibleProperty).Subscribe(shown =>
+        {
+            if (shown) Avalonia.Threading.Dispatcher.UIThread.Post(() => ConnectorChoiceMessage.BringIntoView(),
+                                                                   Avalonia.Threading.DispatcherPriority.Background);
+        });
     }
 
     private void OnFieldLostFocus(object? sender, RoutedEventArgs e)
@@ -68,6 +77,9 @@ public partial class SettingsWindow : Window
         // one that lies about a thing the user is about to act on.
         vm.PollingVm.RefreshServiceState();
 
+        // The parks build costs can be worked out at: a park added or renamed since last time shows.
+        _ = vm.MarketVm.LoadBuildCostParksAsync();
+
         var scopeHandler = vm.CharacterVm.ScopeSelectionInteraction.RegisterHandler(async ctx =>
         {
             var dialog = new ScopeSelectionDialog(ctx.Input) { DataContext = vm.CharacterVm };
@@ -84,6 +96,16 @@ public partial class SettingsWindow : Window
 
         _disposables.Add(scopeHandler);
         _disposables.Add(confirmHandler);
+
+        if (vm.ConnectorVm is { } connectorVm)
+        {
+            connectorVm.ShowConfirmDialog = async (title, message) =>
+            {
+                var dlg = new ConfirmDialog(message) { Title = title };
+                return await dlg.ShowDialog<bool>(this);
+            };
+            _disposables.Add(Disposable.Create(() => connectorVm.ShowConfirmDialog = null));
+        }
 
         _ = vm.AlertsVm.LoadAsync();
     }
@@ -168,8 +190,16 @@ public partial class SettingsWindow : Window
         => _ = Retention?.GameLog.PurgeNowAsync();
     private void OnPurgeChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ChatMessages.PurgeNowAsync();
+    private void OnPurgeIntelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.Intel.PurgeNowAsync();
+    private void OnIntelShowWarningClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = (DataContext as SettingsViewModel)?.IntelVm.ShowFeedWarningAgainAsync();
     private void OnPurgeAgentTelemetryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.AgentTelemetry.PurgeNowAsync();
+    private void OnPurgeDirectMessagesClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.DirectMessages.PurgeNowAsync();
+    private void OnPurgeGroupChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.GroupChat.PurgeNowAsync();
 
     public void WireDatabase(DatabaseSettingsViewModel dbVm, Window ownerWindow)
     {

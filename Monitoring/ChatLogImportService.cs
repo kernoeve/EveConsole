@@ -51,9 +51,21 @@ public sealed class ChatLogImportService : ReactiveObject
         _errorLogger  = errorLogger;
     }
 
-    /// <summary>Run after each tail pass — intel parsing, wired at startup. Kept as a hook so
-    /// this service knows nothing about intel.</summary>
-    public Func<CancellationToken, Task>? AfterTail { get; set; }
+    /// <summary>Run after each tail pass with the number of messages it stored — intel parsing,
+    /// wired at startup. Kept as a hook so this service knows nothing about intel.</summary>
+    public Func<int, CancellationToken, Task>? AfterTail { get; set; }
+
+    /// <summary>
+    /// Told, with the number of messages stored, when a history import has finished: intel, wired at
+    /// startup. A hand-off, never awaited.
+    ///
+    /// <para>⚠️ Not <see cref="AfterTail"/>. The tail loop runs on a background thread and may wait for the
+    /// parse; a history import is started from a Settings button and runs on the UI thread, so awaiting
+    /// the parse of thousands of lines there would freeze the window, and hold the import "busy" (which
+    /// pauses the tail loop) for as long. Whatever is hooked here must start its own work elsewhere and
+    /// return at once.</para>
+    /// </summary>
+    public Action<int>? AfterHistoryImport { get; set; }
 
     // ── Observable state ─────────────────────────────────────────────────────
 
@@ -123,14 +135,14 @@ public sealed class ChatLogImportService : ReactiveObject
             {
                 try
                 {
-                    await TailAsync(ct);
+                    var stored = await TailAsync(ct);
 
                     // Intel parsing runs on the same pass that stored the messages, so a
                     // sighting reaches the map as soon as it is logged. It fails independently:
                     // a parsing problem must not stop chat being imported.
                     if (AfterTail is { } hook)
                     {
-                        try { await hook(ct); }
+                        try { await hook(stored, ct); }
                         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
                         catch (Exception ex)
                         {
@@ -226,15 +238,16 @@ public sealed class ChatLogImportService : ReactiveObject
 
     // ── Tail ─────────────────────────────────────────────────────────────────
 
-    private async Task TailAsync(CancellationToken ct)
+    /// <summary>Reads what is new in the recent logs; the number of messages stored.</summary>
+    private async Task<int> TailAsync(CancellationToken ct)
     {
         var dirs = _settings.ResolveChatDirectories();
-        if (dirs.Count == 0) { StatusText = SettingsText.ChatLogStatusNoFolder; return; }
+        if (dirs.Count == 0) { StatusText = SettingsText.ChatLogStatusNoFolder; return 0; }
 
         if (_settings.ChatChannels.Count == 0)
         {
             StatusText = SettingsText.ChatLogStatusNoChannels;
-            return;
+            return 0;
         }
 
         using var scope = _scopeFactory.CreateScope();
@@ -273,6 +286,7 @@ public sealed class ChatLogImportService : ReactiveObject
         StatusText = imported > 0
             ? string.Format(SettingsText.ChatLogStatusNew, imported)
             : string.Format(SettingsText.ChatLogStatusWatching, _settings.ChatChannels.Count);
+        return imported;
     }
 
     // ── History import ───────────────────────────────────────────────────────
@@ -312,6 +326,7 @@ public sealed class ChatLogImportService : ReactiveObject
 
         _importCts = new CancellationTokenSource();
         var ct     = _importCts.Token;
+        var stored = 0;
 
         IsBusy          = true;
         ProgressCurrent = 0;
@@ -362,6 +377,7 @@ public sealed class ChatLogImportService : ReactiveObject
                 ? string.Format(SettingsText.ChatLogImportCancelled, ProgressCurrent, imported)
                 : string.Format(SettingsText.ChatLogImportDone, imported, files.Count);
             ProgressText = StatusText;
+            stored       = imported;
         }
         catch (Exception ex)
         {
@@ -374,6 +390,14 @@ public sealed class ChatLogImportService : ReactiveObject
             IsBusy = false;
             _importCts?.Dispose();
             _importCts = null;
+        }
+
+        // What came in is news to the intel parser too, which may be on another PC. Handed off once the
+        // import is no longer busy, and not awaited: see AfterHistoryImport.
+        if (stored > 0 && AfterHistoryImport is { } told)
+        {
+            try { told(stored); }
+            catch (Exception ex) { _errorLogger.Log(nameof(ChatLogImportService), nameof(AfterHistoryImport), ex); }
         }
     }
 
@@ -500,10 +524,13 @@ public sealed class ChatLogImportService : ReactiveObject
 
         rows = await DropAlreadyStoredAsync(db, record.ChannelName, rows, ct);
 
+        // ⚠️ Each batch through ChatMessageWrites, never the whole file in one: ids must commit in the
+        // order they are handed out (the intel watermark reads by id), and a lock held for a whole
+        // re-import would hold up every other PC's chat and the worker's rooms for as long.
         for (var i = 0; i < rows.Count; i += InsertBatchSize)
         {
             db.ChatMessages.AddRange(rows.Skip(i).Take(InsertBatchSize));
-            await db.SaveChangesAsync(ct);
+            await ChatMessageWrites.SaveAsync(db, ct);
         }
 
         if (rows.Count == 0) await db.SaveChangesAsync(ct);

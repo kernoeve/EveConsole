@@ -434,14 +434,23 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
             return ciLookup.TryGetValue(sysId, out var ci) && ci.TryGetValue(activity, out var idx) ? idx : 0;
         }
 
-        // Copied, because the override pass below rewrites them and the context is shared with
-        // every other plan calculated from it.
-        var unitCosts = new Dictionary<int, decimal>(ctx.UnitCosts);
-        var bpcPerRun = ctx.BpcPerRun.ToDictionary(kv => kv.Key, kv => kv.Value.ToList());
+        // What this plan changes, kept apart and read before the context, which is shared with every
+        // other plan calculated from it and so is never written.
+        //
+        // ⚠️ Not copies of the context's tables. Copying the whole market price table and every
+        // contract price list for each plan was most of what a plan cost in memory, and the Worklist
+        // plans each of its items one at a time, several generators at once: at startup that was
+        // gigabytes a second, with the UI frozen in garbage collection for minutes.
+        var unitCostChanges = new Dictionary<int, decimal>();
+        var bpcPerRunChanges = new Dictionary<int, List<(int Me, decimal PerRun)>>();
+
+        bool UnitCost(int typeId, out decimal cost) =>
+            unitCostChanges.TryGetValue(typeId, out cost) || ctx.UnitCosts.TryGetValue(typeId, out cost);
 
         decimal BpcPerRunAt(int bpTypeId, int me)
         {
-            if (!bpcPerRun.TryGetValue(bpTypeId, out var opts) || opts.Count == 0) return 0m;
+            if (!bpcPerRunChanges.TryGetValue(bpTypeId, out var opts) && !ctx.BpcPerRun.TryGetValue(bpTypeId, out opts)
+                || opts.Count == 0) return 0m;
             foreach (var (m, p) in opts) if (m == me) return p;   // exact ME, else the cheapest available
             return opts.Min(o => o.PerRun);
         }
@@ -454,13 +463,13 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         var pinnedBuild  = new HashSet<int>();
         foreach (var o in overrides.Values)
         {
-            if (o.MarketValue.HasValue)   unitCosts[o.TypeId] = o.MarketValue.Value;
-            if (o.ContractValue.HasValue) bpcPerRun[o.TypeId] = [(0, o.ContractValue.Value)];
+            if (o.MarketValue.HasValue)   unitCostChanges[o.TypeId] = o.MarketValue.Value;
+            if (o.ContractValue.HasValue) bpcPerRunChanges[o.TypeId] = [(0, o.ContractValue.Value)];
             // Pin a sub-component's build cost as a fixed-value leaf. Skip requested final products —
             // their build cost is computed from the tree, and unitCosts drives their market value read.
             if (o.BuildCost.HasValue && !boughtSet.Contains(o.TypeId) && !requestedIds.Contains(o.TypeId))
             {
-                unitCosts[o.TypeId] = o.BuildCost.Value;   // PriceOf → pinned build cost (a consumed leaf)
+                unitCostChanges[o.TypeId] = o.BuildCost.Value;   // PriceOf → pinned build cost (a consumed leaf)
                 pinnedBuild.Add(o.TypeId);
             }
         }
@@ -469,7 +478,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
         // market order exists for it. Returns 0 only when both market and build cost are absent.
         decimal PriceOf(int typeId)
         {
-            if (unitCosts.TryGetValue(typeId, out var p) && p > 0) return p;
+            if (UnitCost(typeId, out var p) && p > 0) return p;
             if (buildCostLookup.TryGetValue(typeId, out var bc) && bc > 0)
                 return bc * (decimal)markupFactor;
             return 0m;
@@ -898,7 +907,7 @@ public class ProductionCalculatorService(IDbContextFactory<AppDbContext> dbFacto
                     // Overlay the BPC's PER-RUN price (at this item's ME) into the price table so both
                     // the raw-material total and the job-material line value it identically.
                     var bpcPerRunPrice = inventedCopy?.PerRun ?? BpcPerRunAt(bpProd.TypeId, meLevel);
-                    unitCosts[bpProd.TypeId] = bpcPerRunPrice;
+                    unitCostChanges[bpProd.TypeId] = bpcPerRunPrice;
 
                     // ⚠️ Zero is the right fallback — the rest of the plan is worth having,
                     // so an unpriced blueprint must not abort it — but zero for a titan BPC is

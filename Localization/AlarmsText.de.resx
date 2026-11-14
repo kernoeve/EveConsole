@@ -242,7 +242,7 @@
     <value>Zwölf Monate Verlauf, als Bild gezeichnet und unter der Nachricht hochgeladen.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>Dieser Abschnitt wird nicht gepostet. Die Aufgabe zielt auf einen Webhook, und ein Webhook kann kein Bild übertragen – wählen Sie oben einen Workspace-Kanal, sonst wird dieser Abschnitt beim Ausführen der Aufgabe übersprungen.</value>
+    <value>Dieser Abschnitt wird nicht gepostet. Ein Slack-Webhook kann nur online gehostete Bilder anzeigen: Melde dich unter Einstellungen, Onlinedienste an oder wähle oben einen Workspace-Kanal. Sonst wird dieser Abschnitt beim Ausführen der Aufgabe übersprungen.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>Verkaufsanzeige</value>
@@ -467,7 +467,7 @@
     <value>Jedes Diagramm wird mit eigener Legende gepostet. Die Liste des Systemindex-Werkzeugs wird nicht übernommen.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Dieses Ziel ist ein Slack-Webhook, der keine Bilder übertragen kann: Die Bilder dieses Abschnitts entfallen, nur die Tabellen werden gepostet. Ein Slack-Kanal oder ein Discord-Webhook überträgt sie.</value>
+    <value>Ein Slack-Webhook kann nur online gehostete Bilder anzeigen. Bis du dich unter Einstellungen, Onlinedienste anmeldest, werden die Bilder dieses Abschnitts weggelassen und nur seine Tabellen gepostet. Ein Slack-Kanal oder ein Discord-Webhook überträgt sie in jedem Fall.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>Abschnitt {0} ({1}) braucht mindestens einen Job.</value>
@@ -778,6 +778,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Gelöscht.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>"{0}" löschen? Das kann nicht rückgängig gemacht werden.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Nichts darzustellen: Diese Aufgabe hat keine Abschnitte.</value>
   </data>
@@ -785,7 +788,7 @@
     <value>Wird dargestellt…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} – übersprungen: Das Ziel ist ein Webhook]</value>
+    <value>[{0} — übersprungen: Ein Slack-Webhook braucht eine Anmeldung unter Einstellungen, Onlinedienste]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} – als Bild hochgeladen]</value>
@@ -932,7 +935,7 @@
     <value>Löst aus, wenn jemand einen Piloten in der Nähe dessen meldet, was Sie überwachen: Ihre Charaktere, solange sie abgedockt sind, Ihre Charaktere, wo immer sie sind, oder eine Liste von Systemen, jeweils mit einer Reichweite in Sprüngen. Liest die Intel-Kanäle, die bereits unter Einstellungen → Chatprotokolle ausgewertet werden.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Abschüsse dort mit feindlichen Piloten unter den Angreifern zählen ebenfalls: Ein Abschuss verortet seine Angreifer in diesem System.</value>
+    <value>Ein Abschuss dort mit feindlichen Piloten unter den Angreifern löst immer aus und wird als Abschuss angesagt: was verloren ging und wogegen. Innerhalb eines Sprungs wird er zuerst angesagt. Seine Angreifer werden nicht noch einmal als Sichtung angesagt.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Schiff dockt ab</value>
@@ -983,16 +986,22 @@
     <value>Zu überwachende Systeme, z. B. {0} oder {1}. Fügen Sie jedes einzeln hinzu; bei 0 Sprüngen werden nur diese Systeme überwacht.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Sprünge</value>
+    <value>Bis</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Sprünge von</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Optional. Nähere Systeme werden ausgelassen, auch Prioritätssysteme und die Route voraus. So teilen sich zwei Alarme eine Reichweite: 0 bis 2 bei einem und 3 bis 5 beim anderen lösen nie beide aus.</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>Wie viele Torsprünge rund um jeden Charakter bzw. jedes System überwacht werden. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
+    <value>Wie viele Sprünge rund um jeden Charakter bzw. jedes System überwacht werden, über Stargates und die offenen Wurmlöcher von Thera und Turnur. 0 bedeutet nur das eigene System. Höchstens 15 – darüber hinaus ist es keine Nachbarschaft mehr.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Min. Spieler</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Nur auslösen, wenn die Meldung mindestens so viele Piloten nennt. Standard: 1.</value>
+    <value>Nur auslösen, wenn mindestens so viele Feinde im System sind. Standard: 1. Abschüsse und Nur-Hinweis-Meldungen lösen unabhängig von der Zahl aus.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>„Kein Sichtkontakt“ ignorieren</value>
@@ -1628,7 +1637,7 @@
     <value>{0} Diagramm(e) fehlgeschlagen: {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>{0} Diagrammabschnitt(e) übersprungen: Ein Webhook kann kein Bild übertragen.</value>
+    <value>{0} Diagrammabschnitt(e) übersprungen: Um Bilder anzuzeigen, braucht ein Slack-Webhook eine Anmeldung unter Einstellungen, Onlinedienste.</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>Nichts auszulösen: Die Warnung hat keinen Text.</value>
@@ -1800,5 +1809,371 @@
   </data>
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0} Lichtjahre entfernt</value>
+  </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Aufgaben</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Kalender</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Monat</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Woche</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Heute</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Zurück</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Weiter</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>+{0} weitere</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd, d. MMM yyyy</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Zeigt, was ab jetzt läuft, in EVE-Zeit, solange die App geöffnet ist. Ausgeschaltete Aufgaben werden nicht angezeigt. Zeiten nach dem nächsten Lauf einer Intervallaufgabe sind Schätzungen, da jeder Lauf vom letzten aus zählt. Klicke auf eine Aufgabe, um sie zu bearbeiten.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>Dieser Slack-Webhook zeigt Bilder über ihre Adresse an. Sie werden daher auf eveconsole.com hochgeladen und 12 Monate aufbewahrt. Jeder mit dem Link kann sie sehen.</value>
+  </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>Auf Slack mit Bildern und ausgerichteten Spalten posten</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>Ohne Haken wird dieser Abschnitt als Texttabelle gepostet. Discord bekommt immer den Text.</value>
+  </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>TEXT ÜBER DER TABELLE</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Steht unter dem Titel, auf Slack und in der Texttabelle. Emoji, Links und Erwähnungen funktionieren, und eine Erwähnung benachrichtigt wirklich.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>BILD</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Nur im Slack-Format, neben dem Titel. Slacks Box hat immer einen Titel, ein leerer verwendet daher den Standardtitel.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Keines</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Charakter</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Fraktion</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC-Corporation</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Agent</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Gegenstandstyp</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>BOX AUF SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Keine Box</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Schmal</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Standard</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Breit</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>Die erste Zeile des Texts wird zum Titel der Box. Discord und reine Textposts behalten den Text wie geschrieben.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Aktivität der letzten 30 Tage</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Verkaufte Einheiten</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Ø-Preis</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Marge %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Gesamtumsatz</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Gesamtgewinn</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Top-Artikel</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Die Slack-Box hat keinen Platz für weitere Spalten. Entferne eine, um eine andere hinzuzufügen.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Zu breit für die Slack-Box. Diese Spalten fehlen im Beitrag: {0}</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — hier als Text gezeigt; Slack bekommt Bilder und ausgerichtete Spalten]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>{0} der Summe</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>{0} Nachricht(en) mit Bildern gepostet.</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>{0} von {1} Nachrichten gepostet; Slack hat die nächste abgelehnt: {2}.</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack hat das Format mit Bildern nicht angenommen ({0}), daher wurde Text gepostet.</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>Spitzenreiter</value>
+  </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Heutige Indizes mit 7-Tage-Änderung (Slack-Tabelle)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>Alle sechs Diagramme in einem Bild (Bild)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>Indexverlauf</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} ist der niedrigste Wert dieser Tätigkeit. {1} {2} zeigen die Änderung über 7 Tage in Punkten.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Emoji für den niedrigsten</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Emoji für steigend</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Emoji für fallend</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>Für die Slack-Tabelle. Leer nutzt das angezeigte Standard-Emoji. Ein eigenes Emoji erscheint nur in einem Workspace, der es hat.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Zusammenfassung nach Auftrag (Slack-Tabelle)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>Ein Kasten je Auftrag (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} ist der beste Park für diesen Auftrag. Jeder Prozentwert zeigt den Abstand zum besten.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Jeder Prozentwert zeigt den Abstand zum besten Park für diesen Auftrag.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Bau</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Marktwert {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>{0}-BPC</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} Lauf/Läufe, ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 bis ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0 % bis TE {0} %</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>+{0} weitere Parks</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Marktwert von</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Standardmarkt</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Preis</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Standardpreis</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>Der Marktwert im Kasten eines Auftrags. Standard folgt den Markt-Standardeinstellungen samt Preisüberschreibungen; eine Auswahl liest den eigenen Preis dieses Marktes.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Heutige Indizes mit 7-Tage-Änderung (Bild)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Heutige Indizes</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Geändert: Der Alarm richtet sich jetzt nach dem aktuellen Stand der Aufklärung; ein Pilot, der inzwischen anderswo gesehen oder als frei gemeldet wurde, löst nicht mehr aus. Jeder Pilot wird einmal angesagt, solange er in einem System bleibt, eine Zahl ungenannter Piloten erst wieder, wenn sie über 1, 4, 9 oder 19 steigt, und auch eine Meldung nur eines Gate-Camps, von Bubbles, eines Cynos, eines Hotdrops, eines Spikes oder von Kampfsonden löst aus (Nur-Hinweis-Meldungen, unten).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Nur-Hinweis-Meldungen</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Auch bei einer Meldung auslösen, die niemanden zählt, aber ein Gate-Camp, Bubbles, ein Cyno, einen Hotdrop, einen Spike oder Kampfsonden nennt. Jedes wird einmal angesagt, solange es gilt.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Abschuss in {0}: {1} verloren gegen {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Abschuss in {0}, {1}: {2} verloren gegen {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>In {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>In {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Abschuss gemeldet</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Abschüsse gemeldet</value>
+  </data>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Nur Neues löst aus: etwas, das in den letzten zwei Minuten gesehen wurde oder in Reichweite kam (Einstellungen → Intel); was schon da war, wird nicht angesagt. Jede Aktion des Alarms läuft für alles, wofür er auslöst. Für etwas anderes in der Nähe lege einen weiteren Alarm mit eigener Sprungreichweite an.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Wo beobachten</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Was auslöst</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>Sprüngen</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Leiser in der Ferne</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Der Ton spielt innerhalb eines Sprungs mit voller Lautstärke und weiter draußen leiser: bis 40 % am Rand der Reichweite. Sprache behält deine Sprachlautstärke.</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Feindlich</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Welche namentlich gemeldeten Piloten zählen, nach den Standings deines nächsten Charakters (oder des unter Einstellungen → Intel festgelegten Charakters). Blaue und deine eigenen Charaktere zählen nie; ungenannte Anzahlen und reine Hinweismeldungen immer.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Neutral oder schlechter</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Nur negativ</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Nur rot</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Beobachtungsliste verwenden</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>Was auf „Immer alarmieren“ steht, löst innerhalb der Reichweite der Beobachtungsliste aus, unabhängig von Reichweite, Feindlich-Wahl und Mindestzahl, wird zuerst angesagt; was auf „Ignorieren“ steht, löst nie aus.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Reichweite der Beobachtungsliste</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>Wie viele Sprünge weit Einträge auf „Immer alarmieren“ auslösen, wenn das weiter ist als die Reichweite. Höchstens 15.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Vorrangige Systeme</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Optional. Systeme, die immer beobachtet werden, egal wo deine Charaktere sind, aber nicht näher als „Sprünge von“. Was dort gesehen wird, wird zuerst angesagt.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Vorrangiges System: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Beobachtungsliste: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Nähert sich: unterwegs nach {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Nähert sich: war {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Entfernt sich, nach {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, über Thera oder Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Ebenfalls standardmäßig an: aus Abschüssen ermittelte Gate-Camps in der Nähe deiner Charaktere oder auf einer Route voraus, und die Route voraus selbst, also die noch zu fliegenden Systeme der letzten Route, die der Routenplaner an das Spiel geschickt hat (Gate-Camps und Route voraus beobachten, unten).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Route voraus beobachten</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Beobachtet auch die Systeme, die auf der letzten Route, die der Routenplaner für einen beobachteten Charakter an das Spiel geschickt hat, noch voraus liegen, egal wie weit: Was dort gesehen wird, löst aus und wird als so viele Sprünge voraus auf der Route angesagt. Nur der noch nicht geflogene Teil; die Route entfällt bei Ankunft oder sechs Stunden nach dem Senden. Eine nur im Spiel gesetzte Route kann nicht bekannt sein.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Gate-Camps</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Löst bei einem aus Abschüssen an einem Gate ermittelten Gate-Camp aus, in der Nähe eines beobachteten Charakters oder auf einer Route voraus. Einmal pro Camp, pro Charakter und pro Route angesagt, sodass eine neue Route durch ein bekanntes Camp es erneut ansagt. Eines auf einer Route voraus innerhalb von 5 Sprüngen ist dringend: zuerst angesagt.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Gate-Camp in {0} am {1}-Gate, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} Abschuss in {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} Abschüsse in {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} Minute</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} Minuten</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>{0} Sprung voraus auf der Route von {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{0} Sprünge voraus auf der Route von {1}</value>
   </data>
 </root>

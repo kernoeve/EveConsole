@@ -1,0 +1,1219 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Разведка</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>Сколько живут разведданные</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Каждый вид сведений считается актуальным столько времени после сообщения, постепенно бледнея; затем он исчезает с панелей и карты. Общая настройка для всех ПК с этой базой. «No visual» — это пометка на наблюдении, а не отдельный срок.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>Названный пилот</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>Число без имён («+5»)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>Система, объявленная чистой</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>Кэмп на гейте или пузыри</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>Цино</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>Пилот на килле</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>Пилот, потерявший корабль</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>минут</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>секунд</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>км</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Уточняющие строки</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>Строка без своей системы («+2», «nv», «clr») дополняет последнее сообщение того же автора в том же канале, если приходит в пределах этого времени.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Окно уточнений</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Кэмпы на гейтах по киллам</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Киллы на одном гейте, каждый вскоре после предыдущего и с общим атакующим, считаются кэмпом, когда там потеряно достаточно разных пилотов. Один килл — не кэмп.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Не дальше этого расстояния от гейта</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Наибольший перерыв между киллами</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Потерянных пилотов, чтобы считать кэмпом</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Стендинги</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Пилоты окрашиваются по стендингам персонажа, который смотрит: того, за кем следит панель, или ближайшего персонажа в сети. Сначала личные контакты, затем корпорации, затем альянса. Выберите здесь персонажа, чтобы везде использовать его стендинги.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Стендинги от</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(свой персонаж каждого клиента)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Расстояние</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>Близость угрозы считается по звёздным вратам и каждому открытому соединению Thera и Turnur в обе стороны. Расстояния для перелётов могут учитывать и наши мосты прыжков — в тех направлениях, которыми может пользоваться альянс персонажа.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Учитывать наши мосты прыжков в расстояниях перелёта</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Тревоги разведки</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Общее для всех тревог разведки. Тревогу запускают и подсвечивают строку панели только сведения не старше этого; то, что уже было, не озвучивается, а более старые сведения по-прежнему показываются.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Только сведения не старше</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Предупреждение о ленте киллов</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>Инструмент разведки предупреждает, когда zKillboard читает не все киллы в New Eden: тогда киллы в других местах не попадают в разведку. Предупреждение можно скрыть там для всех ПК.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Снова показать предупреждение</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>Предупреждение будет показано снова.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Не удалось сохранить: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>История разведки</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Удаляет сообщения разведки, названных в них пилотов и последнее место, где видели каждого пилота, если они старше этого срока. Сообщения чата и киллы хранятся по своим правилам.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Удалять историю разведки старше</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>Удалено {0:N0} строк разведки старше {1:N0} дн.</value>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>сейчас</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} с</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} мин</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} ч {1} мин</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0} пр. от {1}</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0} пр. от {1}, через Thera или Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Цвет по репутации {0}</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Цвет по всем вашим персонажам: дружественный, если таков хоть для одного</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>смартбомбы</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>диктор</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>тяжёлый диктор</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Открыть пилота</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Открыть корпус в обозревателе предметов</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>чисто</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>сообщил {0}</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>убийство</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>убийство на вратах</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>уничтожен:</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>у врат в {0}</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>кемп на вратах · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>в Local: {0}</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>на д-скане: {0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>сообщение</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>без визуала: {0}</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>враждебных: {0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} без имени</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} позже</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Потерял {0}; атакующих: {1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Вставил {0}</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Сообщил {0} в {1}</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Позже:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} пр.</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>Никто не вошёл</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} ещё в {1} пр.</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} в {1} пр.</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>в {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>местоположение неизвестно</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Местоположение неизвестно: откройте список для свежих данных</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>На этом мониторе никто не вошёл в игру.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} — не персонаж EVE Console.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} нет в EVE Console</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>Каналы разведки не настроены, поэтому здесь видны только убийства.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>Задать в Настройки → Журналы чата</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Чтение разведданных…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>В пределах {0} пр. от {1} ничего не сообщалось.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Ничего в {0} пр.</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>В последнее время ничего не сообщалось. Где {0}, пока неизвестно.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Синие и голубые скрыты · расстояния по вратам и Thera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>где {0}, неизвестно, поэтому свежие данные показаны без прыжков</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>личные контакты неизвестны: цвета по контактам корпорации и альянса</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Открыть страницу системы</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Показать на карте</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Копировать название системы</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Открыть в инструменте «Разведка»</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>Как далеко смотрит элемент, в прыжках через врата и Thera или Turnur. Задаётся в редакторе раскладок.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Вставить Local или д-скан</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Открыть в инструменте «Разведка»</value>
+  </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>Сводка</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>Лента</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>Вставка</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>Разведка неполная: полная лента zKillboard выключена, поэтому убийства между другими пилотами рядом с вами не видны.</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>Открыть настройки Kill Mails</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>Скрыть на всех ПК, пока полную ленту снова не включат и не выключат</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>Расстояние от</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>Ближайший персонаж в игре</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0} (не в игре)</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>В пределах</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} прыжков</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>Любое расстояние</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>Мои джамп-мосты</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>Учитывает ваши джамп-мосты: расстояние для перелёта. Расстояние до угрозы их никогда не учитывает.</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>Отношения</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>Красный</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>Оранжевый</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>Нейтрал</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>Голубой</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>Синий</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>Свой персонаж</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Источники</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>Все каналы, убийства, вставки</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>Нет источников</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{0} из {1} источников</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>Убийства (zKillboard и ESI)</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>Вставленные Local и д-скан</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Найти систему или пилота…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>Обновлено {0} назад</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>Разбор разведки: этот ПК</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>Разбор разведки: обработчик на {0}</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>Разбор разведки: нет обработчика</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Сортировка</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>Ближайшие</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Новые</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>Больше всего врагов</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>Ещё {0} сверх предела</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>Прыжки</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Обстановка</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Враги</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>Корабли</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>Отметки</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>Движение</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>Давность</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Ближайший</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>Источники</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>Враги</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>Без визуала</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>Кемп</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>Отметки</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>Чисто</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>из {0}</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>в сторону {0}</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>убийства</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>вставка</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>В этих пределах актуальной разведки нет.</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>За это время в этих пределах ничего не сообщалось.</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>Ничего не найдено.</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>Каналы разведки не заданы: отметьте их в Настройки → Журналы чата или отметьте комнату Jabber или IRC как разведку. Убийства и вставки по-прежнему показываются.</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>Никто из ваших персонажей не в игре, считать прыжки не от кого: показано всё, а когда кто-то войдёт — ближайшее первым.</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>Персонаж, выбранный в «Расстояние от», не в игре: прыжков не будет, пока он не войдёт, или выберите другого.</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>За последние</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} минут</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>Показывать убийства</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>Прочие сообщения</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>Сообщения в каналах разведки, не давшие разведданных: разговоры, вопросы, дополнение, которое не к чему привязать. Показываются приглушённо и не сохраняются как разведка.</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>Время EVE</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>Доклад</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>Дополнение</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>Чисто</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>Вставка Local</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>Д-скан</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>Убийство</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>Кемп</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>Разговор</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>Вставка</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>Вставка · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>пришли из {0}</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>направляются в {0}</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>устарело</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>истекло</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>Открыть страницу системы</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>Открыть пилота</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>Выберите систему</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0} (здесь {1})</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>или другая система…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>Вставил</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>Вставьте Local (имена, по одному в строке) или д-скан</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>В игре выделите всё в списке участников Local или в окне д-скана, скопируйте и вставьте сюда через Ctrl+V.</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>Приложение никогда само не читает буфер обмена: используется только то, что вы вставили в поле.</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>Распознано: список Local</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>Распознано: д-скан</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>Это не список Local и не д-скан: в Local по одному имени в строке, в д-скане столбцы через табуляцию.</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>Выберите систему, откуда это.</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>Заменяет сообщённых там: {0}</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>Вставка Local — полный список: все, о ком сообщали в системе, убираются, затем ставятся все из списка с сохраняемыми отношениями. Частичная вставка очищает точно так же.</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → бабл</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → цино</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>Д-скан только добавляет безымянное число кораблей и никогда не очищает систему: д-скан видит не всех.</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>Вставьте в поле: что будет сохранено, появится здесь до сохранения.</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>Сохранить (Ctrl+Enter)</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>Ваши</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>Не найдены</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>Без альянса</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>Считаются безымянными</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>Недавние вставки</value>
+  </data>
+  <data name="StatusSystemsOne" xml:space="preserve">
+    <value>{0} система с актуальной разведкой</value>
+  </data>
+  <data name="StatusSystemsFew" xml:space="preserve">
+    <value>{0} системы с актуальной разведкой</value>
+  </data>
+  <data name="StatusSystemsMany" xml:space="preserve">
+    <value>{0} систем с актуальной разведкой</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>{0} системы с актуальной разведкой</value>
+  </data>
+  <data name="StatusHostilesOne" xml:space="preserve">
+    <value>{0} враг</value>
+  </data>
+  <data name="StatusHostilesFew" xml:space="preserve">
+    <value>{0} врага</value>
+  </data>
+  <data name="StatusHostilesMany" xml:space="preserve">
+    <value>{0} врагов</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>{0} врага</value>
+  </data>
+  <data name="StatusCampsOne" xml:space="preserve">
+    <value>{0} кемп на вратах</value>
+  </data>
+  <data name="StatusCampsFew" xml:space="preserve">
+    <value>{0} кемпа на вратах</value>
+  </data>
+  <data name="StatusCampsMany" xml:space="preserve">
+    <value>{0} кемпов на вратах</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>{0} кемпа на вратах</value>
+  </data>
+  <data name="PasteUnknownNamesOne" xml:space="preserve">
+    <value>{0} неизвестное имя считается безымянным</value>
+  </data>
+  <data name="PasteUnknownNamesFew" xml:space="preserve">
+    <value>{0} неизвестных имени считаются безымянными</value>
+  </data>
+  <data name="PasteUnknownNamesMany" xml:space="preserve">
+    <value>{0} неизвестных имён считаются безымянными</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>{0} неизвестного имени считаются безымянными</value>
+  </data>
+  <data name="RecentPilotsOne" xml:space="preserve">
+    <value>{0} имя</value>
+  </data>
+  <data name="RecentPilotsFew" xml:space="preserve">
+    <value>{0} имени</value>
+  </data>
+  <data name="RecentPilotsMany" xml:space="preserve">
+    <value>{0} имён</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} имени</value>
+  </data>
+  <data name="RecentShipsOne" xml:space="preserve">
+    <value>{0} корабль</value>
+  </data>
+  <data name="RecentShipsFew" xml:space="preserve">
+    <value>{0} корабля</value>
+  </data>
+  <data name="RecentShipsMany" xml:space="preserve">
+    <value>{0} кораблей</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>{0} корабля</value>
+  </data>
+  <data name="PasteDscanShipsOne" xml:space="preserve">
+    <value>{0} корабль</value>
+  </data>
+  <data name="PasteDscanShipsFew" xml:space="preserve">
+    <value>{0} корабля</value>
+  </data>
+  <data name="PasteDscanShipsMany" xml:space="preserve">
+    <value>{0} кораблей</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>{0} корабля</value>
+  </data>
+  <data name="PastePlacesOne" xml:space="preserve">
+    <value>Помещает {0} пилота в {1}</value>
+  </data>
+  <data name="PastePlacesFew" xml:space="preserve">
+    <value>Помещает {0} пилота в {1}</value>
+  </data>
+  <data name="PastePlacesMany" xml:space="preserve">
+    <value>Помещает {0} пилотов в {1}</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>Помещает {0} пилота в {1}</value>
+  </data>
+  <data name="FeedCountOne" xml:space="preserve">
+    <value>Сначала новые · {0} строка</value>
+  </data>
+  <data name="FeedCountFew" xml:space="preserve">
+    <value>Сначала новые · {0} строки</value>
+  </data>
+  <data name="FeedCountMany" xml:space="preserve">
+    <value>Сначала новые · {0} строк</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>Сначала новые · {0} строки</value>
+  </data>
+  <data name="PasteSavedLocalOne" xml:space="preserve">
+    <value>Сохранено: Local системы {1}, {0} имя.</value>
+  </data>
+  <data name="PasteSavedLocalFew" xml:space="preserve">
+    <value>Сохранено: Local системы {1}, {0} имени.</value>
+  </data>
+  <data name="PasteSavedLocalMany" xml:space="preserve">
+    <value>Сохранено: Local системы {1}, {0} имён.</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>Сохранено: Local системы {1}, {0} имени.</value>
+  </data>
+  <data name="PasteSavedDscanOne" xml:space="preserve">
+    <value>Сохранено: д-скан системы {1}, {0} корабль.</value>
+  </data>
+  <data name="PasteSavedDscanFew" xml:space="preserve">
+    <value>Сохранено: д-скан системы {1}, {0} корабля.</value>
+  </data>
+  <data name="PasteSavedDscanMany" xml:space="preserve">
+    <value>Сохранено: д-скан системы {1}, {0} кораблей.</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>Сохранено: д-скан системы {1}, {0} корабля.</value>
+  </data>
+  <data name="PasteNamesCountOne" xml:space="preserve">
+    <value>{0} имя · найдено: {1} · неизвестно: {2}</value>
+  </data>
+  <data name="PasteNamesCountFew" xml:space="preserve">
+    <value>{0} имени · найдено: {1} · неизвестно: {2}</value>
+  </data>
+  <data name="PasteNamesCountMany" xml:space="preserve">
+    <value>{0} имён · найдено: {1} · неизвестно: {2}</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} имени · найдено: {1} · неизвестно: {2}</value>
+  </data>
+  <data name="PasteDscanCountOne" xml:space="preserve">
+    <value>{0} корабль · неизвестных типов: {1}</value>
+  </data>
+  <data name="PasteDscanCountFew" xml:space="preserve">
+    <value>{0} корабля · неизвестных типов: {1}</value>
+  </data>
+  <data name="PasteDscanCountMany" xml:space="preserve">
+    <value>{0} кораблей · неизвестных типов: {1}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>{0} корабля · неизвестных типов: {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>Только что обновлено</value>
+  </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (система)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>или система…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Считать прыжки от системы, а не от персонажа. Тогда ни один персонаж не смотрит, поэтому цвета берутся от всех ваших персонажей: дружественный, если он дружественен хотя бы для одного из них.</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Кемпы</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Список наблюдения</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Пилот, корпорация или альянс…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Замечены за последние</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 час</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 часов</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 часа</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 дней</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 дней</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Поиск…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Где каждый пилот был замечен последним: доклад, вставленный Local или килл</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Не удалось прочитать пилотов: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>Последние {0} · уточните поиском</value>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} пилот</value>
+  </data>
+  <data name="PilotsCountFew" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="PilotsCountMany" xml:space="preserve">
+    <value>{0} пилотов</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>За это время никто не замечен.</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Последний раз в</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Замечен</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>Откуда</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Доклад</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Вставленный Local</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Участник килла</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Потерял корабль</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>без визуала</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Последний раз в {0}, {1} назад</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} д</value>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} активный кемп</value>
+  </data>
+  <data name="CampsActiveFew" xml:space="preserve">
+    <value>{0} активных кемпа</value>
+  </data>
+  <data name="CampsActiveMany" xml:space="preserve">
+    <value>{0} активных кемпов</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} активного кемпа</value>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} закончился</value>
+  </data>
+  <data name="CampsEndedFew" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsEndedMany" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} закончились</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>По киллам на гейтах и докладам · закончившиеся кемпы видны бледными ещё час после последнего килла</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>За последний час на этом расстоянии кемпов на гейтах нет.</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>Кемпов на гейтах не видно. Кемпы определяются по киллам, а при выключенной полной ленте zKillboard приходят только киллы с участием вас или вашей корпорации.</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>Гейт в {0}</value>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} килл</value>
+  </data>
+  <data name="CampKillsFew" xml:space="preserve">
+    <value>{0} килла</value>
+  </data>
+  <data name="CampKillsMany" xml:space="preserve">
+    <value>{0} киллов</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} килла</value>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} пилот</value>
+  </data>
+  <data name="CampAttackersFew" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="CampAttackersMany" xml:space="preserve">
+    <value>{0} пилотов</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} пилота</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Киллы</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Доклад</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Киллы и доклады</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Активен</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Закончился</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Кемп</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Статус</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Киллы</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Последний</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Атакующие</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Открыть киллы кемпа в боевом отчёте</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Открыть килл в боевом отчёте</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Открыть киллы</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Открыть килл</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Открыть эту корпорацию</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Открыть этот альянс</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Всегда оповещать</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Игнорировать</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Пилоты, корпорации, альянсы, корпуса и группы кораблей, общие для всех ПК на этой базе данных. Всегда оповещать: показаны жирным, и интел-оповещения со списком наблюдения сообщают о них с большего расстояния. Игнорировать: показаны бледными и никогда не вызывают оповещений. Сначала решает запись самого пилота, затем его корпорации, альянса, корпуса и группы корпуса.</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Корпус</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Группа кораблей</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Всегда оповещать</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Игнорировать</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Имя для добавления…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Заметка (необязательно)</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Список наблюдения пока пуст. Добавьте здесь или щёлкните правой кнопкой по пилоту в любом окне интела.</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} на {1}</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Не удалось изменить список наблюдения: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Убрать из списка наблюдения</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Тип</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Режим</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Заметка</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Добавлено</value>
+  </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}м</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}ч</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Последние сведения здесь в {0} по времени EVE</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Последний раз замечен в {0} по времени EVE</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Врагов здесь: {0} ({1} по именам, {2} только по числу)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Убийство здесь в {0} по времени EVE</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Убийств здесь: {0}, последнее в {1} по времени EVE</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Кемп на гейте</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Кемп на гейте в {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Без визуала: сообщено, но не видно</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Объявлено чисто</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Кто здесь, по альянсам (или корпорациям):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Принадлежность пока неизвестна: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>Участвовал в убийстве здесь</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Пилоты здесь</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Сообщения и убийства</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Кто</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Сортировать по этому столбцу; повторный щелчок меняет порядок</value>
+  </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} скрыт фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenFew" xml:space="preserve">
+    <value>{0} скрыты фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenMany" xml:space="preserve">
+    <value>{0} скрыто фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} скрыто фильтром отношений</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Все найденные пилоты скрыты фильтром отношений: включите больше отношений выше, чтобы их показать.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>Участники убийства, по альянсам (или корпорациям):</value>
+  </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Неизвестный пилот</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Неизвестный пилот (персонаж {0}): имя пока неизвестно</value>
+  </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Также в каналах:</value>
+  </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>Чат EVE - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Сохранять:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Какие отношения сохраняет вставленный Local, с точки зрения вставившего персонажа. Пилоты выключенных уровней не записываются вовсе, ваши собственные персонажи — никогда. Запоминается на этом ПК.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Очищает поле и предпросмотр. Система и «Вставил» остаются.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>Не сохраняются: {0} ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Сохраняет {0} как чистую: никого из выбранных отношений нет</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Local перечисляет всех, кто там есть: сохранение означает, что в системе нет никого из выбранных отношений, и снимает то, что о ней сообщали.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Не сохраняется</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Никогда не сохраняются</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>Ваших в списке: {0}, не сохраняются</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Сохранено: в {0} нет никого из выбранных отношений.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Выбор «Сохранять» касается только названных пилотов: в д-скане имён нет, поэтому учитывается каждый корабль.</value>
+  </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Сохранение выключено: все отношения в «Сохранять» выключены. Включите отношения, чтобы сохранить.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Имена, ещё не проверенные: {0}. ESI не ответил, а это могут быть друзья, поэтому ничего не сохраняется, пока они не будут проверены. Повтор вскоре.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Сохранение выключено: исключены пилоты, которые могут быть враждебны: {0} ({1}). Local снимает всех, о ком сообщали в {2}, поэтому сохранение убрало бы их, будто они ушли. Включите их отношения, чтобы сохранить.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Ещё не проверены</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Ждём ESI</value>
+  </data>
+</root>

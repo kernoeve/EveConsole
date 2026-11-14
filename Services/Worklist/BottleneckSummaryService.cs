@@ -18,6 +18,12 @@ namespace EveConsole.Services.Worklist;
 /// </summary>
 public sealed record ObservationPoint(int TypeId, string Text, PrintKind Print = PrintKind.None)
 {
+    /// <summary>A blueprint to picture instead of the item the line opens, or zero for the item.</summary>
+    public int PictureTypeId { get; init; }
+
+    /// <summary>The line is about the formula that makes the item, which is drawn from the item.</summary>
+    public bool IsFormula { get; init; }
+
     public static implicit operator ObservationPoint(string text) => new(0, text);
 }
 
@@ -182,10 +188,32 @@ public class BottleneckSummaryService
             // throughput one purchase buys.
             [.. blocking.Take(MaxNamed).Select(p => new ObservationPoint(p.ProductTypeId,
                 string.Format(WorklistText.SummaryBuyPrint,
-                              p.Role == PrintRole.Copy
-                                  ? string.Format(WorklistText.PrintNameCopying, SdeNames.Type(p.ProductTypeId, p.ProductName))
-                                  : SdeNames.Type(p.ProductTypeId, p.ProductName),
-                              p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100)))]);
+                              PrintLineName(p),
+                              p.Prints, p.Prints > 0 ? 100.0 / p.Prints : 100))
+                {
+                    // What it says to buy, not what that makes. The line still opens the product.
+                    PictureTypeId = reactions ? 0 : p.BlueprintTypeId,
+                    IsFormula     = reactions,
+                })]);
+    }
+
+    /// <summary>
+    /// A print's product, named for the job its line is about.
+    ///
+    /// <para>⚠️ Contention is judged per use, so "buy 1 of 1 owned" counts only the originals doing
+    /// that job. Unlabelled, a Fenrir with one original at the factory and one at the copy lab read
+    /// as though only one existed.</para>
+    /// </summary>
+    private static string PrintLineName(ItemBandwidth p)
+    {
+        var name = SdeNames.Type(p.ProductTypeId, p.ProductName);
+
+        return p.Role switch
+        {
+            PrintRole.Copy                     => string.Format(WorklistText.PrintNameCopying, name),
+            PrintRole.Build when !p.IsReaction => string.Format(WorklistText.PrintNameBuilding, name),
+            _                                  => name,
+        };
     }
 
     // ── Buying ────────────────────────────────────────────────────────────────

@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>메시지</value>
+    <comment>The window, and the main menu.</comment>
+  </data>
+  <data name="AllConversations" xml:space="preserve">
+    <value>모든 대화</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>이름 또는 서버로 검색</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NoConversations" xml:space="preserve">
+    <value>저장된 대화가 아직 없습니다. 새 대화를 누르거나, 방이나 Mumble 서버에 있는 사람을 마우스 오른쪽 버튼으로 클릭하세요.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NothingOpen" xml:space="preserve">
+    <value>대화를 선택하거나 '새 대화'를 눌러 접속 중인 사람에게 메시지를 보내세요.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="ToggleList" xml:space="preserve">
+    <value>대화</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>이 탭을 닫습니다. 대화는 저장된 채로 유지됩니다.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>새 다이렉트 메시지가 오면 소리 재생</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>메시지 보내기</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CannotSendNotConnected" xml:space="preserve">
+    <value>{0}에 연결되어 있지 않아 지금은 보낼 수 없습니다.</value>
+    <comment>{0} = a server's name.</comment>
+  </data>
+  <data name="CannotSendOffline" xml:space="preserve">
+    <value>{0}님은 오프라인입니다. 메시지는 연결된 사람에게만 전달할 수 있습니다.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="CannotSendLeftRoom" xml:space="preserve">
+    <value>{0}님이 방을 나가서 이 비공개 대화를 계속할 수 없습니다.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="NoteOfflineHeld" xml:space="preserve">
+    <value>{0}님은 오프라인입니다. 서버가 상대방의 다음 연결까지 메시지를 보관할 것입니다.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="PresenceOnline" xml:space="preserve">
+    <value>온라인</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceAway" xml:space="preserve">
+    <value>자리 비움</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceOffline" xml:space="preserve">
+    <value>오프라인</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>새 대화</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>접속 중인 사람의 이름</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>일치하는 접속자가 없습니다.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>연결된 서버에 다른 접속자가 없습니다.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>{0}명 더 있습니다. 이름을 더 입력해 좁혀 보세요.</value>
+  </data>
+</root>

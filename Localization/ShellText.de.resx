@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>Söldnerunterschlüpfe</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Client-Layouts</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Abschussberichte</value>
   </data>
@@ -141,6 +144,12 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>EVE-Mail</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Benachrichtigungen</value>
@@ -692,5 +701,58 @@ Aktualisieren und starten? Nein schließt EVE Console und lässt die Datenbank u
     <value>{0}
 {1}
 Klicken für die ESI-Limits.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Nachrichten</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Gruppenchat</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Kampfbericht</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Diese Datenbank hat Version {0}, dieser Client Version {1}.
+
+Dieser Client ist so eingestellt, dass er die Hintergrundprozesse nie ausführt, und nur der Client, der sie ausführt, darf das Schema ändern. Er kann die Datenbank daher nicht auf {1} bringen.
+
+Starte einen Client {1}, der sie ausführen darf, oder schalte dies ab: Entferne „neverRunBackgroundWork“ aus {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Hinweise zu Drittanbietern</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Die Lizenzen der Software, aus der EVE Console besteht</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Intel</value>
   </data>
 </root>

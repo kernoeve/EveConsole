@@ -82,19 +82,25 @@ public class InventionGenerator(
         // And levels of the T2 blueprints themselves, which the gatherer leaves out — see
         // IndustryDemandService.BlueprintLevelsAsync.
         foreach (var (typeId, d) in await demands.BlueprintLevelsAsync(db, ct)) demand.TryAdd(typeId, d);
-        if (demand.Count == 0) return [];
-
-        // Only the invented ones. Everything else is the job generator's business.
-        var recipes = await invention.LoadAsync(demand.Keys.ToList(), ct);
-        if (recipes.Count == 0) return [];
-
-        var decryptors = await invention.DecryptorsAsync(ct);
 
         // Where the park says these activities happen. Both are Indy Parks categories already, so
         // a park that has assigned Blueprint Copying and Blueprint Invention needs nothing more
-        // said here — and one that has not gets no jobs rather than a guess.
+        // said here — and one that has not gets no jobs rather than a guess. Copying alone is
+        // enough for the T1 copies below; invention needs both.
         var (inventionLab, copyLab) = await InventionService.LabsAsync(db, parkId, ct);
-        if (inventionLab is null || copyLab is null) return [];
+        if (copyLab is null) return [];
+
+        // T1 copies wanted in their own right: a Build rule's level of the copy, or a customer
+        // order for one. Invention is only one way a copy gets asked for.
+        var copyAsks = await CopyAsksAsync(db, ctx, rules, groups, owner, ct);
+
+        // Only the invented ones. Everything else is the job generator's business.
+        var recipes = demand.Count > 0 && inventionLab is not null
+            ? await invention.LoadAsync(demand.Keys.ToList(), ct)
+            : [];
+        if (recipes.Count == 0 && copyAsks.Count == 0) return [];
+
+        var decryptors = await invention.DecryptorsAsync(ct);
 
         // Products, datacores and decryptors together — a decryptor is a material of the job like
         // any other, and leaving it out of the lookup printed a bare type id in the manifest.
@@ -109,16 +115,19 @@ public class InventionGenerator(
         var printsByType = await blueprints.LoadAsync(
             recipes.Values.Select(r => r.InventedBlueprintTypeId)
                    .Concat(recipes.Values.Select(r => r.SourceBlueprintTypeId))
+                   .Concat(copyAsks.Keys)
                    .Distinct().ToList(), ct);
 
-        var siteStock = await SiteStockAsync(db, [inventionLab.Value.Site, copyLab.Value.Site], wrapped, corps, ct);
+        var siteStock = await SiteStockAsync(
+            db, [inventionLab?.Site ?? copyLab.Value.Site, copyLab.Value.Site], wrapped, corps, ct);
 
         var reaches   = scientists.Select(c => WorklistIndyCharReach.Of(c, corps)).ToList();
         var slotsLeft = scientists.ToDictionary(
             c => c.Config.CharacterId, c => c.FreeSlots.GetValueOrDefault(IndustryPool.Science));
 
         // What copying a source blueprint asks of the pilot, from the SDE. Usually nothing.
-        var sourceBps  = recipes.Values.Select(r => r.SourceBlueprintTypeId).Distinct().ToList();
+        var sourceBps  = recipes.Values.Select(r => r.SourceBlueprintTypeId)
+                                .Concat(copyAsks.Keys).Distinct().ToList();
         var copySkills = (await db.SdeBlueprintSkills.AsNoTracking()
                 .Where(s => sourceBps.Contains(s.TypeId) && s.Activity == "copying")
                 .ToListAsync(ct))
@@ -142,10 +151,22 @@ public class InventionGenerator(
 
         var items = new List<WorklistItem>();
 
-        var needs = await invention.PlanDemandAsync(
+        var needs = recipes.Count == 0 ? [] : await invention.PlanDemandAsync(
             demand, ctx.BlueprintByProduct, printsByType, owner,
             typeId => DecryptorFor(typeId, ctx, decryptors),
             scientists.Select(c => (IReadOnlyDictionary<int, int>)c.Skills).ToList(), ct);
+
+        // Copiers for a blueprint: the pilot the bench misses least first — see below.
+        List<IndustryCandidate> CopiersFor(int bpTypeId)
+        {
+            var copyNeeds = copySkills.GetValueOrDefault(bpTypeId, []);
+            return scientists
+                .Where(c => c.MeetsSkills(copyNeeds))
+                .OrderBy(c => inventionWorth[c.Config.CharacterId])
+                .ThenByDescending(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId))
+                .ThenBy(c => c.Config.CharacterId)
+                .ToList();
+        }
 
         foreach (var (d, recipe, plan, shortRuns) in needs)
         {
@@ -167,28 +188,214 @@ public class InventionGenerator(
             // start it — skills only shave its time — so it goes to the pilot the bench misses
             // least, and the best inventors keep their slots for the attempts. Handing copies to
             // the best inventor filled the one character every invention job wanted.
-            var copyNeeds = copySkills.GetValueOrDefault(recipe.SourceBlueprintTypeId, []);
-            var copiers = scientists
-                .Where(c => c.MeetsSkills(copyNeeds))
-                .OrderBy(c => inventionWorth[c.Config.CharacterId])
-                .ThenByDescending(c => slotsLeft.GetValueOrDefault(c.Config.CharacterId))
-                .ThenBy(c => c.Config.CharacterId)
-                .ToList();
+            var copiers = CopiersFor(recipe.SourceBlueprintTypeId);
 
             // A level of the blueprint itself is short in copy runs; one of the item, in T2 runs.
             var head = recipe.BlueprintTarget
                 ? Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.InventionHeadRunsOther), d.Units, ItemRef.Of(d.TypeId, name, PrintKind.Copy))
                 : string.Format(WorklistText.InventionHead, ItemRef.Of(d.TypeId, name), shortRuns);
 
-            items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
-                                     timeCtx, copiers, slotsLeft, siteStock, d.Priority, name, head));
+            // ⚠️ One copy job per original. The same T1 print wanted on a shelf or by an order is
+            // folded into the invention's copy job rather than raised beside it: one original can
+            // run one job, and two rows for it would both read Ready.
+            copyAsks.Remove(recipe.SourceBlueprintTypeId, out var ask);
 
-            items.AddRange(InventionTasks(recipe, plan, inventionLab.Value, timeCtx, best, inventors,
+            items.AddRange(CopyTasks(recipe, plan, copyLab.Value, printsByType, owner, reaches,
+                                     timeCtx, copiers, slotsLeft, siteStock, Math.Max(d.Priority, ask?.Priority ?? 0),
+                                     name, head, ask));
+
+            items.AddRange(InventionTasks(recipe, plan, inventionLab!.Value, timeCtx, best, inventors,
                                           reaches, printsByType, siteStock, committed, slotsLeft,
                                           d.Priority, name, head, names));
         }
 
+        // The T1 copies no invention asked for.
+        foreach (var ask in copyAsks.Values.OrderByDescending(a => a.Priority).ThenBy(a => a.BlueprintTypeId))
+            items.AddRange(StockCopyTasks(ask, copyLab.Value, printsByType, owner, timeCtx,
+                                          CopiersFor(ask.BlueprintTypeId), slotsLeft));
+
         return items;
+    }
+
+    // ── T1 copies wanted in their own right ───────────────────────────────────
+
+    /// <summary>
+    /// Copy runs of a T1 print that a Build rule's level or a customer order still wants.
+    /// </summary>
+    /// <param name="ShortRuns">Copy runs still to make: the level's shortfall plus each order's
+    /// missing copies at the print's full licensed runs.</param>
+    /// <param name="Reserved">Copy runs already owned that the shelf and the orders hold. Invention
+    /// may not spend them.</param>
+    private sealed record CopyAsk(
+        int BlueprintTypeId, string Name, int MaxCopyRuns, long ShortRuns, long Reserved,
+        int Priority, List<string> Reasons);
+
+    /// <summary>
+    /// What T1 copies are wanted for their own sake.
+    ///
+    /// <para>⚠️ A level of a blueprint is a level like any other: Build means make it. A T1 copy is
+    /// made by copying an original, so a short level of one is a copy job. Before this, only T2
+    /// prints were kept, because invention was the only thing that raised a copy job — and a T1
+    /// level under a Build rule produced nothing at all, not even a blocked row.</para>
+    ///
+    /// <para>Measured as the level's own tool measures it (runs, in the group's scope; see
+    /// <see cref="InvLevelService.LoadAvailableAsync(IReadOnlyList{ValueTuple{InvLevelGroup, IReadOnlyList{int}}}, CancellationToken, bool, bool)"/>).
+    /// A customer order for a print is copies, not runs: each missing copy is asked for at the
+    /// print's full licensed runs, and the orders take owned copies before the shelf does.</para>
+    ///
+    /// <para>Only prints an original is owned for. Without one there is nothing to copy, and the
+    /// purchase generator raises the print to buy instead — see its PrintTasks.</para>
+    /// </summary>
+    private async Task<Dictionary<int, CopyAsk>> CopyAsksAsync(
+        AppDbContext db, ProductionContext ctx, List<WorklistInvRule> rules,
+        Dictionary<int, InvLevelGroup> groups, PrintOwnership owner, CancellationToken ct)
+    {
+        var copyable = await CopyablePrintsAsync(db, ctx, ct);
+
+        // Levels under a Build rule.
+        var ruleGroupIds = rules.Select(r => r.GroupId).Where(groups.ContainsKey).Distinct().ToList();
+        var itemsByGroup = (await db.InvLevelItems.AsNoTracking()
+                .Where(i => ruleGroupIds.Contains(i.GroupId)).ToListAsync(ct))
+            .Where(i => copyable.Contains(i.TypeId))
+            .GroupBy(i => i.GroupId)
+            .ToDictionary(g => g.Key, g => g.ToList());
+
+        // Customer orders for a print.
+        var orders = settings.PlanCustomerOrders
+            ? (await db.TrackedOrders.AsNoTracking()
+                   .Where(o => o.Status == "pending" && o.Side != StorePosting.Buy).ToListAsync(ct))
+              .Where(o => OrderContractLinks.StillToSupply(o) > 0)
+              .ToList()
+            : [];
+        var rankOf = IndustryDemandService.Ranked(orders)
+            .Select((o, i) => (o.Id, Rank: i)).ToDictionary(x => x.Id, x => x.Rank);
+        var ordersByPrint = orders.Where(o => copyable.Contains(o.TypeId))
+            .GroupBy(o => o.TypeId).ToDictionary(g => g.Key, g => g.ToList());
+
+        var printIds = itemsByGroup.Values.SelectMany(v => v).Select(i => i.TypeId)
+            .Concat(ordersByPrint.Keys).Distinct().ToList();
+        if (printIds.Count == 0) return [];
+
+        var prints = await blueprints.LoadAsync(printIds, ct);
+        var withOriginal = printIds
+            .Where(id => prints.GetValueOrDefault(id, []).Any(b => b.IsOriginal && owner.Owns(b)))
+            .ToHashSet();
+        if (withOriginal.Count == 0) return [];
+
+        var avail = await invLevels.LoadAvailableAsync(
+            itemsByGroup.Where(kv => groups.ContainsKey(kv.Key))
+                        .Select(kv => (groups[kv.Key], (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
+                        .ToList(), ct, withScopeStations: true);
+
+        var maxRuns = await db.SdeBlueprints.AsNoTracking()
+            .Where(b => printIds.Contains(b.TypeId))
+            .ToDictionaryAsync(b => b.TypeId, b => Math.Max(1, b.MaxProductionLimit), ct);
+        var names = await invLevels.GetTypeNamesAsync(printIds, ct);
+
+        // What the orders take first: whole copies, the fullest ones, for as many as they ask.
+        var claimed  = new Dictionary<int, long>();   // copy runs the orders hold
+        var orderAsk = new Dictionary<int, (long Runs, int Priority, string Reason)>();
+        foreach (var (bp, list) in ordersByPrint)
+        {
+            if (!withOriginal.Contains(bp)) continue;
+            var copies = list.Sum(o => (long)OrderContractLinks.StillToSupply(o));
+            var owned  = prints.GetValueOrDefault(bp, [])
+                .Where(b => !b.IsOriginal && owner.Owns(b)).OrderByDescending(b => b.Runs).ToList();
+            var taken  = owned.Take((int)Math.Min(copies, owned.Count)).ToList();
+            claimed[bp] = taken.Sum(b => (long)b.Runs);
+
+            var missing = copies - taken.Count;
+            orderAsk[bp] = (missing * maxRuns.GetValueOrDefault(bp, 1),
+                            missing > 0 ? WorklistPriority.ForOrder(list.Min(o => rankOf.GetValueOrDefault(o.Id, int.MaxValue))) : 0,
+                            string.Format(WorklistText.ReasonPendingOrders, list.Count, copies));
+        }
+
+        var result = new Dictionary<int, CopyAsk>();
+        CopyAsk At(int bp) => result.TryGetValue(bp, out var a) ? a
+            : result[bp] = new CopyAsk(bp, names.GetValueOrDefault(bp, string.Format(WorklistText.BlueprintWithId, bp)),
+                                       maxRuns.GetValueOrDefault(bp, 1), 0, claimed.GetValueOrDefault(bp), 0, []);
+
+        foreach (var (bp, o) in orderAsk)
+        {
+            var a = At(bp);
+            result[bp] = a with { ShortRuns = a.ShortRuns + o.Runs, Priority = Math.Max(a.Priority, o.Priority),
+                                  Reasons = [.. a.Reasons, o.Reason] };
+        }
+
+        // The levels, after what the orders hold. Two rules on one print are two statements of one
+        // shelf: the larger asks, and holds.
+        var shelf = new Dictionary<int, (long Short, long Held, int Priority, string Reason)>();
+        foreach (var rule in rules.OrderByDescending(r => r.ThresholdPercent).ThenBy(r => r.Id))
+        {
+            if (!groups.TryGetValue(rule.GroupId, out var group) || !itemsByGroup.TryGetValue(group.Id, out var groupItems)) continue;
+            var groupAvail = avail.GetValueOrDefault(group.Id) ?? [];
+            foreach (var gi in groupItems)
+            {
+                if (!withOriginal.Contains(gi.TypeId)) continue;
+                var av     = groupAvail.GetValueOrDefault(gi.TypeId);
+                var target = (long)gi.TargetQuantity * Math.Max(1, group.Multiplier);
+                var have   = Math.Max(0, (av?.Assets ?? 0) + (av?.IndustryJobs ?? 0) - claimed.GetValueOrDefault(gi.TypeId));
+                var held   = Math.Min(have, InvRuleShortfall.FillLevel(target, rule.FillTargetPercent));
+
+                var need = InvRuleShortfall.For(rule, group, gi, av, claimed.GetValueOrDefault(gi.TypeId));
+                var had  = shelf.GetValueOrDefault(gi.TypeId);
+                if (need is null)
+                {
+                    shelf[gi.TypeId] = had with { Held = Math.Max(had.Held, held) };
+                    continue;
+                }
+                if (had.Short >= need.Shortfall) { shelf[gi.TypeId] = had with { Held = Math.Max(had.Held, held) }; continue; }
+
+                var band = rule.IsFinalProduct ? WorklistPriority.ForFinalStock(need.Percent) : WorklistPriority.ForStock(need.Percent);
+                shelf[gi.TypeId] = (need.Shortfall, Math.Max(had.Held, held), band,
+                                    $"{group.Name} · {need.StockText}.{need.FillText(rule)}");
+            }
+        }
+
+        foreach (var (bp, s) in shelf)
+        {
+            var a = At(bp);
+            result[bp] = a with
+            {
+                ShortRuns = a.ShortRuns + s.Short,
+                Reserved  = a.Reserved + s.Held,
+                Priority  = Math.Max(a.Priority, s.Priority),
+                Reasons   = s.Reason is { Length: > 0 } r ? [.. a.Reasons, r] : a.Reasons,
+            };
+        }
+
+        return result;
+    }
+
+    /// <summary>
+    /// Blueprints a copy can be made of and that are not invented: T1 manufacturing prints. A
+    /// reaction formula cannot be copied, and an invented print is made by invention.
+    /// </summary>
+    public static async Task<HashSet<int>> CopyablePrintsAsync(
+        AppDbContext db, ProductionContext ctx, CancellationToken ct)
+    {
+        var invented = await InventionService.InventedBlueprintIdsAsync(db, ct);
+        return ctx.BpProducts
+            .Where(p => p.Activity == "manufacturing" && !invented.Contains(p.TypeId))
+            .Select(p => p.TypeId)
+            .ToHashSet();
+    }
+
+    /// <summary>A copy job for a T1 print no invention wanted: its level, or an order.</summary>
+    private List<WorklistItem> StockCopyTasks(
+        CopyAsk ask, InventionService.Lab lab, Dictionary<int, List<BlueprintStock>> printsByType,
+        PrintOwnership owner, IndustryTimeService.TimeContext timeCtx,
+        List<IndustryCandidate> copiers, Dictionary<long, int> slotsLeft)
+    {
+        if (ask.ShortRuns <= 0) return [];
+
+        var original = OriginalFor(printsByType.GetValueOrDefault(ask.BlueprintTypeId, []), owner, lab);
+        if (original is null) return [];   // the purchase generator buys it instead
+
+        var lead = string.Join(" ", ask.Reasons) + " "
+                 + string.Format(WorklistText.CopyShortRuns, ask.ShortRuns);
+        return [CopyJob(ask.BlueprintTypeId, ask.Name, ask.MaxCopyRuns, ask.ShortRuns, original, lab, timeCtx,
+                        copiers, slotsLeft, $"{CopyJobKey}bp:{ask.BlueprintTypeId}", lead, ask.Priority)];
     }
 
     // ── Invention ─────────────────────────────────────────────────────────────
@@ -384,6 +591,8 @@ public class InventionGenerator(
                     LocationId    = lab.Site,
                     LocationName  = lab.Name,
                     TypeId        = recipe.ProductTypeId,
+                    PictureTypeId = recipe.InventedBlueprintTypeId,
+                    TypeImage     = "bpc",
                     Print         = print,
                     TypeName      = name,
                     Priority      = priority,
@@ -420,6 +629,8 @@ public class InventionGenerator(
                 LocationId   = lab.Site,
                 LocationName = lab.Name,
                 TypeId    = recipe.ProductTypeId,
+                PictureTypeId = recipe.InventedBlueprintTypeId,
+                TypeImage = "bpc",
                 Print     = print,
                 TypeName  = name,
                 Priority  = priority,
@@ -454,29 +665,21 @@ public class InventionGenerator(
         List<WorklistIndyCharReach> reaches, IndustryTimeService.TimeContext timeCtx,
         List<IndustryCandidate> copiers, Dictionary<long, int> slotsLeft,
         Dictionary<(long Site, int TypeId), long> stock,
-        int priority, string name, string head)
+        int priority, string name, string head, CopyAsk? ask = null)
     {
         var all = printsByType.GetValueOrDefault(recipe.SourceBlueprintTypeId, []);
 
         // Copy runs the player can already reach, wherever they sit. A copy in the wrong structure
-        // is a haul, not a reason to cut another one.
+        // is a haul, not a reason to cut another one. ⚠️ Less what a shelf level or an order of the
+        // same print holds: those copies are spoken for, and invention spending them empties the
+        // shelf the level is there to keep.
         var ownedCopyRuns = all.Where(b => owner.Owns(b) && !b.IsOriginal).Sum(b => (long)b.Runs);
-        var shortRuns     = plan.CopyRunsNeeded - ownedCopyRuns;
+        var spare         = Math.Max(0, ownedCopyRuns - (ask?.Reserved ?? 0));
+        var forStock      = ask?.ShortRuns ?? 0;
+        var shortRuns     = Math.Max(0, plan.CopyRunsNeeded - spare) + forStock;
         if (shortRuns <= 0) return [];
 
-        var copies   = IndustryJobSplit.RunsFor(shortRuns, recipe.MaxCopyRuns);
-        var perCopy  = Math.Min(shortRuns, recipe.MaxCopyRuns);
-
-        // ⚠️ The original to copy from is looked for where the park does its copying. Taking
-        // the first one owned picked a busy original, or one in another structure, while a free
-        // one sat at the copy lab. Free at the lab first, then busy at the lab (no trip, only a
-        // wait), and only then one elsewhere, which has to be moved.
-        var originals = all.Where(b => owner.Owns(b) && b.IsOriginal).ToList();
-        var original  = originals
-            .OrderByDescending(b => b.LocationId == lab.Site)
-            .ThenBy(b => b.LockedInJob)
-            .ThenBy(b => b.ItemId)
-            .FirstOrDefault();
+        var original = OriginalFor(all, owner, lab);
 
         // For the titles. The rows' TypeName keeps the English.
         // The job makes copies, and the row is drawn as one: "(Copy)" with the copy's picture.
@@ -502,6 +705,49 @@ public class InventionGenerator(
                 Priority  = priority,
             }];
 
+        var lead = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
+                 + (forStock > 0 ? " " + string.Join(" ", ask!.Reasons) + " "
+                                       + string.Format(WorklistText.CopyAlsoForStock, forStock)
+                                 : "");
+        return [CopyJob(recipe.SourceBlueprintTypeId, recipe.SourceBlueprintName, recipe.MaxCopyRuns, shortRuns,
+                        original, lab, timeCtx, copiers, slotsLeft, $"{CopyJobKey}{recipe.ProductTypeId}", lead, priority)];
+    }
+
+    /// <summary>
+    /// The original to copy from, looked for where the park does its copying.
+    ///
+    /// <para>⚠️ Taking the first one owned picked a busy original, or one in another structure,
+    /// while a free one sat at the copy lab. Free at the lab first, then busy at the lab (no trip,
+    /// only a wait), and only then one elsewhere, which has to be moved.</para>
+    /// </summary>
+    private static BlueprintStock? OriginalFor(List<BlueprintStock> all, PrintOwnership owner, InventionService.Lab lab) =>
+        all.Where(b => owner.Owns(b) && b.IsOriginal)
+           .OrderByDescending(b => b.LocationId == lab.Site)
+           .ThenBy(b => b.LockedInJob)
+           .ThenBy(b => b.ItemId)
+           .FirstOrDefault();
+
+    /// <summary>
+    /// One copy job: as many copies as <paramref name="shortRuns"/> takes at the print's licensed
+    /// maximum, each carrying that maximum or the whole shortfall when it is less. Copies in one job
+    /// all carry the same runs, so a shortfall that does not divide evenly is rounded up a copy.
+    ///
+    /// <para><paramref name="copiers"/> come least use to invention first; the job goes to the
+    /// first with a slot free, and waits on the first when none has.</para>
+    /// </summary>
+    private WorklistItem CopyJob(
+        int bpTypeId, string bpName, int maxCopyRuns, long shortRuns, BlueprintStock original,
+        InventionService.Lab lab, IndustryTimeService.TimeContext timeCtx,
+        List<IndustryCandidate> copiers, Dictionary<long, int> slotsLeft,
+        string key, string lead, int priority)
+    {
+        var copies   = IndustryJobSplit.RunsFor(shortRuns, maxCopyRuns);
+        var perCopy  = Math.Min(shortRuns, maxCopyRuns);
+
+        // For the titles. The rows' TypeName keeps the English.
+        // The job makes copies, and the row is drawn as one: "(Copy)" with the copy's picture.
+        var copiesShown = PrintLabel.Name(bpTypeId, bpName, PrintKind.Copy);
+
         var atCopyLab = original.LocationId == lab.Site;
         // Busy wherever it is: a running job is the wait, and any move comes after it.
         var busy      = original.LockedInJob;
@@ -515,22 +761,22 @@ public class InventionGenerator(
         if (ready) slotsLeft[free!.Config.CharacterId] -= 1;
 
         var perUnit = who is null ? null : IndustryTimeService.PerScienceUnitSeconds(
-            timeCtx, recipe.SourceBlueprintTypeId, IndustryTimeService.CopyingActivity,
+            timeCtx, bpTypeId, IndustryTimeService.CopyingActivity,
             lab.Structure, InventionService.CopyingCategory, who.Skills);
 
         // Copying is charged per run per copy, so a two-copy job of thirty runs costs sixty units.
         var duration = IndustryJobSplit.Duration((perUnit ?? 0) * copies * perCopy);
         var durText  = duration.Length > 0 ? $" ~{duration}." : "";
 
-        return [new WorklistItem
+        return new WorklistItem
         {
-            Key           = $"{CopyJobKey}{recipe.ProductTypeId}",
+            Key           = key,
             Source        = Id,
             Kind          = WorklistKind.Job,
             Pool          = IndustryPool.Science,
             Title         = string.Format(WorklistText.CopyTitle, copiesShown, copies, perCopy),
             Quantity      = copies,
-            Detail        = string.Format(WorklistText.CopyFeedsDetail, head, plan.Attempts, ownedCopyRuns)
+            Detail        = lead
                           // "at the lab" only when it is: one elsewhere is what the blocked reason is about.
                           + " " + (atCopyLab ? string.Format(WorklistText.PrintAt, original.Describe(), lab.Name)
                                              : string.Format(WorklistText.PrintUsing, original.Describe()))
@@ -547,12 +793,12 @@ public class InventionGenerator(
             CharacterName = who?.Config.CharacterName ?? "",
             LocationId    = lab.Site,
             LocationName  = lab.Name,
-            TypeId        = recipe.SourceBlueprintTypeId,
-            TypeName      = recipe.SourceBlueprintName,
+            TypeId        = bpTypeId,
+            TypeName      = bpName,
             TypeImage     = "bpc",   // what the job makes: copies
             Print         = PrintKind.Copy,
             Priority      = priority,
-        }];
+        };
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

@@ -1,4 +1,4 @@
-﻿<Window xmlns="https://github.com/avaloniaui"
+<Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:EveConsole.ViewModels"
         xmlns:models="clr-namespace:EveConsole.Models"
@@ -863,6 +863,15 @@
               <TextBlock Text="{x:Static loc:SettingsText.BuildCosts}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" FontSize="12" />
               <TextBlock Text="{x:Static loc:SettingsText.RecalculateStoredBuildCostsNote}"
                          FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap" />
+              <!-- Which Indy Park's structures, rigs and systems the costs are worked out at.
+                   Default follows the park marked default; the Worklist keeps its own. -->
+              <StackPanel Orientation="Horizontal" Spacing="8" Margin="0 2 0 0">
+                <TextBlock Text="{x:Static loc:SettingsText.BuildCostPark}" FontSize="11"
+                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                <ComboBox ItemsSource="{Binding MarketVm.BuildCostParks}" SelectedItem="{Binding MarketVm.BuildCostPark}"
+                          MinWidth="260" FontSize="11"
+                          ToolTip.Tip="{x:Static loc:SettingsText.TipBuildCostPark}" />
+              </StackPanel>
               <Grid ColumnDefinitions="Auto,*" Margin="0 2 0 0">
                 <Button Grid.Column="0"
                         Content="{x:Static loc:SettingsText.RecalculateBuildCosts}"
@@ -1266,10 +1275,8 @@
             </StackPanel>
           </Border>
 
-          <!-- ⚠️ Its own section, not a line at the bottom of the service one. The tray icon has
-               nothing to do with the service: it is useful with no service installed at all, and it
-               was previously nested inside a border that is hidden where no service mechanism
-               exists — so on a machine without one it silently could not be turned on. -->
+          <!-- ⚠️ Its own section, not a line at the bottom of the service one: it has nothing to do
+               with the service, and that border is hidden where no service mechanism exists. -->
           <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
             <StackPanel>
               <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
@@ -1277,19 +1284,32 @@
               </Border>
 
               <StackPanel Margin="12 10 12 12" Spacing="8">
-                <!-- A separate process, and it has to be: a Windows service runs in session 0 with
-                     no desktop and cannot draw, and an icon inside this window would vanish exactly
-                     when somebody wants it — while the application is closed. -->
-                <CheckBox IsChecked="{Binding PollingVm.TrayAtLogon}"
+                <CheckBox IsChecked="{Binding PollingVm.KeepRunningInTray}"
                           Content="{Binding PollingVm.TrayCheckboxText}"
                           FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
 
                 <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 -2 0 0"
-                           Text="{x:Static loc:SettingsText.ASmallSeparateProcessNote}" />
+                           Text="{Binding PollingVm.KeepRunningInTrayNote}" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
 
-                <TextBlock Text="{Binding PollingVm.TrayStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
-                           TextWrapping="Wrap"
-                           IsVisible="{Binding PollingVm.TrayStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <!-- Kept on this computer only: for a client that must never take the work over, beside one being restarted. -->
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkTitle}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <CheckBox IsChecked="{Binding PollingVm.NeverRunBackgroundWork}" IsEnabled="{Binding PollingVm.CanStandAside}"
+                          Content="{x:Static loc:SettingsText.NeverRunBackgroundWork}"
+                          FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" Margin="0 -2 0 0"
+                           Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkNote}" />
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextDimBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.NeverRunBackgroundWorkSqlite}" IsVisible="{Binding !PollingVm.CanStandAside}" />
               </StackPanel>
             </StackPanel>
           </Border>
@@ -1821,6 +1841,167 @@
       </ScrollViewer>
     </TabItem>
 
+    <!-- ══ Intel ══════════════════════════════════════════════════════════════
+         Shared in the database: what is set here holds on every PC, and the intel read side picks
+         it up within a minute. The channels parsed for intel stay under Chat Logs. -->
+    <TabItem Header="{x:Static loc:IntelText.SettingsTab}">
+      <ScrollViewer Margin="0 8 0 0">
+        <StackPanel Spacing="14" x:DataType="vm:IntelSettingsViewModel" DataContext="{Binding IntelVm}">
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsLifetimesHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsLifetimesNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsNamedPilot}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding NamedMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsUnnamedCount}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding UnnamedMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="2" Text="{x:Static loc:IntelText.SettingsClear}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding ClearMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="2" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="3" Text="{x:Static loc:IntelText.SettingsCamp}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="3" Grid.Column="1" Value="{Binding CampMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="3" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="4" Text="{x:Static loc:IntelText.SettingsCyno}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="4" Grid.Column="1" Value="{Binding CynoMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="4" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="5" Text="{x:Static loc:IntelText.SettingsKillAttacker}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="5" Grid.Column="1" Value="{Binding KillAttackerMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="5" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="6" Text="{x:Static loc:IntelText.SettingsKillVictim}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="6" Grid.Column="1" Value="{Binding KillVictimMinutes}" Minimum="{Binding MinLifetime}" Maximum="{Binding MaxLifetime}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="6" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsFollowUpHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsFollowUpNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto">
+                  <TextBlock Text="{x:Static loc:IntelText.SettingsFollowUpWindow}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Column="1" Value="{Binding FollowUpSeconds}" Minimum="{Binding MinFollowUp}" Maximum="{Binding MaxFollowUp}" Increment="10" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:IntelText.SettingsSeconds}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsCampHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsCampNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto,Auto,Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsCampGateKm}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding CampGateKm}" Minimum="{Binding MinGateKm}" Maximum="{Binding MaxGateKm}" Increment="10" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsKm}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="1" Text="{x:Static loc:IntelText.SettingsCampWindow}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="1" Grid.Column="1" Value="{Binding CampWindowMinutes}" Minimum="{Binding MinCampWindow}" Maximum="{Binding MaxCampWindow}" Increment="1" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="1" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsMinutes}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+
+                  <TextBlock Grid.Row="2" Text="{x:Static loc:IntelText.SettingsCampVictims}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="2" Grid.Column="1" Value="{Binding CampMinVictims}" Minimum="{Binding MinCampVictims}" Maximum="{Binding MaxCampVictims}" Increment="1" FormatString="0" FontSize="12" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsStandingsHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsStandingsNote}" />
+                <Grid ColumnDefinitions="Auto,*">
+                  <TextBlock Text="{x:Static loc:IntelText.SettingsStandingsFrom}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding StandingsChoices}" SelectedItem="{Binding SelectedStandings}"
+                            MinWidth="260" HorizontalAlignment="Left" FontSize="12" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsDistanceHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsDistanceNote}" />
+                <CheckBox IsChecked="{Binding UseBridges}" Content="{x:Static loc:IntelText.SettingsUseBridges}"
+                          Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" />
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsAlertsHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsAlertsNote}" />
+                <Grid ColumnDefinitions="Auto,110,Auto" RowDefinitions="Auto" RowSpacing="6">
+                  <TextBlock Grid.Row="0" Text="{x:Static loc:IntelText.SettingsFresh}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0 0 10 0" />
+                  <NumericUpDown Grid.Row="0" Grid.Column="1" Value="{Binding FreshSeconds}" Minimum="{Binding MinFresh}" Maximum="{Binding MaxFresh}" Increment="15" FormatString="0" FontSize="12" />
+                  <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:IntelText.SettingsSeconds}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" VerticalAlignment="Center" Margin="8 0 0 0" />
+                </Grid>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel>
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.SettingsFeedWarningHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+              <StackPanel Margin="12 10 12 12" Spacing="8">
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.SettingsFeedWarningNote}" />
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:IntelText.SettingsShowWarningAgain}" Click="OnIntelShowWarningClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                             VerticalAlignment="Center" TextWrapping="Wrap" />
+                </StackPanel>
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+        </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
     <!-- ══ Corp Top 10 ════════════════════════════════════════════════════════ -->
     <TabItem Header="{x:Static loc:SettingsText.TabCorpTop10}">
       <Grid ColumnDefinitions="*,8,*" Margin="0 8 0 0" DataContext="{Binding CorpTop10Vm}">
@@ -1955,7 +2136,7 @@
       <!-- Four sub-tabs over one view model and ONE status bar: the tab had grown to two hundred
            lines of sections, all saved as they are changed, so the bar that says so stays outside
            the sub-tabs where it is visible whichever one is showing. -->
-      <Grid RowDefinitions="*,Auto" Margin="0 8 0 0"
+      <Grid x:Name="AgentSettingsPane" RowDefinitions="*,Auto" Margin="0 8 0 0"
             x:DataType="vm:AgentSettingsViewModel" DataContext="{Binding AgentVm}">
         <TabControl Grid.Row="0" Padding="0">
 
@@ -2613,9 +2794,18 @@
                       <!-- Global push-to-talk key -->
                       <StackPanel IsVisible="{Binding ShowMicrophoneSettings}" Spacing="8">
                         <TextBlock Text="{x:Static loc:SettingsText.GlobalPushToTalkKey}" FontSize="11" Foreground="{DynamicResource TextDimBrush}" />
-                        <ComboBox ItemsSource="{Binding PushToTalkKeyNames}"
-                                  SelectedItem="{Binding SelectedPushToTalkKeyName}"
-                                  HorizontalAlignment="Stretch" />
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                          <Button Content="{Binding PushToTalkKeyText}" Command="{Binding CapturePushToTalkKeyCommand}" MinWidth="260" />
+                          <Button Content="{x:Static loc:SettingsText.PttKeyClear}" Command="{Binding ClearPushToTalkKeyCommand}" />
+                        </StackPanel>
+                        <!-- A key another place listens for too: a warning; one just refused, an error. -->
+                        <TextBlock Classes="keyproblem" Classes.bad="{Binding PushToTalkKeyRefused}"
+                                   Text="{Binding PushToTalkKeyProblem}" IsVisible="{Binding HasPushToTalkKeyProblem}">
+                          <TextBlock.Styles>
+                            <Style Selector="TextBlock.keyproblem"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="TextWrapping" Value="Wrap" /></Style>
+                            <Style Selector="TextBlock.keyproblem.bad"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+                          </TextBlock.Styles>
+                        </TextBlock>
                         <TextBlock FontSize="10" Foreground="{DynamicResource BorderStrongBrush}" TextWrapping="Wrap"
                                    Text="{Binding PttHelpText}" />
                       </StackPanel>
@@ -3009,6 +3199,263 @@
                       BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
           </Grid>
         </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
+  <!-- ── Online Services ───────────────────────────────────────────────── -->
+  <TabItem Header="{x:Static loc:ShellText.NavJabber}">
+    <views:JabberView DataContext="{Binding JabberVm}" />
+  </TabItem>
+
+  <TabItem Header="{x:Static loc:ShellText.NavMumble}">
+    <views:MumbleView DataContext="{Binding MumbleVm}" />
+  </TabItem>
+
+  <TabItem Header="{x:Static loc:ShellText.NavIrc}">
+    <views:IrcView DataContext="{Binding IrcVm}" />
+  </TabItem>
+
+  <TabItem Header="{x:Static loc:SettingsText.TabOnlineServices}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.OnlineServicesTitle}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.OnlineServicesNote}" />
+
+        <StackPanel Spacing="8">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <Button Content="{x:Static loc:SettingsText.OnlineSignIn}"
+                    Command="{Binding OnlineVm.SignInCommand}"
+                    IsVisible="{Binding OnlineVm.CanSignIn}"
+                    Padding="14 5" FontSize="12"
+                    Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                    BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.Cancel}"
+                    Command="{Binding OnlineVm.CancelCommand}"
+                    IsVisible="{Binding OnlineVm.IsSigningIn}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                    BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.OnlineSignOut}"
+                    Command="{Binding OnlineVm.SignOutCommand}"
+                    IsVisible="{Binding OnlineVm.IsSignedIn}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                    BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+            <Button Content="{x:Static loc:SettingsText.OnlineReadTerms}"
+                    Command="{Binding OnlineVm.OpenTermsCommand}"
+                    Padding="12 5" FontSize="12"
+                    Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                    BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+          </StackPanel>
+          <TextBlock Text="{Binding OnlineVm.Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" />
+          <TextBlock Text="{Binding OnlineVm.Usage}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap"
+                     IsVisible="{Binding OnlineVm.Usage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+        </StackPanel>
+
+      </StackPanel>
+    </ScrollViewer>
+  </TabItem>
+
+  <!-- ── Connector ─────────────────────────────────────────────────────── -->
+  <TabItem Header="{x:Static loc:SettingsText.TabConnector}" IsVisible="{Binding ConnectorVm, Converter={x:Static ObjectConverters.IsNotNull}}">
+    <ScrollViewer>
+      <StackPanel Spacing="16" Margin="24 16">
+
+        <TextBlock Text="{x:Static loc:SettingsText.ConnectorTitle}"
+                   FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+
+        <!-- ⚠️ Temporary: remove (with ConnectorPreviewNote) once the app uses more connector functions
+             than linked characters. -->
+        <Border Background="{DynamicResource WarnSurfaceBrush}" BorderBrush="{DynamicResource WarnBrush}"
+                BorderThickness="1" CornerRadius="4" Padding="10,6">
+            <TextBlock TextWrapping="Wrap" FontSize="12" FontWeight="SemiBold"
+                       Foreground="{DynamicResource WarnBrush}"
+                       Text="{x:Static loc:SettingsText.ConnectorPreviewNote}" />
+        </Border>
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorNote}" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorSharedNote}" />
+        <TextBlock TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" FontSize="12"
+                   Text="{x:Static loc:SettingsText.ConnectorSeveralNote}" />
+
+        <!-- The connectors: list + buttons. No header strip: the page title above already says "Connectors". -->
+        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+          <Border.Styles>
+            <!-- The badge is a plate of its own colour, so it reads the same on a selected row as on any other. -->
+            <Style Selector="Border.badge">
+              <Setter Property="CornerRadius" Value="3" />
+              <Setter Property="Padding" Value="6 1" />
+            </Style>
+            <Style Selector="Border.badge.good">
+              <Setter Property="Background" Value="{DynamicResource GoodSurfaceBrush}" />
+            </Style>
+            <Style Selector="Border.badge.warn">
+              <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
+            </Style>
+            <Style Selector="TextBlock.badge">
+              <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+            </Style>
+            <Style Selector="TextBlock.badge.good">
+              <Setter Property="Foreground" Value="{DynamicResource GoodBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+            <Style Selector="TextBlock.badge.warn">
+              <Setter Property="Foreground" Value="{DynamicResource WarnBrush}" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+            </Style>
+          </Border.Styles>
+          <Grid RowDefinitions="Auto,Auto">
+            <!-- ⚠️ Tall enough for four entries of four lines before it scrolls: three already filled 200. -->
+            <ListBox Grid.Row="0"
+                     ItemsSource="{Binding ConnectorVm.Entries}"
+                     SelectedItem="{Binding ConnectorVm.SelectedEntry}"
+                     MinHeight="60" MaxHeight="330"
+                     Background="Transparent" BorderThickness="0" CornerRadius="4 4 0 0">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:ConnectorEntryViewModel">
+                  <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Spacing="1" Margin="4 2">
+                      <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                      <TextBlock Text="{Binding ConnectedAs}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                                 IsVisible="{Binding IsConnected}" />
+                      <TextBlock Text="{Binding ScopesLine}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                      <TextBlock Text="{Binding FunctionsLine}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap" />
+                    </StackPanel>
+                    <Border Grid.Column="1" Classes="badge"
+                            Classes.good="{Binding IsGood}" Classes.warn="{Binding IsWarn}"
+                            ToolTip.Tip="{Binding StatusTip}"
+                            VerticalAlignment="Center" Margin="8 0 4 0">
+                      <TextBlock Classes="badge"
+                                 Text="{Binding StatusLabel}"
+                                 Classes.good="{Binding IsGood}" Classes.warn="{Binding IsWarn}"
+                                 FontSize="11" />
+                    </Border>
+                  </Grid>
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+
+            <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="6" Margin="8 6">
+              <Button Content="{x:Static loc:SettingsText.Add}"    Command="{Binding ConnectorVm.AddCommand}"    Padding="14 4" />
+              <Button Content="{x:Static loc:SettingsText.Remove}" Command="{Binding ConnectorVm.RemoveCommand}" Padding="14 4" />
+            </StackPanel>
+          </Grid>
+        </Border>
+        <TextBlock Text="{Binding ConnectorVm.ListStatus}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                   TextWrapping="Wrap"
+                   IsVisible="{Binding ConnectorVm.ListStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+        <!-- The selected connector -->
+        <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4"
+                IsVisible="{Binding ConnectorVm.SelectedEntry, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <Grid RowDefinitions="Auto,Auto" x:DataType="vm:ConnectorEntryViewModel" DataContext="{Binding ConnectorVm.SelectedEntry}">
+            <Border Grid.Row="0" Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+              <TextBlock Text="{Binding Title}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+            </Border>
+
+            <StackPanel Grid.Row="1" Spacing="8" Margin="10 8">
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorUrl}" FontSize="12" />
+              <!-- ⚠️ Not a disabled box once it cannot be changed: a greyed address is hard to read. It shows as
+                   text instead. The hint starts "For example": a bare address in grey reads as one already set. -->
+              <TextBox Text="{Binding Url}" IsVisible="{Binding CanEditUrl}"
+                       Watermark="{x:Static loc:SettingsText.ConnectorUrlWatermark}" MaxWidth="420" HorizontalAlignment="Left" Width="420" />
+              <SelectableTextBlock Text="{Binding Url}" IsVisible="{Binding !CanEditUrl}"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+
+              <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="{x:Static loc:SettingsText.ConnectorConnect}"
+                        Command="{Binding ConnectCommand}"
+                        IsVisible="{Binding CanConnect}"
+                        Padding="14 5" FontSize="12"
+                        Background="{DynamicResource GoodSurfaceBrush}" Foreground="{DynamicResource GoodBrush}"
+                        BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.Cancel}"
+                        Command="{Binding CancelCommand}"
+                        IsVisible="{Binding IsConnecting}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource TextMutedBrush}"
+                        BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.ConnectorRefreshNow}"
+                        Command="{Binding RefreshNowCommand}"
+                        IsVisible="{Binding CanRefresh}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                        BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" />
+                <Button Content="{x:Static loc:SettingsText.ConnectorDisconnect}"
+                        Command="{Binding DisconnectCommand}"
+                        IsVisible="{Binding CanDisconnect}"
+                        Padding="12 5" FontSize="12"
+                        Background="{DynamicResource BadSurfaceBrush}" Foreground="{DynamicResource BadBrush}"
+                        BorderBrush="{DynamicResource BadSurfaceBrush}" BorderThickness="1" />
+              </StackPanel>
+              <TextBlock Text="{Binding ConnectedAs}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+              <TextBlock Text="{Binding Status}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+              <TextBlock Text="{Binding Detail}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap"
+                         IsVisible="{Binding Detail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+              <!-- What it is used for -->
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesLabel}" FontSize="12" FontWeight="SemiBold" Margin="0 6 0 0" />
+              <!-- Why the last tick was taken back, at the top of the choices it is about: at the bottom it was
+                   a screen away from the box clicked. Brought into view when it appears (code-behind). -->
+              <Border x:Name="ConnectorChoiceMessage"
+                      Background="{DynamicResource BadSurfaceBrush}" BorderBrush="{DynamicResource BadBrush}" BorderThickness="1"
+                      CornerRadius="3" Padding="8 4"
+                      IsVisible="{Binding ChoiceMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
+                <TextBlock Text="{Binding ChoiceMessage}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap" />
+              </Border>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesCorporations}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         IsVisible="{Binding HasCorporationOptions}" />
+              <ItemsControl ItemsSource="{Binding CorporationOptions}" Margin="8 0 0 0" IsVisible="{Binding HasCorporationOptions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorScopeOptionViewModel">
+                    <CheckBox Content="{Binding Display}" IsChecked="{Binding IsChecked, Mode=TwoWay}" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesAlliances}" FontSize="11" FontWeight="SemiBold"
+                         Foreground="{DynamicResource TextSecondaryBrush}"
+                         IsVisible="{Binding HasAllianceOptions}" />
+              <ItemsControl ItemsSource="{Binding AllianceOptions}" Margin="8 0 0 0" IsVisible="{Binding HasAllianceOptions}">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorScopeOptionViewModel">
+                    <CheckBox Content="{Binding Display}" IsChecked="{Binding IsChecked, Mode=TwoWay}" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorScopesNone}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" IsVisible="{Binding !HasScopeOptions}" />
+
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFunctionsLabel}" FontSize="12" FontWeight="SemiBold" Margin="0 6 0 0" />
+              <!-- Why every box is greyed before connecting, said where it shows, not only in a tooltip. -->
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFnConnectFirst}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" IsVisible="{Binding !IsConnected}" />
+              <ItemsControl ItemsSource="{Binding FunctionOptions}" Margin="8 0 0 0">
+                <ItemsControl.ItemTemplate>
+                  <DataTemplate x:DataType="vm:ConnectorFunctionOptionViewModel">
+                    <CheckBox Content="{Binding Label}" IsChecked="{Binding IsChecked, Mode=TwoWay}" IsEnabled="{Binding IsEnabled}"
+                              ToolTip.Tip="{Binding Tip}" ToolTip.ShowOnDisabled="True" FontSize="11" Padding="4 1" />
+                  </DataTemplate>
+                </ItemsControl.ItemTemplate>
+              </ItemsControl>
+              <TextBlock Text="{x:Static loc:SettingsText.ConnectorFunctionsNote}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}"
+                         TextWrapping="Wrap" />
+            </StackPanel>
+          </Grid>
+        </Border>
 
       </StackPanel>
     </ScrollViewer>
@@ -3995,6 +4442,135 @@
                   <Button Content="{x:Static loc:SettingsText.PurgeNow}"
                           IsEnabled="{Binding CanPurge}"
                           Click="OnPurgeChatClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding Intel}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:IntelText.RetentionHeading}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:IntelText.RetentionNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:IntelText.RetentionPurgeOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeIntelClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding DirectMessages}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.RetentionDirectMessages}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.RetentionDirectMessagesNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:SettingsText.PurgeDirectMessagesOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeDirectMessagesClick"
+                          Padding="12 5" FontSize="12"
+                          Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
+                          BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />
+                  <TextBlock Text="{Binding LastRunText}" Foreground="{DynamicResource TextDimBrush}" FontSize="11"
+                             VerticalAlignment="Center" />
+                  <TextBlock Text="{Binding Status}" Foreground="{DynamicResource TextMutedBrush}" FontSize="11"
+                             VerticalAlignment="Center" TextWrapping="Wrap"
+                             IsVisible="{Binding Status, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </StackPanel>
+
+              </StackPanel>
+            </StackPanel>
+          </Border>
+
+          <Border BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" CornerRadius="4">
+            <StackPanel DataContext="{Binding GroupChat}" x:DataType="vm:RetentionSectionVm">
+              <Border Background="{DynamicResource SurfaceHeaderBrush}" CornerRadius="4 4 0 0" Padding="10 6">
+                <TextBlock Text="{x:Static loc:SettingsText.RetentionGroupChat}" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" />
+              </Border>
+
+              <StackPanel Margin="12 10 12 12" Spacing="10">
+
+                <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" TextWrapping="Wrap"
+                           Text="{x:Static loc:SettingsText.RetentionGroupChatNote}" />
+
+                <Grid ColumnDefinitions="Auto,Auto,Auto,*">
+                  <CheckBox Grid.Column="0"
+                            IsChecked="{Binding Enabled}"
+                            Content="{x:Static loc:SettingsText.PurgeGroupChatOlderThan}"
+                            Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" VerticalAlignment="Center" />
+                  <NumericUpDown Grid.Column="1"
+                                 Value="{Binding Days}"
+                                 Minimum="{Binding MinimumDays}" Maximum="3650"
+                                 Increment="1" FormatString="0"
+                                 Width="110" FontSize="12" Margin="8 0 8 0" />
+                  <TextBlock Grid.Column="2" Text="{x:Static loc:SettingsText.Days}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12"
+                             VerticalAlignment="Center" />
+                </Grid>
+
+                <StackPanel Orientation="Horizontal" Spacing="10">
+                  <Button Content="{x:Static loc:SettingsText.PurgeNow}"
+                          IsEnabled="{Binding CanPurge}"
+                          Click="OnPurgeGroupChatClick"
                           Padding="12 5" FontSize="12"
                           Background="{DynamicResource SurfaceRaisedBrush}" Foreground="{DynamicResource InfoBrush}"
                           BorderBrush="{DynamicResource InfoSurfaceBrush}" BorderThickness="1" />

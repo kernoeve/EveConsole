@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} 在这里不是命令。以 // 开头即可作为文字发送。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>添加 IRC 服务器</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>添加 IRC 服务器后，可在群聊中使用其频道，并在消息中与其用户聊天。</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>请在左侧选择一个服务器。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>服务器地址</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>加密 (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>不加密时，途中任何人都能读取全部内容，且不会发送密码（本机除外）。</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>如被占用，会尝试在后面加 _ 或数字。</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>登录方式</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>无密码</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>账户 (SASL)，大多数网络使用</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>连接后通过 NickServ</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>服务器密码</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>账户名</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>留空则使用昵称。</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>更多设置</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>真实姓名</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>连接后执行的命令</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>每行一条，按网络要求：/msg、/mode 等。</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>离开原因（可选）</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>设为离开</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>回来</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>立即更改昵称</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>更改</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>频道在群聊中，与人的对话在消息中。</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>已连接，离开</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>未连接：密码只通过加密连接发送。请为此服务器开启 TLS。</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>未连接：服务器拒绝了连接。</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>已以 {0} 身份连接到 {1}。</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>此连接未加密。</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>此服务器保留历史：离开期间的发言会在重新连接时送达。</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>此服务器不保留历史：未连接期间的发言不会显示在这里。</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>发送到 {0}（/me 表示动作）</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>当前不在此频道。</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>服务器未列出频道。输入频道名即可加入。</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>创建者</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>管理员</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>管理</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>半管理</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>发言权</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>离开：{0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>设为管理</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>取消管理</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>设为半管理</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>取消半管理</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>将 {0} 从 {2} 封禁？这会封禁 {1} 并将其移出。</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>昵称</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>请输入服务器地址。</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>请输入昵称：一个词，不以 # 或 : 开头。</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>请输入此登录方式的密码。</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>移除 {0}？其频道和已保存消息也会一并删除。</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>昵称</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>未连接：服务器不接受此昵称。请在编辑中选择其他昵称。</value>
+  </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>此服务器不允许撤回消息。</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>设为创始人</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>撤销创始人</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>设为管理员</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>撤销管理员</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>给予 +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>撤销 +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>频道设置…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>{0} 设置</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>此服务器上该频道的模式。点击“保存”时发送更改；列表在添加或删除一行时立即更改。你的等级不允许的更改会被服务器拒绝，并在群聊中说明。</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>服务器尚未告知此频道的设置，因此勾选的内容可能不完整。</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>由 {0} 设置</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>匹配其中任意一项的人无法加入 (+b)。</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>封禁例外</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>匹配其中任意一项的人即使也匹配封禁，仍可加入 (+e)。</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>邀请例外</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>匹配其中任意一项的人无需邀请即可加入仅限邀请的频道 (+I)。</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>此列表为空。</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!user@host — * 匹配任意内容</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>加入密码</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>频道密钥：只有提供它的人才能加入。</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>新密码</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>显示</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>频道已有密码，不会显示。输入新密码即可更改。</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>保存后，这将成为加入密码。</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>保存后将移除密码：任何人都可以加入。</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>请输入加入所需的密码。</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>频道密码不能包含空格。</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}：请填写值，或取消勾选。</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}：请填写整数。</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>仅限邀请</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>只有受邀者或在邀请例外中的人可以加入。</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>仅有发言权的人和管理员可发言</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>其他人可以阅读频道，但不能发送消息。</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>禁止外部消息</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>只有频道内的人可以向其发送消息。</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>只有操作员可更改主题</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>其他人无法更改频道主题。</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>在频道列表中隐藏</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>频道不会出现在服务器的频道列表中，也不会出现在其成员的信息中。</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>私密：列出但不显示详情</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>较旧的隐藏方式：频道可能会被列出，但外部人员看不到其主题和成员。</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>仅已登录账户可加入</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>未登录此网络账户的人无法加入。</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>仅已登录账户可发言</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>未登录的人可以加入并阅读，但除非获得发言权，否则不能发言。</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>阻止程序请求（版本、ping）</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>频道中拒绝一个 IRC 程序发给所有人程序的请求（CTCP）。/me 仍可使用。</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>阻止带颜色的消息</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>含有颜色或格式代码的消息会被拒绝。</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>最多人数</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>达到此人数后，其他人无法加入。</value>
+  </data>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>数字，例如 50</value>
+  </data>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#频道</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>秒数，例如 30</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>移除消息中的颜色</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>颜色和格式代码会被移除，文字照常发送。</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>允许角色扮演命令</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>成员可以以角色身份发言或叙述场景（服务器的 NPC 和 SCENE 命令）。</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>让听众彼此不可见</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>像礼堂一样：没有发言权的人在成员列表中只能看到管理员和有发言权的人，也看不到谁进出。</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>无发言权者的消息只发给管理员</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>没有发言权的人发送的内容只显示给频道管理员，管理员可以转达；其他人只能看到管理员和有发言权的人的发言。</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>频道中任何人都可以邀请</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>没有管理员等级的成员也可以邀请他人。</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>仅限加密连接</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>只有通过 TLS 连接到服务器的人才能加入。</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>阻止发往频道的通知</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>发往整个频道的 NOTICE 消息会被拒绝。</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>其他频道可以把人转到这里</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>任何频道都可以把无法加入它的人转到这里，而不仅限于本频道管理员管理的频道。</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>拒绝从别处转来的人</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>被其他频道转到这里的人不会被放入。</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>更长的列表</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>由网络管理员设置：频道的封禁和例外列表可以容纳更多条目。</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>永久</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>由网络管理员设置：即使所有人离开，频道及其设置仍会保留。</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>仅限网络管理员</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>由网络管理员设置：只有他们可以加入。</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>在发言前隐藏成员</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>加入的人在第一次发言前不会显示在成员列表中。</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>禁止更改昵称</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>在频道中时无法更改昵称。</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>无法踢出任何人</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>频道管理员不能踢人；只有网络管理员或服务可以。</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>禁止请求进入</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>外部人员不能通过 KNOCK 请求管理员放行。</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>禁止邀请</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>任何人都不能邀请他人加入频道。</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>阻止全大写喊话</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>大部分用大写字母写的消息会被拒绝。</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>屏蔽不良词语</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>服务器列表中的词语会被阻止或替换。</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>已在网络服务中注册</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>由网络服务设置：频道已注册到某个所有者名下。</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>此处所有人都已加密</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>由服务器设置：频道中的每个人都通过 TLS 连接。</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>无法加入者转往</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>当有人无法加入（已满、仅限邀请、被封禁等）时，服务器会把他们转到这个频道。</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>满员时转往</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>达到最多人数后，新来的人会被转到这个频道。</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>限制加入速度</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>在给定秒数内加入达到此人数后，一段时间内拒绝更多加入（防刷入）。</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>人数:秒，例如 5:10</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>刷屏即踢出</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>在给定秒数内发送超过此行数的人会被踢出。前面加 * 则同时封禁。</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>行数:秒，例如 10:5</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>防刷屏规则</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>UnrealIRCd 的规则：冒号后的秒数内允许的加入 (j)、消息 (m)、改昵称 (n) 等次数。</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>例如 [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>防刷屏级别</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>服务器命名的级别之一，例如 relaxed、normal 或 strict。</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>例如 normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>限制更改昵称速度</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>在给定秒数内改昵称达到此次数后，一段时间内阻止更多更改。</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>次数:秒，例如 3:60</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>被踢后等待</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>被踢的人在这么多秒内不能回来。</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>新来者需等待才能发言</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>加入的人在这么多秒内不能发言。</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>向新来者显示最近消息</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>加入的人会收到给定时间内最多这么多行的最近消息。</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>行数:时间，例如 50:1d</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>其他模式（供熟悉 IRC 的人使用）</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>此服务器上方未列出的设置。按 MODE 的格式输入，例如 +E、-U 或 +j 5:10，保存时一并发送。</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+字母 或 -字母，然后是值</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>其他模式：以 + 或 - 加模式字母开头，值放在空格之后。</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>频道上另外设置了：{0}</value>
+  </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>这是谁？</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>{0} 是谁</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>服务器没有回应。</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} 不在线。</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>真实姓名</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>账户</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>未登录账户</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>未发言时长</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>连接时间</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>地址</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>加密连接</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>网络管理员</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>机器人</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>是</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>另外</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} 秒</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} 小时 {1} 分钟</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} 天 {1} 小时</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>你的头像</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>图片的网址。此服务器上的人会在其 IRC 程序显示图片的地方看到它。</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… 图片链接</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>使用 EVE 肖像</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>来自 EVE 图片服务器的角色肖像。你在游戏中更改后它也会改变。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>设置头像</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>移除头像</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>头像已保存。每次连接此服务器时都会重新设置。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>头像已移除。</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>此服务器不保存头像：已保存在这里，服务器支持后再设置。</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>头像链接以 https:// 或 http:// 开头，不含空格，最多 400 个字符。</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>服务器要求仅通过加密连接，因此这样连接：端口 {0}，直到 {1}。</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>此服务器要求在 {1} 之前仅通过加密连接，因此无论这里如何设置，都会通过端口 {0} 加密连接。</value>
+  </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>此服务器不接受文件。</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>服务器的文件托管未加密，因此不会向其发送任何内容。</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>文件托管接收了文件，但没有说明存放位置。</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>服务器的文件托管只接受：{0}。</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>服务器的文件托管不接受此类文件。</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>文件太大，服务器的文件托管无法接收。</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>服务器的文件托管拒绝了：请登录账户 (SASL) 后再发送文件。</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>服务器的文件托管拒绝了（{0} {1}）。</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>服务器的文件托管在中途停止接收文件。文件可能太大。</value>
+  </data>
+</root>

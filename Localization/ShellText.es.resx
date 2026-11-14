@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>Guaridas de mercenarios</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Diseños de clientes</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Informes de muertes</value>
   </data>
@@ -141,6 +144,12 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>Correo de EVE</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notificaciones</value>
@@ -692,5 +701,58 @@ Base de datos: {2}
     <value>{0}
 {1}
 Haz clic para ver los límites de ESI.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Mensajes</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Chat de grupo</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Informe de batalla</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Esta base de datos está en la versión {0} y este cliente, en la {1}.
+
+Este cliente está configurado para no ejecutar nunca los procesos en segundo plano, y solo el cliente que los ejecuta puede cambiar el esquema, así que no puede llevar la base de datos a la {1}.
+
+Inicia un cliente {1} que pueda ejecutarlos, o desactiva esto: quita "neverRunBackgroundWork" de {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Avisos de terceros</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Las licencias del software con el que está hecho EVE Console</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Inteligencia</value>
   </data>
 </root>

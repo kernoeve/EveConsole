@@ -26,6 +26,13 @@ using EveConsole.Services;
 //  Usage: StartupSmoke [output folder] [seconds to wait, default 40]
 // ─────────────────────────────────────────────────────────────────────────────
 
+// StartupSmoke --connectors <folder>: pictures of Settings → Connectors from made-up data (ConnectorShots.cs).
+if (args.Length > 0 && args[0] == "--connectors")
+{
+    ConnectorShots.Run(args.Length > 1 ? args[1] : Path.Combine(Path.GetTempPath(), "eveconsole-connector-shots"));
+    return;
+}
+
 var outDir  = Path.GetFullPath(args.Length > 0 ? args[0] : Path.Combine(Path.GetTempPath(), "eveconsole-smoke"));
 var seconds = args.Length > 1 && int.TryParse(args[1], out var s) ? s : 40;
 Directory.CreateDirectory(outDir);

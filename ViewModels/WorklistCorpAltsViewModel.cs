@@ -94,6 +94,9 @@ public sealed class CorpAltRow : ReactiveObject
 /// </summary>
 public class WorklistCorpAltsViewModel : ReactiveObject
 {
+    /// <summary>Ended with the Worklist it belongs to (<see cref="WorklistViewModel.Dispose"/>).</summary>
+    internal ToolLife Life { get; } = new();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly WorklistCorpAltService          _corpAlts;
 
@@ -119,7 +122,7 @@ public class WorklistCorpAltsViewModel : ReactiveObject
         });
 
         // Characters or corporations added or removed: the pickers follow without a restart.
-        OwnerList.Changed += () => _ = LoadAsync();
+        Life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }

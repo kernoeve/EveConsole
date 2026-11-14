@@ -1,0 +1,46 @@
+<!-- How a Mumble server's controls and popups look, wherever they are. ⚠️ Colours by the palette's names only: the toolbar
+     takes them from the app's theme, and the always-on-top window sets those same names for itself, as it sits over a game
+     whatever the theme is. -->
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Style Selector="Ellipse.talker"><Setter Property="Fill" Value="{DynamicResource TextDimBrush}" /></Style>
+  <!-- The standard client's own colours for these. -->
+  <Style Selector="Ellipse.talker.channel"><Setter Property="Fill" Value="#FBBC05" /></Style>
+  <Style Selector="Ellipse.talker.shout"><Setter Property="Fill" Value="#44A3F2" /></Style>
+  <Style Selector="Ellipse.talker.direct"><Setter Property="Fill" Value="#B57EDC" /></Style>
+  <Style Selector="TextBlock.talker"><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /><Setter Property="FontWeight" Value="Normal" /><Setter Property="MaxWidth" Value="180" /><Setter Property="TextTrimming" Value="CharacterEllipsis" /></Style>
+  <Style Selector="TextBlock.talker.channel"><Setter Property="Foreground" Value="#FBBC05" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style Selector="TextBlock.talker.shout"><Setter Property="Foreground" Value="#6CB8F6" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style Selector="TextBlock.talker.direct"><Setter Property="Foreground" Value="#C9A0E8" /><Setter Property="FontWeight" Value="SemiBold" /></Style>
+  <Style Selector="Path.state"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /><Setter Property="StrokeThickness" Value="1.1" /><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+  <!-- Not muted or deafened: there to be seen to be off, and to be clicked. -->
+  <Style Selector="Path.state.off"><Setter Property="Stroke" Value="{DynamicResource TextDimBrush}" /></Style>
+  <Style Selector="Path.menu"><Setter Property="Stroke" Value="{DynamicResource TextMutedBrush}" /><Setter Property="StrokeThickness" Value="1.1" /><Setter Property="Width" Value="12" /><Setter Property="Height" Value="12" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+
+  <Style Selector="Button.icon"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="3" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="3" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Focusable" Value="False" /></Style>
+  <Style Selector="Button.icon:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /></Style>
+  <Style Selector="Button.icon:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BorderDefaultBrush}" /></Style>
+
+  <Style Selector="FlyoutPresenter.mumblepopup"><Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="CornerRadius" Value="5" /><Setter Property="Padding" Value="8" /><Setter Property="MinWidth" Value="0" /><Setter Property="MaxWidth" Value="420" /></Style>
+
+  <!-- Channels in a colour of their own, apart from people and from the talking colours. The one this client is in, bolder. -->
+  <Style Selector="TextBlock.channelname"><Setter Property="Foreground" Value="#4DB6A4" /></Style>
+  <Style Selector="TextBlock.channelname.here"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="#6FD3C1" /></Style>
+  <Style Selector="TextBlock.count"><Setter Property="FontSize" Value="10" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /></Style>
+  <Style Selector="ToggleButton.people:checked /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
+  <!-- A channel: the whole of its name is what moves you there. -->
+  <Style Selector="Button.channel"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="4 2" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="3" /><Setter Property="HorizontalAlignment" Value="Stretch" /><Setter Property="HorizontalContentAlignment" Value="Left" /><Setter Property="Focusable" Value="False" /></Style>
+  <Style Selector="Button.channel:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /></Style>
+  <Style Selector="Button.channel:pressed /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource BorderDefaultBrush}" /></Style>
+  <Style Selector="Button.chevron"><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="0" /><Setter Property="MinWidth" Value="0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Width" Value="14" /><Setter Property="Height" Value="14" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="HorizontalContentAlignment" Value="Center" /><Setter Property="VerticalContentAlignment" Value="Center" /><Setter Property="Focusable" Value="False" /></Style>
+  <Style Selector="Button.chevron:pointerover /template/ ContentPresenter#PART_ContentPresenter"><Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /></Style>
+  <!-- A row someone is being dragged onto. ⚠️ The background is set here, not on the row: a value set there would win over this. -->
+  <Style Selector="Grid.row"><Setter Property="Background" Value="Transparent" /></Style>
+  <!-- What the selection key whispers to, in a wash of the whisper colour. Before the drop target, which wins over it. -->
+  <Style Selector="Grid.row.picked"><Setter Property="Background" Value="#33B57EDC" /></Style>
+  <Style Selector="Grid.row.drop"><Setter Property="Background" Value="{DynamicResource SurfaceSelectedBrush}" /></Style>
+  <Style Selector="TextBlock.person"><Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" /><Setter Property="FontSize" Value="12" /><Setter Property="TextTrimming" Value="CharacterEllipsis" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+  <Style Selector="TextBlock.person.me"><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+  <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 6 0 2" /></Style>
+  <Style Selector="ComboBox.small"><Setter Property="FontSize" Value="11" /><Setter Property="HorizontalAlignment" Value="Stretch" /></Style>
+</Styles>

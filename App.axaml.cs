@@ -1,4 +1,4 @@
-﻿using Avalonia;
+using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using EveConsole.Agent;
@@ -21,6 +21,8 @@ namespace EveConsole;
 
 public class App : Application
 {
+    private Views.MumbleOverlayController? _mumbleOverlay;
+
     public static IServiceProvider Services { get; private set; } = null!;
 
     /// <summary>
@@ -98,20 +100,16 @@ public class App : Application
         // the file is being replaced.
         SplashWindow? splash = null;
 
+        // First, so it sees the whole start. Writes only to its own file in the temp folder.
+        StartupTrace.Begin();
+        StartupTrace.Mark("startup begins");
+
+
         // The UI scale is this machine's own and lives in config.json, so it can be known before
         // the first window — the splash included — rather than applied to windows already open.
         UiScaleService.Load();
 
-        // ⚠️ No splash for the tray, and nothing to close it when the window never opens. A tray
-        // process shows an icon and waits; a progress window flashing up at logon for something the
-        // user did not launch would be the most annoying possible way to start.
-        if (AppRuntime.IsTray && ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayStartup)
-        {
-            // Nothing else keeps this process alive — there is no window, and OnLastWindowClose
-            // would end it the moment startup finished.
-            trayStartup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnExplicitShutdown;
-        }
-        else if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
+        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime startup)
         {
             // Kept alive by the splash until the main window takes over.
             startup.ShutdownMode = Avalonia.Controls.ShutdownMode.OnLastWindowClose;
@@ -125,7 +123,8 @@ public class App : Application
         // Progress relay — IProgress<T> always posts back to the UI thread.
         var progress = new Progress<(double Pct, string Status)>(r =>
             splash?.ReportProgress(r.Pct, r.Status));
-        var p = (IProgress<(double, string)>)progress;
+        // Each step the splash names is also a mark in the startup trace, when that's on.
+        var p = StartupTrace.Marking(progress);
 
         // ⚠️ Relocation before shrink: asking for both should shrink the database at its new home,
         // not the copy being left behind. Like the shrink, it runs here because nothing has opened
@@ -341,8 +340,6 @@ public class App : Application
         ZkillboardPostService?      zkbPost       = null;
         MainWindow?           mainWindow    = null;
 
-        // The tray reports; it does not work. Nothing below it is wanted there.
-        if (!AppRuntime.IsTray)
         // ⚠️ NOT conditioned on a desktop lifetime, and that was a real bug for as long as it was.
         // Everything below is background work — the services themselves, the chat-log hook that
         // feeds intel and alarms, token refresh, and the build-cost and price-history recalcs — and
@@ -373,13 +370,47 @@ public class App : Application
             // the same pass that stored the message rather than on a timer of its own — and any
             // intel alarm is then evaluated immediately rather than at its next interval, which
             // is the difference between hearing about a hostile in a second and in a minute.
+            //
+            // ⚠️ Only the worker parses (see IntelSignals). Every PC tails its own logs; on the worker
+            // the pass runs right here, and anywhere else the worker is told there is something new.
             var intel = Services.GetRequiredService<IntelService>();
-            chatLogs.AfterTail = async ct =>
+            chatLogs.AfterTail = async (stored, ct) =>
             {
-                var written = await intel.ProcessNewAsync(ct);
-                if (written > 0)
-                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel", ct);
+                if (intel.IsWorker) await intel.ProcessNewAsync(ct);
+                else if (stored > 0) intel.LinesStored();
             };
+
+            // A history import, from a Settings button, on the UI thread: told, never awaited. LinesStored
+            // runs the pass on a background thread here on the worker, and anywhere else tells the worker.
+            chatLogs.AfterHistoryImport = _ => intel.LinesStored();
+
+            // ⚠️ The alarms follow "intel was written", never the pass itself. The pass publishes it,
+            // every PC hears it (the worker its own too), and only the worker evaluates: one pass, one
+            // evaluation, on whichever PC the intel was written.
+            intel.IntelChanged += () =>
+            {
+                if (intel.IsWorker) _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+            };
+
+            // And after what a Jabber room marked Intel brings, which has nothing to do with the chat logs being on.
+            // One pass for a burst, and it waits its turn: a pass already running may have read before this arrived.
+            var jabberRooms = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>();
+            jabberRooms.IntelLinesSaved += intel.LinesStored;
+            jabberRooms.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
+
+            // An IRC channel marked Intel, the same way.
+            var ircChannels = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>();
+            ircChannels.IntelLinesSaved += intel.LinesStored;
+            ircChannels.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
+
+            // The intel views name a room by its server: a room marked Intel, or a login saved (renamed), reads right at
+            // once rather than within the minute. A session change is how a saved login is heard, here or from another PC.
+            var intelLabels = Services.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>();
+            jabberRooms.IntelRoomsChanged += () => intelLabels.LabelsChanged(pass: true);
+            ircChannels.IntelRoomsChanged += () => intelLabels.LabelsChanged(pass: true);
+            jabberRooms.SessionChanged += _ => intelLabels.LabelsChanged(pass: false);
+            ircChannels.SessionChanged += _ => intelLabels.LabelsChanged(pass: false);
+
             // An undock, likewise: the location poll is what knows, and it says so the moment
             // the character's pass is done, so the undock alarms are evaluated then — seconds
             // after the fact, not up to a poll interval later. The wake-up call needs no nudge:
@@ -391,7 +422,29 @@ public class App : Application
             // changes what it watches: evaluated then, so a hostile already reported next door
             // is heard on arrival rather than at the alarm's next interval.
             polling.CharacterMoved += characterId =>
+            {
+                // A route sent from the Route Planner follows the character: the step they are on, and cleared on
+                // arrival, so what is ahead is right even while no intel alarm is reading it. Then the alarms.
+                var factory = Services.GetRequiredService<IDbContextFactory<AppDbContext>>();
+                _ = Task.Run(async () =>
+                {
+                    try { await EveConsole.Services.Intel.CharacterRouteStore.FollowStatusAsync(factory, characterId); }
+                    catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("CharacterRoutes", "follow", ex); }
+                    await Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+                });
+            };
+
+            // A route just sent from the Route Planner is watched ahead from now: evaluated at once.
+            EveConsole.Services.Intel.CharacterRouteStore.Saved += () =>
                 _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+
+            // And when the chat log moves one first ("Channel changed to Local", seconds before ESI's
+            // location does), as the intel snapshot sees it. On the worker only: every PC reads its
+            // own snapshot, and one nudge is enough.
+            Services.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>().OwnMoved += () =>
+            {
+                if (intel.IsWorker) _ = Services.GetRequiredService<AlarmService>().TriggerAsync("intel");
+            };
 
             // And a store order's state is worked out by the fulfilment pass — which the store
             // mail runs the moment it books an order — so the store-order alarms follow the pass.
@@ -554,9 +607,15 @@ public class App : Application
                 if (marketHistory is not null) tasks.Add(marketHistory.StopAsync());
                 if (contracts     is not null) tasks.Add(contracts.StopAsync());
                 if (lpStore       is not null) tasks.Add(lpStore.StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StopAsync());
+                _mumbleOverlay?.Close();
                 if (gameLogs      is not null) tasks.Add(gameLogs.StopAsync());
                 if (chatLogs      is not null) tasks.Add(chatLogs.StopAsync());
+                tasks.Add(Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().StopAsync());
                 await Task.WhenAll(tasks);
+                Services.GetRequiredService<Views.ClientPanelHost>().CloseAll();
 
                 // ⚠️ After the pollers, never before. Releasing first would invite another
                 // client to start polling while this one is still finishing a pass, which is
@@ -580,74 +639,6 @@ public class App : Application
                 // Nothing in that sequence is ours to fix, so the choice is simply not to enter it.
                 if (!OperatingSystem.IsWindows()) AppLauncher.ExitNow();
             };
-        }
-
-        // ── Tray: an icon in somebody's session, and nothing else ──────────────
-        //
-        // ⚠️ Returns before the lease is touched, and that is the whole point. This process exists
-        // to report on the worker and must never become one: a tray icon that quietly picked up
-        // the background work because the service happened to be down would be running all of it
-        // from the one place nobody would think to look — and would keep the real worker out when
-        // it came back. It does not own the schema either, so it returns before that too.
-        if (AppRuntime.IsTray)
-        {
-            Start("client signals", () =>
-            {
-                var signals  = Services.GetRequiredService<ClientSignals>();
-                var activity = Services.GetRequiredService<WorkerActivityService>();
-
-                // ⚠️ The activity board only. Alarm signals reach this process and are deliberately
-                // dropped: closing the desktop client is how somebody turns notifications off, and
-                // a tray icon that went on sounding them would have taken that decision away. What
-                // this listens for is what the Background Processes window needs to stay live.
-                signals.Received += payload => activity.TryApplySignal(payload);
-                signals.Start();
-            });
-
-            Start("tray icon", () =>
-            {
-                var tray = Services.GetRequiredService<TrayIconController>();
-
-                // The monitoring view without the application around it — the reason somebody
-                // would leave this icon running at all.
-                tray.ShowBackgroundProcesses = () =>
-                {
-                    try
-                    {
-                        var window = new Views.ApiActivityWindow
-                        { DataContext = Services.GetRequiredService<ApiActivityViewModel>() };
-                        window.Show();
-                        window.Activate();
-                    }
-                    catch (Exception ex) { errorLogger.Log("Tray", "opening background processes", ex); }
-                };
-
-                // No window of our own to restore, so "Open EVE Console" starts a copy — which is
-                // what somebody clicking it means by it.
-                tray.ShowWindow = () =>
-                {
-                    try
-                    {
-                        // Through AppLauncher: under an AppImage this process runs out of a temporary
-                        // mount, so the copy to start is the .AppImage file the user actually launched —
-                        // and on Linux UseShellExecute would hand it to xdg-open rather than run it.
-                        EveConsole.Services.AppLauncher.Start();
-                    }
-                    catch (Exception ex) { errorLogger.Log("Tray", "opening the application", ex); }
-                };
-
-                tray.Quit = () =>
-                {
-                    if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime trayLifetime)
-                        trayLifetime.Shutdown();
-                    else
-                        Environment.Exit(0);
-                };
-
-                tray.Show();
-            });
-
-            return;
         }
 
         // ── Who owns the background work, and therefore the schema? ────────────
@@ -695,7 +686,8 @@ public class App : Application
             var older = unrecorded || (dbOld is not null && appNow is not null && dbOld < appNow);
             var heldElsewhere = workerStatus is not null && WorkerLease.IsLive(workerStatus);
 
-            if (older && !heldElsewhere)
+            // Nor when this client is set never to run them: it could not upgrade anything either.
+            if (older && !heldElsewhere && !WorkerLease.StandsAside)
             {
                 var from  = dbVersion ?? ShellText.DatabaseVersionUnrecorded;
                 var where = DescribeDatabase();
@@ -741,7 +733,7 @@ public class App : Application
         }
 
         // A yes/no before the main window exists: over the splash when there is one, on its own
-        // when a tray start has none.
+        // when there is none.
         static async Task<bool> AskAsync(Views.ConfirmDialog dialog, Avalonia.Controls.Window? owner)
         {
             if (owner is not null) return await dialog.ShowDialog<bool>(owner);
@@ -822,14 +814,18 @@ public class App : Application
                     // ⚠️ The dialog says `message` again, in the interface's language; the console
                     // line below keeps the English, as every log line does. A change to one is a
                     // change to the other.
+                    // ⚠️ Set never to run the background work, this client can't move the schema even with nobody
+                    // else running, and can't reach Settings to change that: told where the setting is kept.
                     Avalonia.Controls.Window dialog = dbV > appV
                         ? new UpdateRequiredDialog(
                             string.Format(ShellText.VersionMismatchDatabaseAhead, dbVersion, AppVersion.Number),
                             dbV!, errorLogger)
+                        : WorkerLease.StandsAside
+                        ? new FatalDialog(ShellText.VersionMismatchHeading,
+                            string.Format(ShellText.VersionMismatchStandingAside, dbVersion, AppVersion.Number, AppConfig.ConfigFilePath))
                         : new FatalDialog(ShellText.VersionMismatchHeading,
                             string.Format(ShellText.VersionMismatchWorkerBehind, dbVersion, AppVersion.Number));
 
-                    // A tray start has no splash to own it, and used to end here without a word.
                     await ShowAndWaitAsync(dialog, splash);
                     stopping.Shutdown();
                 }
@@ -886,7 +882,8 @@ public class App : Application
             {
                 using var scope = Services.CreateScope();
                 var db       = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-                var expected = db.Model.GetEntityTypes().Select(e => e.GetTableName()).OfType<string>().Distinct();
+                var expected = db.Model.GetEntityTypes().Select(e => e.GetTableName()).OfType<string>()
+                    .Append(SharedLogins.Table).Distinct();   // ⚠️ Not in the model, and logins cannot be read without it.
                 var have     = (await db.Database.SqlQueryRaw<string>(
                         """SELECT table_name AS "Value" FROM information_schema.tables WHERE table_schema = current_schema()""")
                     .ToListAsync()).ToHashSet();
@@ -1264,6 +1261,8 @@ public class App : Application
                 // Where those contracts are to be made, when the store says.
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocationName" TEXT NOT NULL DEFAULT ''"""); } catch { }
+                // Every place, since a store can name several; empty reads as the one above.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "Stores" ADD COLUMN "BuyLocations" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "StorePostings" (
                         "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -1271,12 +1270,15 @@ public class App : Application
                         "PostingId" INTEGER NOT NULL DEFAULT 0,
                         "Ordinal"   INTEGER NOT NULL DEFAULT 0,
                         "Side"      TEXT    NOT NULL DEFAULT 'sell',
-                        "Title"     TEXT    NOT NULL DEFAULT ''
+                        "Title"     TEXT    NOT NULL DEFAULT '',
+                        "TrackNeed" INTEGER NOT NULL DEFAULT 0
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
                     CREATE INDEX IF NOT EXISTS "IX_StorePostings_StoreId" ON "StorePostings" ("StoreId")
                     """);
+                // A Buy listing that takes only what the worklist still needs. In the CREATE too.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "StorePostings" ADD COLUMN "TrackNeed" INTEGER NOT NULL DEFAULT 0"""); } catch { }
 
 
                 db.Database.ExecuteSqlRaw("""
@@ -1373,7 +1375,8 @@ public class App : Application
                         "ColorByState"      INTEGER NOT NULL DEFAULT 0,
                         "ColorInStock"      TEXT    NOT NULL DEFAULT '#4a9a5a',
                         "ColorInBuild"      TEXT    NOT NULL DEFAULT '#c8a84b',
-                        "ColorNone"         TEXT    NOT NULL DEFAULT '#888899'
+                        "ColorNone"         TEXT    NOT NULL DEFAULT '#888899',
+                        "ShowNeed"          INTEGER NOT NULL DEFAULT 1
                     )
                     """);
                 // Existing installs created before the Market-basis reworked to station pricing.
@@ -1389,6 +1392,8 @@ public class App : Application
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInStock" TEXT NOT NULL DEFAULT '#4a9a5a'"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorInBuild" TEXT NOT NULL DEFAULT '#c8a84b'"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ColorNone" TEXT NOT NULL DEFAULT '#888899'"""); } catch { }
+                // Whether a Buy listing that tracks need shows sellers how much is still wanted.
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostings" ADD COLUMN "ShowNeed" INTEGER NOT NULL DEFAULT 1"""); } catch { }
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "SalePostingSections" ADD COLUMN "Color" TEXT NOT NULL DEFAULT ''"""); } catch { }
                 // One colour became two: the heading and the rows under it. The old single value was
                 // the heading's, so it moves there. Guarded on HeaderColor being empty so it runs
@@ -1990,7 +1995,55 @@ public class App : Application
                         "RootLocationType" TEXT    NOT NULL DEFAULT '',
                         "SolarSystemId"    INTEGER NULL,
                         "RegionId"         INTEGER NULL,
+                        "Pending"          TEXT    NULL,
+                        "PendingFrom"      TEXT    NULL,
                         PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
+                    )
+                    """);
+
+                // The asset poll as ESI gave it, kept so that what has happened since can be
+                // written on top of EsiAssets again whenever it changes — see AssetActivity. The
+                // same columns as EsiAssets, less the two that mark what was written on top.
+                // Not an entity: only AssetActivity reads it, in SQL. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EsiAssetsPolled" (
+                        "OwnerId"          INTEGER NOT NULL,
+                        "OwnerType"        TEXT    NOT NULL,
+                        "ItemId"           INTEGER NOT NULL,
+                        "TypeId"           INTEGER NOT NULL DEFAULT 0,
+                        "LocationId"       INTEGER NOT NULL DEFAULT 0,
+                        "LocationType"     TEXT    NOT NULL DEFAULT '',
+                        "LocationFlag"     TEXT    NOT NULL DEFAULT '',
+                        "Quantity"         INTEGER NOT NULL DEFAULT 0,
+                        "IsSingleton"      INTEGER NOT NULL DEFAULT 0,
+                        "IsBlueprintCopy"  INTEGER,
+                        "RootLocationId"   INTEGER NOT NULL DEFAULT 0,
+                        "RootLocationType" TEXT    NOT NULL DEFAULT '',
+                        "SolarSystemId"    INTEGER NULL,
+                        "RegionId"         INTEGER NULL,
+                        PRIMARY KEY ("OwnerId", "OwnerType", "ItemId")
+                    )
+                    """);
+
+                // When each market order was first and last seen open. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MarketOrderSightings" (
+                        "OrderId"     INTEGER NOT NULL PRIMARY KEY,
+                        "FirstSeenAt" TEXT    NOT NULL,
+                        "LastSeenAt"  TEXT    NOT NULL
+                    )
+                    """);
+
+                // When each owner's assets were current. Mirrored in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "AssetSnapshots" (
+                        "OwnerId"    INTEGER NOT NULL,
+                        "OwnerType"  TEXT    NOT NULL,
+                        "Kind"       TEXT    NOT NULL,
+                        "AsOf"       TEXT    NOT NULL,
+                        "PolledAt"   TEXT    NOT NULL,
+                        "AppliedKey" TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("OwnerId", "OwnerType", "Kind")
                     )
                     """);
 
@@ -2069,6 +2122,72 @@ public class App : Application
                         "UpgradeLevel"  INTEGER NOT NULL DEFAULT 0,
                         PRIMARY KEY ("CharacterId", "PlanetId")
                     )
+                    """);
+
+                // The battles the user defined and kept. Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "SavedBattles" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "Definition" TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL
+                    )
+                    """);
+
+                // ── Client layouts ──────────────────────────────────────────────────
+                // Mirrored for PostgreSQL in PostgresSchema.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayouts" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"       TEXT    NOT NULL DEFAULT '',
+                        "Definition" TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"  TEXT    NOT NULL
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutDevices" (
+                        "Id"             TEXT    NOT NULL PRIMARY KEY,
+                        "Name"           TEXT    NOT NULL DEFAULT '',
+                        "PlacementOn"    INTEGER NOT NULL DEFAULT 0,
+                        "Applied"        TEXT    NOT NULL DEFAULT '',
+                        "SeenCharacters" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutProfiles" (
+                        "Id"       INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId" TEXT    NOT NULL DEFAULT '',
+                        "Name"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutMonitors" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "DeviceId"    TEXT    NOT NULL DEFAULT '',
+                        "ProfileId"   INTEGER NOT NULL DEFAULT 0,
+                        "HardwareKey" TEXT    NOT NULL DEFAULT '',
+                        "LayoutId"    INTEGER NULL,
+                        "FullMonitor" INTEGER NOT NULL DEFAULT 0,
+                        "PanelStart"  TEXT    NOT NULL DEFAULT 'WithConsole'
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "ClientLayoutMonitors" ADD COLUMN "ProfileId" INTEGER NOT NULL DEFAULT 0"""); } catch { }
+                db.Database.ExecuteSqlRaw("""DROP INDEX IF EXISTS "IX_ClientLayoutMonitors_DeviceId_HardwareKey" """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_ClientLayoutMonitors_DeviceId_ProfileId_HardwareKey"
+                        ON "ClientLayoutMonitors" ("DeviceId", "ProfileId", "HardwareKey")
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ClientLayoutCharacters" (
+                        "Id"            INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "MonitorId"     INTEGER NOT NULL DEFAULT 0,
+                        "AreaId"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterName" TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE INDEX IF NOT EXISTS "IX_ClientLayoutCharacters_MonitorId"
+                        ON "ClientLayoutCharacters" ("MonitorId")
                     """);
 
                 // ── Hauls ticked off at a loop's stops ──────────────────────────────
@@ -2640,6 +2759,372 @@ public class App : Application
                     )
                     """);
                 db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MumbleServers" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 64738,
+                        "Username"           TEXT    NOT NULL DEFAULT '',
+                        "Tokens"             TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "WhisperKey"         INTEGER NOT NULL DEFAULT 0,
+                        "ShoutKey"           INTEGER NOT NULL DEFAULT 0,
+                        "SelfMuted"          INTEGER NOT NULL DEFAULT 0,
+                        "SelfDeafened"       INTEGER NOT NULL DEFAULT 0,
+                        "LastChannel"        TEXT    NOT NULL DEFAULT '',
+                        "VoiceActivated"     INTEGER NOT NULL DEFAULT 0,
+                        "TalkTargets"        TEXT NOT NULL DEFAULT '',
+                        "MuteKey"            INTEGER NOT NULL DEFAULT 0,
+                        "DeafenKey"          INTEGER NOT NULL DEFAULT 0,
+                        "PickKey"            INTEGER NOT NULL DEFAULT 0,
+                        "PickLinks"          INTEGER NOT NULL DEFAULT 0,
+                        "PickSubchannels"    INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MumbleUserVolumes" (
+                        "ServerId" INTEGER NOT NULL DEFAULT 0,
+                        "UserKey"  TEXT    NOT NULL DEFAULT '',
+                        "Volume"   REAL    NOT NULL DEFAULT 1,
+                        "LocalMute"  INTEGER NOT NULL DEFAULT 0,
+                        "IgnoreText" INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY ("ServerId", "UserKey")
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "VoiceActivated" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "TalkTargets" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "MuteKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "DeafenKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickKey" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickLinks" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleServers" ADD COLUMN "PickSubchannels" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "LocalMute" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleUserVolumes" ADD COLUMN "IgnoreText" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "MumbleDirectMessages" (
+                        "Id"         INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"   INTEGER NOT NULL DEFAULT 0,
+                        "Sender"     TEXT    NOT NULL DEFAULT '',
+                        "Body"       TEXT    NOT NULL DEFAULT '',
+                        "SentAt"     TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing" INTEGER NOT NULL DEFAULT 0,
+                        "PeerKey"    TEXT    NOT NULL DEFAULT '',
+                        "PeerName"   TEXT    NOT NULL DEFAULT '',
+                        "IsRead"     INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"    INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "PeerKey" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "PeerName" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsRead" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "MumbleDirectMessages" ADD COLUMN "IsAlert" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_MumbleDirectMessages_Peer" ON "MumbleDirectMessages" ("ServerId", "PeerKey", "Id")""");
+                // Which characters are one player's, as a connector last gave them: see LinkedCharacterStore.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedSources" (
+                        "Source"      TEXT    NOT NULL PRIMARY KEY,
+                        "Label"       TEXT    NOT NULL DEFAULT '',
+                        "GeneratedAt" TEXT    NOT NULL DEFAULT '',
+                        "ImportedAt"  TEXT    NOT NULL DEFAULT '',
+                        "Accounts"    INTEGER NOT NULL DEFAULT 0,
+                        "Characters"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "LinkedSources" ADD COLUMN "Label" TEXT NOT NULL DEFAULT '' """); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedAccounts" (
+                        "Source"          TEXT    NOT NULL DEFAULT '',
+                        "AccountId"       INTEGER NOT NULL DEFAULT 0,
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "MainCharacterId" INTEGER NULL,
+                        PRIMARY KEY ("Source", "AccountId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "LinkedCharacters" (
+                        "Source"        TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                        "AccountId"     INTEGER NOT NULL DEFAULT 0,
+                        "Name"          TEXT    NOT NULL DEFAULT '',
+                        "IsMain"        INTEGER NOT NULL DEFAULT 0,
+                        "CorporationId" INTEGER NOT NULL DEFAULT 0,
+                        "AllianceId"    INTEGER NULL,
+                        "TokenValid"    INTEGER NULL,
+                        PRIMARY KEY ("Source", "CharacterId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_LinkedCharacters_Account" ON "LinkedCharacters" ("Source", "AccountId")""");
+                // The connectors the user set up, each with its key (hidden from the AI agent): see ConnectorService.
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "Connectors" (
+                        "Id"              INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Url"             TEXT    NOT NULL DEFAULT '',
+                        "Name"            TEXT    NOT NULL DEFAULT '',
+                        "Key"             TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"     INTEGER NOT NULL DEFAULT 0,
+                        "CharacterName"   TEXT    NOT NULL DEFAULT '',
+                        "Capabilities"    TEXT    NOT NULL DEFAULT '',
+                        "Offers"          TEXT    NOT NULL DEFAULT '',
+                        "Corporations"    TEXT    NOT NULL DEFAULT '',
+                        "Alliances"       TEXT    NOT NULL DEFAULT '',
+                        "Functions"       TEXT    NOT NULL DEFAULT '',
+                        "FunctionsChosen" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcServers" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 6697,
+                        "Tls"                INTEGER NOT NULL DEFAULT 1,
+                        "Nickname"           TEXT    NOT NULL DEFAULT '',
+                        "Username"           TEXT    NOT NULL DEFAULT '',
+                        "RealName"           TEXT    NOT NULL DEFAULT '',
+                        "LoginKind"          INTEGER NOT NULL DEFAULT 0,
+                        "Account"            TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AlertWords"         TEXT    NOT NULL DEFAULT '',
+                        "AwayMessage"        TEXT    NOT NULL DEFAULT '',
+                        "OnConnect"          TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "StsHost"            TEXT    NOT NULL DEFAULT '',
+                        "StsPort"            INTEGER NOT NULL DEFAULT 0,
+                        "StsUntil"           TEXT    NOT NULL DEFAULT '',
+                        "AvatarUrl"          TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "AutoConnect" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsHost" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsPort" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsUntil" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "AvatarUrl" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcChannels" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"  INTEGER NOT NULL DEFAULT 0,
+                        "Name"      TEXT    NOT NULL DEFAULT '',
+                        "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "Left"      INTEGER NOT NULL DEFAULT 0,
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1,
+                        "RoomType"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcChannels_Name" ON "IrcChannels" ("ServerId", "Name")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcMessages" (
+                        "Id"           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"     INTEGER NOT NULL DEFAULT 0,
+                        "Conversation" TEXT    NOT NULL DEFAULT '',
+                        "IsChannel"    INTEGER NOT NULL DEFAULT 0,
+                        "Sender"       TEXT    NOT NULL DEFAULT '',
+                        "Body"         TEXT    NOT NULL DEFAULT '',
+                        "Kind"         INTEGER NOT NULL DEFAULT 0,
+                        "SentAt"       TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
+                        "IsRead"       INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"      INTEGER NOT NULL DEFAULT 0,
+                        "IsMention"    INTEGER NOT NULL DEFAULT 0,
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+                        "MessageId"    TEXT    NOT NULL DEFAULT '',
+                        "ReplyId"      TEXT    NOT NULL DEFAULT '',
+                        "PeerName"     TEXT    NOT NULL DEFAULT '',
+                        "Deleted"      INTEGER NOT NULL DEFAULT 0,
+                        "DeletedReason" TEXT   NOT NULL DEFAULT ''
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "DeletedReason" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcMessages_Dedupe" ON "IrcMessages" ("ServerId", "DedupeKey")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Conversation" ON "IrcMessages" ("ServerId", "Conversation", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Unread" ON "IrcMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcReactions" (
+                        "ServerId"     INTEGER NOT NULL,
+                        "Conversation" TEXT    NOT NULL,
+                        "Target"       TEXT    NOT NULL,
+                        "Sender"       TEXT    NOT NULL,
+                        "Emojis"       TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("ServerId", "Conversation", "Target", "Sender")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcLiveStates" (
+                        "ServerId" INTEGER NOT NULL,
+                        "Part"     TEXT    NOT NULL,
+                        "Version"  INTEGER NOT NULL DEFAULT 0,
+                        "Json"     TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("ServerId", "Part")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "IrcCommands" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "ServerId"    INTEGER NOT NULL DEFAULT 0,
+                        "Kind"        TEXT    NOT NULL DEFAULT '',
+                        "Args"        TEXT    NOT NULL DEFAULT '',
+                        "CreatedUnix" INTEGER NOT NULL DEFAULT 0,
+                        "State"       INTEGER NOT NULL DEFAULT 0,
+                        "Result"      TEXT    NOT NULL DEFAULT '',
+                        "Error"       TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberAccounts" (
+                        "Id"                 INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"               TEXT    NOT NULL DEFAULT '',
+                        "Address"            TEXT    NOT NULL DEFAULT '',
+                        "Host"               TEXT    NOT NULL DEFAULT '',
+                        "Port"               INTEGER NOT NULL DEFAULT 5222,
+                        "DirectTls"          INTEGER NOT NULL DEFAULT 0,
+                        "Resource"           TEXT    NOT NULL DEFAULT '',
+                        "Nickname"           TEXT    NOT NULL DEFAULT '',
+                        "TrustedCertificate" TEXT    NOT NULL DEFAULT '',
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "AlertWords"         TEXT    NOT NULL DEFAULT '',
+                        "SavedShow"          INTEGER NOT NULL DEFAULT 1,
+                        "SavedStatus"        TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberAccounts" ADD COLUMN "SavedShow" INTEGER NOT NULL DEFAULT 1"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberAccounts" ADD COLUMN "SavedStatus" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberRooms" (
+                        "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "AccountId" INTEGER NOT NULL DEFAULT 0,
+                        "RoomJid"   TEXT    NOT NULL DEFAULT '',
+                        "Name"      TEXT    NOT NULL DEFAULT '',
+                        "Nickname"  TEXT    NOT NULL DEFAULT '',
+                        "AutoJoin"  INTEGER NOT NULL DEFAULT 1,
+                        "Left"      INTEGER NOT NULL DEFAULT 0,
+                        "AlertMode" INTEGER NOT NULL DEFAULT 1,
+                        "ArchiveResumeFrom" TEXT NOT NULL DEFAULT '',
+                        "RoomType"  INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberRooms" ADD COLUMN "ArchiveResumeFrom" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberRooms" ADD COLUMN "RoomType" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberRooms_Room" ON "JabberRooms" ("AccountId", "RoomJid")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberLiveStates" (
+                        "AccountId" INTEGER NOT NULL,
+                        "Part"      TEXT    NOT NULL,
+                        "Version"   INTEGER NOT NULL DEFAULT 0,
+                        "Json"      TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("AccountId", "Part")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberCommands" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "AccountId"   INTEGER NOT NULL DEFAULT 0,
+                        "Kind"        TEXT    NOT NULL DEFAULT '',
+                        "Args"        TEXT    NOT NULL DEFAULT '',
+                        "CreatedUnix" INTEGER NOT NULL DEFAULT 0,
+                        "State"       INTEGER NOT NULL DEFAULT 0,
+                        "Result"      TEXT    NOT NULL DEFAULT '',
+                        "Error"       TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberMessages" (
+                        "Id"           INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "AccountId"    INTEGER NOT NULL DEFAULT 0,
+                        "Conversation" TEXT    NOT NULL DEFAULT '',
+                        "IsRoom"       INTEGER NOT NULL DEFAULT 0,
+                        "Sender"       TEXT    NOT NULL DEFAULT '',
+                        "Body"         TEXT    NOT NULL DEFAULT '',
+                        "SentAt"       TEXT    NOT NULL DEFAULT '',
+                        "IsOutgoing"   INTEGER NOT NULL DEFAULT 0,
+                        "IsRead"       INTEGER NOT NULL DEFAULT 0,
+                        "IsAlert"      INTEGER NOT NULL DEFAULT 0,
+                        "DedupeKey"    TEXT    NOT NULL DEFAULT '',
+                        "MessageId"    TEXT    NOT NULL DEFAULT '',
+                        "IsMention"    INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "IsMention" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "StanzaId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "DeletedReason" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_JabberMessages_Dedupe" ON "JabberMessages" ("AccountId", "DedupeKey")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Conversation" ON "JabberMessages" ("AccountId", "Conversation", "Id")""");
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_JabberMessages_Unread" ON "JabberMessages" ("IsRead", "IsAlert")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmotePacks" (
+                        "Id"          INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                        "Name"        TEXT    NOT NULL DEFAULT '',
+                        "Description" TEXT    NOT NULL DEFAULT '',
+                        "Author"      TEXT    NOT NULL DEFAULT '',
+                        "IconCode"    TEXT    NOT NULL DEFAULT '',
+                        "AddedAt"     TEXT    NOT NULL DEFAULT ''
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmoteImages" (
+                        "Hash"     TEXT    NOT NULL PRIMARY KEY,
+                        "Bytes"    BLOB    NOT NULL,
+                        "Width"    INTEGER NOT NULL DEFAULT 0,
+                        "Height"   INTEGER NOT NULL DEFAULT 0,
+                        "Animated" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "EmoteCodes" (
+                        "PackId"    INTEGER NOT NULL,
+                        "Code"      TEXT    NOT NULL,
+                        "ImageHash" TEXT    NOT NULL DEFAULT '',
+                        "Position"  INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY ("PackId", "Code")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_EmoteCodes_Image" ON "EmoteCodes" ("ImageHash")""");
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberReactions" (
+                        "AccountId"    INTEGER NOT NULL,
+                        "Conversation" TEXT    NOT NULL,
+                        "Target"       TEXT    NOT NULL,
+                        "Sender"       TEXT    NOT NULL,
+                        "Emojis"       TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt"    TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("AccountId", "Conversation", "Target", "Sender")
+                    )
+                    """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "ReplyId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "ReplyQuote" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "OccupantId" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "Markable" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberMessages" ADD COLUMN "SeenByThem" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "JabberReactions" ADD COLUMN "SenderName" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ChatAvatars" (
+                        "Hash"   TEXT    NOT NULL PRIMARY KEY,
+                        "Bytes"  BLOB    NOT NULL,
+                        "Width"  INTEGER NOT NULL DEFAULT 0,
+                        "Height" INTEGER NOT NULL DEFAULT 0
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "ChatAvatarOwners" (
+                        "Service"   TEXT    NOT NULL,
+                        "ServerId"  INTEGER NOT NULL,
+                        "Person"    TEXT    NOT NULL,
+                        "Hash"      TEXT    NOT NULL DEFAULT '',
+                        "UpdatedAt" TEXT    NOT NULL DEFAULT '',
+                        PRIMARY KEY ("Service", "ServerId", "Person")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "JabberEmotePacks" (
+                        "AccountId" INTEGER NOT NULL,
+                        "PackId"    INTEGER NOT NULL,
+                        "Position"  INTEGER NOT NULL DEFAULT 0,
+                        PRIMARY KEY ("AccountId", "PackId")
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "EsiMercenaryDens" (
                         "CharacterId"          INTEGER NOT NULL,
                         "DenId"                INTEGER NOT NULL,
@@ -3197,6 +3682,22 @@ public class App : Application
                 db.Database.ExecuteSqlRaw("""
                     CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistStationLevels_GroupId_LocationId"
                     ON "WorklistStationLevels" ("GroupId", "LocationId")
+                    """);
+
+                db.Database.ExecuteSqlRaw("""
+                    CREATE TABLE IF NOT EXISTS "WorklistCharacterLevels" (
+                        "Id"            INTEGER NOT NULL CONSTRAINT "PK_WorklistCharacterLevels" PRIMARY KEY AUTOINCREMENT,
+                        "GroupId"       INTEGER NOT NULL DEFAULT 0,
+                        "LocationId"    INTEGER NOT NULL DEFAULT 0,
+                        "LocationName"  TEXT    NOT NULL DEFAULT '',
+                        "CharacterId"   INTEGER NOT NULL DEFAULT 0,
+                        "CharacterName" TEXT    NOT NULL DEFAULT '',
+                        "Enabled"       INTEGER NOT NULL DEFAULT 1
+                    )
+                    """);
+                db.Database.ExecuteSqlRaw("""
+                    CREATE UNIQUE INDEX IF NOT EXISTS "IX_WorklistCharacterLevels_Group_Location_Character"
+                    ON "WorklistCharacterLevels" ("GroupId", "LocationId", "CharacterId")
                     """);
 
                 db.Database.ExecuteSqlRaw("""
@@ -3862,6 +4363,11 @@ public class App : Application
                     """ALTER TABLE "EsiAssets" ADD COLUMN "SolarSystemId" INTEGER NULL""",
                     """ALTER TABLE "EsiAssets" ADD COLUMN "RegionId" INTEGER NULL""",
 
+                    // ── Assets: what was written on top since the poll ─────────────────
+                    // Null for a row as the poll gave it. See AssetActivity.
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "Pending" TEXT NULL""",
+                    """ALTER TABLE "EsiAssets" ADD COLUMN "PendingFrom" TEXT NULL""",
+
                     // ── Alarms: the hours an alarm is on ────────────────────────────────
                     """ALTER TABLE "Alarms" ADD COLUMN "ActiveFrom" TEXT NULL""",
                     """ALTER TABLE "Alarms" ADD COLUMN "ActiveThru" TEXT NULL""",
@@ -3896,7 +4402,6 @@ public class App : Application
                     """DELETE FROM "ChatMessages" WHERE "Id" IN (SELECT "Id" FROM (SELECT "Id", ROW_NUMBER() OVER (PARTITION BY "ChannelName", "OccurredAt", "SenderName", "Message" ORDER BY "Id") AS rn FROM "ChatMessages") WHERE rn > 1)""",
 
                     """CREATE TABLE IF NOT EXISTS "IntelReports" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "ReportedAt" TEXT NOT NULL DEFAULT '', "ChannelName" TEXT NOT NULL DEFAULT '', "ReporterName" TEXT NOT NULL DEFAULT '', "SystemId" INTEGER NOT NULL DEFAULT 0, "SystemName" TEXT NOT NULL DEFAULT '', "PlayerCount" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "Obsolete" INTEGER NOT NULL DEFAULT 0, "ObsoleteSetOn" TEXT NULL, "ChatMessageId" INTEGER NOT NULL DEFAULT 0)""",
-                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelReports_ChatMessageId" ON "IntelReports" ("ChatMessageId")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_System_Time" ON "IntelReports" ("SystemId", "ReportedAt")""",
                     """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Obsolete_Time" ON "IntelReports" ("Obsolete", "ReportedAt")""",
 
@@ -3917,6 +4422,35 @@ public class App : Application
                     """ALTER TABLE "IntelReports" ADD COLUMN "Flags" INTEGER NOT NULL DEFAULT 0""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Gate" TEXT NULL""",
                     """ALTER TABLE "IntelReports" ADD COLUMN "Ships" TEXT NULL""",
+                    // Clears, pastes, follow-ups and direction. Mirrored for PostgreSQL in PostgresSchema.
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Kind" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "Source" INTEGER NOT NULL DEFAULT 0""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "ParentReportId" INTEGER NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "FromSystemId" INTEGER NULL""",
+                    """ALTER TABLE "IntelReports" ADD COLUMN "HeadingSystemId" INTEGER NULL""",
+                    // ⚠️ The chat-message index is unique only above 0: a paste has no chat message
+                    // and is stored with 0, as often as anyone pastes. The old index, unique over
+                    // every row, would refuse the second paste ever made.
+                    """DROP INDEX IF EXISTS "IX_IntelReports_ChatMessageId" """,
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelReports_ChatMessage" ON "IntelReports" ("ChatMessageId") WHERE "ChatMessageId" > 0""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Time" ON "IntelReports" ("ReportedAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelReports_Reporter" ON "IntelReports" ("ChannelName", "ReporterName", "ReportedAt")""",
+                    // Where each pilot was last seen, from reports, pastes and kills. Mirrored for
+                    // PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "IntelLastSeen" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "Name" TEXT NULL, "SeenAt" TEXT NOT NULL DEFAULT '', "SourceRank" INTEGER NOT NULL DEFAULT 0, "Source" INTEGER NOT NULL DEFAULT 0, "SystemId" INTEGER NOT NULL DEFAULT 0, "ReportId" INTEGER NULL, "KillMailId" INTEGER NULL, "ShipTypeId" INTEGER NULL, "ShipName" TEXT NULL, "NoVisual" INTEGER NOT NULL DEFAULT 0, "CorporationId" INTEGER NULL, "AllianceId" INTEGER NULL, "AffiliationAt" TEXT NULL, "AffiliationSource" INTEGER NOT NULL DEFAULT 0, "PrevSystemId" INTEGER NULL, "PrevSeenAt" TEXT NULL, "InSystemSince" TEXT NULL, "WrittenAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_SeenAt" ON "IntelLastSeen" ("SeenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_System" ON "IntelLastSeen" ("SystemId", "SeenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_WrittenAt" ON "IntelLastSeen" ("WrittenAt")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Name" ON "IntelLastSeen" ("Name")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Corporation" ON "IntelLastSeen" ("CorporationId")""",
+                    """CREATE INDEX IF NOT EXISTS "IX_IntelLastSeen_Alliance" ON "IntelLastSeen" ("AllianceId")""",
+                    // The intel watch list: pilots, corporations, alliances, hulls and groups always alerted
+                    // for, or ignored. Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "IntelWatchEntries" ("Id" INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT, "Kind" TEXT NOT NULL DEFAULT '', "EntityId" INTEGER NOT NULL DEFAULT 0, "Name" TEXT NOT NULL DEFAULT '', "Mode" INTEGER NOT NULL DEFAULT 0, "Note" TEXT NULL, "AddedBy" TEXT NOT NULL DEFAULT '', "AddedAt" TEXT NOT NULL DEFAULT '')""",
+                    """CREATE UNIQUE INDEX IF NOT EXISTS "IX_IntelWatchEntries_Kind_Entity" ON "IntelWatchEntries" ("Kind", "EntityId")""",
+                    // The last route the Route Planner sent for each character: what the intel alarms watch
+                    // ahead of it. Mirrored for PostgreSQL in PostgresSchema.
+                    """CREATE TABLE IF NOT EXISTS "CharacterRoutes" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "DestinationSystemId" INTEGER NOT NULL DEFAULT 0, "SystemIds" TEXT NOT NULL DEFAULT '', "AtIndex" INTEGER NOT NULL DEFAULT 0, "SetAt" TEXT NOT NULL DEFAULT '', "ClearedAt" TEXT NULL)""",
                     // Intel whose chat message no longer exists. Two things delete a chat message
                     // without a replacement report being written: the dedupe above, and a log file
                     // being re-read after its length appeared to go backwards. In both cases the
@@ -3930,8 +4464,12 @@ public class App : Application
                     // messages on age"; Data Retention makes that false, and without the guard the
                     // first startup after a chat purge would silently destroy every intel report
                     // derived from the messages it removed.
-                    """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId") AND r."ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), ''))""",
-                    """DELETE FROM "IntelReports" WHERE NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId") AND "ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), '')""",
+                    //
+                    // ⚠️ And ChatMessageId > 0. A paste has no chat message at all (it is stored with
+                    // 0), so without that guard every pasted Local and d-scan would read as an orphan
+                    // and be deleted on the next start.
+                    """DELETE FROM "IntelReportCharacters" WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" r WHERE r."ChatMessageId" > 0 AND NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = r."ChatMessageId") AND r."ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), ''))""",
+                    """DELETE FROM "IntelReports" WHERE "ChatMessageId" > 0 AND NOT EXISTS (SELECT 1 FROM "ChatMessages" m WHERE m."Id" = "IntelReports"."ChatMessageId") AND "ReportedAt" >= COALESCE((SELECT MIN("OccurredAt") FROM "ChatMessages"), '')""",
 
                     """CREATE TABLE IF NOT EXISTS "NameLookupMisses" ("Name" TEXT NOT NULL PRIMARY KEY, "CheckedAt" TEXT NULL)""",
                     """CREATE TABLE IF NOT EXISTS "CharacterAffiliations" ("CharacterId" INTEGER NOT NULL PRIMARY KEY, "CorporationId" INTEGER NOT NULL DEFAULT 0, "AllianceId" INTEGER NOT NULL DEFAULT 0, "PulledAt" TEXT NULL)""",
@@ -4101,6 +4639,20 @@ public class App : Application
                 try { AssetLocations.FillMissing(db); }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("AssetLocations", "FillMissing", ex); }
 
+                // Each owner's assets kept as polled, and what has happened since written on top
+                // (see AssetActivity). In the background: the first start after this upgrade copies
+                // every owner's rows, and nothing on screen should wait for that. Logs its own errors.
+                var assetActivity = Services.GetRequiredService<AssetActivity>();
+                _ = Task.Run(() => assetActivity.UpgradeAsync());
+
+                // The layout templates that ship with the app, into the person's own folder of them.
+                var startErrors = Services.GetRequiredService<AppErrorLogger>();
+                _ = Task.Run(async () =>
+                {
+                    try { await EveConsole.Services.ClientLayouts.LayoutTemplates.CopyShippedAsync(); }
+                    catch (Exception ex) { startErrors.Log("ClientLayouts", "copying the shipped layout templates", ex); }
+                });
+
                 // Intel sighting keys changed shape again — from "intel:<time>|<reporter>|<system>"
                 // to "intel:<system>|<five-minute slice>|<pilots>", so that three people calling
                 // the same pilot are one sighting and nobody is named for reporting. An alarm
@@ -4114,6 +4666,15 @@ public class App : Application
                     db.Database.ExecuteSqlRaw("""DELETE FROM "AlarmSeenKeys" WHERE "MatchKey" LIKE 'intel:____-__-__T%'""");
                 }
                 catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel key migration", ex); }
+
+                // And again when intel alarms began matching on intel as it stands now, keyed by
+                // episode (a pilot's stay, a count's band, a flag's episode, a kill): once per
+                // database, so the first evaluation of each banks what is live instead of saying it.
+                try
+                {
+                    EveConsole.Alarms.Conditions.IntelCondition.RePrimeForEpisodeKeys(db);
+                }
+                catch (Exception ex) { Services.GetRequiredService<AppErrorLogger>().Log("Alarms", "intel episode key migration", ex); }
             }
 
             // Did the pass grow the SDE or Hobo tables? Then the new columns are empty until the
@@ -4177,7 +4738,10 @@ public class App : Application
         // window nobody is going to open.
         if (AppRuntime.IsHeadless)
         {
+            AppStartup.Settled();   // no window to wait for
             StartBackgroundServices();
+            _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
+            _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StartAsync();
 
             var db     = DbEngine.IsPostgres ? "PostgreSQL" : "SQLite";
             var holder = Services.GetRequiredService<WorkerLease>().IsHolder;
@@ -4218,16 +4782,35 @@ public class App : Application
         }
 
         p.Report((84, ShellText.SplashPreparingTools));
+        StartupTrace.Step("emote and avatar services");
+        EveConsole.Views.EmoteView.Service = Services.GetRequiredService<EveConsole.Services.Jabber.EmoteService>();
+        AvatarService.Shared = Services.GetRequiredService<AvatarService>();
+        StartupTrace.Step("main view model: resolving the services it takes");
+        // Tracing only: each service it takes, made one at a time and timed, so the trace names the
+        // ones that are slow to make. They are singletons, so this makes nothing that wouldn't be.
+        foreach (var needed in typeof(MainWindowViewModel).GetConstructors().MaxBy(c => c.GetParameters().Length)!.GetParameters())
+            StartupTrace.TimeServices(Services, needed.ParameterType);
         var mainVm = Services.GetRequiredService<MainWindowViewModel>();
+        StartupTrace.Step("client panel host");
+        Services.GetRequiredService<Views.ClientPanelHost>().UseMainScreen(mainVm);
+        StartupTrace.Step("tools prepared");
 
         p.Report((88, ShellText.SplashStartingServices));
         StartBackgroundServices();
+        _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().StartAsync();
+        _ = Services.GetRequiredService<IntelService>().RefreshRoomChannelsAsync();   // ⚠️ Here: it reads a column the upgrade adds.
+        _ = Services.GetRequiredService<EveConsole.Services.Mumble.MumbleService>().StartAsync();
+        _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().StartAsync();
+        Avalonia.Threading.Dispatcher.UIThread.Post(() => _mumbleOverlay = new Views.MumbleOverlayController(mainVm.MumbleVm));
 
         // Bounded: the Overview reads a lot, and on a large database or a slow disk it must not be
         // able to hold the window shut indefinitely. Past the cap it keeps loading behind a window
         // that is already usable — the old behaviour, but as a fallback rather than the norm.
         p.Report((94, ShellText.SplashLoadingOverview));
-        await Task.WhenAny(mainVm.OverviewVm.EnsureLoadedAsync(), Task.Delay(TimeSpan.FromSeconds(20)));
+        var overviewLoad = mainVm.OverviewVm.EnsureLoadedAsync();
+        await Task.WhenAny(overviewLoad, Task.Delay(TimeSpan.FromSeconds(20)));
+        StartupTrace.Mark(overviewLoad.IsCompleted ? "Overview loaded" : "Overview still loading after 20 s: the window opens anyway");
+        _ = overviewLoad.ContinueWith(_ => StartupTrace.Mark("Overview first load finished"), TaskScheduler.Default);
 
         p.Report((99, ShellText.SplashOpening));
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopFinal)
@@ -4238,11 +4821,29 @@ public class App : Application
             desktopFinal.ShutdownMode = Avalonia.Controls.ShutdownMode.OnMainWindowClose;
 
             p.Report((100, ShellText.SplashReady));
-            mainWindow.Show();
+            StartupTrace.Timed("main window shown", mainWindow.Show);
+
+            // The notification-area icon, in this process: it brings the main window back once
+            // that's closed with the app kept running (AppConfig.GetKeepRunningInTray).
+            TrayIconController.RetireLogonTray();
+            var tray  = Services.GetRequiredService<TrayIconController>();
+            var shown = mainWindow;
+            tray.ShowWindow = () => shown.ShowFromTray();
+            tray.ShowBackgroundProcesses = () => mainVm.ShowTool("background");
+            tray.Quit = () => desktopFinal.Shutdown();
+            tray.Show();
+            Views.MainWindow.TrayShowing = () => tray.IsVisible;
 
             await Task.Delay(250); // brief pause so the 100 % state is visible
             startupDone = true;
             splash?.Close();
+            StartupTrace.Mark("splash closed");
+
+            // Started; what could wait for that goes now. The sound library takes seconds to start,
+            // off the UI thread, and started any earlier it slowed the start itself: loading its
+            // native libraries held up the UI thread loading its own.
+            AppStartup.Settled();
+            VlcRuntime.WarmUp();
         }
 
         // ── Background services ────────────────────────────────────────────────
@@ -4294,6 +4895,12 @@ public class App : Application
                     if (activity.TryApplySignal(payload)) return;
                     if (OwnerList.TryApplySignal(payload)) return;
                     if (SdeNames.TryApplySignal(payload)) return;
+                    if (Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().TryApplySignal(payload)) return;
+                    if (Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().TryApplySignal(payload)) return;
+                    if (Services.GetRequiredService<IntelService>().TryApplySignal(payload)) return;
+                    // A PC that is not the worker asking it to evaluate now. Before the alarm path,
+                    // which would otherwise read it as an alarm firing.
+                    if (Services.GetRequiredService<AlarmService>().TryApplySignal(payload)) return;
                     _ = alarms.HandleSignalAsync(payload);
                 };
                 signals.Start();
@@ -4340,11 +4947,22 @@ public class App : Application
             // is off it is not started at all, which also drops its half-second heartbeat.
             if (PerfDiagnostics.UiStalls)
                 Start("UI stall monitor", () => Services.GetRequiredService<UiStallMonitor>().Start());
+
+            // Reads this machine's windows, so every client has its own. Does nothing until the
+            // user turns placement on for this desktop, and nothing at all where it can't work.
+            if (EveConsole.Services.ClientLayouts.ClientLayoutService.IsSupported)
+                Start("client layouts", () =>
+                {
+                    Services.GetRequiredService<Views.ClientPanelHost>();
+                    Services.GetRequiredService<EveConsole.Services.ClientLayouts.ClientLayoutService>().Start();
+                });
         }
 
         // ── Only the client holding the lease runs these ───────────────────────
         void StartLeaderServices()
         {
+            Start("Jabber",             () => _ = Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>().BecomeWorkerAsync());
+            Start("IRC",                () => _ = Services.GetRequiredService<EveConsole.Services.Irc.IrcService>().BecomeWorkerAsync());
             Start("ESI polling",        () => polling?.Start());
             Start("market pricing",     () => marketPricing?.Start());
             Start("market history",     () => marketHistory?.Start());
@@ -4364,6 +4982,10 @@ public class App : Application
             Start("map stats polling",  () => Services.GetRequiredService<MapStatsPollingService>().Start());
             Start("EVE-Scout",          () => Services.GetRequiredService<EveScoutService>().Start());
 
+            // Linked characters from the connectors the user set up, if any. Reads the connector list every
+            // half hour and does nothing more until one is connected.
+            Start("connector",          () => Services.GetRequiredService<EveConsole.Services.Connector.ConnectorService>().Start());
+
             // Links pending orders to stock, jobs and the contracts that deliver them.
             Start("order fulfilment",   () => Services.GetRequiredService<OrderFulfilmentService>().Start());
 
@@ -4382,6 +5004,22 @@ public class App : Application
             // displays everything the worker raises — while each condition is evaluated once, in
             // one place, instead of once per open window.
             Start("alarms",             () => Services.GetRequiredService<AlarmService>().Start());
+
+            // Intel parsing belongs to the worker, and a PC that has just become it has whatever the
+            // others stored while nobody was: one pass now catches up, from the shared watermark.
+            Start("intel catch-up",     () => _ = Task.Run(async () =>
+            {
+                try { await Services.GetRequiredService<IntelService>().ProcessNewAsync(waitForTurn: true); }
+                catch (Exception ex) { errorLogger.Log(nameof(IntelService), "catching up as the new worker", ex); }
+            }));
+
+            // Where each pilot was last seen starts from what the database already holds: once, in the
+            // shared database, on whichever PC is the worker first. In the background; it reads history.
+            Start("intel last seen",    () => _ = Task.Run(async () =>
+            {
+                try { await Services.GetRequiredService<EveConsole.Services.Intel.IntelLastSeenFeed>().SeedOnceAsync(); }
+                catch (Exception ex) { errorLogger.Log(nameof(EveConsole.Services.Intel.IntelLastSeenFeed), "seeding last seen", ex); }
+            }));
 
             // Anything scheduled that came due while no client was the worker fires on this first
             // pass, which is why it starts here rather than waiting for the tool to be opened.
@@ -4420,6 +5058,8 @@ public class App : Application
             }
 
             await Task.WhenAll(
+                Halt("Jabber",              Services.GetRequiredService<EveConsole.Services.Jabber.JabberService>(), s => s.StandDownAsync()),
+                Halt("IRC",                 Services.GetRequiredService<EveConsole.Services.Irc.IrcService>(),       s => s.StandDownAsync()),
                 Halt("ESI polling",         polling,       s => s.StopAsync()),
                 Halt("market pricing",      marketPricing, s => s.StopAsync()),
                 Halt("market history",      marketHistory, s => s.StopAsync()),
@@ -4434,6 +5074,7 @@ public class App : Application
                 Halt("name backfill",       Services.GetRequiredService<EntityNameBackfillService>(), s => s.StopAsync()),
                 Halt("map stats polling",   Services.GetRequiredService<MapStatsPollingService>(),    s => s.StopAsync()),
                 Halt("EVE-Scout",           Services.GetRequiredService<EveScoutService>(),           s => s.StopAsync()),
+                Halt("connector",           Services.GetRequiredService<EveConsole.Services.Connector.ConnectorService>(), s => s.StopAsync()),
                 Halt("order fulfilment",    Services.GetRequiredService<OrderFulfilmentService>(),    s => s.StopAsync()),
                 Halt("store mail",          Services.GetRequiredService<StoreMailService>(),          s => s.StopAsync()),
                 Halt("web stores",          Services.GetRequiredService<EveConsole.Services.WebStore.WebStoreSyncService>(), s => s.StopAsync()),
@@ -4492,7 +5133,7 @@ public class App : Application
 
         void Start(string name, Action start)
         {
-            try { start(); }
+            try { StartupTrace.Timed("start " + name, start); }
             catch (Exception ex) { errorLogger.Log("Startup", $"starting {name}", ex); }
         }
 
@@ -4629,6 +5270,28 @@ public class App : Application
             client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
         });
 
+        // Named HTTP client for the online services on eveconsole.com. A timeout of its own: an
+        // image upload is a few megabytes at most, and a scheduled post should not hang on one.
+        services.AddHttpClient(OnlineServices.ClientName, client =>
+        {
+            client.BaseAddress = new Uri("https://api.eveconsole.com/");
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        });
+
+        // Named HTTP client for the connector the user runs. No BaseAddress: the address is a setting,
+        // and every call is made absolute from it. A timeout of its own, so a connector that has hung
+        // fails the refresh rather than holding it.
+        //
+        // ⚠️ Redirects are not followed. A 307 would post a sign-in's poll secret again to wherever it pointed,
+        // and any redirect could take the key to a host it was never issued by, or to plain http on a network
+        // after the address was checked. A connector that has moved is typed in again.
+        services.AddHttpClient(EveConsole.Services.Connector.ConnectorService.ClientName, client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+            client.DefaultRequestHeaders.Add("User-Agent", "EveConsole/1.0 (EVE Online companion app)");
+        }).ConfigurePrimaryHttpMessageHandler(() => new System.Net.Http.SocketsHttpHandler { AllowAutoRedirect = false });
+
         // Named HTTP client for Discord channel webhooks. No BaseAddress: every webhook is its own
         // absolute URL, and no Authorization header — the link is the whole credential. A timeout
         // of its own, since a chart upload is a request somebody is sitting in front of.
@@ -4688,6 +5351,8 @@ public class App : Application
         services.AddSingleton<AppPreferencesService>();
         services.AddSingleton<SlackAuthService>();
         services.AddSingleton<SlackService>();
+        services.AddSingleton<OnlineSignInService>();
+        services.AddSingleton<OnlineServices>();
         services.AddSingleton<DiscordService>();
         services.AddSingleton<IndustryOpportunitiesService>();
         // Indy Parks Compare and the System Index tool, on screen and in scheduled posts.
@@ -4700,6 +5365,9 @@ public class App : Application
         // Decides whether this process does background work at all. Registered beside the
         // services it gates, though nothing resolves it until startup wires the lease events.
         services.AddSingleton<WorkerLease>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutStore>();
+        services.AddSingleton<EveConsole.Services.ClientLayouts.ClientLayoutService>();
+        services.AddSingleton<Views.ClientPanelHost>();
         // Planetary Industry: tax defaults and per-planet rates, and the one door the PI tool,
         // its alerts and its worklist tasks read colonies through.
         services.AddSingleton<EveConsole.Services.Pi.PiTaxService>();
@@ -4773,6 +5441,7 @@ public class App : Application
         services.AddSingleton<CorpActivityService>();
         services.AddSingleton<CharacterSummaryService>();
         services.AddSingleton<KillmailBrowserService>();
+        services.AddSingleton<EveConsole.Services.Battle.BattleReportService>();
         services.AddSingleton<CorpTop10ExcludeService>();
         services.AddSingleton<CorpReportTitles>();
         services.AddSingleton<MarketCompetitionService>();
@@ -4797,6 +5466,8 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IndustryBlueprintService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryTimeService>();
         services.AddSingleton<EveConsole.Services.Worklist.IndustryDemandService>();
+        services.AddSingleton<StoreNeedService>();
+        services.AddSingleton<AssetActivity>();
         services.AddSingleton<EveConsole.Services.Worklist.MaterialSubstitutionService>();
         services.AddSingleton<EveConsole.Services.Worklist.OutbidOrderService>();
         services.AddSingleton<EveConsole.Services.Worklist.JumpDistanceService>();
@@ -4813,9 +5484,13 @@ public class App : Application
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.AssetSafetyGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.TransferGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.PiGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.RefiningGenerator>();
+        services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
+                              EveConsole.Services.Worklist.StructureTaskGenerator>();
         services.AddSingleton<EveConsole.Services.Worklist.InventionService>();
         services.AddSingleton<EveConsole.Services.Worklist.IWorklistGenerator,
                               EveConsole.Services.Worklist.InventionGenerator>();
@@ -4830,6 +5505,56 @@ public class App : Application
         // allowlist — it stores other people's messages.
         services.AddSingleton<ChatLogImportService>();
         services.AddSingleton<IntelService>();
+        // Where each pilot was last seen, from the kills every importer stores, and its one-time seed.
+        services.AddSingleton<EveConsole.Services.Intel.IntelLastSeenFeed>();
+
+        // The read side of intel: one snapshot per process, read from the shared database while
+        // anything shows intel, and the standings and distances every view projects it through.
+        // The bridge list is one instance for the map and the distances alike, so a bridge added on
+        // the map reaches travel distances at once.
+        services.AddSingleton<EveConsole.Services.Intel.IntelSettings>();
+        services.AddSingleton<EveConsole.Services.Intel.IntelStandingService>();
+        services.AddSingleton(sp => new JumpBridgeService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<EsiClient>().GetSovSystemsAsync,
+            sp.GetRequiredService<CorpActivityService>()));
+        services.AddSingleton(sp => new EveConsole.Services.Intel.IntelDistanceService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<SystemGraph>(),
+            sp.GetRequiredService<EveScoutService>(),
+            sp.GetRequiredService<JumpBridgeService>(),
+            sp.GetRequiredService<AppErrorLogger>()));
+        services.AddSingleton(sp => new EveConsole.Services.Intel.IntelSnapshotService(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelStandingService>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelDistanceService>(),
+            sp.GetRequiredService<IntelService>(),
+            sp.GetRequiredService<CorpActivityService>(),
+            sp.GetRequiredService<AppPreferencesService>(),
+            sp.GetRequiredService<AppErrorLogger>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelWatchList>()));
+        // The intel watch list: pilots, corporations, alliances, hulls and groups always alerted for, or ignored.
+        services.AddSingleton<EveConsole.Services.Intel.IntelWatchList>();
+        // A pasted Local or d-scan, stored by the PC where it was pasted. Names through the parser's own
+        // resolver (the name cache, then ESI), and every PC told when it is written.
+        services.AddSingleton(sp =>
+        {
+            var intel = sp.GetRequiredService<IntelService>();
+            var names = sp.GetRequiredService<CorpActivityService>();
+            return new EveConsole.Services.Intel.IntelPasteService(
+                sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+                intel.ResolveCharactersAsync,
+                intel.FetchAffiliationsAsync,
+                async (ids, ct) => await names.ResolveNamesAsync(ids, ct),
+                sp.GetRequiredService<ClientSignals>(),
+                sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+                sp.GetRequiredService<AppErrorLogger>());
+        });
+        // The map's long-standing reader, now an adapter over the snapshot.
+        services.AddSingleton(sp => new LiveIntelService(
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<AppErrorLogger>()));
 
         // zKillboard integration — optional supplement to the ESI-based kill pull (see
         // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"
@@ -4882,6 +5607,11 @@ public class App : Application
         services.AddSingleton<MapStatsBackfillService>();
         services.AddSingleton<MapStatsPollingService>();
         services.AddSingleton<EveScoutService>();
+        services.AddSingleton(sp => new LinkedCharacterStore(
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(), sp.GetRequiredService<AppErrorLogger>()));
+        services.AddSingleton(sp => new EveConsole.Services.Connector.ConnectorService(
+            sp.GetRequiredService<IHttpClientFactory>(), sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<LinkedCharacterStore>(), sp.GetRequiredService<AppErrorLogger>()));
         services.AddSingleton<SovCampaignService>();
         services.AddHttpClient("eve-scout", c =>
         {
@@ -4899,9 +5629,21 @@ public class App : Application
 
         services.AddSingleton<AlarmSoundService>();
         services.AddSingleton<SystemGraph>();
+        // The intel check reads the shared intel snapshot and measures threat distances.
         services.AddSingleton(sp => AlarmConditionRegistry.CreateDefault(
-            sp.GetRequiredService<SystemGraph>()));
+            sp.GetRequiredService<SystemGraph>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
+            sp.GetRequiredService<EveConsole.Services.Intel.IntelDistanceService>()));
         services.AddSingleton<AlarmMuteState>();
+        services.AddSingleton<EveConsole.Services.Jabber.JabberService>();
+        services.AddSingleton<EveConsole.Services.Jabber.EmoteService>();
+        services.AddSingleton<AvatarService>();
+        services.AddSingleton<EveConsole.Services.Mumble.MumbleService>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.JabberDmSource>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.MumbleDmSource>();
+        services.AddSingleton<EveConsole.Services.Irc.IrcService>();
+        services.AddSingleton<EveConsole.Services.Messages.IDmSource, EveConsole.Services.Messages.IrcDmSource>();
+        services.AddSingleton<EveConsole.Services.Messages.DirectMessagesService>();
         services.AddSingleton<ApiActivityViewModel>();
         services.AddSingleton<TrayIconController>();
         services.AddSingleton<ClientSignals>();
@@ -4913,8 +5655,7 @@ public class App : Application
         // would reach into a container that is still being built, and several of them are
         // themselves produced by factories.
         //
-        // Intel is deliberately absent: it is driven by chat-log import, which is host-bound, so
-        // every client runs its own and the local status is the true one.
+        // Intel parsing is here too: every client stores its own chat, but only the worker parses.
         services.AddSingleton<BackgroundStatusSampler>();
         services.AddSingleton(sp => new WorkerActivityService(
             sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
@@ -4961,6 +5702,10 @@ public class App : Application
                                          Count      = alarms.ArmedCount,
                                          LastRunUtc = alarms.LastFireAt,
                                          NextRunUtc = alarms.NextDueAt },
+                    new WorkerActivity { Key     = WorkerActivityService.Intel,
+                                         Status  = sp.GetRequiredService<IntelService>().StatusText,
+                                         Running = sp.GetRequiredService<IntelService>().IsRunning,
+                                         Count   = sp.GetRequiredService<IntelService>().Backlog },
                     new WorkerActivity { Key        = WorkerActivityService.OrderFulfilment,
                                          Status     = order.StatusText,
                                          LastRunUtc = order.LastRunAt == default ? null : order.LastRunAt,
@@ -4976,7 +5721,8 @@ public class App : Application
                 db.Database.GetConnectionString()!,
                 sp.GetRequiredService<AlarmConditionRegistry>(),
                 sp.GetRequiredService<AlarmActionRunner>(),
-                sp.GetRequiredService<AppErrorLogger>());
+                sp.GetRequiredService<AppErrorLogger>(),
+                sp.GetRequiredService<ClientSignals>());
         });
 
         services.AddSingleton<EntityNameBackfillService>();

@@ -48,6 +48,10 @@
     <value>Success Chance</value>
     <comment>Text in IndustryBrowserView.</comment>
   </data>
+  <data name="OutputRunsEach" xml:space="preserve">
+    <value>{0:N0} runs each</value>
+    <comment>Beside a science job's output: how many runs each blueprint copy it makes will carry. {0} = runs.</comment>
+  </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Time Left</value>
     <comment>Text in IndustryBrowserView.</comment>

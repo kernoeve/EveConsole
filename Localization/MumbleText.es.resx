@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Añadir servidor</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Añade un servidor Mumble para hablar aquí sin otro cliente.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>Ninguna</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Sordo</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Silenciado</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Raíz</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Conectado, en {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Conectado</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Conectando…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Conexión perdida, se reintentará a las {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Sin conexión</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>El certificado del servidor no es de confianza.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>El servidor rechazó la contraseña.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>El servidor rechazó este nombre de usuario.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Certificado de {0}, huella:
+{1}
+
+La mayoría de servidores Mumble usan su propio certificado. Confía en él solo si esperas este servidor. A partir de entonces solo se aceptará este certificado.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Introduce el host del servidor y tu nombre de usuario.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>Esa tecla ya se usa en {0}. Cada tecla solo puede hablar en un servidor.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>¿Eliminar "{0}" y sus ajustes guardados? También se elimina su certificado, por lo que se perdería un nombre registrado en ese servidor. Esta acción no se puede deshacer.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>Predeterminado del sistema</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Mostrar quién habla, siempre visible</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Ajustes de sonido</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Micrófono</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Volumen del micrófono</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Altavoces</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Volumen de los altavoces</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Host del servidor</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Puerto</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Nombre de usuario</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Contraseña (si el servidor la tiene)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Déjalo en blanco para conservar la contraseña guardada.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Tokens de acceso (opcional, separados por comas)</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>Estas teclas son solo para este servidor y funcionan mientras esté conectado, aunque la aplicación esté en segundo plano.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Conectar al iniciar la aplicación</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Si no, solo se conecta cuando lo pidas. En ambos casos se reconecta solo si se pierde la conexión, hasta que desconectes. Este ajuste solo se aplica a este PC.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Confiar en este certificado</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Conectar</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Desconectar</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Silenciar</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Ensordecer</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Entrar en el canal</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Su volumen, solo para ti</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Mensaje a {0}. Intro envía, Mayús+Intro inicia una línea nueva.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Enviar</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: quién habla</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Nadie habla</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Desde {0}, el susurro llega solo a ese canal. El grito llega también a: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} no tiene canales enlazados, así que el susurro y el grito llegan solo a ese canal.</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Pulsa una tecla o un botón del ratón (Esc cancela)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Quitar</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Haz clic en el botón y pulsa la tecla o el botón del ratón que quieras usar. También sigue haciendo su función normal, así que una tecla con la que escribes hablará mientras escribes.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Nivelar mi voz automáticamente</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Desconectado por el servidor: {0}. Sigue desconectado hasta que vuelvas a conectarte.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Incluir subcanales</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} y subcanales</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>El servidor lo rechazó. Puede que no tengas permiso.</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Silenciar en el servidor</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Ensordecer en el servidor</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Orador prioritario</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Silenciar para mí</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Ignorar sus mensajes</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Registrado</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Silenciado por un administrador</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Ensordecido por un administrador</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Se ha silenciado</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Se ha ensordecido</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>No puede hablar aquí</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Orador prioritario</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Grabando</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Mover al canal</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Escribe parte del nombre del canal</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Mover</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>Mover a mi canal</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Elige un canal de la lista.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Motivo (opcional)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Expulsar</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Prohibir</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>¿Expulsar a {0} de este servidor?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>¿Prohibir a {0} en este servidor? Solo un administrador puede deshacerlo, desde la lista de prohibiciones.</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>¿Registrar a {0} en este servidor? El nombre queda ligado a su certificado y solo un administrador puede deshacerlo.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Lo que otros ven de ti</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Escuchar este canal</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Dejar de escuchar</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Enlazar con mi canal</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Desenlazar de mi canal</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>¿Eliminar {0} y todos los canales que contiene, para todos en este servidor?</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Reducir el ruido de fondo</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Cancelar el eco de mis altavoces</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Para escuchar por altavoces, para que los demás no se oigan por tu micrófono. Con auriculares no hay nada que cancelar. Mientras esté activo, el micrófono permanece abierto para aprender cómo suena tu habitación. No se envía nada a menos que hables.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Nivel de activación por voz</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Micrófono ahora: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Hablar por voz, sin mantener una tecla</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Tu micrófono permanece abierto mientras estés conectado a este servidor, y se envía todo lo que supere el nivel de los ajustes de sonido. Las teclas de arriba siguen funcionando.</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Reproducir un tono al empezar y dejar de hablar</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Lista de prohibiciones</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>No hay nadie prohibido.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>¿Levantar la prohibición de {0}?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Versión del servidor {0}, hasta {1} kbit/s por persona. Personas aquí: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>Conectado desde hace {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>inactivo desde hace {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Descripción</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>La cancelación de eco no puede ejecutarse en este equipo porque no se pudo cargar su biblioteca de sonido. La voz sigue funcionando.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Canales</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: {2} sin ensordecer en este canal</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>Servidores</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>Conexión</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>Destinos de canal</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>Servidor nuevo</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>Los cambios de host, puerto, usuario, contraseña y tokens se aplican la próxima vez que este servidor se conecte.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>Cada destino de canal indica a quién habla una tecla en este servidor. Cámbialos como quieras: cualquier canal, lo que va con él y personas estén donde estén.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>Tecla</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>Canales</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>Añadir destino de canal</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>Añadir canal</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>Canales enlazados</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>Subcanales</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>Personas, estén donde estén (nombres, separados por comas)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>Solo miembros de este grupo del servidor en esos canales (opcional)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>&lt;Canal actual&gt;</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>Destino nuevo</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>Susurrar: el canal en el que estoy</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>Gritar: mi canal y los enlazados a él</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>Un servidor admite {0} destinos, además de hablar normal.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>La contraseña se guarda en la base de datos compartida, cifrada con una clave obtenida de la contraseña de la base de datos.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>Detalles…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>Volumen y detalles…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>Información del servidor…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>Registrar este nombre…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>Mover a…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Expulsar…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Vetar…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>Nuevo canal…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>Nuevo canal temporal…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>Eliminar canal…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>Nuevo canal</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>Nuevo canal temporal</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>Su nombre, bajo {0}</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Buscar a alguien</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Mostrar las personas de cada canal</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Nadie aquí con ese nombre.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} aquí, {1} pueden oír</value>
+  </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>Las teclas de silenciar y ensordecer funcionan desde cualquier sitio, como las de hablar. Cada pulsación activa o desactiva.</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>Tecla de silenciar</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>Tecla de ensordecer</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>Permisos…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>Permisos: {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>Las líneas de más abajo prevalecen sobre las de arriba. Las líneas en gris vienen de canales superiores y se cambian allí.</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>Preguntando al servidor…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>Permisos</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>Grupos</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>Tomar los permisos de los canales superiores</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>Subir</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>Bajar</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>De un canal superior: cámbialo allí.</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>Persona registrada</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>Nombre registrado</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all: todos. auth: personas registradas. in / out: quienes están en este canal o no. ~ indica el canal de la línea, no donde se aplica.</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>Se aplica aquí</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>Se aplica a subcanales</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>Permiso</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>Permitir</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>Denegar</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>Nombre del nuevo grupo</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>Tiene los miembros de arriba</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>Los subcanales también lo tienen</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>Añadidos aquí</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>De arriba</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>Quitados aquí</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>Volver a leer</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>El servidor se negó. Cambiar permisos requiere Escribir en este canal.</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>Un grupo no puede llamarse «{0}»: el nombre está ocupado o lo calcula el propio servidor.</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>El servidor no tiene ninguna persona registrada llamada «{0}».</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>Una línea necesita un grupo o una persona.</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>Guardando…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>Guardado. Esto es lo que tiene ahora el servidor.</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>solo aquí</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>solo subcanales</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>no se aplica en ningún sitio</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0} (de arriba)</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>Volver a como está arriba</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>Quitar grupo</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>Quitar aquí</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>Devolver</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>Escribir (cambiar permisos)</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>Atravesar</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>Entrar</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>Hablar</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>Silenciar y ensordecer a otros</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>Mover personas</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>Crear canales</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>Crear canales temporales</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>Enlazar canales</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>Susurrar</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>Mensajes de texto</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>Escuchar</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>Expulsar</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>Vetar</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>Registrar a otros</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>Registrarse uno mismo</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>Restablecer comentarios e imágenes de otros</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>Elegir…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>El servidor no respondió. Descarta los mensajes enviados demasiado rápido: espera un momento y vuelve a leer.</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>El servidor no guardó todo. Esto es lo que tiene ahora: vuelve a cambiarlo y guarda dentro de un momento.</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Tecla de susurro a la selección</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Mantén esta tecla para susurrar a lo seleccionado en la lista de canales: haz clic o clic derecho en una persona, o clic derecho en un canal (un clic sigue llevándote allí). La selección se resalta en la lista y se nombra junto a tu nombre mientras hablas.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Con un canal seleccionado, llegar también a</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} en el servidor de Mumble {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>destino de canal {0}</value>
+  </data>
+</root>

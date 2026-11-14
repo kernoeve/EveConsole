@@ -21,8 +21,17 @@ namespace EveConsole.ViewModels;
 /// <para>The entries leave out exactly what the summary does — ISK moved between the player's own
 /// wallets (see <see cref="WalletJournalTotals"/>) — so a tab's total is the summary's figure.</para>
 /// </summary>
-public sealed class IncomeExpenseToolViewModel : ReactiveObject
+public sealed class IncomeExpenseToolViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+
+    /// <summary>A copy of the tool closed: its summary's clock stops too.</summary>
+    public void Dispose()
+    {
+        _life.Dispose();
+        Summary.Dispose();
+    }
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger _errorLogger;
 
@@ -78,7 +87,7 @@ public sealed class IncomeExpenseToolViewModel : ReactiveObject
         Income  = new IncomeExpenseJournalVm(this, dbFactory, errorLogger, income: true);
         Expense = new IncomeExpenseJournalVm(this, dbFactory, errorLogger, income: false);
 
-        OwnerList.Changed += () => _ = LoadOwnersAsync();
+        _life.OnOwnersChanged(() => _ = LoadOwnersAsync());
         _ = LoadOwnersAsync();
     }
 

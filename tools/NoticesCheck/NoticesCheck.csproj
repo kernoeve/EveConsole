@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Builds THIRD-PARTY-NOTICES.txt and the licenses folder from what each release ships, and
+       checks that the committed copies still match. Excluded from the app by the
+       <Compile Remove="tools/**" /> in EveConsole.csproj, like every tool here.
+       No reference to the app: it restores the app's project for each platform into a scratch
+       folder and reads the package metadata NuGet already has. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EveConsole.Tools.NoticesCheck</RootNamespace>
+    <AssemblyName>NoticesCheck</AssemblyName>
+  </PropertyGroup>
+
+</Project>

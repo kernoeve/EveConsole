@@ -1,0 +1,238 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="using:EveConsole.Views"
+             x:Class="EveConsole.Views.MessagesView"
+             x:DataType="vm:MessagesViewModel">
+
+  <UserControl.Styles>
+    <Style Selector="Button.reaction"><Setter Property="Padding" Value="6 1" /><Setter Property="Margin" Value="0 0 4 2" /><Setter Property="MinHeight" Value="0" /><Setter Property="CornerRadius" Value="10" />
+      <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" /><Setter Property="BorderThickness" Value="1" /><Setter Property="BorderBrush" Value="{DynamicResource SurfaceRaisedBrush}" /></Style>
+    <Style Selector="Button.reaction.mine"><Setter Property="BorderBrush" Value="{DynamicResource AccentBrush}" /><Setter Property="Background" Value="{DynamicResource AccentSurfaceBrush}" /></Style>
+    <!-- Reacting is offered where the pointer is: a message's own button shows only while it is over that message. -->
+    <Style Selector="Button.linebtn"><Setter Property="Padding" Value="3 0" /><Setter Property="MinHeight" Value="0" /><Setter Property="Background" Value="Transparent" /><Setter Property="BorderThickness" Value="0" /><Setter Property="Opacity" Value="0" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector=":is(Panel).msgline:pointerover Button.linebtn, Border.line:pointerover Button.linebtn"><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector=":is(TextBlock).deleted"><Setter Property="FontStyle" Value="Italic" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /></Style>
+    <Style Selector="Ellipse.dot"><Setter Property="Width" Value="8" /><Setter Property="Height" Value="8" /><Setter Property="Fill" Value="{DynamicResource TextFaintBrush}" /><Setter Property="VerticalAlignment" Value="Center" /></Style>
+    <Style Selector="Ellipse.dot.green"><Setter Property="Fill" Value="{DynamicResource GoodBrush}" /></Style>
+    <Style Selector="Ellipse.dot.amber"><Setter Property="Fill" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="ListBox#TabList"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox#TabList ListBoxItem"><Setter Property="Padding" Value="10 5" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="ListBox#ConversationList ListBoxItem"><Setter Property="Padding" Value="8 5" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="ListBox#PeopleList ListBoxItem"><Setter Property="Padding" Value="8 5" /><Setter Property="MinHeight" Value="0" /></Style>
+    <Style Selector="ListBox.lines ListBoxItem"><Setter Property="Padding" Value="0" /><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox.lines ListBoxItem:selected /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="ListBox.lines ListBoxItem:pointerover /template/ ContentPresenter"><Setter Property="Background" Value="Transparent" /></Style>
+    <Style Selector="Border.count"><Setter Property="CornerRadius" Value="8" /><Setter Property="Padding" Value="6 0" /><Setter Property="VerticalAlignment" Value="Center" /><Setter Property="Background" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Border.count TextBlock"><Setter Property="FontSize" Value="10" /><Setter Property="FontWeight" Value="SemiBold" /><Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" /></Style>
+  </UserControl.Styles>
+
+  <Grid ColumnDefinitions="Auto,*">
+
+    <!-- ── Every saved conversation ──────────────────────────────────────── -->
+    <Grid Grid.Column="0" Width="290" RowDefinitions="Auto,*,Auto" IsVisible="{Binding ShowList}" Background="{DynamicResource SurfacePanelBrush}">
+      <StackPanel Grid.Row="0" Margin="8" Spacing="6">
+        <StackPanel Spacing="6" IsVisible="{Binding ShowSaved}">
+          <Button Content="{x:Static loc:MessagesText.NewConversation}" Command="{Binding NewConversationCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Center" FontSize="12" />
+          <TextBlock Text="{x:Static loc:MessagesText.AllConversations}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBox Text="{Binding Search}" Watermark="{x:Static loc:MessagesText.SearchHint}" FontSize="11" />
+        </StackPanel>
+
+        <StackPanel Spacing="6" IsVisible="{Binding IsFinding}">
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Text="{x:Static loc:MessagesText.NewConversation}" FontSize="13" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <Button Grid.Column="1" Content="{x:Static loc:JabberText.Cancel}" Command="{Binding CancelNewConversationCommand}" FontSize="11" />
+          </Grid>
+          <TextBox x:Name="FindBox" Text="{Binding FindWords}" Watermark="{x:Static loc:MessagesText.FindHint}" FontSize="11" />
+          <TextBlock Text="{Binding FindNote}" IsVisible="{Binding HasFindNote}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+        </StackPanel>
+      </StackPanel>
+
+      <!-- Who is online now, on everything connected. -->
+      <ListBox x:Name="PeopleList" Grid.Row="1" IsVisible="{Binding IsFinding}" ItemsSource="{Binding People}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:MessagesPersonVm">
+            <Grid ColumnDefinitions="14,Auto,*" Background="Transparent" Tapped="OnPersonTapped">
+              <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" HorizontalAlignment="Left" />
+              <views:AvatarView Grid.Column="1" Of="{Binding Avatar}" Size="24" VerticalAlignment="Center" Margin="0 0 8 0" />
+              <StackPanel Grid.Column="2">
+                <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Where}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{Binding Where}" />
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding ShowNoSaved}" Text="{x:Static loc:MessagesText.NoConversations}" TextWrapping="Wrap" Margin="12" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+      <ListBox x:Name="ConversationList" Grid.Row="1" IsVisible="{Binding ShowSaved}" ItemsSource="{Binding Conversations}" SelectedItem="{Binding SelectedConversation}" Background="Transparent" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+        <ListBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:MessagesConversationVm">
+            <Grid ColumnDefinitions="14,*,Auto">
+              <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" HorizontalAlignment="Left" />
+              <StackPanel Grid.Column="1">
+                <TextBlock Text="{Binding Name}" FontSize="12" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <TextBlock Text="{Binding Where}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" ToolTip.Tip="{Binding Where}" />
+                <TextBlock Text="{Binding LastText}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" />
+              </StackPanel>
+              <StackPanel Grid.Column="2" Margin="6 0 0 0" Spacing="3">
+                <TextBlock Text="{Binding LastAt}" FontSize="9" HorizontalAlignment="Right" Foreground="{DynamicResource TextFaintBrush}" />
+                <Border Classes="count" IsVisible="{Binding HasUnread}" HorizontalAlignment="Right"><TextBlock Text="{Binding UnreadText}" /></Border>
+              </StackPanel>
+            </Grid>
+          </DataTemplate>
+        </ListBox.ItemTemplate>
+      </ListBox>
+
+      <CheckBox Grid.Row="2" IsChecked="{Binding SoundOn}" Margin="8" FontSize="11" Content="{x:Static loc:MessagesText.SoundOption}" />
+    </Grid>
+
+    <!-- ── The conversations open, a tab each ────────────────────────────── -->
+    <Grid Grid.Column="1" RowDefinitions="Auto,*">
+      <Grid Grid.Row="0" ColumnDefinitions="Auto,*" Background="{DynamicResource SurfaceHeaderBrush}">
+        <Button Content="{x:Static loc:MessagesText.ToggleList}" Command="{Binding ToggleListCommand}" Margin="6 4" FontSize="11" VerticalAlignment="Center" />
+        <ListBox x:Name="TabList" Grid.Column="1" ItemsSource="{Binding Tabs}" SelectedItem="{Binding SelectedTab}" ScrollViewer.VerticalScrollBarVisibility="Disabled" ScrollViewer.HorizontalScrollBarVisibility="Auto">
+          <ListBox.ItemsPanel>
+            <ItemsPanelTemplate><StackPanel Orientation="Horizontal" /></ItemsPanelTemplate>
+          </ListBox.ItemsPanel>
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MessagesTabVm">
+              <StackPanel Orientation="Horizontal" Spacing="6">
+                <Ellipse Classes="dot" Classes.green="{Binding DotGreen}" Classes.amber="{Binding DotAmber}" />
+                <TextBlock Text="{Binding Name}" FontSize="12" MaxWidth="170" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Where}" />
+                <Border Classes="count" IsVisible="{Binding HasUnread}"><TextBlock Text="{Binding UnreadText}" /></Border>
+                <Button Content="×" Click="OnCloseTab" Padding="4 0" FontSize="13" Background="Transparent" BorderThickness="0" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:MessagesText.CloseTab}" />
+              </StackPanel>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+      </Grid>
+
+      <TextBlock Grid.Row="1" IsVisible="{Binding ShowNothingOpen}" Text="{x:Static loc:MessagesText.NothingOpen}" VerticalAlignment="Center" HorizontalAlignment="Center" TextWrapping="Wrap" MaxWidth="420" TextAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+
+      <!-- One conversation, the same whichever service it is on. -->
+      <!-- ⚠️ Shown from outside: on the grid itself, this would be asked of the tab, not of the tool, and always show. -->
+      <Panel Grid.Row="1" IsVisible="{Binding HasTab}">
+      <Grid DataContext="{Binding SelectedTab}" x:DataType="vm:MessagesTabVm" RowDefinitions="Auto,Auto,*,Auto">
+        <Border Grid.Row="0" Padding="14 8" BorderBrush="{DynamicResource SurfaceRaisedBrush}" BorderThickness="0 0 0 1">
+          <Grid ColumnDefinitions="*,Auto">
+            <StackPanel>
+              <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextPrimaryBrush}" />
+              <TextBlock Text="{Binding Where}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+              <TextBlock Text="{Binding StatusLine}" IsVisible="{Binding HasStatusLine}" FontSize="10" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextFaintBrush}" ToolTip.Tip="{Binding StatusLine}" />
+            </StackPanel>
+            <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+              <Button Content="{x:Static loc:JabberText.AddContact}" Command="{Binding AddContactCommand}" IsVisible="{Binding CanAddContact}" />
+              <Button Content="{x:Static loc:JabberText.RemoveContact}" Command="{Binding RemoveContactCommand}" IsVisible="{Binding CanRemoveContact}" />
+            </StackPanel>
+          </Grid>
+        </Border>
+
+        <Button Grid.Row="1" Content="{x:Static loc:JabberText.LoadEarlier}" Command="{Binding LoadEarlierCommand}" IsVisible="{Binding HasEarlier}" HorizontalAlignment="Center" Margin="0 6" FontSize="11" />
+
+        <!-- A ListBox, not an ItemsControl in a scroller: long histories must stay virtualized. -->
+        <ListBox x:Name="LineList" Classes="lines" Grid.Row="2" ItemsSource="{Binding Lines}" Background="Transparent" SelectionMode="Single" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+          <ListBox.ItemTemplate>
+            <DataTemplate x:DataType="vm:MessagesLineVm">
+              <Grid Classes="msgline" ColumnDefinitions="Auto,*" Margin="14 4" Background="Transparent">
+              <views:AvatarView Of="{Binding Avatar}" Size="28" VerticalAlignment="Top" Margin="0 3 10 0" />
+              <StackPanel Grid.Column="1">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                  <TextBlock Text="{Binding Sender}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource InfoBrush}" />
+                  <TextBlock Text="{Binding When}" FontSize="10" VerticalAlignment="Center" Foreground="{DynamicResource TextFaintBrush}" />
+                  <Button Classes="linebtn" IsVisible="{Binding CanReply}" Click="OnReply" ToolTip.Tip="{x:Static loc:JabberText.ReplyTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M8 4 L3 9 L8 14 M3 9 H12 A5 5 0 0 1 17 14 V17" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanEdit}" Click="OnEditOwn" ToolTip.Tip="{x:Static loc:JabberText.EditTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M3 17 L3.5 13.5 L13 4 L16 7 L6.5 16.5 Z M11 6 L14 9" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanDelete}" Click="OnDeleteOwn" ToolTip.Tip="{x:Static loc:JabberText.DeleteTip}">
+                        <Viewbox Width="13" Height="13"><Path Data="M3 6 H17 M8 6 V3.5 H12 V6 M5 6 L6 17 H14 L15 6" Stroke="{DynamicResource TextMutedBrush}" StrokeThickness="1.8" StrokeLineCap="Round" StrokeJoin="Round" Width="20" Height="20" /></Viewbox>
+                      </Button>
+                      <Button Classes="linebtn" IsVisible="{Binding CanReact}" Click="OnAddReaction" ToolTip.Tip="{x:Static loc:JabberText.AddReactionTip}">
+                        <Viewbox Width="14" Height="14">
+                          <Canvas Width="24" Height="24">
+                            <Ellipse Canvas.Left="2" Canvas.Top="3" Width="17" Height="17" StrokeThickness="1.8" Stroke="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="6.6" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Ellipse Canvas.Left="12" Canvas.Top="8.5" Width="2.2" Height="2.2" Fill="{DynamicResource TextMutedBrush}" />
+                            <Path Data="M6.4 14 Q10.5 17.6 14.6 14 M20 1 V7 M17 4 H23" StrokeThickness="1.8" StrokeLineCap="Round" Stroke="{DynamicResource TextMutedBrush}" />
+                          </Canvas>
+                        </Viewbox>
+                      </Button>
+                </StackPanel>
+<Border IsVisible="{Binding HasReply}" BorderBrush="{DynamicResource TextFaintBrush}" BorderThickness="2 0 0 0" Padding="6 0" Margin="0 1 0 2" HorizontalAlignment="Left">
+                  <TextBlock Text="{Binding ReplyText}" FontSize="11" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+                </Border>
+                <views:EmoteTextBlock Body="{Binding Body}" Emotes="{Binding Emotes}" IsVisible="{Binding ShowsBody}" Classes.deleted="{Binding IsDeleted}" TextWrapping="Wrap" FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <ItemsControl ItemsSource="{Binding Pictures}" IsVisible="{Binding HasPictures}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:ChatPictureVm">
+                      <Panel HorizontalAlignment="Left" Margin="0 4 0 2">
+                        <Button IsVisible="{Binding NeedsClick}" Click="OnShowPicture" ToolTip.Tip="{Binding ShowTip}" Content="{x:Static loc:GroupChatText.ShowPicture}" FontSize="11" Padding="8 3" />
+                        <TextBlock IsVisible="{Binding IsLoading}" Text="{x:Static loc:GroupChatText.PictureLoading}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                        <TextBlock IsVisible="{Binding IsFailed}" Text="{x:Static loc:GroupChatText.PictureFailed}" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+                        <!-- A click opens it full size, in the browser. -->
+                        <Button IsVisible="{Binding IsShown}" Click="OnOpenPicture" Padding="0" Background="Transparent" BorderThickness="0" Cursor="Hand" ToolTip.Tip="{x:Static loc:GroupChatText.OpenPictureTip}">
+                          <Border CornerRadius="4" ClipToBounds="True">
+                            <Image Source="{Binding Picture}" Width="{Binding ShownWidth}" Height="{Binding ShownHeight}" Stretch="Uniform" />
+                          </Border>
+                        </Button>
+                      </Panel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <ItemsControl ItemsSource="{Binding Links}" IsVisible="{Binding HasLinks}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="x:String">
+                      <Button Content="{Binding}" Click="OnOpenLink" Padding="0" FontSize="11" Background="Transparent" BorderThickness="0" Foreground="{DynamicResource InfoBrush}" />
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                    <!-- Reactions: each emoji once, with how many chose it. A click adds this person's, or takes it back. -->
+                    <ItemsControl ItemsSource="{Binding Reactions}" Margin="0 3 0 0">
+                      <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate><WrapPanel /></ItemsPanelTemplate>
+                      </ItemsControl.ItemsPanel>
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate x:DataType="vm:ReactionChipVm">
+                          <Button Classes="reaction" Classes.mine="{Binding Mine}" Click="OnReactionChip" ToolTip.Tip="{Binding Tip}">
+                            <StackPanel Orientation="Horizontal" Spacing="4">
+                              <TextBlock Text="{Binding Emoji}" FontFamily="Segoe UI Emoji, Apple Color Emoji, Noto Color Emoji" FontSize="13" VerticalAlignment="Center" />
+                              <TextBlock Text="{Binding CountText}" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                            </StackPanel>
+                          </Button>
+                        </DataTemplate>
+                      </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                <TextBlock Text="{x:Static loc:JabberText.Seen}" IsVisible="{Binding ShowSeen}" FontSize="10" Margin="0 2 0 0" Foreground="{DynamicResource TextFaintBrush}" />
+              </StackPanel>
+              </Grid>
+            </DataTemplate>
+          </ListBox.ItemTemplate>
+        </ListBox>
+
+        <StackPanel Grid.Row="3">
+          <TextBlock Text="{Binding TypingText}" IsVisible="{Binding IsSomeoneTyping}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextFaintBrush}" />
+          <TextBlock Text="{Binding SendingFile}" IsVisible="{Binding IsSendingFile}" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
+          <TextBlock Text="{Binding Note}" IsVisible="{Binding HasNote}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource TextMutedBrush}" />
+          <TextBlock Text="{Binding CannotSend}" IsVisible="{Binding HasCannotSend}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource WarnBrush}" />
+          <TextBlock Text="{Binding StatusText}" IsVisible="{Binding HasStatus}" TextWrapping="Wrap" FontSize="11" Margin="14 2 14 0" Foreground="{DynamicResource BadBrush}" />
+<Border IsVisible="{Binding HasDraftBar}" Margin="10 4 10 0" Padding="8 3" CornerRadius="4" Background="{DynamicResource SurfaceRaisedBrush}">
+            <Grid ColumnDefinitions="*,Auto">
+              <TextBlock Text="{Binding DraftBarText}" FontSize="11" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+              <Button Grid.Column="1" Content="×" Click="OnCancelDraftMode" Padding="6 0" FontSize="13" Background="Transparent" BorderThickness="0" ToolTip.Tip="{x:Static loc:JabberText.Cancel}" />
+            </Grid>
+          </Border>
+          <Grid ColumnDefinitions="*,Auto,Auto,Auto" Margin="10 6">
+            <TextBox x:Name="DraftBox" Text="{Binding Draft}" IsEnabled="{Binding CanSend}" AcceptsReturn="True" TextWrapping="Wrap" MaxHeight="120" Watermark="{x:Static loc:JabberText.MessageHint}" />
+            <views:EmoteButton x:Name="EmoteBox" Grid.Column="1" Emotes="{Binding Emotes}" IsEnabled="{Binding CanSend}" Margin="4 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="2" Content="{x:Static loc:JabberText.AttachFile}" Click="OnAttach" IsVisible="{Binding CanAttach}" IsEnabled="{Binding !IsSendingFile}" ToolTip.Tip="{x:Static loc:JabberText.AttachTip}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+            <Button Grid.Column="3" Content="{x:Static loc:JabberText.Send}" Command="{Binding SendCommand}" Margin="8 0 0 0" VerticalAlignment="Bottom" />
+          </Grid>
+        </StackPanel>
+      </Grid>
+      </Panel>
+    </Grid>
+  </Grid>
+</UserControl>

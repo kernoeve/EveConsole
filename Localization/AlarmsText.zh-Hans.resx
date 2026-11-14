@@ -239,7 +239,7 @@
     <value>十二个月的趋势，绘制成图片并上传到消息下方。</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>此区块不会被发布。该任务的目标是 Webhook，而 Webhook 无法附带图片——请在上方选择一个工作区频道，否则任务运行时会跳过此区块。</value>
+    <value>此部分不会发布。Slack Webhook 只能显示在线托管的图片：请在“设置”的“在线服务”中登录，或在上方选择工作区频道。否则任务运行时将跳过此部分。</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>销售发布</value>
@@ -464,7 +464,7 @@
     <value>每张图都附带自己的图例发布。不读取星系指数工具的列表。</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>此目标是 Slack Webhook，无法发送图片：本部分的图片将被省略，只发布表格。Slack 频道或 Discord Webhook 可以发送图片。</value>
+    <value>Slack Webhook 只能显示在线托管的图片。在你于“设置”的“在线服务”中登录之前，此部分的图片将被省略，只发布其表格。Slack 频道或 Discord Webhook 在任何情况下都能发送图片。</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>第 {0} 部分（{1}）至少需要一项作业。</value>
@@ -775,6 +775,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>已删除。</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>删除“{0}”？此操作无法撤销。</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>没有可渲染的内容：此任务没有任何区块。</value>
   </data>
@@ -782,7 +785,7 @@
     <value>正在渲染…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0}——已跳过：目标为 Webhook]</value>
+    <value>[{0} — 已跳过：Slack Webhook 需要在“设置”的“在线服务”中登录]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0}——以图片形式上传]</value>
@@ -926,7 +929,7 @@
     <value>当有人报告你所监视的对象附近出现飞行员时触发：出站中的你的角色、任意位置的你的角色，或一组星系，每项都有一个跳数范围。读取的是已在“设置 → 聊天日志”中解析的情报频道。</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>攻击者中有敌对飞行员的击毁也会计入：一次击毁说明其攻击者当时就在该星系。</value>
+    <value>攻击者中有敌对飞行员的击毁总会触发，并作为击毁播报：损失了什么、被什么击毁。在一跳以内时最先播报。其攻击者不会再作为目击重复播报。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>舰船出站</value>
@@ -977,16 +980,22 @@
     <value>要监视的星系，例如 {0} 或 {1}。逐个添加；跳数为 0 时只监视这些星系。</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>跳数</value>
+    <value>到</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>跳数：从</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>可选。更近的星系不计入，优先星系和前方路线也一样。两个警报可以这样分担范围：一个设 0 到 2，另一个设 3 到 5，就不会同时触发。</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>从每个角色或星系向外经星门监视的跳数。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
+    <value>从每个角色或星系向外监视的跳数，经由星门以及 Thera 和 Turnur 的开放虫洞。0 表示只监视其所在的星系。上限为 15——再远就不算周边了。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>仅当报告中的飞行员人数不少于此值时才触发。默认为 1。</value>
+    <value>仅当星系中的敌对人数不少于此值时才触发。默认为 1。击毁和仅含标记的报告无论人数都会触发。</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>忽略无目视</value>
@@ -1598,7 +1607,7 @@
     <value>{0} 张图表失败：{1}。</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>已跳过 {0} 个图表区块：Webhook 无法附带图片。</value>
+    <value>已跳过 {0} 个图表部分：要显示图片，Slack Webhook 需要在“设置”的“在线服务”中登录。</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>没有可发出的提醒：提醒没有内容。</value>
@@ -1764,5 +1773,362 @@
   </data>
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>{0} 光年外</value>
+  </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>任务</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>日历</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>月</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>周</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>日</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>今天</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>上一个</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>下一个</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>还有 {0} 项</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>yyyy年M月d日 dddd</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>显示从现在起应用打开期间将运行的内容，时间为 EVE 时间。已关闭的任务不显示。间隔任务下次运行之后的时间为估算值，因为每次运行都从上一次算起。点击任务即可编辑。</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>此 Slack Webhook 通过地址显示图片，因此图片会上传到 eveconsole.com 并保留 12 个月。任何拥有链接的人都可以查看。</value>
+  </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>在 Slack 上以图片和对齐的列发布</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>取消勾选时，此部分以文本表格发布。Discord 始终收到文本。</value>
+  </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>表格上方的文字</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>显示在标题下方，Slack 和文本表格中都有。可以使用表情、链接和提及，提及会真正通知对方。</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>图片</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>仅用于 Slack 格式，显示在标题旁。Slack 的框必须有标题，留空时使用默认标题。</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>角色</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>军团</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>联盟</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>势力</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC 军团</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>代理人</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>物品类型</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>SLACK 框</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>无框</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>窄</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>标准</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>宽</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>文字的第一行会成为框的标题。Discord 和纯文本帖子按原样显示。</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>最近 30 天的活动</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>售出数量</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>平均价格</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>利润率 %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>总销售额</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>总利润</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>首位物品</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>Slack 方框已放不下更多列。请先移除一列再添加其他列。</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>超出 Slack 方框宽度。以下列不会出现在帖子中：{0}</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — 此处显示为文本；Slack 收到图片和对齐的列]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>占总额 {0}</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>已发布 {0} 条带图片的消息。</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>已发布 {0}/{1} 条消息；Slack 拒绝了下一条：{2}。</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack 不接受带图片的格式（{0}），因此以文本发送。</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>榜首</value>
+  </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>今日指数及 7 天变化（Slack 表格）</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>六张图表合为一张（图片）</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>指数历史</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} 是该活动的最低值。{1} {2} 表示 7 天内的变化（点）。</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>最低值表情</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>上升表情</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>下降表情</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>用于 Slack 表格。留空则使用所示的标准表情。自定义表情只在拥有它的工作区显示。</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>按作业汇总（Slack 表格）</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>每个作业一个方框（Slack）</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} 是该作业的最佳园区。每个百分比表示与最佳的差距。</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>每个百分比表示与该作业最佳园区的差距。</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — 制造</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{1} × {0:N0}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>市场价值 {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>{0} BPC</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>{0:N0} 流程，ME {1}，TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 至 ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% 至 TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>另有 {0} 个园区</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>市场价值来源</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>默认市场</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>价格</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>默认价格</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>作业方框中的市场价值。默认遵循市场默认设置和价格覆盖；选择任一项则读取该市场自身的价格。</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>今日指数及 7 天变化（图片）</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>今日指数</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>已更改：警报现在依据当前的情报状况，因此之后在别处出现的飞行员、或被报告为清空的星系，不再触发。每名飞行员在留在某个星系期间只播报一次，未具名的人数只有在超过 1、4、9 或 19 时才会再次播报；仅提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针的报告也会触发（见下方“仅含标记的报告”）。</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>仅含标记的报告</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>报告中没有计入人数、但提到星门蹲守、拦截泡、诱导、空降、本地人数激增或战斗探针时也会触发。每一项在有效期内只播报一次。</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>{0}发生击毁：{1}被{2}击毁。</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>{0}（{1}）发生击毁：{2}被{3}击毁。</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>敌对方</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>{0}（{1}）：{2}。</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>发生击毁</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>发生多起击毁</value>
+  </data>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>只有新情报会触发：最近两分钟内看到或进入范围的情况（设置 → 情报）；已经存在的不会播报。警报的每个动作都会对其触发的所有内容执行。若想在更近处有不同反应，请再添加一个有自己跳数范围的警报。</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>监视位置</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>触发内容</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>跳</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>越远越轻</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>一跳以内以最大音量播放，越远越轻：到范围边缘为 40%。语音保持你设置的音量。</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>视为敌对</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>哪些被点名的飞行员算数，按离他们最近的你的角色（或在 设置 → Intel 中指定的角色）的声望判断。蓝色和你自己的角色从不算；未点名的人数和只有标记的报告始终算。</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>中立及更差</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>仅负面</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>仅红色</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>使用关注列表</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>设为“始终警报”的对象在关注列表范围内触发，不论范围、敌对选择或最少人数，最先播报；设为“忽略”的对象从不触发。</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>关注列表范围</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>“始终警报”条目在多少跳以内触发（比范围更远时适用）。最多 15。</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>优先星系</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>可选。无论你的角色在哪里都始终监视的星系（但不近于“跳数：从”）。在那里看到的情况最先播报。</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>优先星系：{0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>关注列表：{0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>正在接近：前往 {0}。</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>正在接近：前往 {0}，{1}。</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>正在接近：之前在 {0}。</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>正在远离，前往 {0}。</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}，经由 Thera 或 Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>默认同样开启：根据击毁推算出的、位于你的角色附近或前方路线上的星门蹲守，以及前方路线本身，即路线规划发送到游戏的最后一条路线上尚待飞行的星系（见下方“星门蹲守”和“监视前方路线”）。</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>监视前方路线</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>同时监视路线规划为受监视角色发送到游戏的最后一条路线上仍在前方的星系，无论多远：在那里看到的情况会触发，并以路线前方多少跳来播报。只包括尚未飞过的部分；到达后或发送六小时后路线即被丢弃。只在游戏中设置的路线无法得知。</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>星门蹲守</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>当根据星门处的击毁推算出的星门蹲守位于受监视角色附近或前方路线上时触发。每个蹲守、每个角色、每条路线各播报一次，因此经过已知蹲守的新路线会再次播报。前方路线上 5 跳以内的蹲守为紧急，最先播报。</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守。</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0} 的 {1} 星门有星门蹲守，{2}。</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1}内击毁 {0} 次。</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} 分钟</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1} 的路线前方 {0} 跳</value>
   </data>
 </root>

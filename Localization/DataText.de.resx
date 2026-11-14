@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>Tarife speichern</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>Hintergrundprozesse</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>ESI-Aktivitätsprotokoll</value>
   </data>
@@ -1731,5 +1728,38 @@
   </data>
   <data name="EsiSpentElsewhereWatching" xml:space="preserve">
     <value>wird gemessen…</value>
+  </data>
+  <data name="ColJabberName" xml:space="preserve">
+    <value>Konto oder Raum</value>
+  </data>
+  <data name="ColLastMessage" xml:space="preserve">
+    <value>Letzte Nachricht</value>
+  </data>
+  <data name="ColLastDay" xml:space="preserve">
+    <value>Letzte 24 Std.</value>
+  </data>
+  <data name="JabberRunsHere" xml:space="preserve">
+    <value>Verbunden über diesen Client.</value>
+  </data>
+  <data name="JabberRunsOn" xml:space="preserve">
+    <value>Verbunden über den Client, der die Hintergrundarbeit erledigt, auf {0}.</value>
+  </data>
+  <data name="JabberRunsNowhere" xml:space="preserve">
+    <value>Niemand erledigt die Hintergrundarbeit, daher ist Jabber nicht verbunden.</value>
+  </data>
+  <data name="JabberNoAccounts" xml:space="preserve">
+    <value>Keine Jabber-Server eingerichtet. Füge im Tab Jabber der Einstellungen einen hinzu.</value>
+  </data>
+  <data name="JabberDirectMessages" xml:space="preserve">
+    <value>Direktnachrichten</value>
+  </data>
+  <data name="JabberJoined" xml:space="preserve">
+    <value>Beigetreten</value>
+  </data>
+  <data name="JabberNotJoined" xml:space="preserve">
+    <value>Nicht beigetreten</value>
+  </data>
+  <data name="JabberPresent" xml:space="preserve">
+    <value>{0} anwesend</value>
   </data>
 </root>

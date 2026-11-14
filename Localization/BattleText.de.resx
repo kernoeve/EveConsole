@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>In Entitäten öffnen</value>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>Unbekanntes Schiff</value>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>Klicken Sie auf eine Allianz, um ihre Corporations anzuzeigen. Doppelklick öffnet ihre Seite.</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Abschuss öffnen</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>Opfer-Corporation</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>Opfer-Allianz</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>Letzter Treffer</value>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>Corporation (letzter Treffer)</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>Allianz (letzter Treffer)</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>Kämpfe finden</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>Letzte 24 Stunden</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>Letzte 3 Tage</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>Letzte 7 Tage</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>leer = bis jetzt</value>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>Mindestens Piloten:</value>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>Nur Kämpfe mit meinen Piloten</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Suchen</value>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>Abschüsse werden durchsucht…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>Findet Kämpfe anhand von Abschuss-Häufungen und verbindet Systeme, wenn dieselben Piloten in beiden sind. Öffnen Sie einen, um eine Schlacht mit ausgefüllten Systemen und Zeiten zu erhalten, die Sie anpassen können.</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>zKillboard importiert laut Einstellungen nicht alle Abschüsse, daher werden nur Kämpfe gefunden, an denen Ihre Charaktere und Corporations beteiligt waren.</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>Diese Datenbank enthält in diesem Zeitraum keine Kämpfe dieser Größe.</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>Gefundene Kämpfe: {0:N0}. Die größten nach verlorenen ISK stehen oben.</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>Wählen Sie einen Zeitraum von höchstens {0} Tagen.</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>Der kleinste Kampf muss eine ganze Pilotenzahl sein.</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>Öffnen</value>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>läuft noch</value>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>Ihre Piloten waren an diesem Kampf beteiligt.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Beginn</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Dauer</value>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>Systeme</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>Größte Seiten</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>Mobile Strukturen verloren</value>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>Dieses leere Team entfernen</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Hinzufügen:</value>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>System oder Konstellation</value>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>leer = läuft noch</value>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>Auf alle anwenden</value>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>Allen Systemen in der Liste diese Zeiten geben.</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>Diese Schlacht aktualisieren, sobald Abschüsse eintreffen. Nur Systeme mit leerem oder künftigem Ende können neue Abschüsse erhalten.</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>Live verfolgt: {0} von {1}</value>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  Konstellation  ·  {1}</value>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>Abschüsse: {0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>Neue Schlacht</value>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>Neue Schlacht</value>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>Schlacht benennen</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Speichern</value>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>Diese Schlacht für später in der Liste behalten. Nach dem Speichern werden Änderungen automatisch übernommen.</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>Gespeicherte Schlachten</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>Gespeicherte Schlachten erscheinen hier.</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>Systeme: {0}  ·  {1}</value>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>Öffnen Sie eine gespeicherte Schlacht oder beginnen Sie eine neue.</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>Systeme und Zeiten</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Gespeicherte Schlacht „{0}“ löschen? Die Abschüsse bleiben in der Datenbank.</value>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>Diese Schlacht schließen</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Diese gespeicherte Schlacht löschen</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>Das Ende ist leer oder liegt in der Zukunft, daher kann es live verfolgt werden.</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>Fügen Sie die Systeme und ihre Zeiten hinzu und öffnen Sie dann den Bericht. Lassen Sie das Ende leer, wenn der Kampf noch läuft.</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>Fügen Sie mindestens ein System hinzu.</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}: Der Beginn muss wie 2026-01-31 18:00 aussehen.</value>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}: Das Ende muss wie 2026-01-31 20:00 aussehen oder leer bleiben.</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}: Das Ende liegt vor dem Beginn.</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Von (EVE-Zeit):</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>Bis (EVE-Zeit):</value>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>jjjj-mm-tt hh:mm</value>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>Live verfolgen</value>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>Bericht öffnen</value>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>live</value>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>LIVE</value>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>Abschuss-Link oder -ID</value>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>Abschuss nutzen</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Team {0}</value>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>Ihre Seite</value>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>ISK verloren</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>Effizienz</value>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>Verursachter Schaden</value>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>Schiffe verloren</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>Kapseln verloren</value>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>Strukturen verloren</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>Schaden an Strukturen</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>Seiten</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>Schiffe</value>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>Zeitverlauf</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>Verl.</value>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>ISK verl.</value>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>Schaden</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Schiff</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Gruppe</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Zeit</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>Team</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>Opfer</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Angreifer</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Wert</value>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>Team hinzufügen</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>Die Seiten ergeben sich daraus, wer auf wen geschossen hat. Verschieben Sie eine mit den Pfeilen; danach bleiben die vorhandenen Seiten, wo sie sind.</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>Verlorene ISK im Kampfverlauf</value>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>Zum Team links verschieben</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>Zum Team rechts verschieben</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>Kampfbericht</value>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>Abschüsse werden gelesen…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>Darin wurde keine Abschuss-ID gefunden. Fügen Sie einen Abschuss-Link oder dessen Nummer ein.</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>Abschuss {0} ist nicht in dieser Datenbank.</value>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>Abschüsse konnten nicht gelesen werden: {0}</value>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>Neue Abschüsse konnten nicht gelesen werden, neuer Versuch: {0}</value>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>Einige Namen konnten nicht abgerufen werden: {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Abschüsse: {0:N0}  ·  Piloten: {1:N0}  ·  ISK verloren: {2}</value>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} EVE-Zeit</value>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>Diese Datenbank enthält keine Abschüsse in diesen Systemen zu dieser Zeit.</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>Nur die ersten {0:N0} Abschüsse werden angezeigt: Grenzen Sie die Zeit ein.</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>Letzter Abschuss vor {0}</value>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>Der zKillboard-Import ist in den Einstellungen deaktiviert, daher enthält dieser Bericht nur Abschüsse Ihrer eigenen Charaktere und Corporations.</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>zKillboard ist in den Einstellungen auf „Mine + Corp“ gestellt, daher enthält dieser Bericht nur Abschüsse, an denen Ihre Charaktere und Corporations beteiligt waren.</value>
+  </data>
+</root>

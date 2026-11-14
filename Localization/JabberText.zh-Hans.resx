@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Typing" xml:space="preserve">
+    <value>{0} 正在输入…</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>附件</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>将文件放到此服务器并发送其地址。任何拥有该地址的人都可以打开它。</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>正在发送 {0}…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} 的大小为 {1}。此服务器接受不超过 {2} 的文件。</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} 未发送：{1}</value>
+  </data>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>在线</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>可以聊天</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>离开</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>长时间离开</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>请勿打扰</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>出现我的名字或关键词时</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>每条消息</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>从不</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>想添加你</value>
+  </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} 邀请了你</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>连接已断开，将在 {0} 重试</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>服务器拒绝登录。请检查密码。</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>服务器证书不受信任。</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>服务器不提供加密，因此未发送任何内容。</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>此登录已在其他位置连接，因此已断开。</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>该昵称已被使用。</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>此聊天室需要密码。</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>你已被此聊天室封禁。</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>此聊天室仅限成员。</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>此聊天室不存在。</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>无法加入此聊天室。</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>你</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>未连接，因此未发送。</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0} 的证书，指纹：
+{1}
+
+仅在它与服务器管理员公布的内容一致时才信任。之后将只接受此证书。</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>地址格式应为 name@domain。</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>请输入此登录的密码。</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>删除“{0}”及其保存的所有消息？此操作无法撤销。</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>将 {0} 从联系人中移除？</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>服务器未列出聊天室。你仍可以输入聊天室名称。</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>添加 Jabber 服务器，即可在此聊天，无需单独的客户端。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>添加服务器</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>请在左侧选择服务器。</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>断开</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>编辑</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>取消</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>信任此证书</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>加入</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>离开聊天室</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>添加联系人</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>移除联系人</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>接受</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>加载更早的消息</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>登录名 (name@domain)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>密码</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>留空则保留已保存的密码。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>服务器主机（可选）</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>留空时根据登录域名查找服务器。如果你的团体指定了主机，请填写。</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>端口</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>从一开始就加密（通常为端口 5223）</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>聊天室昵称（可选）</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>资源（可选）</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>应用启动时连接</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>否则仅在你要求时连接。无论哪种方式，连接丢失后都会自动重连，直到你断开。</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>提醒关键词，以逗号分隔</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>提醒我</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>状态</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>地址 (name@domain)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>需要注意的消息播放提示音</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>输入消息。Enter 发送，Shift+Enter 换行。</value>
+  </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>此服务器保存私信存档，错过的私信会在连接时补回。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>此服务器不保存私信存档。不过它可能会保留你离线时发送的私信。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>已加入的 {1} 个房间中有 {0} 个保存存档。在这些房间错过的消息会在连接时补回；其他房间只显示加入时重放的内容。</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>此房间保存存档：错过的消息会在连接时补回。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>此房间不保存存档：你只能看到加入时重放的内容。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>此房间有存档，但不向此账户开放：你只能看到加入时重放的内容。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>接受后，此人可以看到你何时在线，同时也会请求查看对方的状态。拒绝后，对方看不到你的状态。无论如何，你们都可以互发消息。</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>你的联系人可以看到的状态消息（可选）。按 Enter 设置。</value>
+    <comment>Under the status choice.</comment>
+  </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>正在等待后台进程</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>这不是 Pidgin 表情主题：里面没有名为 theme 的文件。</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>theme 文件太大，不是表情主题。</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>表情包太大。一个表情包最多 5,000 张图片、64 MB。</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>无法将此文件作为 zip 打开。</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>主题列出的图片都无法使用，因此没有加载任何内容。</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>搜索表情</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>没有名称包含该内容的表情。</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>表情（也可以输入 : 和开头几个字母）</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>{0:N0} 个代码 · {1:N0} 张图片</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>表情包</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>像 :wave: 这样的代码会在此服务器的房间和消息中显示为图片，写消息时也可以选择。表情包是 Pidgin 表情主题。两个表情包有相同代码时，以靠上的为准。</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>此服务器没有表情包，代码会显示为普通文字。</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>上移：优先于下面的表情包</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>加载表情包…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Pidgin 表情主题：它的 zip，或已解压文件夹中的 theme 文件。加载一次后，使用此数据库的每台电脑都有。</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>把已为其他服务器加载的表情包也给此服务器</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>正在加载表情包…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>已加载 {0}：{1:N0} 个代码，{2:N0} 张图片。</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>已用此副本更新 {0}（所有使用它的服务器）：{1:N0} 个代码，{2:N0} 张图片。</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>主题列出的 {0:N0} 张图片不在表情包中，已跳过。</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} 个文件不是图片或对表情来说太大，已跳过。</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>移除 {0}？没有其他服务器使用它，因此会被删除。要恢复，请重新加载。</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>已移除并删除 {0}，因为没有其他服务器使用它。</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>已从此服务器移除 {0}。使用它的其他服务器仍保留。</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>加载表情包</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin 表情主题</value>
+  </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>此消息已删除。</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>已被主持人删除。</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>已被主持人删除：{0}</value>
+  </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>回应</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>搜索表情符号（英文名称）</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>笑脸</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>人物和手势</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>爱心和标记</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>动物和自然</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>食物和饮料</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>活动</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>旅行和地点</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>物品</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>符号</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>你被踢出了这个房间。</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>房间的服务关闭了它。</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>由 {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>此人删除了一条消息，但你的客户端无法显示。</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>回复</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>编辑（或在空框中按上方向键）</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>为所有人删除</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>正在回复 {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>正在编辑你的消息</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>此处未保存的消息</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>为所有人删除这条消息？支持的客户端会移除它；Pidgin 等旧客户端仍会显示。</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>已读</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>告知对方我已读其消息</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>仅限与个人的对话（与其他客户端一样）：对方客户端会显示为已读。房间中从不发送。</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>你的头像</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>选择图片…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>移除头像</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>使用 EVE 肖像</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>选择后立即以小方图发送。除非你在这里更改，否则头像不会变化。</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>连接后才能更改头像。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>头像已设置。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>头像已移除。</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>该文件不是本应用可读取的图片（PNG、JPEG、GIF、WebP 或 BMP，小于 20 MB）。</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>无法从 EVE 图片服务器获取肖像。请稍后再试。</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>此服务器只接受比这更小的图片。</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>你未在此服务器注册，因此头像只保留到断开连接为止。</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>房间拒绝了：你在那里无权这样做。</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>房间拒绝了（{0}）。</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>房间拒绝了，未说明原因。</value>
+  </data>
+</root>

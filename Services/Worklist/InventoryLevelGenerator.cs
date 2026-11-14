@@ -27,7 +27,8 @@ public class InventoryLevelGenerator(
     WorklistMarketAltService             marketAlts,
     MaterialSubstitutionService     substitution,
     MarketCompetitionService        competition,
-    OutbidOrderService              outbidOrders) : IWorklistGenerator
+    OutbidOrderService              outbidOrders,
+    WorklistSettings                settings) : IWorklistGenerator
 {
     public string Id          => "inventory_levels";
     public string DisplayName => WorklistText.SourceInventoryLevels;
@@ -38,10 +39,44 @@ public class InventoryLevelGenerator(
 
         // Build rules belong to the industry generator. Without this a component group would be
         // told to buy and to manufacture the same shortfall.
-        var rules = await db.WorklistInvRules.AsNoTracking()
-            .Where(r => r.Enabled && r.Action != "Build")
+        //
+        // ⚠️ Except for what nothing manufactures. A Build rule on a faction module, a mineral or a
+        // datacore says "keep this stocked" about something no job can make, and the job side
+        // drops it as bought-not-built; with this side skipping it too, the level produced no task
+        // at all. It is bought instead, at the industry buy location — the same place the purchase
+        // generator buys a build's materials, so the two rows for one item merge.
+        var allRules = await db.WorklistInvRules.AsNoTracking()
+            .Where(r => r.Enabled)
             .ToListAsync(ct);
+        var buildRules = allRules.Where(r => r.Action == "Build").ToList();
+        var buyAt      = settings.IndustryBuyLocationId;
+        var rules = allRules.Where(r => r.Action != "Build")
+            .Concat(buildRules.Select(r => new WorklistInvRule
+            {
+                Id                = r.Id,
+                GroupId           = r.GroupId,
+                ThresholdPercent  = r.ThresholdPercent,
+                FillTargetPercent = r.FillTargetPercent,
+                LocationId        = buyAt,
+                LocationName      = settings.IndustryBuyLocationName,
+                Enabled           = true,
+                Action            = r.Action,
+                IsFinalProduct    = r.IsFinalProduct,
+            }))
+            .ToList();
         if (rules.Count == 0) return [];
+
+        // What a job can make: anything a published blueprint manufactures or reacts into. The
+        // same test the production context uses (ProductionCalculatorService.LoadContextAsync).
+        var buildGroupIds = buildRules.Select(r => r.GroupId).Distinct().ToList();
+        var made = buildRules.Count == 0 ? [] : (await db.SdeBlueprintProducts.AsNoTracking()
+                .Where(p => (p.Activity == "manufacturing" || p.Activity == "reaction")
+                         && db.InvLevelItems.Any(i => buildGroupIds.Contains(i.GroupId) && i.TypeId == p.ProductTypeId)
+                         && db.SdeTypes.Any(t => t.TypeId == p.TypeId && t.Published))
+                .Select(p => p.ProductTypeId)
+                .Distinct()
+                .ToListAsync(ct))
+            .ToHashSet();
 
         var groups = await db.InvLevelGroups.AsNoTracking()
             .Where(g => rules.Select(r => r.GroupId).Contains(g.Id))
@@ -97,7 +132,7 @@ public class InventoryLevelGenerator(
         var availByGroup = await invLevels.LoadAvailableAsync(
             itemsByGroup.Select(kv => (groups[kv.Key],
                                        (IReadOnlyList<int>)kv.Value.Select(i => i.TypeId).Distinct().ToList()))
-                        .ToList(), ct);
+                        .ToList(), ct, withScopeStations: true);
         var allNames  = await invLevels.GetTypeNamesAsync(allTypeIds, ct);
 
         // ⚠️ Blueprints are not raised here. MaterialPurchaseGenerator totals a print's stock
@@ -129,6 +164,7 @@ public class InventoryLevelGenerator(
                 foreach (var gi in groupItems)
                 {
                     if (bpTypeIds.Contains(gi.TypeId)) continue;   // totalled with job demand instead
+                    if (rule.Action == "Build" && made.Contains(gi.TypeId)) continue;   // a job's, not a purchase
 
                     avail.TryGetValue(gi.TypeId, out var av);
                     var need = InvRuleShortfall.For(rule, group, gi, av);
@@ -203,7 +239,11 @@ public class InventoryLevelGenerator(
                         GrossDemand    = need.Wanted,
                         SupplyCredited = need.Have + ordered + held.Units,
                         Readiness     = blocked ? WorklistReadiness.Blocked : WorklistReadiness.Ready,
-                        BlockedBy     = blocked ? WorklistText.BlockedNoCharacterAtLocation : "",
+                        // A Build rule's purchase has no station of its own: it buys where the
+                        // industry buys, and with none set, that is what is missing.
+                        BlockedBy     = !blocked ? ""
+                                      : rule.LocationId > 0 ? WorklistText.BlockedNoCharacterAtLocation
+                                      : WorklistText.BlockedNoBuyLocation,
                         CharacterId   = alt?.CharacterId   ?? 0,
                         CharacterName = alt?.CharacterName ?? "",
                         LocationId    = rule.LocationId,
@@ -254,9 +294,9 @@ public class InventoryLevelGenerator(
             .Select(g => new { TypeId = g.Key, Qty = g.Sum(a => (long)a.Quantity) })
             .ToDictionaryAsync(x => x.TypeId, x => x.Qty, ct);
 
-        // And what contracts have moved since, a courier's cargo included, as stock of the item
-        // itself is counted. Never below zero. See ContractLag.
-        foreach (var m in await ContractLag.MovesAsync(db, ct, sourceIds))
+        // And a courier's cargo, as stock of the item itself is counted; what contracts did
+        // otherwise is in the rows already (AssetActivity). Never below zero. See ContractLag.
+        foreach (var m in await ContractLag.InTransitAsync(db, ct, sourceIds))
             held[m.TypeId] = Math.Max(0, held.GetValueOrDefault(m.TypeId) + m.Units);
 
         var result = new Dictionary<int, (long, string)>();

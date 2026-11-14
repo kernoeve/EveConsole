@@ -1,0 +1,1105 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>Wie lange Intel gilt</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>Jede Art von Meldung gilt so lange nach der Meldung als aktuell und verblasst dabei; danach verschwindet sie aus den Panels und von der Karte. Gilt für jeden PC an dieser Datenbank. „No visual“ ist eine Markierung an einer Sichtung, keine eigene Dauer.</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>Ein benannter Pilot</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>Eine unbenannte Anzahl („+5“)</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>Ein als frei gemeldetes System</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>Ein Gate-Camp oder Bubbles</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>Ein Cyno</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>Ein Pilot auf einem Kill</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>Ein Pilot, der ein Schiff verloren hat</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>Minuten</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>Sekunden</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>Folgezeilen</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>Eine Zeile ohne eigenes System („+2“, „nv“, „clr“) ergänzt die letzte Meldung desselben Melders im selben Kanal, wenn sie innerhalb dieser Zeit kommt.</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>Zeitfenster für Folgezeilen</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>Gate-Camps aus Kills</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>Kills an einem Gate, jeder kurz nach dem vorigen und mit einem gemeinsamen Angreifer, sind ein Camp, sobald dort genug verschiedene Piloten verloren haben. Ein einzelner Kill ist kein Camp.</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>Innerhalb dieser Entfernung zu einem Gate</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>Längste Pause zwischen Kills</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>Verlorene Piloten, ab denen es ein Camp ist</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>Standings</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>Piloten werden nach den Standings des betrachtenden Charakters gefärbt: dem, dem ein Panel folgt, oder dem nächsten Online-Charakter. Persönliche Kontakte zuerst, dann die der Corporation, dann die der Allianz. Wähle hier einen Charakter, um überall dessen Standings zu verwenden.</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>Standings von</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>(der eigene Charakter jedes Clients)</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>Entfernung</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>Wie nah eine Bedrohung ist, zählt Stargates und jede offene Thera- und Turnur-Verbindung in beide Richtungen. Reiseentfernungen können zusätzlich unsere eigenen Jump Bridges zählen, in den Richtungen, die die Allianz des Charakters nutzen darf.</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>Unsere Jump Bridges für Reiseentfernungen verwenden</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>Intel-Alarme</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>Gilt für alle Intel-Alarme. Nur so neue Meldungen lösen einen Alarm aus und heben eine Panel-Zeile hervor; was schon da war, wird nicht angesagt, und ältere Meldungen werden weiter angezeigt.</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>Nur Meldungen jünger als</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>Warnung zum Kill-Feed</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>Das Intel-Tool warnt, wenn zKillboard nicht jeden Kill in New Eden liest: Kills anderswo erreichen Intel dann nie. Die Warnung lässt sich dort für jeden PC ausblenden.</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>Warnung wieder anzeigen</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>Die Warnung wird wieder angezeigt.</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>Speichern fehlgeschlagen: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>Intel-Verlauf</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>Entfernt Intel-Meldungen, die darin genannten Piloten und wo jeder Pilot zuletzt gesehen wurde, sobald sie älter sind als dies. Chatnachrichten und Kills werden nach ihren eigenen Regeln behalten.</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>Intel-Verlauf löschen, älter als</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>{0:N0} Intel-Zeilen älter als {1:N0} Tage entfernt.</value>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>jetzt</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0} Min.</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0} Std. {1} Min.</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{0} Sprünge von {1}</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{0} Sprünge von {1}, über Thera oder Turnur</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>Farbe nach den Ansehen von {0}</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>Farbe aus allen deinen Charakteren: freundlich, wenn es einer ist</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>Smartbombs</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>Dictor</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>schwerer Dictor</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Diesen Piloten öffnen</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>Diesen Rumpf im Gegenstandsbrowser öffnen</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>frei</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>gemeldet von {0}</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>Abschuss</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>Abschuss am Tor</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>verloren an</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>am Tor nach {0}</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>Torcamp · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>{0} im Local</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>{0} im D-Scan</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>gemeldet</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} ohne Sicht</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>{0} feindlich</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} ohne Namen</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} später</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>Verloren von {0}, an {1} Angreifer</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>Eingefügt von {0}</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>Gemeldet von {0} in {1}</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>Später:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0} Spr.</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>Niemand eingeloggt</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>+{0} weitere in {1} Spr.</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{0} in {1} Spr.</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>in {0}</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>Ort unbekannt</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>Ort unbekannt: Liste öffnen für das neueste Intel</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>Auf diesem Monitor ist niemand eingeloggt.</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0} ist kein Charakter in EVE Console.</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0} ist nicht in EVE Console</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>Es sind keine Intel-Kanäle eingerichtet; hier erscheinen nur Abschüsse.</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>In Einstellungen → Chat-Logs festlegen</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>Intel wird gelesen…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>Nichts gemeldet innerhalb von {0} Sprüngen um {1}.</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>Nichts in {0} Spr.</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>Zuletzt nichts gemeldet. Wo {0} ist, ist noch unbekannt.</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>Blau und Hellblau ausgeblendet · Entfernungen über Tore und Thera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>wo {0} ist, ist unbekannt; das neueste Intel erscheint ohne Sprünge</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>persönliche Kontakte unbekannt: Farben aus Corp- und Allianzkontakten</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>Seite des Systems öffnen</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>Auf der Karte zeigen</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>Systemnamen kopieren</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>Im Intel-Werkzeug öffnen</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>Wie weit dieses Element schaut, in Sprüngen über Tore und Thera oder Turnur. Im Layout-Editor einstellbar.</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>Local oder D-Scan einfügen</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>Im Intel-Werkzeug öffnen</value>
+  </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>Verlauf</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>Einfügen</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>Die Intel ist unvollständig: Der volle zKillboard-Feed ist aus, Kills zwischen anderen Piloten in deiner Nähe fehlen also.</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>Kill-Mail-Einstellungen öffnen</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>Auf allen PCs ausblenden, bis der volle Feed wieder ein- und ausgeschaltet wird</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>Entfernung von</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>Nächster eingeloggter Charakter</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0} (nicht online)</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>Innerhalb</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} Sprünge</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>Beliebig weit</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>Meine Jump Bridges</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>Zählt deine eigenen Jump Bridges mit: wie weit für die Reise. Die Entfernung einer Bedrohung nutzt sie nie.</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>Ansehen</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>Rot</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>Orange</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>Neutral</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>Hellblau</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>Blau</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>Eigener Charakter</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>Quellen</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>Alle Kanäle, Kills, Einfügungen</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>Keine Quellen</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{0} von {1} Quellen</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>Kills (zKillboard und ESI)</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>Eingefügtes Local und D-Scan</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>System oder Pilot suchen…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>Vor {0} aktualisiert</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>Intel-Auswertung: dieser PC</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>Intel-Auswertung: Worker auf {0}</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>Intel-Auswertung: kein Worker</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>Sortieren</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>Am nächsten</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>Neueste</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>Meiste Feinde</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>{0} weitere über dem Limit</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>Sprünge</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>Lage</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>Schiffe</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>Hinweise</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>Bewegung</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>Alter</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>Am nächsten</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>Quellen</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>Feinde</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>Ohne Sicht</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>Torcamp</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>Hinweise</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>Frei</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>aus {0}</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>Richtung {0}</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>Kills</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>Einfügung</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>Keine aktuelle Intel in dieser Entfernung.</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>In dieser Zeit wurde in dieser Entfernung nichts gemeldet.</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>Nichts passt zur Suche.</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>Keine Intel-Kanäle gesetzt: Hake sie unter Einstellungen → Chat-Logs an oder markiere einen Jabber- oder IRC-Raum als Intel. Kills und Einfügungen werden weiter gezeigt.</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>Keiner deiner Charaktere ist online, daher gibt es keinen Ausgangspunkt für Sprünge: Alles wird gelistet, sortiert nach Nähe, sobald sich jemand einloggt.</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>Der unter „Entfernung von“ gewählte Charakter ist nicht online: keine Sprünge, bis er sich einloggt oder ein anderer gewählt wird.</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>Letzte</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} Minuten</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>Kills zeigen</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>Sonstiges Gespräch</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>Zeilen in den Intel-Kanälen, die keine Intel ergaben: Gespräch, Fragen, ein Nachtrag ohne Bezug. Gedämpft gezeigt, nie als Intel gespeichert.</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>EVE-Zeit</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>Meldung</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>Nachtrag</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>Frei</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>Local eingefügt</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>D-Scan</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>Kill</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>Torcamp</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>Gespräch</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>Einfügung</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>Einfügung · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>kam aus {0}</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>unterwegs nach {0}</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>überholt</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>abgelaufen</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>Systemseite öffnen</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>Pilot öffnen</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>System</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>System wählen</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0} ({1} hier)</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>oder ein anderes System…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>Eingefügt von</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>Local (Namen, einer pro Zeile) oder einen D-Scan einfügen</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>Im Spiel die Local-Mitgliederliste oder das D-Scan-Fenster komplett markieren, kopieren und hier mit Strg+V einfügen.</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>Die App liest die Zwischenablage nie selbst: Nur was du in das Feld einfügst, wird verwendet.</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>Erkannt: Local-Liste</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>Erkannt: D-Scan</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>Weder Local-Liste noch D-Scan: Local hat einen Namen pro Zeile, ein D-Scan durch Tabs getrennte Spalten.</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>Wähle das System, aus dem das stammt.</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>Ersetzt {0} dort gemeldete</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>Ein eingefügtes Local ist die ganze Liste: Alle im System Gemeldeten werden entfernt, dann alle auf der Liste aus den gespeicherten Ansehensstufen gesetzt. Ein unvollständiges Einfügen leert genauso.</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → Bubbles</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → Cyno</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>Ein D-Scan fügt nur eine unbenannte Anzahl Schiffe hinzu und leert das System nie: Der D-Scan sieht nicht jeden.</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>In das Feld einfügen: Was gespeichert würde, steht hier, bevor etwas gespeichert wird.</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>Speichern (Strg+Enter)</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>Deine</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>Nicht erkannt</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>Keine Allianz</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>Als unbenannt gezählt</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>Letzte Einfügungen</value>
+  </data>
+  <data name="StatusSystemsOne" xml:space="preserve">
+    <value>{0} System mit aktueller Intel</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>{0} Systeme mit aktueller Intel</value>
+  </data>
+  <data name="StatusHostilesOne" xml:space="preserve">
+    <value>{0} Feind</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>{0} Feinde</value>
+  </data>
+  <data name="StatusCampsOne" xml:space="preserve">
+    <value>{0} Torcamp</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>{0} Torcamps</value>
+  </data>
+  <data name="PasteUnknownNamesOne" xml:space="preserve">
+    <value>{0} unbekannter Name als unbenannt gezählt</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>{0} unbekannte Namen als unbenannt gezählt</value>
+  </data>
+  <data name="RecentPilotsOne" xml:space="preserve">
+    <value>{0} Name</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} Namen</value>
+  </data>
+  <data name="RecentShipsOne" xml:space="preserve">
+    <value>{0} Schiff</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>{0} Schiffe</value>
+  </data>
+  <data name="PasteDscanShipsOne" xml:space="preserve">
+    <value>{0} Schiff</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>{0} Schiffe</value>
+  </data>
+  <data name="PastePlacesOne" xml:space="preserve">
+    <value>Setzt {0} Piloten nach {1}</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>Setzt {0} Piloten nach {1}</value>
+  </data>
+  <data name="FeedCountOne" xml:space="preserve">
+    <value>Neueste zuerst · {0} Zeile</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>Neueste zuerst · {0} Zeilen</value>
+  </data>
+  <data name="PasteSavedLocalOne" xml:space="preserve">
+    <value>Gespeichert: Local von {1}, {0} Name.</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>Gespeichert: Local von {1}, {0} Namen.</value>
+  </data>
+  <data name="PasteSavedDscanOne" xml:space="preserve">
+    <value>Gespeichert: D-Scan von {1}, {0} Schiff.</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>Gespeichert: D-Scan von {1}, {0} Schiffe.</value>
+  </data>
+  <data name="PasteNamesCountOne" xml:space="preserve">
+    <value>{0} Name · erkannt: {1} · unbekannt: {2}</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} Namen · erkannt: {1} · unbekannt: {2}</value>
+  </data>
+  <data name="PasteDscanCountOne" xml:space="preserve">
+    <value>{0} Schiff · unbekannte Typen: {1}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>{0} Schiffe · unbekannte Typen: {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>Gerade aktualisiert</value>
+  </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0} (System)</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>oder ein System…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>Sprünge von einem System statt von einem Charakter zählen. Dann schaut kein einzelner Charakter, also kommen die Farben von all deinen Charakteren: freundlich, wenn es einer von ihnen ist.</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Piloten</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>Camps</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>Beobachtungsliste</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>Pilot, Corporation oder Allianz…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>Gesehen in den letzten</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 Stunde</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 Stunden</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 Stunden</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 Tage</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 Tage</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>Suche…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>Jeder Pilot dort, wo die Intel ihn zuletzt gesehen hat: Meldung, eingefügter Local oder Abschuss</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>Die Piloten konnten nicht gelesen werden: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>Die neuesten {0} · zum Eingrenzen suchen</value>
+  </data>
+  <data name="PilotsCountOne" xml:space="preserve">
+    <value>{0} Pilot</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>{0} Piloten</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>In dieser Zeit wurde niemand gesehen.</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>Zuletzt in</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>Gesehen</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>Wie</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>Gemeldet</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>Eingefügter Local</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>Angreifer bei einem Abschuss</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>Schiff verloren</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>keine Sicht</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>Zuletzt gesehen in {0}, vor {1}</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} T</value>
+  </data>
+  <data name="CampsActiveOne" xml:space="preserve">
+    <value>{0} aktives Camp</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>{0} aktive Camps</value>
+  </data>
+  <data name="CampsEndedOne" xml:space="preserve">
+    <value>{0} beendet</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>{0} beendet</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>Aus Abschüssen an Toren und aus Meldungen · beendete Camps bleiben eine Stunde nach dem letzten Abschuss blass stehen</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>Keine Torcamps in dieser Entfernung in der letzten Stunde.</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>Keine Torcamps gesehen. Camps werden aus Abschüssen ermittelt, und ohne den vollen zKillboard-Feed kommen nur Abschüsse an, an denen du oder deine Corporation beteiligt seid.</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>Tor nach {0}</value>
+  </data>
+  <data name="CampKillsOne" xml:space="preserve">
+    <value>{0} Abschuss</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>{0} Abschüsse</value>
+  </data>
+  <data name="CampAttackersOne" xml:space="preserve">
+    <value>{0} Pilot</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} Piloten</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>Gemeldet</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>Abschüsse und Meldungen</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>Aktiv</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>Beendet</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>Camp</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>Status</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Abschüsse</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>Zuletzt</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Angreifer</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>Die Abschüsse des Camps im Gefechtsbericht öffnen</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Den Abschuss im Gefechtsbericht öffnen</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>Abschüsse öffnen</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>Abschuss öffnen</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>Diese Corporation öffnen</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>Diese Allianz öffnen</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>Immer alarmieren</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>Ignorieren</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>Piloten, Corporations, Allianzen, Rümpfe und Schiffsgruppen, gemeinsam für jeden PC an dieser Datenbank. Immer alarmieren: fett angezeigt, und Intel-Alarme mit Beobachtungsliste melden sie auch aus größerer Entfernung. Ignorieren: blass angezeigt und nie gemeldet. Zuerst zählt der Eintrag des Piloten, dann der seiner Corporation, seiner Allianz, seines Rumpfs und dessen Gruppe.</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>Pilot</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>Corporation</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>Allianz</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>Rumpf</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>Schiffsgruppe</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>Immer alarmieren</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>Ignorieren</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>Hinzufügen</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>Name zum Hinzufügen…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>Notiz (optional)</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>Noch nichts auf der Beobachtungsliste. Hier hinzufügen oder überall in der Intel einen Piloten rechtsklicken.</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0} auf {1}</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>Die Beobachtungsliste konnte nicht geändert werden: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>Von der Beobachtungsliste nehmen</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>Art</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Name</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>Modus</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>Notiz</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>Hinzugefügt</value>
+  </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}m</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}h</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>Neueste Meldung hier um {0} EVE-Zeit</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>Zuletzt gesehen um {0} EVE-Zeit</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>Feinde hier: {0} ({1} mit Namen, {2} nur gezählt)</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>Kill hier um {0} EVE-Zeit</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>Kills hier: {0}, der letzte um {1} EVE-Zeit</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>Gate-Camp</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>Gate-Camp am Gate nach {0}</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>Keine Sicht: gemeldet, nicht gesehen</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>Als frei gemeldet</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>Wer ist hier, nach Allianz (oder Corporation):</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>Zugehörigkeit noch unbekannt: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>An einem Kill hier beteiligt</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>Piloten hier</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>Meldungen und Kills</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>Wer</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>Nach dieser Spalte sortieren; erneut klicken kehrt die Reihenfolge um</value>
+  </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} durch Ansehen ausgeblendet</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} durch Ansehen ausgeblendet</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Jeder gefundene Pilot ist durch den Ansehensfilter ausgeblendet: Oben weitere Ansehensstufen einschalten, um sie aufzulisten.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>Am Abschuss beteiligt, nach Allianz (oder Corporation):</value>
+  </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>Unbekannter Pilot</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>Unbekannter Pilot (Charakter {0}): Der Name ist noch nicht bekannt</value>
+  </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Auch gemeldet in:</value>
+  </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE-Chat - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Speichern:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Welche Ansehensstufen ein eingefügter Local speichert, so wie der einfügende Charakter sie sieht. Piloten der ausgeschalteten Stufen werden gar nicht erfasst, deine eigenen Charaktere nie. Wird auf diesem PC gemerkt.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Leeren</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Leert das Feld und die Vorschau. System und „Eingefügt von“ bleiben.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} ausgelassen ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Speichert {0} als frei: niemand der gewählten Ansehensstufen ist darauf</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Ein Local listet jeden dort auf. Gespeichert sagt er, dass das System frei von den gewählten Ansehensstufen ist, und nimmt das dort Gemeldete heraus.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Nicht gespeichert</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Nie gespeichert</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} eigene darauf, nie gespeichert</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Gespeichert: {0} ist frei von den gewählten Ansehensstufen.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Die Speichern-Auswahl gilt nur für benannte Piloten: Ein D-Scan nennt niemanden, daher zählt jedes Schiff darauf.</value>
+  </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Speichern ist aus: Alle Speichern-Chips sind aus. Schalte Ansehensstufen ein, um zu speichern.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Noch nicht nachgeschlagene Namen: {0}. ESI hat nicht geantwortet, und es könnten Freunde sein, daher wird nichts gespeichert, bis sie bekannt sind. Neuer Versuch in Kürze.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Speichern ist aus: ausgelassene Piloten, die feindlich sein könnten: {0} ({1}). Ein Local nimmt alle in {2} Gemeldeten heraus, Speichern würde sie also entfernen, als wären sie gegangen. Schalte ihre Ansehensstufen ein, um ihn zu speichern.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Noch nicht nachgeschlagen</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Wartet auf ESI</value>
+  </data>
+</root>

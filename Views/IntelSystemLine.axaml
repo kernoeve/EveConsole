@@ -1,0 +1,182 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
+             x:Class="EveConsole.Views.IntelSystemLine"
+             x:DataType="vm:IntelSystemLineVm">
+  <!-- A system with hostiles in it, on one line of a narrow panel: how far, the system (its region small under
+       it), how many, what they fly, who they are; at the right, small flag icons and the age. As the line narrows,
+       names give way to their icons (each named in its tooltip), the second group and the further hulls go; the
+       line stays one line. No picture for the system: it is its name. Theme colours only, but for the standings
+       tiers, which keep the game's. -->
+  <UserControl.Resources>
+    <!-- A who token's picture: a pilot's portrait, round, with a smaller alliance or corporation logo on it; or a
+         group's logo, square, with how many beside it. A placeholder holds the space while the picture loads. -->
+    <DataTemplate x:Key="WhoPicture" x:DataType="vm:IntelWhoTokenVm">
+      <StackPanel Orientation="Horizontal" Spacing="2" ToolTip.Tip="{Binding Tip}" Background="Transparent">
+        <Panel Width="20" Height="20" VerticalAlignment="Center">
+          <Border IsVisible="{Binding IsPilot}" CornerRadius="10" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Picture.Picture}" Width="20" Height="20" />
+          </Border>
+          <Border IsVisible="{Binding !IsPilot}" CornerRadius="3" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Picture.Picture}" Width="20" Height="20" />
+          </Border>
+          <Border IsVisible="{Binding HasBadge}" Width="11" Height="11" CornerRadius="2" ClipToBounds="True"
+                  HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -3 -2"
+                  BorderBrush="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" Background="{DynamicResource SurfacePanelAltBrush}">
+            <Image Source="{Binding Badge.Picture}" Width="10" Height="10" />
+          </Border>
+        </Panel>
+        <TextBlock Text="{Binding CountText}" IsVisible="{Binding HasCount}" FontSize="10" FontWeight="SemiBold"
+                   VerticalAlignment="Bottom" Margin="0 0 0 1" Foreground="{DynamicResource TextPrimaryBrush}" />
+      </StackPanel>
+    </DataTemplate>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- The single line keeps to one line of text: the region goes to the system's tooltip. -->
+    <Style Selector="views|IntelSystemLine.oneline Panel.region"><Setter Property="IsVisible" Value="False" /></Style>
+    <Style Selector="views|IntelSystemLine.oneline Grid.row"><Setter Property="Height" Value="22" /></Style>
+
+    <Style Selector="Border.badge">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="MinWidth" Value="20" />
+      <Setter Property="Padding" Value="3 0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.badge > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.badge.here"><Setter Property="Background" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="Border.badge.here > TextBlock"><Setter Property="Foreground" Value="{DynamicResource SurfaceBaseBrush}" /></Style>
+    <Style Selector="Border.badge.near"><Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" /></Style>
+    <Style Selector="Border.badge.near > TextBlock"><Setter Property="Foreground" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="Border.badge.mid"><Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" /></Style>
+    <Style Selector="Border.badge.mid > TextBlock"><Setter Property="Foreground" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Border.badge.far"><Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" /></Style>
+    <Style Selector="Border.badge.far > TextBlock, Border.badge.pending > TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.count">
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.count.novisual"><Setter Property="Foreground" Value="{DynamicResource InfoBrush}" /></Style>
+
+    <Style Selector="Border.age">
+      <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
+      <Setter Property="CornerRadius" Value="3" />
+      <Setter Property="Padding" Value="4 0" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Path.flag">
+      <Setter Property="Width" Value="12" />
+      <Setter Property="Height" Value="12" />
+      <Setter Property="StrokeThickness" Value="1.4" />
+      <Setter Property="StrokeLineCap" Value="Round" />
+      <Setter Property="StrokeJoin" Value="Round" />
+      <Setter Property="Stroke" Value="{DynamicResource TextSecondaryBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Path.flag.kill"><Setter Property="Stroke" Value="{DynamicResource BadBrush}" /></Style>
+    <Style Selector="Path.flag.camp, Path.flag.cyno"><Setter Property="Stroke" Value="{DynamicResource WarnBrush}" /></Style>
+    <Style Selector="Path.flag.novisual, Path.flag.bubbles"><Setter Property="Stroke" Value="{DynamicResource InfoBrush}" /></Style>
+    <Style Selector="Path.flag.clear"><Setter Property="Stroke" Value="{DynamicResource GoodBrush}" /></Style>
+  </UserControl.Styles>
+
+  <Grid Classes="row" ColumnDefinitions="Auto,*,Auto" Height="24" Background="Transparent">
+    <Border Classes="badge" IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
+            Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
+            Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
+      <TextBlock Text="{Binding JumpsText}" />
+    </Border>
+
+    <views:IntelFitPanel Grid.Column="1" Margin="6 0 6 0">
+      <!-- Where: the system, its region small under it (in the tooltip on the single line). -->
+      <StackPanel VerticalAlignment="Center" Margin="0 0 8 0" ToolTip.Tip="{Binding SystemTip}">
+        <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="{Binding NameWeight}" MaxWidth="96"
+                   TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextBrightBrush}" />
+        <Panel Classes="region">
+          <TextBlock Text="{Binding RegionText}" IsVisible="{Binding HasRegion}" FontSize="8.5" MaxWidth="96" Margin="0 -1 0 0"
+                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+        </Panel>
+      </StackPanel>
+
+      <!-- How many. -->
+      <TextBlock Classes="count" Classes.novisual="{Binding IsNoVisual}" Text="{Binding CountText}" IsVisible="{Binding HasCount}"
+                 ToolTip.Tip="{Binding CountTip}" Margin="0 0 8 0" />
+      <TextBlock views:IntelFitPanel.Drop="7" Text="{Binding GateText}" IsVisible="{Binding HasGate}" FontSize="10" VerticalAlignment="Center"
+                 Margin="0 0 8 0" MaxWidth="90" TextTrimming="CharacterEllipsis" Foreground="{DynamicResource WarnBrush}" />
+
+      <!-- What they fly: the most flown hull by icon and name, ×n; the next ones by icon. -->
+      <Border IsVisible="{Binding HasPrimaryHull}" Width="20" Height="20" CornerRadius="3" ClipToBounds="True" VerticalAlignment="Center"
+              Background="{DynamicResource SurfacePanelAltBrush}" ToolTip.Tip="{Binding PrimaryHull.Text}">
+        <Image Source="{Binding PrimaryHull.Picture}" Width="20" Height="20" />
+      </Border>
+      <TextBlock views:IntelFitPanel.Drop="3" Text="{Binding PrimaryHullName}" IsVisible="{Binding HasPrimaryHull}" FontSize="11"
+                 VerticalAlignment="Center" Margin="4 0 0 0" MaxWidth="84" TextTrimming="CharacterEllipsis"
+                 Foreground="{DynamicResource TextPrimaryBrush}" />
+      <TextBlock views:IntelFitPanel.Drop="6" Text="{Binding PrimaryHullCount}" IsVisible="{Binding HasPrimaryHullCount}" FontSize="10" FontWeight="SemiBold"
+                 VerticalAlignment="Center" Margin="2 0 0 0" Foreground="{DynamicResource TextSecondaryBrush}" />
+      <ItemsControl views:IntelFitPanel.Drop="5" ItemsSource="{Binding OtherHulls}" IsVisible="{Binding HasOtherHulls}"
+                    VerticalAlignment="Center" Margin="5 0 0 0">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="2" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:IntelPictureVm">
+            <Border Width="16" Height="16" CornerRadius="2" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}"
+                    ToolTip.Tip="{Binding Text}">
+              <Image Source="{Binding Picture}" Width="16" Height="16" />
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <TextBlock views:IntelFitPanel.Drop="5" Text="{Binding HullsMore}" IsVisible="{Binding HasHullsMore}" FontSize="10"
+                 VerticalAlignment="Center" Margin="3 0 0 0" ToolTip.Tip="{Binding HullsMoreTip}" Foreground="{DynamicResource TextMutedBrush}" />
+
+      <!-- Who: one pilot by portrait (and alliance), a group by its logos with counts, largest first, then "+N". -->
+      <ContentControl Content="{Binding Who.First}" ContentTemplate="{StaticResource WhoPicture}" IsVisible="{Binding Who.HasTokens}"
+                      VerticalAlignment="Center" Margin="10 0 0 0" />
+      <TextBlock views:IntelFitPanel.Drop="2" Text="{Binding Who.First.Name}" IsVisible="{Binding Who.HasTokens}" FontSize="11"
+                 VerticalAlignment="Center" Margin="4 0 0 0" MaxWidth="110" TextTrimming="CharacterEllipsis"
+                 Foreground="{DynamicResource TextPrimaryBrush}" ToolTip.Tip="{Binding Who.Tip}" />
+      <ContentControl views:IntelFitPanel.Drop="4" Content="{Binding Who.Second}" ContentTemplate="{StaticResource WhoPicture}"
+                      IsVisible="{Binding Who.HasSecond}" VerticalAlignment="Center" Margin="6 0 0 0" />
+      <TextBlock views:IntelFitPanel.Drop="1" Text="{Binding Who.Second.Name}" IsVisible="{Binding Who.HasSecond}" FontSize="11"
+                 VerticalAlignment="Center" Margin="4 0 0 0" MaxWidth="100" TextTrimming="CharacterEllipsis"
+                 Foreground="{DynamicResource TextSecondaryBrush}" />
+      <TextBlock views:IntelFitPanel.Drop="4" Text="{Binding Who.MoreText}" IsVisible="{Binding Who.HasMore}" FontSize="10"
+                 VerticalAlignment="Center" Margin="4 0 0 0" ToolTip.Tip="{Binding Who.Tip}" Foreground="{DynamicResource TextMutedBrush}" />
+    </views:IntelFitPanel>
+
+    <!-- The flags as icons, a kill first; then how long ago. -->
+    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center">
+      <ItemsControl ItemsSource="{Binding Flags}" IsVisible="{Binding HasFlags}" VerticalAlignment="Center">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:IntelFlagVm">
+            <Panel Background="Transparent" ToolTip.Tip="{Binding Tip}">
+              <Path Classes="flag" Data="{Binding Data}" Classes.kill="{Binding IsKill}" Classes.camp="{Binding IsCamp}"
+                    Classes.novisual="{Binding IsNoVisual}" Classes.clear="{Binding IsClear}" Classes.cyno="{Binding IsCyno}"
+                    Classes.bubbles="{Binding IsBubbles}" />
+            </Panel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+      <Border Classes="age" ToolTip.Tip="{Binding AgeTip}">
+        <TextBlock Text="{Binding AgeText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+      </Border>
+    </StackPanel>
+  </Grid>
+</UserControl>

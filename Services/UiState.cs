@@ -32,6 +32,17 @@ public static class UiState
     public const string UniverseWormholes    = "universe.wormholes";
     public const string UniverseStorms       = "universe.storms";
     public const string UniverseCampaigns    = "universe.campaigns";
+    /// <summary>The Universe Map's intel layers: camped gates, move and heading arrows (on), the
+    /// intel alarms' alert zones (off).</summary>
+    public const string UniverseGateCamps     = "universe.gate_camps";
+    public const string UniverseIntelMoves    = "universe.intel_moves";
+    public const string UniverseIntelHeadings = "universe.intel_headings";
+    public const string UniverseAlertZones    = "universe.alert_zones";
+    public const string UniverseDiamonds     = "universe.npc_diamonds";
+    public const string UniverseNpcCapitals  = "universe.npc_capitals";
+    public const string UniverseNpcTitans    = "universe.npc_capitals.titans";
+    public const string UniverseNpcSupers    = "universe.npc_capitals.supers";
+    public const string UniverseNpcDreads    = "universe.npc_capitals.dreads";
     public const string RouteShowOnMap       = "route.show_on_map";
     public const string JumpPlannerShowOnMap = "jumpplanner.show_on_map";
     public const string JumpRangeShowOnMap   = "jumprange.show_on_map";
@@ -83,6 +94,9 @@ public static class UiState
     public const string WorklistAutoRefresh     = "worklist.auto_refresh";
     /// <summary>The results sort as "PropertyPath:asc" or "PropertyPath:desc".</summary>
     public const string IndustryOppsSort        = "industryopps.sort";
+
+    /// <summary>"1" when this PC connects to that Mumble server by itself on starting; the server's id follows.</summary>
+    public const string MumbleAutoConnectPrefix = "mumble.auto_connect.";
 
     /// <summary>The corporation Corp Activity and Corp Structures were last left on (ids).</summary>
     public const string CorpActivityCorp        = "corpactivity.corp";

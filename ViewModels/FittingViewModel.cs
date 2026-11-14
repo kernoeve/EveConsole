@@ -429,8 +429,13 @@ public sealed class FitSnapshot
 /// hull, pasting a fit, opening one from the game or from the saved list each opens a new tab,
 /// so whatever was being worked on stays where it was.
 /// </summary>
-public class FittingViewModel : ReactiveObject
+public class FittingViewModel : ReactiveObject, IDisposable
 {
+    private readonly Action _onOwners;
+
+    /// <summary>A copy of the tool closed: it stops following the pilot list.</summary>
+    public void Dispose() => OwnerList.Changed -= _onOwners;
+
     public IDbContextFactory<AppDbContext>     DbFactory    { get; }
     public FittingsService?                    Fittings     { get; }
     public EveConsole.Api.EsiClient?           Esi          { get; }
@@ -456,7 +461,8 @@ public class FittingViewModel : ReactiveObject
         try { _finderVisible = UiState.Get(FinderKey) != "0"; } catch { }
 
         // A character added or removed while the tool is open: the pilot list follows.
-        OwnerList.Changed += () => { if (IsReady) _ = RefreshPilotsAsync(); };
+        _onOwners = () => { if (IsReady) _ = RefreshPilotsAsync(); };
+        OwnerList.Changed += _onOwners;
 
         ImportEftCommand   = Guarded(ReactiveCommand.CreateFromTask(ImportEftAsync));
         OpenFitCommand     = Guarded(ReactiveCommand.CreateFromTask(OpenFitAsync));

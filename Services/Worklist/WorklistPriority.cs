@@ -88,6 +88,19 @@ public static class WorklistPriority
     /// </summary>
     public const int Refining        = 110;
 
+    /// <summary>
+    /// A structure running out of fuel: below the work that unblocks other work, above an outbid
+    /// order. Services off is a structure's whole reason for being gone — its jump bridge, its
+    /// clone bay, its reactions — and the game's clock runs it down whether anyone looks or not.
+    /// </summary>
+    public const int StructureFuel   = 105;
+
+    /// <summary>A structure short of the ammo or fighters its fit carries: it defends itself with them.</summary>
+    public const int StructureAmmo   = 88;
+
+    /// <summary>A Metenox moon bay filling up: worth collecting, nothing lost until it is full.</summary>
+    public const int StructurePickup = 50;
+
     public const int Missing         = 90;
     public const int StandingProject = 85;
     public const int Housekeeping    = 30;
@@ -125,6 +138,20 @@ public static class WorklistPriority
     /// <summary>Puts spare stock where its group lives. Real, but nothing is waiting.</summary>
     public const int HaulSurplus = 25;
 
+    // ── Transfers ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Gives a character what its character level keeps with it: the only material an alt outside
+    /// the default corporation can build with, so ranked as job material is.
+    /// </summary>
+    public const int TransferToCharacter = HaulForWork;
+
+    /// <summary>
+    /// Gives the default corporation what a character holds: out of every other alt's reach until
+    /// it does, but nothing is waiting on it in particular.
+    /// </summary>
+    public const int TransferToCorp = 35;
+
     private const int StockFloor = 40;
 
     /// ⚠️ 39, not 40, so an empty shelf tops out at 79 and can never reach ServesOther. An
@@ -132,6 +159,11 @@ public static class WorklistPriority
     /// nobody has asked for used to score exactly the same as a component gating a titan.
     /// Backfilling the shelf is what belongs at the end of the list.
     private const int StockRange = 39;   // a full shelf scores 40 and an empty one 79
+
+    // The stock band split in two, so every item whose jobs are short sits above every item only
+    // filling a buffer, whatever their coverage: 60-79, then 40-59.
+    private const int JobsShortFloor = 60;
+    private const int CoverageRange  = 19;
 
     /// <summary>
     /// The most an item can score for serving something else, as opposed to being wanted in its
@@ -169,6 +201,42 @@ public static class WorklistPriority
     {
         var depleted = Math.Clamp(100 - percentOfTarget, 0, 100) / 100.0;
         return StockFloor + (int)Math.Round(depleted * StockRange);
+    }
+
+    /// <summary>
+    /// A stock-kept item's urgency once the jobs that consume it are known: two groups, each ordered
+    /// by how much of everything asked of the item is covered.
+    ///
+    /// <para>⚠️ Jobs short always go ahead of buffer only, then coverage decides within the group.
+    /// Measured on the shelf left after consumers, one unit short of 2,877 read as an empty shelf and
+    /// 79, while an item 30% covered with its jobs fed sat at 71. Core Temperature Regulators, at 423
+    /// Reinforced Carbon Fiber a unit and 85% covered, then took the fiber from conduits at 26%.</para>
+    /// </summary>
+    /// <param name="have">On hand and in build, plus what this pass has listed so far.</param>
+    /// <param name="consuming">What orders and the jobs above want of it.</param>
+    /// <param name="level">The shelf level on top of that.</param>
+    public static int ForStockCoverage(long have, long consuming, long level)
+    {
+        var total    = consuming + level;
+        var covered  = total <= 0 ? 1.0 : Math.Clamp((double)have / total, 0.0, 1.0);
+        var floor    = have < consuming ? JobsShortFloor : StockFloor;
+
+        return floor + (int)Math.Round((1 - covered) * CoverageRange);
+    }
+
+    /// <summary>
+    /// How many units the next job of a stock-kept item should make: no more than the jobs are short
+    /// of, while they are short of anything.
+    ///
+    /// <para>⚠️ A job is planned whole, so one unit short bought a 280-run job and the materials for
+    /// it ahead of everything in the buffer group. The rest is still wanted: it comes back on the
+    /// next visit, ranked as the buffer it now is.</para>
+    /// </summary>
+    public static long UnitsForNextJob(long remaining, long have, long consuming, long level)
+    {
+        var jobsShort = consuming - have;
+
+        return level > 0 && jobsShort > 0 && jobsShort < remaining ? jobsShort : remaining;
     }
 
     /// <summary>

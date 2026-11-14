@@ -19,9 +19,12 @@ public class SettingsViewModel : ReactiveObject
     public UpdateViewModel                UpdateVm        { get; }
     public SlackSettingsViewModel         SlackVm         { get; }
     public DiscordSettingsViewModel       DiscordVm       { get; }
+    public OnlineServicesSettingsViewModel OnlineVm       { get; }
+    public ConnectorSettingsViewModel?    ConnectorVm    { get; }
     public GameLogSettingsViewModel       GameLogVm       { get; }
     public ChatLogSettingsViewModel       ChatLogVm       { get; }
     public ZkillboardSettingsViewModel    ZkbVm           { get; }
+    public IntelSettingsViewModel         IntelVm         { get; }
     public MapStatsSettingsViewModel      MapStatsVm      { get; }
     public OtherSettingsViewModel         OtherVm         { get; }
     public DataRetentionSettingsViewModel RetentionVm     { get; }
@@ -35,6 +38,11 @@ public class SettingsViewModel : ReactiveObject
     /// own copy of the grid and neither would see the other's edits until a reload.</para>
     /// </summary>
     public WorklistIndustryViewModel      IndustryVm      { get; }
+
+    /// <summary>The app's own, not copies: they hold the live connections.</summary>
+    public JabberViewModel JabberVm { get; }
+    public MumbleViewModel MumbleVm { get; }
+    public IrcViewModel? IrcVm { get; }
 
     public SettingsViewModel(
         WorklistIndustryViewModel     industryVm,
@@ -51,22 +59,34 @@ public class SettingsViewModel : ReactiveObject
         DatabaseSettingsViewModel     databaseVm,
         SlackSettingsViewModel        slackVm,
         DiscordSettingsViewModel      discordVm,
+        OnlineServicesSettingsViewModel onlineVm,
         GameLogSettingsViewModel      gameLogVm,
         ChatLogSettingsViewModel      chatLogVm,
         ZkillboardSettingsViewModel   zkbVm,
+        IntelSettingsViewModel        intelVm,
         MapStatsSettingsViewModel     mapStatsVm,
         OtherSettingsViewModel        otherVm,
         DataRetentionSettingsViewModel retentionVm,
         PiSettingsViewModel           piVm,
+        JabberViewModel               jabberVm,
+        MumbleViewModel               mumbleVm,
         TtsService?                   tts     = null,
         SpeechInputService?           speech  = null,
-        GlobalHotkeyService?          hotkey  = null)
+        GlobalHotkeyService?          hotkey  = null,
+        IrcViewModel?                 ircVm   = null,
+        ConnectorSettingsViewModel?   connectorVm = null)
     {
+        ConnectorVm    = connectorVm;
+        IrcVm          = ircVm;
+        JabberVm       = jabberVm;
+        MumbleVm       = mumbleVm;
         SlackVm        = slackVm;
         DiscordVm      = discordVm;
+        OnlineVm       = onlineVm;
         GameLogVm      = gameLogVm;
         ChatLogVm      = chatLogVm;
         ZkbVm          = zkbVm;
+        IntelVm        = intelVm;
         MapStatsVm     = mapStatsVm;
         CharacterVm    = characterVm;
         SdeVm          = sdeVm;
@@ -92,7 +112,7 @@ public class SettingsViewModel : ReactiveObject
     public Task FlushPendingSavesAsync() => Task.WhenAll(
         MarketVm.FlushAsync(), TimerVm.FlushAsync(), CorpTop10Vm.FlushAsync(),
         AgentVm.FlushAsync(), AlertsVm.FlushAsync(), SlackVm.FlushAsync(), ChatLogVm.FlushAsync(),
-        PiVm.FlushAsync());
+        PiVm.FlushAsync(), MumbleVm.FlushAsync());
 
     /// <summary>The window closed: nothing typed is lost to the pause.</summary>
     public Task CloseAsync() => Task.WhenAll(FlushPendingSavesAsync(), AgentVm.CloseAsync());

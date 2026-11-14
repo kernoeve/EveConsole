@@ -88,6 +88,110 @@ public static class IndustryOppsReport
         return limit > 0 ? [.. list.Take(limit)] : list;
     }
 
+    /// <summary>The item, then the columns asked for in the order given.</summary>
+    private static List<Column> Chosen(IEnumerable<string> columnKeys)
+    {
+        var byKey = Columns.ToDictionary(c => c.Key);
+        var cols  = new List<Column> { byKey[Item] };
+        foreach (var key in columnKeys.Distinct())
+            if (key != Item && byKey.TryGetValue(key, out var c)) cols.Add(c);
+        return cols;
+    }
+
+    private static string HeaderOf(Column c, IReadOnlyDictionary<string, string>? headerNames) =>
+        headerNames?.GetValueOrDefault(c.Key) is { Length: > 0 } named ? named : c.Header;
+
+    /// <summary>Whether the rows lean on the note about the grid's "*": priced from 30-day history.</summary>
+    public static bool NeedsHistoryNote(IReadOnlyList<IndustryRow> rows, IEnumerable<string> columnKeys) =>
+        rows.Any(r => !r.HasSellOrders) && columnKeys.Contains("sell_price");
+
+    /// <summary>How number 1 names its 30-day figures, in full: its numbers stand alone, without a
+    /// column of them to read them against. The rest use the grid's own headers.</summary>
+    private static string TopLabel(Column c) => c.Key switch
+    {
+        "units_30d"     => AlarmsText.OppsTopUnits,
+        "avg_price_30d" => AlarmsText.OppsTopAvg,
+        "margin_30d"    => AlarmsText.OppsTopMargin,
+        "sales_30d"     => AlarmsText.OppsTopSales,
+        "profit_30d"    => AlarmsText.OppsTopProfit,
+        _               => c.Header,
+    };
+
+    private static bool IsThirtyDay(Column c) => c.Key.EndsWith("_30d", StringComparison.Ordinal);
+
+    /// <summary>A row with figures about as wide as real ones get, for judging a section's columns
+    /// when it is set up, with no rows to measure.</summary>
+    private static readonly IndustryRow TypicalRow = new()
+    {
+        BuildCost = 999_990_000, SellPrice = 999_990_000, HasSellOrders = true, ProfitPerUnit = 999_990_000,
+        Margin = 0.999, BuildSeconds = 8_280, SlotDays = 0.1, ProfitPerSlotDay = 999_990_000,
+        UnitVol30d = 1_000, IskVol30d = 1_900_000_000_000,
+    };
+
+    /// <summary>The item, then the columns in order for as long as they fit Slack's box.</summary>
+    private static List<Column> FittingSlackBox(
+        List<Column> cols, IReadOnlyCollection<IndustryRow> rows, bool showHeaders, IReadOnlyDictionary<string, string>? headerNames)
+    {
+        var kept   = new List<Column> { cols[0] };
+        var widths = new List<int>();
+        foreach (var c in cols.Skip(1))
+        {
+            widths.Add(rows.Select(r => SlackColumns.Width(c.Cell(r)))
+                           .Append(showHeaders ? SlackColumns.Width(HeaderOf(c, headerNames)) : 0).Max());
+            if (!SlackRichBlocks.ItemColumnsFit(widths)) break;
+            kept.Add(c);
+        }
+        return kept;
+    }
+
+    /// <summary>
+    /// The columns asked for that fit Slack's box with these rows, those last in the order left
+    /// out. Number 1's figures are not in a column under it, so its row does not count.
+    /// </summary>
+    public static List<string> SlackBoxKeys(
+        IReadOnlyList<IndustryRow> rows, IEnumerable<string> columnKeys, bool showHeaders,
+        IReadOnlyDictionary<string, string>? headerNames = null) =>
+        [.. FittingSlackBox(Chosen(columnKeys), [.. rows.Skip(1)], showHeaders, headerNames).Skip(1).Select(c => c.Key)];
+
+    /// <summary>The same for a section being set up, its figures not known yet: what the editor offers.</summary>
+    public static List<string> SlackBoxKeys(
+        IEnumerable<string> columnKeys, bool showHeaders, IReadOnlyDictionary<string, string>? headerNames = null) =>
+        [.. FittingSlackBox(Chosen(columnKeys), [TypicalRow], showHeaders, headerNames).Skip(1).Select(c => c.Key)];
+
+    /// <summary>
+    /// The rows as a list for Slack's boxes, with number 1's figures picked out of them.
+    ///
+    /// <para>⚠️ Number 1's figures go in the grid's order, whatever order the section's columns are
+    /// in, and those over 30 days go together under a line that says so: on their own, nothing
+    /// else tells a 30-day margin from today's.</para>
+    ///
+    /// <para>Only the columns that fit the box, the editor having offered no more than should: real
+    /// figures can still come out wider than it judged. A column left out goes from number 1's
+    /// figures too.</para>
+    /// </summary>
+    public static SlackItemList SlackList(
+        IReadOnlyList<IndustryRow> rows, IEnumerable<string> columnKeys, string title, string sortKey,
+        bool showHeaders, string picture, IReadOnlyDictionary<string, string>? headerNames = null)
+    {
+        var cols = Chosen(SlackBoxKeys(rows, columnKeys, showHeaders, headerNames));
+        var top  = rows.Count > 0 ? rows[0] : null;
+
+        List<SlackTopFact> Facts(bool thirtyDay) => top is null ? [] :
+        [
+            .. Columns.Where(c => c.Key != Item && cols.Contains(c) && IsThirtyDay(c) == thirtyDay)
+                      .Select(c => new SlackTopFact(TopLabel(c), c.Cell(top), c.Key == sortKey)),
+        ];
+
+        return new SlackItemList(
+            title, AlarmsText.OppsTopItem, picture,
+            Facts(false), AlarmsText.OppsTopPeriod, Facts(true), AlarmsText.RichFactLine,
+            showHeaders,
+            [.. cols.Select(c => new SlackRichColumn(HeaderOf(c, headerNames), c.Right))],
+            [.. rows.Select(r => new SlackItemRow(
+                $"https://images.evetech.net/types/{r.TypeId}/icon?size=64",
+                [.. cols.Select(c => c.Cell(r))]))]);
+    }
+
     /// <summary>
     /// The table. The item always comes first, then the columns asked for in the order given,
     /// each under its renamed header if it has one. Nothing at all for no rows.
@@ -98,12 +202,8 @@ public static class IndustryOppsReport
     {
         if (rows.Count == 0) return "";
 
-        var byKey = Columns.ToDictionary(c => c.Key);
-        var cols  = new List<Column> { byKey[Item] };
-        foreach (var key in columnKeys.Distinct())
-            if (key != Item && byKey.TryGetValue(key, out var c)) cols.Add(c);
-
-        var headers = cols.Select(c => headerNames?.GetValueOrDefault(c.Key) is { Length: > 0 } named ? named : c.Header).ToArray();
+        var cols    = Chosen(columnKeys);
+        var headers = cols.Select(c => HeaderOf(c, headerNames)).ToArray();
         var aligns  = cols.Select(c => c.Right).ToArray();
         var cells   = rows.Select(r => cols.Select(c => c.Cell(r)).ToArray()).ToList();
 

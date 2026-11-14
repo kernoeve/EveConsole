@@ -151,6 +151,11 @@
           <CheckBox x:Name="OnlyPackagedBox"
                     Content="{x:Static loc:SalesText.OnlyIncludePackagedItems}"
                     Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 4 0 0" />
+          <!-- Only a Buy listing that tracks need has anything to show; on anything else it's ignored. -->
+          <CheckBox x:Name="ShowNeedBox" IsChecked="True"
+                    Content="{x:Static loc:SalesText.ShowNeed}"
+                    ToolTip.Tip="{x:Static loc:SalesText.TipShowNeed}"
+                    Foreground="{DynamicResource TextPrimaryBrush}" FontSize="12" Margin="0 4 0 0" />
         </StackPanel>
 
         <Rectangle Height="1" Fill="{DynamicResource BorderSubtleBrush}" />

@@ -77,6 +77,10 @@ public interface IAlarmCondition
     /// the config stores and never changes. Null shows the value as it is.</summary>
     string? ScreenOption(string property, string value) => null;
 
+    /// <summary>The editor's heading for a group of fields, by the schema's <c>section</c> keyword on
+    /// them: shown above the first field of each section. Null shows the key as it is.</summary>
+    string? ScreenSection(string section) => null;
+
     /// <summary>
     /// One-line summary of a configured instance, for the alarm list. ⚠️ The agent reads it too —
     /// manage_alarms lists and confirms alarms with it — so it stays English.

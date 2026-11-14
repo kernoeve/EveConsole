@@ -124,6 +124,9 @@
   <data name="NavCorpActivity" xml:space="preserve">
     <value>Активность корпорации</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Макеты клиентов</value>
+  </data>
   <data name="NavCorpStructures" xml:space="preserve">
     <value>Структуры корпорации</value>
   </data>
@@ -141,6 +144,12 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>Почта EVE</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Уведомления</value>
@@ -704,5 +713,58 @@ PID: {2}
     <value>{0}
 {1}
 Нажмите, чтобы открыть лимиты ESI.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Сообщения</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Групповой чат</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Боевой отчёт</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Версия этой базы данных — {0}, а этого клиента — {1}.
+
+Этот клиент настроен никогда не выполнять фоновые процессы, а менять схему может только клиент, который их выполняет, поэтому он не может обновить базу данных до {1}.
+
+Запустите клиент {1}, которому это разрешено, или отключите настройку: удалите «neverRunBackgroundWork» из {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Уведомления о сторонних компонентах</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Лицензии программ, из которых состоит EVE Console</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Разведка</value>
   </data>
 </root>

@@ -166,10 +166,22 @@ public sealed class IndustryOpportunitiesService(MarketHistoryService history, B
     public Task<IndustryOppsResult?> CalculateAllAsync(IndustryOppsQuery q, CancellationToken ct = default) =>
         CalculateAsync(q with { MetaGroups = [.. OppsMetaGroups.All.Select(g => g.Id)], IncludedGroupIds = [], ExcludedGroupIds = [] }, ct);
 
+    /// <summary>
+    /// The market group "Special Edition Ships": never listed, whatever the query chooses. The SDE
+    /// gives them a manufacturing blueprint and so a build cost, but it has no market listing and
+    /// they are event and giveaway hulls nobody can plan to build.
+    ///
+    /// <para>⚠️ The ships only, not "Special Edition Assets": that tree holds items whose blueprint
+    /// is sold on the market.</para>
+    /// </summary>
+    private const int SpecialEditionShips = 1612;
+
     /// <summary>The query's meta and market group choices, with the groups expanded to what is
-    /// nested under them.</summary>
+    /// nested under them, plus what is never listed. Every list passes through here: the Summary
+    /// tab, the Detail tab and a scheduled post.</summary>
     public async Task<IndustryOppsFilter> FilterAsync(IndustryOppsQuery q) =>
-        new(q.MetaGroups, await GroupIdsRecursiveAsync(q.IncludedGroupIds), await GroupIdsRecursiveAsync(q.ExcludedGroupIds));
+        new(q.MetaGroups, await GroupIdsRecursiveAsync(q.IncludedGroupIds),
+            await GroupIdsRecursiveAsync([.. q.ExcludedGroupIds, SpecialEditionShips]));
 
     /// <summary>Market group names in the interface language, for the ids that exist.</summary>
     public static async Task<Dictionary<int, string>> MarketGroupNamesAsync(IReadOnlyCollection<int> ids)

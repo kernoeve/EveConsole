@@ -312,6 +312,12 @@
                   <TextBlock FontSize="13" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                              Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
                                              ConverterParameter=Value}"/>
+                  <Button Content="{x:Static loc:IndustryText.ShoppingList}" Click="OnCopyBuyList"
+                          IsVisible="{Binding ((vm:WorklistRowVm)Items[0]).IsBuy}"
+                          IsEnabled="{Binding !$parent[UserControl].((vm:WorklistViewModel)DataContext).IsLoading}"
+                          FontSize="11" Padding="6 2" Background="Transparent"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"
+                          ToolTip.Tip="{x:Static loc:IndustryText.TipCopyItemNameAnd}"/>
                 </StackPanel>
               </Border>
             </ControlTemplate>
@@ -923,7 +929,7 @@
         <TextBlock Grid.Row="1" Text="{Binding NeedsStatus}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
                    TextWrapping="Wrap" Margin="0 0 0 8"/>
 
-        <DataGrid LoadingRow="OnRowLoading" Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
+        <DataGrid x:Name="ItemNeedsGrid" LoadingRow="OnRowLoading" Grid.Row="2" ItemsSource="{Binding ItemNeedsView}"
                   IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
                   CanUserSortColumns="True"
                   Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
@@ -932,13 +938,13 @@
               <Setter Property="FontSize" Value="10" />
             </Style>
 
-            <!-- Group header: the station once, with what its rows add up to, rather than the
-                 Station column repeating it on every line. Same retemplate as the task grid above
-                 — see that comment for why the stock template is replaced rather than styled, and
-                 why PART_ExpanderButton must keep its name.
-                 ⚠️ The item name here is deliberately plain. The header is a
-                 DataGridCollectionViewGroup and knows only its key string, not the row behind it,
-                 so it has no id to open; the Item column on each row carries the link. -->
+            <!-- Group header: the item once, with what its stations add up to, each total under
+                 its own column, rather than the Item column repeating it on every line. Same
+                 retemplate as the task grid above — see that comment for why the stock template is
+                 replaced rather than styled, and why PART_ExpanderButton must keep its name.
+                 The item's name opens it: the header knows only its key string, so the click
+                 takes the id from the rows under it (OnOpenNeedGroupItem).
+                 Items start closed; see WatchItemNeeds. -->
             <Style Selector="DataGridRowGroupHeader">
               <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}"/>
               <Setter Property="Foreground" Value="{DynamicResource AccentBrush}"/>
@@ -947,17 +953,21 @@
                 <ControlTemplate x:DataType="collections:DataGridCollectionViewGroup">
                   <Border Background="{TemplateBinding Background}"
                           BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 1 0 1">
-                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
-                                VerticalAlignment="Center">
-                      <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12"
-                                    Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
-                                    Background="Transparent" BorderThickness="0"/>
-                      <TextBlock Text="{Binding Key}" FontSize="13" FontWeight="SemiBold"
-                                 Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center"/>
-                      <TextBlock FontSize="11" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
-                                 Text="{Binding Items, Converter={x:Static conv:GroupTotalConverter.Instance},
-                                                 ConverterParameter=Count}"/>
-                    </StackPanel>
+                    <Panel>
+                      <views:GroupColumnTotals Totals="{x:Static views:WorklistView.ItemNeedTotals}"
+                                               TextElement.Foreground="{DynamicResource TextBrightBrush}" VerticalAlignment="Center"/>
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="6 0"
+                                  HorizontalAlignment="Left" VerticalAlignment="Center">
+                        <ToggleButton Name="PART_ExpanderButton" Width="12" Height="12" Click="OnItemNeedsGroupToggled"
+                                      Theme="{DynamicResource FluentDataGridRowGroupExpanderButtonTheme}"
+                                      Background="Transparent" BorderThickness="0"/>
+                        <Button Classes="link" Click="OnOpenNeedGroupItem" VerticalAlignment="Center"
+                                ToolTip.Tip="{x:Static loc:WorklistText.TipOpenInTheItemBrowser}">
+                          <TextBlock Text="{Binding Key}" Classes="linktext" FontSize="13" FontWeight="SemiBold"
+                                     Foreground="{DynamicResource AccentBrush}"/>
+                        </Button>
+                      </StackPanel>
+                    </Panel>
                   </Border>
                 </ControlTemplate>
               </Setter>
@@ -2425,6 +2435,103 @@
       </Grid>
     </TabItem>
 
+    <!-- Who should hold the material: the default corporation, and what each character keeps of a
+         group at a station. Both raise Transfer tasks. -->
+    <TabItem Header="{x:Static loc:WorklistText.TabCharacterLevels}">
+      <Grid RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,*" Margin="14 12"
+            DataContext="{Binding CharacterLevelsVm}" x:DataType="vm:WorklistCharacterLevelsViewModel">
+
+        <TextBlock Grid.Row="0" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}"
+                   Text="{x:Static loc:WorklistText.DefaultCorpTitle}" Margin="0 0 0 4"/>
+        <TextBlock Grid.Row="1" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Margin="0 0 0 6" MaxWidth="760" HorizontalAlignment="Left"
+                   Text="{x:Static loc:WorklistText.DefaultCorpNote}"/>
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="12" Margin="0 0 0 16">
+          <ComboBox Width="260" FontSize="11"
+                    ItemsSource="{Binding Corporations}" SelectedItem="{Binding DefaultCorp}"/>
+          <CheckBox Content="{x:Static loc:WorklistText.DefaultCorpFromOtherCorps}" FontSize="11"
+                    IsChecked="{Binding FromOtherCorps}"
+                    ToolTip.Tip="{x:Static loc:WorklistText.DefaultCorpFromOtherCorpsTip}"/>
+        </StackPanel>
+
+        <TextBlock Grid.Row="3" FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Margin="0 0 0 10" MaxWidth="760" HorizontalAlignment="Left"
+                   Text="{x:Static loc:WorklistText.CharacterLevelsNote}"/>
+
+        <Grid Grid.Row="4" ColumnDefinitions="220,*,200,Auto" RowDefinitions="Auto,Auto" Margin="0 0 0 6">
+          <TextBlock Grid.Row="0" Grid.Column="0" Text="{x:Static loc:WorklistText.InventoryGroup}"     Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="1" Text="{x:Static loc:WorklistText.StationOrStructure}" Classes="fieldLabel"/>
+          <TextBlock Grid.Row="0" Grid.Column="2" Text="{x:Static loc:WorklistText.ColCharacter}"       Classes="fieldLabel"/>
+          <ComboBox Grid.Row="1" Grid.Column="0" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}"
+                    PlaceholderText="{x:Static loc:WorklistText.HintGroup}" HorizontalAlignment="Stretch"/>
+          <AutoCompleteBox Grid.Row="1" Grid.Column="1" Margin="0 0 8 0" Classes="selectall" x:CompileBindings="False"
+                           Text="{Binding LocationText}"
+                           SelectedItem="{Binding SelectedLocation}"
+                           ValueMemberBinding="{Binding DisplayName}"
+                           AsyncPopulator="{Binding LocationPopulator}"
+                           FilterMode="None" MinimumPrefixLength="2"
+                           MinimumPopulateDelay="0:0:0.35" MaxDropDownHeight="300"
+                           FontSize="11" Watermark="{x:Static loc:WorklistText.HintTypeTwoCharacters}"/>
+          <ComboBox Grid.Row="1" Grid.Column="2" Margin="0 0 8 0" FontSize="11"
+                    ItemsSource="{Binding Characters}" SelectedItem="{Binding SelectedCharacter}"
+                    HorizontalAlignment="Stretch"/>
+          <Button Grid.Row="1" Grid.Column="3" Content="{x:Static loc:WorklistText.Add}" Command="{Binding AddCommand}"
+                  FontSize="11" Padding="10 4"/>
+        </Grid>
+
+        <!-- How far off its level a character may be before a Transfer task gives or takes back:
+             the station levels' two bands, for characters. -->
+        <StackPanel Grid.Row="5">
+          <Grid ColumnDefinitions="Auto,Auto,20,Auto,Auto,*" Margin="0 0 0 8">
+            <TextBlock Grid.Column="0" Text="{x:Static loc:WorklistText.RestockWhenBelowLevelBy}" Classes="fieldLabel"
+                       VerticalAlignment="Center" Margin="0 0 6 0"/>
+            <NumericUpDown Grid.Column="1" Value="{Binding RestockBand, Mode=TwoWay}"
+                           Minimum="0" Maximum="100" Increment="5" FormatString="0.#"
+                           ShowButtonSpinner="False" Width="70" FontSize="11"
+                           ToolTip.Tip="{x:Static loc:WorklistText.CharacterRestockBandTip}"/>
+            <TextBlock Grid.Column="3" Text="{x:Static loc:WorklistText.SweepSurplusWhenAboveLevel}" Classes="fieldLabel"
+                       VerticalAlignment="Center" Margin="0 0 6 0"/>
+            <NumericUpDown Grid.Column="4" Value="{Binding SurplusBand, Mode=TwoWay}"
+                           Minimum="0" Maximum="100" Increment="5" FormatString="0.#"
+                           ShowButtonSpinner="False" Width="70" FontSize="11"
+                           ToolTip.Tip="{x:Static loc:WorklistText.CharacterSurplusBandTip}"/>
+          </Grid>
+          <TextBlock Text="{Binding Status}" FontSize="10" Foreground="{DynamicResource TextMutedBrush}"
+                     TextWrapping="Wrap" Margin="0 0 0 8"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="6" ItemsSource="{Binding Levels}"
+                  IsReadOnly="True" AutoGenerateColumns="False" FontSize="10"
+                  Background="Transparent" GridLinesVisibility="None" RowBackground="Transparent">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="{x:Static loc:WorklistText.CharacterLevelColOn}" Width="50" SortMemberPath="Enabled" ClipboardContentBinding="{Binding Enabled}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:CharacterLevelRow">
+                  <CheckBox IsChecked="{Binding Enabled, Mode=TwoWay}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColCharacter}" Width="180" Binding="{Binding CharacterName}"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColStation}" Width="*" Binding="{Binding LocationShown}"/>
+            <DataGridTextColumn Header="{x:Static loc:WorklistText.ColInventoryGroup}" Width="220" Binding="{Binding GroupName}"/>
+            <DataGridTextColumn Header="" Width="220" Binding="{Binding Note}" Foreground="{DynamicResource TextFaintBrush}"/>
+            <DataGridTemplateColumn Header="" Width="80">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:CharacterLevelRow">
+                  <Button Content="{x:Static loc:WorklistText.Remove}"
+                          Command="{Binding $parent[UserControl].((vm:WorklistViewModel)DataContext).CharacterLevelsVm.DeleteCommand}"
+                          CommandParameter="{Binding}"
+                          FontSize="9" Padding="6 2" Background="Transparent"
+                          BorderBrush="{DynamicResource BorderDefaultBrush}" BorderThickness="1" Cursor="Hand"/>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+          </DataGrid.Columns>
+        </DataGrid>
+      </Grid>
+    </TabItem>
+
     <!-- Last: the settings here are set once and then left, unlike the tabs above them. Which
          characters may be given jobs lives on Settings → Characters. -->
     <!-- How each kind of trip is made, and by whom. Saved as it is changed; the list rebuilds a
@@ -2566,6 +2673,89 @@
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
+
+      </StackPanel>
+      </ScrollViewer>
+    </TabItem>
+
+    <!-- Tasks from Corp Structures: whose structures, which kinds, and the levels they are raised
+         at. Saved as it is changed; the list rebuilds a moment after the last change. -->
+    <TabItem Header="{x:Static loc:WorklistText.TabStructures}">
+      <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="14 12" Spacing="16" MaxWidth="760" HorizontalAlignment="Left"
+                  DataContext="{Binding StructuresVm}" x:DataType="vm:WorklistStructuresViewModel">
+
+        <TextBlock FontSize="10" Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"
+                   Text="{x:Static loc:WorklistText.StructuresNote}"/>
+
+        <!-- ── Corporations ───────────────────────────────────────────── -->
+        <StackPanel Spacing="6">
+          <TextBlock Text="{x:Static loc:WorklistText.StructureCorpsLabel}" FontSize="12" FontWeight="SemiBold"
+                     Foreground="{DynamicResource AccentBrush}"/>
+          <CheckBox Content="{x:Static loc:WorklistText.StructureAllCorps}" IsChecked="{Binding AllCorps}" FontSize="11"
+                    ToolTip.Tip="{x:Static loc:WorklistText.TipStructureAllCorps}"/>
+          <ItemsControl ItemsSource="{Binding Corps}" IsEnabled="{Binding !AllCorps}" Margin="24 0 0 0">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><WrapPanel Orientation="Horizontal"/></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:StructureCorpOption">
+                <CheckBox Content="{Binding Name}" IsChecked="{Binding IsOn}" FontSize="11" Margin="0 0 16 2"/>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- ── Tasks ──────────────────────────────────────────────────── -->
+        <StackPanel Spacing="10">
+          <TextBlock Text="{x:Static loc:WorklistText.StructureTasksLabel}" FontSize="12" FontWeight="SemiBold"
+                     Foreground="{DynamicResource AccentBrush}"/>
+
+          <StackPanel Spacing="4">
+            <CheckBox Content="{x:Static loc:WorklistText.StructureTaskFuel}" IsChecked="{Binding FuelOn}" FontSize="11"/>
+            <TextBlock Text="{x:Static loc:WorklistText.StructureTaskFuelTip}" FontSize="10" Margin="24 0 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="24 2 0 0" IsEnabled="{Binding FuelOn}">
+              <TextBlock Text="{x:Static loc:WorklistText.StructureMinFuel}" Classes="fieldLabel" VerticalAlignment="Center"/>
+              <NumericUpDown Value="{Binding MinFuelDays, Mode=TwoWay}" Minimum="0" Maximum="365" Increment="1"
+                             FormatString="0.#" ShowButtonSpinner="False" Width="60" FontSize="11"
+                             ToolTip.Tip="{x:Static loc:WorklistText.TipStructureMinFuel}"/>
+              <TextBlock Text="{x:Static loc:WorklistText.Days}" Classes="fieldLabel" VerticalAlignment="Center"/>
+              <TextBlock Text="{x:Static loc:WorklistText.StructureFillTo}" Classes="fieldLabel" VerticalAlignment="Center"
+                         Margin="16 0 0 0"/>
+              <NumericUpDown Value="{Binding FillFuelDays, Mode=TwoWay}" Minimum="0" Maximum="365" Increment="1"
+                             FormatString="0.#" ShowButtonSpinner="False" Width="60" FontSize="11"
+                             ToolTip.Tip="{x:Static loc:WorklistText.TipStructureFillTo}"/>
+              <TextBlock Text="{x:Static loc:WorklistText.Days}" Classes="fieldLabel" VerticalAlignment="Center"/>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="4">
+            <CheckBox Content="{x:Static loc:WorklistText.StructureTaskPickup}" IsChecked="{Binding PickupOn}" FontSize="11"/>
+            <TextBlock Text="{x:Static loc:WorklistText.StructureTaskPickupTip}" FontSize="10" Margin="24 0 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="24 2 0 0" IsEnabled="{Binding PickupOn}">
+              <TextBlock Text="{x:Static loc:WorklistText.StructurePickupWhen}" Classes="fieldLabel" VerticalAlignment="Center"/>
+              <ComboBox ItemsSource="{Binding PickupMeasures}" SelectedItem="{Binding PickupMeasure}" Width="150" FontSize="11"/>
+              <NumericUpDown Value="{Binding PickupAt, Mode=TwoWay}" Minimum="0" Maximum="1000000000000" Increment="1"
+                             FormatString="#,0.##" ShowButtonSpinner="False" Width="120" FontSize="11"
+                             ToolTip.Tip="{x:Static loc:WorklistText.TipStructurePickupAt}"/>
+              <TextBlock Text="{Binding PickupUnit}" Classes="fieldLabel" VerticalAlignment="Center"/>
+            </StackPanel>
+          </StackPanel>
+
+          <StackPanel Spacing="4">
+            <CheckBox Content="{x:Static loc:WorklistText.StructureTaskAmmo}" IsChecked="{Binding AmmoOn}" FontSize="11"/>
+            <TextBlock Text="{x:Static loc:WorklistText.StructureTaskAmmoTip}" FontSize="10" Margin="24 0 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+          </StackPanel>
+
+          <StackPanel Spacing="4">
+            <CheckBox Content="{x:Static loc:WorklistText.StructureTaskFit}" IsChecked="{Binding FitOn}" FontSize="11"/>
+            <TextBlock Text="{x:Static loc:WorklistText.StructureTaskFitTip}" FontSize="10" Margin="24 0 0 0"
+                       Foreground="{DynamicResource TextFaintBrush}" TextWrapping="Wrap"/>
+          </StackPanel>
+        </StackPanel>
 
       </StackPanel>
       </ScrollViewer>

@@ -8,9 +8,8 @@ namespace EveConsole.Views;
 
 /// <summary>
 /// The Background Processes tool: a tab per background process, each saying what that process is
-/// doing, on this client or on the one holding the worker lease. Hosted as a tab of the main
-/// window from Data / Logs, and by <see cref="ApiActivityWindow"/> for the tray, which may have no
-/// main window at all.
+/// doing, on this client or on the one holding the worker lease. Hosted as a tab, opened from
+/// Data / Logs, the status bar or the notification-area icon.
 ///
 /// <para>The main window builds a fresh view each time the tab is shown while the view model keeps
 /// its state, so everything the view starts — the timers, the tab selection — is started on
@@ -91,6 +90,9 @@ public partial class BackgroundProcessesView : UserControl
                 await vm.RefreshAlarmsAsync();
             }
             else vm.SyncHistorySweep();
+
+            // At once on being opened, then with the rest. Only while it shows: it reads every message saved.
+            if (JabberTab.IsSelected && (_tick % 5 == 0 || !vm.JabberActivityRead)) await vm.RefreshJabberActivityAsync();
         }
         catch { /* best-effort monitor */ }
     }

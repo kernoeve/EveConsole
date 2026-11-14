@@ -364,4 +364,13 @@
   <data name="PrintOriginalName" xml:space="preserve">
     <value>{0}（オリジナル）</value>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} は既に{1}に使われています。別のキーを選ぶか、先にそちらで解除してください。</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} は{1}にも使われているため、1回押すと両方が動きます。どちらかに別のキーを選んでください。</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
 </root>

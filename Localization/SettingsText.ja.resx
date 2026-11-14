@@ -823,9 +823,6 @@
   <data name="NotificationAreaIcon" xml:space="preserve">
     <value>通知領域のアイコン</value>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>どのクライアントがバックグラウンド処理を行っているかを表示する、小さな別プロセスです。メニューから「バックグラウンド処理」ウィンドウや新しいEVE Consoleを開けます。このプロセス自体がバックグラウンド処理を行うことはなく、アラームも扱いません — それらを止めるにはEVE Consoleを閉じてください。</value>
-  </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>ゲームログの取り込み</value>
   </data>
@@ -2131,15 +2128,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="SvcRunsLabel" xml:space="preserve">
     <value>実行ファイル：</value>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>通知領域のアイコンを表示する（Windowsの起動時に開始）</value>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>通知領域のアイコンを表示する（デスクトップセッションの開始時に開始）</value>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>メニューバーにアイコンを表示する（ログイン時に開始）</value>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>PostgreSQLが必要です。このクライアントはPostgreSQLを使用しています — ワーカーとすべてのクライアントが1つのサーバーを共有します。</value>
   </data>
@@ -2157,30 +2145,6 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>このサービスは、現在使用しているものとは別のEVE Consoleのコピーを実行しています。そのコピーの設定でバックグラウンド処理を行っています。</value>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>次回のログオン時の開始は登録しましたが、今すぐ開始できませんでした — {0}</value>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>実行中です。Windowsの起動時に開始します。</value>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>実行中です。デスクトップセッションの開始時に開始します。</value>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>実行中です。ログイン時に開始します。</value>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Windowsの起動時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>デスクトップセッションの開始時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログオフするまで残ります。</value>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>ログイン時には開始しません。すでに表示されているアイコンは、アイコンのメニューで「{0}」を選ぶかログアウトするまで残ります。</value>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>変更できませんでした — {0}</value>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>スタートアップを変更中…</value>
@@ -3819,5 +3783,350 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   </data>
   <data name="PiAlertsNote" xml:space="preserve">
     <value>「キャラクター」タブでPIにチェックを入れたキャラクターだけが対象です。「まもなく」がどれくらい先かは「インダストリー」タブで設定します。ワークリストのPIタスクも同じ時間を使います。</value>
+  </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>オンラインサービス</value>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console オンラインサービス</value>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>任意です。EVE Console はこれがなくても動作しますが、Slack Webhook の投稿にチャートを表示するなどの eveconsole.com のサービスは、サインインするまで利用できません。EVE 自身のページで EVE キャラクター 1 人でサインインします。権限は要求されません。サインインは、このデータベースに接続しているすべての EVE Console に適用されます。サインインすると、利用規約に同意したことになります。</value>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>EVE でサインイン</value>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>サインアウト</value>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>利用規約を読む</value>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>サインインしていません。</value>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>{0} としてサインインしています。</value>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>保存済み {0:N1} MB / {1:N0} MB。本日のアップロード {2} / {3} 件。</value>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>ブラウザーでのサインインを待っています…</value>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>サインインをキャンセルしました。</value>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>サインインは完了しませんでした。</value>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE のサインインがエラーを返しました（{0}）。</value>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>サインインに失敗しました: {0}</value>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>サインインしました</value>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} が EVE Console のオンラインサービスにサインインしました。</value>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>このタブを閉じて EVE Console に戻れます。</value>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>サインインに失敗しました</value>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>このタブを閉じて、設定からもう一度お試しください。</value>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>サインインしていません。設定の「オンラインサービス」でもう一度サインインしてください。</value>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>このキャラクターはオンラインサービスを利用できません。</value>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>保存容量の上限に達しました。画像は期限切れになると空きが増えます。</value>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>本日のアップロード上限に達しました。</value>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>画像が大きすぎてアップロードできません。</value>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>現在 EVE のサインインを確認できません。しばらくしてからもう一度お試しください。</value>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com に接続できませんでした。</value>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com がエラーを返しました（{0}）。</value>
+  </data>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>メインウィンドウを閉じても、EVE Consoleを通知領域で実行し続ける</value>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>メインウィンドウを閉じても、EVE Consoleをメニューバーで実行し続ける</value>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>メインウィンドウを閉じても非表示になるだけで、パネル、アラーム、バックグラウンド処理は続きます。ウィンドウを戻すにはアイコンをダブルクリックするか、メニューの「{0}」を選び、EVE Consoleを終了するには「{1}」を選びます。</value>
+  </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>{0} のプッシュトゥトーク</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>キーまたはマウスボタンを押してください (Esc でキャンセル)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>このコンピューターでのバックグラウンド処理</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>このクライアントではバックグラウンド処理を行わない</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>ポーリングなどのバックグラウンド処理を行っているクライアントが終了すると、接続中の別のクライアントが引き継ぎます。オンにすると、このクライアントは引き継ぎません。他のクライアントが集めたものを表示するだけです。この設定はこのコンピューターにだけ保存され、すべてのクライアントには適用されません。他のクライアントが動いていなければ、ポーリングは行われません。</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>共有の PostgreSQL データベースでのみ使えます。SQLite ではこのクライアントが唯一なので、常に処理を行います。</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>インダストリーパーク</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>既定</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>既定（{0}）</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>保存される製造コストの計算に使うインダストリーパーク（ストラクチャー、リグ、星系）。販売掲載など、製造コストから決まるすべての価格に影響します。「既定」はインダストリーパークで既定に設定されたパークに従います。ワークリストと計算ツールはそれぞれのパークを使い続けます。変更を反映するには「再計算」を押すか、次の市場更新を待ってください。</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>ダイレクトメッセージ</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Jabber、Mumble、IRC の保存済みダイレクトメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>次より古いダイレクトメッセージを削除</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>グループチャット</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Jabber のルームと IRC チャンネルの保存済みメッセージを削除します。未読のメッセージは、どれほど古くても削除されません。Mumble のチャンネルチャットは保存されないため、削除するものはありません。インテルのルームやチャンネルから読み取り済みのインテルは、上のチャットメッセージとともに残ります。以前の Jabber の履歴設定と同じく、既定で 30 日でオンです。すべて残すにはチェックを外してください。</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>次より古いグループチャットを削除</value>
+  </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>コネクター</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>コネクター</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>任意です。コネクターは、EVE Console をコーポレーションやアライアンスが運営するサービス（メンバーがキャラクターを登録するサイトなど）とつなぐ別のプログラムです。通常はこの PC で自分で実行しますが、コーポレーションがメンバー向けに用意する場合もあります。コネクターがなくても EVE Console はこれまでどおり動作します。</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>複数の PC で共有するデータベースでは、バックグラウンドワーカーが 30 分ごとに各コネクターから更新します。コネクターはワーカーが動いている場所か、すべての PC から届く場所で実行してください。暗号化されない http:// は、この PC 上のコネクターにのみ使用できます。</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>コネクターのアドレス</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>例: http://localhost:5054/</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>EVE で接続</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>今すぐ更新</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>接続されていません。</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>{0} として接続しています。</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>接続しました。</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>リンクされたキャラクター: アカウント {0:N0} 件、キャラクター {1:N0} 人、最終更新 {2}。</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>このコネクターは、このバージョンの EVE Console が使う機能を提供していません。</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>更新しました。</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>すでに最新です。</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>コネクターの完全なアドレスを http:// または https:// から入力してください。</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>別のデバイス上のコネクターには https:// を使ってください。暗号化されない http:// は、この PC 上のコネクターにのみ使用できます。</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>{0} のコネクターに接続できませんでした。</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} はコネクターとして応答しませんでした。</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>このコネクターには新しいバージョンの EVE Console が必要です。</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>コネクターはこのキャラクターを許可していません。</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>コネクターが EVE のサインインを確認できませんでした。もう一度お試しください。</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>コネクターが読み取り元のサービスに接続できませんでした。あとで再試行されます。</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>コネクターはこの接続を受け付けなくなりました。もう一度接続してください。</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>コネクターのリンクされたキャラクターは保存されませんでした: {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>コネクターがエラーを返しました（{0}）。</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>コネクターが EVE Console の要求を理解できませんでした。どちらかの更新が必要かもしれません。</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>コネクターにサインインの開始を依頼しています…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>開いたページで、コネクターがコード {0} を表示していることを確認し、そこで確認してから EVE でサインインしてください。EVE Console が表示していないコードは決して確認しないでください。</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>コネクターのページでサインインが拒否されました。</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>サインインが時間内に完了しませんでした。もう一度接続してください。</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>コネクターが EVE Console では開かないサインインページを指定しました: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>コネクターで開始されたサインインが多すぎます。数分待ってからもう一度お試しください。</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>コネクターは複数追加できます。たとえば、2 つのコーポレーション、あるいはコーポレーションとアライアンスがそれぞれ独自のコネクターを運営している場合です。各コネクターは、選んだコーポレーションとアライアンスにだけ、チェックした機能にだけ使われます。それ以外の人について問い合わせることはありません。</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>プレビュー：コネクターは新しいインターフェースで、現時点ではサポートが限られています。</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>新しいコネクター</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>対象: {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>使用: {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>チェックされた機能はありません。</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>コーポレーションかアライアンスを選ぶまで使われません。</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>このコネクターではリンクされたキャラクターがチェックされていないため、読み込みません。</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>未使用</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>問題あり</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>使用対象</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>あなたのキャラクターのコーポレーションやアライアンスはまだわかりません。まず ESIトークン でキャラクターを追加してください。</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0}（現在あなたのキャラクターはいません）</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>機能</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>このバージョンの EVE Console が使うのはリンクされたキャラクターだけです。その他の選択は今後の機能のために保存されます。</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>リンクされたキャラクター</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>認証グループ</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>メンバーの ESI データ</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>コーポレーションの ESI データ</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>フリート参加</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>このコネクターはこれを提供していません。</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{1} の {0} は、すでにコネクター {2} に設定されています。先にそちらのチェックを外してください。</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>このコネクターは、その間に削除されました（別の PC からかもしれません）。</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>接続すると、このコネクターが提供するものがわかります。</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>コネクターに問い合わせています…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>切断しています…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>チェックした機能は、現在どれもこのコネクターから提供されていません。</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>コネクターの削除</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>コネクター {0} を削除しますか？そのキーは無効になり、選択したコーポレーション、アライアンス、機能、およびそのコネクターから得たリンクされたキャラクターは消去されます。元に戻すことはできません。</value>
+  </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>バックグラウンド処理を行っているPCに履歴の再解析を依頼しました。インテルを解析するのはそのPCだけです。進捗はバックグラウンド処理に表示されます。</value>
   </data>
 </root>

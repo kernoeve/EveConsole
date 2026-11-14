@@ -1,0 +1,715 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="UnknownCommand" xml:space="preserve">
+    <value>{0} no es un comando aquí. Empieza la línea con // para enviarla como texto.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Añadir servidor IRC</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Añade un servidor IRC para chatear en sus canales desde el Chat de grupo y con su gente desde Mensajes.</value>
+  </data>
+  <data name="PickServer" xml:space="preserve">
+    <value>Elige un servidor a la izquierda.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Dirección del servidor</value>
+  </data>
+  <data name="LabelTls" xml:space="preserve">
+    <value>Cifrado (TLS)</value>
+  </data>
+  <data name="PlainWarning" xml:space="preserve">
+    <value>Sin cifrado, cualquiera en el camino puede leerlo todo, y no se envía ninguna contraseña (salvo a este equipo).</value>
+  </data>
+  <data name="NickNote" xml:space="preserve">
+    <value>Si está ocupado, se prueba el mismo con _ o un número detrás.</value>
+  </data>
+  <data name="LabelLogin" xml:space="preserve">
+    <value>Iniciar sesión con</value>
+  </data>
+  <data name="LoginNone" xml:space="preserve">
+    <value>Sin contraseña</value>
+  </data>
+  <data name="LoginSasl" xml:space="preserve">
+    <value>Cuenta (SASL), como la mayoría de redes</value>
+  </data>
+  <data name="LoginNickServ" xml:space="preserve">
+    <value>NickServ, tras conectar</value>
+  </data>
+  <data name="LoginServerPassword" xml:space="preserve">
+    <value>Contraseña del servidor</value>
+  </data>
+  <data name="LabelAccount" xml:space="preserve">
+    <value>Nombre de la cuenta</value>
+  </data>
+  <data name="AccountNote" xml:space="preserve">
+    <value>En blanco para el apodo.</value>
+  </data>
+  <data name="MoreSettings" xml:space="preserve">
+    <value>Más ajustes</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Nombre de usuario</value>
+  </data>
+  <data name="LabelRealName" xml:space="preserve">
+    <value>Nombre real</value>
+  </data>
+  <data name="LabelOnConnect" xml:space="preserve">
+    <value>Comandos al conectar</value>
+  </data>
+  <data name="OnConnectNote" xml:space="preserve">
+    <value>Uno por línea, como pida la red: /msg, /mode y similares.</value>
+  </data>
+  <data name="LabelAway" xml:space="preserve">
+    <value>Ausente</value>
+  </data>
+  <data name="AwayHint" xml:space="preserve">
+    <value>Por qué estás ausente (opcional)</value>
+  </data>
+  <data name="AwayDefault" xml:space="preserve">
+    <value>Ausente</value>
+  </data>
+  <data name="SetAway" xml:space="preserve">
+    <value>Marcar ausente</value>
+  </data>
+  <data name="SetBack" xml:space="preserve">
+    <value>De vuelta</value>
+  </data>
+  <data name="LabelChangeNick" xml:space="preserve">
+    <value>Cambiar apodo ahora</value>
+  </data>
+  <data name="ChangeNick" xml:space="preserve">
+    <value>Cambiar</value>
+  </data>
+  <data name="ChannelsAreInGroupChat" xml:space="preserve">
+    <value>Los canales están en el Chat de grupo y las conversaciones con personas en Mensajes.</value>
+  </data>
+  <data name="StateConnectedAway" xml:space="preserve">
+    <value>Conectado, ausente</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>No conectado: la contraseña solo se envía cifrada. Activa TLS para este servidor.</value>
+  </data>
+  <data name="ProblemRefused" xml:space="preserve">
+    <value>No conectado: el servidor rechazó la conexión.</value>
+  </data>
+  <data name="ConnectedAs" xml:space="preserve">
+    <value>Conectado como {0} en {1}.</value>
+  </data>
+  <data name="NotEncrypted" xml:space="preserve">
+    <value>Esta conexión no está cifrada.</value>
+  </data>
+  <data name="HistoryKept" xml:space="preserve">
+    <value>Este servidor guarda historial: lo dicho mientras no estás llega al reconectar.</value>
+  </data>
+  <data name="HistoryNone" xml:space="preserve">
+    <value>Este servidor no guarda historial: lo dicho mientras no estás conectado no se ve aquí.</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Mensaje a {0} (/me para una acción)</value>
+  </data>
+  <data name="NotInChannel" xml:space="preserve">
+    <value>Ahora no estás en este canal.</value>
+  </data>
+  <data name="NoChannelsListed" xml:space="preserve">
+    <value>El servidor no listó canales. Escribe el nombre de un canal para unirte.</value>
+  </data>
+  <data name="RankFounder" xml:space="preserve">
+    <value>Fundador</value>
+  </data>
+  <data name="RankAdmin" xml:space="preserve">
+    <value>Admin</value>
+  </data>
+  <data name="RankOperator" xml:space="preserve">
+    <value>Operador</value>
+  </data>
+  <data name="RankHalfOperator" xml:space="preserve">
+    <value>Semioperador</value>
+  </data>
+  <data name="RankVoice" xml:space="preserve">
+    <value>Voz</value>
+  </data>
+  <data name="AwayBecause" xml:space="preserve">
+    <value>Ausente: {0}</value>
+  </data>
+  <data name="MenuGiveOperator" xml:space="preserve">
+    <value>Hacer operador</value>
+  </data>
+  <data name="MenuTakeOperator" xml:space="preserve">
+    <value>Quitar operador</value>
+  </data>
+  <data name="MenuGiveHalfOperator" xml:space="preserve">
+    <value>Hacer semioperador</value>
+  </data>
+  <data name="MenuTakeHalfOperator" xml:space="preserve">
+    <value>Quitar semioperador</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>¿Vetar a {0} de {2}? Esto veta {1} y lo expulsa.</value>
+  </data>
+  <data name="LabelInviteNick" xml:space="preserve">
+    <value>Apodo</value>
+  </data>
+  <data name="NeedHost" xml:space="preserve">
+    <value>Escribe la dirección del servidor.</value>
+  </data>
+  <data name="NeedNick" xml:space="preserve">
+    <value>Escribe un apodo: una palabra que no empiece por # ni :.</value>
+  </data>
+  <data name="NeedPassword" xml:space="preserve">
+    <value>Escribe la contraseña de este modo de inicio.</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>¿Quitar {0}? Sus canales y mensajes guardados se borran también.</value>
+  </data>
+  <data name="LabelNick" xml:space="preserve">
+    <value>Apodo</value>
+  </data>
+  <data name="ProblemNickname" xml:space="preserve">
+    <value>No conectado: el servidor no acepta este apodo. Elige otro en Editar.</value>
+  </data>
+  <data name="CannotRedact" xml:space="preserve">
+    <value>Este servidor no permite retirar mensajes.</value>
+  </data>
+  <data name="MenuGiveFounder" xml:space="preserve">
+    <value>Hacer fundador</value>
+  </data>
+  <data name="MenuTakeFounder" xml:space="preserve">
+    <value>Quitar fundador</value>
+  </data>
+  <data name="MenuGiveAdmin" xml:space="preserve">
+    <value>Hacer administrador</value>
+  </data>
+  <data name="MenuTakeAdmin" xml:space="preserve">
+    <value>Quitar administrador</value>
+  </data>
+  <data name="MenuGiveRank" xml:space="preserve">
+    <value>Dar +{0}</value>
+  </data>
+  <data name="MenuTakeRank" xml:space="preserve">
+    <value>Quitar +{0}</value>
+  </data>
+  <data name="MenuChannelSettings" xml:space="preserve">
+    <value>Ajustes del canal…</value>
+  </data>
+  <data name="ChannelSettingsTitle" xml:space="preserve">
+    <value>Ajustes de {0}</value>
+  </data>
+  <data name="ChannelSettingsNote" xml:space="preserve">
+    <value>Los modos del canal, tal como los tiene este servidor. Los cambios se envían al pulsar Guardar; las listas cambian en cuanto añades o quitas una línea. El servidor rechaza lo que tu rango no permite y lo indica en el chat de grupo.</value>
+  </data>
+  <data name="ChannelSettingsNotRead" xml:space="preserve">
+    <value>El servidor aún no ha dicho cómo está configurado este canal, así que lo marcado puede estar incompleto.</value>
+  </data>
+  <data name="ChannelSettingsTab" xml:space="preserve">
+    <value>Ajustes</value>
+  </data>
+  <data name="ChannelSettingsSave" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="ChannelSettingsClose" xml:space="preserve">
+    <value>Cerrar</value>
+  </data>
+  <data name="ModeSetBy" xml:space="preserve">
+    <value>puesto por {0}</value>
+  </data>
+  <data name="ModeListBans" xml:space="preserve">
+    <value>Bloqueos</value>
+  </data>
+  <data name="ModeListBansNote" xml:space="preserve">
+    <value>Quien coincida con uno de estos no puede entrar (+b).</value>
+  </data>
+  <data name="ModeListExceptions" xml:space="preserve">
+    <value>Excepciones de bloqueo</value>
+  </data>
+  <data name="ModeListExceptionsNote" xml:space="preserve">
+    <value>Quien coincida con uno de estos puede entrar aunque también coincida un bloqueo (+e).</value>
+  </data>
+  <data name="ModeListInvites" xml:space="preserve">
+    <value>Excepciones de invitación</value>
+  </data>
+  <data name="ModeListInvitesNote" xml:space="preserve">
+    <value>Quien coincida con uno de estos puede entrar en un canal solo con invitación sin ser invitado (+I).</value>
+  </data>
+  <data name="ModeListRemove" xml:space="preserve">
+    <value>Quitar</value>
+  </data>
+  <data name="ModeListAdd" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="ModeListLoading" xml:space="preserve">
+    <value>Preguntando al servidor…</value>
+  </data>
+  <data name="ModeListEmpty" xml:space="preserve">
+    <value>No hay nada en esta lista.</value>
+  </data>
+  <data name="ModeListMaskHint" xml:space="preserve">
+    <value>nick!usuario@host — * coincide con todo</value>
+  </data>
+  <data name="ModeKey" xml:space="preserve">
+    <value>Contraseña para entrar</value>
+  </data>
+  <data name="ModeKeyTip" xml:space="preserve">
+    <value>La clave del canal: solo quien la da puede entrar.</value>
+  </data>
+  <data name="ModeKeyHint" xml:space="preserve">
+    <value>Contraseña nueva</value>
+  </data>
+  <data name="ModeKeyShow" xml:space="preserve">
+    <value>Mostrar</value>
+  </data>
+  <data name="ModeKeyKept" xml:space="preserve">
+    <value>El canal tiene una contraseña, que nunca se muestra. Escribe una nueva para cambiarla.</value>
+  </data>
+  <data name="ModeKeyWillChange" xml:space="preserve">
+    <value>Al guardar, esta será la contraseña para entrar.</value>
+  </data>
+  <data name="ModeKeyWillGo" xml:space="preserve">
+    <value>Al guardar se quita la contraseña: cualquiera podrá entrar.</value>
+  </data>
+  <data name="ModeKeyNeeded" xml:space="preserve">
+    <value>Escribe la contraseña que se necesitará para entrar.</value>
+  </data>
+  <data name="ModeKeyNoSpaces" xml:space="preserve">
+    <value>La contraseña de un canal no puede tener espacios.</value>
+  </data>
+  <data name="ModeNeedsValue" xml:space="preserve">
+    <value>{0}: indica un valor o desmárcalo.</value>
+  </data>
+  <data name="ModeNeedsNumber" xml:space="preserve">
+    <value>{0}: indica un número entero.</value>
+  </data>
+  <data name="ModeInviteOnly" xml:space="preserve">
+    <value>Solo con invitación</value>
+  </data>
+  <data name="ModeInviteOnlyTip" xml:space="preserve">
+    <value>Solo pueden entrar los invitados o quienes estén en las excepciones de invitación.</value>
+  </data>
+  <data name="ModeModerated" xml:space="preserve">
+    <value>Solo hablan quienes tienen voz y los operadores</value>
+  </data>
+  <data name="ModeModeratedTip" xml:space="preserve">
+    <value>Los demás pueden leer el canal, pero no escribir en él.</value>
+  </data>
+  <data name="ModeNoOutside" xml:space="preserve">
+    <value>Sin mensajes de fuera</value>
+  </data>
+  <data name="ModeNoOutsideTip" xml:space="preserve">
+    <value>Solo quienes están en el canal pueden enviarle mensajes.</value>
+  </data>
+  <data name="ModeTopicLock" xml:space="preserve">
+    <value>Solo los operadores cambian el tema</value>
+  </data>
+  <data name="ModeTopicLockTip" xml:space="preserve">
+    <value>Los demás no pueden cambiar el tema del canal.</value>
+  </data>
+  <data name="ModeSecret" xml:space="preserve">
+    <value>Oculto en la lista de canales</value>
+  </data>
+  <data name="ModeSecretTip" xml:space="preserve">
+    <value>El canal no aparece en la lista de canales del servidor ni en la información de quienes están en él.</value>
+  </data>
+  <data name="ModePrivate" xml:space="preserve">
+    <value>Privado: listado sin sus detalles</value>
+  </data>
+  <data name="ModePrivateTip" xml:space="preserve">
+    <value>Una forma antigua de ocultar: el canal puede aparecer, pero quien está fuera no ve su tema ni quién está dentro.</value>
+  </data>
+  <data name="ModeRegisteredOnly" xml:space="preserve">
+    <value>Solo pueden entrar cuentas con sesión iniciada</value>
+  </data>
+  <data name="ModeRegisteredOnlyTip" xml:space="preserve">
+    <value>Quien no haya iniciado sesión en una cuenta de esta red no puede entrar.</value>
+  </data>
+  <data name="ModeRegisteredSpeak" xml:space="preserve">
+    <value>Solo pueden hablar cuentas con sesión iniciada</value>
+  </data>
+  <data name="ModeRegisteredSpeakTip" xml:space="preserve">
+    <value>Quien no haya iniciado sesión puede entrar y leer, pero no hablar salvo que se le dé voz.</value>
+  </data>
+  <data name="ModeNoCtcp" xml:space="preserve">
+    <value>Bloquear peticiones de programa (versión, ping)</value>
+  </data>
+  <data name="ModeNoCtcpTip" xml:space="preserve">
+    <value>Se rechazan en el canal las peticiones que un programa de IRC envía a los de todos (CTCP). /me sigue funcionando.</value>
+  </data>
+  <data name="ModeNoColour" xml:space="preserve">
+    <value>Bloquear mensajes con colores</value>
+  </data>
+  <data name="ModeNoColourTip" xml:space="preserve">
+    <value>Se rechazan los mensajes con códigos de color o formato.</value>
+  </data>
+  <data name="ModeLimit" xml:space="preserve">
+    <value>Máximo de personas</value>
+  </data>
+  <data name="ModeLimitTip" xml:space="preserve">
+    <value>Cuando haya tantos dentro, nadie más podrá entrar.</value>
+  </data>
+  <data name="ModeLimitHint" xml:space="preserve">
+    <value>un número, p. ej. 50</value>
+  </data>
+  <data name="ModeChannelHint" xml:space="preserve">
+    <value>#canal</value>
+  </data>
+  <data name="ModeSecondsHint" xml:space="preserve">
+    <value>segundos, p. ej. 30</value>
+  </data>
+  <data name="ModeStripColour" xml:space="preserve">
+    <value>Quitar los colores de los mensajes</value>
+  </data>
+  <data name="ModeStripColourTip" xml:space="preserve">
+    <value>Se quitan los códigos de color y formato; el texto llega igualmente.</value>
+  </data>
+  <data name="ModeRoleplay" xml:space="preserve">
+    <value>Permitir órdenes de rol</value>
+  </data>
+  <data name="ModeRoleplayTip" xml:space="preserve">
+    <value>Los miembros pueden hablar como un personaje o narrar una escena (las órdenes NPC y SCENE del servidor).</value>
+  </data>
+  <data name="ModeAuditorium" xml:space="preserve">
+    <value>Ocultar al público entre sí</value>
+  </data>
+  <data name="ModeAuditoriumTip" xml:space="preserve">
+    <value>Como un auditorio: quien no tiene voz solo ve en la lista a los operadores y a quienes tienen voz, y no quién entra y sale.</value>
+  </data>
+  <data name="ModeOpModerated" xml:space="preserve">
+    <value>Los mensajes sin voz solo llegan a los operadores</value>
+  </data>
+  <data name="ModeOpModeratedTip" xml:space="preserve">
+    <value>Lo que envía quien no tiene voz solo lo ven los operadores del canal, que pueden reenviarlo; los demás solo ven a operadores y a quienes tienen voz.</value>
+  </data>
+  <data name="ModeFreeInvite" xml:space="preserve">
+    <value>Cualquiera en el canal puede invitar</value>
+  </data>
+  <data name="ModeFreeInviteTip" xml:space="preserve">
+    <value>También pueden invitar los miembros sin rango de operador.</value>
+  </data>
+  <data name="ModeTlsOnly" xml:space="preserve">
+    <value>Solo conexiones cifradas</value>
+  </data>
+  <data name="ModeTlsOnlyTip" xml:space="preserve">
+    <value>Solo pueden entrar quienes estén conectados al servidor con TLS.</value>
+  </data>
+  <data name="ModeNoNotice" xml:space="preserve">
+    <value>Bloquear avisos al canal</value>
+  </data>
+  <data name="ModeNoNoticeTip" xml:space="preserve">
+    <value>Se rechazan los mensajes NOTICE enviados a todo el canal.</value>
+  </data>
+  <data name="ModeFreeTarget" xml:space="preserve">
+    <value>Otros canales pueden enviar gente aquí</value>
+  </data>
+  <data name="ModeFreeTargetTip" xml:space="preserve">
+    <value>Cualquier canal puede reenviar aquí a quien no pueda entrar en él, no solo los canales de los operadores de este.</value>
+  </data>
+  <data name="ModeNoForward" xml:space="preserve">
+    <value>Rechazar a quien llegue reenviado de otro canal</value>
+  </data>
+  <data name="ModeNoForwardTip" xml:space="preserve">
+    <value>No se deja entrar a quienes otro canal reenvía aquí.</value>
+  </data>
+  <data name="ModeLargeLists" xml:space="preserve">
+    <value>Listas más largas</value>
+  </data>
+  <data name="ModeLargeListsTip" xml:space="preserve">
+    <value>Lo ponen los operadores de la red: las listas de bloqueos y excepciones del canal admiten más entradas.</value>
+  </data>
+  <data name="ModePermanent" xml:space="preserve">
+    <value>Permanente</value>
+  </data>
+  <data name="ModePermanentTip" xml:space="preserve">
+    <value>Lo ponen los operadores de la red: el canal y sus ajustes siguen aunque todos se vayan.</value>
+  </data>
+  <data name="ModeOpersOnly" xml:space="preserve">
+    <value>Solo operadores de la red</value>
+  </data>
+  <data name="ModeOpersOnlyTip" xml:space="preserve">
+    <value>Lo ponen los operadores de la red: solo ellos pueden entrar.</value>
+  </data>
+  <data name="ModeDelayJoin" xml:space="preserve">
+    <value>Ocultar a la gente hasta que hable</value>
+  </data>
+  <data name="ModeDelayJoinTip" xml:space="preserve">
+    <value>Quien entra no aparece en la lista hasta que dice algo.</value>
+  </data>
+  <data name="ModeNoNickChange" xml:space="preserve">
+    <value>Sin cambios de apodo</value>
+  </data>
+  <data name="ModeNoNickChangeTip" xml:space="preserve">
+    <value>Quienes están en el canal no pueden cambiar de apodo mientras sigan en él.</value>
+  </data>
+  <data name="ModeNoKick" xml:space="preserve">
+    <value>No se puede expulsar a nadie</value>
+  </data>
+  <data name="ModeNoKickTip" xml:space="preserve">
+    <value>Los operadores del canal no pueden expulsar a nadie; solo los operadores o servicios de la red.</value>
+  </data>
+  <data name="ModeNoKnock" xml:space="preserve">
+    <value>No se puede pedir entrar</value>
+  </data>
+  <data name="ModeNoKnockTip" xml:space="preserve">
+    <value>Quien está fuera no puede llamar (KNOCK) para pedir a un operador que le deje entrar.</value>
+  </data>
+  <data name="ModeNoInvite" xml:space="preserve">
+    <value>Sin invitaciones</value>
+  </data>
+  <data name="ModeNoInviteTip" xml:space="preserve">
+    <value>Nadie puede invitar a gente al canal.</value>
+  </data>
+  <data name="ModeBlockCaps" xml:space="preserve">
+    <value>Bloquear gritos en mayúsculas</value>
+  </data>
+  <data name="ModeBlockCapsTip" xml:space="preserve">
+    <value>Se rechazan los mensajes escritos casi todo en mayúsculas.</value>
+  </data>
+  <data name="ModeCensor" xml:space="preserve">
+    <value>Censurar palabrotas</value>
+  </data>
+  <data name="ModeCensorTip" xml:space="preserve">
+    <value>Las palabras de la lista del servidor se bloquean o se sustituyen.</value>
+  </data>
+  <data name="ModeRegisteredChannel" xml:space="preserve">
+    <value>Registrado en los servicios de la red</value>
+  </data>
+  <data name="ModeRegisteredChannelTip" xml:space="preserve">
+    <value>Lo ponen los servicios de la red: el canal está registrado a nombre de un dueño.</value>
+  </data>
+  <data name="ModeAllTls" xml:space="preserve">
+    <value>Todos aquí están cifrados</value>
+  </data>
+  <data name="ModeAllTlsTip" xml:space="preserve">
+    <value>Lo pone el servidor: todas las personas del canal están conectadas con TLS.</value>
+  </data>
+  <data name="ModeForward" xml:space="preserve">
+    <value>Enviar a quien no pueda entrar a</value>
+  </data>
+  <data name="ModeForwardTip" xml:space="preserve">
+    <value>Cuando alguien no puede entrar (lleno, solo con invitación, bloqueado…), el servidor lo envía a este canal.</value>
+  </data>
+  <data name="ModeOverflow" xml:space="preserve">
+    <value>Si está lleno, enviar a</value>
+  </data>
+  <data name="ModeOverflowTip" xml:space="preserve">
+    <value>Cuando se llega al máximo de personas, quienes llegan van a este canal.</value>
+  </data>
+  <data name="ModeJoinThrottle" xml:space="preserve">
+    <value>Frenar las entradas</value>
+  </data>
+  <data name="ModeJoinThrottleTip" xml:space="preserve">
+    <value>Si entran tantas personas en los segundos indicados, se rechazan más entradas durante un rato (contra avalanchas).</value>
+  </data>
+  <data name="ModeJoinThrottleHint" xml:space="preserve">
+    <value>entradas:segundos, p. ej. 5:10</value>
+  </data>
+  <data name="ModeFlood" xml:space="preserve">
+    <value>Expulsar por inundar</value>
+  </data>
+  <data name="ModeFloodTip" xml:space="preserve">
+    <value>Quien envíe más líneas que estas en los segundos indicados es expulsado. Pon * delante para bloquearlo también.</value>
+  </data>
+  <data name="ModeFloodHint" xml:space="preserve">
+    <value>líneas:segundos, p. ej. 10:5</value>
+  </data>
+  <data name="ModeFloodRules" xml:space="preserve">
+    <value>Reglas contra inundación</value>
+  </data>
+  <data name="ModeFloodRulesTip" xml:space="preserve">
+    <value>Las reglas de UnrealIRCd: cuántas entradas (j), mensajes (m), cambios de apodo (n), etc. se permiten en los segundos tras los dos puntos.</value>
+  </data>
+  <data name="ModeFloodRulesHint" xml:space="preserve">
+    <value>p. ej. [5j,10m]:15</value>
+  </data>
+  <data name="ModeFloodProfile" xml:space="preserve">
+    <value>Nivel de protección contra inundación</value>
+  </data>
+  <data name="ModeFloodProfileTip" xml:space="preserve">
+    <value>Uno de los niveles con nombre del servidor, como relaxed, normal o strict.</value>
+  </data>
+  <data name="ModeFloodProfileHint" xml:space="preserve">
+    <value>p. ej. normal</value>
+  </data>
+  <data name="ModeNickFlood" xml:space="preserve">
+    <value>Frenar los cambios de apodo</value>
+  </data>
+  <data name="ModeNickFloodTip" xml:space="preserve">
+    <value>Si hay tantos cambios de apodo en los segundos indicados, se bloquean más durante un rato.</value>
+  </data>
+  <data name="ModeNickFloodHint" xml:space="preserve">
+    <value>cambios:segundos, p. ej. 3:60</value>
+  </data>
+  <data name="ModeRejoinDelay" xml:space="preserve">
+    <value>Espera tras una expulsión</value>
+  </data>
+  <data name="ModeRejoinDelayTip" xml:space="preserve">
+    <value>Quien sea expulsado no puede volver durante estos segundos.</value>
+  </data>
+  <data name="ModeMessageDelay" xml:space="preserve">
+    <value>Los recién llegados esperan antes de hablar</value>
+  </data>
+  <data name="ModeMessageDelayTip" xml:space="preserve">
+    <value>Quien entra no puede hablar durante estos segundos.</value>
+  </data>
+  <data name="ModeHistory" xml:space="preserve">
+    <value>Mostrar las últimas líneas a quien llega</value>
+  </data>
+  <data name="ModeHistoryTip" xml:space="preserve">
+    <value>Quien entra recibe hasta este número de líneas recientes dentro del tiempo indicado.</value>
+  </data>
+  <data name="ModeHistoryHint" xml:space="preserve">
+    <value>líneas:tiempo, p. ej. 50:1d</value>
+  </data>
+  <data name="ModeCommand" xml:space="preserve">
+    <value>Otros modos, para quien conoce IRC</value>
+  </data>
+  <data name="ModeCommandTip" xml:space="preserve">
+    <value>Ajustes de este servidor que no se nombran arriba. Se escriben como los toma MODE, p. ej. +E, -U o +j 5:10, y se envían al guardar.</value>
+  </data>
+  <data name="ModeCommandHint" xml:space="preserve">
+    <value>+letras o -letras, luego los valores</value>
+  </data>
+  <data name="ModeCommandBad" xml:space="preserve">
+    <value>Otros modos: empieza con + o - y letras de modo; los valores, tras un espacio.</value>
+  </data>
+  <data name="ModeAlsoSet" xml:space="preserve">
+    <value>También puesto en el canal: {0}</value>
+  </data>
+  <data name="MenuWhois" xml:space="preserve">
+    <value>¿Quién es?</value>
+  </data>
+  <data name="WhoisTitle" xml:space="preserve">
+    <value>Quién es {0}</value>
+  </data>
+  <data name="WhoisAsking" xml:space="preserve">
+    <value>Preguntando al servidor…</value>
+  </data>
+  <data name="WhoisNoAnswer" xml:space="preserve">
+    <value>El servidor no respondió.</value>
+  </data>
+  <data name="WhoisNotOnline" xml:space="preserve">
+    <value>{0} no está conectado.</value>
+  </data>
+  <data name="WhoisRealName" xml:space="preserve">
+    <value>Nombre real</value>
+  </data>
+  <data name="WhoisAccount" xml:space="preserve">
+    <value>Cuenta</value>
+  </data>
+  <data name="WhoisNoAccount" xml:space="preserve">
+    <value>Sin sesión en ninguna cuenta</value>
+  </data>
+  <data name="WhoisAway" xml:space="preserve">
+    <value>Ausente</value>
+  </data>
+  <data name="WhoisIdle" xml:space="preserve">
+    <value>Sin hablar desde hace</value>
+  </data>
+  <data name="WhoisSince" xml:space="preserve">
+    <value>Conectado desde</value>
+  </data>
+  <data name="WhoisChannels" xml:space="preserve">
+    <value>Canales</value>
+  </data>
+  <data name="WhoisAddress" xml:space="preserve">
+    <value>Dirección</value>
+  </data>
+  <data name="WhoisServer" xml:space="preserve">
+    <value>Servidor</value>
+  </data>
+  <data name="WhoisSecure" xml:space="preserve">
+    <value>Conexión cifrada</value>
+  </data>
+  <data name="WhoisOperator" xml:space="preserve">
+    <value>Operador de la red</value>
+  </data>
+  <data name="WhoisBot" xml:space="preserve">
+    <value>Bot</value>
+  </data>
+  <data name="WhoisYes" xml:space="preserve">
+    <value>Sí</value>
+  </data>
+  <data name="WhoisAlso" xml:space="preserve">
+    <value>Además</value>
+  </data>
+  <data name="SpanSeconds" xml:space="preserve">
+    <value>{0} s</value>
+  </data>
+  <data name="SpanMinutes" xml:space="preserve">
+    <value>{0} min</value>
+  </data>
+  <data name="SpanHours" xml:space="preserve">
+    <value>{0} h {1} min</value>
+  </data>
+  <data name="SpanDays" xml:space="preserve">
+    <value>{0} d {1} h</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Tu imagen</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Un enlace web a una imagen. La gente de este servidor la ve donde su programa de IRC muestra imágenes.</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>https://… enlace a una imagen</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Usar un retrato de EVE</value>
+  </data>
+  <data name="PictureUseEveNote" xml:space="preserve">
+    <value>El retrato de tu personaje desde el servidor de imágenes de EVE. Cambia cuando lo cambias en el juego.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Poner imagen</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Quitar imagen</value>
+  </data>
+  <data name="PictureSaved" xml:space="preserve">
+    <value>Imagen guardada. Se vuelve a poner cada vez que este servidor se conecta.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Imagen quitada.</value>
+  </data>
+  <data name="PictureNotKept" xml:space="preserve">
+    <value>Este servidor no guarda imágenes: se guarda aquí y se pondrá cuando el servidor pueda.</value>
+  </data>
+  <data name="PictureLinkBad" xml:space="preserve">
+    <value>Un enlace de imagen empieza por https:// o http://, no tiene espacios y tiene como mucho 400 caracteres.</value>
+  </data>
+  <data name="StsNote" xml:space="preserve">
+    <value>El servidor pidió que solo se le contacte cifrado, y así se hace: puerto {0}, hasta {1}.</value>
+  </data>
+  <data name="StsEditNote" xml:space="preserve">
+    <value>Este servidor pidió que solo se le contacte cifrado hasta {1}, así que se hará en el puerto {0}, se ponga lo que se ponga aquí.</value>
+  </data>
+  <data name="FileNoHost" xml:space="preserve">
+    <value>Este servidor no acepta archivos.</value>
+  </data>
+  <data name="FileHostUnencrypted" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor no está cifrado, así que no se le envía nada.</value>
+  </data>
+  <data name="FileNoLink" xml:space="preserve">
+    <value>El alojamiento aceptó el archivo pero no dijo dónde se guarda.</value>
+  </data>
+  <data name="FileTypeNotTaken" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor solo acepta: {0}.</value>
+  </data>
+  <data name="FileTypeRefused" xml:space="preserve">
+    <value>El alojamiento de archivos del servidor no acepta este tipo de archivo.</value>
+  </data>
+  <data name="FileTooBigForHost" xml:space="preserve">
+    <value>El archivo es demasiado grande para el alojamiento del servidor.</value>
+  </data>
+  <data name="FileNotAllowed" xml:space="preserve">
+    <value>El alojamiento del servidor lo rechazó: inicia sesión con una cuenta (SASL) para enviar archivos.</value>
+  </data>
+  <data name="FileRefused" xml:space="preserve">
+    <value>El alojamiento del servidor lo rechazó ({0} {1}).</value>
+  </data>
+  <data name="FileCutOff" xml:space="preserve">
+    <value>El alojamiento del servidor dejó de recibir el archivo a mitad. Puede que sea demasiado grande.</value>
+  </data>
+</root>

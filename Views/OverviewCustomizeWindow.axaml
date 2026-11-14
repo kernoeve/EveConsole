@@ -8,13 +8,31 @@
         WindowStartupLocation="CenterOwner"
         Background="{DynamicResource SurfaceBaseBrush}">
 
-  <Grid RowDefinitions="Auto,Auto,*,Auto" Margin="16">
+  <Grid RowDefinitions="Auto,Auto,Auto,*,Auto" Margin="16">
 
     <TextBlock Grid.Row="0" Text="{x:Static loc:OverviewText.OverviewLayout}" FontSize="15" FontWeight="SemiBold"
                Foreground="{DynamicResource AccentBrush}" Margin="0 0 0 4" />
 
+    <!-- Which layout is being edited, its name, and Add and Delete. Its own DataContext, set in code:
+         the rest of the window is the chosen layout's grid. -->
+    <StackPanel Grid.Row="1" x:Name="LayoutBar" x:DataType="vm:OverviewLayoutsEditVm" Orientation="Horizontal" Spacing="8" Margin="0 8 0 0">
+      <TextBlock Text="{x:Static loc:OverviewText.LayoutLabel}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12" />
+      <ComboBox ItemsSource="{Binding Layouts}" SelectedItem="{Binding Selected}" MinWidth="180" FontSize="12">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="vm:OverviewLayoutEntryVm">
+            <TextBlock Text="{Binding Name}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="{x:Static loc:OverviewText.LayoutName}" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" Margin="8 0 0 0" />
+      <TextBox Text="{Binding Selected.Name}" IsEnabled="{Binding !Selected.IsDefault}" Width="180" FontSize="12" />
+      <Button Content="{x:Static loc:OverviewText.LayoutAdd}" Command="{Binding AddCommand}" FontSize="12" Padding="12 4"
+              ToolTip.Tip="{x:Static loc:OverviewText.TipLayoutAdd}" />
+      <Button Content="{x:Static loc:OverviewText.LayoutDelete}" Command="{Binding DeleteCommand}" FontSize="12" Padding="12 4" />
+    </StackPanel>
+
     <!-- Grid size -->
-    <StackPanel Grid.Row="1" Orientation="Horizontal" Spacing="10" Margin="0 8 0 12"
+    <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="10" Margin="0 8 0 12"
                 VerticalAlignment="Center">
       <TextBlock Text="{x:Static loc:OverviewText.GridSize}" Foreground="{DynamicResource TextSecondaryBrush}" VerticalAlignment="Center" FontSize="12" />
       <TextBlock Text="{x:Static loc:OverviewText.Rows}" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" FontSize="12" />
@@ -26,7 +44,7 @@
     </StackPanel>
 
     <!-- Body: section palette (left) + grid preview (right) -->
-    <Grid Grid.Row="2" ColumnDefinitions="190,12,*">
+    <Grid Grid.Row="3" ColumnDefinitions="190,12,*">
 
       <!-- Palette of sections not yet on the grid -->
       <Border Grid.Column="0" BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" CornerRadius="4" Padding="8">
@@ -60,7 +78,7 @@
 
     </Grid>
 
-    <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right"
+    <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right"
                 Spacing="8" Margin="0 12 0 0">
       <Button Content="{x:Static loc:OverviewText.Cancel}" Click="OnCancel"
               FontSize="12" Padding="14 6"

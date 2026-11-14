@@ -1,4 +1,4 @@
-﻿using EveConsole.Models;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Data;
@@ -37,6 +37,8 @@ public class AppDbContext : DbContext
     public DbSet<WalletBackfillState>        WalletBackfillStates    => Set<WalletBackfillState>();
     public DbSet<UniverseName>               UniverseNames           => Set<UniverseName>();
     public DbSet<CharacterAsset>             EsiAssets               => Set<CharacterAsset>();
+    public DbSet<AssetSnapshot>              AssetSnapshots          => Set<AssetSnapshot>();
+    public DbSet<MarketOrderSighting>        MarketOrderSightings    => Set<MarketOrderSighting>();
     public DbSet<CharacterBlueprint>         EsiBlueprints           => Set<CharacterBlueprint>();
     public DbSet<CharacterMiningEntry>       EsiMining               => Set<CharacterMiningEntry>();
     public DbSet<CharacterNotification>      EsiNotifications        => Set<CharacterNotification>();
@@ -50,6 +52,12 @@ public class AppDbContext : DbContext
     public DbSet<PlanetaryColony>            EsiPlanetaryColonies    => Set<PlanetaryColony>();
     public DbSet<PlanetaryLayout>            EsiPlanetaryLayouts     => Set<PlanetaryLayout>();
     public DbSet<HaulMark>                   HaulMarks               => Set<HaulMark>();
+    public DbSet<SavedBattle>                SavedBattles            => Set<SavedBattle>();
+    public DbSet<ClientLayout>               ClientLayouts           => Set<ClientLayout>();
+    public DbSet<ClientLayoutDevice>         ClientLayoutDevices     => Set<ClientLayoutDevice>();
+    public DbSet<ClientLayoutProfile>        ClientLayoutProfiles    => Set<ClientLayoutProfile>();
+    public DbSet<ClientLayoutMonitor>        ClientLayoutMonitors    => Set<ClientLayoutMonitor>();
+    public DbSet<ClientLayoutCharacter>      ClientLayoutCharacters  => Set<ClientLayoutCharacter>();
     public DbSet<CourierCargo>               CourierCargo            => Set<CourierCargo>();
     public DbSet<PlanetaryPin>               EsiPlanetaryPins        => Set<PlanetaryPin>();
     public DbSet<PlanetaryPinContent>        EsiPlanetaryPinContents => Set<PlanetaryPinContent>();
@@ -90,6 +98,27 @@ public class AppDbContext : DbContext
     public DbSet<CorpStructureFit>      CorpStructureFits        => Set<CorpStructureFit>();
     public DbSet<CorpSkyhook>           EsiCorpSkyhooks          => Set<CorpSkyhook>();
     public DbSet<CorpSkyhookReagent>    EsiCorpSkyhookReagents   => Set<CorpSkyhookReagent>();
+    public DbSet<JabberAccount>         JabberAccounts           => Set<JabberAccount>();
+    public DbSet<IrcServer>             IrcServers               => Set<IrcServer>();
+    public DbSet<IrcChannel>            IrcChannels              => Set<IrcChannel>();
+    public DbSet<IrcStoredMessage>      IrcMessages              => Set<IrcStoredMessage>();
+    public DbSet<IrcReaction>           IrcReactions             => Set<IrcReaction>();
+    public DbSet<IrcLiveState>          IrcLiveStates            => Set<IrcLiveState>();
+    public DbSet<IrcCommand>            IrcCommands              => Set<IrcCommand>();
+    public DbSet<MumbleServer>          MumbleServers            => Set<MumbleServer>();
+    public DbSet<MumbleUserVolume>      MumbleUserVolumes        => Set<MumbleUserVolume>();
+    public DbSet<MumbleDirectMessage>     MumbleDirectMessages       => Set<MumbleDirectMessage>();
+    public DbSet<JabberRoom>            JabberRooms              => Set<JabberRoom>();
+    public DbSet<JabberStoredMessage>   JabberMessages           => Set<JabberStoredMessage>();
+    public DbSet<JabberLiveState>       JabberLiveStates         => Set<JabberLiveState>();
+    public DbSet<JabberCommand>         JabberCommands           => Set<JabberCommand>();
+    public DbSet<EmotePack>             EmotePacks               => Set<EmotePack>();
+    public DbSet<EmoteImage>            EmoteImages              => Set<EmoteImage>();
+    public DbSet<EmoteCode>             EmoteCodes               => Set<EmoteCode>();
+    public DbSet<JabberEmotePack>       JabberEmotePacks         => Set<JabberEmotePack>();
+    public DbSet<ChatAvatar>            ChatAvatars              => Set<ChatAvatar>();
+    public DbSet<JabberReaction>        JabberReactions          => Set<JabberReaction>();
+    public DbSet<ChatAvatarOwner>       ChatAvatarOwners         => Set<ChatAvatarOwner>();
     public DbSet<CharMercenaryDen>      EsiMercenaryDens         => Set<CharMercenaryDen>();
     public DbSet<CharMercenaryOperation> EsiMercenaryOperations  => Set<CharMercenaryOperation>();
     public DbSet<CorpFacility>          EsiCorpFacilities        => Set<CorpFacility>();
@@ -125,6 +154,7 @@ public class AppDbContext : DbContext
     public DbSet<WorklistItemState> WorklistItemStates => Set<WorklistItemState>();
     public DbSet<WorklistIndyScopeStation> WorklistIndyScopeStations => Set<WorklistIndyScopeStation>();
     public DbSet<WorklistStationLevel>     WorklistStationLevels     => Set<WorklistStationLevel>();
+    public DbSet<WorklistCharacterLevel>   WorklistCharacterLevels   => Set<WorklistCharacterLevel>();
 
     // ── Application error log ────────────────────────────────────────────
     public DbSet<AppErrorEntry> AppErrors => Set<AppErrorEntry>();
@@ -141,7 +171,17 @@ public class AppDbContext : DbContext
     public DbSet<EveScoutConnection>   EveScoutConnections   => Set<EveScoutConnection>();
     public DbSet<EveScoutStorm>        EveScoutStorms        => Set<EveScoutStorm>();
     public DbSet<IntelReportCharacter> IntelReportCharacters => Set<IntelReportCharacter>();
+    public DbSet<IntelLastSeen>        IntelLastSeens        => Set<IntelLastSeen>();
+    public DbSet<IntelWatchEntry>      IntelWatchEntries     => Set<IntelWatchEntry>();
+    public DbSet<CharacterRoute>       CharacterRoutes       => Set<CharacterRoute>();
     public DbSet<CharacterAffiliation> CharacterAffiliations  => Set<CharacterAffiliation>();
+
+    // Which characters are one player's: see LinkedCharacterModels. Empty on most installs.
+    public DbSet<LinkedSource>    LinkedSources    => Set<LinkedSource>();
+    public DbSet<LinkedAccount>   LinkedAccounts   => Set<LinkedAccount>();
+    public DbSet<LinkedCharacter> LinkedCharacters => Set<LinkedCharacter>();
+    // The connectors the user set up, each with its key: see ConnectorModels.
+    public DbSet<ConnectorEntry>  Connectors       => Set<ConnectorEntry>();
     public DbSet<NameLookupMiss>       NameLookupMisses       => Set<NameLookupMiss>();
 
     // ── Market pricing ───────────────────────────────────────────────
@@ -867,6 +907,21 @@ public class AppDbContext : DbContext
             e.Property(x => x.ItemId).ValueGeneratedNever();
             e.ToTable("EsiAssets"); });
 
+        // When each owner's assets were current, and what has been written on top since. An
+        // entity that arrived after databases existed: created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<AssetSnapshot>(e => {
+            e.HasKey(x => new { x.OwnerId, x.OwnerType, x.Kind });
+            e.Property(x => x.OwnerId).ValueGeneratedNever();
+            e.ToTable("AssetSnapshots"); });
+
+        // When each order was first and last seen open. Created by hand in App.axaml.cs and
+        // PostgresSchema as well.
+        mb.Entity<MarketOrderSighting>(e => {
+            e.HasKey(x => x.OrderId);
+            e.Property(x => x.OrderId).ValueGeneratedNever();
+            e.ToTable("MarketOrderSightings"); });
+
         mb.Entity<CharacterBlueprint>(e => {
             e.HasKey(x => new { x.OwnerId, x.OwnerType, x.ItemId });
             e.Property(x => x.OwnerId).ValueGeneratedNever();
@@ -925,6 +980,34 @@ public class AppDbContext : DbContext
             e.HasKey(x => new { x.CharacterId, x.PlanetId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
             e.ToTable("EsiPlanetaryColonies"); });
+
+        // The battles the user defined and kept. Mirrored by hand in App.axaml.cs (SQLite) and
+        // PostgresSchema — EnsureCreated builds it only into a new database.
+        mb.Entity<SavedBattle>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("SavedBattles"); });
+
+        // Client layouts: the shapes, the desktops, their monitors and who runs where. Mirrored by
+        // hand in App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds them only into a
+        // new database.
+        mb.Entity<ClientLayout>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayouts"); });
+        mb.Entity<ClientLayoutDevice>(e => {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Id).ValueGeneratedNever();
+            e.ToTable("ClientLayoutDevices"); });
+        mb.Entity<ClientLayoutProfile>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("ClientLayoutProfiles"); });
+        mb.Entity<ClientLayoutMonitor>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.DeviceId, x.ProfileId, x.HardwareKey }).IsUnique();
+            e.ToTable("ClientLayoutMonitors"); });
+        mb.Entity<ClientLayoutCharacter>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => x.MonitorId);
+            e.ToTable("ClientLayoutCharacters"); });
 
         // Hauls ticked off at a loop's stops, until the asset poll catches up. Mirrored by hand in
         // App.axaml.cs (SQLite) and PostgresSchema — EnsureCreated builds it only into a new database.
@@ -1184,6 +1267,107 @@ public class AppDbContext : DbContext
             e.Property(x => x.TypeId).ValueGeneratedNever();
             e.ToTable("EsiCorpSkyhookReagents"); });
 
+        mb.Entity<MumbleServer>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("MumbleServers"); });
+
+        mb.Entity<MumbleUserVolume>(e => {
+            e.HasKey(x => new { x.ServerId, x.UserKey });
+            e.ToTable("MumbleUserVolumes"); });
+
+        mb.Entity<MumbleDirectMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.PeerKey, x.Id }).HasDatabaseName("IX_MumbleDirectMessages_Peer");
+            e.ToTable("MumbleDirectMessages"); });
+
+        mb.Entity<JabberAccount>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("JabberAccounts"); });
+
+        mb.Entity<JabberRoom>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AccountId, x.RoomJid }).IsUnique().HasDatabaseName("IX_JabberRooms_Room");
+            e.ToTable("JabberRooms"); });
+
+        mb.Entity<JabberStoredMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.AccountId, x.DedupeKey }).IsUnique().HasDatabaseName("IX_JabberMessages_Dedupe");
+            e.HasIndex(x => new { x.AccountId, x.Conversation, x.Id }).HasDatabaseName("IX_JabberMessages_Conversation");
+            e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_JabberMessages_Unread");
+            e.ToTable("JabberMessages"); });
+
+        mb.Entity<JabberLiveState>(e => {
+            e.HasKey(x => new { x.AccountId, x.Part });
+            e.ToTable("JabberLiveStates"); });
+
+        mb.Entity<JabberCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("JabberCommands"); });
+
+        mb.Entity<EmotePack>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("EmotePacks"); });
+
+        mb.Entity<EmoteImage>(e => {
+            e.HasKey(x => x.Hash);
+            e.ToTable("EmoteImages"); });
+
+        mb.Entity<EmoteCode>(e => {
+            e.HasKey(x => new { x.PackId, x.Code });
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.HasIndex(x => x.ImageHash).HasDatabaseName("IX_EmoteCodes_Image");
+            e.ToTable("EmoteCodes"); });
+
+        mb.Entity<JabberReaction>(e => {
+            e.HasKey(x => new { x.AccountId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.ToTable("JabberReactions"); });
+
+        mb.Entity<ChatAvatar>(e => {
+            e.HasKey(x => x.Hash);
+            e.ToTable("ChatAvatars"); });
+
+        mb.Entity<ChatAvatarOwner>(e => {
+            e.HasKey(x => new { x.Service, x.ServerId, x.Person });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("ChatAvatarOwners"); });
+
+        mb.Entity<IrcServer>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcServers"); });
+
+        mb.Entity<IrcChannel>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.Name }).IsUnique().HasDatabaseName("IX_IrcChannels_Name");
+            e.ToTable("IrcChannels"); });
+
+        mb.Entity<IrcStoredMessage>(e => {
+            e.HasKey(x => x.Id);
+            e.HasIndex(x => new { x.ServerId, x.DedupeKey }).IsUnique().HasDatabaseName("IX_IrcMessages_Dedupe");
+            e.HasIndex(x => new { x.ServerId, x.Conversation, x.Id }).HasDatabaseName("IX_IrcMessages_Conversation");
+            e.HasIndex(x => new { x.IsRead, x.IsAlert }).HasDatabaseName("IX_IrcMessages_Unread");
+            e.ToTable("IrcMessages"); });
+
+        mb.Entity<IrcReaction>(e => {
+            e.HasKey(x => new { x.ServerId, x.Conversation, x.Target, x.Sender });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcReactions"); });
+
+        mb.Entity<IrcLiveState>(e => {
+            e.HasKey(x => new { x.ServerId, x.Part });
+            e.Property(x => x.ServerId).ValueGeneratedNever();
+            e.ToTable("IrcLiveStates"); });
+
+        mb.Entity<IrcCommand>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("IrcCommands"); });
+
+        mb.Entity<JabberEmotePack>(e => {
+            e.HasKey(x => new { x.AccountId, x.PackId });
+            e.Property(x => x.AccountId).ValueGeneratedNever();
+            e.Property(x => x.PackId).ValueGeneratedNever();
+            e.ToTable("JabberEmotePacks"); });
+
         mb.Entity<CharMercenaryDen>(e => {
             e.HasKey(x => new { x.CharacterId, x.DenId });
             e.Property(x => x.CharacterId).ValueGeneratedNever();
@@ -1308,6 +1492,7 @@ public class AppDbContext : DbContext
         mb.Entity<StorePosting>(e => {
             e.HasKey(x => x.Id);
             e.Ignore(x => x.IsBuy);
+            e.Ignore(x => x.CapsAtNeed);
             e.HasIndex(x => x.StoreId);
             e.ToTable("StorePostings"); });
 
@@ -1365,6 +1550,13 @@ public class AppDbContext : DbContext
             // One row per group per station; a station may hold several groups.
             e.HasIndex(x => new { x.GroupId, x.LocationId }).IsUnique(); });
 
+        mb.Entity<WorklistCharacterLevel>(e => {
+            e.HasKey(x => x.Id);
+            // One row per group per character per station.
+            // The name App.axaml.cs and PostgresSchema give it, so a fresh install builds it once.
+            e.HasIndex(x => new { x.GroupId, x.LocationId, x.CharacterId }).IsUnique()
+             .HasDatabaseName("IX_WorklistCharacterLevels_Group_Location_Character"); });
+
         mb.Entity<WorklistIndyScopeStation>(e => {
             e.HasKey(x => x.Id);
             // One row per station: adding Jita twice is not two scopes.
@@ -1408,14 +1600,61 @@ public class AppDbContext : DbContext
 
         mb.Entity<IntelReport>(e => {
             e.HasKey(x => x.Id);
-            e.HasIndex(x => x.ChatMessageId).IsUnique();          // re-parsing cannot duplicate
+            // Re-parsing cannot duplicate. Partial: a paste has no chat message behind it and is
+            // stored with ChatMessageId 0, any number of times.
+            e.HasIndex(x => x.ChatMessageId).IsUnique().HasFilter("\"ChatMessageId\" > 0")
+             .HasDatabaseName("IX_IntelReports_ChatMessage");
             e.HasIndex(x => new { x.SystemId, x.ReportedAt })     // the overlays' query
              .HasDatabaseName("IX_IntelReports_System_Time");
-            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time"); });
+            e.HasIndex(x => new { x.Obsolete, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Obsolete_Time");
+            e.HasIndex(x => x.ReportedAt).HasDatabaseName("IX_IntelReports_Time");
+            // A follow-up's parent: the same reporter in the same channel, just before.
+            e.HasIndex(x => new { x.ChannelName, x.ReporterName, x.ReportedAt }).HasDatabaseName("IX_IntelReports_Reporter"); });
+
+        mb.Entity<IntelLastSeen>(e => {
+            e.ToTable("IntelLastSeen");
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.HasIndex(x => x.SeenAt).HasDatabaseName("IX_IntelLastSeen_SeenAt");
+            e.HasIndex(x => new { x.SystemId, x.SeenAt }).HasDatabaseName("IX_IntelLastSeen_System");
+            e.HasIndex(x => x.WrittenAt).HasDatabaseName("IX_IntelLastSeen_WrittenAt");
+            e.HasIndex(x => x.Name).HasDatabaseName("IX_IntelLastSeen_Name");
+            e.HasIndex(x => x.CorporationId).HasDatabaseName("IX_IntelLastSeen_Corporation");
+            e.HasIndex(x => x.AllianceId).HasDatabaseName("IX_IntelLastSeen_Alliance"); });
+
+        mb.Entity<IntelWatchEntry>(e => {
+            e.HasKey(x => x.Id);
+            // One entry per thing watched: choosing again changes its mode, never adds a second.
+            e.HasIndex(x => new { x.Kind, x.EntityId }).IsUnique().HasDatabaseName("IX_IntelWatchEntries_Kind_Entity"); });
+
+        mb.Entity<CharacterRoute>(e => {
+            // One row per character: a route sent replaces the one before.
+            e.HasKey(x => x.CharacterId);
+            e.Property(x => x.CharacterId).ValueGeneratedNever();
+            e.ToTable("CharacterRoutes"); });
 
         mb.Entity<EveScoutConnection>(e => {
             e.HasKey(x => x.Id);
             e.ToTable("EveScoutConnections"); });
+
+        mb.Entity<LinkedSource>(e => {
+            e.HasKey(x => x.Source);
+            e.ToTable("LinkedSources"); });
+
+        mb.Entity<LinkedAccount>(e => {
+            e.HasKey(x => new { x.Source, x.AccountId });
+            e.ToTable("LinkedAccounts"); });
+
+        mb.Entity<LinkedCharacter>(e => {
+            e.HasKey(x => new { x.Source, x.CharacterId });
+            // An account's characters, which is what every reader asks for.
+            e.HasIndex(x => new { x.Source, x.AccountId }).HasDatabaseName("IX_LinkedCharacters_Account");
+            e.ToTable("LinkedCharacters"); });
+
+        // ⚠️ Holds each connector's key: hidden from the AI agent (AgentSchema.ConnectorsTable).
+        mb.Entity<ConnectorEntry>(e => {
+            e.HasKey(x => x.Id);
+            e.ToTable("Connectors"); });
 
         mb.Entity<EveScoutStorm>(e => {
             e.HasKey(x => x.Id);

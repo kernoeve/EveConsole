@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>添加服务器</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>添加 Mumble 服务器，即可在此通话，无需单独的客户端。</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>无</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>已禁听</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>已静音</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>根频道</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>已连接，位于 {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>已连接</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>正在连接…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>连接已断开，将在 {0} 重试</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>未连接</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>服务器证书不受信任。</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>服务器拒绝了密码。</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>服务器拒绝了此用户名。</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0} 的证书，指纹：
+{1}
+
+大多数 Mumble 服务器使用自己的证书。仅在你确认是此服务器时才信任。之后将只接受此证书。</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>请输入服务器主机和用户名。</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>该键已用于 {0}。每个键只能在一台服务器上通话。</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>删除“{0}”及其保存的设置？其证书也会被删除，因此该服务器上的注册名称将丢失。此操作无法撤销。</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>系统默认</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>始终置顶显示正在讲话的人</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>声音设置</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>麦克风</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>麦克风音量</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>扬声器</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>扬声器音量</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>服务器主机</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>端口</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>用户名</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>密码（如果服务器有）</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>留空则保留已保存的密码。</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>访问令牌（可选，以逗号分隔）</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>这些按键仅用于此服务器，只要已连接，即使应用在后台也可使用。</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>应用启动时连接</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>否则仅在你要求时连接。无论哪种方式，连接丢失后都会自动重连，直到你断开。此设置仅适用于这台电脑。</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>信任此证书</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>断开</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>静音</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>禁听</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>加入频道</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>此人的音量（仅对你生效）</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>发送消息到 {0}。按 Enter 发送，按 Shift+Enter 换行。</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>发送</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble：谁在讲话</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>无人讲话</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>从 {0} 发出的耳语只到达该频道。呼喊还会到达：{1}。</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0} 没有链接的频道，因此耳语和呼喊都只到达该频道。</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>请按一个键或鼠标按钮（Esc 取消）</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>清除</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>点击按钮，然后按要使用的键或鼠标按钮。它仍保留原有功能，因此用于打字的键在打字时也会讲话。</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>自动调整我的语音音量</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>已被服务器断开：{0}。在你重新连接之前将保持断开。</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>包含子频道</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} 及子频道</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>服务器拒绝了此操作。您可能没有权限。</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>服务器静音</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>服务器禁听</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>优先发言人</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>仅对我静音</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>忽略其消息</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>已注册</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>被管理员静音</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>被管理员禁听</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>已自行静音</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>已自行禁听</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>不允许在此发言</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>优先发言人</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>正在录音</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>移动到频道</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>输入频道名称的一部分</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>移动</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>移动到我的频道</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>请从列表中选择频道。</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>原因（可选）</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>踢出</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>将 {0} 踢出此服务器?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>将 {0} 从此服务器封禁?只有管理员可以在封禁列表中撤销。</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>在此服务器上注册 {0}?该名称将与其证书绑定,只有管理员可以撤销。</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>他人看到的关于您的内容</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>收听此频道</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>停止收听</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>与我的频道链接</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>取消与我的频道的链接</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>为此服务器上的所有人删除 {0} 及其下的所有频道?</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>降低背景噪音</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>消除扬声器回声</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>用于扬声器收听,避免他人通过您的麦克风听到自己。使用耳机时无需开启。开启期间,麦克风会保持打开以学习房间的声音。只有在您说话时才会发送。</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>语音激活阈值</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>当前麦克风: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>通过语音说话,无需按键</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>连接到此服务器时麦克风保持打开,高于声音设置中阈值的声音都会发送。上面的按键仍然有效。</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>开始和停止说话时播放提示音</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>封禁列表</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>没有人被封禁。</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>解除</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>解除对 {0} 的封禁?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>服务器版本 {0},每人最高 {1} kbit/s,当前 {2} 人</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>在线 {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>空闲 {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>描述</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>无法加载声音库,因此此计算机上无法运行回声消除。语音仍可正常使用。</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}，{1}：此频道中未禁听的有 {2} 人</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>连接</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>频道目标</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>新服务器</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>对主机、端口、用户名、密码和令牌的更改将在下次连接此服务器时生效。</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>每个频道目标决定一个按键在此服务器上对谁说话。可随意更改：任意频道、随之包含的内容，以及无论身在何处的人。</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>按键</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>频道</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>添加频道目标</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>添加频道</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>已链接的频道</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>子频道</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>无论身在何处的人（姓名，以逗号分隔）</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>仅这些频道中此服务器组的成员（可选）</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>&lt;当前频道&gt;</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>新目标</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>悄悄话：我所在的频道</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>喊话：我的频道及其链接的频道</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>除普通通话外，服务器可容纳 {0} 个目标。</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>密码保存在共享数据库中，并使用从数据库密码派生的密钥加密。</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>详细信息…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>音量和详细信息…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>服务器信息…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>注册此名称…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>移动到…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>踢出…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>封禁…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>新建频道…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>新建临时频道…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>删除频道…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>新建频道</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>新建临时频道</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>名称，位于 {0} 下</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>查找某人</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>显示每个频道里的人</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>这里没有叫这个名字的人。</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0} 人在此，其中 {1} 人能听到</value>
+  </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>静音和关闭声音键与说话键一样在任何地方都有效。每按一次切换开或关。</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>静音键</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>关闭声音键</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>权限…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>权限：{0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>下面的行优先于上面的行。灰色的行来自上级频道，需在那里更改。</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>正在询问服务器…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>权限</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>组</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>继承上级频道的权限</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>上移</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>下移</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>来自上级频道：请在那里更改。</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>组</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>已注册的人</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>注册名</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all：所有人。auth：已注册的人。in / out：在或不在此频道的人。~ 表示该行所在的频道，而非其生效的频道。</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>适用于此处</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>适用于子频道</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>权限</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>允许</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>拒绝</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>新组名</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>包含上级的成员</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>子频道也有此组</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>在此添加</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>来自上级</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>在此排除</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>重新读取</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>关闭</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>服务器拒绝了。更改权限需要此频道的写入权限。</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>组不能命名为“{0}”：名称已被使用，或是服务器自行计算的名称。</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>服务器上没有名为“{0}”的已注册用户。</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>每行需要一个组或一个人。</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>正在保存…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>已保存。这是服务器现在保存的内容。</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>仅此处</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>仅子频道</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>不适用于任何地方</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0}（来自上级）</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>恢复为上级的样子</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>删除组</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>在此排除</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>恢复</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>写入（更改权限）</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>穿越</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>进入</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>说话</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>将他人静音和关闭声音</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>移动他人</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>创建频道</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>创建临时频道</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>链接频道</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>耳语</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>文字消息</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>收听</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>踢出</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>封禁</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>注册他人</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>注册自己</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>重置他人的备注和头像</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>选择…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>服务器没有回应。发送过快的消息会被丢弃：请稍等后重新读取。</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>服务器没有全部保存。这是它现在保存的内容：请稍后再次更改并保存。</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>向所选对象耳语的按键</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>按住此键，向频道列表中选中的对象耳语：单击或右键单击某人，或右键单击某个频道（单击仍会移动到那里）。选中项在列表中高亮显示，说话时会显示在你的名字旁边。</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>选中频道时，同时传到</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>Mumble 服务器 {1} 上的{0}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>频道目标 {0}</value>
+  </data>
+</root>

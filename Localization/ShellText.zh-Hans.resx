@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>雇佣兵巢穴</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>客户端布局</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>击毁报告</value>
   </data>
@@ -141,6 +144,12 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>EVE 邮件</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>通知</value>
@@ -686,5 +695,58 @@ PID：{2}
     <value>{0}
 {1}
 点击查看 ESI 限制。</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>消息</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>群聊</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>战斗报告</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>此数据库的版本为 {0}，而此客户端的版本为 {1}。
+
+此客户端设置为从不运行后台进程，而只有运行它们的客户端才能更改架构，因此它无法将数据库升级到 {1}。
+
+请启动一个可以运行它们的 {1} 客户端，或关闭此设置：从 {2} 中删除“neverRunBackgroundWork”。</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>第三方声明</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>构成 EVE Console 的软件的许可证</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>情报</value>
   </data>
 </root>

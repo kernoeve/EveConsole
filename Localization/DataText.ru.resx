@@ -133,9 +133,6 @@
   <data name="SaveRates" xml:space="preserve">
     <value>Сохранить тарифы</value>
   </data>
-  <data name="TitleBackgroundProcesses" xml:space="preserve">
-    <value>Фоновые процессы</value>
-  </data>
   <data name="TabEsiActivityLog" xml:space="preserve">
     <value>Журнал активности ESI</value>
   </data>
@@ -1791,5 +1788,38 @@
   </data>
   <data name="EsiSpentElsewhereWatching" xml:space="preserve">
     <value>измерение…</value>
+  </data>
+  <data name="ColJabberName" xml:space="preserve">
+    <value>Учётная запись или комната</value>
+  </data>
+  <data name="ColLastMessage" xml:space="preserve">
+    <value>Последнее сообщение</value>
+  </data>
+  <data name="ColLastDay" xml:space="preserve">
+    <value>За 24 ч</value>
+  </data>
+  <data name="JabberRunsHere" xml:space="preserve">
+    <value>Подключено через этот клиент.</value>
+  </data>
+  <data name="JabberRunsOn" xml:space="preserve">
+    <value>Подключено через клиент, выполняющий фоновую работу, на {0}.</value>
+  </data>
+  <data name="JabberRunsNowhere" xml:space="preserve">
+    <value>Фоновую работу никто не выполняет, поэтому Jabber не подключён.</value>
+  </data>
+  <data name="JabberNoAccounts" xml:space="preserve">
+    <value>Серверы Jabber не настроены. Добавьте сервер на вкладке Jabber в настройках.</value>
+  </data>
+  <data name="JabberDirectMessages" xml:space="preserve">
+    <value>Личные сообщения</value>
+  </data>
+  <data name="JabberJoined" xml:space="preserve">
+    <value>В комнате</value>
+  </data>
+  <data name="JabberNotJoined" xml:space="preserve">
+    <value>Не в комнате</value>
+  </data>
+  <data name="JabberPresent" xml:space="preserve">
+    <value>Присутствуют: {0}</value>
   </data>
 </root>

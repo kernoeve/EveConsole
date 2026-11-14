@@ -75,14 +75,30 @@
         <TextBlock Grid.Column="4" Text="{x:Static loc:AlarmsText.TimesAreEveTime}" FontSize="10.5"
                    Foreground="{DynamicResource TextFaintBrush}" VerticalAlignment="Center" Margin="12 0 0 0" />
       </Grid>
-        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
-                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
+        <TextBlock Text="{x:Static loc:AlarmsText.EarlyDevelopmentThisToolNote}"
+                   FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap" Margin="1 0 0 0" />
       </StackPanel>
     </Border>
 
     <Rectangle Grid.Row="1" Fill="{DynamicResource BorderSubtleBrush}" />
 
-    <Grid Grid.Row="2" ColumnDefinitions="300,1,*">
+    <TabControl Grid.Row="2" SelectedIndex="{Binding SelectedTabIndex}" Padding="0"
+                Background="{DynamicResource SurfaceBaseBrush}" BorderThickness="0">
+      <TabControl.Styles>
+        <Style Selector="TabItem">
+          <Setter Property="FontSize"   Value="11" />
+          <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Padding"    Value="14 6" />
+        </Style>
+        <Style Selector="TabItem:selected">
+          <Setter Property="Foreground" Value="{DynamicResource AccentBrush}" />
+        </Style>
+      </TabControl.Styles>
+
+    <!-- ══ Tasks ════════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:AlarmsText.SchedulerTabTasks}">
+    <Grid ColumnDefinitions="300,1,*">
 
       <!-- ── Left: the tasks ────────────────────────────────────────────── -->
       <ListBox Grid.Column="0" ItemsSource="{Binding Tasks}"
@@ -313,6 +329,24 @@
                                        AcceptsReturn="True" TextWrapping="Wrap" MinHeight="70"
                                        Watermark="{x:Static loc:AlarmsText.HintWhatToSaySlack}" />
 
+                              <!-- Text on Slack: optionally in a box, and then optionally with a picture. -->
+                              <StackPanel IsVisible="{Binding IsText}" Spacing="4">
+                                <StackPanel HorizontalAlignment="Left" Width="180">
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.BoxWidthLabel}" />
+                                  <ComboBox ItemsSource="{Binding BoxWidths}" SelectedItem="{Binding BoxWidth}"
+                                            HorizontalAlignment="Stretch" />
+                                </StackPanel>
+                                <ContentControl Content="{Binding TextPicturePicker}" IsVisible="{Binding HasBox}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                                <TextBlock Classes="hint" IsVisible="{Binding HasBox}"
+                                           Text="{x:Static loc:AlarmsText.BoxWidthHint}" />
+                              </StackPanel>
+
                               <!-- Whose figures. Top 10, Monthly and Standing Projects all need one. -->
                               <Grid ColumnDefinitions="*,150" IsVisible="{Binding NeedsCorp}">
                                 <StackPanel Grid.Column="0" Margin="0 0 8 0">
@@ -351,6 +385,11 @@
                                           Content="{x:Static loc:AlarmsText.ShowOnlyTheShare}" />
                                 <TextBlock Classes="hint"
                                            Text="{x:Static loc:AlarmsText.EachListPrintsTheNote}" />
+
+                                <CheckBox IsChecked="{Binding SlackRich}" Margin="0 4 0 0"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
                               </StackPanel>
 
                               <!-- Indy Park Compare: parks, the job list as the Compare tab edits it, and
@@ -370,6 +409,19 @@
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionPostLabel}" />
                                   <views:MultiChoiceDropDown DataContext="{Binding CompareOutputsPicker}" FontSize="12" />
                                 </StackPanel>
+                                <Grid ColumnDefinitions="*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.CompareMarketLabel}" />
+                                    <ComboBox ItemsSource="{Binding CompareMarkets}" SelectedItem="{Binding CompareMarket}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.ComparePriceLabel}" />
+                                    <ComboBox ItemsSource="{Binding ComparePrices}" SelectedItem="{Binding ComparePrice}"
+                                              HorizontalAlignment="Stretch" />
+                                  </StackPanel>
+                                </Grid>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.CompareMarketNote}" />
                                 <StackPanel>
                                   <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.SectionJobsLabel}" />
                                   <views:CompareJobListView DataContext="{Binding CompareJobList}" MaxHeight="460" />
@@ -381,6 +433,8 @@
                                   <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                              Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
                                 </Border>
+                                <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                           Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                               </StackPanel>
 
                               <!-- System Index: the systems, in order (the order picks each line's colour), and
@@ -426,12 +480,29 @@
                                   </ItemsControl>
                                 </StackPanel>
                                 <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.SystemIndexSectionNote}" />
+                                <Grid ColumnDefinitions="*,12,*,12,*">
+                                  <StackPanel Grid.Column="0">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiBest}" />
+                                    <TextBox Text="{Binding IndexBestEmoji}" Watermark=":large_green_circle:" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="2">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiUp}" />
+                                    <TextBox Text="{Binding IndexUpEmoji}" Watermark=":small_red_triangle:" />
+                                  </StackPanel>
+                                  <StackPanel Grid.Column="4">
+                                    <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IndexEmojiDown}" />
+                                    <TextBox Text="{Binding IndexDownEmoji}" Watermark=":small_red_triangle_down:" />
+                                  </StackPanel>
+                                </Grid>
+                                <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.IndexEmojiNote}" />
                                 <Border IsVisible="{Binding ShowWebhookPicturesWarning}"
                                         Background="{DynamicResource SurfacePanelAltBrush}" BorderBrush="{DynamicResource WarnSurfaceBrush}" BorderThickness="1"
                                         CornerRadius="3" Padding="8 6">
                                   <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                              Text="{x:Static loc:AlarmsText.WebhookPicturesNote}" />
                                 </Border>
+                                <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                           Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                               </StackPanel>
 
                               <!-- Charts: whose figures, and a word about where they can go -->
@@ -444,6 +515,8 @@
                               <TextBlock FontSize="10.5" Foreground="{DynamicResource AccentBrush}" TextWrapping="Wrap"
                                          Text="{x:Static loc:AlarmsText.ThisSectionWillNotNote}" />
                             </Border>
+                            <TextBlock Classes="hint" IsVisible="{Binding ShowWebhookHostedNote}"
+                                       Text="{x:Static loc:AlarmsText.WebhookHostedNote}" />
                           </StackPanel>
 
                           <!-- Sale posting: which one -->
@@ -486,9 +559,33 @@
                                             VerticalAlignment="Bottom" Margin="0 0 0 5" />
                                 </Grid>
 
+                                <StackPanel>
+                                  <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.IntroTextLabel}" />
+                                  <TextBox Text="{Binding IntroText}" AcceptsReturn="True" TextWrapping="Wrap"
+                                           MinHeight="56" MaxHeight="160" />
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.IntroTextHint}" />
+                                </StackPanel>
+
                                 <StackPanel Orientation="Horizontal" Spacing="14">
                                   <CheckBox IsChecked="{Binding ShowIskLeft}" Content="{x:Static loc:AlarmsText.IskLeftColumn}" />
                                   <CheckBox IsChecked="{Binding ShowLastCompleted}" Content="{x:Static loc:AlarmsText.LastCompletedColumn}" />
+                                </StackPanel>
+
+                                <CheckBox IsChecked="{Binding SlackRich}"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
+
+                                <!-- The picture: what kind of thing, then which one. -->
+                                <StackPanel IsVisible="{Binding SlackRich}">
+                                  <ContentControl Content="{Binding ProjectPicturePicker}" IsVisible="{Binding SlackRich}">
+                                  <ContentControl.ContentTemplate>
+                                    <DataTemplate x:DataType="vm:MessageBlockVm">
+                                      <views:SlackPicturePicker />
+                                    </DataTemplate>
+                                  </ContentControl.ContentTemplate>
+                                </ContentControl>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.PictureHint}" />
                                 </StackPanel>
 
                                 <TextBlock Classes="hint" Text="{Binding ProjectsNote}"
@@ -665,6 +762,11 @@
                                     <Button Classes="small" Content="{x:Static loc:AlarmsText.AddColumn}" Padding="10 3"
                                             Command="{Binding AddOppsColumnCommand}" />
                                   </StackPanel>
+                                  <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsBoxFull}"
+                                             IsVisible="{Binding OppsBoxFull}" />
+                                  <TextBlock Classes="hint" Text="{Binding OppsLeftOut}"
+                                             Foreground="{DynamicResource BadBrush}" TextWrapping="Wrap"
+                                             IsVisible="{Binding HasOppsLeftOut}" />
                                   <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsItemAlwaysNote}" />
                                 </StackPanel>
 
@@ -687,6 +789,11 @@
                                 </Grid>
 
                                 <TextBlock Classes="hint" Text="{x:Static loc:AlarmsText.OppsSectionNote}" />
+
+                                <CheckBox IsChecked="{Binding SlackRich}"
+                                          Content="{x:Static loc:AlarmsText.SlackRichOption}" />
+                                <TextBlock Classes="hint"
+                                           Text="{x:Static loc:AlarmsText.SlackRichNote}" />
                               </StackPanel>
 
                             </StackPanel>
@@ -773,5 +880,12 @@
 
       </Grid>
     </Grid>
+    </TabItem>
+
+    <!-- ══ Calendar ═════════════════════════════════════════════════════ -->
+    <TabItem Header="{x:Static loc:AlarmsText.SchedulerTabCalendar}">
+      <views:SchedulerCalendarView DataContext="{Binding Calendar}" />
+    </TabItem>
+    </TabControl>
   </Grid>
 </UserControl>

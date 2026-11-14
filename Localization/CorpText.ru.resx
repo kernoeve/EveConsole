@@ -2611,4 +2611,49 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>У этой корпорации нет структур Upwell.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Соло-победы</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>СОЛО-ПОБЕДЫ</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Топ-10 соло-побед</value>
+  </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>{0} в день ({1} в час), по фиту, заданному для его типа</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>Неизвестно: список в последний раз читался {0}, и срок топлива из него с тех пор прошёл.</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>Неизвестно: список не читался из ESI.</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, снимается с якоря</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>Список структур в последний раз прочитан: {0}.</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>Список башен в последний раз прочитан: {0}.</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>никогда</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>Персонаж, читающий эту корпорацию, потерял нужную ESI корпоративную роль, поэтому ESI больше не запрашивается.</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>С тех пор ESI не отвечал.</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>Топливо, состояния и таймеры ниже — на тот момент.</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>Список прочитан</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>Конец состояния</value>
+  </data>
 </root>

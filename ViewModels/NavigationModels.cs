@@ -2,16 +2,41 @@ using ReactiveUI;
 
 namespace EveConsole.ViewModels;
 
-public class ToolTab
+public class ToolTab : ReactiveObject
 {
+    private readonly bool _canClose;
+
+    /// <summary>The tool's id for the first of it ("worklist"), with a number after a # for another
+    /// copy of it ("worklist#3"). Unique among the open tabs.</summary>
     public string Id        { get; }
     public string Title     { get; }
-    public bool   CanClose  { get; }
     public object ViewModel { get; }
+
+    /// <summary>Which tool this is, whichever copy.</summary>
+    public string ToolId => ToolIdOf(Id);
+
+    /// <summary>Another copy of a tool, not the one the app keeps.</summary>
+    public bool IsCopy => Id.Contains('#');
+
+    public static string ToolIdOf(string tabId) => tabId.IndexOf('#') is var i and >= 0 ? tabId[..i] : tabId;
+
+    /// <summary>Whether the tab has a close box: not when the tool never closes, nor while it is pinned.</summary>
+    public bool CanClose => _canClose && _pinnedIn is null;
+
+    private TabWorkspace? _pinnedIn;
+    /// <summary>
+    /// A Tool Container this tab was set to stay in, as the Overview stays in the main window: it
+    /// can't be closed, nor dragged out of it. Null for any other tab.
+    /// </summary>
+    public TabWorkspace? PinnedIn
+    {
+        get => _pinnedIn;
+        set { this.RaiseAndSetIfChanged(ref _pinnedIn, value); this.RaisePropertyChanged(nameof(CanClose)); }
+    }
 
     public ToolTab(string id, string title, object viewModel, bool canClose = true)
     {
-        Id = id; Title = title; ViewModel = viewModel; CanClose = canClose;
+        Id = id; Title = title; ViewModel = viewModel; _canClose = canClose;
     }
 }
 

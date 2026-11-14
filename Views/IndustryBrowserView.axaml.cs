@@ -11,6 +11,7 @@ using Avalonia.ReactiveUI;
 using Avalonia.VisualTree;
 using EveConsole.ViewModels;
 using EveConsole.Services;
+using EveConsole.Services.Worklist;
 using ReactiveUI;
 using EveConsole.Localization;
 
@@ -130,13 +131,26 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
                 _           => null,
             };
 
+            // Those four and the activity have a picture before the name.
+            CellIcon? icon = c switch
+            {
+                "Activity"  => new CellIcon(Glyph: r => IndustryGlyphs.ForActivity(Id(r, IndustryBrowserViewModel.ColActivityId))),
+                "Product"   => new CellIcon(Url: ProductPicture),
+                "Facility"  => new CellIcon(Url: r => Id(r, IndustryBrowserViewModel.ColFacilityTypeId) is > 0 and var t
+                                                      ? WorklistIcons.Render((int)t) : null),
+                "Installer" => new CellIcon(Url: r => Id(r, IndustryBrowserViewModel.ColInstallerId) is > 0 and var i
+                                                      ? WorklistIcons.Portrait(i) : null),
+                "Owner"     => new CellIcon(Url: OwnerPicture),
+                _           => null,
+            };
+
             JobsGrid.Columns.Add(new DataGridTemplateColumn
             {
                 Header = IndustryBrowserViewModel.ColumnLabel(c), Tag = c, IsReadOnly = true, CanUserSort = true,
                 ClipboardContentBinding = GridRowCopy.Binding(c),
                 CellTemplate = new FuncDataTemplate<GridRow>(
                     (_, _) => new SelectableCell(JobsGrid, c, _selectionSvc, onClick,
-                                                 IndustryBrowserViewModel.NumericColumns.Contains(c))),
+                                                 IndustryBrowserViewModel.NumericColumns.Contains(c), icon)),
             });
         }
     }
@@ -154,6 +168,29 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
     private static long Id(GridRow row, string col) =>
         long.TryParse(row[col], System.Globalization.NumberStyles.Any,
                       System.Globalization.CultureInfo.InvariantCulture, out var v) ? v : 0;
+
+    /// <summary>The product's picture as the detail panel picks it: a copy for copying and
+    /// invention, the original for research, else the item.</summary>
+    private static string? ProductPicture(GridRow row)
+    {
+        var typeId = (int)Id(row, IndustryBrowserViewModel.ColProductTypeId);
+        if (typeId <= 0) return null;
+        return Id(row, IndustryBrowserViewModel.ColActivityId) switch
+        {
+            5 or 8 => WorklistIcons.Blueprint(typeId, copy: true),
+            3 or 4 => WorklistIcons.Blueprint(typeId, copy: false),
+            _      => WorklistIcons.Type(typeId),
+        };
+    }
+
+    /// <summary>The owner's portrait, or its corporation's logo.</summary>
+    private static string? OwnerPicture(GridRow row)
+    {
+        var id = Id(row, IndustryBrowserViewModel.ColOwnerId);
+        if (id <= 0) return null;
+        return row[IndustryBrowserViewModel.ColOwnerType] == "corporation"
+            ? WorklistIcons.CorporationLogo(id) : WorklistIcons.Portrait(id);
+    }
 
     private static void OpenProduct(GridRow row)
         => EntityNavigator.Instance.Item((int)Id(row, IndustryBrowserViewModel.ColProductTypeId));
@@ -457,6 +494,8 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             DetailRuns.Text           = "";
             DetailItemsProduced.Text   = "";
             DetailSuccessChance.Text   = "";
+            DetailChancePanel.IsVisible = false;
+            DetailOutputLevels.IsVisible = false;
             DetailBlueprint.Text      = "";
             DetailProduct.Text        = "";
             DetailFacility.Text       = "";
@@ -490,7 +529,9 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
             System.Globalization.CultureInfo.InvariantCulture, out var p)
             ? $"{Math.Round(p * 100.0, 1):0.0}%"
             : "";
+        DetailChancePanel.IsVisible = DetailSuccessChance.Text.Length > 0;
         DetailItemsProducedImg.Text = row["Items Produced"] is { Length: > 0 } ip ? $"× {ip}" : "";
+        ShowOutputLevels(row);
         DetailBlueprint.Text      = row["Blueprint"];
         DetailProduct.Text        = row["Product"];
         DetailFacility.Text       = row["Facility"];
@@ -515,6 +556,52 @@ public partial class IndustryBrowserView : ReactiveUserControl<IndustryBrowserVi
 
         _ = LoadDetailImagesAsync(row);
     }
+
+    /// <summary>
+    /// The levels and runs of the print a science job hands back.
+    ///
+    /// <para>⚠️ Research only while the job is open. Once delivered, the print's row already holds the
+    /// result, so adding the runs again would count them twice. An invented copy is known by the
+    /// job's own chance, delivered or not, and is left off when that fits no decryptor.</para>
+    /// </summary>
+    private void ShowOutputLevels(GridRow row)
+    {
+        DetailOutputLevels.IsVisible = false;
+
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColActivityId], out long activity);
+        NumberText.TryParse(row["Runs"], out long runs);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColME], out long me);
+        NumberText.TryParse(row[IndustryBrowserViewModel.ColTE], out long te);
+
+        if (activity == 8) { _ = ShowInventedPrintAsync(row); return; }
+        if (activity is 3 or 4 && row["Status"].Equals("delivered", StringComparison.OrdinalIgnoreCase)) return;
+
+        if (Services.Worklist.ResearchOutcome.Levels(activity, (int)me, (int)te, (int)runs) is not { } levels) return;
+
+        DetailOutputME.Text = levels.Me.ToString();
+        DetailOutputTE.Text = levels.Te.ToString();
+        DetailOutputLevels.IsVisible = true;
+
+        if (activity == 5 && NumberText.TryParse(row["Max Runs"], out long each) && each > 0)
+            AddRunsEach(each);
+    }
+
+    private async Task ShowInventedPrintAsync(GridRow row)
+    {
+        var invented = ViewModel is { } vm ? await vm.InventedPrintAsync(row) : null;
+
+        if (invented is null || ViewModel?.SelectedRow != row) return;
+
+        DetailOutputME.Text = invented.Me.ToString();
+        DetailOutputTE.Text = invented.Te.ToString();
+        DetailOutputLevels.IsVisible = true;
+        AddRunsEach(invented.Runs);
+    }
+
+    /// <summary>After the count of prints, since each one carries these runs.</summary>
+    private void AddRunsEach(long runs) =>
+        DetailItemsProducedImg.Text = string.Join("  ·  ",
+            new[] { DetailItemsProducedImg.Text ?? "", string.Format(IndustryText.OutputRunsEach, runs) }.Where(s => s.Length > 0));
 
     private void RefreshDetailTimeLeft()
     {

@@ -31,4 +31,16 @@ public static class PerfDiagnostics
     /// report says what is needed.</para>
     /// </summary>
     public static bool OverviewSections { get; set; }
+
+    /// <summary>
+    /// <see cref="EveConsole.Services.StartupTrace"/>: the first minutes of a run, step by step, with
+    /// what was allocated by type and thread, in a file of its own in the temp folder.
+    ///
+    /// <para><b>Off.</b> Built to chase a start that froze for minutes in garbage collection, with
+    /// nothing to say what was allocating (2026-11-07). Its file named each culprit in turn: the
+    /// Worklist built a dozen times at once, the price tables copied for every plan, LibVLC made on
+    /// the UI thread four times over, a contracts tracker half a million rows deep. Turn it on to
+    /// see a slow start again; it costs nothing while off.</para>
+    /// </summary>
+    public static bool StartupTrace { get; set; }
 }

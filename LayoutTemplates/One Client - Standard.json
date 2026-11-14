@@ -1,0 +1,638 @@
+{
+  "format": "eveconsole-client-layout",
+  "version": 1,
+  "name": "One Client - Standard",
+  "layout": {
+    "Id": "152f0099f64645c2b4909f0e7c9bd2b2",
+    "Docked": [
+      {
+        "Id": "70cd978ecfe74192979e0300092fe20e",
+        "Edge": "Bottom",
+        "Size": 25,
+        "Name": "Bottom Bar",
+        "Control": null,
+        "Options": null,
+        "Inside": {
+          "Id": "2ac7f180d3c64796a265a77153bd615e",
+          "Docked": [
+            {
+              "Id": "c0040a0374a94cc9a3e5dc62b109d0c6",
+              "Edge": "Right",
+              "Size": 90,
+              "Name": "",
+              "Control": "UiScale",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "91c66ab6930045fead542fb91214a7f7",
+              "Edge": "Right",
+              "Size": 110,
+              "Name": "",
+              "Control": "Theme",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "40c886b087aa4a5da87cfd66e9bbd3fd",
+              "Edge": "Left",
+              "Size": 949,
+              "Name": "",
+              "Control": "EsiStatus",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            }
+          ],
+          "Content": "Empty",
+          "Grid": null,
+          "Name": "",
+          "Inside": null,
+          "Look": null,
+          "Control": null,
+          "Options": null
+        },
+        "Look": {
+          "Color": null,
+          "Style": "Raised",
+          "Padding": null
+        },
+        "Grid": null
+      },
+      {
+        "Id": "286ecc65e7cb4ad0b8a7ddae2868f6a6",
+        "Edge": "Top",
+        "Size": 25,
+        "Name": "Top Bar",
+        "Control": null,
+        "Options": null,
+        "Inside": {
+          "Id": "db70573ee7084fd49435eef1dd1d8da9",
+          "Docked": [
+            {
+              "Id": "2e902a36240e4cf88ba77560965c5e41",
+              "Edge": "Right",
+              "Size": 40,
+              "Name": "",
+              "Control": "Settings",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "28043555b2ca4acfa4255638c3f47343",
+              "Edge": "Right",
+              "Size": 40,
+              "Name": "",
+              "Control": "Alarms",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "c83f97a1473944b4ae736d32fb644a68",
+              "Edge": "Right",
+              "Size": 34,
+              "Name": "",
+              "Control": "Scheduler",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "bc2042a0afd74598bb94f227f44a228e",
+              "Edge": "Left",
+              "Size": 40,
+              "Name": "",
+              "Control": "Menu",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "06c396b5239a447e8435d24720deb1e6",
+              "Edge": "Right",
+              "Size": 170,
+              "Name": "",
+              "Control": "ServerStatus",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "a13c69d68c6446eda71c443e7eaa25c8",
+              "Edge": "Right",
+              "Size": 110,
+              "Name": "",
+              "Control": "EveTime",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "2ed8e23a7e0c4454a603d745408920a3",
+              "Edge": "Right",
+              "Size": 120,
+              "Name": "",
+              "Control": "LocalTime",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "e8fe4dce0a3d49b99ec565bf640e0df1",
+              "Edge": "Right",
+              "Size": 110,
+              "Name": "",
+              "Control": "UsersOnline",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "0620112f91374a9d863b2992f5b192bb",
+              "Edge": "Right",
+              "Size": 30,
+              "Name": "",
+              "Control": "GroupChat",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "dec7ff5668924290a5982c3ab03aada3",
+              "Edge": "Right",
+              "Size": 30,
+              "Name": "",
+              "Control": "DirectMessages",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            },
+            {
+              "Id": "a57e2317efd64d47a112f044a5d3d5ad",
+              "Edge": "Right",
+              "Size": 30,
+              "Name": "",
+              "Control": "EveMail",
+              "Options": null,
+              "Inside": null,
+              "Look": null,
+              "Grid": null
+            }
+          ],
+          "Content": "Empty",
+          "Grid": null,
+          "Name": "",
+          "Inside": null,
+          "Look": null,
+          "Control": null,
+          "Options": null
+        },
+        "Look": {
+          "Color": null,
+          "Style": "Raised",
+          "Padding": null
+        },
+        "Grid": null
+      },
+      {
+        "Id": "3d586df132f8492484f90b1eeb578372",
+        "Edge": "Bottom",
+        "Size": 300,
+        "Name": "Bottom Panel",
+        "Control": null,
+        "Options": null,
+        "Inside": {
+          "Id": "b7ba0199e6204876b0139a3bf592c9f4",
+          "Docked": [],
+          "Content": "Grid",
+          "Grid": {
+            "Columns": [
+              1,
+              1,
+              1,
+              1.1725053078556265,
+              1.0737791932059446,
+              0.8861464968152868,
+              0.8675690021231421
+            ],
+            "Rows": [
+              1
+            ],
+            "Cells": [
+              {
+                "Id": "1a5817aecfc9425b8b5cd95e6bcf2979",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "599cc2899c6b401fa3cfca20976077df",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Worklist",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "e06ea663de1648d9905bb125cb2c12b8",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "9936987d961d4288ac77925107d516cc",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Alerts",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "2d279893fa344fc49830b65d31134346",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "e5251e59450a4fd1bc0c1da6691a24a7",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Orders",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "1c83b93e0e57436eb857090da8328acf",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "8cf76e3d32b94815b260f139c1eda9f3",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "SalesBuildCost",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "d47b267c8fd34e929a75f094c3db3796",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "eae89cc046e84a4f87f0d3df09c37572",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Intel",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "9467d29de40d4bcd98a8d2dfa3010902",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "e46029fa29e24e8183fd7c4863928dcd",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Agent",
+                  "Options": null
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              },
+              {
+                "Id": "b70c20d463c04470b124fa89cae82459",
+                "Docked": [],
+                "Content": "Panel",
+                "Grid": null,
+                "Name": "",
+                "Inside": {
+                  "Id": "08fca0297a524644b3153b22c727b165",
+                  "Docked": [],
+                  "Content": "Control",
+                  "Grid": null,
+                  "Name": "",
+                  "Inside": null,
+                  "Look": null,
+                  "Control": "Mumble",
+                  "Options": {
+                    "MumbleServerId": null,
+                    "MumbleMode": "List",
+                    "WorklistMode": null,
+                    "IntelMode": null,
+                    "IntelMaxJumps": null,
+                    "MenuTarget": null,
+                    "ContainerTabs": null,
+                    "ContainerSplit": null,
+                    "ContainerTools": null,
+                    "GroupChatRoom": null
+                  }
+                },
+                "Look": {
+                  "Color": null,
+                  "Style": "Card",
+                  "Padding": null
+                },
+                "Control": null,
+                "Options": null
+              }
+            ],
+            "Padding": {
+              "Left": 8,
+              "Top": 5,
+              "Right": 8,
+              "Bottom": 5,
+              "IsNone": false
+            }
+          },
+          "Name": "",
+          "Inside": null,
+          "Look": null,
+          "Control": null,
+          "Options": null
+        },
+        "Look": {
+          "Color": null,
+          "Style": "Raised",
+          "Padding": null
+        },
+        "Grid": null
+      }
+    ],
+    "Content": "Panel",
+    "Grid": null,
+    "Name": "",
+    "Inside": {
+      "Id": "96a71e89e1684f4f88a0c6ffce96efd0",
+      "Docked": [],
+      "Content": "Grid",
+      "Grid": {
+        "Columns": [
+          1.1890625,
+          0.8109375000000001
+        ],
+        "Rows": [
+          1
+        ],
+        "Cells": [
+          {
+            "Id": "e9fbca9c88a345fca0743f20198db216",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "58ce809589f34e3ba4702c987006f007",
+              "Docked": [],
+              "Content": "Client",
+              "Grid": null,
+              "Name": "Top",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": {
+              "Color": null,
+              "Style": "Inset",
+              "Padding": null
+            },
+            "Control": null,
+            "Options": null
+          },
+          {
+            "Id": "dae6214070c7404999d89e7f9db4aafc",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "fcff2a18c2cd42168e787c7b47784566",
+              "Docked": [],
+              "Content": "Grid",
+              "Grid": {
+                "Columns": [
+                  1
+                ],
+                "Rows": [
+                  1,
+                  1
+                ],
+                "Cells": [
+                  {
+                    "Id": "5039c6da07f34b2ca2cdedf859612f5d",
+                    "Docked": [],
+                    "Content": "Panel",
+                    "Grid": null,
+                    "Name": "",
+                    "Inside": {
+                      "Id": "d47f8c0217394e6b9bf7fd6cef822425",
+                      "Docked": [],
+                      "Content": "Control",
+                      "Grid": null,
+                      "Name": "",
+                      "Inside": null,
+                      "Look": null,
+                      "Control": "ToolContainer",
+                      "Options": {
+                        "MumbleServerId": null,
+                        "MumbleMode": null,
+                        "WorklistMode": null,
+                        "IntelMode": null,
+                        "IntelMaxJumps": null,
+                        "MenuTarget": null,
+                        "ContainerTabs": true,
+                        "ContainerSplit": true,
+                        "ContainerTools": [
+                          {
+                            "ToolId": "overview",
+                            "CanClose": true,
+                            "Layout": null
+                          },
+                          {
+                            "ToolId": "items",
+                            "CanClose": true,
+                            "Layout": null
+                          },
+                          {
+                            "ToolId": "universe",
+                            "CanClose": true,
+                            "Layout": null
+                          }
+                        ],
+                        "GroupChatRoom": null
+                      }
+                    },
+                    "Look": {
+                      "Color": null,
+                      "Style": "Inset",
+                      "Padding": null
+                    },
+                    "Control": null,
+                    "Options": null
+                  },
+                  {
+                    "Id": "86faf59ef50c4245a6e4e4176facfe27",
+                    "Docked": [],
+                    "Content": "Panel",
+                    "Grid": null,
+                    "Name": "",
+                    "Inside": {
+                      "Id": "b99099df020443b7811fc04f83cea2e6",
+                      "Docked": [],
+                      "Content": "Control",
+                      "Grid": null,
+                      "Name": "",
+                      "Inside": null,
+                      "Look": null,
+                      "Control": "ToolContainer",
+                      "Options": {
+                        "MumbleServerId": null,
+                        "MumbleMode": null,
+                        "WorklistMode": null,
+                        "IntelMode": null,
+                        "IntelMaxJumps": null,
+                        "MenuTarget": null,
+                        "ContainerTabs": true,
+                        "ContainerSplit": true,
+                        "ContainerTools": [
+                          {
+                            "ToolId": "worklist",
+                            "CanClose": true,
+                            "Layout": null
+                          },
+                          {
+                            "ToolId": "inv_levels",
+                            "CanClose": true,
+                            "Layout": null
+                          }
+                        ],
+                        "GroupChatRoom": null
+                      }
+                    },
+                    "Look": {
+                      "Color": null,
+                      "Style": "Inset",
+                      "Padding": null
+                    },
+                    "Control": null,
+                    "Options": null
+                  }
+                ],
+                "Padding": null
+              },
+              "Name": "",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": {
+              "Color": null,
+              "Style": "Flat",
+              "Padding": null
+            },
+            "Control": null,
+            "Options": null
+          }
+        ],
+        "Padding": null
+      },
+      "Name": "",
+      "Inside": null,
+      "Look": null,
+      "Control": null,
+      "Options": null
+    },
+    "Look": null,
+    "Control": null,
+    "Options": null
+  },
+  "mumbleServers": []
+}

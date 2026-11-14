@@ -253,11 +253,15 @@ public sealed class MessageBlockVm : ReactiveObject
         IReadOnlyList<MarketConfigChoice>?           markets   = null,
         Func<Task<MarketGroupPickerResult?>>?        pickGroup = null,
         ParkComparisonService?                       parkCompare = null,
-        IDbContextFactory<AppDbContext>?             dbFactory   = null)
+        IDbContextFactory<AppDbContext>?             dbFactory   = null,
+        Func<bool>?                                  picturesGoOnline = null,
+        SlackPictureSearch?                          pictures = null)
     {
+        _pictures    = pictures;
         _parkCompare = parkCompare;
         _dbFactory   = dbFactory;
         _destinationIsWebhook = destinationIsWebhook ?? (() => false);
+        _picturesGoOnline     = picturesGoOnline ?? (() => false);
         Markets       = markets ?? [];
         _pickGroup    = pickGroup;
         Corps         = corps;
@@ -286,6 +290,31 @@ public sealed class MessageBlockVm : ReactiveObject
         _showIskLeft       = model.ShowIskLeft;
         _showLastCompleted = model.ShowLastCompleted;
 
+        // A new Top 10, project list or Industry Ops list starts rich. A saved section keeps what it
+        // was saved with.
+        _slackRich = fresh
+            ? model.Type is MessageBlock.TypeTop10 or MessageBlock.TypeProjects or MessageBlock.TypeIndustryOpps
+            : model.SlackRich;
+
+        _boxWidth       = BoxWidthOptions.FirstOrDefault(w => w.Key == model.BoxWidth) ?? BoxWidthOptions[0];
+        _introText      = model.IntroText;
+        _pictureKind    = PictureKindOptions.FirstOrDefault(k => k.Key == model.PictureKind) ?? PictureKindOptions[0];
+        _pictureId      = model.PictureId;
+        _pictureName    = model.PictureName;
+        _pictureVariant = model.PictureVariant;
+        _pictureSearch  = model.PictureName;
+
+        // Blank stays blank: it means the Market defaults or the standard emoji, whatever they
+        // become, not what they happen to be today.
+        _indexBestEmoji = model.IndexBestEmoji;
+        _indexUpEmoji   = model.IndexUpEmoji;
+        _indexDownEmoji = model.IndexDownEmoji;
+        CompareMarkets  = [new MarketConfigChoice(0, AlarmsText.CompareMarketDefault), .. Markets];
+        if (model.CompareMarketConfigId > 0 && CompareMarkets.All(m => m.Id != model.CompareMarketConfigId))
+            CompareMarkets = [.. CompareMarkets, new MarketConfigChoice(model.CompareMarketConfigId, $"#{model.CompareMarketConfigId}")];
+        _compareMarket = CompareMarkets.First(m => m.Id == model.CompareMarketConfigId || (model.CompareMarketConfigId <= 0 && m.Id == 0));
+        _comparePrice  = ComparePrices.FirstOrDefault(p => p.Key == model.ComparePriceType) ?? ComparePrices[0];
+
         foreach (var (key, title) in ScheduledBlockRenderer.Top10Categories)
             Categories.Add(new CategoryChoice(key, title) { Selected = model.Categories.Contains(key) });
 
@@ -311,8 +340,9 @@ public sealed class MessageBlockVm : ReactiveObject
         foreach (var key in columns.Distinct().Where(known.ContainsKey))
             OppsTable.Add(Column(known[key], model.OppsHeaders.GetValueOrDefault(key)));
         AddOppsColumnCommand = ReactiveCommand.Create(AddOppsColumn);
+        OppsTable.CollectionChanged += (_, _) => RefreshAddable();
         RefreshAddable();
-        _oppsSortBy        = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
+        _oppsSortBy       = OppsSortOptions.FirstOrDefault(o => o.Key == model.OppsSortBy)
                              ?? OppsSortOptions.First(o => o.Key == IndustryOppsReport.DefaultSort);
         _oppsSortDirection = model.OppsSortDescending ? SortDirectionOptions[0] : SortDirectionOptions[1];
         _oppsRowLimit      = model.OppsRowLimit > 0 ? model.OppsRowLimit.ToString() : "";
@@ -338,8 +368,8 @@ public sealed class MessageBlockVm : ReactiveObject
             { Selected = (fresh && IsParkCompare ? ParkCompareOutputs.Default : [.. model.CompareOutputs]).Contains(k) }));
         IndexOutputsPicker = new MultiChoice(SystemIndexOutputs.All.Select(k => new CategoryChoice(k, SystemIndexOutputs.Label(k))
             { Selected = (fresh && IsSystemIndex ? SystemIndexOutputs.Default : [.. model.IndexOutputs]).Contains(k) }));
-        CompareOutputsPicker.SelectionChanged += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
-        IndexOutputsPicker.SelectionChanged   += () => this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        CompareOutputsPicker.SelectionChanged += DestinationChanged;
+        IndexOutputsPicker.SelectionChanged   += DestinationChanged;
         _savedJobs = model.CompareJobs;
         if (parkCompare is not null && dbFactory is not null)
             CompareJobList = new CompareJobListVm(parkCompare, dbFactory, model.CompareJobs);
@@ -374,7 +404,9 @@ public sealed class MessageBlockVm : ReactiveObject
                          nameof(IsText), nameof(NeedsCorp), nameof(NeedsMonth),
                          nameof(IsTop10), nameof(IsSale), nameof(IsProjects), nameof(IsChart), nameof(IsOpps),
                          nameof(IsParkCompare), nameof(IsSystemIndex),
+                         nameof(TextPicturePicker), nameof(ProjectPicturePicker),
                          nameof(Heading), nameof(ShowWebhookChartWarning), nameof(ShowWebhookPicturesWarning),
+                         nameof(ShowWebhookHostedNote),
                      })
                 this.RaisePropertyChanged(n);
 
@@ -486,7 +518,15 @@ public sealed class MessageBlockVm : ReactiveObject
                                            ProjectFilter?.Key ?? EveConsole.Services.ProjectFilters.All);
 
     private bool _showHeaders = true;
-    public bool ShowHeaders { get => _showHeaders; set => this.RaiseAndSetIfChanged(ref _showHeaders, value); }
+    public bool ShowHeaders
+    {
+        get => _showHeaders;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showHeaders, value);
+            RefreshAddable();   // a header can be what makes a column wide
+        }
+    }
 
     private bool _showIskLeft = true;
     public bool ShowIskLeft { get => _showIskLeft; set => this.RaiseAndSetIfChanged(ref _showIskLeft, value); }
@@ -497,6 +537,158 @@ public sealed class MessageBlockVm : ReactiveObject
         get => _showLastCompleted;
         set => this.RaiseAndSetIfChanged(ref _showLastCompleted, value);
     }
+
+    private bool _slackRich;
+
+    /// <summary>Top 10 and standing projects: images and lined-up columns on Slack, or the text
+    /// table. Discord always gets the text.</summary>
+    public bool SlackRich
+    {
+        get => _slackRich;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _slackRich, value);
+            RefreshAddable();
+        }
+    }
+
+    // ── Text: a box on Slack ──────────────────────────────────────────────────
+
+    public static readonly LabelledChoice[] BoxWidthOptions =
+    [
+        new(SlackBoxWidth.None,     AlarmsText.BoxWidthNone),
+        new(SlackBoxWidth.Narrow,   AlarmsText.BoxWidthNarrow),
+        new(SlackBoxWidth.Standard, AlarmsText.BoxWidthStandard),
+        new(SlackBoxWidth.Wide,     AlarmsText.BoxWidthWide),
+    ];
+
+    public IReadOnlyList<LabelledChoice> BoxWidths => BoxWidthOptions;
+
+    private LabelledChoice _boxWidth;
+    public LabelledChoice BoxWidth
+    {
+        get => _boxWidth;
+        set
+        {
+            // A ComboBox being rebuilt hands back null; that is not somebody choosing.
+            if (value is null) return;
+
+            this.RaiseAndSetIfChanged(ref _boxWidth, value);
+            this.RaisePropertyChanged(nameof(HasBox));
+        }
+    }
+
+    /// <summary>
+    /// What the picture's picker binds to, where this section has one.
+    ///
+    /// <para>⚠️ Null on any other kind of section, so that it builds nothing. A hidden picker is
+    /// still bound: two search boxes on one setting each write back what the other just cleared.</para>
+    /// </summary>
+    public MessageBlockVm? TextPicturePicker => IsText ? this : null;
+    public MessageBlockVm? ProjectPicturePicker => IsProjects ? this : null;
+
+    /// <summary>Whether a text section has a box, and so a place for a picture.</summary>
+    public bool HasBox => SlackBoxWidth.IsBox(_boxWidth.Key);
+
+    // ── Standing projects: what introduces the list ──────────────────────────
+
+    private string _introText;
+    public string IntroText { get => _introText; set => this.RaiseAndSetIfChanged(ref _introText, value); }
+
+    public static readonly LabelledChoice[] PictureKindOptions =
+    [
+        new(SlackPicture.None,           AlarmsText.PictureKindNone),
+        new(SlackPicture.Character,      AlarmsText.PictureKindCharacter),
+        new(SlackPicture.Corporation,    AlarmsText.PictureKindCorporation),
+        new(SlackPicture.Alliance,       AlarmsText.PictureKindAlliance),
+        new(SlackPicture.Faction,        AlarmsText.PictureKindFaction),
+        new(SlackPicture.NpcCorporation, AlarmsText.PictureKindNpcCorporation),
+        new(SlackPicture.Agent,          AlarmsText.PictureKindAgent),
+        new(SlackPicture.Type,           AlarmsText.PictureKindType),
+    ];
+
+    public IReadOnlyList<LabelledChoice> PictureKinds => PictureKindOptions;
+
+    private readonly SlackPictureSearch? _pictures;
+    private long   _pictureId;
+    private string _pictureName;
+    private string _pictureVariant;
+
+    private LabelledChoice _pictureKind;
+    public LabelledChoice PictureKind
+    {
+        get => _pictureKind;
+        set
+        {
+            // A ComboBox being rebuilt hands back null; that is not somebody choosing.
+            if (value is null || value == _pictureKind) return;
+
+            this.RaiseAndSetIfChanged(ref _pictureKind, value);
+            this.RaisePropertyChanged(nameof(PicksPicture));
+
+            // An id only means something within its kind.
+            PictureSearch = "";
+        }
+    }
+
+    /// <summary>Whether there is anything to search for.</summary>
+    public bool PicksPicture => _pictureKind.Key != SlackPicture.None;
+
+    private string _pictureSearch;
+
+    /// <summary>
+    /// The search box.
+    ///
+    /// <para>⚠️ What it says is what gets posted. Typing over a picked name drops the picture
+    /// rather than leaving the old one behind a box that now says something else.</para>
+    /// </summary>
+    public string PictureSearch
+    {
+        get => _pictureSearch;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _pictureSearch, value ?? "");
+
+            if (_pictureSearch == _pictureName) return;
+            _pictureId      = 0;
+            _pictureName    = "";
+            _pictureVariant = "";
+        }
+    }
+
+    private object? _pickedPicture;
+
+    /// <summary>What the box last had picked. ⚠️ It goes null the moment somebody types, which says
+    /// nothing: <see cref="PictureSearch"/> has already dealt with that.</summary>
+    public object? PickedPicture
+    {
+        get => _pickedPicture;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _pickedPicture, value);
+            if (value is not EntityMatch match) return;
+
+            _pictureId      = match.Id;
+            _pictureName    = match.Name;
+            _pictureVariant = "";
+
+            if (_pictureKind.Key == SlackPicture.Type) _ = SettleVariantAsync(match.Id);
+        }
+    }
+
+    private async Task SettleVariantAsync(long typeId)
+    {
+        var variant = await SlackPictureSearch.TypeVariantAsync(typeId);
+
+        // Picked something else while it was asking.
+        if (_pictureId == typeId) _pictureVariant = variant;
+    }
+
+    /// <summary>Feeds the search box.</summary>
+    public Func<string?, CancellationToken, Task<IEnumerable<object>>> PicturePopulator =>
+        async (text, ct) => _pictures is null
+            ? []
+            : (await _pictures.SearchAsync(_pictureKind.Key, text ?? "", ct)).Cast<object>().ToList();
 
     private LabelledChoice _projectType;
     public LabelledChoice ProjectType
@@ -556,7 +748,8 @@ public sealed class MessageBlockVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> SelectNoneCommand { get; }
 
     /// <summary>
-    /// True while this section draws a chart and the task is aimed at a webhook.
+    /// True while this section draws a chart and the task is aimed at a webhook that cannot show
+    /// one, because this database has not signed in to the online services.
     ///
     /// <para>⚠️ Read off the task's destination, which lives a level up. The section is where
     /// somebody is looking when they add a chart, so the section is where the warning has to be
@@ -565,20 +758,33 @@ public sealed class MessageBlockVm : ReactiveObject
     public bool ShowWebhookChartWarning => IsChart && _destinationIsWebhook();
 
     private readonly Func<bool> _destinationIsWebhook;
+    private readonly Func<bool> _picturesGoOnline;
 
-    /// <summary>Called by the editor when the destination changes, since it is not this
-    /// section's own property to watch.</summary>
+    /// <summary>Called by the editor when the destination or the sign-in changes, since neither
+    /// is this section's own property to watch.</summary>
     public void DestinationChanged()
     {
         this.RaisePropertyChanged(nameof(ShowWebhookChartWarning));
         this.RaisePropertyChanged(nameof(ShowWebhookPicturesWarning));
+        this.RaisePropertyChanged(nameof(ShowWebhookHostedNote));
     }
 
+    private bool HasChosenPictures =>
+        (IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
+        || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(SystemIndexOutputs.IsPicture));
+
     /// <summary>True while an Indy Park Compare or System Index section has pictures chosen and
-    /// the task is aimed at a webhook: its tables will go, its pictures will not.</summary>
-    public bool ShowWebhookPicturesWarning => _destinationIsWebhook()
-        && ((IsParkCompare && CompareOutputsPicker.SelectedKeys.Any(ParkCompareOutputs.IsPicture))
-            || (IsSystemIndex && IndexOutputsPicker.SelectedKeys.Any(k => k != SystemIndexOutputs.Table)));
+    /// the task is aimed at a webhook that cannot show them: its tables will go, its pictures will
+    /// not.</summary>
+    public bool ShowWebhookPicturesWarning => _destinationIsWebhook() && HasChosenPictures;
+
+    /// <summary>
+    /// True while this section's pictures will reach a webhook through the online services.
+    ///
+    /// <para>⚠️ Said where the picture is chosen. These links are public, and a chart can show a
+    /// corporation's figures, so nobody should find out from reading a post's address.</para>
+    /// </summary>
+    public bool ShowWebhookHostedNote => _picturesGoOnline() && (IsChart || HasChosenPictures);
 
     private string _projectsNote = "";
     public string ProjectsNote { get => _projectsNote; private set => this.RaiseAndSetIfChanged(ref _projectsNote, value); }
@@ -668,6 +874,41 @@ public sealed class MessageBlockVm : ReactiveObject
 
     /// <summary>The pictures and tables the section posts.</summary>
     public MultiChoice CompareOutputsPicker { get; }
+
+    /// <summary>Where a job box's market value comes from. The first choice is the Market defaults.</summary>
+    public IReadOnlyList<MarketConfigChoice> CompareMarkets { get; }
+
+    private MarketConfigChoice _compareMarket;
+    public MarketConfigChoice CompareMarket
+    {
+        get => _compareMarket;
+        set => this.RaiseAndSetIfChanged(ref _compareMarket, value ?? CompareMarkets[0]);
+    }
+
+    /// <summary>The price it reads. The first choice is the Market defaults.</summary>
+    public IReadOnlyList<LabelledChoice> ComparePrices { get; } =
+    [
+        new("", AlarmsText.ComparePriceDefault),
+        new(MarketPriceType.Sell, MarketPriceType.Label(MarketPriceType.Sell)),
+        new(MarketPriceType.Midpoint, MarketPriceType.Label(MarketPriceType.Midpoint)),
+        new(MarketPriceType.Buy, MarketPriceType.Label(MarketPriceType.Buy)),
+    ];
+
+    private LabelledChoice _comparePrice;
+    public LabelledChoice ComparePrice
+    {
+        get => _comparePrice;
+        set => this.RaiseAndSetIfChanged(ref _comparePrice, value ?? ComparePrices[0]);
+    }
+
+    private string _indexBestEmoji = "";
+    public string IndexBestEmoji { get => _indexBestEmoji; set => this.RaiseAndSetIfChanged(ref _indexBestEmoji, value ?? ""); }
+
+    private string _indexUpEmoji = "";
+    public string IndexUpEmoji { get => _indexUpEmoji; set => this.RaiseAndSetIfChanged(ref _indexUpEmoji, value ?? ""); }
+
+    private string _indexDownEmoji = "";
+    public string IndexDownEmoji { get => _indexDownEmoji; set => this.RaiseAndSetIfChanged(ref _indexDownEmoji, value ?? ""); }
 
     // ── System Index ─────────────────────────────────────────────────────────
 
@@ -821,34 +1062,92 @@ public sealed class MessageBlockVm : ReactiveObject
 
     public ReactiveCommand<Unit, Unit> AddOppsColumnCommand { get; }
 
-    private OppsColumnVm Column(IndustryOppsReport.Column c, string? header) => new(
-        c.Key, c.Header, header is { Length: > 0 } ? header : c.Header, c.Key == IndustryOppsReport.Item,
-        col => { OppsTable.Remove(col); RefreshAddable(); },
-        (col, by) =>
+    private OppsColumnVm Column(IndustryOppsReport.Column c, string? header)
+    {
+        var column = new OppsColumnVm(
+            c.Key, c.Header, header is { Length: > 0 } ? header : c.Header, c.Key == IndustryOppsReport.Item,
+            col => OppsTable.Remove(col),
+            (col, by) =>
+            {
+                // The item holds the first place: nothing moves above it.
+                var i = OppsTable.IndexOf(col);
+                var j = i + by;
+                if (i < 0 || j < 1 || j >= OppsTable.Count) return;
+                OppsTable.Move(i, j);
+            });
+
+        // A longer header can be what takes the box past its width.
+        column.PropertyChanged += (_, e) =>
         {
-            // The item holds the first place: nothing moves above it.
-            var i = OppsTable.IndexOf(col);
-            var j = i + by;
-            if (i < 0 || j < 1 || j >= OppsTable.Count) return;
-            OppsTable.Move(i, j);
-        });
+            if (e.PropertyName == nameof(OppsColumnVm.Header)) RefreshAddable();
+        };
+        return column;
+    }
 
     private void AddOppsColumn()
     {
         if (OppsToAdd is not { } pick) return;
-        var c = IndustryOppsReport.Columns.First(x => x.Key == pick.Key);
-        OppsTable.Add(Column(c, null));
-        RefreshAddable();
+        OppsTable.Add(Column(IndustryOppsReport.Columns.First(x => x.Key == pick.Key), null));
     }
 
-    /// <summary>The dropdown offers what is not in the table, in the grid's order, the first picked.</summary>
+    private bool _oppsBoxFull;
+
+    /// <summary>A column was kept off the dropdown because Slack's box has no room for it.</summary>
+    public bool OppsBoxFull { get => _oppsBoxFull; private set => this.RaiseAndSetIfChanged(ref _oppsBoxFull, value); }
+
+    private string _oppsLeftOut = "";
+
+    /// <summary>What the section has that its post will leave out, said when it has any: a section
+    /// saved with more than fits, or one that has only just been ticked for Slack.</summary>
+    public string OppsLeftOut
+    {
+        get => _oppsLeftOut;
+        private set
+        {
+            this.RaiseAndSetIfChanged(ref _oppsLeftOut, value);
+            this.RaisePropertyChanged(nameof(HasOppsLeftOut));
+        }
+    }
+
+    public bool HasOppsLeftOut => OppsLeftOut.Length > 0;
+
+    /// <summary>
+    /// The dropdown offers what is not in the table, in the grid's order, and in Slack's format only
+    /// what its box has room for.
+    ///
+    /// <para>⚠️ Left alone when it would offer the same: typing a header comes through here, and a
+    /// ComboBox whose list is rebuilt loses the pick.</para>
+    /// </summary>
     private void RefreshAddable()
     {
-        OppsAddable.Clear();
-        foreach (var c in IndustryOppsReport.Columns.Where(c => OppsTable.All(t => t.Key != c.Key)))
-            OppsAddable.Add(new LabelledChoice(c.Key, c.Header));
-        OppsToAdd = OppsAddable.FirstOrDefault();
+        var limited = IsOpps && SlackRich;
+        var names   = OppsHeaderNames();
+        var keys    = OppsTable.Where(t => !t.IsItem).Select(t => t.Key).ToList();
+        bool Fits(string key) => IndustryOppsReport.SlackBoxKeys([.. keys, key], ShowHeaders, names).Contains(key);
+
+        var missing = IndustryOppsReport.Columns.Where(c => OppsTable.All(t => t.Key != c.Key)).ToList();
+        var offered = missing.Where(c => !limited || Fits(c.Key)).ToList();
+
+        if (!offered.Select(c => c.Key).SequenceEqual(OppsAddable.Select(c => c.Key)))
+        {
+            var held = OppsToAdd?.Key;
+            OppsAddable.Clear();
+            foreach (var c in offered) OppsAddable.Add(new LabelledChoice(c.Key, c.Header));
+            OppsToAdd = OppsAddable.FirstOrDefault(c => c.Key == held) ?? OppsAddable.FirstOrDefault();
+        }
+
+        var kept = limited ? IndustryOppsReport.SlackBoxKeys(keys, ShowHeaders, names) : keys;
+        OppsLeftOut = keys.Count > kept.Count
+            ? string.Format(AlarmsText.OppsBoxLeftOut, string.Join(", ", OppsTable.Where(t => !t.IsItem && !kept.Contains(t.Key)).Select(t => t.Header.Trim())))
+            : "";
+        OppsBoxFull = !HasOppsLeftOut && offered.Count < missing.Count;
     }
+
+    /// <summary>Only headers changed from the column's own: one left alone follows the interface
+    /// language, and a blank box means the column's own header too.</summary>
+    private Dictionary<string, string> OppsHeaderNames() => OppsTable
+        .Where(c => c.Header.Trim().Length > 0 && c.Header.Trim() != c.Name)
+        .ToDictionary(c => c.Key, c => c.Header.Trim());
 
     private LabelledChoice _oppsSortBy;
     public LabelledChoice OppsSortBy { get => _oppsSortBy; set => this.RaiseAndSetIfChanged(ref _oppsSortBy, value ?? OppsSortOptions[0]); }
@@ -911,6 +1210,13 @@ public sealed class MessageBlockVm : ReactiveObject
         ShowHeaders        = ShowHeaders,
         ShowIskLeft        = ShowIskLeft,
         ShowLastCompleted  = ShowLastCompleted,
+        SlackRich          = SlackRich,
+        IntroText          = IntroText.Trim(),
+        BoxWidth           = BoxWidth.Key,
+        PictureKind        = PictureKind.Key,
+        PictureId          = _pictureId,
+        PictureName        = _pictureName,
+        PictureVariant     = _pictureVariant,
         // Sorted, so two identical selections always render the same JSON. The unsaved-changes
         // check compares that text, and a HashSet's order is not a promise.
         IncludedProjectIds = [.. _included.OrderBy(x => x)],
@@ -927,12 +1233,8 @@ public sealed class MessageBlockVm : ReactiveObject
         OppsExcludedGroupIds = [.. _oppsExcludedIds],
         OppsIncludedGroupIds = [.. _oppsIncludedIds],
         OppsColumns          = [.. OppsTable.Where(c => !c.IsItem).Select(c => c.Key)],
-        // Only headers changed from the column's own: one left alone follows the interface
-        // language, and a blank box means the column's own header too.
-        OppsHeaders          = OppsTable
-            .Where(c => c.Header.Trim().Length > 0 && c.Header.Trim() != c.Name)
-            .ToDictionary(c => c.Key, c => c.Header.Trim()),
-        OppsSortBy           = OppsSortBy.Key,
+        OppsHeaders          = OppsHeaderNames(),
+        OppsSortBy          = OppsSortBy.Key,
         OppsSortDescending   = OppsSortDirection.Key == "desc",
         OppsRowLimit         = int.TryParse(OppsRowLimit.Trim(), out var limit) && limit > 0 ? limit : 0,
 
@@ -941,6 +1243,11 @@ public sealed class MessageBlockVm : ReactiveObject
         CompareOutputs       = [.. CompareOutputsPicker.SelectedKeys],
         IndexSystemIds       = [.. _indexIds],
         IndexOutputs         = [.. IndexOutputsPicker.SelectedKeys],
+        IndexBestEmoji       = IndexBestEmoji.Trim(),
+        IndexUpEmoji         = IndexUpEmoji.Trim(),
+        IndexDownEmoji       = IndexDownEmoji.Trim(),
+        CompareMarketConfigId = CompareMarket.Id,
+        ComparePriceType     = ComparePrice.Key,
     };
 }
 
@@ -948,12 +1255,13 @@ public sealed class MessageBlockVm : ReactiveObject
 /// The Scheduler tool: a list of tasks, and an editor with the schedule on one side and the
 /// message being composed on the other.
 /// </summary>
-public sealed class SchedulerViewModel : ReactiveObject
+public sealed class SchedulerViewModel : ReactiveObject, IDisposable
 {
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly SchedulerService                _scheduler;
     private readonly ScheduledBlockRenderer          _renderer;
     private readonly ParkComparisonService           _parkCompare;
+    private readonly OnlineServices                  _online;
     private readonly SlackService                    _slack;
     private readonly DiscordService                  _discord;
     private readonly CorpActivityService             _corp;
@@ -969,6 +1277,8 @@ public sealed class SchedulerViewModel : ReactiveObject
     /// </summary>
     public Func<Task<MarketGroupPickerResult?>>? PickMarketGroup { get; set; }
 
+    private readonly SlackPictureSearch _pictures;
+
     public SchedulerViewModel(
         IDbContextFactory<AppDbContext> dbFactory,
         SchedulerService                scheduler,
@@ -979,8 +1289,12 @@ public sealed class SchedulerViewModel : ReactiveObject
         SalePostingService              sales,
         AppErrorLogger                  errors,
         BatchAddService                 batch,
-        ParkComparisonService           parkCompare)
+        ParkComparisonService           parkCompare,
+        OnlineServices                  online,
+        SlackPictureSearch              pictures)
     {
+        _pictures    = pictures;
+        _online      = online;
         _parkCompare = parkCompare;
         Batch      = batch;
         _dbFactory = dbFactory;
@@ -991,6 +1305,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         _corp      = corp;
         _sales     = sales;
         _errors    = errors;
+
+        Calendar = new SchedulerCalendarViewModel(OpenFromCalendar);
 
         NewCommand     = ReactiveCommand.CreateFromTask(NewTaskAsync);
         SaveCommand    = ReactiveCommand.CreateFromTask(SaveAsync);
@@ -1037,9 +1353,52 @@ public sealed class SchedulerViewModel : ReactiveObject
         // A task that fires while the tool is open should show its new last-run without the
         // user going looking for Refresh.
         scheduler.TasksChanged += OnTasksChanged;
+
+        online.AccountChanged += OnAccountChanged;
     }
 
     private void OnTasksChanged() => Dispatcher.UIThread.Post(() => _ = LoadAsync());
+    private void OnAccountChanged() => Dispatcher.UIThread.Post(() => _ = RefreshOnlineAsync());
+
+    /// <summary>A copy of the tool closed: it stops following the tasks and the sign-in.</summary>
+    public void Dispose()
+    {
+        _scheduler.TasksChanged -= OnTasksChanged;
+        _online.AccountChanged  -= OnAccountChanged;
+    }
+
+    /// <summary>Whether this database has signed in to the online services, which is whether a
+    /// Slack webhook can show a picture. What the sections' warnings and notes are read from.</summary>
+    private bool _onlineSignedIn;
+
+    private async Task RefreshOnlineAsync()
+    {
+        try { _onlineSignedIn = await _online.AccountAsync() is not null; }
+        catch (Exception ex)
+        {
+            _errors.Log(nameof(SchedulerViewModel), "online account", ex);
+            _onlineSignedIn = false;
+        }
+        foreach (var b in Blocks) b.DestinationChanged();
+    }
+
+    /// <summary>The Calendar tab.</summary>
+    public SchedulerCalendarViewModel Calendar { get; }
+
+    private int _selectedTabIndex;
+    public int SelectedTabIndex
+    {
+        get => _selectedTabIndex;
+        set => this.RaiseAndSetIfChanged(ref _selectedTabIndex, value);
+    }
+
+    /// <summary>A run clicked on the calendar: its task in the editor, with the usual stop if the
+    /// one open has unsaved edits.</summary>
+    private void OpenFromCalendar(int taskId)
+    {
+        SelectedTabIndex = 0;
+        SelectedTask     = Tasks.FirstOrDefault(t => t.Id == taskId) ?? SelectedTask;
+    }
 
     /// <summary>
     /// Moving to another task, with a stop if the current one has unsaved edits.
@@ -1373,6 +1732,7 @@ public sealed class SchedulerViewModel : ReactiveObject
         await LoadCorpsAsync();
         await LoadPostingsAsync();
         await LoadMarketsAsync();
+        await RefreshOnlineAsync();
 
         // ⚠️ Only when there is nothing to show. This also runs on every background tick that
         // changed a task, and asking Slack for its channel list once a minute would be a network
@@ -1408,6 +1768,8 @@ public sealed class SchedulerViewModel : ReactiveObject
         if (keep != 0)
             _selectedTask = Tasks.FirstOrDefault(r => r.Id == keep);
         this.RaisePropertyChanged(nameof(SelectedTask));
+
+        Calendar.SetTasks(rows);
 
         StatusText = string.Format(AlarmsText.TaskCount, Tasks.Count);
     }
@@ -1570,6 +1932,7 @@ public sealed class SchedulerViewModel : ReactiveObject
     {
         if (!await MayDiscardAsync(AlarmsText.DiscardNewTask)) return;
         NewTask();
+        SelectedTabIndex = 0;   // The editor is on that tab, and New was pressed to use it.
     }
 
     private void NewTask()
@@ -1607,9 +1970,10 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private MessageBlockVm NewBlock(MessageBlock model, bool fresh) =>
         new(model, Corps, Postings, LoadStandingProjectsAsync, fresh,
-            () => Destination?.IsWebhook == true, Markets,
+            () => Destination?.IsWebhook == true && !_onlineSignedIn, Markets,
             () => PickMarketGroup?.Invoke() ?? Task.FromResult<MarketGroupPickerResult?>(null),
-            _parkCompare, _dbFactory);
+            _parkCompare, _dbFactory,
+            () => Destination?.IsWebhook == true && _onlineSignedIn, _pictures);
 
     private void AddSection()
     {
@@ -1862,6 +2226,14 @@ public sealed class SchedulerViewModel : ReactiveObject
 
     private async Task DeleteAsync()
     {
+        // Nothing saved and nothing typed has nothing to lose, so it just closes. ⚠️ A saved task is
+        // asked about even with no edits: deleting one cannot be undone, and its schedule goes with it.
+        if ((EditingId != 0 || IsDirty) && ConfirmDiscard is not null)
+        {
+            var name = Name.Trim().Length > 0 ? Name.Trim() : AlarmsText.ThisTask;
+            if (!await ConfirmDiscard(string.Format(AlarmsText.ConfirmDeleteTask, name))) return;
+        }
+
         if (EditingId == 0) { HasEditor = false; return; }
 
         var id = EditingId;
@@ -1895,33 +2267,50 @@ public sealed class SchedulerViewModel : ReactiveObject
         try
         {
             // In the markup the destination will get, so a Discord task previews as Discord.
-            var render = await _renderer.RenderAsync(
-                [.. Blocks.Select(b => b.ToModel())], DateTime.UtcNow,
-                formatName: Destination?.IsDiscord == true ? "Discord" : "Slack");
+            var format    = Destination?.IsDiscord == true ? "Discord" : "Slack";
+            var signedOut = Destination?.IsWebhook == true && !_onlineSignedIn;
 
-            // WARN Charts are named, not drawn. They contribute no text, so a preview that
-            // showed only the text would call a chart-only message empty and read as broken.
-            // Drawing them here would also mean rendering twice for a button that sends nothing.
-            // A Compare or System Index section names each of its pictures the same way.
-            var noted = string.Join("\n", Blocks.Where(b => b.IsChart)
-                .Select(b => b.ShowWebhookChartWarning
-                    ? string.Format(AlarmsText.PreviewChartSkipped, b.Heading)
-                    : string.Format(AlarmsText.PreviewChartUploaded, b.Heading))
-                .Concat(Blocks.Where(b => b.IsParkCompare || b.IsSystemIndex).SelectMany(b =>
-                    ScheduledBlockRenderer.PictureTitles(b.ToModel()).Select(title => Destination?.IsWebhook == true
-                        ? string.Format(AlarmsText.PreviewChartSkipped, title)
-                        : string.Format(AlarmsText.PreviewChartUploaded, title)))));
+            // ⚠️ A section at a time, its pictures named under its own text, because that is the
+            // order it posts in.
+            var parts      = new List<string>();
+            var anyDynamic = false;
+            var characters = 0;
 
-            var shown = string.Join("\n\n",
-                new[] { render.Text, noted }.Where(t => t.Length > 0));
+            foreach (var b in Blocks)
+            {
+                var model = b.ToModel();
 
-            PreviewText = shown.Length > 0 ? shown : AlarmsText.PreviewEmpty;
+                // WARN Charts are named, not drawn. They contribute no text, so a preview that
+                // showed only the text would call a chart-only message empty and read as broken.
+                // Drawing them here would also mean rendering twice for a button that sends nothing.
+                // A Compare or System Index section names each of its pictures the same way.
+                List<string> pictures = b.IsChart ? [b.Heading]
+                    : b.IsParkCompare || b.IsSystemIndex ? ScheduledBlockRenderer.PictureTitles(model) : [];
+
+                var follow = pictures.Count > 0 && !b.IsChart && !signedOut ? new HashSet<MessageBlock> { model } : null;
+                var render = await _renderer.RenderAsync([model], DateTime.UtcNow, formatName: format, picturesFollow: follow);
+
+                anyDynamic |= render.AnyDynamicContent;
+                characters += render.Text.Length;
+
+                var lines = new List<string>();
+                if (render.Text.Length > 0) lines.Add(render.Text);
+                lines.AddRange(pictures.Select(title => string.Format(signedOut ? AlarmsText.PreviewChartSkipped : AlarmsText.PreviewChartUploaded, title)));
+
+                // The numbers are what a preview is for, so the text shows them, and says it is
+                // not how Slack will draw them.
+                if (format == "Slack" && model.UsesSlackRich) lines.Add(string.Format(AlarmsText.PreviewSlackRich, b.Heading));
+
+                if (lines.Count > 0) parts.Add(string.Join("\n", lines));
+            }
+
+            PreviewText = parts.Count > 0 ? string.Join("\n\n", parts) : AlarmsText.PreviewEmpty;
 
             // The preview is also where you find out the switch would have held the post back,
             // rather than finding out from a channel that stayed quiet.
-            StatusText = SkipIfNoDynamicContent && !render.AnyDynamicContent
+            StatusText = SkipIfNoDynamicContent && !anyDynamic
                 ? AlarmsText.StatusWouldNotPost
-                : string.Format(AlarmsText.StatusCharacters, render.Text.Length);
+                : string.Format(AlarmsText.StatusCharacters, characters);
         }
         catch (Exception ex)
         {

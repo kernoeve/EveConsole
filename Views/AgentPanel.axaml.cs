@@ -25,23 +25,62 @@ public partial class AgentPanel : ReactiveUserControl<AgentPanelViewModel>
         MicButton.AddHandler(PointerCaptureLostEvent, OnMicCaptureLost, RoutingStrategies.Tunnel);
     }
 
+    /// <summary>False on a panel: its ✕ hides the main window's dock, which is nothing to do with the panel.</summary>
+    public bool ShowsClose
+    {
+        get => CloseButton.IsVisible;
+        set => CloseButton.IsVisible = value;
+    }
+
+    /// <summary>False on a panel: taking the keyboard there would take it from a game client.</summary>
+    public bool FocusesInput { get; set; } = true;
+
+    private AgentPanelViewModel? _watched;
+    private IDisposable? _streaming;
+
     protected override void OnDataContextChanged(EventArgs e)
     {
         base.OnDataContextChanged(e);
-        if (ViewModel is null) return;
-
-        // Auto-scroll when a message is added or streaming text updates
-        ViewModel.Messages.CollectionChanged += (_, _) => ScrollToBottom();
-        ViewModel.WhenAnyValue(vm => vm.StreamingText)
-                 .Subscribe(_ => ScrollToBottom());
+        Watch(ViewModel);
     }
+
+    /// <summary>
+    /// Auto-scroll when a message is added or streaming text updates.
+    /// ⚠️ Dropped when the view goes: the conversation is shown on panels as well as in the main
+    /// window, and a panel's view is made again whenever its layout is applied.
+    /// </summary>
+    private void Watch(AgentPanelViewModel? vm)
+    {
+        if (ReferenceEquals(vm, _watched)) return;
+        if (_watched is not null) _watched.Messages.CollectionChanged -= OnMessagesChanged;
+        _streaming?.Dispose();
+        _streaming = null;
+        _watched = vm;
+        if (vm is null) return;
+        vm.Messages.CollectionChanged += OnMessagesChanged;
+        _streaming = vm.WhenAnyValue(x => x.StreamingText).Subscribe(_ => ScrollToBottom());
+    }
+
+    protected override void OnAttachedToVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+        Watch(ViewModel);
+    }
+
+    protected override void OnDetachedFromVisualTree(Avalonia.VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+        Watch(null);
+    }
+
+    private void OnMessagesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e) => ScrollToBottom();
 
     private void ScrollToBottom()
     {
         Dispatcher.UIThread.Post(() =>
         {
             MessageScroller.ScrollToEnd();
-            InputBox.Focus();
+            if (FocusesInput) InputBox.Focus();
         }, DispatcherPriority.Background);
     }
 

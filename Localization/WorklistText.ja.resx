@@ -1765,6 +1765,9 @@
   <data name="JobCapJobLength" xml:space="preserve">
     <value>ジョブの最大期間（{0:0.#}日）で制限されています。</value>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>ジョブに不足している分に合わせています。残りは在庫レベルを満たすだけなので、順番を待ちます。</value>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>完全に研究済みのブループリント（TE{0}）を前提に算出しています — 所有しているものはありません。</value>
   </data>
@@ -2476,6 +2479,9 @@
   <data name="PrintNameCopying" xml:space="preserve">
     <value>{0}（コピー用）</value>
   </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0}（製造用）</value>
+  </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>用途</value>
   </data>
@@ -2637,5 +2643,251 @@
   </data>
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}を使用。</value>
+  </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>譲渡</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>譲渡</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>アイテムを、それがあるステーションで別のキャラクターまたはコーポレーションに渡す</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{1} × {0:N0}</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0}種類のアイテム</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{2}で{0}を{1}へ</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}：{2}で、これらを自分のハンガーから{1}のハンガーへ移してください。</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0}は{1}に所属していません。{2}でアイテム交換契約により{1}へ渡してください。</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}（{1}として）：{3}でアイテム交換契約により{2}へ渡してください。</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}：キャラクターレベルに従い、{2}でこれらを{1}のハンガーから自分のハンガーへ移してください。</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}：{1}のハンガーからこれらを取り出し、{3}でアイテム交換契約により{2}へ渡してください。{2}は{1}に所属していないため、その人の製造には自分のハンガーしか使えません。</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>キャラクターレベル</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>既定のコーポレーション</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>ワークリストのアイテム（注文と在庫レベルのもの）を保有すべきコーポレーションです。所属する全キャラクターがそれで製造できます。キャラクターが使えるのは自分のハンガーと所属コーポレーションのハンガーだけです。キャラクターが持つアイテム（ハンガー内やドック中の艦船のカーゴホールド内）は、このコーポレーションがハンガーを持つステーションで、このコーポレーションへの譲渡タスクになります。ただし下のキャラクターレベルでそのキャラクターに残す分は除きます。装備中のモジュール、ブループリント、組み立て済みの艦船は動かしません。</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>他のコーポレーションの分も渡す</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>オフ：既定のコーポレーションへ移すのはキャラクターのハンガーとホールドの分だけです。オン：他のコーポレーションのワークリストのアイテムにも譲渡タスクを作り、そのコーポレーションにいる自分のキャラクターが行います。</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>グループのレベル分を、ステーションで1人のキャラクターの自分のハンガーに、そのキャラクターの製造用だけに置きます。既定のコーポレーションに所属しないキャラクターが製造用の素材を得る方法です。輸送がその量をステーションへ運び（そこのステーションレベルに加算）、譲渡タスクが既定のコーポレーションのハンガーから不足分をそのキャラクターに渡します。</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>キャラクターを選んでください。</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>すでに既定のコーポレーションに所属</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>有効</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>キャラクターレベルはまだありません。</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>キャラクターレベル {0:N0} 件</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>キャラクターはレベルをこの割合まで下回るまでそのままにし、下回ったらレベルまで満たす分を渡します。0 ならわずかな不足でも渡します。</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>キャラクターがレベルを超えて持つ分は、この割合を超えるまでそのまま残し、超えたら余剰を既定のコーポレーションに戻します。0 ならわずかな余剰でも戻します。</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>一部は艦船のカーゴホールドにあります。</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>そのうち{0:N0}はストアへのオファーで、到着予定として数えています。</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>コピー実行数が {0:N0} 不足しています。</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>さらに在庫レベルまたは注文用に {0:N0} コピー実行。</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} 保留中の注文用</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>製造できるものはありません。手持ち {0:N0}</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>インダストリー計画が設定されていません</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} 件の製造ルールと {1:N0} 件の保留中の注文が待機中です。</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>ワークリスト用のインダストリーパークが選択されておらず、インダストリーパークで星付きのものもありません。</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>インダストリー作業を実行できるキャラクターが有効になっていません。</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>コーポのストラクチャー</value>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>ストラクチャー</value>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>コーポのストラクチャー：燃料、ムーンベイ、フィット、弾薬</value>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>{0} に給油 — 残り {1}</value>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>{0} に給油 — 燃料切れ</value>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{1} の {0}。燃料切れ {2}。{3} 日分まで補給します。</value>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>現在</value>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>燃料ブロック {0:N0} 個を運ぶ（1時間 {1}）。</value>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>消費速度が不明です。ブロック数を出すには「コーポのストラクチャー → 設定」で {0} のフィットを設定してください。</value>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>消費量はタイプに設定したフィットによるものです（コーポの資産は読み込んでいません）。</value>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>{0} のムーンベイを空にする — {1}% 使用</value>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{1} の {0}：{2} m³、{3} ISK 相当。</value>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>{0} のフィットを直す</value>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>不足：{0}。</value>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{1} の代わりに {0} が装着されています。</value>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>{3} の {2} に設定したフィット {0}（{1}）と照合。</value>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>{0} に弾薬とファイターを補充</value>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>不足：{0}。{3} の {2} に設定したフィット {1} 基準。</value>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0}/{2:N0}</value>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}：ストラクチャー一覧を {1} 以降読み込んでいません</value>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}：タワー一覧を {1} 以降読み込んでいません</value>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>このコーポを読み込むキャラクターが ESI に必要な役職（ストラクチャーは Station Manager、タワーは Starbase Equipment Config）を失ったため、一覧を読み込めず燃料を追跡できません。役職を戻すか、役職を持つキャラクターに読み込ませてください。</value>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>最近 ESI から一覧の応答がないため、再び読み込むまで燃料を追跡できません。</value>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>ストラクチャー</value>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>コーポのストラクチャーからのタスクです。給油はストラクチャー一覧だけで済むため、どのコーポでも使えます。他の3つはストラクチャー内の物を読むので、コーポの資産を読み込んでいる場合だけ出ます。</value>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>すべてのコーポレーション</value>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>後で追加するものも含め、すべてのコーポ。外すと選べます。</value>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>タスク</value>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>ストラクチャーの給油</value>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>燃料が最低日数以内に切れるときに出て、補給先の日数まで満たします。消費量は装着モジュール、資産がない場合は「コーポのストラクチャー → 設定」でタイプに設定したフィットから求めます。</value>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>最低燃料</value>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>残り燃料がこれより少ないストラクチャーにタスクを出します。</value>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>補給先</value>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>タスクで何日分の燃料まで補給するか。</value>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>リエージェントの回収</value>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Metenox のムーンベイがここで設定した量に達すると出ます。コーポの資産が必要です。</value>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>回収の目安</value>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>使用率 %</value>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>容積</value>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>市場価値</value>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>ベイに必要な量（選んだ単位）。</value>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>ドローン/弾薬の補充</value>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>弾薬やファイターが「設定 → アラート」で決めたフィットの割合を下回ると出ます。コーポの資産が必要です。</value>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>フィットの修正</value>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>ストラクチャーにタイプのフィットのモジュールが欠けているか、別のものが付いていると出ます。コーポの資産が必要です。</value>
   </data>
 </root>

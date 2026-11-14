@@ -37,6 +37,9 @@
   <data name="SuccessChance" xml:space="preserve">
     <value>Шанс успеха</value>
   </data>
+  <data name="OutputRunsEach" xml:space="preserve">
+    <value>по {0:N0} прогонов</value>
+  </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>Осталось времени</value>
   </data>

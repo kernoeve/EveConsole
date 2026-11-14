@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>Добавить сервер</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Добавьте сервер Mumble, чтобы говорить здесь без отдельного клиента.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>Без звука</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>Без микрофона</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>Корень</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>Подключено, канал {0}</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Подключено</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Подключение…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Связь потеряна, повтор в {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Не подключено</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Сертификат сервера не является доверенным.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Сервер отклонил пароль.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>Сервер отклонил это имя пользователя.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Сертификат для {0}, отпечаток:
+{1}
+
+Большинство серверов Mumble используют собственный сертификат. Доверяйте ему, только если ожидаете этот сервер. После этого будет приниматься только этот сертификат.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>Введите хост сервера и имя пользователя.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>Эта клавиша уже используется на {0}. Каждая клавиша работает только на одном сервере.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>Удалить «{0}» и сохранённые настройки? Сертификат тоже будет удалён, и зарегистрированное на этом сервере имя будет потеряно. Это действие нельзя отменить.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>Системное устройство</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>Показывать говорящих поверх всех окон</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>Настройки звука</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>Микрофон</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>Громкость микрофона</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>Динамики</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>Громкость динамиков</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Хост сервера</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Порт</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>Имя пользователя</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Пароль (если есть на сервере)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Оставьте пустым, чтобы сохранить текущий пароль.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>Токены доступа (необязательно, через запятую)</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>Эти клавиши только для этого сервера и работают, пока он подключён, даже если приложение в фоне.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Подключаться при запуске приложения</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Иначе подключается только по запросу. В обоих случаях при потере связи переподключается сам, пока вы не отключитесь. Эта настройка действует только на этом ПК.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Доверять этому сертификату</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Подключить</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>Выкл. микрофон</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>Выкл. звук</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>Войти в канал</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>Громкость этого человека, только для вас</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Сообщение в {0}. Enter — отправить, Shift+Enter — новая строка.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Отправить</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: кто говорит</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>Никто не говорит</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>Из канала {0} шёпот слышен только в нём. Крик также слышен в: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>У канала {0} нет связанных каналов, поэтому шёпот и крик слышны только в нём.</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>Нажмите клавишу или кнопку мыши (Esc — отмена)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>Очистить</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>Нажмите на кнопку, затем на нужную клавишу или кнопку мыши. Она продолжит выполнять обычную функцию, поэтому клавиша для набора текста будет включать голос во время набора.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>Автоматически выравнивать мой голос</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>Сервер отключил вас: {0}. Подключение не восстановится, пока вы не подключитесь снова.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>Включая подканалы</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} и подканалы</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>Сервер отказал. Возможно, у вас нет на это прав.</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>Заглушить на сервере</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>Отключить звук на сервере</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>Приоритетный докладчик</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>Заглушить для себя</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>Игнорировать сообщения</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>Зарегистрирован</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>Заглушён администратором</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>Звук отключён администратором</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>Заглушил себя</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>Отключил себе звук</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>Здесь нельзя говорить</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>Приоритетный докладчик</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>Ведёт запись</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>Переместить в канал</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>Введите часть названия канала</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>Переместить</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>В мой канал</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>Выберите канал из списка.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Причина (необязательно)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>Выгнать</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>Забанить</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>Выгнать {0} с этого сервера?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Забанить {0} на этом сервере? Отменить это сможет только администратор, через список банов.</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>Зарегистрировать {0} на этом сервере? Имя будет привязано к сертификату, и отменить это сможет только администратор.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>Что о вас видят другие</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>Слушать этот канал</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>Перестать слушать</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>Связать с моим каналом</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>Отвязать от моего канала</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>Удалить {0} и все каналы внутри него для всех на этом сервере?</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>Подавлять фоновый шум</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>Подавлять эхо от динамиков</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>Для динамиков: чтобы другие не слышали себя через ваш микрофон. С гарнитурой подавлять нечего. Пока параметр включён, микрофон остаётся открытым, чтобы изучить звучание комнаты. Ничего не передаётся, пока вы не говорите.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>Порог голосовой активации</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>Микрофон сейчас: {0} дБ</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>Говорить голосом, не удерживая клавишу</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>Пока вы подключены к этому серверу, микрофон открыт, и всё громче порога из настроек звука передаётся. Клавиши выше продолжают работать.</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>Сигнал в начале и конце разговора</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>Список банов</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Никто не забанен.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>Снять</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>Снять бан с {0}?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>Версия сервера {0}, до {1} кбит/с на человека. Здесь людей: {2}</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>В сети {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>неактивен {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>Описание</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>Подавление эха не может работать на этом компьютере: не удалось загрузить его звуковую библиотеку. Голосовая связь по-прежнему работает.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: в этом канале без отключённого звука: {2}</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>Серверы</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>Настройки</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>Подключение</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>Цели каналов</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>Новый сервер</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>Изменения хоста, порта, имени пользователя, пароля и токенов вступят в силу при следующем подключении к этому серверу.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>Каждая цель канала определяет, к кому обращается клавиша на этом сервере. Меняйте их как угодно: любые каналы, то, что с ними связано, и люди, где бы они ни были.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>Клавиша</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>Каналы</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>Добавить цель канала</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>Добавить канал</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>Связанные каналы</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>Подканалы</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>Люди, где бы они ни были (имена через запятую)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>Только участники этой группы сервера в этих каналах (необязательно)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>&lt;Текущий канал&gt;</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>Новая цель</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>Шёпот: канал, где я нахожусь</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>Крик: мой канал и связанные с ним</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>На сервере помещается {0} целей, не считая обычной речи.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>Пароль хранится в общей базе данных, зашифрованный ключом, полученным из пароля базы данных.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>Сведения…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>Громкость и сведения…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>Сведения о сервере…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>Зарегистрировать это имя…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>Переместить в…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Выгнать…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Забанить…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>Новый канал…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>Новый временный канал…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>Удалить канал…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>Новый канал</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>Новый временный канал</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>Его имя, внутри {0}</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>Найти человека</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>Показывать людей в каналах</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>Здесь нет никого с таким именем.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>Здесь {0}, слышат {1}</value>
+  </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>Клавиши отключения микрофона и звука работают отовсюду, как клавиши речи. Каждое нажатие включает или выключает.</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>Клавиша отключения микрофона</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>Клавиша отключения звука</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>Права…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>Права: {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>Нижние строки важнее верхних. Серые строки пришли из каналов выше и меняются там.</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>Запрос к серверу…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>Права</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>Группы</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>Брать права каналов выше</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>Выше</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>Ниже</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>Из канала выше: меняйте там.</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>Зарегистрированный человек</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>Зарегистрированное имя</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all: все. auth: зарегистрированные. in / out: те, кто в этом канале или нет. ~ означает канал строки, а не тот, где она действует.</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>Действует здесь</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>Действует в подканалах</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>Право</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>Разрешить</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>Запретить</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>Имя новой группы</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>Включает участников сверху</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>Есть и в подканалах</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>Добавлены здесь</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>Сверху</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>Исключены здесь</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>Перечитать</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>Закрыть</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>Сервер отказал. Для изменения прав нужно право «Запись» в этом канале.</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>Группу нельзя назвать «{0}»: имя занято или его вычисляет сам сервер.</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>На сервере нет зарегистрированного человека с именем «{0}».</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>Строке нужна группа или человек.</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>Сохранение…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>Сохранено. Вот что сейчас на сервере.</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>только здесь</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>только подканалы</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>нигде не действует</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0} (сверху)</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>Вернуть как сверху</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>Удалить группу</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>Исключить здесь</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>Вернуть</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>Запись (менять права)</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>Проход</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>Вход</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>Речь</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>Отключать другим микрофон и звук</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>Перемещать людей</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>Создавать каналы</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>Создавать временные каналы</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>Связывать каналы</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>Шёпот</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>Текстовые сообщения</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>Прослушивание</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>Выгонять</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>Банить</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>Регистрировать других</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>Регистрировать себя</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>Сбрасывать чужие комментарии и картинки</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>Выбрать…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>Сервер не ответил. Он отбрасывает слишком частые сообщения: подождите немного и перечитайте.</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>Сервер сохранил не всё. Вот что на нём сейчас: немного подождите, измените снова и сохраните.</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>Клавиша шёпота выбранному</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>Удерживайте эту клавишу, чтобы шептать выбранному в списке каналов: щёлкните или щёлкните правой кнопкой по человеку, или правой кнопкой по каналу (щелчок по-прежнему переносит вас туда). Выбранное подсвечено в списке и называется рядом с вашим именем, пока вы говорите.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>Если выбран канал, также охватывать</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>{0} на сервере Mumble {1}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>цель канала {0}</value>
+  </data>
+</root>

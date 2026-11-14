@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ Настроить макет</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>По умолчанию</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Макет</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Макет {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Макет:</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Название:</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Добавить</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Удалить</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>Новый макет — сначала копия этого.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>Какой сохранённый макет показывает этот «Обзор»</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Сводка активности</value>
   </data>
@@ -567,6 +594,18 @@
   </data>
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>У вас {0} непрочитанного письма EVE.</value>
+  </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщений Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных сообщения Jabber.</value>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное сообщение Jabber.</value>
   </data>
   <data name="AlertUnreadMailFew" xml:space="preserve">
     <value>У вас {0} непрочитанных письма EVE.</value>
@@ -1153,5 +1192,21 @@
   </data>
   <data name="AlertPiFreeSlotsCharsMany" xml:space="preserve">
     <value>У {0} персонажей с PI есть свободные слоты для колоний.</value>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>У вас {0} непрочитанного личного сообщения.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectMany" xml:space="preserve">
+    <value>У вас {0} непрочитанных личных сообщений.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectFew" xml:space="preserve">
+    <value>У вас {0} непрочитанных личных сообщения.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>У вас {0} непрочитанное личное сообщение.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

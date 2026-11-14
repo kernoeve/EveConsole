@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Typing" xml:space="preserve">
+    <value>{0} が入力中…</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>添付</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>ファイルをこのサーバーに置き、そのアドレスを送信します。アドレスを知っている人は誰でも開けます。</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>{0} を送信中…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} は {1} です。このサーバーは {2} までのファイルを受け付けます。</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} を送信できませんでした: {1}</value>
+  </data>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>オンライン</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>チャット可能</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>離席中</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>しばらく離席</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>取り込み中</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>自分の名前かキーワードが出たとき</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>すべてのメッセージ</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>通知しない</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>追加を希望しています</value>
+  </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} から招待されました</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>接続済み</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>接続中…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>接続が切れました。{0} に再試行します</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>未接続</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>サーバーがログインを拒否しました。パスワードを確認してください。</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>サーバーの証明書は信頼されていません。</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>サーバーが暗号化に対応していないため、何も送信していません。</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>このログインが別の場所から接続したため切断されました。</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>そのニックネームは使用中です。</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>このルームにはパスワードが必要です。</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>このルームから追放されています。</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>このルームはメンバー専用です。</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>このルームは存在しません。</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>このルームに参加できませんでした。</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>自分</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>未接続のため送信していません。</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0} の証明書、フィンガープリント:
+{1}
+
+サーバー管理者が公開している値と一致する場合のみ信頼してください。以後はこの証明書のみ受け入れます。</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>アドレスは name@domain の形式にしてください。</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>このログインのパスワードを入力してください。</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>「{0}」と保存されたすべてのメッセージを削除しますか？この操作は元に戻せません。</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>{0} を連絡先から削除しますか？</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>サーバーにルーム一覧がありません。ルーム名を直接入力できます。</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Jabber サーバーを追加すると、別のクライアントなしでここでチャットできます。</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>サーバーを追加</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>左からサーバーを選んでください。</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>接続</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>切断</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>編集</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>削除</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>保存</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>キャンセル</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>この証明書を信頼</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>参加</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>ルームから退出</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>連絡先を追加</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>連絡先を削除</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>承認</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>拒否</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>送信</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>以前のメッセージを読み込む</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>ログイン (name@domain)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>パスワード</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>空欄のままなら保存済みのパスワードを使います。</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>サーバーホスト (任意)</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>空欄ならログインのドメインからサーバーを探します。グループから指定されたホストがあれば入力してください。</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>ポート</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>最初から暗号化 (通常はポート 5223)</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>ルームでのニックネーム (任意)</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>リソース (任意)</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>アプリ起動時に接続</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>それ以外は指示したときのみ接続します。どちらの場合も、切断するまでは接続が切れると自動で再接続します。</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>通知キーワード (カンマ区切り)</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>通知</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>アドレス (name@domain)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>注意が必要なメッセージで音を鳴らす</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>メッセージを入力。Enter で送信、Shift+Enter で改行。</value>
+  </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>このサーバーはダイレクトメッセージのアーカイブを保持しているため、見逃したものは接続時に取得されます。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>このサーバーはダイレクトメッセージのアーカイブを保持していません。オフライン中に送られたものは保持している場合があります。</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>参加中の {1} ルームのうち {0} ルームがアーカイブを保持しています。それらのルームで見逃したメッセージは接続時に取得されます。その他のルームでは参加時に再生される内容のみ表示されます。</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>このルームはアーカイブを保持しています。見逃したメッセージは接続時に取得されます。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>このルームはアーカイブを保持していません。参加時に再生される内容のみ表示されます。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>このルームにはアーカイブがありますが、このアカウントには共有されません。参加時に再生される内容のみ表示されます。</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>承諾すると、この相手はあなたのオンライン状態を見られるようになり、相手の状態の表示も申請します。辞退すると、あなたの状態は相手に表示されません。どちらの場合もメッセージは送り合えます。</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>連絡先に表示されるひとこと (任意)。Enter で設定します。</value>
+    <comment>Under the status choice.</comment>
+  </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>バックグラウンドプロセスを待っています</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Pidgin のスマイリーテーマではありません。theme という名前のファイルがありません。</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>theme ファイルが大きすぎるため、スマイリーテーマではありません。</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>パックが大きすぎます。パックに入れられるのは画像 5,000 枚、64 MB までです。</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>このファイルは zip として開けませんでした。</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>テーマに記載された画像がどれも使えなかったため、何も読み込みませんでした。</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>エモートを検索</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>名前にそれを含むエモートはありません。</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>エモート（: と最初の数文字を入力しても出ます）</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>コード {0:N0} 個 · 画像 {1:N0} 枚</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>エモートパック</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>:wave: のようなコードは、このサーバーのルームとメッセージで画像として表示され、入力時に選ぶこともできます。パックは Pidgin のスマイリーテーマです。2 つのパックに同じコードがある場合は、上にあるパックが優先されます。</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>このサーバーにはエモートパックがないため、コードはそのまま文字で表示されます。</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>上へ：下にあるパックより優先されます</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>下へ</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>外す</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>パックを読み込む…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Pidgin のスマイリーテーマ：その zip、または展開したフォルダー内の theme ファイル。一度読み込めば、このデータベースを使うすべての PC で使えます。</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>別のサーバー用に読み込み済みのパックをこのサーバーにも追加します</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>パックを読み込んでいます…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0} を読み込みました：コード {1:N0} 個、画像 {2:N0} 枚。</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} をこのコピーで更新しました（使っているすべてのサーバーが対象）：コード {1:N0} 個、画像 {2:N0} 枚。</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>テーマに記載された画像のうち {0:N0} 枚がパックになかったため、除外しました。</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} 個のファイルは画像でないか、エモートには大きすぎたため、除外しました。</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>{0} を外しますか？ ほかのサーバーは使っていないため、削除されます。戻すにはもう一度読み込んでください。</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} を外し、ほかのサーバーが使っていなかったため削除しました。</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} をこのサーバーから外しました。使っているほかのサーバーには残ります。</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>エモートパックを読み込む</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Pidgin スマイリーテーマ</value>
+  </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>このメッセージは削除されました。</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>モデレーターが削除しました。</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>モデレーターが削除しました：{0}</value>
+  </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>リアクション</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>絵文字を検索（英語名）</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>スマイリー</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>人とジェスチャー</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>ハートと記号</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>動物と自然</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>食べ物と飲み物</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>アクティビティ</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>旅行と場所</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>物</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>記号</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>このルームからキックされました。</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>ルームのサービスがルームを閉じました。</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>{0} による</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>この人はメッセージを削除しましたが、お使いのクライアントでは表示できません。</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>返信</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>編集（空欄で↑キーでも可）</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>全員から削除</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>{0} に返信中</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>メッセージを編集中</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>ここに残っていないメッセージ</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>このメッセージを全員から削除しますか？ 対応するクライアントでは消えますが、Pidgin など古いものでは表示されたままです。</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>既読</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>メッセージを読んだことを相手に知らせる</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>個人とのやり取りのみ（他のクライアントと同様）：相手のクライアントで既読と表示されます。ルームでは送りません。</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>あなたの画像</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>画像を選ぶ…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>画像を削除</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>EVE のポートレートを使う</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>選ぶとすぐ、正方形の小さな画像にして送ります。ここで操作しない限り、画像は変わりません。</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>画像を変更するには接続してください。</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>画像を設定しました。</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>画像を削除しました。</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>このアプリで読める画像ではありません (PNG、JPEG、GIF、WebP、BMP、20 MB 未満)。</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>EVE の画像サーバーからポートレートを取得できませんでした。少ししてからもう一度お試しください。</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>このサーバーはこれより小さい画像しか受け付けません。</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>このサーバーに登録していないため、画像は切断するまでしか保持されません。</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>ルームに拒否されました: そこではその操作は許可されていません。</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>ルームに拒否されました ({0})。</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>ルームに理由なく拒否されました。</value>
+  </data>
+</root>

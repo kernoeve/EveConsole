@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Открыть в сущностях</value>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>Неизвестный корабль</value>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>Щёлкните альянс, чтобы показать его корпорации. Двойной щелчок открывает его страницу.</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Открыть уничтожение</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>Корпорация жертвы</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>Альянс жертвы</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>Последний удар</value>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>Корпорация последнего удара</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>Альянс последнего удара</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>Найти бои</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>Последние 24 часа</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>Последние 3 дня</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>Последние 7 дней</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>пусто = до сейчас</value>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>Минимум пилотов:</value>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>Только бои с моими пилотами</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Найти</value>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>Просмотр уничтожений…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>Находит бои по скоплениям уничтожений и объединяет системы, где есть одни и те же пилоты. Откройте бой, чтобы получить заполненные системы и время, которые можно изменить.</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>В настройках zKillboard импортирует не все уничтожения, поэтому находятся только бои с участием ваших персонажей и корпораций.</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>В этой базе данных нет боёв такого размера за этот период.</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>Найдено боёв: {0:N0}. Сначала самые крупные по потерям ISK.</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>Выберите период не более {0} дн.</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>Минимальный бой должен быть целым числом пилотов.</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>Открыть</value>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>ещё идёт</value>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>Ваши пилоты участвовали в этом бою.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Начало</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Длительность</value>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>Системы</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>Крупнейшие стороны</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>Потеряно развёртываемых</value>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>Удалить эту пустую команду</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Добавить:</value>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>Система или созвездие</value>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>пусто = ещё идёт</value>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>Применить ко всем</value>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>Задать это время всем системам в списке.</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>Обновлять этот бой по мере поступления уничтожений. Новые уничтожения возможны только в системах с пустым или будущим окончанием.</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>В реальном времени: {0} из {1}</value>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  созвездие  ·  {1}</value>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>Уничтожений: {0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>Новый бой</value>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>Новый бой</value>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>Название боя</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Сохранить</value>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>Сохранить этот бой в списке, чтобы открыть позже. После сохранения изменения сохраняются сами.</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>Сохранённые бои</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>Сохранённые бои появятся здесь.</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>Систем: {0}  ·  {1}</value>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>Откройте сохранённый бой или начните новый.</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>Системы и время</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>Удалить сохранённый бой «{0}»? Уничтожения останутся в базе данных.</value>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>Закрыть этот бой</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Удалить этот сохранённый бой</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>Окончание пустое или ещё не наступило, поэтому можно следить в реальном времени.</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>Добавьте системы и их время, затем откройте отчёт. Если бой ещё идёт, оставьте окончание пустым.</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>Добавьте хотя бы одну систему.</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}: начало должно выглядеть так: 2026-01-31 18:00.</value>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}: окончание должно выглядеть так: 2026-01-31 20:00, либо оставьте его пустым.</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}: окончание раньше начала.</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>С (время EVE):</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>По (время EVE):</value>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>гггг-мм-дд чч:мм</value>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>Следить в реальном времени</value>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>Открыть отчёт</value>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>в реальном времени</value>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>ПРЯМОЙ</value>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>Ссылка или ID уничтожения</value>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>Использовать</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Команда {0}</value>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>Ваша сторона</value>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>Потеряно ISK</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>Эффективность</value>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>Нанесённый урон</value>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>Потеряно кораблей</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>Потеряно капсул</value>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>Потеряно сооружений</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>Урон по сооружениям</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>Стороны</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>Корабли</value>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>Хронология</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Название</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>Пилоты</value>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>Потери</value>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>ISK потери</value>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>Урон</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Убийства</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Пилот</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Корабль</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Группа</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Время</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>Команда</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>Жертва</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Система</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Атакующие</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Стоимость</value>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>Добавить команду</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>Стороны определяются по тому, кто в кого стрелял. Переместите сторону стрелками; после этого присутствующие стороны остаются на месте.</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>Потери ISK в ходе боя</value>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>Переместить в команду слева</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>Переместить в команду справа</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>Боевой отчёт</value>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>Чтение уничтожений…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>ID уничтожения не найден. Вставьте ссылку на уничтожение или его номер.</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>Уничтожения {0} нет в этой базе данных.</value>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>Не удалось прочитать уничтожения: {0}</value>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>Не удалось прочитать новые уничтожения, повторная попытка: {0}</value>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>Не удалось получить некоторые имена: {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Уничтожений: {0:N0}  ·  Пилотов: {1:N0}  ·  Потеряно ISK: {2}</value>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} по времени EVE</value>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>В этой базе данных нет уничтожений в этих системах за это время.</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>Показаны только первые {0:N0} уничтожений: сократите время.</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>Последнее уничтожение {0} назад</value>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>Импорт из zKillboard отключён в настройках, поэтому в отчёте только уничтожения ваших персонажей и корпораций.</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>В настройках zKillboard выбран режим «Mine + Corp», поэтому в отчёте только уничтожения с участием ваших персонажей и корпораций.</value>
+  </data>
+</root>

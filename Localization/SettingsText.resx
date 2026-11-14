@@ -1062,9 +1062,17 @@
     <value>Notification Area Icon</value>
     <comment>Text in SettingsWindow.</comment>
   </data>
-  <data name="ASmallSeparateProcessNote" xml:space="preserve">
-    <value>A small separate process that shows which client is doing the background work, and opens the Background Processes window or a new EVE Console from its menu. It never does the background work itself, and it never handles alarms — closing EVE Console is how you stop those.</value>
-    <comment>Note in SettingsWindow.</comment>
+  <data name="KeepInTray" xml:space="preserve">
+    <value>Keep EVE Console running in the notification area when the main window is closed</value>
+    <comment>Checkbox (Windows, Linux). Off, closing the main window ends EVE Console.</comment>
+  </data>
+  <data name="KeepInTrayMac" xml:space="preserve">
+    <value>Keep EVE Console running in the menu bar when the main window is closed</value>
+    <comment>Checkbox (macOS). Off, closing the main window ends EVE Console.</comment>
+  </data>
+  <data name="KeepInTrayNote" xml:space="preserve">
+    <value>Closing the main window then only hides it: panels, alarms and the background work carry on. Double-click the icon, or choose {0} on its menu, to bring the window back, and {1} to end EVE Console.</value>
+    <comment>Under the checkbox above. {0} and {1} are the icon's menu items, "Open EVE Console" and "Exit", as translated.</comment>
   </data>
   <data name="GameLogImport" xml:space="preserve">
     <value>Game Log Import</value>
@@ -2795,18 +2803,6 @@ The application will restart.</value>
     <value>Runs:</value>
     <comment>Label before the program the Windows service runs.</comment>
   </data>
-  <data name="SvcTrayCheckboxWindows" xml:space="preserve">
-    <value>Show a notification-area icon, starting with Windows</value>
-    <comment>Checkbox (Windows): the notification-area icon starts with Windows.</comment>
-  </data>
-  <data name="SvcTrayCheckboxLinux" xml:space="preserve">
-    <value>Show a notification-area icon, starting with your desktop session</value>
-    <comment>Checkbox (Linux): the notification-area icon starts with the desktop session.</comment>
-  </data>
-  <data name="SvcTrayCheckboxMac" xml:space="preserve">
-    <value>Show a menu bar icon, starting when you log in</value>
-    <comment>Checkbox (macOS): the menu bar icon starts when the person logs in.</comment>
-  </data>
   <data name="SvcDatabaseNoteOk" xml:space="preserve">
     <value>Requires PostgreSQL, which this client is using — the worker and every client share the one server.</value>
     <comment>Polling tab, background service: this client is on PostgreSQL.</comment>
@@ -2830,38 +2826,6 @@ The application will restart.</value>
   <data name="SvcUpdateReasonServiceCopy" xml:space="preserve">
     <value>This service runs a different copy of EVE Console, not the one you are using now. It is doing the background work with that copy's settings.</value>
     <comment>Why the background service needs updating (Windows service).</comment>
-  </data>
-  <data name="SvcTrayStartFailed" xml:space="preserve">
-    <value>Registered for next logon, but could not start it now — {0}</value>
-    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
-  </data>
-  <data name="SvcTrayRunningWindows" xml:space="preserve">
-    <value>Running, and will start with Windows.</value>
-    <comment>Notification-area icon status.</comment>
-  </data>
-  <data name="SvcTrayRunningLinux" xml:space="preserve">
-    <value>Running, and will start with your desktop session.</value>
-    <comment>Notification-area icon status.</comment>
-  </data>
-  <data name="SvcTrayRunningMac" xml:space="preserve">
-    <value>Running, and will start when you log in.</value>
-    <comment>Menu bar icon status (macOS).</comment>
-  </data>
-  <data name="SvcTrayOffWindows" xml:space="preserve">
-    <value>Will not start with Windows. Any icon already showing stays until you choose {0} on it, or log off.</value>
-    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayOffLinux" xml:space="preserve">
-    <value>Will not start with your desktop session. Any icon already showing stays until you choose {0} on it, or log off.</value>
-    <comment>Status of the tray icon's startup setting. {0} is the tray menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayOffMac" xml:space="preserve">
-    <value>Will not start when you log in. Any icon already showing stays until you choose {0} on it, or log out.</value>
-    <comment>Status of the menu bar icon's startup setting (macOS). {0} is the icon menu's Exit item.</comment>
-  </data>
-  <data name="SvcTrayChangeFailed" xml:space="preserve">
-    <value>Could not change it — {0}</value>
-    <comment>Notification-area icon status. {0} is the reason, in English.</comment>
   </data>
   <data name="SvcChangingStartup" xml:space="preserve">
     <value>Changing startup…</value>
@@ -5050,5 +5014,436 @@ The application will restart.</value>
   <data name="PiAlertsNote" xml:space="preserve">
     <value>Only characters with the PI box ticked on the Characters tab. The Industry tab sets how soon "soon" is, and the Worklist's PI tasks use the same times.</value>
     <comment>Note in SettingsWindow, Alerts tab, Planetary Industry section.</comment>
+  </data>
+  <data name="TabOnlineServices" xml:space="preserve">
+    <value>Online Services</value>
+    <comment>Settings window, tab header: EVE Console's optional services on eveconsole.com.</comment>
+  </data>
+  <data name="OnlineServicesTitle" xml:space="preserve">
+    <value>EVE Console Online Services</value>
+    <comment>Settings, Online Services tab, heading.</comment>
+  </data>
+  <data name="OnlineServicesNote" xml:space="preserve">
+    <value>Optional. EVE Console works without this, but services on eveconsole.com, such as showing charts in Slack webhook posts, are not available until you sign in. You sign in with one EVE character, on EVE's own page, and it asks for no permissions. The sign-in covers every EVE Console connected to this database. By signing in, you agree to the terms.</value>
+    <comment>Settings, Online Services tab, explains the optional sign-in.</comment>
+  </data>
+  <data name="OnlineSignIn" xml:space="preserve">
+    <value>Sign In with EVE</value>
+    <comment>Settings, Online Services tab, button.</comment>
+  </data>
+  <data name="OnlineSignOut" xml:space="preserve">
+    <value>Sign Out</value>
+    <comment>Settings, Online Services tab, button.</comment>
+  </data>
+  <data name="OnlineReadTerms" xml:space="preserve">
+    <value>Read the Terms</value>
+    <comment>Settings, Online Services tab, button that opens the terms on the web site.</comment>
+  </data>
+  <data name="OnlineNotSignedIn" xml:space="preserve">
+    <value>Not signed in.</value>
+    <comment>Settings, Online Services tab, status.</comment>
+  </data>
+  <data name="OnlineSignedInAs" xml:space="preserve">
+    <value>Signed in as {0}.</value>
+    <comment>Settings, Online Services tab, status. {0} is the character's name.</comment>
+  </data>
+  <data name="OnlineUsageLine" xml:space="preserve">
+    <value>{0:N1} MB of {1:N0} MB stored. {2} of {3} uploads used today.</value>
+    <comment>Settings, Online Services tab. {0} megabytes stored, {1} the limit, {2} uploads today, {3} the daily limit.</comment>
+  </data>
+  <data name="OnlineWaitingForBrowser" xml:space="preserve">
+    <value>Waiting for you to sign in in your browser…</value>
+    <comment>Settings, Online Services tab, status while the browser sign-in is open.</comment>
+  </data>
+  <data name="OnlineSignInCancelled" xml:space="preserve">
+    <value>Sign-in cancelled.</value>
+    <comment>Settings, Online Services tab, status.</comment>
+  </data>
+  <data name="OnlineSignInNotFinished" xml:space="preserve">
+    <value>The sign-in was not completed.</value>
+    <comment>Online Services sign-in: EVE's page did not complete the sign-in, usually because it was declined. Shown in Settings and on the browser page.</comment>
+  </data>
+  <data name="OnlineSignInEveRefused" xml:space="preserve">
+    <value>EVE's sign-in answered with an error ({0}).</value>
+    <comment>Online Services sign-in: EVE refused the token request. {0} is the HTTP status number.</comment>
+  </data>
+  <data name="OnlineSignInFailedWith" xml:space="preserve">
+    <value>The sign-in failed: {0}</value>
+    <comment>Online Services sign-in failed unexpectedly. {0} is the error's own text.</comment>
+  </data>
+  <data name="OnlinePageSignedInTitle" xml:space="preserve">
+    <value>Sign-In Successful</value>
+    <comment>Browser page after signing in to the Online Services, heading. Matches the page after registering a character.</comment>
+  </data>
+  <data name="OnlinePageSignedInBody" xml:space="preserve">
+    <value>{0} is now signed in to EVE Console's online services.</value>
+    <comment>Browser page after signing in. {0} is the character's name.</comment>
+  </data>
+  <data name="OnlinePageSignedInHint" xml:space="preserve">
+    <value>You can close this tab and return to EVE Console.</value>
+    <comment>Browser page after signing in, the small line at the bottom.</comment>
+  </data>
+  <data name="OnlinePageFailedTitle" xml:space="preserve">
+    <value>Sign-In Failed</value>
+    <comment>Browser page when signing in to the Online Services failed, heading.</comment>
+  </data>
+  <data name="OnlinePageFailedHint" xml:space="preserve">
+    <value>You can close this tab and try again from Settings.</value>
+    <comment>Browser page when signing in failed, the small line at the bottom.</comment>
+  </data>
+  <data name="OnlineErrNotSignedIn" xml:space="preserve">
+    <value>Not signed in. Sign in again under Settings, Online Services.</value>
+    <comment>Online Services: the sign-in is missing or no longer valid.</comment>
+  </data>
+  <data name="OnlineErrBanned" xml:space="preserve">
+    <value>This character may not use the online services.</value>
+    <comment>Online Services: the character has been banned.</comment>
+  </data>
+  <data name="OnlineErrStorageFull" xml:space="preserve">
+    <value>The storage limit has been reached. Images free up as they expire.</value>
+    <comment>Online Services: an image would go over the character's storage limit.</comment>
+  </data>
+  <data name="OnlineErrDailyLimit" xml:space="preserve">
+    <value>Today's upload limit has been reached.</value>
+    <comment>Online Services: the character has used today's uploads.</comment>
+  </data>
+  <data name="OnlineErrTooLarge" xml:space="preserve">
+    <value>The image is too large to upload.</value>
+    <comment>Online Services: an image is over the size limit.</comment>
+  </data>
+  <data name="OnlineErrEveUnavailable" xml:space="preserve">
+    <value>EVE's sign-in could not be checked just now. Try again shortly.</value>
+    <comment>Online Services sign-in: the service could not read EVE's sign-in keys.</comment>
+  </data>
+  <data name="OnlineErrUnreachable" xml:space="preserve">
+    <value>eveconsole.com could not be reached.</value>
+    <comment>Online Services: no usable answer from eveconsole.com.</comment>
+  </data>
+  <data name="OnlineErrStatus" xml:space="preserve">
+    <value>eveconsole.com answered with an error ({0}).</value>
+    <comment>Online Services: an unexpected error. {0} is the HTTP status number.</comment>
+  </data>
+  <data name="KeyUseAgent" xml:space="preserve">
+    <value>push-to-talk for {0}</value>
+  </data>
+  <data name="PttKeyPressNow" xml:space="preserve">
+    <value>Press a key or mouse button (Esc cancels)</value>
+  </data>
+  <data name="PttKeyClear" xml:space="preserve">
+    <value>Clear</value>
+  </data>
+  <data name="NeverRunBackgroundWorkTitle" xml:space="preserve">
+    <value>Background work on this computer</value>
+  </data>
+  <data name="NeverRunBackgroundWork" xml:space="preserve">
+    <value>Never run the background work on this client</value>
+  </data>
+  <data name="NeverRunBackgroundWorkNote" xml:space="preserve">
+    <value>When the client doing the polling and other background work closes, another connected client takes it over. Ticked, this one never does: it only shows what the others collect. Saved on this computer only, not for every client. If no other client is running, nothing polls.</value>
+  </data>
+  <data name="NeverRunBackgroundWorkSqlite" xml:space="preserve">
+    <value>Only for a shared PostgreSQL database: with SQLite this is the only client, so it always does the work.</value>
+  </data>
+  <data name="BuildCostPark" xml:space="preserve">
+    <value>Indy park</value>
+  </data>
+  <data name="BuildCostParkDefault" xml:space="preserve">
+    <value>Default</value>
+  </data>
+  <data name="BuildCostParkDefaultNamed" xml:space="preserve">
+    <value>Default ({0})</value>
+  </data>
+  <data name="TipBuildCostPark" xml:space="preserve">
+    <value>The Indy Park whose structures, rigs and systems stored build costs are worked out at — and with them every price set from build cost, such as a sale posting&apos;s. Default follows the park marked default in Indy Parks. The Worklist and the calculators keep their own park. Press Recalculate, or wait for the next market refresh, for a change to take effect.</value>
+  </data>
+  <data name="RetentionDirectMessages" xml:space="preserve">
+    <value>Direct Messages</value>
+  </data>
+  <data name="RetentionDirectMessagesNote" xml:space="preserve">
+    <value>Removes saved direct messages from Jabber, Mumble and IRC. Unread messages are never removed, however old. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeDirectMessagesOlderThan" xml:space="preserve">
+    <value>Purge direct messages older than</value>
+  </data>
+  <data name="RetentionGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
+  <data name="RetentionGroupChatNote" xml:space="preserve">
+    <value>Removes saved messages from Jabber rooms and IRC channels. Unread messages are never removed, however old. Mumble channel chat is never saved, so there is none of it to remove. Intel already read from an Intel room or channel is kept with the chat messages above. On by default at 30 days, as Jabber's history setting was; untick it to keep everything.</value>
+  </data>
+  <data name="PurgeGroupChatOlderThan" xml:space="preserve">
+    <value>Purge group chat older than</value>
+  </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connectors</value>
+    <comment>Settings window, tab header for the connector settings.</comment>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connectors</value>
+    <comment>Settings, Connector tab, section title.</comment>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Optional. A connector is a separate program that links EVE Console to services your corporation or alliance runs, such as the site where members register their characters. You run it yourself, usually on this PC, or your corporation may host one for its members. Without one, EVE Console works as it always has.</value>
+    <comment>Settings, Connector tab, explanation under the title.</comment>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>On a database shared by several PCs, the background worker refreshes from each connector every half hour. Run a connector where the worker runs, or where every PC can reach it. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, second note: where to run the connector on a shared database.</comment>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Connector address</value>
+    <comment>Settings, Connector tab, label above the address box.</comment>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>For example: http://localhost:5054/</value>
+    <comment>Settings, Connectors tab, grey hint in the empty address box. Keep the address as it is.</comment>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Connect with EVE</value>
+    <comment>Settings, Connector tab, button that opens EVE's sign-in to connect.</comment>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Disconnect</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Refresh Now</value>
+    <comment>Settings, Connector tab, button.</comment>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Not connected.</value>
+    <comment>Settings, Connector tab, status.</comment>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Connected as {0}.</value>
+    <comment>Settings, Connectors tab, status under the connector's name. {0} is the character's name.</comment>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Connected.</value>
+    <comment>Settings, Connector tab, status after connecting.</comment>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Linked characters: {0:N0} accounts, {1:N0} characters, last updated {2}.</value>
+    <comment>Settings, Connector tab, what is stored. {0} accounts, {1} characters, {2} the date and time of the last update.</comment>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>This connector offers nothing this version of EVE Console uses.</value>
+    <comment>Settings, Connector tab, the connector answered but offers nothing this build uses.</comment>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Updated.</value>
+    <comment>Settings, Connector tab, after Refresh Now stored new data.</comment>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Already up to date.</value>
+    <comment>Settings, Connector tab, after Refresh Now found nothing new.</comment>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Enter the connector's full address, starting with http:// or https://.</value>
+    <comment>Settings, Connector tab, the address typed is not a web address.</comment>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Use https:// for a connector on another device. Plain http:// is only allowed for a connector on this PC.</value>
+    <comment>Settings, Connector tab, http:// was used for another device.</comment>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>The connector at {0} could not be reached.</value>
+    <comment>Settings, Connector tab, error. {0} is the connector's host and port.</comment>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} did not answer as a connector.</value>
+    <comment>Settings, Connector tab, error. {0} is the host and port that answered.</comment>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>This connector needs a newer version of EVE Console.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>The connector does not allow this character.</value>
+    <comment>Settings, Connector tab, error: the connector refused the character.</comment>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>The connector could not confirm your EVE sign-in. Try again.</value>
+    <comment>Settings, Connector tab, error.</comment>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>The connector could not reach the service it reads from. It will be tried again.</value>
+    <comment>Settings, Connector tab, error: the connector's own source is down.</comment>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>The connector no longer accepts this connection. Connect again.</value>
+    <comment>Settings, Connector tab, error: the connector no longer knows the key.</comment>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>The connector's linked characters were not stored: {0}</value>
+    <comment>Settings, Connector tab, error. {0} is the reason, in English.</comment>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>The connector answered with an error ({0}).</value>
+    <comment>Settings, Connector tab, error. {0} is the HTTP status code.</comment>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>The connector did not understand EVE Console's request. One of them may need updating.</value>
+    <comment>Settings, Connector tab, error: the connector did not understand the request.</comment>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Asking the connector to start a sign-in…</value>
+    <comment>Settings, Connector tab, status while asking the connector to start a sign-in.</comment>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>In the page that opened, check that the connector shows the code {0}, confirm it there, and sign in with EVE. Never confirm a code that EVE Console did not show you.</value>
+    <comment>Settings, Connector tab, status while the person signs in on the connector's page. {0} is a short code such as K7P-4QX.</comment>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>The sign-in was declined on the connector's page.</value>
+    <comment>Settings, Connector tab, error: the code was declined on the connector's page.</comment>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>The sign-in was not finished in time. Connect again.</value>
+    <comment>Settings, Connector tab, error: the sign-in was not finished in time.</comment>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>The connector gave a sign-in page EVE Console will not open: {0}</value>
+    <comment>Settings, Connector tab, error: the connector named a sign-in page EVE Console will not open. {0} is that address.</comment>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>The connector has had too many sign-ins started. Wait a few minutes and try again.</value>
+    <comment>Settings, Connector tab, error: the connector refuses to start more sign-ins for now.</comment>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>You can add several connectors, for example when two of your corporations, or a corporation and an alliance, each run their own. Each connector is used only for the corporations and alliances you choose for it, and only for the functions you tick. It is never asked about anyone outside them.</value>
+    <comment>Settings, Connectors tab, third note.</comment>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Preview: connectors are a new interface with limited support for now.</value>
+    <comment>Settings, Connectors tab, disclaimer at the top. Removed once more connector functions are used.</comment>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>New connector</value>
+    <comment>Settings, Connectors tab, title of a connector not yet connected and with no address.</comment>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>For {0}</value>
+    <comment>Settings, Connectors tab, list line. {0} is the corporation and alliance names, comma separated.</comment>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Uses {0}</value>
+    <comment>Settings, Connectors tab, list line. {0} is the function names, comma separated.</comment>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>No functions ticked.</value>
+    <comment>Settings, Connectors tab, list line when no function is ticked.</comment>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Not used until a corporation or alliance is chosen for it.</value>
+    <comment>Settings, Connectors tab: a connector with no corporation or alliance chosen is asked nothing.</comment>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Linked characters are not ticked for this connector, so none are read from it.</value>
+    <comment>Settings, Connectors tab, status: the Linked characters function is not ticked.</comment>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Connected</value>
+    <comment>Settings, Connectors tab, list badge.</comment>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Not connected</value>
+    <comment>Settings, Connectors tab, list badge.</comment>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Not used</value>
+    <comment>Settings, Connectors tab, list badge: connected, but no corporation or alliance chosen.</comment>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Problem</value>
+    <comment>Settings, Connectors tab, list badge: the last refresh went wrong; the tooltip carries the message.</comment>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Used for</value>
+    <comment>Settings, Connectors tab, section label above the corporation and alliance check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Settings, Connectors tab, label above the corporation check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Alliances</value>
+    <comment>Settings, Connectors tab, label above the alliance check boxes.</comment>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>No corporation or alliance of your characters is known yet. Add a character under ESI Tokens first.</value>
+    <comment>Settings, Connectors tab: no corporation or alliance to choose from yet.</comment>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (none of your characters now)</value>
+    <comment>Settings, Connectors tab, check box. {0} is a corporation or alliance name still chosen, with none of the user's characters in it now.</comment>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Functions</value>
+    <comment>Settings, Connectors tab, section label above the function check boxes.</comment>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>This version of EVE Console only uses Linked characters. The other choices are saved for features still to come.</value>
+    <comment>Settings, Connectors tab, note under the function check boxes.</comment>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Linked characters</value>
+    <comment>Settings, Connectors tab, function: which characters are one player's.</comment>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Auth groups</value>
+    <comment>Settings, Connectors tab, function: the groups a player has on the corporation's or alliance's sign-in service.</comment>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>Member ESI data</value>
+    <comment>Settings, Connectors tab, function: ESI data about members' characters.</comment>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>Corporation ESI data</value>
+    <comment>Settings, Connectors tab, function: ESI data about the corporation.</comment>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Fleet participation</value>
+    <comment>Settings, Connectors tab, function: who was in which fleets.</comment>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>This connector does not offer this.</value>
+    <comment>Settings, Connectors tab, tooltip on a function the connector does not offer.</comment>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{0} for {1} is already set on the connector {2}. Untick it there first.</value>
+    <comment>Settings, Connectors tab, refusal. {0} is a function name, {1} a corporation or alliance name, {2} the other connector's name.</comment>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>This connector was removed meanwhile, perhaps from another PC.</value>
+    <comment>Settings, Connectors tab, error: the connector entry was removed while this was going on.</comment>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Connect to see what this connector offers.</value>
+    <comment>Settings, Connectors tab, tooltip on a function check box while the connector is not connected: nothing is known yet about what it offers.</comment>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Asking the connector…</value>
+    <comment>Settings, Connectors tab, status while Refresh now waits for the connector's answer.</comment>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Disconnecting…</value>
+    <comment>Settings, Connectors tab, status while Disconnect ends the key at the connector.</comment>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>None of the functions ticked is offered by this connector now.</value>
+    <comment>Settings, Connectors tab, tooltip on the Not used badge: functions are ticked, but the connector offers none of them now.</comment>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Remove connector</value>
+    <comment>Settings, Connectors tab, title of the dialog that confirms removing a connector.</comment>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Remove the connector {0}? Its key is ended, and the corporations, alliances and functions chosen for it, and the linked characters it gave, are forgotten. This cannot be undone.</value>
+    <comment>Settings, Connectors tab, confirm dialog. {0} is the connector's name.</comment>
+  </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Asked the PC doing the background work to re-parse the history: only that PC parses intel. Its progress shows in Background Processes.</value>
+    <comment>Chat Logs tab, intel status after Re-parse on a PC that is not the background worker; the worker does the parsing and reports progress in the Background Processes window.</comment>
   </data>
 </root>

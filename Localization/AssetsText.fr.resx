@@ -1531,4 +1531,40 @@ Modifier la liste la fait réapparaître.</value>
   <data name="ColItemVolume" xml:space="preserve">
     <value>Volume</value>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>Depuis la requête</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>Ajouté ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>Modifié ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>tâche {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>contrat {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>transport</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>À jour à {0}</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>À jour entre {0} et {1}</value>
+  </data>
+  <data name="StatusSincePollOne" xml:space="preserve">
+    <value>{0:N0} ligne écrite depuis</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>{0:N0} lignes écrites depuis</value>
+  </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>ordre de marché {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>acheté sur le marché</value>
+  </data>
 </root>

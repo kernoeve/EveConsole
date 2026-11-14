@@ -4,8 +4,8 @@ using System.Runtime.InteropServices;
 namespace EveConsole.Services;
 
 /// <summary>
-/// On SQLite, ensures only one EVE Console runs at a time and brings the existing one forward
-/// instead. On PostgreSQL it does nothing at all.
+/// Ensures only one EVE Console desktop app runs per user (and per profile), and brings the
+/// existing one forward instead. On SQLite the worker modes are held to it too.
 ///
 /// <para>⚠️ Two copies against one SQLite FILE is not merely untidy. Both would poll ESI and write
 /// the results, doubling the API traffic and racing each other's inserts; and a database shrink
@@ -14,11 +14,13 @@ namespace EveConsole.Services;
 /// a rebuild of a large database on a slow disk takes minutes, and a user who thinks the app has
 /// hung will start it again.</para>
 ///
-/// <para>⚠️ None of that is true of a server, which is built for concurrent clients. So on
-/// PostgreSQL this refuses nothing: run ten clients, on ten machines, if you like. What must not
-/// happen twice is the background work, and <see cref="WorkerLease"/> owns that question. This
-/// class used to take an advisory lock to forbid a second client outright; that lock is now the
-/// lease, held by whichever client is doing the work rather than by whichever started first.</para>
+/// <para>On PostgreSQL the database is no reason, and a second desktop app was once allowed. It
+/// isn't now (decided 2026-11-12): the windows of tabs, the client panels and the tray are all one
+/// process's, and a second copy is two sets of them over the same clients. Ten clients on ten
+/// machines still run as before, each one per user. ⚠️ A headless worker or the Windows service
+/// beside a desktop app is still allowed there: that is two clients of one server, the
+/// arrangement the worker modes exist for, and <see cref="WorkerLease"/> decides which of them
+/// does the background work.</para>
 ///
 /// <para>Per-user rather than machine-wide (<c>Local\</c>, not <c>Global\</c>): two people logged
 /// into the same machine have separate profiles and therefore separate databases, so neither has
@@ -42,9 +44,10 @@ public static class SingleInstance
     /// after a crash: the operating system drops the lock when the process dies, however it
     /// dies.</para>
     ///
-    /// <para>Beside the DATABASE rather than in the app data folder, because the database is
-    /// what is being protected. Two installs pointed at different databases have no reason to
-    /// exclude each other, and two pointed at the same one must.</para>
+    /// <para>On SQLite beside the DATABASE rather than in the app data folder, because the
+    /// database is what is being protected. Two installs pointed at different databases have no
+    /// reason to exclude each other, and two pointed at the same one must. On PostgreSQL there is
+    /// no local file to protect, and the lock is the profile's: in its app data folder.</para>
     /// </summary>
     private static FileStream? _lockFile;
 
@@ -52,8 +55,7 @@ public static class SingleInstance
     {
         try
         {
-            var dbPath = AppConfig.GetDbPath();
-            var dir    = Path.GetDirectoryName(dbPath);
+            var dir = DbEngine.IsPostgres ? AppConfig.AppDataDir : Path.GetDirectoryName(AppConfig.GetDbPath());
             if (string.IsNullOrWhiteSpace(dir)) return true;   // nowhere to put it; do not block
 
             Directory.CreateDirectory(dir);
@@ -94,40 +96,6 @@ public static class SingleInstance
         }
     }
 
-    /// <summary>Held by a tray process for its life, as <see cref="_lockFile"/> is by a client.</summary>
-    private static FileStream? _trayLockFile;
-
-    /// <summary>
-    /// One tray icon per profile: true when this tray may start, false when one is already up.
-    ///
-    /// <para>⚠️ Its own file, never the client's lock. The tray starts at logon, before anybody opens
-    /// the application — on SQLite, taking the client's lock would refuse the real client, a tray
-    /// icon locking somebody out of their own database. It writes nothing and holds nothing open,
-    /// so the only thing to protect is the menu bar from a second copy of itself.</para>
-    ///
-    /// <para>⚠️ Without it every tick of the setting started another: the box launches a tray at
-    /// once, unticking leaves the running one up (it says to use Exit), and ticking again stacked
-    /// a second icon beside it. Found on macOS with three in the menu bar; Windows did the same.</para>
-    ///
-    /// <para>In the profile's data folder, so a profile's tray and the ordinary one's do not
-    /// exclude each other. A second tray simply exits — the icon it would have shown is already
-    /// there.</para>
-    /// </summary>
-    private static bool TryTakeTrayLock()
-    {
-        try
-        {
-            Directory.CreateDirectory(AppConfig.AppDataDir);
-            _trayLockFile = new FileStream(
-                Path.Combine(AppConfig.AppDataDir, "EveConsole.tray.lock"),
-                FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
-            return true;
-        }
-        catch (IOException)                { return false; }   // a tray is already up
-        catch (UnauthorizedAccessException) { return false; }
-        catch                               { return true; }    // cannot lock at all: show the icon anyway
-    }
-
     /// <summary>
     /// Passed by an instance that is deliberately replacing itself. ⚠️ Without it the app cannot
     /// restart at all: RequestRestart launches the replacement BEFORE calling Environment.Exit, so
@@ -146,20 +114,13 @@ public static class SingleInstance
     /// </summary>
     public static bool TryAcquire(string[] args)
     {
-        // ⚠️ The tray has a lock of its own, on either engine, and never the client's: see
-        // TryTakeTrayLock. Before the PostgreSQL early-out, because two icons are wrong there too.
-        if (AppRuntime.IsTray) return TryTakeTrayLock();
-
         var replacing = args.Any(a =>
             string.Equals(a, RestartingArgument, StringComparison.OrdinalIgnoreCase));
 
-        // ⚠️ Nothing to enforce on a server. Single instance is a SQLite rule: it exists because
-        // two processes writing one FILE is corruption, and because a shrink replaces that file
-        // wholesale underneath anyone else holding it. A PostgreSQL database has neither problem —
-        // it is built for concurrent clients — so run as many as you like, on as many machines as
-        // you like. What must not happen twice is the background work, and that is the worker
-        // lease's job, not this one's.
-        if (DbEngine.IsPostgres) return true;
+        // A worker beside the desktop app on PostgreSQL is two clients of one server, which is
+        // allowed; the worker lease says which does the background work. Desktop apps are one per
+        // user on either engine (see the class summary).
+        if (DbEngine.IsPostgres && (AppRuntime.IsHeadless || AppRuntime.IsService)) return true;
 
         // ⚠️ The file lock first, because it is the one that holds on every platform. The
         // mutex stays: it is proven on Windows and costs nothing, and two agreeing guards are
@@ -172,8 +133,8 @@ public static class SingleInstance
 
         try
         {
-            // ⚠️ Named per profile. The file lock above is beside the database and so is already
-            // a different lock for a different profile, but one fixed mutex name would refuse the
+            // ⚠️ Named per profile. The file lock above is in the profile's database or data folder
+            // and so is already a different lock for a different profile, but one fixed mutex name would refuse the
             // second process anyway — which would make a profile impossible to run while the
             // ordinary copy is open, the one arrangement it is for.
             var name = AppConfig.ProfileName is { } profile

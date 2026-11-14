@@ -37,6 +37,9 @@
   <data name="SuccessChance" xml:space="preserve">
     <value>成功率</value>
   </data>
+  <data name="OutputRunsEach" xml:space="preserve">
+    <value>各{0:N0}回</value>
+  </data>
   <data name="TimeLeft" xml:space="preserve">
     <value>残り時間</value>
   </data>

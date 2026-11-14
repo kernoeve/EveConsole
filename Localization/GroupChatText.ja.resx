@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>ルームを追加</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>{0} のルームを追加</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>ルームとサーバーのチャットはここに表示されます。先に設定の Jabber または Mumble タブでサーバーを設定してください。</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>左からルームまたはサーバーを選んでください。</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>新着メッセージ {0} 件</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>未確認のあなたの名前: {0} 回</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>接続以降、いたチャンネルで話された内容すべて。Mumble サーバーは何も保存しないため、アプリを閉じるまでの間だけ残ります。</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>名前または説明で絞り込み</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>ルームの情報を問い合わせています...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} 人が在室</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>トピック: {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>パスワードが必要</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>メンバーのみ</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>モデレートあり</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>一時的</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>参加中</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>ルーム（上から選ぶか名前を入力）</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>再度参加</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>一般</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>「一般」は会話用です。インテルのルームは、チャットログのインテルチャンネルと同様にレポートも読み取り、マップとインテルアラームに反映します。別のソースから既に得ているレポートは二重に数えません。</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>完了</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>並べ替え</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>ルームの人数</value>
+  </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>ダイレクトメッセージ</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>発言権を与える</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>発言権を取り上げる</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>モデレーターにする</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>モデレーターを外す</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>メンバーにする</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>メンバーから外す</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>管理者にする</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>管理者を外す</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>キック…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>BAN…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>{0} をキック</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>{0} を BAN</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>理由（任意）。相手に表示されます</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{2} から {0}（{1}）を BAN しますか？ 解除するまで戻れなくなります。</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>トピックを変更…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>{0} のトピック</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>新しいトピック。ルームの全員に表示されます</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>誰かを招待…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>{0} に招待</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>相手のアドレス</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>BAN を解除…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>{0} の BAN を解除</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>戻れるようにする相手</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>{0} で BAN されている人はいません。</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>一覧から選んでください。</value>
+  </data>
+  <data name="ShowPicture" xml:space="preserve">
+    <value>画像を表示</value>
+  </data>
+  <data name="ShowPictureTip" xml:space="preserve">
+    <value>{0} から読み込みます。そのサイトにあなたの IP アドレスが知られます。</value>
+  </data>
+  <data name="PictureLoading" xml:space="preserve">
+    <value>画像を読み込み中…</value>
+  </data>
+  <data name="PictureFailed" xml:space="preserve">
+    <value>画像を読み込めませんでした。下のリンクからは開けます。</value>
+  </data>
+  <data name="OpenPictureTip" xml:space="preserve">
+    <value>ブラウザで元のサイズで開く</value>
+  </data>
+</root>

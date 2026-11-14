@@ -20,4 +20,18 @@ public sealed record AlarmMatch(string Key, string Summary)
     /// banked silently so the next evaluation does not announce them again as changes.
     /// </summary>
     public bool Silent { get; init; }
+
+    /// <summary>
+    /// Too close to wait: said before everything else in its firing. A kill within a jump of a watched
+    /// character is one. A check sets it; it changes nothing about whether the match is news, nor which
+    /// of the alarm's actions run: every one of them runs for every match (user, 2026-11-13).
+    /// </summary>
+    public bool Urgent { get; init; }
+
+    /// <summary>
+    /// How loud the Sound action plays for this match, 0 to 1, as a share of the action's own volume:
+    /// a check that knows how near a thing is plays the far ones quieter. A firing plays at its
+    /// loudest match's.
+    /// </summary>
+    public double Loudness { get; init; } = 1;
 }

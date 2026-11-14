@@ -10,6 +10,33 @@
   <data name="CustomizeLayout" xml:space="preserve">
     <value>⚙ Personalizar diseño</value>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>Predeterminado</value>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Diseño</value>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Diseño {0}</value>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Diseño:</value>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Nombre:</value>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Añadir</value>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Eliminar</value>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>Un diseño nuevo, que empieza como copia de este.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>Qué diseño guardado muestra este Resumen</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Resumen de actividad</value>
   </data>
@@ -514,6 +541,12 @@
   <data name="AlertUnreadMailOther" xml:space="preserve">
     <value>Tienes {0} correos de EVE sin leer.</value>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>Tienes {0} mensajes de Jabber sin leer.</value>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>Tienes {0} mensaje de Jabber sin leer.</value>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>A {0} ({1}) se le acaba el combustible en {2}</value>
   </data>
@@ -1003,5 +1036,13 @@
   </data>
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} personajes de IP tienen ranuras de colonia sin usar.</value>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>Tienes {0} mensajes directos sin leer.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>Tienes {0} mensaje directo sin leer.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

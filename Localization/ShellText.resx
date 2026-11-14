@@ -154,6 +154,10 @@
     <value>Mercenary Dens</value>
     <comment>Navigation: the Mercenary Dens tool.</comment>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Client Layouts</value>
+    <comment>Navigation: the tool that arranges game client windows and panels on the user's monitors.</comment>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Killmails</value>
   </data>
@@ -166,6 +170,14 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>Eve Mail</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+    <comment>Navigation: the Jabber chat tool.</comment>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+    <comment>Navigation: the Mumble voice tool.</comment>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notifications</value>
@@ -876,5 +888,68 @@ Upgrade it and start? No closes EVE Console and leaves the database as it is.</v
 {1}
 Click for the ESI limits.</value>
     <comment>Tooltip on the header's ESI slowed. {0} is the governor's state, {1} the error budget line.</comment>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Group Chat</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Battle Report</value>
+    <comment>Tool name in the menu (Corp group) and its tab: a report of one battle, live or finished.</comment>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+    <comment>A colour theme named after the game's own of that name: keep the name as the game shows it.</comment>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>This database is at version {0}, and this client is {1}.
+
+This client is set never to run the background processes, and only the client running them may change the schema, so it cannot bring the database up to {1}.
+
+Start a {1} client that may run them, or turn this off: remove "neverRunBackgroundWork" from {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Third-party notices</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>The licenses of the software EVE Console is built from</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Navigation item and tab title for the Intel tool: live intel by system, the feed, and pastes.</comment>
   </data>
 </root>

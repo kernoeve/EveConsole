@@ -13,14 +13,44 @@ public class TabWorkspace : ReactiveObject
     /// <summary>The main window's, which is never closed and alone holds the Overview.</summary>
     public bool IsMain { get; }
 
+    /// <summary>
+    /// A Tool Container's, on a panel of a client layout: borderless, so never moved or resized by
+    /// itself, and kept when its last tab leaves. Neither the main window's nor a window of its own.
+    /// </summary>
+    public bool IsContainer { get; }
+
+    /// <summary>
+    /// A container whose panel is hidden, its client gone: kept, so it comes back as it was, but it
+    /// takes no tools, and a tool asked for while it's in here leaves for a window on screen.
+    /// </summary>
+    public bool IsHidden { get; set; }
+
+    /// <summary>A window of its own, which closes when its last tab leaves.</summary>
+    public bool IsFloating => !IsMain && !IsContainer;
+
+    /// <summary>Shows a row of tabs, takes tabs dragged in, and gives its own up. A container
+    /// holding one tool does none of that.</summary>
+    public bool ShowsTabs { get; } = true;
+
+    /// <summary>Can show two tools side by side.</summary>
+    public bool CanSplit { get; } = true;
+
     /// <summary>The first side, which holds every tab until one is dragged to the right.</summary>
     public ToolPane LeftPane  { get; }
     /// <summary>The second side, shown only while it holds a tab.</summary>
     public ToolPane RightPane { get; }
 
-    public TabWorkspace(bool isMain)
+    /// <summary>A Tool Container's tabs: as a tab window, or one tool with no tabs; split or not.</summary>
+    public static TabWorkspace Container(bool showsTabs, bool canSplit) => new(false, true, showsTabs, showsTabs && canSplit);
+
+    public TabWorkspace(bool isMain) : this(isMain, false, true, true) { }
+
+    private TabWorkspace(bool isMain, bool isContainer, bool showsTabs, bool canSplit)
     {
-        IsMain    = isMain;
+        IsMain      = isMain;
+        IsContainer = isContainer;
+        ShowsTabs   = showsTabs;
+        CanSplit    = canSplit;
         LeftPane  = new ToolPane(false) { Workspace = this };
         RightPane = new ToolPane(true)  { Workspace = this };
         ActivePane = LeftPane;
@@ -189,5 +219,22 @@ public class TabWorkspace : ReactiveObject
     /// While dragging, on one side: the right half takes a tab to show two tools side by side —
     /// so long as something would be left on the left, which a tab from another window always leaves.
     /// </summary>
-    public bool ShowSplitDropZone => _isDraggingTab && !IsSplit && LeftPane.Tabs.Count > (_isDragSource ? 1 : 0);
+    public bool ShowSplitDropZone => CanSplit && _isDraggingTab && !IsSplit && LeftPane.Tabs.Count > (_isDragSource ? 1 : 0);
+
+    /// <summary>
+    /// Whether <paramref name="tab"/>, here, may go to <paramref name="to"/>: the Overview only to the
+    /// main window, a pinned tab nowhere but its own container, and nothing into or out of a
+    /// container that shows no tabs. Moving within a window is always allowed.
+    /// </summary>
+    public static bool CanMove(ToolTab tab, TabWorkspace from, TabWorkspace to)
+    {
+        if (from == to) return true;
+        if (!from.ShowsTabs || !to.ShowsTabs) return false;
+        if (tab.PinnedIn is not null) return false;
+        return tab.Id != "overview" || to.IsMain;
+    }
+
+    /// <summary>Whether <paramref name="tab"/> may leave for a window of its own.</summary>
+    public static bool CanDetach(ToolTab tab, TabWorkspace from) =>
+        tab.Id != "overview" && tab.PinnedIn is null && from.ShowsTabs;
 }

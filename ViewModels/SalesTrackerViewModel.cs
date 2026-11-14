@@ -143,6 +143,14 @@ public class SaleRowVm : ReactiveObject
     public int    TypeId      { get; }
     public string MarketGroup { get; }
 
+    /// <summary>Every market group the named item sits under, its own first: what the item group
+    /// filter matches, so a contract is filed under its most valuable item here as everywhere.</summary>
+    public IReadOnlyList<int> MarketGroupPath { get; init; } = [];
+
+    /// <summary>What was sold, item by item: one part for a market sale, every included item for
+    /// a contract. The units count on By period reads these.</summary>
+    public IReadOnlyList<SalePart> Parts { get; init; } = [];
+
     // ── Where each name goes when clicked ─────────────────────────────────────
     //
     // Ids alongside the names, so a row is not just a sentence about a sale but a way into the
@@ -256,6 +264,10 @@ public class SaleRowVm : ReactiveObject
     }
 }
 
+/// <summary>One item of a sale: the type, how many, its market group two levels up (the name the
+/// rollups use) and every market group it sits under.</summary>
+public sealed record SalePart(int TypeId, string Name, long Quantity, string MarketGroup, IReadOnlyList<int> MarketGroupPath);
+
 public enum OwnerScope { All, CharsAndPersonalCorps, Specific }
 public record SalesOwnerOption(string Label, OwnerScope Scope, long OwnerId = 0, string OwnerType = "")
 { public override string ToString() => Label; }
@@ -324,8 +336,11 @@ public class GroupRowVm : ReactiveObject
 
 // Sales Tracker — lists market sales and contract sales with build/market value and build-based
 // profit. Data is loaded by the shared SalesQuery.
-public class SalesTrackerViewModel : ReactiveObject
+public class SalesTrackerViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly CorpActivityService             _names;
@@ -515,13 +530,17 @@ public class SalesTrackerViewModel : ReactiveObject
         // A year, so the charts open on a trend rather than a quarter of one.
         _grain         = Grains[0];
         _dateFrom      = DateTime.UtcNow.Date.AddYears(-1).ToString("yyyy-MM-dd");
+        _periodGrain     = Grains[2];         // monthly: what a summary is read by
+        _selectedSplit   = SplitOptions[1];   // by tag
+        _selectedShare   = ShareOptions[0];   // on cost
+        _selectedCountBy = CountByOptions[0]; // by market group
 
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .ObserveOnUi("SalesTracker.AutoRefresh")
-            .Subscribe(tick => { _ = LoadAsync(); });
+            .Subscribe(tick => { _ = LoadAsync(); }));
 
         // Characters or corporations added or removed: read again now, not at the next tick.
-        OwnerList.Changed += () => _ = LoadAsync();
+        _life.OnOwnersChanged(() => _ = LoadAsync());
 
         _ = LoadAsync();
     }
@@ -599,7 +618,14 @@ public class SalesTrackerViewModel : ReactiveObject
         if (TryDate(_dateFrom, out var from)) q = q.Where(r => r.When.UtcDateTime.Date >= from);
         if (TryDate(_dateThru, out var thru)) q = q.Where(r => r.When.UtcDateTime.Date <= thru);
 
+        var groupIds = ItemGroupIds();
+        if (groupIds.Count > 0) q = q.Where(r => r.MarketGroupPath.Any(groupIds.Contains));
+
         var matched = q.ToList();
+
+        // Both sides of the for-profit mark, whatever the checkbox says: telling them apart is
+        // what the By period tab is for.
+        BuildPeriods(matched, groupIds);
 
         // ⚠️ One filtered set, used by everything on the screen. The rollups used to be built
         // from the for-profit rows whatever the checkbox said, so ticking "show not for profit"
@@ -732,7 +758,10 @@ public class SalesTrackerViewModel : ReactiveObject
         for (var d = first; d <= last; d = Step(d)) yield return d;
     }
 
-    private DateTime Bucket(DateTime day) => Grain.Key switch
+    private DateTime Bucket(DateTime day) => BucketOf(day, Grain.Key);
+    private DateTime Step(DateTime d)     => StepOf(d, Grain.Key);
+
+    private static DateTime BucketOf(DateTime day, string grain) => grain switch
     {
         "m" => new DateTime(day.Year, day.Month, 1),
         // Monday, not the first row's day: a bucket that floats with the data cannot be compared
@@ -741,12 +770,227 @@ public class SalesTrackerViewModel : ReactiveObject
         _   => day,
     };
 
-    private DateTime Step(DateTime d) => Grain.Key switch
+    private static DateTime StepOf(DateTime d, string grain) => grain switch
     {
         "m" => d.AddMonths(1),
         "w" => d.AddDays(7),
         _   => d.AddDays(1),
     };
+
+    // ── By period ─────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// The market groups the whole tracker is narrowed to; none is everything. A sale is in when
+    /// its most valuable item sits anywhere under one of them, so "Capital Ships" takes every hull
+    /// and a contract of a titan with its fittings counts as the titan.
+    /// </summary>
+    public ObservableCollection<ItemGroupFilter> ItemGroups { get; } = new();
+
+    public void AddItemGroup(int marketGroupId, string name)
+    {
+        if (ItemGroups.Any(g => g.MarketGroupId == marketGroupId)) return;
+        ItemGroups.Add(new ItemGroupFilter(marketGroupId, name));
+        ApplyFilters();
+    }
+
+    public void RemoveItemGroup(ItemGroupFilter group)
+    {
+        if (ItemGroups.Remove(group)) ApplyFilters();
+    }
+
+    private HashSet<int> ItemGroupIds() => ItemGroups.Select(g => g.MarketGroupId).ToHashSet();
+
+    /// <summary>The market group tree, for picking an item group: no quantity, nothing is added.</summary>
+    public MarketGroupPickerViewModel NewGroupPicker() => new(new BatchAddService(_dbFactory), showQuantity: false);
+
+    /// <summary>The By period tab's own period length: separate from the charts', which are
+    /// usually wanted finer than the month a summary is read by.</summary>
+    private SalesGrain _periodGrain;
+    public SalesGrain PeriodGrain
+    {
+        get => _periodGrain;
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }   // a detaching ComboBox, as SelectedOwner
+            this.RaiseAndSetIfChanged(ref _periodGrain, value);
+            ApplyFilters();
+        }
+    }
+
+    public IReadOnlyList<SalesSplitOption> SplitOptions { get; } =
+    [
+        new(SalesText.SplitNone,        SalesSplit.None),
+        new(SalesText.SplitTag,         SalesSplit.Tag),
+        new(SalesText.SplitMarketGroup, SalesSplit.MarketGroup),
+        new(SalesText.SplitItem,        SalesSplit.Item),
+        new(SalesText.SplitBuyer,       SalesSplit.Buyer),
+        new(SalesText.SplitOwner,       SalesSplit.Owner),
+    ];
+    private SalesSplitOption _selectedSplit;
+    public SalesSplitOption SelectedSplit
+    {
+        get => _selectedSplit;
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedSplit, value);
+            ApplyFilters();
+        }
+    }
+
+    public IReadOnlyList<ShareBasisOption> ShareOptions { get; } =
+    [
+        new(SalesText.ShareOnCost,    ShareBasis.Cost),
+        new(SalesText.ShareOnSaleIsk, ShareBasis.SaleIsk),
+        new(SalesText.ShareOnUnits,   ShareBasis.Units),
+    ];
+    private ShareBasisOption _selectedShare;
+    public ShareBasisOption SelectedShare
+    {
+        get => _selectedShare;
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedShare, value);
+            ApplyFilters();
+        }
+    }
+
+    /// <summary>What the units table counts by; no "None", a count needs something to count.</summary>
+    public IReadOnlyList<SalesSplitOption> CountByOptions { get; } =
+    [
+        new(SalesText.SplitMarketGroup, SalesSplit.MarketGroup),
+        new(SalesText.SplitItem,        SalesSplit.Item),
+        new(SalesText.SplitTag,         SalesSplit.Tag),
+        new(SalesText.SplitBuyer,       SalesSplit.Buyer),
+        new(SalesText.SplitOwner,       SalesSplit.Owner),
+    ];
+    private SalesSplitOption _selectedCountBy;
+    public SalesSplitOption SelectedCountBy
+    {
+        get => _selectedCountBy;
+        set
+        {
+            if (value is null) { this.RaisePropertyChanged(); return; }
+            this.RaiseAndSetIfChanged(ref _selectedCountBy, value);
+            ApplyFilters();
+        }
+    }
+
+    public ObservableCollection<PeriodRowVm> PeriodRows { get; } = new();
+    public ObservableCollection<UnitRowVm>   UnitRows   { get; } = new();
+
+    /// <summary>The units table's period columns. The view rebuilds its columns when this changes,
+    /// before the rows that fill them arrive.</summary>
+    private IReadOnlyList<string> _unitPeriods = [];
+    public IReadOnlyList<string> UnitPeriods { get => _unitPeriods; private set => this.RaiseAndSetIfChanged(ref _unitPeriods, value); }
+
+    private PeriodKpis _kpis = PeriodKpis.Empty;
+    public PeriodKpis Kpis { get => _kpis; private set => this.RaiseAndSetIfChanged(ref _kpis, value); }
+
+    private void BuildPeriods(List<SaleRowVm> rows, HashSet<int> groupIds)
+    {
+        var grain = _periodGrain.Key;
+        var basis = _selectedShare.Basis;
+        var split = _selectedSplit.Split;
+        DateTime B(DateTime d) => BucketOf(d, grain);
+        DateTime S(DateTime d) => StepOf(d, grain);
+        var today = DateTime.UtcNow.Date;
+
+        var sales  = rows.Select(r => new PeriodSale(r.When.UtcDateTime.Date, r.NotForProfit, r.TotalRaw, r.CostRaw, SplitKeys(r, split),
+                                                     InGroups(r, groupIds).Sum(p => p.Quantity))).ToList();
+        var groups = SalesPeriods.Build(sales, B, S, NoKey(split));
+
+        var lines = new List<PeriodRowVm>();
+        foreach (var g in groups)
+        {
+            var name = SalesPeriods.PeriodName(g.Start, grain, today);
+            lines.Add(new PeriodRowVm(name, name, g.Figures, basis));
+            if (split != SalesSplit.None)
+                foreach (var s in g.Splits) lines.Add(new PeriodRowVm(name, s.Key, s.Figures, basis, isSplit: true));
+        }
+        var total = SalesPeriods.Total(sales);
+        if (groups.Count > 0) lines.Add(new PeriodRowVm(SalesText.Total, SalesText.Total, total, basis, isTotal: true));
+
+        PeriodRows.Clear();
+        foreach (var l in lines) PeriodRows.Add(l);
+
+        var periods  = groups.Select(g => g.Start).ToList();
+        var countBy  = _selectedCountBy.Split;
+        var counted  = rows.Select(r => new PeriodUnits(r.When.UtcDateTime.Date, r.NotForProfit, UnitKeys(r, countBy, groupIds))).ToList();
+        var units    = SalesPeriods.Units(counted, periods, B, NoKey(countBy));
+        UnitRows.Clear();
+        UnitPeriods = periods.Select(p => SalesPeriods.PeriodName(p, grain, today)).ToList();
+        foreach (var u in units) UnitRows.Add(new UnitRowVm(u));
+
+        Kpis = new PeriodKpis(
+            SalesPeriods.Count(total.Units), string.Format(SalesText.KpiSoldFor, SalesPeriods.Isk(total.Sales)),
+            SalesPeriods.Count(total.FpUnits),
+            string.Format(SalesText.KpiForProfitSub,
+                total.FpProfit is double p ? SalesPeriods.Isk(p) : "—", SalesPeriods.Pct(total.FpProfitPct)),
+            SalesPeriods.Count(total.NfpUnits), string.Format(SalesText.KpiSoldFor, SalesPeriods.Isk(total.NfpSales)),
+            SalesPeriods.Pct(total.Share(basis)), string.Format(SalesText.KpiShareSub, _selectedShare.Label));
+    }
+
+    /// <summary>The split a sale goes under: its tags (none, or several), else one name.</summary>
+    private static IReadOnlyList<string> SplitKeys(SaleRowVm r, SalesSplit split) => split switch
+    {
+        SalesSplit.Tag         => r.LabelList,
+        SalesSplit.MarketGroup => [r.MarketGroup],
+        SalesSplit.Item        => [r.ItemHead.Length > 0 ? r.ItemHead : r.Items],
+        SalesSplit.Buyer       => r.Buyer.Length > 0 ? [r.Buyer] : [],
+        SalesSplit.Owner       => [r.Owner],
+        _                      => [],
+    };
+
+    /// <summary>The items of a sale that are inside the chosen item groups: all of them when none
+    /// is chosen. What both By period tables count as units.</summary>
+    private static IReadOnlyList<SalePart> InGroups(SaleRowVm r, HashSet<int> groupIds) =>
+        groupIds.Count == 0 ? r.Parts : r.Parts.Where(p => p.MarketGroupPath.Any(groupIds.Contains)).ToList();
+
+    /// <summary>
+    /// The units a sale adds to the units table, by what it is counted by. Only items in the
+    /// chosen item groups count: a carrier sold with its fittings is one carrier, not one carrier
+    /// and forty modules.
+    /// </summary>
+    private static IReadOnlyList<(string Key, long Units)> UnitKeys(SaleRowVm r, SalesSplit by, HashSet<int> groupIds)
+    {
+        var parts = InGroups(r, groupIds);
+        if (parts.Count == 0) return [];
+        long all() => parts.Sum(p => p.Quantity);
+        return by switch
+        {
+            SalesSplit.MarketGroup => parts.Select(p => (p.MarketGroup, p.Quantity)).ToList(),
+            SalesSplit.Item        => parts.Select(p => (p.Name, p.Quantity)).ToList(),
+            SalesSplit.Tag         => r.LabelList.Count == 0 ? [("", all())] : r.LabelList.Select(l => (l, all())).ToList(),
+            SalesSplit.Buyer       => [(r.Buyer, all())],
+            _                      => [(r.Owner, all())],
+        };
+    }
+
+    private static string NoKey(SalesSplit split) => split == SalesSplit.Tag ? SalesText.NoTag : "—";
+
+    /// <summary>The summary as text, for a code block in a chat.</summary>
+    public string PeriodsText() => SalesPeriods.Text(TitleLine(), SettingsLine(), PeriodRows, UnitPeriods, UnitRows, UnitsTitle());
+
+    /// <summary>The summary as CSV, numbers unrounded.</summary>
+    public string PeriodsCsv() => SalesPeriods.Csv(PeriodRows, UnitPeriods, UnitRows, UnitsTitle());
+
+    public void NoteCopied()            => StatusText = SalesText.StatusSummaryCopied;
+    public void NoteExported(string to) => StatusText = string.Format(SalesText.StatusSummaryExported, to);
+
+    private string TitleLine()
+    {
+        var from   = TryDate(_dateFrom, out var f) ? f.ToString("yyyy-MM-dd") : PeriodRows.FirstOrDefault()?.Period ?? "";
+        var thru   = TryDate(_dateThru, out var t) ? t.ToString("yyyy-MM-dd") : DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var groups = ItemGroups.Count == 0 ? "" : " · " + string.Join(", ", ItemGroups.Select(g => g.Name));
+        return string.Format(SalesText.TextSummaryTitle, from, thru) + groups;
+    }
+
+    private string SettingsLine() =>
+        string.Format(SalesText.TextSummarySettings, _periodGrain.Label, _selectedSplit.Label, _selectedShare.Label);
+
+    private string UnitsTitle() => string.Format(SalesText.TextUnitsTitle, _selectedCountBy.Label);
 
     private static LineSeries<DateTimePoint> Line(string name, List<DateTimePoint> pts, SKColor color) =>
         new()

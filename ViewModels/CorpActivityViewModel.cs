@@ -783,7 +783,7 @@ public sealed class Activity24hKillRowVm : ReactiveObject
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
 
-public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
+public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
@@ -1343,6 +1343,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
     public ObservableCollection<CorpTopPlayerRowVm> TopDonors       { get; } = [];
     public ObservableCollection<CorpTopPlayerRowVm> TopMiners       { get; } = [];
     public ObservableCollection<CorpTopPlayerRowVm> TopKillers      { get; } = [];
+    public ObservableCollection<CorpTopPlayerRowVm> TopSoloKillers  { get; } = [];
     public ObservableCollection<CorpTopPlayerRowVm> TopContributors { get; } = [];
     public ObservableCollection<CorpTopPlayerRowVm> TopIndustry     { get; } = [];
 
@@ -1480,7 +1481,8 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         // The corp chosen last time, if already available; again as the list populates (after
         // auth, or at startup one corp at a time).
         PickRemembered();
-        Corps.CollectionChanged += (_, _) => PickRemembered();
+        System.Collections.Specialized.NotifyCollectionChangedEventHandler onCorps = (_, _) => PickRemembered();
+        _life.Follow(() => Corps.CollectionChanged += onCorps, () => Corps.CollectionChanged -= onCorps);
 
         RefreshCommand = ReactiveCommand.CreateFromTask(LoadAsync);
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
@@ -1620,7 +1622,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
 
         // Light refresh every 60 s; full refresh (including detail tabs) every 5 min (tick 5).
         // ⚠️ Gated and labelled — see InvLevelViewModel for why.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _life.Keep(Observable.Interval(TimeSpan.FromSeconds(60))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("CorpActivity.AutoRefresh")
             .Where(_ => SelectedCorp is not null && !IsLoading)
@@ -1628,8 +1630,11 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
             {
                 _refreshTick++;
                 var t = _refreshTick % 5 == 0 ? LoadAsync() : LoadLightAsync();
-            });
+            }));
     }
+
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
 
     private async Task LoadAsync(CancellationToken ct = default)
     {
@@ -1839,6 +1844,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         TopRatters.Clear();
         TopIndustry.Clear();
         TopKillers.Clear();
+        TopSoloKillers.Clear();
         TopMiners.Clear();
         TopContributors.Clear();
     }
@@ -2191,6 +2197,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         allRows.AddRange(TopRatters.Select(r => Cells(r, false)));
         allRows.AddRange(TopMiners.Select(r => Cells(r, false)));
         allRows.AddRange(TopKillers.Select(r => Cells(r, true)));
+        allRows.AddRange(TopSoloKillers.Select(r => Cells(r, true)));
         allRows.AddRange(TopContributors.Select(r => Cells(r, false)));
         allRows.AddRange(TopIndustry.Select(r => Cells(r, false)));
         var widths = ColumnWidths(allRows, 3);
@@ -2221,6 +2228,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         AppendList(_titles.Top10Title("ratting"),  TopRatters);
         AppendList(_titles.Top10Title("mining"),   TopMiners);
         AppendList(_titles.Top10Title("kills"),    TopKillers, alwaysAmount: true);
+        AppendList(_titles.Top10Title("solokills"), TopSoloKillers, alwaysAmount: true);
         AppendList(_titles.Top10Title("projects"), TopContributors);
         AppendList(_titles.Top10Title("industry"), TopIndustry);
 
@@ -2256,6 +2264,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         List<RankedPlayerRow> rattingRows  = [];
         List<RankedPlayerRow> industryRows = [];
         List<RankedPlayerRow> killerRows   = [];
+        List<RankedPlayerRow> soloRows     = [];
         List<RankedPlayerRow> minerRows    = [];
         List<(long CharacterId, string Name, decimal IskPayout, double Percent)> contribRows = [];
 
@@ -2268,13 +2277,16 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         try { killerRows   = await _service.GetTopKillersAsync(corpId, since, until, excludeIds, ct); }
         catch (Exception ex) { StepFailed("Top10 killers", CorpText.StepTop10Killers, ex); }
 
-        try { minerRows    = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
+        try { soloRows     = await _service.GetTopSoloKillersAsync(corpId, since, until, excludeIds, ct); }
+        catch (Exception ex) { StepFailed("Top10 solo killers", CorpText.StepTop10SoloKillers, ex); }
+
+        try { minerRows   = await _service.GetTopMinersAsync(corpId, since, until, excludeIds, ct); }
         catch (Exception ex) { StepFailed("Top10 miners", CorpText.StepTop10Miners, ex); }
 
         try { contribRows  = await _service.GetTopProjectContributorsAsync(corpId, since, until, excludeIds, ct); }
         catch (Exception ex) { StepFailed("Top10 contributors", CorpText.StepTop10Contributors, ex); }
 
-        var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows)
+        var walletIds  = rattingRows.Concat(industryRows).Concat(killerRows).Concat(soloRows)
                                     .Select(r => r.CharacterId);
         var allNames   = await _service.ResolveNamesAsync(walletIds, ct);
         string Resolve(long id) => allNames.TryGetValue(id, out var n) ? n : id.ToString();
@@ -2282,6 +2294,7 @@ public class CorpActivityViewModel : ReactiveObject, IPeriodicRefresh
         PopulateTopList(TopRatters,  rattingRows,  Resolve, isCount: false);
         PopulateTopList(TopIndustry, industryRows, Resolve, isCount: false);
         PopulateTopList(TopKillers,  killerRows,   Resolve, isCount: true);
+        PopulateTopList(TopSoloKillers, soloRows,  Resolve, isCount: true);
 
         var minerNames = await _service.ResolveNamesAsync(minerRows.Select(r => r.CharacterId), ct);
         string ResolveMiner(long id) => minerNames.TryGetValue(id, out var n) ? n : id.ToString();

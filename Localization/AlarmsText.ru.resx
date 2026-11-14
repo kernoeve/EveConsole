@@ -248,7 +248,7 @@
     <value>Динамика за двенадцать месяцев в виде изображения, которое загружается под сообщением.</value>
   </data>
   <data name="ThisSectionWillNotNote" xml:space="preserve">
-    <value>Этот раздел не будет опубликован. Задача направлена в веб-хук, а веб-хук не может передать изображение — выберите выше канал рабочего пространства, иначе при запуске задачи этот раздел будет пропущен.</value>
+    <value>Этот раздел не будет опубликован. Вебхук Slack может показывать только изображения, размещённые в сети: войдите в разделе «Настройки», «Онлайн-сервисы» или выберите выше канал рабочего пространства. Иначе этот раздел будет пропущен при запуске задачи.</value>
   </data>
   <data name="PostingLabel" xml:space="preserve">
     <value>Объявление</value>
@@ -473,7 +473,7 @@
     <value>Каждый график публикуется со своей легендой. Список инструмента «Индексы систем» не используется.</value>
   </data>
   <data name="WebhookPicturesNote" xml:space="preserve">
-    <value>Это назначение — вебхук Slack, который не может передать изображение: картинки этого раздела будут пропущены, опубликуются только таблицы. Канал Slack или вебхук Discord их передаёт.</value>
+    <value>Вебхук Slack может показывать только изображения, размещённые в сети. Пока вы не войдёте в разделе «Настройки», «Онлайн-сервисы», изображения этого раздела будут пропущены и опубликуются только его таблицы. Канал Slack или вебхук Discord передают их в любом случае.</value>
   </data>
   <data name="SectionNeedsJob" xml:space="preserve">
     <value>Разделу {0} ({1}) нужна хотя бы одна работа.</value>
@@ -784,6 +784,9 @@
   <data name="StatusDeleted" xml:space="preserve">
     <value>Удалено.</value>
   </data>
+  <data name="ConfirmDeleteTask" xml:space="preserve">
+    <value>Удалить «{0}»? Это действие нельзя отменить.</value>
+  </data>
   <data name="StatusNoBlocks" xml:space="preserve">
     <value>Нечего показать: в этой задаче нет блоков.</value>
   </data>
@@ -791,7 +794,7 @@
     <value>Формирование…</value>
   </data>
   <data name="PreviewChartSkipped" xml:space="preserve">
-    <value>[{0} — пропущено: назначение — веб-хук]</value>
+    <value>[{0} — пропущено: вебхуку Slack нужен вход в разделе «Настройки», «Онлайн-сервисы»]</value>
   </data>
   <data name="PreviewChartUploaded" xml:space="preserve">
     <value>[{0} — загружается как изображение]</value>
@@ -944,7 +947,7 @@
     <value>Срабатывает, когда кто-то сообщает о пилоте рядом с тем, что вы отслеживаете: вашими персонажами вне дока, вашими персонажами где угодно или списком систем — каждый с радиусом в прыжках. Читает каналы разведки, которые уже разбираются в «Настройки → Журналы чата».</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>Учитываются и победы там, где среди атакующих есть пилоты противника: победа показывает, что атакующие были в этой системе.</value>
+    <value>Уничтожение там, где среди атакующих есть пилоты противника, срабатывает всегда и объявляется как уничтожение: что потеряно и кем. В пределах одного прыжка оно объявляется первым. Его атакующие не объявляются ещё раз как замеченные.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>Выход корабля из дока</value>
@@ -995,16 +998,22 @@
     <value>Отслеживаемые системы, например {0} или {1}. Добавляйте по одной; при 0 прыжков отслеживаются только эти системы.</value>
   </data>
   <data name="IntelJumpsLabel" xml:space="preserve">
-    <value>Прыжки</value>
+    <value>По</value>
+  </data>
+  <data name="IntelJumpsFromLabel" xml:space="preserve">
+    <value>Прыжки: с</value>
+  </data>
+  <data name="IntelJumpsFromNote" xml:space="preserve">
+    <value>Необязательно. Более близкие системы не учитываются, в том числе приоритетные и маршрут впереди. Так две тревоги делят дальность: 0 по 2 у одной и 3 по 5 у другой никогда не сработают обе.</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>На сколько прыжков через врата от каждого персонажа или системы вести наблюдение. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
+    <value>На сколько прыжков от каждого персонажа или системы вести наблюдение — через звёздные врата и открытые червоточины Thera и Turnur. 0 — только их собственная система. Не больше 15 — дальше это уже не окрестности.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>Мин. пилотов</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>Срабатывать, только если в сообщении названо не меньше стольких пилотов. По умолчанию 1.</value>
+    <value>Срабатывать, только если в системе не меньше стольких противников. По умолчанию 1. Уничтожения и сообщения только с пометками срабатывают при любом числе.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>Пропускать NV (нет визуала)</value>
@@ -1688,7 +1697,7 @@
     <value>Ошибки графиков ({0}): {1}.</value>
   </data>
   <data name="RunChartsSkipped" xml:space="preserve">
-    <value>Пропущено разделов с графиками: {0} — веб-хук не может передать изображение.</value>
+    <value>Пропущено разделов с графиками: {0}. Чтобы показывать изображения, вебхуку Slack нужен вход в разделе «Настройки», «Онлайн-сервисы».</value>
   </data>
   <data name="RunNoAlertText" xml:space="preserve">
     <value>Нечего создавать: у оповещения нет текста.</value>
@@ -1872,5 +1881,389 @@
   </data>
   <data name="IntelSaidLyOut" xml:space="preserve">
     <value>в {0} св. г.</value>
+  </data>
+  <data name="SchedulerTabTasks" xml:space="preserve">
+    <value>Задачи</value>
+  </data>
+  <data name="SchedulerTabCalendar" xml:space="preserve">
+    <value>Календарь</value>
+  </data>
+  <data name="CalendarMonth" xml:space="preserve">
+    <value>Месяц</value>
+  </data>
+  <data name="CalendarWeek" xml:space="preserve">
+    <value>Неделя</value>
+  </data>
+  <data name="CalendarDay" xml:space="preserve">
+    <value>День</value>
+  </data>
+  <data name="CalendarToday" xml:space="preserve">
+    <value>Сегодня</value>
+  </data>
+  <data name="CalendarPrevious" xml:space="preserve">
+    <value>Назад</value>
+  </data>
+  <data name="CalendarNext" xml:space="preserve">
+    <value>Вперёд</value>
+  </data>
+  <data name="CalendarMoreItems" xml:space="preserve">
+    <value>ещё {0}</value>
+  </data>
+  <data name="CalendarDayTitlePattern" xml:space="preserve">
+    <value>dddd, d MMM yyyy</value>
+  </data>
+  <data name="CalendarNote" xml:space="preserve">
+    <value>Показывает, что будет запущено с этого момента, по времени EVE, пока приложение открыто. Выключенные задачи не показаны, а время после следующего запуска интервальной задачи приблизительно, так как каждый запуск отсчитывается от предыдущего. Нажмите на задачу, чтобы изменить её.</value>
+  </data>
+  <data name="WebhookHostedNote" xml:space="preserve">
+    <value>Этот вебхук Slack показывает изображения по их адресу, поэтому они загружаются на eveconsole.com и хранятся 12 месяцев. Их может увидеть любой, у кого есть ссылка.</value>
+  </data>
+  <data name="SlackRichOption" xml:space="preserve">
+    <value>В Slack публиковать с изображениями и выровненными столбцами</value>
+  </data>
+  <data name="SlackRichNote" xml:space="preserve">
+    <value>Если не отмечено, раздел публикуется текстовой таблицей. В Discord всегда отправляется текст.</value>
+  </data>
+  <data name="IntroTextLabel" xml:space="preserve">
+    <value>ТЕКСТ НАД ТАБЛИЦЕЙ</value>
+  </data>
+  <data name="IntroTextHint" xml:space="preserve">
+    <value>Публикуется под заголовком, в Slack и в текстовой таблице. Работают эмодзи, ссылки и упоминания, причём упоминание действительно уведомляет.</value>
+  </data>
+  <data name="PictureLabel" xml:space="preserve">
+    <value>КАРТИНКА</value>
+  </data>
+  <data name="PictureHint" xml:space="preserve">
+    <value>Только в формате Slack, рядом с заголовком. У блока Slack всегда есть заголовок, поэтому пустой заменяется заголовком по умолчанию.</value>
+  </data>
+  <data name="PictureKindNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="PictureKindCharacter" xml:space="preserve">
+    <value>Персонаж</value>
+  </data>
+  <data name="PictureKindCorporation" xml:space="preserve">
+    <value>Корпорация</value>
+  </data>
+  <data name="PictureKindAlliance" xml:space="preserve">
+    <value>Альянс</value>
+  </data>
+  <data name="PictureKindFaction" xml:space="preserve">
+    <value>Фракция</value>
+  </data>
+  <data name="PictureKindNpcCorporation" xml:space="preserve">
+    <value>NPC-корпорация</value>
+  </data>
+  <data name="PictureKindAgent" xml:space="preserve">
+    <value>Агент</value>
+  </data>
+  <data name="PictureKindType" xml:space="preserve">
+    <value>Тип предмета</value>
+  </data>
+  <data name="BoxWidthLabel" xml:space="preserve">
+    <value>БЛОК В SLACK</value>
+  </data>
+  <data name="BoxWidthNone" xml:space="preserve">
+    <value>Без блока</value>
+  </data>
+  <data name="BoxWidthNarrow" xml:space="preserve">
+    <value>Узкий</value>
+  </data>
+  <data name="BoxWidthStandard" xml:space="preserve">
+    <value>Стандартный</value>
+  </data>
+  <data name="BoxWidthWide" xml:space="preserve">
+    <value>Широкий</value>
+  </data>
+  <data name="BoxWidthHint" xml:space="preserve">
+    <value>Первая строка текста становится заголовком блока. В Discord и текстовых сообщениях текст остаётся как написан.</value>
+  </data>
+  <data name="RichFactLine" xml:space="preserve">
+    <value>{0}: {1}</value>
+  </data>
+  <data name="OppsTopPeriod" xml:space="preserve">
+    <value>Активность за последние 30 дней</value>
+  </data>
+  <data name="OppsTopUnits" xml:space="preserve">
+    <value>Продано единиц</value>
+  </data>
+  <data name="OppsTopAvg" xml:space="preserve">
+    <value>Средняя цена</value>
+  </data>
+  <data name="OppsTopMargin" xml:space="preserve">
+    <value>Маржа %</value>
+  </data>
+  <data name="OppsTopSales" xml:space="preserve">
+    <value>Всего продаж</value>
+  </data>
+  <data name="OppsTopProfit" xml:space="preserve">
+    <value>Общая прибыль</value>
+  </data>
+  <data name="OppsTopItem" xml:space="preserve">
+    <value>Лучший предмет</value>
+  </data>
+  <data name="OppsBoxFull" xml:space="preserve">
+    <value>В блоке Slack нет места для новых столбцов. Удалите один, чтобы добавить другой.</value>
+  </data>
+  <data name="OppsBoxLeftOut" xml:space="preserve">
+    <value>Слишком широко для блока Slack. Эти столбцы не войдут в публикацию: {0}</value>
+  </data>
+  <data name="PreviewSlackRich" xml:space="preserve">
+    <value>[{0} — здесь показано текстом; в Slack будут изображения и выровненные столбцы]</value>
+  </data>
+  <data name="RichShareOfTotal" xml:space="preserve">
+    <value>{0} от общего</value>
+  </data>
+  <data name="RunPostedRich" xml:space="preserve">
+    <value>Опубликовано сообщений с изображениями: {0}.</value>
+  </data>
+  <data name="RunPostedRichPart" xml:space="preserve">
+    <value>Опубликовано {0} из {1} сообщений; Slack отклонил следующее: {2}.</value>
+  </data>
+  <data name="RunRichRefused" xml:space="preserve">
+    <value>Slack не принял формат с изображениями ({0}), поэтому отправлен текст.</value>
+  </data>
+  <data name="RichTopLabel" xml:space="preserve">
+    <value>Лидер</value>
+  </data>
+  <data name="IndexOutNative" xml:space="preserve">
+    <value>Индексы на сегодня с изменением за 7 дней (таблица Slack)</value>
+  </data>
+  <data name="IndexOutCombined" xml:space="preserve">
+    <value>Все шесть графиков на одной картинке (изображение)</value>
+  </data>
+  <data name="IndexCombinedTitle" xml:space="preserve">
+    <value>История индексов</value>
+  </data>
+  <data name="IndexRichNote" xml:space="preserve">
+    <value>{0} — самый низкий для этой работы. {1} {2} — изменение за 7 дней в пунктах.</value>
+  </data>
+  <data name="IndexEmojiBest" xml:space="preserve">
+    <value>Эмодзи самого низкого</value>
+  </data>
+  <data name="IndexEmojiUp" xml:space="preserve">
+    <value>Эмодзи роста</value>
+  </data>
+  <data name="IndexEmojiDown" xml:space="preserve">
+    <value>Эмодзи падения</value>
+  </data>
+  <data name="IndexEmojiNote" xml:space="preserve">
+    <value>Для таблицы Slack. Если пусто, используется показанный стандартный эмодзи. Свой эмодзи виден только в рабочем пространстве, где он есть.</value>
+  </data>
+  <data name="CompareOutNative" xml:space="preserve">
+    <value>Сводка по работам (таблица Slack)</value>
+  </data>
+  <data name="CompareOutBoxes" xml:space="preserve">
+    <value>Блок на каждую работу (Slack)</value>
+  </data>
+  <data name="ParkRichNote" xml:space="preserve">
+    <value>{0} — лучший парк для этой работы. Каждый процент показывает отставание от лучшего.</value>
+  </data>
+  <data name="JobBoxesNote" xml:space="preserve">
+    <value>Каждый процент показывает отставание от лучшего парка для этой работы.</value>
+  </data>
+  <data name="JobBoxBuildTitle" xml:space="preserve">
+    <value>{0} — Производство</value>
+  </data>
+  <data name="JobBoxUnits" xml:space="preserve">
+    <value>{0:N0} × {1}</value>
+  </data>
+  <data name="JobBoxValue" xml:space="preserve">
+    <value>Рыночная стоимость {0} ISK</value>
+  </data>
+  <data name="JobBoxInventTarget" xml:space="preserve">
+    <value>BPC: {0}</value>
+  </data>
+  <data name="JobBoxInventRuns" xml:space="preserve">
+    <value>Циклов: {0:N0}, ME {1}, TE {2}</value>
+  </data>
+  <data name="JobBoxMeRange" xml:space="preserve">
+    <value>ME 0 до ME {0}</value>
+  </data>
+  <data name="JobBoxTeRange" xml:space="preserve">
+    <value>TE 0% до TE {0}%</value>
+  </data>
+  <data name="JobBoxMoreParks" xml:space="preserve">
+    <value>Ещё парков: {0}</value>
+  </data>
+  <data name="CompareMarketLabel" xml:space="preserve">
+    <value>Рыночная стоимость из</value>
+  </data>
+  <data name="CompareMarketDefault" xml:space="preserve">
+    <value>Рынок по умолчанию</value>
+  </data>
+  <data name="ComparePriceLabel" xml:space="preserve">
+    <value>Цена</value>
+  </data>
+  <data name="ComparePriceDefault" xml:space="preserve">
+    <value>Цена по умолчанию</value>
+  </data>
+  <data name="CompareMarketNote" xml:space="preserve">
+    <value>Рыночная стоимость в блоке работы. По умолчанию следует настройкам рынка и заменам цен; при выборе читается собственная цена этого рынка.</value>
+  </data>
+  <data name="IndexOutTableImage" xml:space="preserve">
+    <value>Индексы на сегодня с изменением за 7 дней (изображение)</value>
+  </data>
+  <data name="IndexTableImageTitle" xml:space="preserve">
+    <value>Индексы на сегодня</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>Изменено: сигнал теперь исходит из текущей обстановки, поэтому пилот, замеченный с тех пор в другом месте, или система, объявленная чистой, его больше не вызывают. Каждый пилот объявляется один раз, пока остаётся в системе, число неназванных пилотов — снова только когда оно превышает 1, 4, 9 или 19, а сообщение только о кемпе на гейте, бубликах, цино, хотдропе, всплеске в локале или боевых зондах тоже срабатывает (Сообщения только с пометками, ниже).</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>Сообщения только с пометками</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>Срабатывать и на сообщение, где никто не посчитан, но сказано о кемпе на гейте, бубликах, цино, хотдропе, всплеске в локале или боевых зондах. Каждое объявляется один раз, пока действует.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>Уничтожение в {0}: потерян {1}, атакующие — {2}.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>Уничтожение в {0}, {1}: потерян {2}, атакующие — {3}.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>противник</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>В {0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>В {0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>Уничтожение</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>Уничтожения</value>
+  </data>
+  <data name="CheckIntelNewsNote" xml:space="preserve">
+    <value>Срабатывает только новое: замеченное или вошедшее в зону за последние две минуты (Настройки → Разведка); то, что уже было, не озвучивается. Каждое действие тревоги выполняется для всего, на что она сработала. Чтобы ближе было иначе, добавьте ещё одну тревогу со своей дальностью в прыжках.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>Где следить</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>Что срабатывает</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>прыжков</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>Тише вдали</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>Звук играет на полной громкости в пределах прыжка и тише дальше: до 40% на краю радиуса. Речь сохраняет свою громкость.</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>Враждебные</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>Какие названные пилоты считаются — по стендингам вашего ближайшего персонажа (или персонажа, заданного в Настройки → Intel). Синие и ваши собственные персонажи не считаются никогда; безымянные количества и сообщения только с пометками — всегда.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>Нейтралы и хуже</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>Только отрицательные</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>Только красные</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>Учитывать список наблюдения</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>То, что стоит на «Всегда оповещать», срабатывает в пределах охвата списка наблюдения независимо от дальности, выбора «Враждебные» и минимума, озвучивается первым; то, что стоит на «Игнорировать», не срабатывает никогда.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>Охват списка наблюдения</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>На сколько прыжков срабатывают записи «Всегда оповещать», если это дальше основной дальности. Не больше 15.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>Приоритетные системы</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>Необязательно. Системы, за которыми следят всегда, где бы ни были ваши персонажи, но не ближе, чем «Прыжки: с». Замеченное там озвучивается первым.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>Приоритетная система: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>Список наблюдения: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>Приближается: идёт в {0}.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>Приближается: идёт в {0}, {1}.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>Приближается: был {0}.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>Уходит, в {0}.</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}, через Thera или Turnur</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>Также включено по умолчанию: кемпы на гейтах, вычисленные по уничтожениям, рядом с вашими персонажами или на маршруте впереди, и сам маршрут впереди — системы, которые ещё предстоит пройти на последнем маршруте, отправленном в игру Планировщиком маршрутов (Кемпы на гейтах и Следить за маршрутом впереди, ниже).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>Следить за маршрутом впереди</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>Также следить за системами, ещё лежащими впереди на последнем маршруте, который Планировщик маршрутов отправил в игру для отслеживаемого персонажа, как бы далеко они ни были: то, что замечено там, вызывает сигнал и объявляется как столько-то прыжков впереди на маршруте. Только ещё не пройденная часть; маршрут отбрасывается по прибытии или через шесть часов после отправки. Маршрут, заданный только в игре, узнать нельзя.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>Кемпы на гейтах</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>Срабатывать на кемп на гейте, вычисленный по уничтожениям у гейта, рядом с отслеживаемым персонажем или на маршруте впереди. Объявляется один раз на кемп, на персонажа и на маршрут, так что новый маршрут через известный кемп объявляет его снова. Кемп на маршруте впереди в пределах 5 прыжков срочный: озвучивается первым.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>Кемп в {0} на гейте в {1}.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>Кемп в {0} на гейте в {1}, {2}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOne" xml:space="preserve">
+    <value>{0} уничтожение за {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{0} уничтожения за {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsFew" xml:space="preserve">
+    <value>{0} уничтожения за {1}.</value>
+  </data>
+  <data name="IntelSaidCampKillsMany" xml:space="preserve">
+    <value>{0} уничтожений за {1}.</value>
+  </data>
+  <data name="IntelSaidMinutesOne" xml:space="preserve">
+    <value>{0} минуту</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="IntelSaidMinutesFew" xml:space="preserve">
+    <value>{0} минуты</value>
+  </data>
+  <data name="IntelSaidMinutesMany" xml:space="preserve">
+    <value>{0} минут</value>
+  </data>
+  <data name="IntelSaidOnRouteOne" xml:space="preserve">
+    <value>в {0} прыжке впереди на маршруте {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>в {0} прыжках впереди на маршруте {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteFew" xml:space="preserve">
+    <value>в {0} прыжках впереди на маршруте {1}</value>
+  </data>
+  <data name="IntelSaidOnRouteMany" xml:space="preserve">
+    <value>в {0} прыжках впереди на маршруте {1}</value>
   </data>
 </root>

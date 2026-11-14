@@ -484,4 +484,13 @@
     <value>{0} (Original)</value>
     <comment>A blueprint original (BPO) wherever one is named: {0} is the blueprint's name. Shown with the dark-blue original picture. Not used for reaction formulas.</comment>
   </data>
+  <data name="KeyTaken" xml:space="preserve">
+    <value>{0} is already used for {1}. Choose another key, or clear it there first.</value>
+  </data>
+  <data name="KeyAlsoUsed" xml:space="preserve">
+    <value>{0} is also used for {1}, so one press does both. Choose another key for one of them.</value>
+  </data>
+  <data name="KeyUseWhere" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

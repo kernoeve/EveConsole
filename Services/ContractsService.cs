@@ -208,6 +208,12 @@ public class ContractsService : ReactiveObject
             if (r.IsSuccess && r.Data is not null)
             {
                 await UpsertPublicContractsAsync(db, region.RegionId, r.Data, r.Complete, ct);
+                // ⚠️ Let go of the region once it's saved. The context is shared across every
+                // region and each loads all its stored contracts tracked, so without this the tracker
+                // held every region's before it — over half a million rows — and each save scanned
+                // all of them for changes: minutes of a background thread churning two gigabytes
+                // every two seconds. Each region reads and saves only its own, so nothing is lost.
+                db.ChangeTracker.Clear();
                 total += r.Data.Count;
                 StatusText = $"Contracts: public {i + 1}/{regions.Count} regions · {total:N0} listed";
             }

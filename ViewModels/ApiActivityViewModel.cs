@@ -1,5 +1,6 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Collections.Specialized;
+using System.Globalization;
 using System.Reactive;
 using Avalonia.Threading;
 using EveConsole.Localization;
@@ -7,6 +8,7 @@ using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
 using EveConsole.Services;
+using EveConsole.Services.Jabber;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
@@ -140,6 +142,7 @@ public class ApiActivityViewModel : ReactiveObject
     private readonly BackgroundStatusSampler _sampler;
     private readonly AlarmConditionRegistry  _conditions;
     private readonly EsiPollingService    _polling;
+    private readonly JabberService        _jabber;
     private readonly EsiClient            _esi;
     private readonly TimerSettingsService _timerSettings;
     private readonly MarketHistoryService _history;
@@ -424,8 +427,10 @@ public class ApiActivityViewModel : ReactiveObject
         EntityNameBackfillService nameCache,
         AlarmService              alarms,
         OrderFulfilmentService    orderFulfilment,
-        LpStoreService            lpStore)
+        LpStoreService            lpStore,
+        JabberService             jabber)
     {
+        _jabber        = jabber;
         Entries        = log.Entries;
         InFlight       = log.InFlightCalls;
         _visible       = Entries;
@@ -775,9 +780,87 @@ public class ApiActivityViewModel : ReactiveObject
     /// <summary>Runs the structure sweep now rather than waiting for the hour to come round.</summary>
     public ReactiveCommand<Unit, Unit> RunStructureSweep { get; }
 
+    // ── Jabber ───────────────────────────────────────────────────────────────
+
+    private string _jabberWhere = "";
+    private string _jabberWorkerHost = "";
+    private IReadOnlyList<JabberConversationActivity> _jabberActivity = [];
+    private readonly Dictionary<string, StageRowVm> _jabberRowsByKey = [];
+
+    /// <summary>Which client holds the connections, or why there is nothing to show.</summary>
+    public string JabberWhere { get => _jabberWhere; private set => this.RaiseAndSetIfChanged(ref _jabberWhere, value); }
+
+    /// <summary>Each account, then its direct messages and its rooms. As shown on this client, whichever holds the connection.</summary>
+    public ObservableCollection<StageRowVm> JabberRows { get; } = [];
+
+    /// <summary>Whether what is saved has been read yet, for the tab to read it as soon as it shows.</summary>
+    public bool JabberActivityRead { get; private set; }
+
+    /// <summary>What is saved, and who holds the connections. Asks the database, so for the tab while it is showing.</summary>
+    public async Task RefreshJabberActivityAsync()
+    {
+        JabberActivityRead = true;
+        var activity = await Task.Run(() => _jabber.ActivityAsync());
+        var worker = _lease.IsHolder ? null : await WorkerLease.ReadStatusAsync();
+
+        _jabberActivity = activity;
+        _jabberWorkerHost = worker is not null && WorkerLease.IsLive(worker) ? worker.HostName : "";
+        SyncJabber();
+    }
+
+    private void SyncJabber()
+    {
+        var sessions = _jabber.Sessions;
+
+        JabberWhere = sessions.Count == 0 ? DataText.JabberNoAccounts
+            : _lease.IsHolder ? DataText.JabberRunsHere
+            : _jabberWorkerHost.Length > 0 ? string.Format(CultureInfo.CurrentCulture, DataText.JabberRunsOn, _jabberWorkerHost)
+            : DataText.JabberRunsNowhere;
+
+        static string Last(IEnumerable<JabberConversationActivity> of) =>
+            of.Select(a => a.LastAt).DefaultIfEmpty("").Max(StringComparer.Ordinal) is { Length: > 0 } last ? ChatTime.Of(last) : "";
+        static string Count(IEnumerable<JabberConversationActivity> of) => of.Sum(a => a.LastDay).ToString("N0", CultureInfo.CurrentCulture);
+
+        var wanted = new List<StageRowVm>();
+        StageRowVm Row(string key, string name)
+        {
+            if (!_jabberRowsByKey.TryGetValue(key, out var row)) _jabberRowsByKey[key] = row = new StageRowVm(name);
+            wanted.Add(row);
+            return row;
+        }
+
+        foreach (var session in sessions)
+        {
+            var id = session.Account.Id;
+            var mine = _jabberActivity.Where(a => a.AccountId == id).ToList();
+            Row($"account:{id}", session.Account.Address)
+                .Set(JabberViewModel.StateText(session), session.State == JabberState.Connected, session.Detail, Last(mine), Count(mine));
+
+            var direct = mine.Where(a => !a.IsRoom).ToList();
+            Row($"direct:{id}", "    " + DataText.JabberDirectMessages).Set("", false, "", Last(direct), Count(direct));
+
+            foreach (var state in session.Rooms.Where(r => !r.Room.Left).OrderBy(r => JabberViewModel.DisplayRoom(r.Room), StringComparer.CurrentCultureIgnoreCase))
+            {
+                var room = mine.Where(a => a.IsRoom && a.Conversation == state.Room.RoomJid).ToList();
+                var present = session.Locked(_ => state.Occupants.Count);
+                var detail = state.Failure is { } failure ? JabberViewModel.RoomFailureText(failure, state.FailureText)
+                    : state.Joined ? string.Format(CultureInfo.CurrentCulture, DataText.JabberPresent, present)
+                    : "";
+                if (state.Room.RoomType == JabberRoomType.Intel) detail = detail.Length > 0 ? $"{DataText.TabIntel} · {detail}" : DataText.TabIntel;
+
+                Row($"room:{id}:{state.Room.RoomJid}", "    " + JabberViewModel.DisplayRoom(state.Room))
+                    .Set(state.Joined ? DataText.JabberJoined : DataText.JabberNotJoined, state.Joined, detail, Last(room), Count(room));
+            }
+        }
+
+        ListSync.Sync(JabberRows, wanted, r => r);
+    }
+
     /// <summary>Cheap, in-memory only — safe to call on the window's 2s tick.</summary>
     public void SyncBackgroundProcesses()
     {
+        SyncJabber();
+
         var enabled = _zkbSettings.Enabled;
         var allScope = _zkbSettings.Scope == ZkbScope.All;
 
@@ -796,21 +879,25 @@ public class ApiActivityViewModel : ReactiveObject
             ? string.Format(DataText.ZkbCoverageThrough, d)
             : DataText.ZkbCoverageNone;
 
-        // Intel. Chat import is the gate — parsing runs off its loop, so with chat off nothing
-        // reaches the parser however many channels are ticked.
-        var intelChannels = _monitoring.ChatIntelChannels;
-        IntelState = !_monitoring.ChatEnabled
+        // Intel. Chat import is the gate for the channels ticked: parsing runs off its loop, so with
+        // chat off nothing of theirs reaches the parser. A Jabber room marked Intel does not need it.
+        IReadOnlyList<string> intelChannels = _monitoring.ChatEnabled
+            ? [.. _monitoring.ChatIntelChannels, .. _intel.RoomChannels]
+            : _intel.RoomChannels;
+        IntelState = !_monitoring.ChatEnabled && intelChannels.Count == 0
             ? DataText.IntelDisabled
             : intelChannels.Count == 0
                 ? DataText.IntelNoChannels
-                : _intel.IsRunning
+                : RelayRunning(WorkerActivityService.Intel, () => _intel.IsRunning)
                     ? DataText.IntelParsing
                     : DataText.IntelWatching;
 
+        // ⚠️ The worker's, relayed: only the worker parses, so this client's own parser is idle by design.
+        var intelBacklog  = RelayCount(WorkerActivityService.Intel, () => _intel.Backlog);
         IntelChannelsText = intelChannels.Count == 0 ? DataText.IntelChannelsNone : string.Join(", ", intelChannels);
-        IntelDetail       = _intel.StatusText;
-        IntelBacklogText  = _intel.Backlog > 0
-            ? string.Format(DataText.IntelBacklogCount, _intel.Backlog)
+        IntelDetail       = Relay(WorkerActivityService.Intel, () => _intel.StatusText);
+        IntelBacklogText  = intelBacklog > 0
+            ? string.Format(DataText.IntelBacklogCount, intelBacklog)
             : DataText.IntelCaughtUp;
 
         NameCacheState = Relay(WorkerActivityService.NameCache, () => _nameCache.StatusText);

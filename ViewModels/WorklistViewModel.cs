@@ -378,7 +378,8 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         }
 
         // The item the task is about, else the image its generator chose for it (WorklistItem.IconUrl).
-        var bmp = _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
+        var bmp = _item.PictureTypeId > 0              ? await TypePictureAsync(_item.PictureTypeId, _item.TypeImage ?? "icon")
+                : _item.TypeId > 0                     ? await TypePictureAsync(_item.TypeId, IconVariant)
                 : !string.IsNullOrEmpty(_item.IconUrl) ? await EveImageCache.GetAsync(_item.IconUrl)
                 : null;
 
@@ -428,12 +429,14 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             HaulLane.LongDistance => WorklistText.KindHaulLongDistance,
             _                     => WorklistText.KindHaul,
         },
+        WorklistKind.Transfer    => WorklistText.KindTransfer,
         WorklistKind.Refine      => WorklistText.KindRefine,
         WorklistKind.Decompress  => WorklistText.KindDecompress,
         WorklistKind.Job         => WorklistText.KindJob,
         WorklistKind.AssetSafety => WorklistText.KindAssetSafety,
         WorklistKind.SkillQueue  => WorklistText.KindSkillQueue,
         WorklistKind.Pi          => WorklistText.KindPi,
+        WorklistKind.Structure   => WorklistText.KindStructure,
         _                        => WorklistText.KindCorpProject,
     };
 
@@ -460,6 +463,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         (WorklistKind.Haul, _) =>
             "M2,8 H11 M8.5,5 L12,8 L8.5,11 M13.5,4 V12",
 
+        // Two arrows passing each other: from one owner's hands to another's, in one place.
+        (WorklistKind.Transfer, _) =>
+            "M2,5.5 H12 M9.5,3 L12.5,5.5 L9.5,8 M14,10.5 H4 M6.5,8 L3.5,10.5 L6.5,13",
+
         // A rock breaking into pieces: reprocessing.
         (WorklistKind.Refine, _) =>
             "M8,1.5 L13,4.5 V10 L8,13.5 L3,10 V4.5 Z M3,4.5 L8,7.5 L13,4.5 M8,7.5 V13.5",
@@ -469,27 +476,12 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
             "M4,7 H2 M12,7 H14 M4,9.5 H2 M12,9.5 H14 M5.5,3.5 L8,1.5 L10.5,3.5 " +
             "M5,6 H11 V11 H5 Z",
 
-        // Factory roofline.
-        (WorklistKind.Job, IndustryPool.Manufacturing) =>
-            "M2,13 V6 L6,8.5 V6 L10,8.5 V6 L14,8.5 V13 Z",
-
-        // ⚠️ Atom, not a flask. The flask is what EVE draws for science, so using it here read as
-        // "copying" on every reaction row — the two got swapped on first writing. In the client's
-        // facility list the reaction icon is the last of the activity marks and is the round one.
-        (WorklistKind.Job, IndustryPool.Reaction) =>
-            "M8,6.75 A1.25,1.25 0 1,0 8,9.25 A1.25,1.25 0 1,0 8,6.75 " +
-            "M4.3,11.7 A5.2,2.4 45 1,1 11.7,4.3 A5.2,2.4 45 1,1 4.3,11.7 " +
-            "M4.3,4.3 A5.2,2.4 -45 1,1 11.7,11.7 A5.2,2.4 -45 1,1 4.3,4.3",
-
-        // Flask: copying and invention, which share the science slots — and which is what the
-        // client marks those activities with.
-        (WorklistKind.Job, IndustryPool.Science) =>
-            "M6.5,2 V6 L3,12.5 A1,1 0 0,0 4,14 H12 A1,1 0 0,0 13,12.5 L9.5,6 V2 Z M5.5,2 H10.5",
-
-        // Gear, for a job whose pool is not known.
-        (WorklistKind.Job, _) =>
-            "M8,5.5 A2.5,2.5 0 1,0 8,10.5 A2.5,2.5 0 1,0 8,5.5 M8,1.5 V3.5 M8,12.5 V14.5 " +
-            "M1.5,8 H3.5 M12.5,8 H14.5 M3.5,3.5 L5,5 M11,11 L12.5,12.5 M12.5,3.5 L11,5 M5,11 L3.5,12.5",
+        // The Industry Jobs grid's marks (IndustryGlyphs), by slot pool rather than activity: the
+        // flask stands for copying, invention and research together, which share the science slots.
+        (WorklistKind.Job, IndustryPool.Manufacturing) => IndustryGlyphs.Manufacturing,
+        (WorklistKind.Job, IndustryPool.Reaction)      => IndustryGlyphs.Reaction,
+        (WorklistKind.Job, IndustryPool.Science)       => IndustryGlyphs.Science,
+        (WorklistKind.Job, _)                          => IndustryGlyphs.Unknown,
 
         // Flag: a corp project.
         (WorklistKind.CorpProject, _) =>
@@ -502,6 +494,10 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         // A ringed planet: Planetary Industry.
         (WorklistKind.Pi, _) =>
             "M8,4 A4,4 0 1,0 8,12 A4,4 0 1,0 8,4 M1.5,10.5 C0.5,12.5 5,11.5 8.5,9.5 C12,7.5 15.5,4.5 14.5,3.8",
+
+        // A tower on a base: a corporation structure.
+        (WorklistKind.Structure, _) =>
+            "M2,14 H14 M4,14 V9 H12 V14 M6,9 V4 H10 V9 M8,4 V1.5",
 
         // Rising bars: a skill queue.
         _ => "M3,13 V9.5 M6.5,13 V7 M10,13 V4.5 M13.5,13 V2",
@@ -528,6 +524,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
     {
         (WorklistKind.Buy,  _)                        => WorklistText.KindBuy,
         (WorklistKind.Haul, _)                        => WorklistText.KindHaul,
+        (WorklistKind.Transfer, _)                    => WorklistText.KindTipTransfer,
         (WorklistKind.Refine, _)                      => WorklistText.KindTipRefine,
         (WorklistKind.Decompress, _)                  => WorklistText.KindTipDecompress,
         (WorklistKind.Job, IndustryPool.Manufacturing) => WorklistText.KindTipManufacturing,
@@ -537,6 +534,7 @@ public class WorklistRowVm : ReactiveObject, IExpandableRow, IFamilyRow
         (WorklistKind.CorpProject, _)                  => WorklistText.KindTipCorpProject,
         (WorklistKind.AssetSafety, _)                  => WorklistText.KindTipAssetSafety,
         (WorklistKind.Pi, _)                           => WorklistText.KindTipPi,
+        (WorklistKind.Structure, _)                    => WorklistText.KindTipStructure,
         _                                              => WorklistText.KindTipSkillQueue,
     };
 
@@ -1276,7 +1274,9 @@ public sealed class ObservationPointVm : ReactiveObject
     public ObservationPointVm(ObservationPoint p)
     {
         _p = p;
-        if (p.TypeId > 0) _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b, p.Print);
+        if (p.IsFormula)              _ = ItemIcons.LoadFormulaAsync(p.TypeId, b => Icon = b);
+        else if (p.PictureTypeId > 0) _ = ItemIcons.LoadAsync(p.PictureTypeId, b => Icon = b, blueprint: true);
+        else if (p.TypeId > 0)        _ = ItemIcons.LoadAsync(p.TypeId, b => Icon = b, p.Print);
     }
 
     public string Text => _p.Text;
@@ -1881,8 +1881,17 @@ public sealed class StationNeedRowVm : ReactiveObject, IExpandableRow, IFamilyRo
 /// once the thing it asked for has happened. Detection is off polled ESI data, which means a
 /// refresh only reflects the last poll — hence the per-row data age.
 /// </summary>
-public class WorklistViewModel : ReactiveObject
+public class WorklistViewModel : ReactiveObject, IDisposable
 {
+    /// <summary>A copy of the tool closed: its tabs stop following the character list.</summary>
+    public void Dispose()
+    {
+        MarketAltsVm.Life.Dispose();
+        CorpAltsVm.Life.Dispose();
+        IndustryVm.Life.Dispose();
+        HaulingVm.Life.Dispose();
+    }
+
     private readonly WorklistService   _service;
     private readonly BottleneckService     _bottlenecks;
     private readonly ItemContentionService _itemContention;
@@ -1890,6 +1899,19 @@ public class WorklistViewModel : ReactiveObject
     private readonly BottleneckSummaryService _summary = new();
 
     public BulkObservableCollection<WorklistRowVm> Rows { get; } = [];
+
+    /// <summary>Multibuy text from the filtered rows, using English names and unformatted units.</summary>
+    public static string FormatBuyList(IEnumerable<WorklistRowVm> rows) =>
+        string.Join(Environment.NewLine, rows
+            .Where(r => r.IsBuy)
+            .Select(r => r.Item)
+            // Order maintenance has no quantity; blueprint requests can count runs, not items.
+            .Where(i => i.Quantity > 0 && i.TypeId > 0 && !string.IsNullOrWhiteSpace(i.TypeName)
+                        && i.TitleTag != "BPO/BPC" && i.Print != PrintKind.Copy)
+            .GroupBy(i => i.TypeId)
+            .OrderBy(g => g.First().TypeName, StringComparer.Ordinal)
+            .Select(g => g.First().TypeName + "\t"
+                         + g.Sum(i => i.Quantity).ToString(System.Globalization.CultureInfo.InvariantCulture)));
 
     /// <summary>
     /// What the grid actually binds to: <see cref="Rows"/> grouped by task.
@@ -2242,8 +2264,14 @@ public class WorklistViewModel : ReactiveObject
     /// <summary>Where each group's stock should live. Distribution, not demand.</summary>
     public WorklistStationLevelsViewModel StationLevelsVm { get; }
 
+    /// <summary>The default corporation, and what each character keeps at a station.</summary>
+    public WorklistCharacterLevelsViewModel CharacterLevelsVm { get; }
+
     /// <summary>Config → Hauling: how each kind of trip is made, and by whom.</summary>
     public WorklistHaulingViewModel HaulingVm { get; }
+
+    /// <summary>Config → Structures: which corporations' structures raise tasks, and which tasks.</summary>
+    public WorklistStructuresViewModel StructuresVm { get; }
 
     /// <summary>What the work was ultimately for: jobs producing the things we sell.</summary>
     public WorklistFinalProductsViewModel FinalProductsVm { get; }
@@ -2323,8 +2351,16 @@ public class WorklistViewModel : ReactiveObject
         StationLevelsVm = stationLevels;
         FinalProductsVm = finalProducts;
         StationLevelsVm.LevelsChanged = RefreshAsync;
+        CharacterLevelsVm = new WorklistCharacterLevelsViewModel(service.DbFactory, service.Settings, stationLevels.LocationPopulator)
+        {
+            LevelsChanged = RefreshAsync,
+        };
         HaulingVm = hauling;
         HaulingVm.HaulingChanged = RefreshAsync;
+        StructuresVm = new WorklistStructuresViewModel(service.DbFactory, service.Settings)
+        {
+            StructuresChanged = RefreshAsync,
+        };
 
         // Assigning a market alt unblocks items, so the list should reflect it without a manual
         // refresh — that gap is exactly what makes config feel like it did not take.
@@ -2340,7 +2376,10 @@ public class WorklistViewModel : ReactiveObject
         });
 
         BuildToggles();
-        _ = RefreshAsync();
+        // Built once the app has started, not now: this runs while the app builds its tools, and a
+        // first build started here ran the whole time the main window waited for the Overview,
+        // slowing every query it made. Never built, the list is stale, so this does build it.
+        _ = RefreshIfStaleAsync(TimeSpan.FromMinutes(5));
     }
 
     /// <summary>
@@ -2480,10 +2519,41 @@ public class WorklistViewModel : ReactiveObject
     /// every generator. Refreshing it on that cadence would put the tool's whole cost on a panel
     /// the user may not be looking at, so the sections accept data that is a few minutes old.</para>
     /// </summary>
+    /// <summary>
+    /// Rebuilds if the list is older than <paramref name="maxAge"/>, or joins the rebuild already
+    /// running, which is as fresh as it gets.
+    /// <para>⚠️ Joins rather than starts. At startup the list has never been built, so every caller
+    /// found it stale — the Overview and each Overview in a Tool Container, and every Worklist
+    /// control on a panel — and each started a whole build of its own, all at once. Every build
+    /// plans each item with copies of the price tables, so a desktop with panels on five monitors
+    /// ran a dozen of them side by side: gigabytes a second for two minutes, the UI frozen in garbage
+    /// collection.</para>
+    /// <para>⚠️ And not before the app has started (<see cref="AppStartup"/>). A first build is the
+    /// longest thing the app does against the database, and run while the main window waits for the
+    /// Overview, it made that wait seconds longer. Asked for by someone — Refresh, a setting — it
+    /// doesn't wait.</para>
+    /// </summary>
     public Task RefreshIfStaleAsync(TimeSpan maxAge)
-        => _lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge)
-            ? Task.CompletedTask
-            : RefreshAsync();
+    {
+        lock (_refreshGate)
+            if (_refreshRunning is { IsCompleted: false } running) return running;
+        if (_lastRefreshUtc is { } last && (!AutoRefresh || DateTimeOffset.UtcNow - last < maxAge))
+            return Task.CompletedTask;
+        return AppStartup.IsSettled ? StartRefresh(again: false) : AfterStartupAsync();
+
+        async Task AfterStartupAsync()
+        {
+            await AppStartup.WhenSettledAsync();
+            await RefreshIfStaleAsync(maxAge);
+        }
+    }
+
+    /// <summary>Whether the list has been built at all yet, so an empty one can say it's still coming.</summary>
+    public bool HasBuilt => _lastRefreshUtc is not null;
+
+    private readonly object _refreshGate = new();
+    private Task? _refreshRunning;
+    private bool _refreshAgain;
 
     private bool _autoRefresh = UiState.GetBool(UiState.WorklistAutoRefresh, true);
 
@@ -3061,7 +3131,54 @@ public class WorklistViewModel : ReactiveObject
     public string Errors { get => _errors; private set => this.RaiseAndSetIfChanged(ref _errors, value); }
     public bool HasErrors => Errors.Length > 0;
 
-    public Task RefreshAsync() => RefreshCoreAsync(sameRun: false);
+    /// <summary>
+    /// Rebuilds the list. Asked while a rebuild is running, it doesn't start a second beside it: one
+    /// more runs once that one ends, as what was asked for may have changed since it began (a
+    /// setting, a snooze), and however many ask meanwhile, that one run answers them all.
+    /// </summary>
+    public Task RefreshAsync() => StartRefresh(again: true);
+
+    /// <param name="again">Asked for while one runs: run once more after it. Not for a staleness check,
+    /// which the one running answers.</param>
+    private Task StartRefresh(bool again)
+    {
+        TaskCompletionSource done;
+        lock (_refreshGate)
+        {
+            if (_refreshRunning is { IsCompleted: false } running)
+            {
+                if (again) _refreshAgain = true;
+                return running;
+            }
+            // Marked running before it starts, outside the lock: starting runs code that raises
+            // property changes, and anything that asks again from there has to find this one.
+            done = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            _refreshRunning = done.Task;
+        }
+        _ = RefreshRunsAsync(done);
+        return done.Task;
+    }
+
+    private async Task RefreshRunsAsync(TaskCompletionSource done)
+    {
+        try
+        {
+            while (true)
+            {
+                lock (_refreshGate) _refreshAgain = false;
+                var started = System.Diagnostics.Stopwatch.StartNew();
+                await RefreshCoreAsync(sameRun: false);
+                StartupTrace.Mark($"Worklist built: {started.ElapsedMilliseconds:N0} ms");
+                lock (_refreshGate)
+                    if (!_refreshAgain) break;
+            }
+            done.TrySetResult();
+        }
+        catch (Exception e)
+        {
+            done.TrySetException(e);
+        }
+    }
 
     /// <param name="sameRun">⚠️ Show the last run differently rather than plan a new one. The two
     /// checkboxes and the summary's figures only change what is on screen, and a rebuild for those
@@ -3153,8 +3270,11 @@ public class WorklistViewModel : ReactiveObject
                 // ⚠️ One Reset, not one notification per row. The Overview rebuilds four more
                 // bound collections whenever this changes, so an item-by-item fill here was
                 // quadratic — see BulkObservableCollection.
-                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
+                // ⚠️ Built, before the rows change: what watches them asks whether the list has been
+                // built yet. The other way round, a Worklist control on a character with nothing
+                // ready stayed on "Loading the worklist…", its last change having said "not built".
                 _lastRefreshUtc = DateTimeOffset.UtcNow;
+                PoolRows.ResetTo(pool.Where(r => r.IsReady && !r.IsSnoozed));
                 RefreshedText   = string.Format(WorklistText.RefreshedAt, DateTime.Now);
 
                 RebuildFilterOptions();

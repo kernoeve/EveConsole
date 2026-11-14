@@ -1,0 +1,77 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        x:Class="EveConsole.Views.MumbleOverlayWindow"
+        x:DataType="vm:MumbleViewModel"
+        Title="{x:Static loc:MumbleText.OverlayTitle}"
+        Topmost="True"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        SystemDecorations="None"
+        CanResize="False"
+        SizeToContent="WidthAndHeight"
+        TransparencyLevelHint="Transparent"
+        Background="Transparent"
+        RequestedThemeVariant="Dark"
+        MinWidth="150">
+
+  <!-- ⚠️ This window sits over a game whatever the app's theme is, so the palette's names mean these here. -->
+  <Window.Resources>
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="#FFFFFFFF" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="#D0FFFFFF" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="#A0FFFFFF" />
+    <SolidColorBrush x:Key="TextDimBrush" Color="#60FFFFFF" />
+    <SolidColorBrush x:Key="WarnBrush" Color="#FFB454" />
+    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="#F2101418" />
+    <SolidColorBrush x:Key="SurfacePanelAltBrush" Color="#30FFFFFF" />
+    <SolidColorBrush x:Key="BorderDefaultBrush" Color="#50FFFFFF" />
+  </Window.Resources>
+
+  <Window.Styles>
+    <StyleInclude Source="avares://EveConsole/Views/MumbleStyles.axaml" />
+
+    <!-- A line between servers, and none after the last. -->
+    <Style Selector="Border.column"><Setter Property="BorderBrush" Value="#30FFFFFF" /><Setter Property="BorderThickness" Value="0 0 1 0" /><Setter Property="Padding" Value="0 0 6 0" /></Style>
+    <Style Selector="ContentPresenter:nth-last-child(1) > Border.column"><Setter Property="BorderThickness" Value="0" /><Setter Property="Padding" Value="0" /></Style>
+  </Window.Styles>
+
+  <!-- Dragged by anywhere on it, and small: it sits over a game. -->
+  <Border Background="#C8101418" CornerRadius="5" Padding="6" PointerPressed="OnDrag">
+    <StackPanel>
+      <TextBlock Text="{x:Static loc:MumbleText.OverlayNobody}" IsVisible="{Binding NobodyTalking}" FontSize="11" Margin="2" Foreground="#80FFFFFF" />
+      <ItemsControl ItemsSource="{Binding OverlayColumns}">
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="6" /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+          <!-- One server: this client on it, and under that whoever is talking there. -->
+          <DataTemplate x:DataType="vm:MumbleOverlayColumn">
+            <Border Classes="column">
+              <StackPanel Spacing="1">
+                <TextBlock Classes="server" Text="{Binding Server}" FontSize="10" Margin="3 0" MaxWidth="240" HorizontalAlignment="Left" TextTrimming="CharacterEllipsis" Foreground="#80FFFFFF" />
+
+                <views:MumbleServerBar />
+
+                <!-- Lined up under the name, past the three lines. -->
+                <ItemsControl ItemsSource="{Binding Talking}" Margin="20 0 0 0">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MumbleOverlayLine">
+                      <StackPanel Orientation="Horizontal" Spacing="6" Margin="0 1">
+                        <Ellipse Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Width="8" Height="8" VerticalAlignment="Center" />
+                        <TextBlock Classes="talker" Classes.channel="{Binding TalksChannel}" Classes.shout="{Binding TalksShout}" Classes.direct="{Binding TalksDirect}" Text="{Binding Name}" FontSize="13" />
+                        <Path Classes="state" IsVisible="{Binding IsMuted}" Data="M6 1a2 2 0 0 0-2 2v3a2 2 0 0 0 4 0V3a2 2 0 0 0-2-2zM3 6a3 3 0 0 0 6 0M6 9v2M4 11h4M1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagMuted}" />
+                        <Path Classes="state" IsVisible="{Binding IsDeaf}" Data="M2 7V6a4 4 0 0 1 8 0v1M2 7v2a1 1 0 0 0 2 0V7a1 1 0 0 0-2 0zM10 7v2a1 1 0 0 1-2 0V7a1 1 0 0 1 2 0zM1.5 1.5l9 9" ToolTip.Tip="{x:Static loc:MumbleText.FlagDeaf}" />
+                      </StackPanel>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
+  </Border>
+</Window>

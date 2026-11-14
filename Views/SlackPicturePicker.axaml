@@ -1,0 +1,40 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:svc="clr-namespace:EveConsole.Services"
+             x:Class="EveConsole.Views.SlackPicturePicker"
+             x:DataType="vm:MessageBlockVm">
+
+  <!-- A section's picture on Slack: what kind of thing, then which one. -->
+  <Grid ColumnDefinitions="180,10,*">
+    <StackPanel Grid.Column="0">
+      <TextBlock Classes="flabel" Text="{x:Static loc:AlarmsText.PictureLabel}" />
+      <ComboBox ItemsSource="{Binding PictureKinds}" SelectedItem="{Binding PictureKind}"
+                HorizontalAlignment="Stretch" />
+    </StackPanel>
+    <AutoCompleteBox Grid.Column="2" IsVisible="{Binding PicksPicture}"
+                     VerticalAlignment="Bottom"
+                     Text="{Binding PictureSearch}"
+                     SelectedItem="{Binding PickedPicture}"
+                     AsyncPopulator="{Binding PicturePopulator}"
+                     FilterMode="None"
+                     MinimumPrefixLength="2"
+                     MinimumPopulateDelay="0:0:0.35"
+                     MaxDropDownHeight="320"
+                     Watermark="{x:Static loc:CorpText.HintTypeAtLeastTwo}">
+      <AutoCompleteBox.ItemTemplate>
+        <DataTemplate x:DataType="svc:EntityMatch">
+          <Grid ColumnDefinitions="*,Auto" MinWidth="320">
+            <TextBlock Grid.Column="0" Text="{Binding Name}" FontSize="11.5"
+                       Foreground="{DynamicResource TextPrimaryBrush}" />
+            <TextBlock Grid.Column="1" Text="{Binding Subtitle}" FontSize="10"
+                       Foreground="{DynamicResource TextMutedBrush}"
+                       Margin="12 0 0 0" VerticalAlignment="Center"
+                       TextTrimming="CharacterEllipsis" MaxWidth="260" />
+          </Grid>
+        </DataTemplate>
+      </AutoCompleteBox.ItemTemplate>
+    </AutoCompleteBox>
+  </Grid>
+</UserControl>

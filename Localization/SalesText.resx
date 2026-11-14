@@ -2693,4 +2693,226 @@ Nothing is destroyed: its orders stay in the Order Tracker, and its settings, al
     <value>Discord post failed on "{0}": {1}</value>
     <comment>Sale Posting: Discord status. {0} is the post block, {1} the error.</comment>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Only what&apos;s needed</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Buy listings: take only what the Worklist still needs of each item, which is what it wants less what is held, in build and already offered on this store. An item no longer needed takes no offers, and an offer for more than is needed is not taken.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Show how many are still needed</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>On a store&apos;s Buy listing that takes only what&apos;s needed: show sellers how many of each item are still wanted, and how much is covered. Off, the cap still applies; only the figures are kept to the store.</value>
+  </data>
+  <data name="WebSyncOverNeedOne" xml:space="preserve">
+    <value>Offered {1:N0} {2}, but only {0:N0} more is needed.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>Offered {1:N0} {2}, but only {0:N0} more are needed.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Remaining</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Total need {0:N0} · on hand {1:N0} · in build {2:N0} · on order {3:N0} → remaining {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Delete the posting &quot;{0}&quot;, with all its sections, items and places? Any store listing it stops showing it. This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Delete the section &quot;{1}&quot; and the {0:N0} item in it? This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Delete the section &quot;{1}&quot; and the {0:N0} items in it? This can&apos;t be undone.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Remove {0} from this posting?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Remove the {0:N0} selected items from their postings?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Stop listing what is in {0}?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Delete {0:N0} Items</value>
+  </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>By period</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>Item groups</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>Only sales of items under these market groups, on every tab. A contract counts under its most valuable item.</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>Remove this group</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>+ Group</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>Narrow the sales to a market group</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>Add group</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>Rows</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>Split by</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>For-profit share by</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>Count by</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>Copy as text</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>Copies both tables as plain text in a code block, for pasting into a chat.</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Export CSV</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>Export sales summary</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>For profit</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>Not for profit</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>For-profit share</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>{0} sold</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>profit {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>measured on {0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>All sales</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>For profit</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>Not for profit</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Period</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>Sale ISK</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>For-profit share</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>For profit</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>Not for profit</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Total</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>Units sold</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>Each cell: units, then (for profit·not for profit). Only items in the item groups count.</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>Not-for-profit sales are always counted here, whatever “Show not for profit” says: the not-for-profit mark decides which side each sale is on. Tags are only text: each tag found gets a line, and a sale with two tags is under both but counts once in its period and the total. Cost is the profit basis chosen above, as of each sale&apos;s day; Profit % is profit over that cost.</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>Tag</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>Market group</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>Item</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>Buyer</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>Owner</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>Cost</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>Sale ISK</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>No tag</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>to date</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>Split</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>For profit sale ISK</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>For profit cost</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>Not for profit sale ISK</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>Not for profit cost</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>Sales with no cost</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>Counted by</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>Summary copied to the clipboard.</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>Summary exported to {0}.</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>Sales summary · {0} to {1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>Rows: {0} · Split: {1} · For-profit share by {2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>Units sold by {0} (for profit·not for profit)</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>Units</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>What the for-profit share is a share of: cost, sale ISK, or units sold.</value>
+  </data>
 </root>

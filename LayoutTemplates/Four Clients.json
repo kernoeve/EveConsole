@@ -1,0 +1,123 @@
+{
+  "format": "eveconsole-client-layout",
+  "version": 1,
+  "name": "Four Clients",
+  "layout": {
+    "Id": "268b9508afee4fc2aedd572fa3f1cd0e",
+    "Docked": [],
+    "Content": "Panel",
+    "Grid": null,
+    "Name": "",
+    "Inside": {
+      "Id": "3916870246b74ac2baeb7af630fc8f19",
+      "Docked": [],
+      "Content": "Grid",
+      "Grid": {
+        "Columns": [
+          1,
+          1
+        ],
+        "Rows": [
+          1,
+          1
+        ],
+        "Cells": [
+          {
+            "Id": "4ecaec875c984960bcfcf872711fc913",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "6b840e796e0d4e259affedecedc2b150",
+              "Docked": [],
+              "Content": "Client",
+              "Grid": null,
+              "Name": "",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": null,
+            "Control": null,
+            "Options": null
+          },
+          {
+            "Id": "2559fa112d6143cabbd7bd8dca6d9cd4",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "05e8492225c843c9bbea490ee4839a31",
+              "Docked": [],
+              "Content": "Client",
+              "Grid": null,
+              "Name": "",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": null,
+            "Control": null,
+            "Options": null
+          },
+          {
+            "Id": "dc635bbe63c14c899aa2c43e021818ce",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "30abeca94c454f3dbc3f60978cdd0225",
+              "Docked": [],
+              "Content": "Client",
+              "Grid": null,
+              "Name": "",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": null,
+            "Control": null,
+            "Options": null
+          },
+          {
+            "Id": "e15903dd69c64121aa098da257cc7c6a",
+            "Docked": [],
+            "Content": "Panel",
+            "Grid": null,
+            "Name": "",
+            "Inside": {
+              "Id": "38677b15419b4f76b9c7a06ca2ea10ae",
+              "Docked": [],
+              "Content": "Client",
+              "Grid": null,
+              "Name": "",
+              "Inside": null,
+              "Look": null,
+              "Control": null,
+              "Options": null
+            },
+            "Look": null,
+            "Control": null,
+            "Options": null
+          }
+        ],
+        "Padding": null
+      },
+      "Name": "",
+      "Inside": null,
+      "Look": null,
+      "Control": null,
+      "Options": null
+    },
+    "Look": null,
+    "Control": null,
+    "Options": null
+  },
+  "mumbleServers": []
+}

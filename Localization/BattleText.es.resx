@@ -1,0 +1,367 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>Abrir en entidades</value>
+  </data>
+  <data name="UnknownShip" xml:space="preserve">
+    <value>Nave desconocida</value>
+  </data>
+  <data name="TipOpenSide" xml:space="preserve">
+    <value>Haz clic en una alianza para ver sus corporaciones. Doble clic para abrir su página.</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>Abrir el derribo</value>
+  </data>
+  <data name="ColVictimCorp" xml:space="preserve">
+    <value>Corporación víctima</value>
+  </data>
+  <data name="ColVictimAlliance" xml:space="preserve">
+    <value>Alianza víctima</value>
+  </data>
+  <data name="ColFinalBlow" xml:space="preserve">
+    <value>Golpe final</value>
+  </data>
+  <data name="ColFinalBlowCorp" xml:space="preserve">
+    <value>Corporación del golpe final</value>
+  </data>
+  <data name="ColFinalBlowAlliance" xml:space="preserve">
+    <value>Alianza del golpe final</value>
+  </data>
+  <data name="FindFights" xml:space="preserve">
+    <value>Buscar combates</value>
+  </data>
+  <data name="Last24Hours" xml:space="preserve">
+    <value>Últimas 24 horas</value>
+  </data>
+  <data name="Last3Days" xml:space="preserve">
+    <value>Últimos 3 días</value>
+  </data>
+  <data name="Last7Days" xml:space="preserve">
+    <value>Últimos 7 días</value>
+  </data>
+  <data name="UpToNowHint" xml:space="preserve">
+    <value>vacío = hasta ahora</value>
+  </data>
+  <data name="MinPilotsLabel" xml:space="preserve">
+    <value>Pilotos mínimos:</value>
+  </data>
+  <data name="OnlyOurs" xml:space="preserve">
+    <value>Solo combates con mis pilotos</value>
+  </data>
+  <data name="Find" xml:space="preserve">
+    <value>Buscar</value>
+  </data>
+  <data name="Finding" xml:space="preserve">
+    <value>Revisando los derribos…</value>
+  </data>
+  <data name="FinderNote" xml:space="preserve">
+    <value>Encuentra combates según dónde se agrupan los derribos y une sistemas cuando los mismos pilotos están en ambos. Abre uno para obtener una batalla con sus sistemas y horas ya rellenados, lista para ajustar.</value>
+  </data>
+  <data name="CoverageFinder" xml:space="preserve">
+    <value>zKillboard no importa todos los derribos según Ajustes, así que solo se encuentran combates en los que participaron tus personajes y corporaciones.</value>
+  </data>
+  <data name="NoFights" xml:space="preserve">
+    <value>Esta base de datos no tiene combates de ese tamaño en este periodo.</value>
+  </data>
+  <data name="FoundCount" xml:space="preserve">
+    <value>Combates encontrados: {0:N0}. Primero los mayores por ISK perdidos.</value>
+  </data>
+  <data name="PeriodTooLong" xml:space="preserve">
+    <value>Elige un periodo de {0} días o menos.</value>
+  </data>
+  <data name="BadMinPilots" xml:space="preserve">
+    <value>El combate más pequeño debe ser un número entero de pilotos.</value>
+  </data>
+  <data name="OpenFight" xml:space="preserve">
+    <value>Abrir</value>
+  </data>
+  <data name="StillGoing" xml:space="preserve">
+    <value>en curso</value>
+  </data>
+  <data name="TipOurFight" xml:space="preserve">
+    <value>Tus pilotos participaron en este combate.</value>
+  </data>
+  <data name="ColStarted" xml:space="preserve">
+    <value>Inicio</value>
+  </data>
+  <data name="ColDuration" xml:space="preserve">
+    <value>Duración</value>
+  </data>
+  <data name="ColSystems" xml:space="preserve">
+    <value>Sistemas</value>
+  </data>
+  <data name="ColLargestSides" xml:space="preserve">
+    <value>Bandos mayores</value>
+  </data>
+  <data name="CardDeployables" xml:space="preserve">
+    <value>Desplegables perdidos</value>
+  </data>
+  <data name="TipRemoveTeam" xml:space="preserve">
+    <value>Quitar este equipo vacío</value>
+  </data>
+  <data name="SystemLabel" xml:space="preserve">
+    <value>Añadir:</value>
+  </data>
+  <data name="SystemHint" xml:space="preserve">
+    <value>Sistema o constelación</value>
+  </data>
+  <data name="ToHint" xml:space="preserve">
+    <value>vacío = en curso</value>
+  </data>
+  <data name="ApplyTimes" xml:space="preserve">
+    <value>Aplicar a todos</value>
+  </data>
+  <data name="ApplyTimesTip" xml:space="preserve">
+    <value>Dar estas horas a todos los sistemas de la lista.</value>
+  </data>
+  <data name="WatchLiveTip" xml:space="preserve">
+    <value>Actualiza esta batalla a medida que llegan derribos. Solo los sistemas con fin vacío o futuro pueden recibir derribos.</value>
+  </data>
+  <data name="LiveWatching" xml:space="preserve">
+    <value>En directo: {0} de {1}</value>
+  </data>
+  <data name="ConstellationResult" xml:space="preserve">
+    <value>{0}  ·  constelación  ·  {1}</value>
+  </data>
+  <data name="RowKills" xml:space="preserve">
+    <value>Derribos: {0:N0}</value>
+  </data>
+  <data name="NewBattle" xml:space="preserve">
+    <value>Nueva batalla</value>
+  </data>
+  <data name="NewBattleButton" xml:space="preserve">
+    <value>Nueva batalla</value>
+  </data>
+  <data name="NameHint" xml:space="preserve">
+    <value>Nombre de la batalla</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Guardar</value>
+  </data>
+  <data name="SaveTip" xml:space="preserve">
+    <value>Guarda esta batalla en la lista para abrirla más tarde. Una vez guardada, sus cambios se guardan solos.</value>
+  </data>
+  <data name="SavedHeader" xml:space="preserve">
+    <value>Batallas guardadas</value>
+  </data>
+  <data name="SavedEmpty" xml:space="preserve">
+    <value>Las batallas que guardes aparecen aquí.</value>
+  </data>
+  <data name="SavedSummary" xml:space="preserve">
+    <value>Sistemas: {0}  ·  {1}</value>
+  </data>
+  <data name="NoneOpen" xml:space="preserve">
+    <value>Abre una batalla guardada o empieza una nueva.</value>
+  </data>
+  <data name="DefineHeader" xml:space="preserve">
+    <value>Sistemas y horas</value>
+  </data>
+  <data name="ConfirmDelete" xml:space="preserve">
+    <value>¿Eliminar la batalla guardada «{0}»? Sus derribos permanecen en la base de datos.</value>
+  </data>
+  <data name="TipClose" xml:space="preserve">
+    <value>Cerrar esta batalla</value>
+  </data>
+  <data name="TipDelete" xml:space="preserve">
+    <value>Eliminar esta batalla guardada</value>
+  </data>
+  <data name="TipOpenEnded" xml:space="preserve">
+    <value>Su fin está vacío o aún no ha llegado, así que puede verse en directo.</value>
+  </data>
+  <data name="StartHint" xml:space="preserve">
+    <value>Añade los sistemas y sus horas, y abre el informe. Deja el fin vacío si el combate sigue.</value>
+  </data>
+  <data name="NeedSystem" xml:space="preserve">
+    <value>Añade al menos un sistema.</value>
+  </data>
+  <data name="BadFromTime" xml:space="preserve">
+    <value>{0}: el inicio debe tener la forma 2026-01-31 18:00.</value>
+  </data>
+  <data name="BadToTime" xml:space="preserve">
+    <value>{0}: el fin debe tener la forma 2026-01-31 20:00 o quedar vacío.</value>
+  </data>
+  <data name="EndBeforeStart" xml:space="preserve">
+    <value>{0}: el fin es anterior al inicio.</value>
+  </data>
+  <data name="FromLabel" xml:space="preserve">
+    <value>Desde (hora EVE):</value>
+  </data>
+  <data name="ToLabel" xml:space="preserve">
+    <value>Hasta (hora EVE):</value>
+  </data>
+  <data name="TimeHint" xml:space="preserve">
+    <value>aaaa-mm-dd hh:mm</value>
+  </data>
+  <data name="WatchLive" xml:space="preserve">
+    <value>Ver en directo</value>
+  </data>
+  <data name="OpenReport" xml:space="preserve">
+    <value>Abrir informe</value>
+  </data>
+  <data name="LiveWord" xml:space="preserve">
+    <value>en directo</value>
+  </data>
+  <data name="LiveBadge" xml:space="preserve">
+    <value>EN DIRECTO</value>
+  </data>
+  <data name="KillHint" xml:space="preserve">
+    <value>Enlace o ID de derribo</value>
+  </data>
+  <data name="UseKill" xml:space="preserve">
+    <value>Usar derribo</value>
+  </data>
+  <data name="TeamName" xml:space="preserve">
+    <value>Equipo {0}</value>
+  </data>
+  <data name="OursTag" xml:space="preserve">
+    <value>Tu bando</value>
+  </data>
+  <data name="CardIskLost" xml:space="preserve">
+    <value>ISK perdidos</value>
+  </data>
+  <data name="CardEfficiency" xml:space="preserve">
+    <value>Eficiencia</value>
+  </data>
+  <data name="CardPilots" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="CardDamage" xml:space="preserve">
+    <value>Daño infligido</value>
+  </data>
+  <data name="CardShips" xml:space="preserve">
+    <value>Naves perdidas</value>
+  </data>
+  <data name="CardPods" xml:space="preserve">
+    <value>Cápsulas perdidas</value>
+  </data>
+  <data name="CardStructures" xml:space="preserve">
+    <value>Estructuras perdidas</value>
+  </data>
+  <data name="CardStructureDamage" xml:space="preserve">
+    <value>Daño a estructuras</value>
+  </data>
+  <data name="TabSides" xml:space="preserve">
+    <value>Bandos</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="TabShips" xml:space="preserve">
+    <value>Naves</value>
+  </data>
+  <data name="TabTimeline" xml:space="preserve">
+    <value>Cronología</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>Nombre</value>
+  </data>
+  <data name="ColPilots" xml:space="preserve">
+    <value>Pilotos</value>
+  </data>
+  <data name="ColLost" xml:space="preserve">
+    <value>Perd.</value>
+  </data>
+  <data name="ColIskLost" xml:space="preserve">
+    <value>ISK perd.</value>
+  </data>
+  <data name="ColDamage" xml:space="preserve">
+    <value>Daño</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>Derribos</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>Piloto</value>
+  </data>
+  <data name="ColShip" xml:space="preserve">
+    <value>Nave</value>
+  </data>
+  <data name="ColCorp" xml:space="preserve">
+    <value>Corporación</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>Alianza</value>
+  </data>
+  <data name="ColGroup" xml:space="preserve">
+    <value>Grupo</value>
+  </data>
+  <data name="ColTime" xml:space="preserve">
+    <value>Hora</value>
+  </data>
+  <data name="ColTeam" xml:space="preserve">
+    <value>Equipo</value>
+  </data>
+  <data name="ColVictim" xml:space="preserve">
+    <value>Víctima</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>Sistema</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>Atacantes</value>
+  </data>
+  <data name="ColValue" xml:space="preserve">
+    <value>Valor</value>
+  </data>
+  <data name="AddTeam" xml:space="preserve">
+    <value>Añadir equipo</value>
+  </data>
+  <data name="SidesNote" xml:space="preserve">
+    <value>Los bandos se deducen de quién disparó a quién. Mueve uno con sus flechas; después, los bandos presentes se quedan donde están.</value>
+  </data>
+  <data name="ChartTitle" xml:space="preserve">
+    <value>ISK perdidos durante el combate</value>
+  </data>
+  <data name="TipMoveLeft" xml:space="preserve">
+    <value>Mover al equipo de la izquierda</value>
+  </data>
+  <data name="TipMoveRight" xml:space="preserve">
+    <value>Mover al equipo de la derecha</value>
+  </data>
+  <data name="OpenBattleReport" xml:space="preserve">
+    <value>Informe de batalla</value>
+  </data>
+  <data name="Reading" xml:space="preserve">
+    <value>Leyendo derribos…</value>
+  </data>
+  <data name="KillNotRead" xml:space="preserve">
+    <value>No se encontró un ID de derribo. Pega un enlace de derribo o su número.</value>
+  </data>
+  <data name="KillNotHeld" xml:space="preserve">
+    <value>El derribo {0} no está en esta base de datos.</value>
+  </data>
+  <data name="ReadFailed" xml:space="preserve">
+    <value>No se pudieron leer los derribos: {0}</value>
+  </data>
+  <data name="LiveReadFailed" xml:space="preserve">
+    <value>No se pudieron leer derribos nuevos, reintentando: {0}</value>
+  </data>
+  <data name="NamesFailed" xml:space="preserve">
+    <value>No se pudieron obtener algunos nombres: {0}</value>
+  </data>
+  <data name="Summary" xml:space="preserve">
+    <value>Derribos: {0:N0}  ·  Pilotos: {1:N0}  ·  ISK perdidos: {2}</value>
+  </data>
+  <data name="SummaryTimes" xml:space="preserve">
+    <value>{0} – {1} hora EVE</value>
+  </data>
+  <data name="NoKills" xml:space="preserve">
+    <value>Esta base de datos no tiene derribos en estos sistemas en este periodo.</value>
+  </data>
+  <data name="TooMany" xml:space="preserve">
+    <value>Solo se muestran los primeros {0:N0} derribos: acorta el periodo.</value>
+  </data>
+  <data name="LastKillAgo" xml:space="preserve">
+    <value>Último derribo hace {0}</value>
+  </data>
+  <data name="CoverageOff" xml:space="preserve">
+    <value>La importación de zKillboard está desactivada en Ajustes, así que este informe solo tiene derribos de tus propios personajes y corporaciones.</value>
+  </data>
+  <data name="CoverageMine" xml:space="preserve">
+    <value>zKillboard está en «Mine + Corp» en Ajustes, así que este informe solo tiene derribos en los que participaron tus personajes y corporaciones.</value>
+  </data>
+</root>

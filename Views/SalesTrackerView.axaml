@@ -2,6 +2,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:loc="using:EveConsole.Localization"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:controls="using:EveConsole.Controls"
              x:Class="EveConsole.Views.SalesTrackerView"
              xmlns:lvc="clr-namespace:LiveChartsCore.SkiaSharpView.Avalonia;assembly=LiveChartsCore.SkiaSharpView.Avalonia"
              x:DataType="vm:SalesTrackerViewModel"
@@ -35,6 +36,47 @@
     </Style>
     <Style Selector="Button.link:pointerover TextBlock.linktext">
       <Setter Property="TextDecorations" Value="Underline" />
+    </Style>
+
+    <!-- By period: a wash over each group of columns, matching the band of headings above them,
+         and the period and total lines set apart from the splits under them. -->
+    <Style Selector="DataGridCell.ga"><Setter Property="Background" Value="{DynamicResource ColumnGroupABrush}" /></Style>
+    <Style Selector="DataGridCell.gb"><Setter Property="Background" Value="{DynamicResource ColumnGroupBBrush}" /></Style>
+    <Style Selector="DataGridCell.gc"><Setter Property="Background" Value="{DynamicResource ColumnGroupCBrush}" /></Style>
+    <Style Selector="DataGridCell.gs"><Setter Property="BorderBrush" Value="{DynamicResource BorderSubtleBrush}" /><Setter Property="BorderThickness" Value="1 0 0 0" /></Style>
+    <Style Selector="DataGrid.periods DataGridRow.period TextBlock">
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="DataGrid.periods DataGridRow.period /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource SurfacePanelAltBrush}" />
+    </Style>
+    <Style Selector="DataGrid.periods DataGridRow.split TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+    <Style Selector="DataGrid.periods DataGridRow.total TextBlock">
+      <Setter Property="FontWeight" Value="Bold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="DataGrid.periods DataGridRow.total /template/ Rectangle#BackgroundRectangle">
+      <Setter Property="Fill" Value="{DynamicResource SurfaceHeaderBrush}" />
+    </Style>
+    <Style Selector="Border.kpi">
+      <Setter Property="Background"      Value="{DynamicResource SurfacePanelBrush}" />
+      <Setter Property="BorderBrush"     Value="{DynamicResource BorderSubtleBrush}" />
+      <Setter Property="BorderThickness" Value="1" />
+      <Setter Property="CornerRadius"    Value="4" />
+      <Setter Property="Padding"         Value="10 6" />
+    </Style>
+    <Style Selector="Border.kpi TextBlock.k">
+      <Setter Property="FontSize" Value="10" /><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+    </Style>
+    <Style Selector="Border.kpi TextBlock.v">
+      <Setter Property="FontSize" Value="15" /><Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="Foreground" Value="{DynamicResource TextBrightBrush}" />
+    </Style>
+    <Style Selector="Border.kpi TextBlock.s">
+      <Setter Property="FontSize" Value="10" /><Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
   </UserControl.Styles>
 
@@ -77,6 +119,30 @@
           <CheckBox IsChecked="{Binding ShowNotForProfit}" Content="{x:Static loc:SalesText.ShowNotForProfit}"
                     FontSize="11" Foreground="{DynamicResource TextMutedBrush}" Margin="12 0 0 0" VerticalAlignment="Center"
                     ToolTip.Tip="{x:Static loc:SalesText.TipIncludeSalesMarkedAs}" />
+
+          <!-- Item groups: market groups the whole tracker is narrowed to, each a chip to remove. -->
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.ItemGroups}" Margin="12 0 0 0"
+                     ToolTip.Tip="{x:Static loc:SalesText.TipItemGroups}" />
+          <ItemsControl ItemsSource="{Binding ItemGroups}" VerticalAlignment="Center">
+            <ItemsControl.ItemsPanel>
+              <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="4" /></ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="vm:ItemGroupFilter">
+                <Border Background="{DynamicResource SurfaceSelectedBrush}" BorderBrush="{DynamicResource BorderDefaultBrush}"
+                        BorderThickness="1" CornerRadius="10" Padding="8 1 2 1">
+                  <StackPanel Orientation="Horizontal" Spacing="2">
+                    <TextBlock Text="{Binding Name}" FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center" />
+                    <Button Classes="link" Click="OnRemoveItemGroup" Padding="4 0" ToolTip.Tip="{x:Static loc:SalesText.TipRemoveItemGroup}">
+                      <TextBlock Text="×" FontSize="12" Foreground="{DynamicResource TextMutedBrush}" />
+                    </Button>
+                  </StackPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+          <Button Content="{x:Static loc:SalesText.AddItemGroup}" Click="OnAddItemGroup" FontSize="11" Padding="8 2"
+                  VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:SalesText.TipItemGroups}" />
         </StackPanel>
       </StackPanel>
     </Border>
@@ -257,6 +323,112 @@
             </DockPanel>
           </Border>
         </Grid>
+      </Grid>
+    </TabItem>
+
+    <!-- By period: totals per period, split one way, with for profit and not for profit side by
+         side on every line, and the units sold by group period over period. -->
+    <TabItem Header="{x:Static loc:SalesText.TabPeriods}" FontSize="12">
+      <Grid RowDefinitions="Auto,Auto,Auto,2*,Auto,Auto,*,Auto" Margin="10 8 10 8">
+        <Grid.Styles>
+          <Style Selector="TextBlock.fl">
+            <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" />
+            <Setter Property="VerticalAlignment" Value="Center" />
+          </Style>
+          <Style Selector="ComboBox">
+            <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" /><Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+            <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /><Setter Property="FontSize" Value="11" />
+          </Style>
+        </Grid.Styles>
+
+        <WrapPanel Grid.Row="0" Orientation="Horizontal">
+          <WrapPanel.Styles>
+            <Style Selector="WrapPanel > :is(Control)"><Setter Property="Margin" Value="0 0 8 4" /></Style>
+          </WrapPanel.Styles>
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.PeriodRowsBy}" />
+          <ComboBox ItemsSource="{Binding Grains}" SelectedItem="{Binding PeriodGrain}" MinWidth="90" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.SplitBy}" Margin="8 0 8 4" />
+          <ComboBox ItemsSource="{Binding SplitOptions}" SelectedItem="{Binding SelectedSplit}" MinWidth="110" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.ShareBy}" Margin="8 0 8 4"
+                     ToolTip.Tip="{x:Static loc:SalesText.TipShareBy}" />
+          <ComboBox ItemsSource="{Binding ShareOptions}" SelectedItem="{Binding SelectedShare}" MinWidth="90" />
+          <Button Content="{x:Static loc:SalesText.CopyAsText}" Click="OnCopyPeriods" FontSize="11" Padding="10 3" Margin="16 0 8 4"
+                  ToolTip.Tip="{x:Static loc:SalesText.TipCopyAsText}" />
+          <Button Content="{x:Static loc:SalesText.ExportCsv}" Click="OnExportPeriods" FontSize="11" Padding="10 3" />
+        </WrapPanel>
+
+        <UniformGrid Grid.Row="1" Rows="1" Margin="0 4 0 8">
+          <Border Classes="kpi" Margin="0 0 6 0">
+            <StackPanel Spacing="1"><TextBlock Classes="k" Text="{x:Static loc:SalesText.KpiUnits}" />
+              <TextBlock Classes="v" Text="{Binding Kpis.Sales}" /><TextBlock Classes="s" Text="{Binding Kpis.SalesSub}" /></StackPanel>
+          </Border>
+          <Border Classes="kpi" Margin="0 0 6 0">
+            <StackPanel Spacing="1"><TextBlock Classes="k" Text="{x:Static loc:SalesText.KpiForProfit}" />
+              <TextBlock Classes="v" Text="{Binding Kpis.ForProfit}" /><TextBlock Classes="s" Text="{Binding Kpis.ForProfitSub}" /></StackPanel>
+          </Border>
+          <Border Classes="kpi" Margin="0 0 6 0">
+            <StackPanel Spacing="1"><TextBlock Classes="k" Text="{x:Static loc:SalesText.KpiNotForProfit}" />
+              <TextBlock Classes="v" Text="{Binding Kpis.NotForProfit}" /><TextBlock Classes="s" Text="{Binding Kpis.NotForProfitSub}" /></StackPanel>
+          </Border>
+          <Border Classes="kpi">
+            <StackPanel Spacing="1"><TextBlock Classes="k" Text="{x:Static loc:SalesText.KpiShare}" />
+              <TextBlock Classes="v" Text="{Binding Kpis.Share}" /><TextBlock Classes="s" Text="{Binding Kpis.ShareSub}" /></StackPanel>
+          </Border>
+        </UniformGrid>
+
+        <controls:DataGridColumnGroups Grid.Row="2" x:Name="PeriodBand" />
+        <DataGrid Grid.Row="3" x:Name="PeriodGrid" Classes="periods" ItemsSource="{Binding PeriodRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24" SelectionMode="Extended"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="False"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderSubtleBrush}"
+                  Background="{DynamicResource SurfacePanelBrush}" LoadingRow="OnPeriodLoadingRow">
+          <DataGrid.Columns>
+            <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColPeriod}" Width="190" ClipboardContentBinding="{Binding Label}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PeriodRowVm">
+                  <TextBlock Text="{Binding Label}" Margin="{Binding Indent}" VerticalAlignment="Center" Padding="6 0" TextTrimming="CharacterEllipsis" />
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"   Binding="{Binding Units}"   Width="64"  CellStyleClasses="num ga gs" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColSaleIsk}" Binding="{Binding SaleIsk}" Width="110" CellStyleClasses="num ga" />
+            <DataGridTemplateColumn Header="{x:Static loc:SalesText.ColFpShare}" Width="130" CellStyleClasses="ga" ClipboardContentBinding="{Binding Share}">
+              <DataGridTemplateColumn.CellTemplate>
+                <DataTemplate x:DataType="vm:PeriodRowVm">
+                  <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center" Margin="6 0">
+                    <Border Width="60" Height="7" CornerRadius="3" Background="{DynamicResource SurfaceRaisedBrush}" VerticalAlignment="Center">
+                      <Border Width="{Binding ShareBar}" HorizontalAlignment="Left" CornerRadius="3" Background="{DynamicResource GoodBrush}" />
+                    </Border>
+                    <TextBlock Text="{Binding Share}" VerticalAlignment="Center" />
+                  </StackPanel>
+                </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+            </DataGridTemplateColumn>
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"   Binding="{Binding FpUnits}"     Width="64"  CellStyleClasses="num gb gs" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColSaleIsk}" Binding="{Binding FpSaleIsk}"   Width="110" CellStyleClasses="num gb" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColCost}"    Binding="{Binding FpCost}"      Width="110" CellStyleClasses="num gb" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit}"  Binding="{Binding FpProfit}"    Width="100" CellStyleClasses="num gb" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColProfit2}" Binding="{Binding FpProfitPct}" Width="84" CellStyleClasses="num gb" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColUnits}"   Binding="{Binding NfpUnits}"    Width="64"  CellStyleClasses="num gc gs" />
+            <DataGridTextColumn Header="{x:Static loc:SalesText.ColSaleIsk}" Binding="{Binding NfpSaleIsk}"  Width="110" CellStyleClasses="num gc" />
+          </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="4" Orientation="Horizontal" Spacing="8" Margin="0 12 0 6">
+          <TextBlock Text="{x:Static loc:SalesText.UnitsSold}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource AccentBrush}" VerticalAlignment="Center" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.CountBy}" Margin="8 0 0 0" />
+          <ComboBox ItemsSource="{Binding CountByOptions}" SelectedItem="{Binding SelectedCountBy}" MinWidth="110" />
+          <TextBlock Classes="fl" Text="{x:Static loc:SalesText.UnitsNote}" Margin="8 0 0 0" />
+        </StackPanel>
+        <Border Grid.Row="5" />
+        <DataGrid Grid.Row="6" x:Name="UnitGrid" ItemsSource="{Binding UnitRows}"
+                  AutoGenerateColumns="False" IsReadOnly="True" RowHeight="24" SelectionMode="Extended"
+                  CanUserReorderColumns="False" CanUserResizeColumns="True" CanUserSortColumns="True"
+                  GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="{DynamicResource BorderSubtleBrush}"
+                  Background="{DynamicResource SurfacePanelBrush}" />
+
+        <TextBlock Grid.Row="7" Text="{x:Static loc:SalesText.PeriodsNote}" FontSize="10" TextWrapping="Wrap"
+                   Foreground="{DynamicResource TextMutedBrush}" Margin="0 8 0 0" />
       </Grid>
     </TabItem>
 

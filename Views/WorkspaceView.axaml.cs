@@ -27,7 +27,33 @@ public partial class WorkspaceView : UserControl
         this.GetObservable(DataContextProperty)
             .Select(dc => dc is TabWorkspace ws ? ws.WhenAnyValue(x => x.IsSplit) : Observable.Return(false))
             .Switch()
-            .Subscribe(split => Sides.ColumnDefinitions[1].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0));
+            .Subscribe(split =>
+            {
+                Sides.ColumnDefinitions[1].Width = split ? new GridLength(1, GridUnitType.Star) : new GridLength(0);
+                PlaceToolsButton(split);
+            });
+    }
+
+    /// <summary>A Tool Container with tabs has its tools menu at the right of the strip on the
+    /// right, and that strip leaves room for it.</summary>
+    private void PlaceToolsButton(bool split)
+    {
+        var shows = Workspace is { IsContainer: true, ShowsTabs: true };
+        ToolsButton.IsVisible = shows;
+        LeftSide.ReserveStripRight(shows && !split ? ToolsButton.Width : 0);
+        RightSide.ReserveStripRight(shows && split ? ToolsButton.Width : 0);
+    }
+
+    /// <summary>
+    /// Tools picked here open in these tabs: one already here is shown, wherever else it's open, and
+    /// one that isn't comes here, another copy if it's open somewhere else. Shift always opens another.
+    /// </summary>
+    private void OnToolsClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (Workspace is not { } ws || TopLevel.GetTopLevel(this)?.DataContext is not MainWindowViewModel main) return;
+        (TopLevel.GetTopLevel(this) as ClientPanelWindow)?.TakeFocus();
+        ToolMenu.Build(main, item => ws.OpenTabs.Any(t => t.ToolId == item.ToolId),
+            (toolId, copy) => main.OpenToolInContainer(toolId, ws, copy)).Open(ToolsButton);
     }
 
     internal TabWorkspace? Workspace => DataContext as TabWorkspace;
@@ -48,11 +74,12 @@ public partial class WorkspaceView : UserControl
     /// <summary>
     /// Where <paramref name="tab"/> dropped at <paramref name="at"/> goes: a strip (at a place along
     /// it), the split zone (the right side), or a side's tool (the end of its strip) — but not the
-    /// side it came from, when it came from here. Null for nowhere.
+    /// side it came from, when it came from here. Null for nowhere, which is also the answer for a
+    /// tab that can't come here from <paramref name="from"/>.
     /// </summary>
-    internal (ToolPane Pane, int? Index)? DropTarget(Point at, ToolTab tab)
+    internal (ToolPane Pane, int? Index)? DropTarget(Point at, ToolTab tab, TabWorkspace from)
     {
-        if (Workspace is not { } ws) return null;
+        if (Workspace is not { } ws || !TabWorkspace.CanMove(tab, from, ws)) return null;
         foreach (var side in ShownSides)
             if (side.Pane is { } pane && side.StripBounds(this).Contains(at))
                 return (pane, side.InsertIndexAt(at, this));

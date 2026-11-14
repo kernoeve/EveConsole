@@ -9,8 +9,8 @@
   <!-- One side of the main window: its tab strip, and the tool showing. -->
   <Grid RowDefinitions="Auto,1,*">
 
-    <!-- Tab strip -->
-    <Panel Grid.Row="0">
+    <!-- Tab strip. A Tool Container holding one tool has none. -->
+    <Panel Grid.Row="0" IsVisible="{Binding Workspace.ShowsTabs, FallbackValue=True}">
       <Border x:Name="Strip" Background="{DynamicResource SurfaceBaseBrush}" Classes.dimmed="{Binding IsDimmed}">
         <!-- ⚠️ Horizontal scrolling is DISABLED below, and that is what makes the wrapping
              work rather than merely permitting it: a WrapPanel inside a scroller that offers
@@ -118,12 +118,12 @@
     </Panel>
 
     <!-- Tab strip / content divider -->
-    <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" />
+    <Rectangle Grid.Row="1" Fill="{DynamicResource SurfaceHoverBrush}" IsVisible="{Binding Workspace.ShowsTabs, FallbackValue=True}" />
 
     <!-- The tool on this side -->
+    <!-- Content set by the code-behind, so two copies of one tool never share a view. -->
     <ContentControl x:Name="PaneContent"
-                    Grid.Row="2"
-                    Content="{Binding SelectedTab.ViewModel}">
+                    Grid.Row="2">
       <ContentControl.DataTemplates>
         <DataTemplate DataType="vm:OverviewViewModel">
           <views:CharacterView />
@@ -146,8 +146,17 @@
         <DataTemplate DataType="vm:IndyParksViewModel">
           <views:IndyParksView />
         </DataTemplate>
+        <DataTemplate DataType="vm:GroupChatViewModel">
+          <views:GroupChatView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:MessagesViewModel">
+          <views:MessagesView />
+        </DataTemplate>
         <DataTemplate DataType="vm:SystemIndexViewModel">
           <views:SystemIndexView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:BattleReportViewModel">
+          <views:BattleReportView />
         </DataTemplate>
         <DataTemplate DataType="vm:ProductionCalculatorViewModel">
           <views:ProductionCalculatorView />
@@ -223,6 +232,12 @@
         </DataTemplate>
         <DataTemplate DataType="vm:MercenaryDensViewModel">
           <views:MercenaryDensView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:IntelViewModel">
+          <views:IntelToolView />
+        </DataTemplate>
+        <DataTemplate DataType="vm:ClientLayoutsViewModel">
+          <views:ClientLayoutsView />
         </DataTemplate>
         <DataTemplate DataType="vm:KillmailBrowserViewModel">
           <views:KillmailBrowserView />

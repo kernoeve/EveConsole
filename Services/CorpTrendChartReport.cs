@@ -269,6 +269,10 @@ public static class CorpTrendChartReport
     /// </summary>
     public static byte[] RenderPng(Chart chart, int width = 1100, int height = 420)
     {
+        // Larger labels than the axes are built with: a posted picture is usually seen scaled
+        // down. Slack shows one at about 600 wide, where 9 drawn at 1100 is under 5 on screen.
+        foreach (var axis in chart.XAxes.Concat(chart.YAxes)) axis.TextSize = Math.Max(axis.TextSize, 13);
+
         var sk = new SKCartesianChart
         {
             Width      = width,

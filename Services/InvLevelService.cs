@@ -496,23 +496,27 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
     /// <para>The scope is resolved once per distinct (scope, location) rather than per group,
     /// since rules routinely share one.</para>
     /// </remarks>
+    /// <param name="withScopeStations">Also count assets at the worklist's "Also count these
+    /// stations", for a group whose own scope leaves them out. ⚠️ The worklist only: its Asset Scope
+    /// said a trade hub's stock counted, and items with an inventory rule never saw it, so 1,642 Core
+    /// Temperature Regulators in Jita were built again. The inventory tool shows the group's own scope.</param>
     public Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableAsync(
         IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
-        CancellationToken ct = default, bool packagedOnly = false)
+        CancellationToken ct = default, bool packagedOnly = false, bool withScopeStations = false)
     {
         // Three generators gather the same demand from the same rules, so they ask this with
         // the same groups and the same types. Keyed by exactly that, so a different request —
         // the inventory tool asking for one group — is its own load. Results are records the
         // callers only read.
-        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:")
+        var key = "InvLevel.Available:" + (packagedOnly ? "P:" : "A:") + (withScopeStations ? "S:" : "")
                 + string.Join("|", requests.OrderBy(r => r.Group.Id)
                       .Select(r => $"{r.Group.Id}=" + string.Join(",", r.TypeIds.Distinct().OrderBy(t => t))));
-        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly));
+        return Worklist.BuildCache.GetOrAddAsync(key, () => LoadAvailableUncachedAsync(requests, ct, packagedOnly, withScopeStations));
     }
 
     private async Task<Dictionary<int, Dictionary<int, InvAvailability>>> LoadAvailableUncachedAsync(
         IReadOnlyList<(InvLevelGroup Group, IReadOnlyList<int> TypeIds)> requests,
-        CancellationToken ct, bool packagedOnly)
+        CancellationToken ct, bool packagedOnly, bool withScopeStations)
     {
         var result = new Dictionary<int, Dictionary<int, InvAvailability>>();
         requests = requests.Where(r => r.TypeIds.Count > 0).ToList();
@@ -544,7 +548,6 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
 
         List<(long ItemId, int TypeId, int Quantity, long RootLocationId, bool IsSingleton)> assetRows = [];
         Dictionary<long, long> runsByItem = [];
-        List<DeliveredOutput> deliveredItems  = [];
         List<DeliveredPrint>  deliveredPrints = [];
         List<ContractMove>    contractMoves   = [];
         if (anyAssets)
@@ -573,19 +576,14 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                 // last has its runs as they are now.
                 : await RunsByItemAsync(db, bpTypeIds, ct);
 
-            // ⚠️ Plus what delivered jobs have put in hangars that the asset and blueprint polls
-            // have not seen yet. A delivered job stops counting under Industry Jobs within
-            // minutes, and for up to an hour its output is in no asset row either — so a level
-            // that was comfortably covered by a running job read as short the moment the job was
-            // collected, and the worklist raised the same job again. Items in units; blueprint
-            // types in runs, as the level is written. See DeliveryLag.
-            deliveredItems = await DeliveryLag.ItemsAsync(db, ct, allTypes);
+            // ⚠️ Plus the copies delivered jobs have made that the blueprint poll has not seen
+            // yet, in runs, as the level is written. See DeliveryLag. Delivered items, and what
+            // contracts and hauls have moved, are in the asset rows already (AssetActivity).
             if (bpTypeIds.Count > 0)
                 deliveredPrints = await DeliveryLag.PrintsAsync(db, ct, bpTypeIds.ToList());
 
-            // And what contracts have moved since the asset poll — out with one made, back with
-            // one deleted, in with one accepted. See ContractLag.
-            contractMoves = await ContractLag.MovesAsync(db, ct, allTypes);
+            // And what is still in a courier: in no asset row, but ours. See ContractLag.
+            contractMoves = await ContractLag.InTransitAsync(db, ct, allTypes);
         }
 
         // ── Industry jobs: active manufacturing (1) and reactions (9, plus legacy 11) ──
@@ -593,19 +591,25 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
         // consistent with asset quantities. Reactions and multi-output blueprints (e.g.
         // capital components, ammo) produce many units per run, so counting runs alone
         // undercounts — and reactions were previously excluded entirely.
-        List<(int BlueprintTypeId, int ProductTypeId, int Runs, long FacilityId)> jobRows = [];
+        //
+        // ⚠️ And copying (5), in copy RUNS: a level of a blueprint counts runs, and a copy job of
+        // one copy at 600 runs is 600 runs on their way. Left out, a copy job raised for a short
+        // level was raised again on the next refresh, for the same shortfall, while it ran.
+        List<(int BlueprintTypeId, int ProductTypeId, int Runs, long FacilityId, int CopyRuns)> jobRows = [];
         Dictionary<(int, int), int> qtyMap = [];
         if (anyJobs)
         {
             jobRows = (await db.EsiIndustryJobs
-                .Where(j => (j.ActivityId == 1 || j.ActivityId == 9 || j.ActivityId == 11)
+                .Where(j => (j.ActivityId == 1 || j.ActivityId == 5 || j.ActivityId == 9 || j.ActivityId == 11)
                          && j.Status == "active"
                          && j.ProductTypeId.HasValue
                          && allTypes.Contains(j.ProductTypeId!.Value)
                          && ownerFilter.Contains(j.OwnerId))
-                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId })
+                .Select(j => new { j.BlueprintTypeId, ProductTypeId = j.ProductTypeId!.Value, j.Runs, j.FacilityId,
+                                   j.ActivityId, j.LicensedRuns })
                 .ToListAsync(ct))
-                .Select(j => (j.BlueprintTypeId, j.ProductTypeId, j.Runs, j.FacilityId))
+                .Select(j => (j.BlueprintTypeId, j.ProductTypeId, j.Runs, j.FacilityId,
+                              CopyRuns: j.ActivityId == 5 ? Math.Max(1, j.LicensedRuns ?? 1) : 0))
                 .ToList();
 
             if (jobRows.Count > 0)
@@ -719,11 +723,20 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     .ToList();
         }
 
+        List<long> scopeStations = withScopeStations
+            ? await db.WorklistIndyScopeStations.AsNoTracking().Select(s => s.LocationId).ToListAsync(ct)
+            : [];
+
         // ── Per group: the same filters the per-group queries applied, in memory ──
         foreach (var (group, typeIds) in requests)
         {
             var wanted        = typeIds.ToHashSet();
             var stationFilter = scopeFilters[(group.Scope, group.LocationId)];
+
+            // Stock only: a job or an order is measured where the group says, wherever its output goes.
+            var assetFilter = stationFilter is null || scopeStations.Count == 0
+                ? stationFilter
+                : [.. stationFilter, .. scopeStations];
 
             var assets    = new Dictionary<int, long>();
             var jobs      = new Dictionary<int, long>();
@@ -733,8 +746,8 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
             if (group.IncludeAssets)
             {
                 var rows = assetRows.Where(a => wanted.Contains(a.TypeId));
-                if (stationFilter != null)
-                    rows = rows.Where(a => stationFilter.Contains(a.RootLocationId));
+                if (assetFilter != null)
+                    rows = rows.Where(a => assetFilter.Contains(a.RootLocationId));
 
                 // Packaged only: skip assembled and fitted hulls. The group setting is the usual
                 // source; the parameter is how the sale posting tool overrides it per posting.
@@ -762,29 +775,22 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     assets[g.Key] = g.Sum(r => runsByItem.GetValueOrDefault(r.ItemId));
                 }
 
-                foreach (var d in deliveredItems)
-                {
-                    if (!wanted.Contains(d.TypeId)) continue;
-                    if (!ownerFilter.Contains(d.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(d.Site)) continue;
-                    assets[d.TypeId] = assets.GetValueOrDefault(d.TypeId) + d.Units;
-                }
                 foreach (var p in deliveredPrints)
                 {
                     if (!wanted.Contains(p.TypeId)) continue;
                     if (!ownerFilter.Contains(p.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(p.Site)) continue;
+                    if (assetFilter != null && !assetFilter.Contains(p.Site)) continue;
                     assets[p.TypeId] = assets.GetValueOrDefault(p.TypeId) + (long)p.Copies * p.RunsEach;
                 }
 
-                // Contracts last, and never below zero — see ContractLag. The same packaging rule
+                // Couriers' cargo last, and never below zero — see ContractLag. The same packaging rule
                 // as the rows above. ⚠️ Blueprint types are left to the snapshot: they are counted
                 // in runs here, and a contract line says how many copies, never their runs.
                 foreach (var m in contractMoves)
                 {
                     if (!wanted.Contains(m.TypeId) || bpTypeIds.Contains(m.TypeId)) continue;
                     if (!ownerFilter.Contains(m.OwnerId)) continue;
-                    if (stationFilter != null && !stationFilter.Contains(m.Site)) continue;
+                    if (assetFilter != null && !assetFilter.Contains(m.Site)) continue;
                     if ((packagedOnly || group.PackagedOnly) && m.IsSingleton) continue;
                     assets[m.TypeId] = Math.Max(0, assets.GetValueOrDefault(m.TypeId) + m.Units);
                 }
@@ -800,8 +806,10 @@ public class InvLevelService(IDbContextFactory<AppDbContext> dbFactory)
                     if (!wanted.Contains(j.ProductTypeId)) continue;
                     if (stationFilter != null && !stationFilter.Contains(j.FacilityId)) continue;
 
-                    long perRun = qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
-                        ? Math.Max(1, qy) : 1;
+                    // A copy job's Runs is how many copies it makes; each carries CopyRuns.
+                    long perRun = j.CopyRuns > 0 ? j.CopyRuns
+                        : qtyMap.TryGetValue((j.BlueprintTypeId, j.ProductTypeId), out var qy)
+                            ? Math.Max(1, qy) : 1;
                     long units = (long)j.Runs * perRun;
                     jobs[j.ProductTypeId] = jobs.TryGetValue(j.ProductTypeId, out var cur) ? cur + units : units;
                 }

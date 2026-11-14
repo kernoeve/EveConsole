@@ -2569,4 +2569,49 @@
   <data name="CsConfigNone" xml:space="preserve">
     <value>Esta corporación no tiene estructuras Upwell.</value>
   </data>
+  <data name="Top10TitleSoloKills" xml:space="preserve">
+    <value>Muertes en solitario</value>
+  </data>
+  <data name="SoloKillsLabel" xml:space="preserve">
+    <value>MUERTES EN SOLITARIO</value>
+  </data>
+  <data name="StepTop10SoloKillers" xml:space="preserve">
+    <value>Top 10 muertes en solitario</value>
+  </data>
+  <data name="CsPerDayPerHourTypeFit" xml:space="preserve">
+    <value>{0} al día ({1} por hora), según el ajuste de su tipo</value>
+  </data>
+  <data name="CsFuelUnknownTip" xml:space="preserve">
+    <value>Desconocido: la lista se leyó por última vez el {0} y la caducidad de combustible que tenía ya ha pasado.</value>
+  </data>
+  <data name="CsFuelUnknownNeverTip" xml:space="preserve">
+    <value>Desconocido: la lista no se ha leído de ESI.</value>
+  </data>
+  <data name="CsStateAndUnanchoring" xml:space="preserve">
+    <value>{0}, desanclando</value>
+  </data>
+  <data name="CsStaleStructures" xml:space="preserve">
+    <value>Lista de estructuras leída por última vez: {0}.</value>
+  </data>
+  <data name="CsStaleTowers" xml:space="preserve">
+    <value>Lista de torres leída por última vez: {0}.</value>
+  </data>
+  <data name="CsStaleNever" xml:space="preserve">
+    <value>nunca</value>
+  </data>
+  <data name="CsStaleDenied" xml:space="preserve">
+    <value>El personaje que lee esta corporación ha perdido el rol de corporación que ESI exige, así que ya no se consulta ESI.</value>
+  </data>
+  <data name="CsStaleNotRead" xml:space="preserve">
+    <value>ESI no ha respondido desde entonces.</value>
+  </data>
+  <data name="CsStaleAsThen" xml:space="preserve">
+    <value>El combustible, los estados y los temporizadores de abajo son los de entonces.</value>
+  </data>
+  <data name="CsListRead" xml:space="preserve">
+    <value>Lista leída</value>
+  </data>
+  <data name="CsColStateEnds" xml:space="preserve">
+    <value>Fin del estado</value>
+  </data>
 </root>

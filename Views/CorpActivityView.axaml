@@ -2181,6 +2181,37 @@
                 </StackPanel>
               </Border>
 
+              <!-- Solo kills -->
+              <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
+                      BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">
+                <StackPanel Spacing="4">
+                  <TextBlock Text="{x:Static loc:CorpText.SoloKillsLabel}"
+                             FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}" />
+                  <ItemsControl ItemsSource="{Binding TopSoloKillers}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:CorpTopPlayerRowVm">
+                        <Grid ColumnDefinitions="26,*,Auto" Margin="0 1">
+                          <TextBlock Grid.Column="0" Text="{Binding Rank}"
+                                     FontSize="10" Foreground="{DynamicResource TextFaintBrush}" />
+                          <Panel Grid.Column="1">
+                                     <Button Classes="link" Click="OnOpenRowCharacter" IsVisible="{Binding HasCharacterLink}"
+                                             ToolTip.Tip="{x:Static loc:CorpText.TipOpenInTheEntityBrowser}">
+                                       <TextBlock Text="{Binding CharacterName}" Classes="linktext"
+                                                  FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis" />
+                                     </Button>
+                                     <TextBlock Text="{Binding CharacterName}" IsVisible="{Binding !HasCharacterLink}"
+                                                FontSize="11" Foreground="{DynamicResource TextPrimaryBrush}" TextTrimming="CharacterEllipsis"
+                                                VerticalAlignment="Center" />
+                                     </Panel>
+                          <TextBlock Grid.Column="2" Text="{Binding AmountText}"
+                                     FontSize="11" Foreground="{DynamicResource WarnBrush}" HorizontalAlignment="Right" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </Border>
+
               <!-- Project Contributors -->
               <Border Width="300" Margin="0 0 8 8" Background="{DynamicResource SurfacePanelBrush}" CornerRadius="3"
                       BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="1" Padding="8 6">

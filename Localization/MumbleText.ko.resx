@@ -1,0 +1,679 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddServer" xml:space="preserve">
+    <value>서버 추가</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Mumble 서버를 추가하면 별도 클라이언트 없이 여기서 대화할 수 있습니다.</value>
+  </data>
+  <data name="KeyNone" xml:space="preserve">
+    <value>없음</value>
+  </data>
+  <data name="FlagDeaf" xml:space="preserve">
+    <value>듣기 끔</value>
+  </data>
+  <data name="FlagMuted" xml:space="preserve">
+    <value>음소거</value>
+  </data>
+  <data name="RootChannel" xml:space="preserve">
+    <value>최상위</value>
+  </data>
+  <data name="StateInChannel" xml:space="preserve">
+    <value>연결됨, {0} 채널</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>연결됨</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>연결 중…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>연결이 끊겼습니다. {0}에 다시 시도합니다</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>연결 안 됨</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>서버 인증서를 신뢰할 수 없습니다.</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>서버가 비밀번호를 거부했습니다.</value>
+  </data>
+  <data name="ProblemUsername" xml:space="preserve">
+    <value>서버가 이 사용자 이름을 거부했습니다.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>{0}의 인증서, 지문:
+{1}
+
+대부분의 Mumble 서버는 자체 인증서를 사용합니다. 예상한 서버일 때만 신뢰하세요. 이후에는 이 인증서만 허용합니다.</value>
+  </data>
+  <data name="HostAndNameRequired" xml:space="preserve">
+    <value>서버 호스트와 사용자 이름을 입력하세요.</value>
+  </data>
+  <data name="KeyClash" xml:space="preserve">
+    <value>이 키는 이미 {0}에서 사용 중입니다. 각 키는 한 서버에서만 사용할 수 있습니다.</value>
+  </data>
+  <data name="ConfirmDeleteServer" xml:space="preserve">
+    <value>"{0}"과(와) 저장된 설정을 삭제할까요? 인증서도 삭제되어 해당 서버에 등록한 이름을 잃게 됩니다. 되돌릴 수 없습니다.</value>
+  </data>
+  <data name="SystemDefault" xml:space="preserve">
+    <value>시스템 기본값</value>
+  </data>
+  <data name="ShowOverlay" xml:space="preserve">
+    <value>말하는 사람을 항상 위에 표시</value>
+  </data>
+  <data name="AudioSettings" xml:space="preserve">
+    <value>소리 설정</value>
+  </data>
+  <data name="Microphone" xml:space="preserve">
+    <value>마이크</value>
+  </data>
+  <data name="MicVolume" xml:space="preserve">
+    <value>마이크 음량</value>
+  </data>
+  <data name="Speakers" xml:space="preserve">
+    <value>스피커</value>
+  </data>
+  <data name="SpeakerVolume" xml:space="preserve">
+    <value>스피커 음량</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>이름</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>서버 호스트</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>포트</value>
+  </data>
+  <data name="LabelUsername" xml:space="preserve">
+    <value>사용자 이름</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>비밀번호 (서버에 있는 경우)</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>비워 두면 저장된 비밀번호를 유지합니다.</value>
+  </data>
+  <data name="LabelTokens" xml:space="preserve">
+    <value>액세스 토큰 (선택, 쉼표로 구분)</value>
+  </data>
+  <data name="KeysNote" xml:space="preserve">
+    <value>이 키는 이 서버 전용이며, 연결된 동안에는 앱이 백그라운드에 있어도 작동합니다.</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>앱 시작 시 연결</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>그렇지 않으면 요청할 때만 연결합니다. 어느 쪽이든 연결이 끊기면 직접 끊을 때까지 자동으로 다시 연결합니다. 이 설정은 이 PC에만 적용됩니다.</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>이 인증서 신뢰</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>연결</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>연결 끊기</value>
+  </data>
+  <data name="Mute" xml:space="preserve">
+    <value>음소거</value>
+  </data>
+  <data name="Deafen" xml:space="preserve">
+    <value>듣기 끄기</value>
+  </data>
+  <data name="JoinChannel" xml:space="preserve">
+    <value>채널 참가</value>
+  </data>
+  <data name="UserVolume" xml:space="preserve">
+    <value>이 사람의 음량 (나에게만 적용)</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>{0}에 메시지 보내기. Enter로 보내고 Shift+Enter로 줄을 바꿉니다.</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>보내기</value>
+  </data>
+  <data name="OverlayTitle" xml:space="preserve">
+    <value>Mumble: 말하는 사람</value>
+  </data>
+  <data name="OverlayNobody" xml:space="preserve">
+    <value>말하는 사람 없음</value>
+  </data>
+  <data name="ReachLinks" xml:space="preserve">
+    <value>{0}에서 귓속말은 해당 채널에만 전달됩니다. 외치기는 다음 채널에도 전달됩니다: {1}.</value>
+    <comment>{0} = the channel the user is in, {1} = the channels linked to it.</comment>
+  </data>
+  <data name="ReachNoLinks" xml:space="preserve">
+    <value>{0}에는 연결된 채널이 없어 귓속말과 외치기 모두 해당 채널에만 전달됩니다.</value>
+    <comment>{0} = the channel the user is in.</comment>
+  </data>
+  <data name="KeyPressNow" xml:space="preserve">
+    <value>키 또는 마우스 버튼을 누르세요 (Esc로 취소)</value>
+    <comment>On the button while waiting for a key.</comment>
+  </data>
+  <data name="KeyClear" xml:space="preserve">
+    <value>지우기</value>
+    <comment>Button: no key.</comment>
+  </data>
+  <data name="KeysHow" xml:space="preserve">
+    <value>버튼을 클릭한 다음 사용할 키나 마우스 버튼을 누르세요. 원래 기능도 그대로 동작하므로 입력에 쓰는 키는 입력하는 동안 말하게 됩니다.</value>
+    <comment>Under the key buttons.</comment>
+  </data>
+  <data name="AutoLevel" xml:space="preserve">
+    <value>내 음성 레벨 자동 조정</value>
+    <comment>Sound settings.</comment>
+  </data>
+  <data name="ProblemRemoved" xml:space="preserve">
+    <value>서버에 의해 연결이 끊겼습니다: {0}. 다시 연결할 때까지 끊긴 상태로 유지됩니다.</value>
+    <comment>{0} = the server's reason.</comment>
+  </data>
+  <data name="ChatSubchannels" xml:space="preserve">
+    <value>하위 채널 포함</value>
+    <comment>Beside the message box.</comment>
+  </data>
+  <data name="ChatTreeLabel" xml:space="preserve">
+    <value>{0} 및 하위 채널</value>
+    <comment>On a chat line. {0} = a channel's name.</comment>
+  </data>
+  <data name="Refused" xml:space="preserve">
+    <value>서버가 거부했습니다. 권한이 없을 수 있습니다.</value>
+  </data>
+  <data name="ServerMute" xml:space="preserve">
+    <value>서버 음소거</value>
+  </data>
+  <data name="ServerDeafen" xml:space="preserve">
+    <value>서버 듣기 차단</value>
+  </data>
+  <data name="PrioritySpeaker" xml:space="preserve">
+    <value>우선 발언자</value>
+  </data>
+  <data name="LocalMute" xml:space="preserve">
+    <value>나에게만 음소거</value>
+  </data>
+  <data name="IgnoreMessages" xml:space="preserve">
+    <value>메시지 무시</value>
+  </data>
+  <data name="PersonRegistered" xml:space="preserve">
+    <value>등록됨</value>
+  </data>
+  <data name="PersonServerMuted" xml:space="preserve">
+    <value>관리자가 음소거함</value>
+  </data>
+  <data name="PersonServerDeafened" xml:space="preserve">
+    <value>관리자가 듣기 차단함</value>
+  </data>
+  <data name="PersonSelfMuted" xml:space="preserve">
+    <value>스스로 음소거함</value>
+  </data>
+  <data name="PersonSelfDeafened" xml:space="preserve">
+    <value>스스로 듣기 차단함</value>
+  </data>
+  <data name="PersonSuppressed" xml:space="preserve">
+    <value>여기서 말할 수 없음</value>
+  </data>
+  <data name="PersonPriority" xml:space="preserve">
+    <value>우선 발언자</value>
+  </data>
+  <data name="PersonRecording" xml:space="preserve">
+    <value>녹음 중</value>
+  </data>
+  <data name="LabelMoveTo" xml:space="preserve">
+    <value>채널로 이동</value>
+  </data>
+  <data name="MoveHint" xml:space="preserve">
+    <value>채널 이름 일부 입력</value>
+  </data>
+  <data name="Move" xml:space="preserve">
+    <value>이동</value>
+  </data>
+  <data name="MoveToMine" xml:space="preserve">
+    <value>내 채널로 이동</value>
+  </data>
+  <data name="MoveNoSuchChannel" xml:space="preserve">
+    <value>목록에서 채널을 선택하세요.</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>사유(선택)</value>
+  </data>
+  <data name="Kick" xml:space="preserve">
+    <value>추방</value>
+  </data>
+  <data name="Ban" xml:space="preserve">
+    <value>차단</value>
+  </data>
+  <data name="ConfirmKick" xml:space="preserve">
+    <value>{0}을(를) 이 서버에서 추방할까요?</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>{0}을(를) 이 서버에서 차단할까요? 관리자만 차단 목록에서 되돌릴 수 있습니다.</value>
+  </data>
+  <data name="ConfirmRegister" xml:space="preserve">
+    <value>{0}을(를) 이 서버에 등록할까요? 이름이 인증서에 연결되며 관리자만 되돌릴 수 있습니다.</value>
+  </data>
+  <data name="LabelComment" xml:space="preserve">
+    <value>다른 사람에게 보이는 내용</value>
+  </data>
+  <data name="SaveComment" xml:space="preserve">
+    <value>저장</value>
+  </data>
+  <data name="Listen" xml:space="preserve">
+    <value>이 채널 듣기</value>
+  </data>
+  <data name="StopListening" xml:space="preserve">
+    <value>듣기 중지</value>
+  </data>
+  <data name="LinkToMine" xml:space="preserve">
+    <value>내 채널과 연결</value>
+  </data>
+  <data name="UnlinkFromMine" xml:space="preserve">
+    <value>내 채널과 연결 해제</value>
+  </data>
+  <data name="ConfirmRemoveChannel" xml:space="preserve">
+    <value>{0} 및 그 아래의 모든 채널을 이 서버의 모든 사람에게서 제거할까요?</value>
+  </data>
+  <data name="NoiseReduce" xml:space="preserve">
+    <value>배경 소음 줄이기</value>
+  </data>
+  <data name="EchoCancel" xml:space="preserve">
+    <value>내 스피커의 에코 제거</value>
+  </data>
+  <data name="EchoCancelNote" xml:space="preserve">
+    <value>스피커로 들을 때 상대방 목소리가 내 마이크로 되돌아가지 않게 합니다. 헤드셋은 필요 없습니다. 켜져 있는 동안에는 방의 울림을 학습하도록 마이크가 계속 열려 있습니다. 말할 때만 전송됩니다.</value>
+  </data>
+  <data name="VoiceLevel" xml:space="preserve">
+    <value>음성 활성화 수준</value>
+  </data>
+  <data name="MicLevelNow" xml:space="preserve">
+    <value>현재 마이크: {0} dB</value>
+  </data>
+  <data name="LabelVoiceActivated" xml:space="preserve">
+    <value>키를 누르지 않고 음성으로 말하기</value>
+  </data>
+  <data name="VoiceActivatedNote" xml:space="preserve">
+    <value>이 서버에 연결된 동안 마이크가 계속 열려 있으며, 소리 설정의 수준보다 큰 소리는 전송됩니다. 위의 키도 계속 사용할 수 있습니다.</value>
+  </data>
+  <data name="TalkTone" xml:space="preserve">
+    <value>말하기 시작과 끝에 신호음 재생</value>
+  </data>
+  <data name="BanList" xml:space="preserve">
+    <value>차단 목록</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>차단된 사람이 없습니다.</value>
+  </data>
+  <data name="Unban" xml:space="preserve">
+    <value>해제</value>
+  </data>
+  <data name="ConfirmUnban" xml:space="preserve">
+    <value>{0}의 차단을 해제할까요?</value>
+  </data>
+  <data name="ServerAbout" xml:space="preserve">
+    <value>서버 버전 {0}, 1인당 최대 {1} kbit/s, 현재 {2}명</value>
+  </data>
+  <data name="PersonOnlineFor" xml:space="preserve">
+    <value>접속 {0}</value>
+  </data>
+  <data name="PersonIdleFor" xml:space="preserve">
+    <value>자리비움 {0}</value>
+  </data>
+  <data name="LabelDescription" xml:space="preserve">
+    <value>설명</value>
+  </data>
+  <data name="EchoCancelUnavailable" xml:space="preserve">
+    <value>사운드 라이브러리를 불러올 수 없어 이 컴퓨터에서는 에코 제거를 실행할 수 없습니다. 음성은 계속 사용할 수 있습니다.</value>
+  </data>
+  <data name="OverlayChannels" xml:space="preserve">
+    <value>채널</value>
+  </data>
+  <data name="StatusTip" xml:space="preserve">
+    <value>{0}, {1}: 이 채널에서 듣기를 끄지 않은 사람 {2}명</value>
+  </data>
+  <data name="SubTabServers" xml:space="preserve">
+    <value>서버</value>
+  </data>
+  <data name="SubTabSettings" xml:space="preserve">
+    <value>설정</value>
+  </data>
+  <data name="TabConnection" xml:space="preserve">
+    <value>연결</value>
+  </data>
+  <data name="TabTargets" xml:space="preserve">
+    <value>채널 대상</value>
+  </data>
+  <data name="NewServer" xml:space="preserve">
+    <value>새 서버</value>
+  </data>
+  <data name="ConnectionNote" xml:space="preserve">
+    <value>호스트, 포트, 사용자 이름, 비밀번호, 토큰의 변경 사항은 다음에 이 서버에 연결할 때 적용됩니다.</value>
+  </data>
+  <data name="TargetsNote" xml:space="preserve">
+    <value>각 채널 대상은 이 서버에서 키 하나로 말할 상대입니다. 어떤 채널이든, 함께 포함할 항목과 어디에 있든 전달할 사람을 자유롭게 바꿀 수 있습니다.</value>
+  </data>
+  <data name="TargetKey" xml:space="preserve">
+    <value>키</value>
+  </data>
+  <data name="TargetChannels" xml:space="preserve">
+    <value>채널</value>
+  </data>
+  <data name="TargetAdd" xml:space="preserve">
+    <value>채널 대상 추가</value>
+  </data>
+  <data name="TargetAddChannel" xml:space="preserve">
+    <value>채널 추가</value>
+  </data>
+  <data name="TargetLinks" xml:space="preserve">
+    <value>연결된 채널</value>
+  </data>
+  <data name="TargetSubchannels" xml:space="preserve">
+    <value>하위 채널</value>
+  </data>
+  <data name="TargetPeople" xml:space="preserve">
+    <value>어디에 있든 전달할 사람 (이름, 쉼표로 구분)</value>
+  </data>
+  <data name="TargetGroup" xml:space="preserve">
+    <value>해당 채널에 있는 이 서버 그룹의 구성원만 (선택 사항)</value>
+  </data>
+  <data name="TargetWhereIAm" xml:space="preserve">
+    <value>&lt;현재 채널&gt;</value>
+  </data>
+  <data name="TargetNew" xml:space="preserve">
+    <value>새 대상</value>
+  </data>
+  <data name="TargetDefaultWhisper" xml:space="preserve">
+    <value>귓속말: 내가 있는 채널</value>
+  </data>
+  <data name="TargetDefaultShout" xml:space="preserve">
+    <value>외치기: 내 채널과 연결된 채널</value>
+  </data>
+  <data name="TargetsFull" xml:space="preserve">
+    <value>서버에는 일반 대화 외에 대상 {0}개를 저장할 수 있습니다.</value>
+  </data>
+  <data name="PasswordShared" xml:space="preserve">
+    <value>비밀번호는 데이터베이스 비밀번호에서 얻은 키로 암호화되어 공유 데이터베이스에 저장됩니다.</value>
+  </data>
+  <data name="MenuDetails" xml:space="preserve">
+    <value>세부 정보…</value>
+  </data>
+  <data name="MenuVolumeDetails" xml:space="preserve">
+    <value>볼륨 및 세부 정보…</value>
+  </data>
+  <data name="MenuServerInfo" xml:space="preserve">
+    <value>서버 정보…</value>
+  </data>
+  <data name="MenuRegisterName" xml:space="preserve">
+    <value>이 이름 등록…</value>
+  </data>
+  <data name="MenuMoveTo" xml:space="preserve">
+    <value>다음으로 이동…</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>강퇴…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>차단…</value>
+  </data>
+  <data name="MenuNewChannel" xml:space="preserve">
+    <value>새 채널…</value>
+  </data>
+  <data name="MenuNewTempChannel" xml:space="preserve">
+    <value>새 임시 채널…</value>
+  </data>
+  <data name="MenuRemoveChannel" xml:space="preserve">
+    <value>채널 삭제…</value>
+  </data>
+  <data name="NewChannelTitle" xml:space="preserve">
+    <value>새 채널</value>
+  </data>
+  <data name="NewTempChannelTitle" xml:space="preserve">
+    <value>새 임시 채널</value>
+  </data>
+  <data name="LabelNewChannelUnder" xml:space="preserve">
+    <value>{0} 아래에 만들 채널 이름</value>
+  </data>
+  <data name="FindPersonHint" xml:space="preserve">
+    <value>사람 찾기</value>
+  </data>
+  <data name="ShowPeopleTip" xml:space="preserve">
+    <value>채널마다 사람 표시</value>
+  </data>
+  <data name="NobodyFound" xml:space="preserve">
+    <value>그 이름을 가진 사람이 없습니다.</value>
+  </data>
+  <data name="ChannelCountsTip" xml:space="preserve">
+    <value>{0}명, 그중 {1}명이 듣고 있음</value>
+  </data>
+  <data name="ToggleKeysNote" xml:space="preserve">
+    <value>음소거와 소리 끔 키는 말하기 키처럼 어디서나 작동합니다. 누를 때마다 켜지고 꺼집니다.</value>
+  </data>
+  <data name="MuteKey" xml:space="preserve">
+    <value>음소거 키</value>
+  </data>
+  <data name="DeafenKey" xml:space="preserve">
+    <value>소리 끔 키</value>
+  </data>
+  <data name="MenuPermissions" xml:space="preserve">
+    <value>권한…</value>
+  </data>
+  <data name="AclTitle" xml:space="preserve">
+    <value>권한: {0}</value>
+  </data>
+  <data name="AclNote" xml:space="preserve">
+    <value>아래 줄이 위 줄보다 우선합니다. 회색 줄은 상위 채널에서 온 것이며 그곳에서 바꿉니다.</value>
+  </data>
+  <data name="AclLoading" xml:space="preserve">
+    <value>서버에 묻는 중…</value>
+  </data>
+  <data name="AclTabPermissions" xml:space="preserve">
+    <value>권한</value>
+  </data>
+  <data name="AclTabGroups" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="AclInheritAcls" xml:space="preserve">
+    <value>상위 채널의 권한 이어받기</value>
+  </data>
+  <data name="AclAdd" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="AclRemove" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="AclUp" xml:space="preserve">
+    <value>위로</value>
+  </data>
+  <data name="AclDown" xml:space="preserve">
+    <value>아래로</value>
+  </data>
+  <data name="AclInheritedNote" xml:space="preserve">
+    <value>상위 채널의 것입니다. 그곳에서 바꾸세요.</value>
+  </data>
+  <data name="AclForGroup" xml:space="preserve">
+    <value>그룹</value>
+  </data>
+  <data name="AclForUser" xml:space="preserve">
+    <value>등록된 사람</value>
+  </data>
+  <data name="AclUserHint" xml:space="preserve">
+    <value>등록된 이름</value>
+  </data>
+  <data name="AclGroupHint" xml:space="preserve">
+    <value>all: 모두. auth: 등록된 사람. in / out: 이 채널에 있는 사람과 없는 사람. ~는 적용되는 곳이 아니라 그 줄이 있는 채널을 뜻합니다.</value>
+  </data>
+  <data name="AclApplyHere" xml:space="preserve">
+    <value>여기에 적용</value>
+  </data>
+  <data name="AclApplySubs" xml:space="preserve">
+    <value>하위 채널에 적용</value>
+  </data>
+  <data name="AclPermission" xml:space="preserve">
+    <value>권한</value>
+  </data>
+  <data name="AclAllow" xml:space="preserve">
+    <value>허용</value>
+  </data>
+  <data name="AclDeny" xml:space="preserve">
+    <value>거부</value>
+  </data>
+  <data name="AclNewGroupHint" xml:space="preserve">
+    <value>새 그룹 이름</value>
+  </data>
+  <data name="AclGroupInherit" xml:space="preserve">
+    <value>상위의 구성원 포함</value>
+  </data>
+  <data name="AclGroupInheritable" xml:space="preserve">
+    <value>하위 채널에도 있음</value>
+  </data>
+  <data name="AclMembers" xml:space="preserve">
+    <value>여기서 추가됨</value>
+  </data>
+  <data name="AclAddMember" xml:space="preserve">
+    <value>추가</value>
+  </data>
+  <data name="AclFromAbove" xml:space="preserve">
+    <value>상위에서</value>
+  </data>
+  <data name="AclExcluded" xml:space="preserve">
+    <value>여기서 제외됨</value>
+  </data>
+  <data name="AclReload" xml:space="preserve">
+    <value>다시 읽기</value>
+  </data>
+  <data name="AclClose" xml:space="preserve">
+    <value>닫기</value>
+  </data>
+  <data name="AclRefused" xml:space="preserve">
+    <value>서버가 거부했습니다. 권한을 바꾸려면 이 채널의 쓰기 권한이 필요합니다.</value>
+  </data>
+  <data name="AclGroupNameTaken" xml:space="preserve">
+    <value>그룹 이름을 "{0}"(으)로 할 수 없습니다. 이미 있거나 서버가 직접 정하는 이름입니다.</value>
+  </data>
+  <data name="AclNoSuchUser" xml:space="preserve">
+    <value>서버에 "{0}"(이)라는 등록된 사람이 없습니다.</value>
+  </data>
+  <data name="AclNoGroup" xml:space="preserve">
+    <value>줄에는 그룹이나 사람이 필요합니다.</value>
+  </data>
+  <data name="AclSaving" xml:space="preserve">
+    <value>저장 중…</value>
+  </data>
+  <data name="AclSaved" xml:space="preserve">
+    <value>저장했습니다. 지금 서버에 있는 내용입니다.</value>
+  </data>
+  <data name="AclHereOnly" xml:space="preserve">
+    <value>여기만</value>
+  </data>
+  <data name="AclSubsOnly" xml:space="preserve">
+    <value>하위 채널만</value>
+  </data>
+  <data name="AclNowhere" xml:space="preserve">
+    <value>어디에도 적용 안 됨</value>
+  </data>
+  <data name="AclGroupInherited" xml:space="preserve">
+    <value>{0} (상위에서)</value>
+  </data>
+  <data name="AclGroupReset" xml:space="preserve">
+    <value>상위와 같게 되돌리기</value>
+  </data>
+  <data name="AclGroupRemove" xml:space="preserve">
+    <value>그룹 삭제</value>
+  </data>
+  <data name="AclMemberRemove" xml:space="preserve">
+    <value>삭제</value>
+  </data>
+  <data name="AclMemberExclude" xml:space="preserve">
+    <value>여기서 제외</value>
+  </data>
+  <data name="AclMemberInclude" xml:space="preserve">
+    <value>되돌리기</value>
+  </data>
+  <data name="PermWrite" xml:space="preserve">
+    <value>쓰기 (권한 변경)</value>
+  </data>
+  <data name="PermTraverse" xml:space="preserve">
+    <value>통과</value>
+  </data>
+  <data name="PermEnter" xml:space="preserve">
+    <value>입장</value>
+  </data>
+  <data name="PermSpeak" xml:space="preserve">
+    <value>말하기</value>
+  </data>
+  <data name="PermMuteDeafen" xml:space="preserve">
+    <value>다른 사람 음소거·소리 끔</value>
+  </data>
+  <data name="PermMove" xml:space="preserve">
+    <value>사람 옮기기</value>
+  </data>
+  <data name="PermMakeChannel" xml:space="preserve">
+    <value>채널 만들기</value>
+  </data>
+  <data name="PermMakeTempChannel" xml:space="preserve">
+    <value>임시 채널 만들기</value>
+  </data>
+  <data name="PermLinkChannel" xml:space="preserve">
+    <value>채널 연결</value>
+  </data>
+  <data name="PermWhisper" xml:space="preserve">
+    <value>귓속말</value>
+  </data>
+  <data name="PermTextMessage" xml:space="preserve">
+    <value>텍스트 메시지</value>
+  </data>
+  <data name="PermListen" xml:space="preserve">
+    <value>듣기</value>
+  </data>
+  <data name="PermKick" xml:space="preserve">
+    <value>추방</value>
+  </data>
+  <data name="PermBan" xml:space="preserve">
+    <value>차단</value>
+  </data>
+  <data name="PermRegister" xml:space="preserve">
+    <value>다른 사람 등록</value>
+  </data>
+  <data name="PermSelfRegister" xml:space="preserve">
+    <value>자신 등록</value>
+  </data>
+  <data name="PermResetUserContent" xml:space="preserve">
+    <value>다른 사람의 소개와 사진 초기화</value>
+  </data>
+  <data name="AclPick" xml:space="preserve">
+    <value>선택…</value>
+  </data>
+  <data name="AclNoAnswer" xml:space="preserve">
+    <value>서버가 응답하지 않았습니다. 너무 빨리 보낸 메시지는 버려집니다. 잠시 후 다시 읽으세요.</value>
+  </data>
+  <data name="AclNotKept" xml:space="preserve">
+    <value>서버가 전부 저장하지 않았습니다. 지금 서버에 있는 내용입니다. 잠시 후 다시 바꾸고 저장하세요.</value>
+  </data>
+  <data name="PickKey" xml:space="preserve">
+    <value>선택 대상 귓속말 키</value>
+  </data>
+  <data name="PickKeyNote" xml:space="preserve">
+    <value>이 키를 누르고 있으면 채널 목록에서 선택한 대상에게 귓속말합니다. 사람은 클릭하거나 오른쪽 클릭하고, 채널은 오른쪽 클릭하세요(클릭은 여전히 그 채널로 이동합니다). 선택은 목록에서 강조되고, 말하는 동안 내 이름 옆에 표시됩니다.</value>
+  </data>
+  <data name="PickChannelAlso" xml:space="preserve">
+    <value>채널을 선택했을 때 함께 전달</value>
+  </data>
+  <data name="PickTalkingTo" xml:space="preserve">
+    <value>→ {0}</value>
+  </data>
+  <data name="KeyUseMumble" xml:space="preserve">
+    <value>Mumble 서버 {1}의 {0}</value>
+  </data>
+  <data name="KeyUseTarget" xml:space="preserve">
+    <value>채널 대상 {0}</value>
+  </data>
+</root>

@@ -87,6 +87,14 @@ jobs:
       - name: Translations check
         run: dotnet run --project tools/LocCheck/LocCheck.csproj -c Release
 
+      # ⚠️ Do the third-party notices still match what the releases ship? Every package bump or new
+      # package changes them, and nothing else would notice: the app builds and runs the same with
+      # stale notices. This restores the app for each release platform into a scratch folder and
+      # fails when THIRD-PARTY-NOTICES.txt or licenses/ differ from what the packages now say, when
+      # a package names no license, or when a hand-written entry's package has gone.
+      - name: Third-party notices check
+        run: dotnet run --project tools/NoticesCheck/NoticesCheck.csproj -c Release
+
       # ⚠️ Do the Planetary Industry forecasts still add up? ESI shows a colony only as of the
       # last time its owner looked at it, so every "storage full at" and "inputs run out at" is
       # simulated, and a wrong one shows as a confident date, not as an error. Tax learning has no
@@ -103,6 +111,89 @@ jobs:
       # chain, that a waiting final counts only for its most-starved input.
       - name: Worklist rank check
         run: dotnet run --project tools/WorklistRankCheck/WorklistRankCheck.csproj -c Release
+
+      # ⚠️ Does the Worklist's shopping list still paste into multibuy? A list that counts an
+      # expanded row twice, lists a blueprint's runs as items, or drops a station's share of an
+      # item still looks like a finished list. This builds the text from constructed rows.
+      - name: Worklist buy list check
+        run: dotnet run --project tools/WorklistBuyListCheck/WorklistBuyListCheck.csproj -c Release
+
+      # ⚠️ Does a Buy listing that takes only what is needed still ask for the right amount? Open
+      # offers left out of the need, the figures shown when the posting hides them, or a change of
+      # need the site never hears of. Constructed figures: no database, no site, no mail.
+      - name: Store need check
+        run: dotnet run --project tools/StoreNeedCheck/StoreNeedCheck.csproj -c Release
+
+      # ⚠️ Does the Sales Tracker's By period summary put each sale on the right side, and count
+      # only real sales? A two-tag sale counted twice in its month, a sale with no cost adding a
+      # profit, or a trade between the user's own wallets read as a sale all change the for-profit
+      # share a payout is worked from. Constructed sales: no database.
+      - name: Sales summary check
+        run: dotnet run --project tools/SalesSummaryCheck/SalesSummaryCheck.csproj -c Release
+
+      # ⚠️ Are structure fuel tasks and the Corp Structures fuel columns right? Fuel due at the
+      # wrong level, the wrong number of blocks, or a list no longer read showing out of fuel.
+      - name: Structure task check
+        run: dotnet run --project tools/StructureTaskCheck/StructureTaskCheck.csproj -c Release
+
+      # ⚠️ Are a battle report's sides, sums and live reading right? Two alliances on the wrong side,
+      # a fleet's damage to a citadel read as damage to ships, or a late mail a live report never
+      # picks up all look like a finished report. This builds battles whose answers are known, on
+      # constructed kills and a throwaway database.
+      - name: Battle report check
+        run: dotnet run --project tools/BattleReportCheck/BattleReportCheck.csproj -c Release
+
+      # ⚠️ Does a connector's answer store exactly what it says, and nothing for an install that never
+      # connects? A store that keeps a character the answer dropped, lets an older answer put back old
+      # links, or drops the cache when the connector blinks leaves tables that look fine. Also: the EVE
+      # sign-in is the connector's own, confirmed by its code, and plain http is refused off this PC.
+      - name: Linked characters check
+        run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release
+
+      # ⚠️ Do the scheduled posts' rich Slack lists still line up, on a phone as well as a PC?
+      # Rows with images have no real columns, only padding worked out from the font, and only two
+      # kinds of blank keep their width in a container on a phone. Drift, a corp with a pilot's
+      # portrait, a share of the wrong total or a two-pilot kill called solo all look like a
+      # finished post. This checks the padding, Slack's block limits, and the lists from a
+      # throwaway database.
+      - name: Slack rich format check
+        run: dotnet run --project tools/SlackRichCheck/SlackRichCheck.csproj -c Release
+
+      # ⚠️ Do the client layout rules still leave a client alone when they must? A rule gone wrong
+      # moves a client someone is flying, or puts a panel over one, and either looks like a working
+      # feature in a quick try. This checks the layouts' arithmetic and the placement rules with
+      # constructed windows: no game, no real window and no database.
+      - name: Client layout check
+        run: dotnet run --project tools/ClientLayoutCheck/ClientLayoutCheck.csproj -c Release
+
+      # ⚠️ Does the Jabber client still refuse what it must? A server offering no encryption gets no
+      # password, a forged carbon puts no words in anyone's mouth, a reconnect's replayed history sets off
+      # no alerts, and private conversations stay out of the agent's reach. None of it shows from outside.
+      - name: Jabber check
+        run: dotnet run --project tools/JabberCheck/JabberCheck.csproj -c Release
+
+      # ⚠️ Does the Mumble client still read what servers send, and refuse what it must? No password to a
+      # server whose certificate was not accepted, each key on one server only, and voice that comes out as
+      # it went in. None of it shows from outside until a fleet can't hear each other.
+      - name: Mumble check
+        run: dotnet run --project tools/MumbleCheck/MumbleCheck.csproj -c Release
+
+      # ⚠️ Does IRC still read what servers send, and keep what it should? The wire format and its tags, the
+      # server's own rules (case, ranks, modes), logging in with CAP and SASL, long lines split to fit, and the
+      # service against a scripted server: history that must not undo a join, the same message saved once, and
+      # a run of malformed lines that must not end the connection. None of it shows until a real server sends it.
+      - name: IRC check
+        run: dotnet run --project tools/IrcCheck/IrcCheck.csproj -c Release
+
+      # ⚠️ Does intel still survive more than one PC, and the next start? A paste deleted by the next start because
+      # it has no chat message behind it, a watermark one PC moves backwards, or a PC that is not the worker parsing
+      # or evaluating alarms anyway: each looks like a working feature on one machine. This runs the startup's own
+      # statements on a database the previous build left and on a new one, on a scratch SQLite file. It also proves
+      # the one upsert of where each pilot was last seen: an older sighting never moves a pilot back, a tie in one
+      # second goes kill > pasted Local > chat report, a pilot named twice in a batch, the stay and the affiliation
+      # rules, the kills the importers hand on and the one-time seed. The Linux job runs it again against PostgreSQL.
+      - name: Intel check
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
 
   # ⚠️ Does the Linux target still compile?
   #
@@ -199,6 +290,25 @@ jobs:
           grep -q "Stopping" worker.log
           test "$code" = 0
 
+      # ⚠️ Do the two bootstraps still agree, and can a SQLite user still move to PostgreSQL? An
+      # index added for SQLite and not in PostgresSchema is no error, only a screen that is slow
+      # for PostgreSQL users; a model property the migration's binary COPY cannot type fails a
+      # user's first migration at the first row, as an enum once did. Neither shows anywhere else.
+      # Against the worker's database it also checks the seed rows, and that a second apply — what
+      # every launch after the first does — changes nothing.
+      - name: PostgreSQL schema matches SQLite's, migrates, and re-applies cleanly
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/PgSchemaCheck/PgSchemaCheck.csproj -c Release
+
+      # The same check on PostgreSQL, where its tables come from PostgresSchema's own statements
+      # and its times are TIMESTAMPTZ. It makes a database of its own on the worker's server and
+      # drops it after; --require-pg makes a server it cannot use a failure, not a skip.
+      - name: Linked characters on PostgreSQL
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/LinkedCharactersCheck/LinkedCharactersCheck.csproj -c Release -- --require-pg
+
       # The worker has just built the whole schema in an empty database, and that database is
       # still running — the one place in CI with every table PostgreSQL will see. So PgSqlCheck
       # PREPAREs every hand-written statement against it.
@@ -213,6 +323,15 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
+
+      # ⚠️ And intel on PostgreSQL, where several PCs write at once. Two writer processes insert chat lines while a
+      # reader takes them by watermark as the parser does: a line committed out of id order is skipped for good, and
+      # nothing on one machine shows it. The last-seen upsert runs here too: PostgreSQL refuses a statement that
+      # touches one pilot twice. The check makes a database of its own on this server and drops it after.
+      - name: Intel check on PostgreSQL
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
 
   # ── macOS ──────────────────────────────────────────────────────────────────────────
   #
@@ -266,12 +385,21 @@ jobs:
 
       # Unsigned, as releases are until there is an Apple Developer ID. A channel per
       # architecture: both would otherwise be "osx", and each install updates from its own.
+      # ⚠️ The package carries the csproj's version, as the app inside does, marked as a CI build
+      # (0.9.19-ci.<run>): Finder and the installer show it, and the update check compares it. With a
+      # fixed 0.0.1 a test install was offered the last release as an "update" over itself; this way
+      # the last release is older, and the real release of this version newer.
       - name: Package (unsigned) for Apple Silicon and Intel
         run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' EveConsole.csproj | head -1)
+          [ -n "$version" ] || { echo "::error::no <Version> in EveConsole.csproj"; exit 1; }
+          pack="$version-ci.${{ github.run_number }}"
+          echo "Packaging $pack"
           for rid in osx-arm64 osx-x64; do
             dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true -o publish-$rid
-            sed -e "s/@VERSION@/0.0.1-ci/" -e "s/@SHORT_VERSION@/0.0.1/" packaging/macos/Info.plist > Info-$rid.plist
-            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.0.1-ci \
+            # CFBundleVersion is numbers only to macOS: the run goes on as a fourth part there.
+            sed -e "s/@VERSION@/$version.${{ github.run_number }}/" -e "s/@SHORT_VERSION@/$version/" packaging/macos/Info.plist > Info-$rid.plist
+            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion $pack \
                      --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
                      --plist Info-$rid.plist --channel $rid --outputDir releases-$rid
             ls -la releases-$rid
@@ -293,19 +421,22 @@ jobs:
             plutil -p "$app/Contents/Info.plist"
             plutil -extract NSMicrophoneUsageDescription raw "$app/Contents/Info.plist" > /dev/null
             [ "$(plutil -extract CFBundleExecutable raw "$app/Contents/Info.plist")" = EveConsole ]
-            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib; do
+            for lib in libvlc/$rid/lib/libvlc.dylib runtimes/macos-$arch/libwhisper.dylib libportaudio.dylib libwebrtc-apm.dylib; do
               found=$(find "$app/Contents/MacOS" -path "*$lib" | head -1)
               [ -n "$found" ] && echo "  carries $lib" || { echo "::error::$rid package is missing $lib"; exit 1; }
             done
           done
 
-      # The packages themselves, to try on a real Mac: the portable zip for each architecture.
-      # Kept two weeks — a build to test, not a release. Already compressed, so stored as is.
+      # The packages themselves, to try on a real Mac: for each architecture the installer, as a fresh
+      # install gets it, and the portable zip. Kept two weeks — a build to test, not a release.
+      # Already compressed, so stored as is.
       - name: Mac build to try — Apple Silicon
         uses: actions/upload-artifact@v4
         with:
           name: EveConsole-osx-arm64
-          path: releases-osx-arm64/*-Portable.zip
+          path: |
+            releases-osx-arm64/*-Setup.pkg
+            releases-osx-arm64/*-Portable.zip
           retention-days: 14
           compression-level: 0
 
@@ -313,6 +444,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: EveConsole-osx-x64
-          path: releases-osx-x64/*-Portable.zip
+          path: |
+            releases-osx-x64/*-Setup.pkg
+            releases-osx-x64/*-Portable.zip
           retention-days: 14
           compression-level: 0

@@ -62,7 +62,12 @@ public sealed class UiScaleHost : Decorator
         // ahead of its measure: measured again in the room it has. Otherwise what was laid out
         // for the old frame is arranged into the new one, and a scroll area inside keeps the old
         // width for its viewport until something else changes.
-        if (Differs(room.Width, _measuredIn.Width) || Differs(room.Height, _measuredIn.Height))
+        // ⚠️ Not along a side the window takes from its content. That side is measured in the screen's size, not in an
+        // endless one, so it looked like a room that changed; and measured again in the size it had, the content could
+        // then never ask for more, as what it wanted was already cut down to that. Such a window stopped growing.
+        var sizing = (TopLevel.GetTopLevel(this) as Window)?.SizeToContent ?? SizeToContent.Manual;
+        if ((!sizing.HasFlag(SizeToContent.Width) && Differs(room.Width, _measuredIn.Width))
+            || (!sizing.HasFlag(SizeToContent.Height) && Differs(room.Height, _measuredIn.Height)))
             _root.Measure(room);
 
         _root.RenderTransform = new ScaleTransform(s, s);
@@ -70,8 +75,7 @@ public sealed class UiScaleHost : Decorator
         return finalSize;
     }
 
-    /// <summary>A bounded room that changed. A window sized to its content measures it unbounded,
-    /// and is arranged in what it asked for: left as measured.</summary>
+    /// <summary>A bounded room that changed.</summary>
     private static bool Differs(double arranged, double measured) =>
         !double.IsInfinity(measured) && Math.Abs(arranged - measured) > 0.5;
 }

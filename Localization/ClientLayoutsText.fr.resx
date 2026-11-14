@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve">
+    <value>Écrans</value>
+  </data>
+  <data name="TabLayouts" xml:space="preserve">
+    <value>Dispositions</value>
+  </data>
+  <data name="LabelDesktop" xml:space="preserve">
+    <value>Ce poste</value>
+  </data>
+  <data name="TogglePlacement" xml:space="preserve">
+    <value>Placer les clients et afficher les panneaux sur ce poste</value>
+  </data>
+  <data name="TipPlacement" xml:space="preserve">
+    <value>Désactivé, vos clients de jeu ne sont pas touchés. EVE Console ne fait que régler la taille et la position d'un client, et le met au premier plan quand vous cliquez sur un panneau ou sur un autre client de son écran. Il n'envoie jamais de saisie à un client et ne lui donne jamais le focus.</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>Appliquer</value>
+  </data>
+  <data name="TipApply" xml:space="preserve">
+    <value>Déplace les clients et les panneaux selon ce qui est réglé ici, sur ce poste uniquement. Remet aussi en place les clients déplacés à la main.</value>
+  </data>
+  <data name="PendingNone" xml:space="preserve">
+    <value>Tout est appliqué.</value>
+  </data>
+  <data name="PendingSome" xml:space="preserve">
+    <value>Modifications à appliquer sur les écrans : {0}. Rien ne bouge tant que vous n'appuyez pas sur Appliquer.</value>
+  </data>
+  <data name="StatusApplied" xml:space="preserve">
+    <value>Appliqué sur les écrans : {0}.</value>
+  </data>
+  <data name="StatusLayoutInUse" xml:space="preserve">
+    <value>Un écran utilise cette disposition : elle ne peut pas être supprimée.</value>
+  </data>
+  <data name="StatusFailed" xml:space="preserve">
+    <value>Cela n'a pas fonctionné : {0}</value>
+  </data>
+  <data name="MonitorLabel" xml:space="preserve">
+    <value>Écran {0} : {1} × {2}</value>
+  </data>
+  <data name="MonitorPrimary" xml:space="preserve">
+    <value>{0} (principal)</value>
+  </data>
+  <data name="NoLayout" xml:space="preserve">
+    <value>Aucune : ne pas toucher à cet écran</value>
+  </data>
+  <data name="LabelLayout" xml:space="preserve">
+    <value>Disposition</value>
+  </data>
+  <data name="LabelPanelStart" xml:space="preserve">
+    <value>Afficher les panneaux</value>
+  </data>
+  <data name="PanelStartWithConsole" xml:space="preserve">
+    <value>Avec EVE Console</value>
+  </data>
+  <data name="PanelStartWithEve" xml:space="preserve">
+    <value>Quand EVE démarre sur cet écran</value>
+  </data>
+  <data name="FullMonitor" xml:space="preserve">
+    <value>Utiliser tout l'écran, y compris l'emplacement de la barre des tâches</value>
+  </data>
+  <data name="LabelProfile" xml:space="preserve">
+    <value>Profil</value>
+  </data>
+  <data name="LabelProfileName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>Par défaut</value>
+  </data>
+  <data name="ProfileNewName" xml:space="preserve">
+    <value>Nouveau profil</value>
+  </data>
+  <data name="ProfileInUse" xml:space="preserve">
+    <value>Actif : {0}</value>
+  </data>
+  <data name="TipProfile" xml:space="preserve">
+    <value>L'ensemble de dispositions et de personnages que cet onglet affiche et modifie. Appuyez sur Appliquer pour passer à celui-ci.</value>
+  </data>
+  <data name="StatusLastProfile" xml:space="preserve">
+    <value>Un poste a besoin d'au moins un profil : celui-ci ne peut pas être supprimé.</value>
+  </data>
+  <data name="ItemMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
+  <data name="ItemWorklist" xml:space="preserve">
+    <value>Liste de tâches</value>
+  </data>
+  <data name="LabelMumbleServer" xml:space="preserve">
+    <value>Serveur</value>
+  </data>
+  <data name="LabelMumbleMode" xml:space="preserve">
+    <value>Affichage</value>
+  </data>
+  <data name="MumbleModeLine" xml:space="preserve">
+    <value>Une ligne, avec à côté qui parle</value>
+  </data>
+  <data name="MumbleModeList" xml:space="preserve">
+    <value>La liste du canal, ceux qui parlent en haut</value>
+  </data>
+  <data name="MumbleChooseServer" xml:space="preserve">
+    <value>Choisissez un serveur Mumble pour ce contrôle dans Dispositions des clients.</value>
+  </data>
+  <data name="MumbleNoServer" xml:space="preserve">
+    <value>Ce serveur Mumble n'est plus défini.</value>
+  </data>
+  <data name="MumbleServerState" xml:space="preserve">
+    <value>{0} : {1}</value>
+  </data>
+  <data name="WorklistNoClient" xml:space="preserve">
+    <value>Personne n'est connecté sur cet écran.</value>
+  </data>
+  <data name="WorklistNotInApp" xml:space="preserve">
+    <value>{0} n'est pas un personnage d'EVE Console.</value>
+  </data>
+  <data name="WorklistNothing" xml:space="preserve">
+    <value>Rien de prêt pour {0}.</value>
+  </data>
+  <data name="WorklistOpenTool" xml:space="preserve">
+    <value>Ouvrir la liste de tâches</value>
+  </data>
+  <data name="WorklistLoading" xml:space="preserve">
+    <value>Chargement de la liste de tâches…</value>
+  </data>
+  <data name="WorklistNoClientShort" xml:space="preserve">
+    <value>Personne de connecté</value>
+  </data>
+  <data name="LabelWorklistMode" xml:space="preserve">
+    <value>Affichage</value>
+  </data>
+  <data name="WorklistModeList" xml:space="preserve">
+    <value>La liste des tâches prêtes</value>
+  </data>
+  <data name="WorklistModeLine" xml:space="preserve">
+    <value>Une ligne de compteurs, la liste se déroulant au clic</value>
+  </data>
+  <data name="ItemMenu" xml:space="preserve">
+    <value>Menu</value>
+  </data>
+  <data name="ItemToolContainer" xml:space="preserve">
+    <value>Conteneur d'outils</value>
+  </data>
+  <data name="MenuTip" xml:space="preserve">
+    <value>Outils. Maj+clic ouvre une autre copie.</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>Ouvrir un outil dans ces onglets. Maj+clic ouvre une autre copie.</value>
+  </data>
+  <data name="LabelMenuTarget" xml:space="preserve">
+    <value>Ouvre les outils dans</value>
+  </data>
+  <data name="MenuTargetNewWindow" xml:space="preserve">
+    <value>Une nouvelle fenêtre</value>
+  </data>
+  <data name="MenuTargetLastUsed" xml:space="preserve">
+    <value>La dernière fenêtre utilisée</value>
+  </data>
+  <data name="MenuTargetContainer" xml:space="preserve">
+    <value>{0} › {1}</value>
+  </data>
+  <data name="MenuTargetGone" xml:space="preserve">
+    <value>Un conteneur d'outils qui n'est plus dans aucune disposition</value>
+  </data>
+  <data name="LabelContainerName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="LabelContainerMode" xml:space="preserve">
+    <value>Contient</value>
+  </data>
+  <data name="ContainerModeSingle" xml:space="preserve">
+    <value>Un outil</value>
+  </data>
+  <data name="ContainerModeTabs" xml:space="preserve">
+    <value>Des onglets</value>
+  </data>
+  <data name="ContainerSplit" xml:space="preserve">
+    <value>Peut se diviser en deux</value>
+  </data>
+  <data name="LabelContainerTools" xml:space="preserve">
+    <value>S'ouvre avec</value>
+  </data>
+  <data name="ContainerToolCanClose" xml:space="preserve">
+    <value>Peut être fermé</value>
+  </data>
+  <data name="ContainerToolRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="ContainerToolAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="LabelToolSettings" xml:space="preserve">
+    <value>{0} s'ouvre avec</value>
+  </data>
+  <data name="LabelOverviewLayout" xml:space="preserve">
+    <value>Disposition</value>
+  </data>
+  <data name="ToolNoSettings" xml:space="preserve">
+    <value>Rien à régler pour cet outil.</value>
+  </data>
+  <data name="ContainerNote" xml:space="preserve">
+    <value>Un onglet qui ne peut pas être fermé reste dans ce conteneur. Un outil ouvert ailleurs vient ici quand le conteneur s'affiche. Une vue d'ensemble ouverte ici est indépendante : celle de la fenêtre principale reste où elle est.</value>
+  </data>
+  <data name="LabelWidth" xml:space="preserve">
+    <value>Largeur en pixels</value>
+  </data>
+  <data name="LabelHeight" xml:space="preserve">
+    <value>Hauteur en pixels</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>Contrôle</value>
+  </data>
+  <data name="LabelColor" xml:space="preserve">
+    <value>Couleur</value>
+  </data>
+  <data name="LabelStyle" xml:space="preserve">
+    <value>Style</value>
+  </data>
+  <data name="StyleFlat" xml:space="preserve">
+    <value>Plat</value>
+  </data>
+  <data name="StyleRaised" xml:space="preserve">
+    <value>En relief</value>
+  </data>
+  <data name="StyleInset" xml:space="preserve">
+    <value>En creux</value>
+  </data>
+  <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>Plan</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>Carte</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>ligne {0}, colonne {1}</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>Colonnes</value></data>
+  <data name="GridRows" xml:space="preserve"><value>Lignes</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>Chaque cellule est un panneau et garde sa place. Réduire la grille retire les cellules au-delà du nouveau bord, avec leur contenu ; Annuler les rétablit. Cliquez sur une ligne entre les cellules pour sélectionner la grille.</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>Client</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>Ancrer une grille</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>Retirer le client</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>Ancrer un panneau à l&apos;écran</value></data>
+  <data name="Undo" xml:space="preserve"><value>Annuler</value></data>
+  <data name="Redo" xml:space="preserve"><value>Rétablir</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>Annuler la dernière modification de cette disposition (Ctrl+Z).</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>Rétablir la modification qui vient d&apos;être annulée (Ctrl+Y).</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>Ancré à</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>Ordre d&apos;ancrage</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>Faites glisser une ligne vers le haut ou le bas pour changer l&apos;ordre ; cliquez dessus pour la sélectionner. Le plus haut s&apos;ancre en premier et prend tout son bord ; les suivants tiennent dans ce qui reste.</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>Marge intérieure</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>Gauche</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>Haut</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>Droite</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>Bas</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>Pixels à 100 %, laissés libres à l&apos;intérieur du panneau, ou autour des cellules d&apos;une grille et entre elles. Un bord en relief, en creux ou en arête en laisse 4 de plus, une carte 5, pour que rien n&apos;atteigne ses coins arrondis.</value></data>
+    <value>Arête</value>
+  </data>
+  <data name="MenuDockControl" xml:space="preserve">
+    <value>Ancrer un contrôle</value>
+  </data>
+  <data name="MenuDockInside" xml:space="preserve">
+    <value>Ancrer un panneau à l'intérieur</value>
+  </data>
+  <data name="MenuEdgeFull" xml:space="preserve">
+    <value>Tout l'espace</value>
+  </data>
+  <data name="MenuRemoveControl" xml:space="preserve">
+    <value>Retirer le contrôle</value>
+  </data>
+  <data name="MenuParent" xml:space="preserve">
+    <value>Parent : {0}</value>
+  </data>
+  <data name="MenuSelect" xml:space="preserve">
+    <value>Sélectionner</value>
+  </data>
+  <data name="ParentMonitor" xml:space="preserve">
+    <value>Écran</value>
+  </data>
+  <data name="ParentGrid" xml:space="preserve">
+    <value>Grille</value>
+  </data>
+  <data name="ParentCell" xml:space="preserve">
+    <value>Cellule</value>
+  </data>
+  <data name="ItemSettings" xml:space="preserve">
+    <value>Paramètres</value>
+  </data>
+  <data name="ItemServerStatus" xml:space="preserve">
+    <value>État du serveur EVE</value>
+  </data>
+  <data name="ItemEveTime" xml:space="preserve">
+    <value>Heure EVE</value>
+  </data>
+  <data name="ItemLocalTime" xml:space="preserve">
+    <value>Heure locale</value>
+  </data>
+  <data name="ItemLocalTimeShort" xml:space="preserve">
+    <value>Locale</value>
+  </data>
+  <data name="ItemUsersOnline" xml:space="preserve">
+    <value>Personnages connectés</value>
+  </data>
+  <data name="NoCells" xml:space="preserve">
+    <value>Cette disposition n'a aucune position de client.</value>
+  </data>
+  <data name="AddCharacterHint" xml:space="preserve">
+    <value>Nom du personnage</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="TipRemoveCharacter" xml:space="preserve">
+    <value>Retirer de ce groupe</value>
+  </data>
+  <data name="NoticesTitle" xml:space="preserve">
+    <value>Ce que le placement a relevé</value>
+  </data>
+  <data name="NoticeAClient" xml:space="preserve">
+    <value>Un client</value>
+  </data>
+  <data name="NoticeNotFixed" xml:space="preserve">
+    <value>{0} n'est pas en mode Fenêtre fixe : il n'a pas été touché. Changez son mode d'affichage dans les paramètres du jeu.</value>
+  </data>
+  <data name="NoticeInUse" xml:space="preserve">
+    <value>{0} : sa position est occupée par un autre personnage connecté, il est donc resté où il était.</value>
+  </data>
+  <data name="NoticeNoPosition" xml:space="preserve">
+    <value>{0} est connecté mais n'appartient à aucun groupe, et aucune position de client n'est libre sur son écran. Ajoutez-le à une position de client.</value>
+  </data>
+  <data name="NoticeMovedByHand" xml:space="preserve">
+    <value>{0} a été déplacé à la main : il n'est plus touché tant que vous n'appuyez pas sur Appliquer.</value>
+  </data>
+  <data name="NoticeDidNotHold" xml:space="preserve">
+    <value>{0} n'est pas resté là où il avait été placé : il n'est plus touché tant que vous n'appuyez pas sur Appliquer.</value>
+  </data>
+  <data name="OtherDesktops" xml:space="preserve">
+    <value>Autres postes</value>
+  </data>
+  <data name="OtherDesktopsNote" xml:space="preserve">
+    <value>Après une réinstallation de Windows, cet ordinateur apparaît comme un nouveau poste. Reprenez son ancienne entrée pour garder ses écrans et ses groupes. Cela remplace ce qui est réglé pour ce poste.</value>
+  </data>
+  <data name="TakeOver" xml:space="preserve">
+    <value>C'est ce poste</value>
+  </data>
+  <data name="TakeOverConfirm" xml:space="preserve">
+    <value>Cliquez à nouveau pour remplacer ce poste</value>
+  </data>
+  <data name="LayoutsTitle" xml:space="preserve">
+    <value>Dispositions</value>
+  </data>
+  <data name="NewLayout" xml:space="preserve">
+    <value>Nouvelle</value>
+  </data>
+  <data name="DuplicateLayout" xml:space="preserve">
+    <value>Dupliquer</value>
+  </data>
+  <data name="DeleteLayout" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="NewLayoutName" xml:space="preserve">
+    <value>Nouvelle disposition</value>
+  </data>
+  <data name="CopyOfName" xml:space="preserve">
+    <value>Copie de {0}</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>Clic droit sur l&apos;écran pour y ancrer des panneaux, ou sur un panneau pour y ancrer des panneaux, contrôles, clients et grilles, ou atteindre ce qui le contient. Faites glisser les lignes entre les éléments pour les redimensionner.</value>
+  </data>
+  <data name="LabelLayoutName" xml:space="preserve">
+    <value>Nom de la disposition</value>
+  </data>
+  <data name="LabelPreviewOn" xml:space="preserve">
+    <value>Afficher sur</value>
+  </data>
+  <data name="LabelPanelName" xml:space="preserve">
+    <value>Nom du panneau</value>
+  </data>
+  <data name="LabelPanelSize" xml:space="preserve">
+    <value>Taille en pixels</value>
+  </data>
+  <data name="PanelDefaultName" xml:space="preserve">
+    <value>Panneau</value>
+  </data>
+  <data name="CanvasClient" xml:space="preserve">
+    <value>Client {0}</value>
+  </data>
+  <data name="CanvasSize" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CanvasEmpty" xml:space="preserve">
+    <value>Vide</value>
+  </data>
+  <data name="MenuEdgeTop" xml:space="preserve">
+    <value>Haut</value>
+  </data>
+  <data name="MenuEdgeBottom" xml:space="preserve">
+    <value>Bas</value>
+  </data>
+  <data name="MenuEdgeLeft" xml:space="preserve">
+    <value>Gauche</value>
+  </data>
+  <data name="MenuEdgeRight" xml:space="preserve">
+    <value>Droite</value>
+  </data>
+  <data name="MenuRemoveGrid" xml:space="preserve">
+    <value>Retirer cette grille</value>
+  </data>
+  <data name="MenuSendToBack" xml:space="preserve">
+    <value>Mettre à l'arrière-plan</value>
+  </data>
+  <data name="MenuBringToFront" xml:space="preserve">
+    <value>Mettre au premier plan</value>
+  </data>
+  <data name="MenuRemovePanel" xml:space="preserve">
+    <value>Retirer le panneau</value>
+  </data>
+  <data name="WarnSmall" xml:space="preserve">
+    <value>{0} : le client {1} ne fait que {2} × {3}, c'est petit pour jouer.</value>
+  </data>
+  <data name="WarnNoFit" xml:space="preserve">
+    <value>{0} : les panneaux ne tiennent pas ici, un élément n'a pas de place.</value>
+  </data>
+  <data name="WarnBroken" xml:space="preserve">
+    <value>{0} : une partie de cette disposition ne peut pas être utilisée telle qu'enregistrée. Elle vient peut-être d'une version plus récente.</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>Assistant IA</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>Messages directs</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>Discussion de groupe</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>Version de l&apos;application</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>Version du SDE</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>Base de données</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>Travail en arrière-plan</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>État d&apos;ESI</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>Thème</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>Échelle de l&apos;interface</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>Voyant d&apos;alarme</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>Planificateur</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>Alertes</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>Ouvrir Messages</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>Ouvrir Discussion de groupe</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>Aucun nouveau message direct.</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>Rien de nouveau dans la discussion de groupe.</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>L&apos;assistant IA est désactivé. Activez-le dans les Paramètres.</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>Messagerie d&apos;EVE</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>Utiliser la couleur du thème</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>Salon de discussion de groupe</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>Conversations de messages directs</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>Salon</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>Choisissez un salon pour ce contrôle dans Dispositions des clients, ou choisissez-en un ci-dessus.</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>Le salon choisi pour ce contrôle n&apos;est plus dans la discussion de groupe.</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>Exporter</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>Importer</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>Enregistrer cette disposition dans un fichier, pour la garder ou la partager.</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>Ajouter une disposition depuis un fichier comme nouvelle disposition. Les moniteurs ne changent pas.</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>Disposition EVE Console</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>« {0} » exporté.</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>« {0} » importé. Vérifiez ses contrôles Mumble s&apos;il vient d&apos;une autre base de données.</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>Ce fichier n&apos;est pas une disposition EVE Console.</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>Cette disposition vient d&apos;une version plus récente d&apos;EVE Console. Mettez à jour pour l&apos;importer.</value>
+  </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Affichage</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>La liste en direct des menaces</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>Une ligne avec la menace la plus proche ; un clic déroule la liste</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Portée</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} sauts</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>Jusqu&apos;où l&apos;élément cherche des renseignements, en sauts par portails stellaires et trous ouverts de Thera ou Turnur, depuis le personnage du client de cet écran. Les ponts de saut ne comptent pas.</value>
+  </data>
+</root>

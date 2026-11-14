@@ -137,6 +137,21 @@ public sealed class QueryDatabaseTool : IAgentTool
             Gate(system whose gate they are on), Ships(hulls with no pilot named, e.g. "3× Loki")
         IntelReportCharacters: IntelReportId, CharacterId, CharacterName, ShipTypeId, ShipName
             - Obsolete=1 means a later report supersedes this one.
+            - IntelReports also has Kind(0 sighting, 1 the system called clear, 2 a relayed copy of the
+              report ParentReportId names, heard in another channel: no information of its own; count
+              only Kind=0), Source(0 chat, 1 pasted Local, 2 pasted d-scan; pastes have ChatMessageId 0),
+              ParentReportId(a follow-up's first report; a copy's original), FromSystemId, HeadingSystemId.
+        IntelLastSeen: CharacterId, Name, SeenAt(ISO text), SystemId, Source(0 report, 1 pasted
+            Local, 2 kill attacker, 3 kill victim), ReportId, KillMailId, ShipTypeId, ShipName,
+            NoVisual, CorporationId, AllianceId, PrevSystemId, PrevSeenAt, InSystemSince
+            - One row per pilot: where they were last seen, from any source.
+        IntelWatchEntries: Id, Kind('pilot','corp','alliance','hull','group'), EntityId, Name, Mode(0 always
+            alert, 1 ignore), Note, AddedBy(PC), AddedAt(ISO text)
+            - The shared intel watch list, one row per thing.
+        CharacterRoutes: CharacterId (PK), DestinationSystemId, SystemIds(comma list, start first), AtIndex(step last
+            seen at), SetAt(ISO text), ClearedAt(ISO text, null while flown)
+            - The last route the Route Planner sent to the game per character; intel alarms watch the steps after
+              AtIndex. Ignored after 6 hours.
 
         ALARMS (see the manage_alarms tool rather than writing to these directly)
         Alarms: Id, Name, Enabled, ConditionType, ConditionJson, Repeat, PollSeconds,

@@ -97,6 +97,19 @@ public partial class SalePostingView : UserControl
             var dlg = new ConfirmDialog(message);
             return await dlg.ShowDialog<bool>(GetWindow());
         };
+
+        vm.ConfirmDelete = async (message) =>
+        {
+            var dlg = new ConfirmDialog(message);
+            return await dlg.ShowDialog<bool>(GetWindow());
+        };
+    }
+
+    // The grid's selection list is not bindable; the view model is told what it holds.
+    private void OnGridSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (DataContext is SalePostingViewModel vm && sender is DataGrid grid)
+            vm.SetSelectedRows(grid.SelectedItems.Cast<object>());
     }
 
     private async void OnCopyBlock(object? sender, RoutedEventArgs e)

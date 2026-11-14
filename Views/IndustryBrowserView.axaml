@@ -39,7 +39,7 @@
 
         <!-- Left: metadata fields -->
         <Grid Grid.Column="0"
-              ColumnDefinitions="86,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
+              ColumnDefinitions="86,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto"
               VerticalAlignment="Top">
           <TextBlock Grid.Row="0"  Grid.Column="0" Text="{x:Static loc:IndustryText.OwnerType}"     Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
           <TextBlock Grid.Row="1"  Grid.Column="0" Text="{x:Static loc:IndustryText.Owner}"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
@@ -51,7 +51,6 @@
           <TextBlock Grid.Row="7"  Grid.Column="0" Text="{x:Static loc:IndustryText.Status}"         Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
           <TextBlock Grid.Row="8"  Grid.Column="0" Text="{x:Static loc:IndustryText.Runs}"           Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
           <TextBlock Grid.Row="9"  Grid.Column="0" Text="{x:Static loc:IndustryText.Items}"          Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
-          <TextBlock Grid.Row="10" Grid.Column="0" Text="{x:Static loc:IndustryText.SuccessChance}" Foreground="{DynamicResource TextFaintBrush}" FontSize="10" Margin="0 0 6 3" VerticalAlignment="Center"/>
 
           <TextBlock x:Name="DetailOwnerType"    Grid.Row="0"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
           <TextBlock x:Name="DetailOwner"        Grid.Row="1"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
@@ -63,7 +62,6 @@
           <TextBlock x:Name="DetailStatus"       Grid.Row="7"  Grid.Column="1" Foreground="{DynamicResource AccentBrush}" FontSize="10" FontWeight="SemiBold" Margin="0 0 0 3" VerticalAlignment="Center"/>
           <TextBlock x:Name="DetailRuns"         Grid.Row="8"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
           <TextBlock x:Name="DetailItemsProduced"  Grid.Row="9"  Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
-          <TextBlock x:Name="DetailSuccessChance"  Grid.Row="10" Grid.Column="1" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10" Margin="0 0 0 3" VerticalAlignment="Center"/>
         </Grid>
 
         <!-- Separator -->
@@ -95,7 +93,7 @@
           </StackPanel>
 
           <!-- Blueprint → Product row -->
-          <Grid Grid.Row="1" ColumnDefinitions="150,28,150,*">
+          <Grid Grid.Row="1" ColumnDefinitions="150,Auto,150,*">
 
             <!-- Blueprint -->
             <Grid Grid.Column="0" RowDefinitions="64,Auto,Auto,Auto" Width="150">
@@ -119,15 +117,38 @@
             </Grid>
 
             <!-- Arrow -->
-            <TextBlock Grid.Column="1" Text="→" Foreground="{DynamicResource InfoBrush}" FontSize="20"
-                       VerticalAlignment="Top" HorizontalAlignment="Center" Margin="0 18 0 0"/>
+            <StackPanel Grid.Column="1" Orientation="Vertical" MinWidth="28" MaxWidth="76" Margin="0 18 0 0">
+              <TextBlock Text="→" Foreground="{DynamicResource InfoBrush}" FontSize="20" HorizontalAlignment="Center"/>
+              <!-- Invention alone can fail, so the chance sits on the step from input to output. -->
+              <StackPanel x:Name="DetailChancePanel" Orientation="Vertical" IsVisible="False" Margin="4 2 4 0">
+                <TextBlock x:Name="DetailSuccessChance" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="11" FontWeight="SemiBold"
+                           HorizontalAlignment="Center"/>
+                <TextBlock Text="{x:Static loc:IndustryText.SuccessChance}" Foreground="{DynamicResource TextFaintBrush}" FontSize="9"
+                           TextAlignment="Center" TextWrapping="Wrap"/>
+              </StackPanel>
+            </StackPanel>
 
             <!-- Product -->
-            <Grid Grid.Column="2" RowDefinitions="64,Auto,Auto" Width="150">
+            <Grid Grid.Column="2" RowDefinitions="64,Auto,Auto,Auto" Width="150">
               <Image x:Name="ProductImage" Grid.Row="0" Width="64" Height="64" Stretch="Uniform" HorizontalAlignment="Center"/>
               <TextBlock x:Name="DetailProduct" Grid.Row="1" Foreground="{DynamicResource InfoBrush}" FontSize="10"
                          HorizontalAlignment="Center" TextTrimming="CharacterEllipsis" MaxWidth="148" Margin="0 4 0 2"/>
-              <TextBlock x:Name="DetailItemsProducedImg" Grid.Row="2" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10"
+              <!-- The levels the print leaves the job at, which the job's input side cannot show. -->
+              <StackPanel x:Name="DetailOutputLevels" Grid.Row="2" Orientation="Horizontal" Spacing="6" HorizontalAlignment="Center" IsVisible="False">
+                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource GoodSurfaceBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
+                  <StackPanel Orientation="Horizontal" Spacing="3">
+                    <TextBlock Text="ME" Foreground="{DynamicResource GoodBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DetailOutputME" Foreground="{DynamicResource GoodBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+                <Border Background="{DynamicResource SurfaceBaseBrush}" BorderBrush="{DynamicResource SurfaceSelectedBrush}" BorderThickness="1" CornerRadius="2" Padding="4 1">
+                  <StackPanel Orientation="Horizontal" Spacing="3">
+                    <TextBlock Text="TE" Foreground="{DynamicResource TextFaintBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                    <TextBlock x:Name="DetailOutputTE" Foreground="{DynamicResource InfoBrush}" FontSize="9" FontWeight="Bold" VerticalAlignment="Center"/>
+                  </StackPanel>
+                </Border>
+              </StackPanel>
+              <TextBlock x:Name="DetailItemsProducedImg" Grid.Row="3" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="10"
                          HorizontalAlignment="Center" Margin="0 2 0 0"/>
             </Grid>
 

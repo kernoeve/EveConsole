@@ -12,6 +12,40 @@
     <value>⚙ Customize Layout</value>
     <comment>Button or option in CharacterView.</comment>
   </data>
+  <data name="LayoutDefault" xml:space="preserve">
+    <value>Default</value>
+    <comment>The Overview layout there always was, which can't be deleted.</comment>
+  </data>
+  <data name="LayoutNewName" xml:space="preserve">
+    <value>Layout</value>
+    <comment>The name an Overview layout gets when it's saved with a blank one.</comment>
+  </data>
+  <data name="LayoutNumbered" xml:space="preserve">
+    <value>Layout {0}</value>
+    <comment>A new Overview layout's starting name. {0} is a number.</comment>
+  </data>
+  <data name="LayoutLabel" xml:space="preserve">
+    <value>Layout:</value>
+    <comment>Label for the dropdown of saved Overview layouts in the layout editor.</comment>
+  </data>
+  <data name="LayoutName" xml:space="preserve">
+    <value>Name:</value>
+    <comment>Label for the name of the Overview layout being edited.</comment>
+  </data>
+  <data name="LayoutAdd" xml:space="preserve">
+    <value>Add</value>
+    <comment>Button: a new Overview layout.</comment>
+  </data>
+  <data name="LayoutDelete" xml:space="preserve">
+    <value>Delete</value>
+    <comment>Button: deletes the Overview layout being edited. Default can't be deleted.</comment>
+  </data>
+  <data name="TipLayoutAdd" xml:space="preserve">
+    <value>A new layout, starting as a copy of this one.</value>
+  </data>
+  <data name="TipLayoutPick" xml:space="preserve">
+    <value>Which saved layout this Overview shows</value>
+  </data>
   <data name="ActivitySummary" xml:space="preserve">
     <value>Activity Summary</value>
     <comment>Heading of an Overview section; also its name in the Customize Overview dialog.</comment>
@@ -684,6 +718,14 @@
     <value>You have {0} unread EVE mails.</value>
     <comment>Overview alert, clicked to open the EVE Mail tool. {0} is the number of unread mails across the user's characters.</comment>
   </data>
+  <data name="AlertUnreadJabberOther" xml:space="preserve">
+    <value>You have {0} unread Jabber messages.</value>
+    <comment>Overview alert. {0} = unread messages needing attention. Clicking opens them.</comment>
+  </data>
+  <data name="AlertUnreadJabberOne" xml:space="preserve">
+    <value>You have {0} unread Jabber message.</value>
+    <comment>Overview alert, one message. {0} = 1.</comment>
+  </data>
   <data name="AlertStructureFuel" xml:space="preserve">
     <value>{0} ({1}) runs out of fuel in {2}</value>
     <comment>Overview alert: {0} structure, {1} system, {2} time left ("2d 4h").</comment>
@@ -1335,5 +1377,13 @@ Replace '{1}' with '{0}'?</value>
   <data name="AlertPiFreeSlotsCharsOther" xml:space="preserve">
     <value>{0} PI characters have unused colony slots.</value>
     <comment>Overview alert. {0} is the number of characters. "PI" is the game's abbreviation for Planetary Industry.</comment>
+  </data>
+  <data name="AlertUnreadDirectOther" xml:space="preserve">
+    <value>You have {0} unread direct messages.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
+  </data>
+  <data name="AlertUnreadDirectOne" xml:space="preserve">
+    <value>You have {0} unread direct message.</value>
+    <comment>An alert on the Overview. {0} = how many.</comment>
   </data>
 </root>

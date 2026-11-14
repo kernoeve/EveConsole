@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>Сообщения</value>
+    <comment>The window, and the main menu.</comment>
+  </data>
+  <data name="AllConversations" xml:space="preserve">
+    <value>Все беседы</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>Поиск по имени или серверу</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NoConversations" xml:space="preserve">
+    <value>Сохранённых разговоров пока нет. Нажмите «Новый разговор» или щёлкните правой кнопкой по человеку в комнате или на сервере Mumble.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NothingOpen" xml:space="preserve">
+    <value>Выберите разговор или нажмите «Новый разговор», чтобы написать тому, кто в сети.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="ToggleList" xml:space="preserve">
+    <value>Беседы</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>Закрыть эту вкладку. Беседа останется сохранённой.</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Воспроизводить звук при новых личных сообщениях</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>Отправить сообщение</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CannotSendNotConnected" xml:space="preserve">
+    <value>Нет подключения к {0}, поэтому сейчас ничего отправить нельзя.</value>
+    <comment>{0} = a server's name.</comment>
+  </data>
+  <data name="CannotSendOffline" xml:space="preserve">
+    <value>{0} не в сети. Сообщение можно доставить только тому, кто подключён.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="CannotSendLeftRoom" xml:space="preserve">
+    <value>{0} покинул комнату, поэтому эту личную беседу нельзя продолжить.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="NoteOfflineHeld" xml:space="preserve">
+    <value>{0} не в сети. Сервер должен сохранить ваше сообщение до следующего подключения.</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="PresenceOnline" xml:space="preserve">
+    <value>В сети</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceAway" xml:space="preserve">
+    <value>Отошёл</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceOffline" xml:space="preserve">
+    <value>Не в сети</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>Новый разговор</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>Имя того, кто в сети</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>Среди тех, кто в сети, таких нет.</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>На подключённых серверах больше никого нет в сети.</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>Ещё {0}. Введите имя полнее, чтобы сузить список.</value>
+  </data>
+</root>

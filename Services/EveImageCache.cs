@@ -29,7 +29,11 @@ internal static class EveImageCache
     /// alliance logo share a single fetch instead of racing for it.
     /// </summary>
     public static Task<Bitmap?> GetAsync(string url)
-        => _cache.GetOrAdd(url, static u => FetchAsync(u));
+        => Offline ? Task.FromResult<Bitmap?>(null) : _cache.GetOrAdd(url, static u => FetchAsync(u));
+
+    /// <summary>For a headless check: nothing is fetched, from the network or the disk, and no picture comes back.
+    /// The check gives its own made-up pictures instead.</summary>
+    internal static bool Offline { get; set; }
 
     /// <summary>
     /// The copy on disk, under the app's data folder. A type icon never changes, and a portrait

@@ -355,6 +355,15 @@ public class KillmailDetailVm : ReactiveObject
     public ReactiveCommand<Unit, Unit> OpenVictimCorpCommand     { get; }
     public ReactiveCommand<Unit, Unit> OpenVictimAllianceCommand { get; }
 
+    /// <summary>A battle report of the fight around this kill.</summary>
+    public ReactiveCommand<Unit, Unit> OpenBattleReportCommand { get; }
+
+    public static string ZkillboardUrlOf(int killMailId) => $"https://zkillboard.com/kill/{killMailId}/";
+
+    /// <summary>This kill's page on zKillboard. A kill it has not been given shows its not-found page.</summary>
+    public string ZkillboardUrl { get; }
+    public ReactiveCommand<Unit, Unit> OpenZkillboardCommand { get; }
+
     public KillmailDetailVm(KillmailDetailData d)
     {
         _victimCharId     = d.VictimCharId;
@@ -382,6 +391,9 @@ public class KillmailDetailVm : ReactiveObject
         Attackers  = d.Attackers.Select(a => new KillmailAttackerVm(a)).ToList();
 
         OpenVictimCommand         = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Pilot, _victimCharId));
+        OpenBattleReportCommand   = ReactiveCommand.Create(() => Nav.BattleReport(d.KillMailId));
+        ZkillboardUrl             = ZkillboardUrlOf(d.KillMailId);
+        OpenZkillboardCommand     = ReactiveCommand.Create(() => EveConsole.Services.ExternalLinks.Open(ZkillboardUrl));
         OpenVictimCorpCommand     = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.PlayerCorp, _victimCorpId));
         OpenVictimAllianceCommand = ReactiveCommand.Create(() => Nav.Entity(EveConsole.Services.EntityKind.Alliance, _victimAllianceId));
 
@@ -443,13 +455,16 @@ public sealed class KillmailCharacterOption
 }
 
 // ── Main ViewModel ────────────────────────────────────────────────────────────
-public class KillmailBrowserViewModel : ReactiveObject
+public class KillmailBrowserViewModel : ReactiveObject, IDisposable
 {
     public const int PersonalTab = 0;
     public const int AllTab      = 1;
 
     private readonly KillmailBrowserService          _service;
     private readonly ObservableCollection<Character> _sourceChars;
+
+    /// <summary>A copy of the tool closed: it stops following the character list.</summary>
+    public void Dispose() => _sourceChars.CollectionChanged -= OnSourceCharsChanged;
 
     // Filters — all run server-side in KillmailBrowserService.GetListAsync, not against
     // whatever page happens to already be loaded (with 100K+ rows total and one page

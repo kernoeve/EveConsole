@@ -1,0 +1,1048 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="SettingsTab" xml:space="preserve">
+    <value>インテル</value>
+  </data>
+  <data name="SettingsLifetimesHeading" xml:space="preserve">
+    <value>インテルの有効期間</value>
+  </data>
+  <data name="SettingsLifetimesNote" xml:space="preserve">
+    <value>各種の情報は報告からこの時間だけ現在のものとして扱われ、時間とともに薄れ、その後パネルとマップから消えます。このデータベースを使うすべての PC で共通です。「ノービジュアル」は目撃情報に付く印で、独自の期間はありません。</value>
+  </data>
+  <data name="SettingsNamedPilot" xml:space="preserve">
+    <value>名前の分かっているパイロット</value>
+  </data>
+  <data name="SettingsUnnamedCount" xml:space="preserve">
+    <value>名前のない人数（「+5」）</value>
+  </data>
+  <data name="SettingsClear" xml:space="preserve">
+    <value>クリアと報告された星系</value>
+  </data>
+  <data name="SettingsCamp" xml:space="preserve">
+    <value>ゲートキャンプまたはバブル</value>
+  </data>
+  <data name="SettingsCyno" xml:space="preserve">
+    <value>サイノ</value>
+  </data>
+  <data name="SettingsKillAttacker" xml:space="preserve">
+    <value>キルに関わったパイロット</value>
+  </data>
+  <data name="SettingsKillVictim" xml:space="preserve">
+    <value>艦船を失ったパイロット</value>
+  </data>
+  <data name="SettingsMinutes" xml:space="preserve">
+    <value>分</value>
+  </data>
+  <data name="SettingsSeconds" xml:space="preserve">
+    <value>秒</value>
+  </data>
+  <data name="SettingsKm" xml:space="preserve">
+    <value>km</value>
+  </data>
+  <data name="SettingsFollowUpHeading" xml:space="preserve">
+    <value>続報の行</value>
+  </data>
+  <data name="SettingsFollowUpNote" xml:space="preserve">
+    <value>星系を含まない行（「+2」「nv」「clr」）は、この時間内に来た場合、同じチャンネルの同じ報告者の直前の報告に追加されます。</value>
+  </data>
+  <data name="SettingsFollowUpWindow" xml:space="preserve">
+    <value>続報の受付時間</value>
+  </data>
+  <data name="SettingsCampHeading" xml:space="preserve">
+    <value>キルからのゲートキャンプ</value>
+  </data>
+  <data name="SettingsCampNote" xml:space="preserve">
+    <value>同じゲートでのキルが、それぞれ前のキルの直後に起き、共通の攻撃者がいる場合、十分な数の異なるパイロットが失われた時点でキャンプとみなします。キル 1 件だけではキャンプではありません。</value>
+  </data>
+  <data name="SettingsCampGateKm" xml:space="preserve">
+    <value>ゲートからこの距離以内</value>
+  </data>
+  <data name="SettingsCampWindow" xml:space="preserve">
+    <value>キル間の最大間隔</value>
+  </data>
+  <data name="SettingsCampVictims" xml:space="preserve">
+    <value>キャンプとみなす喪失パイロット数</value>
+  </data>
+  <data name="SettingsStandingsHeading" xml:space="preserve">
+    <value>スタンディング</value>
+  </data>
+  <data name="SettingsStandingsNote" xml:space="preserve">
+    <value>パイロットは見ているキャラクターのスタンディングで色分けされます。パネルが追うキャラクター、または最も近いオンラインのキャラクターです。個人の連絡先が最優先で、次にコーポレーション、次にアライアンスの連絡先です。ここでキャラクターを選ぶと、どこでもそのスタンディングを使います。</value>
+  </data>
+  <data name="SettingsStandingsFrom" xml:space="preserve">
+    <value>スタンディングの基準</value>
+  </data>
+  <data name="SettingsStandingsEachClient" xml:space="preserve">
+    <value>（各クライアント自身のキャラクター）</value>
+  </data>
+  <data name="SettingsDistanceHeading" xml:space="preserve">
+    <value>距離</value>
+  </data>
+  <data name="SettingsDistanceNote" xml:space="preserve">
+    <value>脅威までの近さは、スターゲートと、開いているすべての Thera・Turnur の接続を双方向で数えます。移動距離では、キャラクターのアライアンスが使える方向の自前のジャンプブリッジも数えられます。</value>
+  </data>
+  <data name="SettingsUseBridges" xml:space="preserve">
+    <value>移動距離に自前のジャンプブリッジを使う</value>
+  </data>
+  <data name="SettingsAlertsHeading" xml:space="preserve">
+    <value>インテルアラーム</value>
+  </data>
+  <data name="SettingsAlertsNote" xml:space="preserve">
+    <value>すべてのインテルアラームで共通です。これより新しい情報だけがアラームを発動し、パネルの行を強調します。すでにあったものは読み上げず、古い情報も表示はされます。</value>
+  </data>
+  <data name="SettingsFresh" xml:space="preserve">
+    <value>これより新しい情報のみ</value>
+  </data>
+  <data name="SettingsFeedWarningHeading" xml:space="preserve">
+    <value>キルフィードの警告</value>
+  </data>
+  <data name="SettingsFeedWarningNote" xml:space="preserve">
+    <value>zKillboard が New Eden のすべてのキルを読んでいないとき、インテルツールが警告します。その場合、他の場所のキルはインテルに届きません。警告はそこで全 PC 共通で閉じられます。</value>
+  </data>
+  <data name="SettingsShowWarningAgain" xml:space="preserve">
+    <value>警告をもう一度表示</value>
+  </data>
+  <data name="SettingsWarningShownAgain" xml:space="preserve">
+    <value>警告が再び表示されます。</value>
+  </data>
+  <data name="SettingsSaveFailed" xml:space="preserve">
+    <value>保存できませんでした: {0}</value>
+  </data>
+  <data name="RetentionHeading" xml:space="preserve">
+    <value>インテル履歴</value>
+  </data>
+  <data name="RetentionNote" xml:space="preserve">
+    <value>これより古いインテル報告、その中で名前の挙がったパイロット、各パイロットの最終目撃場所を削除します。チャットメッセージとキルはそれぞれのルールで保持されます。</value>
+  </data>
+  <data name="RetentionPurgeOlderThan" xml:space="preserve">
+    <value>これより古いインテル履歴を削除</value>
+  </data>
+  <data name="RetentionRemoved" xml:space="preserve">
+    <value>{1:N0} 日より古いインテルの行を {0:N0} 件削除しました。</value>
+  </data>
+  <data name="AgeNow" xml:space="preserve">
+    <value>今</value>
+  </data>
+  <data name="AgeSeconds" xml:space="preserve">
+    <value>{0}秒</value>
+  </data>
+  <data name="AgeMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeHours" xml:space="preserve">
+    <value>{0}時間{1}分</value>
+  </data>
+  <data name="JumpsFrom" xml:space="preserve">
+    <value>{1}から{0}ジャンプ</value>
+  </data>
+  <data name="JumpsFromViaHole" xml:space="preserve">
+    <value>{1}から{0}ジャンプ（TheraまたはTurnur経由）</value>
+  </data>
+  <data name="StandingsAs" xml:space="preserve">
+    <value>{0}のスタンディングによる色</value>
+  </data>
+  <data name="StandingsAnyCharacter" xml:space="preserve">
+    <value>全キャラクターの色：どれかが友好なら友好</value>
+  </data>
+  <data name="CampSmartbombs" xml:space="preserve">
+    <value>スマートボム</value>
+  </data>
+  <data name="CampDictor" xml:space="preserve">
+    <value>インターディクター</value>
+  </data>
+  <data name="CampHic" xml:space="preserve">
+    <value>ヘビーインターディクター</value>
+  </data>
+  <data name="TipOpenPilot" xml:space="preserve">
+    <value>このパイロットを開く</value>
+  </data>
+  <data name="TipOpenHull" xml:space="preserve">
+    <value>この船体をアイテムブラウザーで開く</value>
+  </data>
+  <data name="HullTimes" xml:space="preserve">
+    <value>{0} ×{1}</value>
+  </data>
+  <data name="StateClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="ClearBy" xml:space="preserve">
+    <value>{0}の報告</value>
+  </data>
+  <data name="StateKill" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="StateGateKill" xml:space="preserve">
+    <value>ゲートでのキル</value>
+  </data>
+  <data name="KillLostTo" xml:space="preserve">
+    <value>撃墜者:</value>
+  </data>
+  <data name="NearGate" xml:space="preserve">
+    <value>{0}ゲート付近</value>
+  </data>
+  <data name="StateCamp" xml:space="preserve">
+    <value>ゲートキャンプ · {0}</value>
+  </data>
+  <data name="StateLocal" xml:space="preserve">
+    <value>ローカルに{0}</value>
+  </data>
+  <data name="StateDscan" xml:space="preserve">
+    <value>Dスキャンに{0}</value>
+  </data>
+  <data name="StateReported" xml:space="preserve">
+    <value>報告あり</value>
+  </data>
+  <data name="StateNoVisual" xml:space="preserve">
+    <value>{0} 目視なし</value>
+  </data>
+  <data name="StateHostile" xml:space="preserve">
+    <value>敵{0}</value>
+  </data>
+  <data name="PlusUnnamed" xml:space="preserve">
+    <value>+{0} 名前なし</value>
+  </data>
+  <data name="FollowUps" xml:space="preserve">
+    <value>+{0} 続報</value>
+  </data>
+  <data name="KillVictim" xml:space="preserve">
+    <value>{0}が喪失、攻撃者{1}</value>
+  </data>
+  <data name="PastedBy" xml:space="preserve">
+    <value>{0}が貼り付け</value>
+  </data>
+  <data name="ReportedBy" xml:space="preserve">
+    <value>{1}で{0}が報告</value>
+  </data>
+  <data name="LaterInThread" xml:space="preserve">
+    <value>続報:</value>
+  </data>
+  <data name="RangeShort" xml:space="preserve">
+    <value>{0}J</value>
+  </data>
+  <data name="PanelNoClientShort" xml:space="preserve">
+    <value>ログイン中なし</value>
+  </data>
+  <data name="PanelMoreWithin" xml:space="preserve">
+    <value>{1}J以内にさらに{0}</value>
+  </data>
+  <data name="PanelWithin" xml:space="preserve">
+    <value>{1}J以内に{0}</value>
+  </data>
+  <data name="PanelIn" xml:space="preserve">
+    <value>{0}にいます</value>
+  </data>
+  <data name="PanelWhereUnknown" xml:space="preserve">
+    <value>位置不明</value>
+  </data>
+  <data name="PanelWhereUnknownShort" xml:space="preserve">
+    <value>位置不明：一覧で最新のインテルを表示</value>
+  </data>
+  <data name="PanelNoClient" xml:space="preserve">
+    <value>このモニターではログイン中のキャラクターがいません。</value>
+  </data>
+  <data name="PanelNotInApp" xml:space="preserve">
+    <value>{0}はEVE Consoleのキャラクターではありません。</value>
+  </data>
+  <data name="PanelNotInAppShort" xml:space="preserve">
+    <value>{0}はEVE Consoleにいません</value>
+  </data>
+  <data name="PanelNoChannels" xml:space="preserve">
+    <value>インテルチャンネルが設定されていないため、ここにはキルのみ表示されます。</value>
+  </data>
+  <data name="PanelOpenChatLogs" xml:space="preserve">
+    <value>設定 → チャットログで設定</value>
+  </data>
+  <data name="PanelReading" xml:space="preserve">
+    <value>インテルを読み込み中…</value>
+  </data>
+  <data name="PanelNothingWithin" xml:space="preserve">
+    <value>{1}から{0}ジャンプ以内に報告はありません。</value>
+  </data>
+  <data name="PanelNothingWithinShort" xml:space="preserve">
+    <value>{0}J以内に何もなし</value>
+  </data>
+  <data name="PanelNothingAnywhere" xml:space="preserve">
+    <value>最近の報告はありません。{0}の位置はまだ不明です。</value>
+  </data>
+  <data name="PanelFooter" xml:space="preserve">
+    <value>青・水色は非表示 · 距離はゲートとThera</value>
+  </data>
+  <data name="PanelLocationUnknown" xml:space="preserve">
+    <value>{0}の位置が不明のため、最新のインテルをジャンプ数なしで表示</value>
+  </data>
+  <data name="PanelPersonalUnknown" xml:space="preserve">
+    <value>個人コンタクト不明：コーポとアライアンスのコンタクトで色分け</value>
+  </data>
+  <data name="TipOpenSystem" xml:space="preserve">
+    <value>星系のページを開く</value>
+  </data>
+  <data name="MenuShowOnMap" xml:space="preserve">
+    <value>マップに表示</value>
+  </data>
+  <data name="MenuCopySystem" xml:space="preserve">
+    <value>星系名をコピー</value>
+  </data>
+  <data name="MenuOpenInTool" xml:space="preserve">
+    <value>インテルツールで開く</value>
+  </data>
+  <data name="TipRange" xml:space="preserve">
+    <value>この要素が見る範囲（ゲートとThera・Turnur経由のジャンプ数）。レイアウトエディターで設定。</value>
+  </data>
+  <data name="TipPaste" xml:space="preserve">
+    <value>ローカルまたはDスキャンを貼り付け</value>
+  </data>
+  <data name="TipOpenTool" xml:space="preserve">
+    <value>インテルツールで開く</value>
+  </data>
+  <data name="TabBoard" xml:space="preserve">
+    <value>ボード</value>
+  </data>
+  <data name="TabFeed" xml:space="preserve">
+    <value>フィード</value>
+  </data>
+  <data name="TabPaste" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="FeedWarning" xml:space="preserve">
+    <value>インテルは不完全です。zKillboard の全フィードがオフのため、近くの他のパイロット同士のキルが含まれていません。</value>
+  </data>
+  <data name="FeedWarningOpen" xml:space="preserve">
+    <value>キルメール設定を開く</value>
+  </data>
+  <data name="FeedWarningDismiss" xml:space="preserve">
+    <value>全フィードを一度オンにして再びオフにするまで、すべての PC で非表示にする</value>
+  </data>
+  <data name="DistanceFrom" xml:space="preserve">
+    <value>距離の起点</value>
+  </data>
+  <data name="FromNearest" xml:space="preserve">
+    <value>最も近いオンラインのキャラクター</value>
+  </data>
+  <data name="FromOffline" xml:space="preserve">
+    <value>{0}（オフライン）</value>
+  </data>
+  <data name="Within" xml:space="preserve">
+    <value>範囲</value>
+  </data>
+  <data name="WithinJumps" xml:space="preserve">
+    <value>{0} ジャンプ</value>
+  </data>
+  <data name="WithinAll" xml:space="preserve">
+    <value>距離制限なし</value>
+  </data>
+  <data name="MyJumpBridges" xml:space="preserve">
+    <value>自分のジャンプブリッジ</value>
+  </data>
+  <data name="TipBridges" xml:space="preserve">
+    <value>自分のジャンプブリッジを含めます（移動距離）。脅威の距離には使いません。</value>
+  </data>
+  <data name="Standings" xml:space="preserve">
+    <value>スタンディング</value>
+  </data>
+  <data name="TierRed" xml:space="preserve">
+    <value>赤</value>
+  </data>
+  <data name="TierOrange" xml:space="preserve">
+    <value>橙</value>
+  </data>
+  <data name="TierNeutral" xml:space="preserve">
+    <value>中立</value>
+  </data>
+  <data name="TierLightBlue" xml:space="preserve">
+    <value>水色</value>
+  </data>
+  <data name="TierBlue" xml:space="preserve">
+    <value>青</value>
+  </data>
+  <data name="TierOwn" xml:space="preserve">
+    <value>自分のキャラクター</value>
+  </data>
+  <data name="Sources" xml:space="preserve">
+    <value>ソース</value>
+  </data>
+  <data name="SourcesAll" xml:space="preserve">
+    <value>全チャンネル・キル・貼り付け</value>
+  </data>
+  <data name="SourcesNone" xml:space="preserve">
+    <value>ソースなし</value>
+  </data>
+  <data name="SourcesSome" xml:space="preserve">
+    <value>{1} 件中 {0} 件のソース</value>
+  </data>
+  <data name="SourceKills" xml:space="preserve">
+    <value>キル（zKillboard と ESI）</value>
+  </data>
+  <data name="SourcePastes" xml:space="preserve">
+    <value>貼り付けたローカルとDスキャン</value>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>星系またはパイロットを検索…</value>
+  </data>
+  <data name="StatusUpdated" xml:space="preserve">
+    <value>{0} 前に更新</value>
+  </data>
+  <data name="WorkerHere" xml:space="preserve">
+    <value>インテル解析：この PC</value>
+  </data>
+  <data name="WorkerOn" xml:space="preserve">
+    <value>インテル解析：{0} のワーカー</value>
+  </data>
+  <data name="WorkerNone" xml:space="preserve">
+    <value>インテル解析：ワーカーなし</value>
+  </data>
+  <data name="SortBy" xml:space="preserve">
+    <value>並べ替え</value>
+  </data>
+  <data name="SortNearest" xml:space="preserve">
+    <value>近い順</value>
+  </data>
+  <data name="SortNewest" xml:space="preserve">
+    <value>新しい順</value>
+  </data>
+  <data name="SortMostHostiles" xml:space="preserve">
+    <value>敵が多い順</value>
+  </data>
+  <data name="MoreBeyondLimit" xml:space="preserve">
+    <value>上限を超えたもの {0} 件</value>
+  </data>
+  <data name="ColJumps" xml:space="preserve">
+    <value>ジャンプ</value>
+  </data>
+  <data name="ColSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="ColState" xml:space="preserve">
+    <value>状況</value>
+  </data>
+  <data name="ColHostiles" xml:space="preserve">
+    <value>敵</value>
+  </data>
+  <data name="ColShips" xml:space="preserve">
+    <value>艦船</value>
+  </data>
+  <data name="ColFlags" xml:space="preserve">
+    <value>フラグ</value>
+  </data>
+  <data name="ColMoving" xml:space="preserve">
+    <value>移動</value>
+  </data>
+  <data name="ColAge" xml:space="preserve">
+    <value>経過</value>
+  </data>
+  <data name="ColNearest" xml:space="preserve">
+    <value>最寄り</value>
+  </data>
+  <data name="ColSources" xml:space="preserve">
+    <value>ソース</value>
+  </data>
+  <data name="BoardHostile" xml:space="preserve">
+    <value>敵あり</value>
+  </data>
+  <data name="BoardNoVisual" xml:space="preserve">
+    <value>目視なし</value>
+  </data>
+  <data name="BoardCamp" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="BoardFlags" xml:space="preserve">
+    <value>フラグ</value>
+  </data>
+  <data name="BoardClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="MovingFrom" xml:space="preserve">
+    <value>{0} から</value>
+  </data>
+  <data name="MovingHeading" xml:space="preserve">
+    <value>{0} へ向かう</value>
+  </data>
+  <data name="SourceKillsShort" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="SourcePasteShort" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="ToolBoardEmpty" xml:space="preserve">
+    <value>この距離内に現在のインテルはありません。</value>
+  </data>
+  <data name="ToolFeedEmpty" xml:space="preserve">
+    <value>この時間内、この距離内の報告はありません。</value>
+  </data>
+  <data name="ToolNothingMatches" xml:space="preserve">
+    <value>検索に一致するものはありません。</value>
+  </data>
+  <data name="ToolNoChannels" xml:space="preserve">
+    <value>インテルチャンネルが設定されていません。設定 → チャットログでチェックするか、Jabber または IRC のルームをインテルに指定してください。キルと貼り付けは表示されます。</value>
+  </data>
+  <data name="ToolNobodyOnline" xml:space="preserve">
+    <value>オンラインのキャラクターがいないため、ジャンプ数を数える起点がありません。すべてを表示し、誰かがログインすると近い順になります。</value>
+  </data>
+  <data name="ToolFromOffline" xml:space="preserve">
+    <value>「距離の起点」で選んだキャラクターはオンラインではありません。ログインするか別のキャラクターを選ぶまでジャンプ数は出ません。</value>
+  </data>
+  <data name="Last" xml:space="preserve">
+    <value>期間</value>
+  </data>
+  <data name="LastMinutes" xml:space="preserve">
+    <value>{0} 分</value>
+  </data>
+  <data name="ShowKills" xml:space="preserve">
+    <value>キルを表示</value>
+  </data>
+  <data name="UnlinkedChatter" xml:space="preserve">
+    <value>関連のない会話</value>
+  </data>
+  <data name="TipChatter" xml:space="preserve">
+    <value>インテルにならなかったインテルチャンネルの発言（会話、質問、結び付け先のない続報）。薄く表示し、インテルとしては保存しません。</value>
+  </data>
+  <data name="TipEveTime" xml:space="preserve">
+    <value>EVE 時間</value>
+  </data>
+  <data name="KindReport" xml:space="preserve">
+    <value>報告</value>
+  </data>
+  <data name="KindFollowUp" xml:space="preserve">
+    <value>続報</value>
+  </data>
+  <data name="KindClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="KindLocalPaste" xml:space="preserve">
+    <value>ローカル貼り付け</value>
+  </data>
+  <data name="KindDscan" xml:space="preserve">
+    <value>Dスキャン</value>
+  </data>
+  <data name="KindKill" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="KindCamp" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="KindChatter" xml:space="preserve">
+    <value>会話</value>
+  </data>
+  <data name="SourceKillboard" xml:space="preserve">
+    <value>zKillboard</value>
+  </data>
+  <data name="SourcePaste" xml:space="preserve">
+    <value>貼り付け</value>
+  </data>
+  <data name="SourcePasteBy" xml:space="preserve">
+    <value>貼り付け · {0}</value>
+  </data>
+  <data name="SourceChannelBy" xml:space="preserve">
+    <value>{0} · {1}</value>
+  </data>
+  <data name="CameFrom" xml:space="preserve">
+    <value>{0} から来た</value>
+  </data>
+  <data name="HeadingTo" xml:space="preserve">
+    <value>{0} へ向かっている</value>
+  </data>
+  <data name="StatusSuperseded" xml:space="preserve">
+    <value>更新済み</value>
+  </data>
+  <data name="StatusExpired" xml:space="preserve">
+    <value>期限切れ</value>
+  </data>
+  <data name="MenuOpenSystem" xml:space="preserve">
+    <value>星系のページを開く</value>
+  </data>
+  <data name="MenuOpenPilot" xml:space="preserve">
+    <value>パイロットを開く</value>
+  </data>
+  <data name="PasteSystem" xml:space="preserve">
+    <value>星系</value>
+  </data>
+  <data name="PasteSystemNone" xml:space="preserve">
+    <value>星系を選択</value>
+  </data>
+  <data name="PasteSystemHere" xml:space="preserve">
+    <value>{0}（{1} がいる）</value>
+  </data>
+  <data name="PasteOtherSystem" xml:space="preserve">
+    <value>または別の星系…</value>
+  </data>
+  <data name="PasteByLabel" xml:space="preserve">
+    <value>貼り付けたキャラクター</value>
+  </data>
+  <data name="PasteBoxLabel" xml:space="preserve">
+    <value>ローカル（1行に1名）またはDスキャンを貼り付け</value>
+  </data>
+  <data name="PasteBoxHint" xml:space="preserve">
+    <value>ゲーム内のローカルのメンバー一覧またはDスキャンのウィンドウで全選択してコピーし、ここに Ctrl+V で貼り付けます。</value>
+  </data>
+  <data name="PasteNoClipboard" xml:space="preserve">
+    <value>アプリがクリップボードを自分で読むことはありません。ボックスに貼り付けた内容だけを使います。</value>
+  </data>
+  <data name="PasteDetectedLocal" xml:space="preserve">
+    <value>検出：ローカル一覧</value>
+  </data>
+  <data name="PasteDetectedDscan" xml:space="preserve">
+    <value>検出：Dスキャン</value>
+  </data>
+  <data name="PasteDetectedUnknown" xml:space="preserve">
+    <value>ローカル一覧でもDスキャンでもありません。ローカルは1行に1名、Dスキャンはタブ区切りの列です。</value>
+  </data>
+  <data name="PasteChooseSystem" xml:space="preserve">
+    <value>どの星系のものか選んでください。</value>
+  </data>
+  <data name="PasteReplaces" xml:space="preserve">
+    <value>そこで報告されていた {0} 件を置き換え</value>
+  </data>
+  <data name="TipReplaces" xml:space="preserve">
+    <value>貼り付けたローカルは全名簿です。星系で報告されていた全員を外し、一覧のうち保存するスタンディングの全員を配置します。一部だけの貼り付けでも同じく消えます。</value>
+  </data>
+  <data name="PasteDscanBubbles" xml:space="preserve">
+    <value>Mobile Warp Disruptor ×{0} → バブル</value>
+  </data>
+  <data name="PasteDscanCyno" xml:space="preserve">
+    <value>Cynosural Field ×{0} → サイノ</value>
+  </data>
+  <data name="PasteDscanNote" xml:space="preserve">
+    <value>Dスキャンは名前なしの艦船数を追加するだけで、星系を消すことはありません。Dスキャンでは全員は見えません。</value>
+  </data>
+  <data name="PasteNothingYet" xml:space="preserve">
+    <value>ボックスに貼り付けると、保存前に保存内容がここに表示されます。</value>
+  </data>
+  <data name="PasteSave" xml:space="preserve">
+    <value>保存（Ctrl+Enter）</value>
+  </data>
+  <data name="PasteGroupYours" xml:space="preserve">
+    <value>自分</value>
+  </data>
+  <data name="PasteGroupUnresolved" xml:space="preserve">
+    <value>不明</value>
+  </data>
+  <data name="PasteGroupNoAlliance" xml:space="preserve">
+    <value>アライアンスなし</value>
+  </data>
+  <data name="PasteTierUnnamed" xml:space="preserve">
+    <value>名前なしとして数える</value>
+  </data>
+  <data name="RecentPastes" xml:space="preserve">
+    <value>最近の貼り付け</value>
+  </data>
+  <data name="StatusSystemsOther" xml:space="preserve">
+    <value>現在のインテルがある星系 {0}</value>
+  </data>
+  <data name="StatusHostilesOther" xml:space="preserve">
+    <value>敵 {0}</value>
+  </data>
+  <data name="StatusCampsOther" xml:space="preserve">
+    <value>ゲートキャンプ {0}</value>
+  </data>
+  <data name="PasteUnknownNamesOther" xml:space="preserve">
+    <value>不明な名前 {0} 件を名前なしとして数える</value>
+  </data>
+  <data name="RecentPilotsOther" xml:space="preserve">
+    <value>{0} 名</value>
+  </data>
+  <data name="RecentShipsOther" xml:space="preserve">
+    <value>艦船 {0}</value>
+  </data>
+  <data name="PasteDscanShipsOther" xml:space="preserve">
+    <value>艦船 {0}</value>
+  </data>
+  <data name="PastePlacesOther" xml:space="preserve">
+    <value>{1} に {0} 名を配置</value>
+  </data>
+  <data name="FeedCountOther" xml:space="preserve">
+    <value>新しい順 · {0} 件</value>
+  </data>
+  <data name="PasteSavedLocalOther" xml:space="preserve">
+    <value>保存しました：{1} のローカル、{0} 名。</value>
+  </data>
+  <data name="PasteSavedDscanOther" xml:space="preserve">
+    <value>保存しました：{1} のDスキャン、艦船 {0}。</value>
+  </data>
+  <data name="PasteNamesCountOther" xml:space="preserve">
+    <value>{0} 名 · 判明 {1} · 不明 {2}</value>
+  </data>
+  <data name="PasteDscanCountOther" xml:space="preserve">
+    <value>艦船 {0} · 不明な種類 {1}</value>
+  </data>
+  <data name="StatusUpdatedNow" xml:space="preserve">
+    <value>たった今更新</value>
+  </data>
+  <data name="FromSystemChoice" xml:space="preserve">
+    <value>{0}（星系）</value>
+  </data>
+  <data name="FromSystemSearch" xml:space="preserve">
+    <value>または星系…</value>
+  </data>
+  <data name="TipFromSystem" xml:space="preserve">
+    <value>キャラクターではなく星系からジャンプ数を数えます。その場合は特定のキャラクターの視点がないため、色はすべてのキャラクターから決まります。いずれかにとって友好なら友好です。</value>
+  </data>
+  <data name="TabPilots" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="TabCamps" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="TabWatch" xml:space="preserve">
+    <value>ウォッチリスト</value>
+  </data>
+  <data name="PilotsSearchHint" xml:space="preserve">
+    <value>パイロット、コーポレーション、アライアンス…</value>
+  </data>
+  <data name="PilotsSeenIn" xml:space="preserve">
+    <value>表示期間</value>
+  </data>
+  <data name="Window1h" xml:space="preserve">
+    <value>1 時間</value>
+  </data>
+  <data name="Window6h" xml:space="preserve">
+    <value>6 時間</value>
+  </data>
+  <data name="Window24h" xml:space="preserve">
+    <value>24 時間</value>
+  </data>
+  <data name="Window7d" xml:space="preserve">
+    <value>7 日</value>
+  </data>
+  <data name="Window60d" xml:space="preserve">
+    <value>60 日</value>
+  </data>
+  <data name="PilotsSearching" xml:space="preserve">
+    <value>検索中…</value>
+  </data>
+  <data name="PilotsNote" xml:space="preserve">
+    <value>各パイロットがインテルで最後に確認された場所：報告、貼り付けたローカル、またはキル</value>
+  </data>
+  <data name="PilotsFailed" xml:space="preserve">
+    <value>パイロットを読み込めませんでした: {0}</value>
+  </data>
+  <data name="PilotsCapped" xml:space="preserve">
+    <value>最新の {0} 件 · 検索で絞り込み</value>
+  </data>
+  <data name="PilotsCountOther" xml:space="preserve">
+    <value>パイロット {0} 人</value>
+  </data>
+  <data name="PilotsEmpty" xml:space="preserve">
+    <value>この期間に確認された人はいません。</value>
+  </data>
+  <data name="ColPilot" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="ColLastSeenIn" xml:space="preserve">
+    <value>最終確認星系</value>
+  </data>
+  <data name="ColSeen" xml:space="preserve">
+    <value>確認</value>
+  </data>
+  <data name="ColHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="ColHow" xml:space="preserve">
+    <value>情報源</value>
+  </data>
+  <data name="ColCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="ColAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="PilotSourceReport" xml:space="preserve">
+    <value>報告</value>
+  </data>
+  <data name="PilotSourceLocal" xml:space="preserve">
+    <value>ローカル貼り付け</value>
+  </data>
+  <data name="PilotSourceAttacker" xml:space="preserve">
+    <value>キルの攻撃者</value>
+  </data>
+  <data name="PilotSourceVictim" xml:space="preserve">
+    <value>艦を喪失</value>
+  </data>
+  <data name="PilotNoVisual" xml:space="preserve">
+    <value>視認なし</value>
+  </data>
+  <data name="PilotLastSeen" xml:space="preserve">
+    <value>最終確認: {0}、{1} 前</value>
+  </data>
+  <data name="AgeHoursOnly" xml:space="preserve">
+    <value>{0} 時間</value>
+  </data>
+  <data name="AgeDays" xml:space="preserve">
+    <value>{0} 日</value>
+  </data>
+  <data name="CampsActiveOther" xml:space="preserve">
+    <value>アクティブなキャンプ {0}</value>
+  </data>
+  <data name="CampsEndedOther" xml:space="preserve">
+    <value>終了 {0}</value>
+  </data>
+  <data name="CampsNote" xml:space="preserve">
+    <value>ゲートでのキルと報告から · 終了したキャンプは最後のキルから 1 時間、薄く表示</value>
+  </data>
+  <data name="CampsEmpty" xml:space="preserve">
+    <value>過去 1 時間、この範囲にゲートキャンプはありません。</value>
+  </data>
+  <data name="CampsEmptyNoFeed" xml:space="preserve">
+    <value>ゲートキャンプは見つかりません。キャンプはキルから判断され、zKillboard の全フィードがオフの間は、あなたかあなたのコーポレーションが関わるキルしか届きません。</value>
+  </data>
+  <data name="CampGate" xml:space="preserve">
+    <value>{0} ゲート</value>
+  </data>
+  <data name="CampKillsOther" xml:space="preserve">
+    <value>キル {0}</value>
+  </data>
+  <data name="CampAttackersOther" xml:space="preserve">
+    <value>{0} 人</value>
+  </data>
+  <data name="CampSourceKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="CampSourceReported" xml:space="preserve">
+    <value>報告</value>
+  </data>
+  <data name="CampSourceBoth" xml:space="preserve">
+    <value>キルと報告</value>
+  </data>
+  <data name="CampStateActive" xml:space="preserve">
+    <value>継続中</value>
+  </data>
+  <data name="CampStateEnded" xml:space="preserve">
+    <value>終了</value>
+  </data>
+  <data name="ColCamp" xml:space="preserve">
+    <value>キャンプ</value>
+  </data>
+  <data name="ColStatus" xml:space="preserve">
+    <value>状態</value>
+  </data>
+  <data name="ColKills" xml:space="preserve">
+    <value>キル</value>
+  </data>
+  <data name="ColLastKill" xml:space="preserve">
+    <value>最終</value>
+  </data>
+  <data name="ColAttackers" xml:space="preserve">
+    <value>攻撃者</value>
+  </data>
+  <data name="TipOpenKills" xml:space="preserve">
+    <value>キャンプのキルを戦闘レポートで開く</value>
+  </data>
+  <data name="TipOpenKill" xml:space="preserve">
+    <value>キルを戦闘レポートで開く</value>
+  </data>
+  <data name="MenuOpenKills" xml:space="preserve">
+    <value>キルを開く</value>
+  </data>
+  <data name="MenuOpenKill" xml:space="preserve">
+    <value>キルを開く</value>
+  </data>
+  <data name="TipOpenCorporation" xml:space="preserve">
+    <value>このコーポレーションを開く</value>
+  </data>
+  <data name="TipOpenAlliance" xml:space="preserve">
+    <value>このアライアンスを開く</value>
+  </data>
+  <data name="MenuWatchAlways" xml:space="preserve">
+    <value>常に警告</value>
+  </data>
+  <data name="MenuWatchIgnore" xml:space="preserve">
+    <value>無視</value>
+  </data>
+  <data name="WatchIntro" xml:space="preserve">
+    <value>パイロット、コーポレーション、アライアンス、船体、艦種グループ。このデータベースを使うすべての PC で共有されます。常に警告：太字で表示され、ウォッチリストを使うインテルアラームはより遠くからでも警告します。無視：薄く表示され、警告されません。パイロット自身の項目が最優先で、次にコーポレーション、アライアンス、船体、そのグループの順です。</value>
+  </data>
+  <data name="WatchKindPilot" xml:space="preserve">
+    <value>パイロット</value>
+  </data>
+  <data name="WatchKindCorporation" xml:space="preserve">
+    <value>コーポレーション</value>
+  </data>
+  <data name="WatchKindAlliance" xml:space="preserve">
+    <value>アライアンス</value>
+  </data>
+  <data name="WatchKindHull" xml:space="preserve">
+    <value>船体</value>
+  </data>
+  <data name="WatchKindGroup" xml:space="preserve">
+    <value>艦種グループ</value>
+  </data>
+  <data name="WatchModeAlways" xml:space="preserve">
+    <value>常に警告</value>
+  </data>
+  <data name="WatchModeIgnore" xml:space="preserve">
+    <value>無視</value>
+  </data>
+  <data name="WatchAdd" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="WatchSearchHint" xml:space="preserve">
+    <value>追加する名前…</value>
+  </data>
+  <data name="WatchNoteHint" xml:space="preserve">
+    <value>メモ（任意）</value>
+  </data>
+  <data name="WatchEmpty" xml:space="preserve">
+    <value>ウォッチリストはまだ空です。ここから追加するか、インテル内のパイロットを右クリックしてください。</value>
+  </data>
+  <data name="WatchAdded" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="WatchFailed" xml:space="preserve">
+    <value>ウォッチリストを変更できませんでした: {0}</value>
+  </data>
+  <data name="TipRemoveWatch" xml:space="preserve">
+    <value>ウォッチリストから外す</value>
+  </data>
+  <data name="ColKind" xml:space="preserve">
+    <value>種類</value>
+  </data>
+  <data name="ColName" xml:space="preserve">
+    <value>名前</value>
+  </data>
+  <data name="ColMode" xml:space="preserve">
+    <value>モード</value>
+  </data>
+  <data name="ColNote" xml:space="preserve">
+    <value>メモ</value>
+  </data>
+  <data name="ColAdded" xml:space="preserve">
+    <value>追加</value>
+  </data>
+  <data name="AgeCompactMinutes" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="AgeCompactHours" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="TipNewsAt" xml:space="preserve">
+    <value>ここでの最新情報: EVE時間 {0}</value>
+  </data>
+  <data name="TipSeenAt" xml:space="preserve">
+    <value>最終確認: EVE時間 {0}</value>
+  </data>
+  <data name="TipHostileCount" xml:space="preserve">
+    <value>ここの敵対者: {0}（名前あり {1}、人数のみ {2}）</value>
+  </data>
+  <data name="FlagKill" xml:space="preserve">
+    <value>ここで撃墜: EVE時間 {0}</value>
+  </data>
+  <data name="FlagKills" xml:space="preserve">
+    <value>ここでの撃墜: {0}、最新は EVE時間 {1}</value>
+  </data>
+  <data name="FlagCamp" xml:space="preserve">
+    <value>ゲートキャンプ</value>
+  </data>
+  <data name="FlagCampOn" xml:space="preserve">
+    <value>{0} ゲートでゲートキャンプ</value>
+  </data>
+  <data name="FlagNoVisual" xml:space="preserve">
+    <value>視認なし: 報告のみ、未確認</value>
+  </data>
+  <data name="FlagClear" xml:space="preserve">
+    <value>クリア報告済み</value>
+  </data>
+  <data name="WhoTipTitle" xml:space="preserve">
+    <value>ここにいる者（アライアンスまたはコーポレーション別）:</value>
+  </data>
+  <data name="WhoTipUnknown" xml:space="preserve">
+    <value>所属不明: {0}</value>
+  </data>
+  <data name="TipOnKill" xml:space="preserve">
+    <value>ここでの撃墜に参加</value>
+  </data>
+  <data name="SectionPilots" xml:space="preserve">
+    <value>ここのパイロット</value>
+  </data>
+  <data name="SectionEvents" xml:space="preserve">
+    <value>報告と撃墜</value>
+  </data>
+  <data name="ColWho" xml:space="preserve">
+    <value>誰</value>
+  </data>
+  <data name="TipSortColumn" xml:space="preserve">
+    <value>この列で並べ替え（もう一度クリックで逆順）</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} 人がスタンディングで非表示</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>見つかったパイロットはすべてスタンディングのフィルターで非表示です。上でスタンディングを追加でオンにすると表示されます。</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>キルの参加者（アライアンスまたはコーポレーション別）:</value>
+  </data>
+  <data name="UnknownPilot" xml:space="preserve">
+    <value>不明なパイロット</value>
+  </data>
+  <data name="UnknownPilotTip" xml:space="preserve">
+    <value>不明なパイロット（キャラクター {0}）：名前はまだわかりません</value>
+  </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>他の場所でも:</value>
+  </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE チャット - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>保存:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>貼り付けたローカルで保存するスタンディング（貼り付けたキャラクターから見たもの）。オフにした段階のパイロットは一切記録せず、自分のキャラクターは常に記録しません。このPCに保存されます。</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>ボックスとプレビューを空にします。星系と貼り付けたキャラクターはそのままです。</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} 名は保存しません（{1}）</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>{0} をクリアとして保存：選んだスタンディングのパイロットはいません</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>ローカルはそこにいる全員を一覧にします。保存すると、選んだスタンディングについて星系はクリアとなり、そこで報告されていたものは取り除かれます。</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>保存しない</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>常に保存しない</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>自分のキャラクター {0} 名（保存しません）</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>保存しました：{0} は選んだスタンディングについてクリアです。</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>保存の選択は名前のあるパイロットにのみ適用されます。Dスキャンには名前がないため、すべての艦船を数えます。</value>
+  </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>保存はオフです：保存のスタンディングがすべてオフです。保存するにはスタンディングをオンにしてください。</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>まだ照会できていない名前：{0}。ESI が応答せず、味方の可能性があるため、照会できるまで何も保存しません。まもなく再試行します。</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>保存はオフです：除外されたパイロットに敵の可能性がある者がいます：{0}（{1}）。ローカルは {2} で報告された全員を取り除くため、保存すると去ったものとして消えてしまいます。保存するには、そのスタンディングをオンにしてください。</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>未照会</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>ESI 待ち</value>
+  </data>
+</root>

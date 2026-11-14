@@ -1,0 +1,486 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="Typing" xml:space="preserve">
+    <value>{0} écrit…</value>
+  </data>
+  <data name="AttachFile" xml:space="preserve">
+    <value>Joindre</value>
+  </data>
+  <data name="AttachTip" xml:space="preserve">
+    <value>Dépose le fichier sur ce serveur et envoie son adresse. Toute personne ayant l'adresse peut l'ouvrir.</value>
+  </data>
+  <data name="SendingFile" xml:space="preserve">
+    <value>Envoi de {0}…</value>
+  </data>
+  <data name="FileTooBig" xml:space="preserve">
+    <value>{0} fait {1}. Ce serveur accepte les fichiers jusqu'à {2}.</value>
+  </data>
+  <data name="SendFileFailed" xml:space="preserve">
+    <value>{0} n'a pas été envoyé : {1}</value>
+  </data>
+  <data name="ShowOnline" xml:space="preserve">
+    <value>En ligne</value>
+  </data>
+  <data name="ShowChat" xml:space="preserve">
+    <value>Disponible pour discuter</value>
+  </data>
+  <data name="ShowAway" xml:space="preserve">
+    <value>Absent</value>
+  </data>
+  <data name="ShowExtendedAway" xml:space="preserve">
+    <value>Absent pour un moment</value>
+  </data>
+  <data name="ShowDoNotDisturb" xml:space="preserve">
+    <value>Ne pas déranger</value>
+  </data>
+  <data name="RoomAlertMentions" xml:space="preserve">
+    <value>Quand mon nom ou un mot-clé apparaît</value>
+  </data>
+  <data name="RoomAlertAll" xml:space="preserve">
+    <value>Chaque message</value>
+  </data>
+  <data name="RoomAlertNone" xml:space="preserve">
+    <value>Jamais</value>
+  </data>
+  <data name="RowWantsToAdd" xml:space="preserve">
+    <value>Souhaite vous ajouter</value>
+  </data>
+  <data name="RowInvitedBy" xml:space="preserve">
+    <value>{0} vous a invité</value>
+  </data>
+  <data name="StateConnected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="StateConnecting" xml:space="preserve">
+    <value>Connexion…</value>
+  </data>
+  <data name="StateRetryAt" xml:space="preserve">
+    <value>Connexion perdue, nouvel essai à {0}</value>
+  </data>
+  <data name="StateOffline" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ProblemPassword" xml:space="preserve">
+    <value>Le serveur a refusé la connexion. Vérifiez le mot de passe.</value>
+  </data>
+  <data name="ProblemCertificate" xml:space="preserve">
+    <value>Le certificat du serveur n'est pas approuvé.</value>
+  </data>
+  <data name="ProblemNoEncryption" xml:space="preserve">
+    <value>Le serveur ne propose pas de chiffrement, rien n'a donc été envoyé.</value>
+  </data>
+  <data name="ProblemReplaced" xml:space="preserve">
+    <value>Déconnecté car cet identifiant s'est connecté ailleurs.</value>
+  </data>
+  <data name="RoomFailNick" xml:space="preserve">
+    <value>Ce pseudo est déjà utilisé.</value>
+  </data>
+  <data name="RoomFailPassword" xml:space="preserve">
+    <value>Ce salon nécessite un mot de passe.</value>
+  </data>
+  <data name="RoomFailBanned" xml:space="preserve">
+    <value>Vous êtes banni de ce salon.</value>
+  </data>
+  <data name="RoomFailMembers" xml:space="preserve">
+    <value>Ce salon est réservé aux membres.</value>
+  </data>
+  <data name="RoomFailNotFound" xml:space="preserve">
+    <value>Ce salon n'existe pas.</value>
+  </data>
+  <data name="RoomFailOther" xml:space="preserve">
+    <value>Impossible de rejoindre ce salon.</value>
+  </data>
+  <data name="SenderYou" xml:space="preserve">
+    <value>Vous</value>
+  </data>
+  <data name="NotConnected" xml:space="preserve">
+    <value>Non connecté, le message n'a pas été envoyé.</value>
+  </data>
+  <data name="CertificateAsk" xml:space="preserve">
+    <value>Certificat de {0}, empreinte :
+{1}
+
+Faites-lui confiance seulement s'il correspond à ce que l'administrateur du serveur a publié. Ensuite, seul ce certificat sera accepté.</value>
+  </data>
+  <data name="AddressInvalid" xml:space="preserve">
+    <value>L'adresse doit ressembler à nom@domaine.</value>
+  </data>
+  <data name="PasswordRequired" xml:space="preserve">
+    <value>Saisissez le mot de passe de cet identifiant.</value>
+  </data>
+  <data name="ConfirmDeleteAccount" xml:space="preserve">
+    <value>Supprimer « {0} » et tous ses messages enregistrés ? Cette action est irréversible.</value>
+  </data>
+  <data name="ConfirmRemoveContact" xml:space="preserve">
+    <value>Retirer {0} de vos contacts ?</value>
+  </data>
+  <data name="NoRoomsListed" xml:space="preserve">
+    <value>Le serveur n'affiche aucun salon. Vous pouvez quand même saisir un nom.</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Ajoutez un serveur Jabber pour discuter ici, sans client séparé.</value>
+  </data>
+  <data name="AddServer" xml:space="preserve">
+    <value>Ajouter un serveur</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Choisissez un serveur à gauche.</value>
+  </data>
+  <data name="Connect" xml:space="preserve">
+    <value>Connexion</value>
+  </data>
+  <data name="Disconnect" xml:space="preserve">
+    <value>Déconnexion</value>
+  </data>
+  <data name="Edit" xml:space="preserve">
+    <value>Modifier</value>
+  </data>
+  <data name="Delete" xml:space="preserve">
+    <value>Supprimer</value>
+  </data>
+  <data name="Save" xml:space="preserve">
+    <value>Enregistrer</value>
+  </data>
+  <data name="Cancel" xml:space="preserve">
+    <value>Annuler</value>
+  </data>
+  <data name="TrustCertificate" xml:space="preserve">
+    <value>Faire confiance à ce certificat</value>
+  </data>
+  <data name="Join" xml:space="preserve">
+    <value>Rejoindre</value>
+  </data>
+  <data name="LeaveRoom" xml:space="preserve">
+    <value>Quitter le salon</value>
+  </data>
+  <data name="AddContact" xml:space="preserve">
+    <value>Ajouter un contact</value>
+  </data>
+  <data name="RemoveContact" xml:space="preserve">
+    <value>Retirer le contact</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="Accept" xml:space="preserve">
+    <value>Accepter</value>
+  </data>
+  <data name="Decline" xml:space="preserve">
+    <value>Refuser</value>
+  </data>
+  <data name="Send" xml:space="preserve">
+    <value>Envoyer</value>
+  </data>
+  <data name="LoadEarlier" xml:space="preserve">
+    <value>Charger les messages précédents</value>
+  </data>
+  <data name="LabelName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="LabelAddress" xml:space="preserve">
+    <value>Identifiant (nom@domaine)</value>
+  </data>
+  <data name="LabelPassword" xml:space="preserve">
+    <value>Mot de passe</value>
+  </data>
+  <data name="PasswordKeep" xml:space="preserve">
+    <value>Laissez vide pour conserver le mot de passe enregistré.</value>
+  </data>
+  <data name="LabelHost" xml:space="preserve">
+    <value>Hôte du serveur (facultatif)</value>
+  </data>
+  <data name="HostNote" xml:space="preserve">
+    <value>Vide, le serveur est trouvé via le domaine de l'identifiant. Renseignez-le si votre groupe indique un hôte précis.</value>
+  </data>
+  <data name="LabelPort" xml:space="preserve">
+    <value>Port</value>
+  </data>
+  <data name="LabelDirectTls" xml:space="preserve">
+    <value>Chiffré dès le départ (généralement port 5223)</value>
+  </data>
+  <data name="LabelNickname" xml:space="preserve">
+    <value>Pseudo dans les salons (facultatif)</value>
+  </data>
+  <data name="LabelResource" xml:space="preserve">
+    <value>Ressource (facultatif)</value>
+  </data>
+  <data name="LabelAutoConnect" xml:space="preserve">
+    <value>Se connecter au démarrage de l'application</value>
+  </data>
+  <data name="AutoConnectNote" xml:space="preserve">
+    <value>Sinon, il ne se connecte que sur demande. Dans les deux cas, il se reconnecte seul en cas de perte, jusqu'à ce que vous vous déconnectiez.</value>
+  </data>
+  <data name="LabelAlertWords" xml:space="preserve">
+    <value>Mots-clés d'alerte, séparés par des virgules</value>
+  </data>
+  <data name="LabelRoomAlert" xml:space="preserve">
+    <value>M'alerter</value>
+  </data>
+  <data name="LabelStatus" xml:space="preserve">
+    <value>Statut</value>
+  </data>
+  <data name="LabelAddressOnly" xml:space="preserve">
+    <value>Adresse (nom@domaine)</value>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>Émettre un son pour les messages importants</value>
+  </data>
+  <data name="MessageHint" xml:space="preserve">
+    <value>Écrivez un message. Entrée envoie, Maj+Entrée ajoute une ligne.</value>
+  </data>
+  <data name="ArchiveDirectYes" xml:space="preserve">
+    <value>Ce serveur conserve une archive des messages directs : ceux que vous manquez sont récupérés à la connexion.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveDirectNo" xml:space="preserve">
+    <value>Ce serveur ne conserve pas d'archive des messages directs. Il peut tout de même garder ceux envoyés pendant que vous êtes hors ligne.</value>
+    <comment>On a server's page.</comment>
+  </data>
+  <data name="ArchiveRoomsCount" xml:space="preserve">
+    <value>{0} salons rejoints sur {1} conservent une archive. Les messages manqués dans ceux-ci sont récupérés à la connexion ; les autres n'affichent que ce qu'ils rejouent quand vous entrez.</value>
+    <comment>On a server's page. {0} = rooms with an archive, {1} = rooms joined.</comment>
+  </data>
+  <data name="ArchiveRoomYes" xml:space="preserve">
+    <value>Ce salon conserve une archive : les messages que vous manquez sont récupérés à la connexion.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomNo" xml:space="preserve">
+    <value>Ce salon ne conserve pas d'archive : vous ne voyez que ce qu'il rejoue quand vous entrez.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="ArchiveRoomRefused" xml:space="preserve">
+    <value>Ce salon a une archive mais ne la partage pas avec ce compte : vous ne voyez que ce qu'il rejoue quand vous entrez.</value>
+    <comment>At the top of a room.</comment>
+  </data>
+  <data name="RequestHelp" xml:space="preserve">
+    <value>Accepter permet à cette personne de voir quand vous êtes en ligne et demande à voir son statut aussi. Refuser lui cache votre statut. Vous pouvez vous écrire dans les deux cas.</value>
+    <comment>On a contact request, above Accept and Decline.</comment>
+  </data>
+  <data name="StatusHint" xml:space="preserve">
+    <value>Ce que vous faites, visible par vos contacts (facultatif). Entrée le définit.</value>
+    <comment>Under the status choice.</comment>
+  </data>
+  <data name="StateWaitingForWorker" xml:space="preserve">
+    <value>En attente du processus en arrière-plan</value>
+  </data>
+  <data name="EmoteNoTheme" xml:space="preserve">
+    <value>Ce n'est pas un thème de smileys Pidgin : il ne contient aucun fichier nommé theme.</value>
+  </data>
+  <data name="EmoteThemeTooBig" xml:space="preserve">
+    <value>Le fichier theme est trop gros pour être un thème de smileys.</value>
+  </data>
+  <data name="EmotePackTooBig" xml:space="preserve">
+    <value>Ce pack est trop gros. Un pack peut contenir jusqu'à 5 000 images et 64 Mo.</value>
+  </data>
+  <data name="EmoteNotAPack" xml:space="preserve">
+    <value>Ce fichier n'a pas pu être ouvert comme un zip.</value>
+  </data>
+  <data name="EmoteNoPictures" xml:space="preserve">
+    <value>Aucune des images listées par le thème n'était utilisable, rien n'a donc été chargé.</value>
+  </data>
+  <data name="EmoteSearchHint" xml:space="preserve">
+    <value>Rechercher des emotes</value>
+  </data>
+  <data name="EmoteNoneFound" xml:space="preserve">
+    <value>Aucune emote n'a cela dans son nom.</value>
+  </data>
+  <data name="EmoteButtonTip" xml:space="preserve">
+    <value>Emotes (ou tapez : et les premières lettres)</value>
+  </data>
+  <data name="EmotePackDetail" xml:space="preserve">
+    <value>{0:N0} codes · {1:N0} images</value>
+  </data>
+  <data name="EmoteHeading" xml:space="preserve">
+    <value>Packs d'emotes</value>
+  </data>
+  <data name="EmoteNote" xml:space="preserve">
+    <value>Les codes comme :wave: s'affichent sous forme d'image dans les salons et messages de ce serveur, et peuvent être choisis en écrivant. Les packs sont des thèmes de smileys Pidgin. Si deux packs ont le même code, celui du dessus l'emporte.</value>
+  </data>
+  <data name="EmoteNone" xml:space="preserve">
+    <value>Ce serveur n'a aucun pack d'emotes : les codes s'affichent en texte brut.</value>
+  </data>
+  <data name="EmoteUpTip" xml:space="preserve">
+    <value>Monter : l'emporte sur les packs en dessous</value>
+  </data>
+  <data name="EmoteDownTip" xml:space="preserve">
+    <value>Descendre</value>
+  </data>
+  <data name="EmoteRemove" xml:space="preserve">
+    <value>Retirer</value>
+  </data>
+  <data name="EmoteLoad" xml:space="preserve">
+    <value>Charger un pack…</value>
+  </data>
+  <data name="EmoteLoadTip" xml:space="preserve">
+    <value>Un thème de smileys Pidgin : son zip, ou le fichier theme d'un dossier décompressé. Une fois chargé, il est présent sur chaque PC utilisant cette base de données.</value>
+  </data>
+  <data name="EmoteAdd" xml:space="preserve">
+    <value>Ajouter</value>
+  </data>
+  <data name="EmoteAddTip" xml:space="preserve">
+    <value>Donner à ce serveur un pack déjà chargé pour un autre</value>
+  </data>
+  <data name="EmoteLoading" xml:space="preserve">
+    <value>Chargement du pack…</value>
+  </data>
+  <data name="EmoteLoaded" xml:space="preserve">
+    <value>{0} chargé : {1:N0} codes, {2:N0} images.</value>
+  </data>
+  <data name="EmoteReplaced" xml:space="preserve">
+    <value>{0} mis à jour avec cette copie, pour chaque serveur qui l'a : {1:N0} codes, {2:N0} images.</value>
+  </data>
+  <data name="EmoteMissing" xml:space="preserve">
+    <value>{0:N0} images listées par le thème ne sont pas dans le pack et ont été ignorées.</value>
+  </data>
+  <data name="EmoteUnusable" xml:space="preserve">
+    <value>{0:N0} fichiers n'étaient pas des images, ou étaient trop gros pour une emote, et ont été ignorés.</value>
+  </data>
+  <data name="EmoteRemoveLast" xml:space="preserve">
+    <value>Retirer {0} ? Aucun autre serveur ne l'a, il sera donc supprimé. Rechargez-le pour le récupérer.</value>
+  </data>
+  <data name="EmoteDeleted" xml:space="preserve">
+    <value>{0} retiré et supprimé, car aucun autre serveur ne l'avait.</value>
+  </data>
+  <data name="EmoteRemoved" xml:space="preserve">
+    <value>{0} retiré de ce serveur. Les autres serveurs qui l'ont le gardent.</value>
+  </data>
+  <data name="EmoteLoadTitle" xml:space="preserve">
+    <value>Charger un pack d'emotes</value>
+  </data>
+  <data name="EmoteFileType" xml:space="preserve">
+    <value>Thème de smileys Pidgin</value>
+  </data>
+  <data name="MessageDeleted" xml:space="preserve">
+    <value>Ce message a été supprimé.</value>
+  </data>
+  <data name="MessageRemoved" xml:space="preserve">
+    <value>Supprimé par un modérateur.</value>
+  </data>
+  <data name="MessageRemovedReason" xml:space="preserve">
+    <value>Supprimé par un modérateur : {0}</value>
+  </data>
+  <data name="AddReactionTip" xml:space="preserve">
+    <value>Réagir</value>
+  </data>
+  <data name="ReactionSearchHint" xml:space="preserve">
+    <value>Rechercher des emojis (noms anglais)</value>
+  </data>
+  <data name="EmojiSmileys" xml:space="preserve">
+    <value>Smileys</value>
+  </data>
+  <data name="EmojiPeople" xml:space="preserve">
+    <value>Personnes et gestes</value>
+  </data>
+  <data name="EmojiHearts" xml:space="preserve">
+    <value>Cœurs et signes</value>
+  </data>
+  <data name="EmojiNature" xml:space="preserve">
+    <value>Animaux et nature</value>
+  </data>
+  <data name="EmojiFood" xml:space="preserve">
+    <value>Nourriture et boissons</value>
+  </data>
+  <data name="EmojiActivities" xml:space="preserve">
+    <value>Activités</value>
+  </data>
+  <data name="EmojiTravel" xml:space="preserve">
+    <value>Voyages et lieux</value>
+  </data>
+  <data name="EmojiObjects" xml:space="preserve">
+    <value>Objets</value>
+  </data>
+  <data name="EmojiSymbols" xml:space="preserve">
+    <value>Symboles</value>
+  </data>
+  <data name="RoomFailKicked" xml:space="preserve">
+    <value>Vous avez été expulsé de ce salon.</value>
+  </data>
+  <data name="RoomFailClosed" xml:space="preserve">
+    <value>Le service du salon l'a fermé.</value>
+  </data>
+  <data name="RemovedBy" xml:space="preserve">
+    <value>par {0}</value>
+  </data>
+  <data name="RetractFallback" xml:space="preserve">
+    <value>Cette personne a supprimé un message, ce que votre client ne peut pas afficher.</value>
+  </data>
+  <data name="ReplyTip" xml:space="preserve">
+    <value>Répondre</value>
+  </data>
+  <data name="EditTip" xml:space="preserve">
+    <value>Modifier (ou Haut dans une zone vide)</value>
+  </data>
+  <data name="DeleteTip" xml:space="preserve">
+    <value>Supprimer pour tout le monde</value>
+  </data>
+  <data name="ReplyingTo" xml:space="preserve">
+    <value>Réponse à {0}</value>
+  </data>
+  <data name="EditingMessage" xml:space="preserve">
+    <value>Modification de votre message</value>
+  </data>
+  <data name="ReplyUnknown" xml:space="preserve">
+    <value>un message non conservé ici</value>
+  </data>
+  <data name="ConfirmDeleteOwn" xml:space="preserve">
+    <value>Supprimer ce message pour tout le monde ? Les clients compatibles le retirent ; les plus anciens, comme Pidgin, continuent de l'afficher.</value>
+  </data>
+  <data name="Seen" xml:space="preserve">
+    <value>Vu</value>
+  </data>
+  <data name="ReadMarkersOption" xml:space="preserve">
+    <value>Indiquer quand j'ai lu leurs messages</value>
+  </data>
+  <data name="ReadMarkersTip" xml:space="preserve">
+    <value>Seulement avec une personne, comme les autres clients : son client peut alors afficher le message comme vu. Jamais dans les salons.</value>
+  </data>
+  <data name="PictureTitle" xml:space="preserve">
+    <value>Votre image</value>
+  </data>
+  <data name="PictureChoose" xml:space="preserve">
+    <value>Choisir une image…</value>
+  </data>
+  <data name="PictureRemove" xml:space="preserve">
+    <value>Retirer l’image</value>
+  </data>
+  <data name="PictureUseEve" xml:space="preserve">
+    <value>Utiliser un portrait EVE</value>
+  </data>
+  <data name="PictureNote" xml:space="preserve">
+    <value>Envoyée dès que vous la choisissez, carrée et réduite. Votre image ne change que si vous le faites ici.</value>
+  </data>
+  <data name="PictureNotConnected" xml:space="preserve">
+    <value>Connectez-vous pour changer votre image.</value>
+  </data>
+  <data name="PictureSet" xml:space="preserve">
+    <value>Image définie.</value>
+  </data>
+  <data name="PictureRemoved" xml:space="preserve">
+    <value>Image retirée.</value>
+  </data>
+  <data name="PictureNotAPicture" xml:space="preserve">
+    <value>Ce fichier n’est pas une image que cette application sait lire (PNG, JPEG, GIF, WebP ou BMP, moins de 20 Mo).</value>
+  </data>
+  <data name="PictureEveFailed" xml:space="preserve">
+    <value>Le portrait n’a pas pu être récupéré sur le serveur d’images d’EVE. Réessayez dans un instant.</value>
+  </data>
+  <data name="PictureTooBigForServer" xml:space="preserve">
+    <value>Ce serveur n’accepte que des images plus petites.</value>
+  </data>
+  <data name="PictureMumbleUnregistered" xml:space="preserve">
+    <value>Vous n’êtes pas enregistré sur ce serveur : il ne garde votre image que jusqu’à la déconnexion.</value>
+  </data>
+  <data name="RefusedNotAllowed" xml:space="preserve">
+    <value>Le salon a refusé : vous n’avez pas le droit de faire cela ici.</value>
+  </data>
+  <data name="RefusedBecause" xml:space="preserve">
+    <value>Le salon a refusé ({0}).</value>
+  </data>
+  <data name="RefusedUnknown" xml:space="preserve">
+    <value>Le salon a refusé, sans dire pourquoi.</value>
+  </data>
+</root>

@@ -1670,4 +1670,46 @@ Warrior II 5
   <data name="ColItemVolume" xml:space="preserve">
     <value>Объём</value>
   </data>
+  <data name="AssetColSincePoll" xml:space="preserve">
+    <value>После опроса</value>
+  </data>
+  <data name="SincePollAdded" xml:space="preserve">
+    <value>Добавлено ({0})</value>
+  </data>
+  <data name="SincePollChanged" xml:space="preserve">
+    <value>Изменено ({0})</value>
+  </data>
+  <data name="SincePollJob" xml:space="preserve">
+    <value>работа {0}</value>
+  </data>
+  <data name="SincePollContract" xml:space="preserve">
+    <value>контракт {0}</value>
+  </data>
+  <data name="SincePollHaul" xml:space="preserve">
+    <value>перевозка</value>
+  </data>
+  <data name="StatusAsOf" xml:space="preserve">
+    <value>Актуально на {0}</value>
+  </data>
+  <data name="StatusAsOfRange" xml:space="preserve">
+    <value>Актуально на {0}–{1}</value>
+  </data>
+  <data name="StatusSincePollOne" xml:space="preserve">
+    <value>{0:N0} строка записана с тех пор</value>
+  </data>
+  <data name="StatusSincePollOther" xml:space="preserve">
+    <value>{0:N0} строки записано с тех пор</value>
+  </data>
+  <data name="StatusSincePollFew" xml:space="preserve">
+    <value>{0:N0} строки записаны с тех пор</value>
+  </data>
+  <data name="StatusSincePollMany" xml:space="preserve">
+    <value>{0:N0} строк записано с тех пор</value>
+  </data>
+  <data name="SincePollOrder" xml:space="preserve">
+    <value>рыночный ордер {0}</value>
+  </data>
+  <data name="SincePollBought" xml:space="preserve">
+    <value>куплено на рынке</value>
+  </data>
 </root>

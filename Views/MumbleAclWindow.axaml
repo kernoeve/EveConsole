@@ -1,0 +1,181 @@
+<!-- A channel's permissions and groups, as the standard client's ACL editor has them. Lines from channels above show greyed:
+     they are changed where they are defined. -->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        x:Class="EveConsole.Views.MumbleAclWindow"
+        x:DataType="vm:MumbleAclEditorVm"
+        Title="{Binding Title}"
+        Width="820" Height="600" MinWidth="560" MinHeight="380"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBlock.line"><Setter Property="FontSize" Value="12" /><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+    <Style Selector="TextBlock.line.inherited"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontStyle" Value="Italic" /></Style>
+    <Style Selector="ListBoxItem:selected TextBlock.line.inherited"><Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" /></Style>
+    <Style Selector="TextBox, AutoCompleteBox, Button, CheckBox, RadioButton, TabItem"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="TabItem"><Setter Property="FontSize" Value="13" /></Style>
+    <Style Selector="ListBoxItem"><Setter Property="Padding" Value="8 4" /></Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="Auto,*,Auto" Margin="16 12 16 12">
+    <StackPanel Spacing="2">
+      <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+      <TextBlock Classes="note" Text="{x:Static loc:MumbleText.AclNote}" />
+    </StackPanel>
+
+    <TextBlock Grid.Row="1" IsVisible="{Binding IsLoading}" Text="{x:Static loc:MumbleText.AclLoading}" Margin="0 20" Foreground="{DynamicResource TextMutedBrush}" />
+
+    <TabControl Grid.Row="1" IsVisible="{Binding IsLoaded}" Margin="0 8 0 0" Padding="0 6 0 0">
+      <!-- ── Permissions ─────────────────────────────────────────────── -->
+      <TabItem Header="{x:Static loc:MumbleText.AclTabPermissions}">
+        <Grid RowDefinitions="Auto,*">
+          <CheckBox IsChecked="{Binding InheritAcls}" Content="{x:Static loc:MumbleText.AclInheritAcls}" IsVisible="{Binding !IsRoot}" Margin="0 0 0 6" />
+          <Grid Grid.Row="1" ColumnDefinitions="250,*">
+            <Grid RowDefinitions="*,Auto">
+              <ListBox x:Name="EntryList" ItemsSource="{Binding Entries}" SelectedItem="{Binding SelectedEntry}" Background="{DynamicResource SurfacePanelBrush}">
+                <ListBox.ItemTemplate>
+                  <DataTemplate x:DataType="vm:MumbleAclEntryVm">
+                    <TextBlock Classes="line" Classes.inherited="{Binding Inherited}" Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                  </DataTemplate>
+                </ListBox.ItemTemplate>
+              </ListBox>
+              <WrapPanel Grid.Row="1" Margin="0 6 0 0">
+                <Button Content="{x:Static loc:MumbleText.AclAdd}" Command="{Binding AddEntryCommand}" Margin="0 0 4 4" />
+                <Button Content="{x:Static loc:MumbleText.AclRemove}" Command="{Binding RemoveEntryCommand}" IsEnabled="{Binding SelectedEntry.IsEditable, FallbackValue=False}" Margin="0 0 4 4" />
+                <Button Content="{x:Static loc:MumbleText.AclUp}" Command="{Binding MoveUpCommand}" IsEnabled="{Binding SelectedEntry.IsEditable, FallbackValue=False}" Margin="0 0 4 4" />
+                <Button Content="{x:Static loc:MumbleText.AclDown}" Command="{Binding MoveDownCommand}" IsEnabled="{Binding SelectedEntry.IsEditable, FallbackValue=False}" Margin="0 0 4 4" />
+              </WrapPanel>
+            </Grid>
+
+            <!-- ⚠️ Wrapped: a panel that sets its own DataContext would bind its IsVisible against the new one. -->
+            <Panel Grid.Column="1" IsVisible="{Binding HasSelectedEntry}">
+              <ScrollViewer DataContext="{Binding SelectedEntry}" x:DataType="vm:MumbleAclEntryVm" VerticalScrollBarVisibility="Auto" Margin="14 0 0 0">
+                <StackPanel Spacing="2" Margin="0 0 12 8">
+                  <TextBlock Classes="note" Margin="0 0 0 6" Text="{x:Static loc:MumbleText.AclInheritedNote}" IsVisible="{Binding Inherited}" />
+                  <!-- ⚠️ Plain boxes with a list to pick from beside them. An AutoCompleteBox here put back an earlier text as the
+                       selected line changed, and radio buttons shared between lines set one line's choice on the next. -->
+                  <CheckBox IsChecked="{Binding ForUser}" IsEnabled="{Binding IsEditable}" Content="{x:Static loc:MumbleText.AclForUser}" />
+                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ForGroup}" IsEnabled="{Binding IsEditable}">
+                    <TextBox Text="{Binding Group}" Watermark="{x:Static loc:MumbleText.AclForGroup}" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding GroupChoices}" PlaceholderText="{x:Static loc:MumbleText.AclPick}" SelectionChanged="OnPickGroup" MinWidth="110" Margin="4 0 0 0" />
+                  </Grid>
+                  <Grid ColumnDefinitions="*,Auto" IsVisible="{Binding ForUser}" IsEnabled="{Binding IsEditable}">
+                    <TextBox Text="{Binding UserName}" Watermark="{x:Static loc:MumbleText.AclUserHint}" />
+                    <ComboBox Grid.Column="1" ItemsSource="{Binding PeopleChoices}" PlaceholderText="{x:Static loc:MumbleText.AclPick}" SelectionChanged="OnPickPerson" MinWidth="110" Margin="4 0 0 0" />
+                  </Grid>
+                  <TextBlock Classes="note" IsVisible="{Binding ForGroup}" Text="{x:Static loc:MumbleText.AclGroupHint}" />
+                  <StackPanel Orientation="Horizontal" Spacing="14" Margin="0 6 0 0" IsEnabled="{Binding IsEditable}">
+                    <CheckBox IsChecked="{Binding ApplyHere}" Content="{x:Static loc:MumbleText.AclApplyHere}" />
+                    <CheckBox IsChecked="{Binding ApplySubs}" Content="{x:Static loc:MumbleText.AclApplySubs}" />
+                  </StackPanel>
+
+                  <Grid ColumnDefinitions="*,70,70" Margin="0 10 0 2">
+                    <TextBlock Classes="label" Margin="0" Text="{x:Static loc:MumbleText.AclPermission}" />
+                    <TextBlock Grid.Column="1" Classes="label" Margin="0" Text="{x:Static loc:MumbleText.AclAllow}" HorizontalAlignment="Center" />
+                    <TextBlock Grid.Column="2" Classes="label" Margin="0" Text="{x:Static loc:MumbleText.AclDeny}" HorizontalAlignment="Center" />
+                  </Grid>
+                  <ItemsControl ItemsSource="{Binding Permissions}">
+                    <ItemsControl.ItemTemplate>
+                      <DataTemplate x:DataType="vm:MumbleAclPermissionVm">
+                        <Grid ColumnDefinitions="*,70,70" Margin="0 1">
+                          <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                          <CheckBox Grid.Column="1" IsChecked="{Binding Allow}" IsEnabled="{Binding IsEditable}" HorizontalAlignment="Center" />
+                          <CheckBox Grid.Column="2" IsChecked="{Binding Deny}" IsEnabled="{Binding IsEditable}" HorizontalAlignment="Center" />
+                        </Grid>
+                      </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                  </ItemsControl>
+                </StackPanel>
+              </ScrollViewer>
+            </Panel>
+          </Grid>
+        </Grid>
+      </TabItem>
+
+      <!-- ── Groups ──────────────────────────────────────────────────── -->
+      <TabItem Header="{x:Static loc:MumbleText.AclTabGroups}">
+        <Grid ColumnDefinitions="220,*">
+          <Grid RowDefinitions="*,Auto,Auto">
+            <ListBox x:Name="GroupList" ItemsSource="{Binding Groups}" SelectedItem="{Binding SelectedGroup}" Background="{DynamicResource SurfacePanelBrush}">
+              <ListBox.ItemTemplate>
+                <DataTemplate x:DataType="vm:MumbleAclGroupVm">
+                  <TextBlock Classes="line" Classes.inherited="{Binding Inherited}" Text="{Binding Text}" TextTrimming="CharacterEllipsis" />
+                </DataTemplate>
+              </ListBox.ItemTemplate>
+            </ListBox>
+            <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="0 6 0 0">
+              <TextBox Text="{Binding NewGroupName}" Watermark="{x:Static loc:MumbleText.AclNewGroupHint}" />
+              <Button Grid.Column="1" Content="{x:Static loc:MumbleText.AclAdd}" Command="{Binding AddGroupCommand}" Margin="4 0 0 0" />
+            </Grid>
+            <Button Grid.Row="2" Content="{Binding SelectedGroup.RemoveText, FallbackValue=''}" Command="{Binding RemoveGroupCommand}" IsVisible="{Binding HasSelectedGroup}" Margin="0 4 0 0" />
+          </Grid>
+
+          <Panel Grid.Column="1" IsVisible="{Binding HasSelectedGroup}">
+            <ScrollViewer DataContext="{Binding SelectedGroup}" x:DataType="vm:MumbleAclGroupVm" VerticalScrollBarVisibility="Auto" Margin="14 0 0 0">
+              <StackPanel Spacing="2" Margin="0 0 12 8">
+                <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                <CheckBox IsChecked="{Binding Inherit}" Content="{x:Static loc:MumbleText.AclGroupInherit}" Margin="0 6 0 0" />
+                <CheckBox IsChecked="{Binding Inheritable}" Content="{x:Static loc:MumbleText.AclGroupInheritable}" />
+
+                <TextBlock Classes="label" Text="{x:Static loc:MumbleText.AclMembers}" />
+                <ItemsControl ItemsSource="{Binding Members}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MumbleAclMemberVm">
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 1">
+                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <Button Grid.Column="1" Content="{Binding ActionText}" Command="{Binding ActCommand}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+                <Grid ColumnDefinitions="*,Auto,Auto" Margin="0 4 0 0">
+                  <TextBox Text="{Binding NewMember}" Watermark="{x:Static loc:MumbleText.AclUserHint}" />
+                  <ComboBox Grid.Column="1" ItemsSource="{Binding PeopleChoices}" PlaceholderText="{x:Static loc:MumbleText.AclPick}" SelectionChanged="OnPickMember" MinWidth="110" Margin="4 0 0 0" />
+                  <Button Grid.Column="2" Content="{x:Static loc:MumbleText.AclAddMember}" Command="{Binding AddMemberCommand}" Margin="4 0 0 0" />
+                </Grid>
+
+                <TextBlock Classes="label" Text="{x:Static loc:MumbleText.AclFromAbove}" IsVisible="{Binding HasFromAbove}" />
+                <ItemsControl ItemsSource="{Binding FromAbove}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MumbleAclMemberVm">
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 1">
+                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+                        <Button Grid.Column="1" Content="{Binding ActionText}" Command="{Binding ActCommand}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Classes="label" Text="{x:Static loc:MumbleText.AclExcluded}" IsVisible="{Binding HasExcluded}" />
+                <ItemsControl ItemsSource="{Binding Excluded}">
+                  <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:MumbleAclMemberVm">
+                      <Grid ColumnDefinitions="*,Auto" Margin="0 1">
+                        <TextBlock Text="{Binding Name}" FontSize="12" VerticalAlignment="Center" TextDecorations="Strikethrough" Foreground="{DynamicResource TextMutedBrush}" />
+                        <Button Grid.Column="1" Content="{Binding ActionText}" Command="{Binding ActCommand}" />
+                      </Grid>
+                    </DataTemplate>
+                  </ItemsControl.ItemTemplate>
+                </ItemsControl>
+              </StackPanel>
+            </ScrollViewer>
+          </Panel>
+        </Grid>
+      </TabItem>
+    </TabControl>
+
+    <Grid Grid.Row="2" ColumnDefinitions="*,Auto" Margin="0 10 0 0">
+      <TextBlock Text="{Binding StatusText}" IsVisible="{Binding HasStatus}" TextWrapping="Wrap" FontSize="11" VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
+      <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="6">
+        <Button Content="{x:Static loc:MumbleText.AclReload}" Command="{Binding ReloadCommand}" IsEnabled="{Binding !Busy}" />
+        <Button Content="{x:Static loc:MumbleText.Save}" Command="{Binding SaveCommand}" IsEnabled="{Binding !Busy}" />
+        <Button Content="{x:Static loc:MumbleText.AclClose}" Click="OnClose" />
+      </StackPanel>
+    </Grid>
+  </Grid>
+</Window>

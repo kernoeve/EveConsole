@@ -22,7 +22,8 @@ namespace EveConsole.Services.WebStore;
 /// </summary>
 public sealed class StoreCatalogueBuilder(
     IDbContextFactory<AppDbContext> dbFactory,
-    SalePostingService              postings)
+    SalePostingService              postings,
+    StoreNeedService                needs)
 {
     /// <summary>Every listing of the store, in its order, each with its catalogue; a listing
     /// whose posting is gone is left out.</summary>
@@ -39,7 +40,7 @@ public sealed class StoreCatalogueBuilder(
         foreach (var listing in listings)
         {
             if (built.Any(b => b.Id == listing.PostingId)) continue;   // one tab per posting
-            if (await BuildAsync(store, listing.PostingId, listing.IsBuy, ct) is not { } catalogue) continue;
+            if (await BuildAsync(store, listing.PostingId, listing.IsBuy, ct, listing.CapsAtNeed) is not { } catalogue) continue;
             built.Add(new ListingDto
             {
                 Id        = listing.PostingId,
@@ -53,13 +54,17 @@ public sealed class StoreCatalogueBuilder(
 
     /// <summary>Null when the posting is gone, or renders to nothing.</summary>
     /// <param name="buying">A Buy listing: prices only, nothing counted.</param>
-    public async Task<CatalogueDto?> BuildAsync(Store store, int postingId, bool buying, CancellationToken ct)
+    /// <param name="trackNeed">A Buy listing that takes only what is still needed: each item
+    /// carries its need, which the site caps offers at.</param>
+    public async Task<CatalogueDto?> BuildAsync(Store store, int postingId, bool buying, CancellationToken ct, bool trackNeed = false)
     {
         if (postingId == 0) return null;
 
         // In the store's language: the items' names and order, and their groups' names.
         var view = await postings.BuildViewAsync(postingId, ct, store.Language, buying);
         if (view is null) return null;
+        trackNeed &= buying;
+        if (trackNeed) view = view.WithNeeds(await needs.NeedsAsync(store.Id, [.. view.TypeIds], ct));
 
         var typeIds = view.Sections.SelectMany(s => s.Items).Select(i => i.TypeId).Distinct().ToList();
 
@@ -85,6 +90,7 @@ public sealed class StoreCatalogueBuilder(
             ColourInStock      = view.ColorInStock,
             ColourInBuild      = view.ColorInBuild,
             ColourNone         = view.ColorNone,
+            ShowNeed           = trackNeed ? view.ShowNeed : null,
             Sections = view.Sections.Select(s => new CatalogueSectionDto
             {
                 Name         = s.Name,
@@ -110,6 +116,7 @@ public sealed class StoreCatalogueBuilder(
                     Reserved  = i.EffectiveReserved,
                     EarliestJobEnd = view.IncludeCompletionDate ? i.EarliestJobEnd : null,
                     Colour    = Blank(i.Color),
+                    Need      = trackNeed && i.Need is { } n ? NeedDto.Of(n) : null,
                 }).ToList(),
             }).ToList(),
         };
@@ -128,6 +135,7 @@ public sealed class StoreCatalogueBuilder(
         {
             c.ShowInStock, c.ShowInBuild, c.ShowReserved, c.ShowCompletionDate,
             c.ColourByState, c.ColourInStock, c.ColourInBuild, c.ColourNone,
+            c.ShowNeed,
             c.Sections,
         }, WebStoreProtocol.Json);
         return Convert.ToHexString(SHA256.HashData(content)).ToLowerInvariant();

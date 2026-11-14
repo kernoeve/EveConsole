@@ -23,8 +23,8 @@ class Program
     public const string ServiceArgument = "--service";
 
     /// <summary>
-    /// A notification-area icon in the user's session and nothing else. Started at logon so there
-    /// is something to look at while the worker runs as a service, which cannot draw at all.
+    /// What started the old notification-area process at logon. It now only takes that start
+    /// away: the desktop app shows the icon itself (see <see cref="TrayIconController"/>).
     /// </summary>
     public const string TrayArgument = "--tray";
 
@@ -95,8 +95,13 @@ class Program
             }
         }
 
-        var asTray = args.Any(a => string.Equals(a, TrayArgument, StringComparison.OrdinalIgnoreCase));
-        if (asTray) AppRuntime.MarkTray();
+        // A tray process of its own is no more: the desktop app shows the icon itself. One still
+        // started at logon by the old setting takes that setting away, and goes.
+        if (args.Any(a => string.Equals(a, TrayArgument, StringComparison.OrdinalIgnoreCase)))
+        {
+            TrayIconController.RetireLogonTray();
+            return;
+        }
 
         var asService = args.Any(a => string.Equals(a, ServiceArgument, StringComparison.OrdinalIgnoreCase));
         var headless  = asService
@@ -105,9 +110,9 @@ class Program
         if (asService)     AppRuntime.MarkService();
         else if (headless) AppRuntime.MarkHeadless();
 
-        // One instance per user, and only where that means anything: on SQLite. A worker and a
-        // desktop client on one machine are two clients of one PostgreSQL database, which is the
-        // arrangement this whole mode exists to serve.
+        // One desktop app per user and profile, on either engine: a second launch brings the first
+        // forward and exits. A worker beside it on PostgreSQL is still allowed: two clients of one
+        // server, which is the arrangement the worker modes exist to serve.
         if (!SingleInstance.TryAcquire(args)) return;
 
         // One-time carry-forward from a pre-rename Eve Cortex install — must happen before any
@@ -230,6 +235,8 @@ class Program
     {
         try
         {
+            // ⚠️ Before the lease: the next holder connects as soon as it has it, under the same resource.
+            (App.Services?.GetService(typeof(Services.Jabber.JabberService)) as Services.Jabber.JabberService)?.StopAsync().Wait(TimeSpan.FromSeconds(6));
             (App.Services?.GetService(typeof(WorkerLease))   as WorkerLease)?.Stop();
             (App.Services?.GetService(typeof(ClientSignals)) as ClientSignals)?.Stop();
         }

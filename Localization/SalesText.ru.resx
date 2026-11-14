@@ -2119,4 +2119,229 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>Не удалось опубликовать в Discord блок «{0}»: {1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>Только нужное</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>Списки закупки: принимать только то, что ещё нужно Списку задач по каждому предмету, то есть его потребность за вычетом запасов, производимого и уже предложенного в этом магазине. Ненужный предмет не принимает предложений, а предложение сверх потребности не принимается.</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>Показывать, сколько ещё нужно</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>Для списка закупки, принимающего только нужное: показывать продавцам, сколько ещё нужно каждого предмета и какая часть уже покрыта. Если выключено, ограничение всё равно действует, скрываются только цифры.</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>Предложено {1:N0} шт. «{2}», но нужно ещё только {0:N0} шт.</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>Осталось</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>Нужно всего {0:N0} · в наличии {1:N0} · в производстве {2:N0} · предложено {3:N0} → ещё нужно {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>Удалить объявление «{0}» со всеми разделами, предметами и местами? Магазины, где оно выставлено, перестанут его показывать. Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOne" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмет в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionFew" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмета в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionMany" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предметов в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>Удалить раздел «{1}» и {0:N0} предмета в нём? Отменить нельзя.</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>Убрать {0} из этого объявления?</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>Убрать выбранные предметы ({0:N0} шт.) из их объявлений?</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>Перестать выставлять то, что находится в {0}?</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>Удалить предметы ({0:N0} шт.)</value>
+  </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>По периодам</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>Группы предметов</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>Только продажи предметов из этих групп рынка, на всех вкладках. Контракт относится к самому ценному предмету в нём.</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>Убрать эту группу</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>+ Группа</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>Ограничить продажи группой рынка</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>Добавить группу</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>Строки</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>Разбить по</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>Доля с прибылью по</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>Считать по</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>Копировать как текст</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>Копирует обе таблицы простым текстом в блоке кода, чтобы вставить в чат.</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>Экспорт в CSV</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>Экспорт сводки продаж</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>С прибылью</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>Без прибыли</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>Доля с прибылью</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>продано на {0}</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>прибыль {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>считая по: {0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>Все продажи</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>С прибылью</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>Без прибыли</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>Период</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>ISK продаж</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>Доля с прибылью</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>С прибылью</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>Без прибыли</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>Итого</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>Продано единиц</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>В каждой ячейке: единицы, затем (с прибылью·без прибыли). Считаются только предметы из групп предметов.</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>Продажи без прибыли здесь учитываются всегда, что бы ни стояло в «Показывать без прибыли»: отметка «без прибыли» решает, на какой стороне продажа. Теги — просто текст: у каждого найденного тега своя строка, а продажа с двумя тегами попадает под оба, но в периоде и в итоге считается один раз. Себестоимость — по выбранной выше базе прибыли, на день каждой продажи; % прибыли — прибыль к этой себестоимости.</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>Нет</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>Тег</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>Группа рынка</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>Предмет</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>Покупатель</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>Владелец</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>Себестоимость</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>ISK продаж</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>Без тега</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>на сегодня</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>Разбивка</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>ISK продаж с прибылью</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>Себестоимость с прибылью</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>ISK продаж без прибыли</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>Себестоимость без прибыли</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>Продажи без себестоимости</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>Подсчёт по</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>Сводка скопирована в буфер обмена.</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>Сводка экспортирована в {0}.</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>Сводка продаж · с {0} по {1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>Строки: {0} · Разбивка: {1} · Доля с прибылью по: {2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>Продано единиц по: {0} (с прибылью·без прибыли)</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>Единицы</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>Единицы</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>От чего считается доля с прибылью: от себестоимости, от ISK продаж или от проданных единиц.</value>
+  </data>
 </root>

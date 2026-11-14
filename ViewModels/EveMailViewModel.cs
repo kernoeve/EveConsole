@@ -189,10 +189,18 @@ public sealed class ComposeMailResult
 
 // ── Main view-model ───────────────────────────────────────────────────────────
 
-public class EveMailViewModel : ReactiveObject
+public class EveMailViewModel : ReactiveObject, IDisposable
 {
     private readonly EveMailService                  _svc;
     private readonly ObservableCollection<Character> _sourceChars;
+    private readonly DispatcherTimer                 _timer;
+
+    /// <summary>A copy of the tool closed: its clock stops and it stops following the characters.</summary>
+    public void Dispose()
+    {
+        _timer.Stop();
+        _sourceChars.CollectionChanged -= OnSourceCharsChanged;
+    }
 
     public ObservableCollection<EveMailCharacterOption> Characters { get; } = [];
     public ObservableCollection<EveMailFolderVm>        Folders    { get; } = [];
@@ -266,6 +274,51 @@ public class EveMailViewModel : ReactiveObject
         private set => this.RaiseAndSetIfChanged(ref _isLoading, value);
     }
 
+    // ── The envelope on the main window's bar and on panels ───────────────────
+    //
+    // Counted from the database, where the background worker puts new mail whichever copy of the
+    // app runs it, so it is looked at on a timer rather than told. Opening a mail counts again.
+
+    private static readonly TimeSpan UnreadRecount = TimeSpan.FromSeconds(60);
+    private int _unreadCount;
+    private int _counting;
+
+    /// <summary>Unread mail across every character, each mail once.</summary>
+    public int UnreadCount
+    {
+        get => _unreadCount;
+        private set
+        {
+            if (_unreadCount == value) return;
+            this.RaiseAndSetIfChanged(ref _unreadCount, value);
+            this.RaisePropertyChanged(nameof(HasUnread));
+            this.RaisePropertyChanged(nameof(UnreadText));
+            this.RaisePropertyChanged(nameof(UnreadTip));
+        }
+    }
+
+    public bool HasUnread => UnreadCount > 0;
+    public string UnreadText => UnreadCount.ToString("N0", System.Globalization.CultureInfo.CurrentCulture);
+    public string UnreadTip => HasUnread
+        ? string.Format(System.Globalization.CultureInfo.CurrentCulture, CommsText.MailUnreadTip, UnreadCount)
+        : CommsText.MailNoUnreadTip;
+
+    /// <summary>Counts the unread mail again. One count at a time; the timer brings the next.</summary>
+    public async Task RecountUnreadAsync()
+    {
+        if (Interlocked.Exchange(ref _counting, 1) == 1) return;
+        try
+        {
+            var count = await Task.Run(() => _svc.CountUnreadAsync());
+            await Dispatcher.UIThread.InvokeAsync(() => UnreadCount = count);
+        }
+        catch (Exception ex) when (ex is InvalidOperationException or System.Data.Common.DbException or Microsoft.EntityFrameworkCore.DbUpdateException)
+        {
+            // The database out of reach for a moment: the count stays as it was until the next one.
+        }
+        finally { Interlocked.Exchange(ref _counting, 0); }
+    }
+
     public ReactiveCommand<Unit, Unit> ComposeCommand { get; }
     public ReactiveCommand<Unit, Unit> ReplyCommand   { get; }
     public ReactiveCommand<Unit, Unit> ForwardCommand { get; }
@@ -291,9 +344,15 @@ public class EveMailViewModel : ReactiveObject
         ForwardCommand = ReactiveCommand.CreateFromTask(OpenForwardAsync,
                              this.WhenAnyValue(vm => vm.SelectedMail).Select(m => m is not null));
 
-        var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(60) };
-        timer.Tick += (_, _) => _ = LoadMailsAsync(quiet: true);
-        timer.Start();
+        _timer = new DispatcherTimer { Interval = UnreadRecount };
+        _timer.Tick += (_, _) =>
+        {
+            _ = LoadMailsAsync(quiet: true);
+            _ = RecountUnreadAsync();
+        };
+        _timer.Start();
+        // The first count once startup has settled, so it adds nothing to it.
+        _ = AppStartup.WhenSettledAsync().ContinueWith(_ => RecountUnreadAsync(), TaskScheduler.Default);
 
         // Populate character list — include items already in the collection. "All Characters"
         // stays first; everyone else is kept in alphabetical order, however they arrive.
@@ -538,6 +597,7 @@ public class EveMailViewModel : ReactiveObject
             {
                 await _svc.MarkReadAsync(mail.UnreadCharIds.Count > 0 ? mail.UnreadCharIds : [mail.CharId], mail.MailId);
                 mail.MarkAsRead();
+                _ = RecountUnreadAsync();
             }
         }
         catch (OperationCanceledException)

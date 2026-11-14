@@ -12,9 +12,8 @@ namespace EveConsole.Services;
 /// OnStart returns immediately — a service that does its startup inline is reported as failing to
 /// start while it is still perfectly busy starting.</para>
 ///
-/// <para>⚠️ A service cannot show anything. Session 0 has no interactive desktop, which is why the
-/// tray icon has to be a separate process in the user's own session rather than something this
-/// could put on screen.</para>
+/// <para>⚠️ A service cannot show anything. Session 0 has no interactive desktop, so the
+/// notification-area icon is the desktop app's, in the user's own session.</para>
 /// </summary>
 [SupportedOSPlatform("windows")]
 public sealed class WindowsServiceHost : ServiceBase

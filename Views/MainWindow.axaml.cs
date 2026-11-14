@@ -42,6 +42,17 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         // telling two windows apart before reading either.
         if (AppConfig.ProfileName is { } profile) Title = $"EVE Console — {profile}";
         Current = this;
+        _navShift = ShiftWatch.On(NavList);
+    }
+
+    private readonly ShiftWatch _navShift;
+
+    /// <summary>A tool in the navigation: opened, or shown where it is; with Shift, another copy.</summary>
+    private void OnNavToolClick(object? sender, RoutedEventArgs e)
+    {
+        if (sender is not Control { DataContext: NavItem item } || DataContext is not MainWindowViewModel vm) return;
+        if (_navShift.Take()) vm.OpenCopy(item.ToolId);
+        else vm.OpenTool(item.ToolId);
     }
 
     protected override void OnOpened(EventArgs e)
@@ -56,10 +67,39 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         TryStartup();
     }
 
+    /// <summary>Whether the notification-area icon is up, to bring this window back. Set by App.</summary>
+    internal static Func<bool>? TrayShowing { get; set; }
+
     protected override void OnClosing(WindowClosingEventArgs e)
     {
         SaveWindowState();
+
+        // Closed by the user with the app kept running: only hidden. The panels, alarms and the
+        // rest carry on, and the notification-area icon brings it back. ⚠️ Not when the app is
+        // ending (Exit on the icon, Windows shutting down, a restart), which closes it in code,
+        // and not with no icon to come back from.
+        if (!e.IsProgrammatic && e.CloseReason == WindowCloseReason.WindowClosing
+            && Services.AppConfig.GetKeepRunningInTray() && TrayShowing?.Invoke() == true
+            && DataContext is MainWindowViewModel vm)
+        {
+            e.Cancel = true;
+            vm.IsMainHidden = true;
+            Hide();
+            return;
+        }
         base.OnClosing(e);
+    }
+
+    /// <summary>Back from the notification area, or just brought to the front if it never left.</summary>
+    public void ShowFromTray()
+    {
+        if (DataContext is MainWindowViewModel vm) vm.IsMainHidden = false;
+        if (!IsVisible) Show();
+        if (WindowState == WindowState.Minimized) WindowState = WindowState.Normal;
+        Activate();
+        // Raised over a layout without a change of focus, when it already had it: Windows says
+        // nothing, so the taskbar is told here (see ClientPanelHost.Reconcile).
+        Services.ClientLayouts.FrontWindows.NoteRaised();
     }
 
     /// <summary>
@@ -247,9 +287,30 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         };
         vm.ShowWorkspaceRequested += ws =>
         {
-            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); }
+            if (_hosts.TryGetValue(ws, out var w)) { if (w.WindowState == WindowState.Minimized) w.WindowState = WindowState.Normal; w.Activate(); Services.ClientLayouts.FrontWindows.NoteRaised(); }
+            else if (ws.IsMain) ShowFromTray();
+            // A Tool Container: its panel comes in front with the clients on its monitor, as a click
+            // on the panel brings them, without taking focus from a game client. The panel alone
+            // came forward over clients still buried under other windows.
+            else if (_containerViews.FirstOrDefault(x => x.View.Workspace == ws).Window is ClientPanelWindow panel) panel.BringForwardWithClients();
         };
+        // Where a panel's menu set to "last used" opens tools.
+        Activated += (_, _) => vm.LastUsedWorkspace = vm.Main;
     }
+
+    /// <summary>The Tool Containers on panels, which take dragged tabs as windows of tabs do.
+    /// <para>⚠️ Static: the panels are placed at startup, before the main window exists, and a
+    /// panel's container signing up with <c>MainWindow.Current</c> then went nowhere. The list stayed
+    /// empty, so a tool shown in a panel from the main window never brought the panel forward, and
+    /// a tab dragged onto a panel's container found no container there.</para></summary>
+    private static readonly List<(Window Window, WorkspaceView View)> _containerViews = [];
+
+    internal static void AddContainerView(Window window, WorkspaceView view)
+    {
+        if (!_containerViews.Any(x => x.View == view)) _containerViews.Add((window, view));
+    }
+
+    internal static void RemoveContainerView(WorkspaceView view) => _containerViews.RemoveAll(x => x.View == view);
 
     private void OpenHost(MainWindowViewModel vm, TabWorkspace ws)
     {
@@ -263,6 +324,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             _nextHostPlace = null;
         }
         _hosts[ws] = win;
+        win.Activated += (_, _) => vm.LastUsedWorkspace = ws;
         // Closed by its own close box: its tools close with it. (Closed because it emptied, it is
         // no longer in the list and there is nothing to close.)
         win.Closed += (_, _) =>
@@ -625,6 +687,8 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             });
 
         vm.OverviewVm.OpenAlertSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabAlerts);
+        vm.OpenSettingsTab = header => _ = OpenSettingsAsync(vm, header);
+        vm.OpenSettingsOnMonitor = (monitor, tab) => _ = OpenSettingsAsync(vm, tab, nonModalOn: monitor);
         // The PI tool's Characters tab points at the PI switch, which is on Settings → Characters.
         vm.PlanetaryIndustryVm.OpenPiSettingsRequested = () => _ = OpenSettingsAsync(vm, EveConsole.Localization.SettingsText.TabCharacters);
 
@@ -664,15 +728,6 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
         if (DataContext is MainWindowViewModel vm) vm.OpenTool("alarms");
     }
 
-    /// <summary>
-    /// The theme menu, built fresh each time it opens.
-    ///
-    /// <para>Built here rather than declared in the markup because the CHECK has to be right: the
-    /// theme can be changed from the Settings window too, and a menu assembled once would go on
-    /// ticking whatever was on when it was made.</para>
-    /// </summary>
-    /// <summary>The UI scale menu, built on click for the same reason as the theme's: the tick
-    /// has to show what is on now, and Settings can change it too.</summary>
     private int _toastShown;
 
     /// <summary>A message in the middle of the tools for a moment, then faded — for an action from
@@ -689,55 +744,12 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     private void OnUiScaleClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control anchor) return;
-
-        var menu = new MenuFlyout { Placement = PlacementMode.TopEdgeAlignedRight };
-
-        foreach (var choice in UiScaleChoice.All)
-        {
-            var item = new MenuItem
-            {
-                Header     = choice.Name,
-                ToggleType = MenuItemToggleType.Radio,
-                IsChecked  = Math.Abs(choice.Scale - UiScaleService.Scale) < 0.001,
-            };
-            var scale = choice.Scale;
-            item.Click += (_, _) => UiScaleService.Apply(scale);
-            menu.Items.Add(item);
-        }
-
-        menu.ShowAt(anchor);
+        if (sender is Control anchor) ShellMenus.UiScale(PlacementMode.TopEdgeAlignedRight).ShowAt(anchor);
     }
 
     private void OnThemeClick(object? sender, RoutedEventArgs e)
     {
-        if (sender is not Control anchor) return;
-
-        var menu = new MenuFlyout { Placement = PlacementMode.BottomEdgeAlignedRight };
-
-        foreach (var choice in ThemeService.All)
-        {
-            var item = new MenuItem
-            {
-                Header     = choice.Name,
-                ToggleType = MenuItemToggleType.Radio,
-                IsChecked  = choice.Key == ThemeService.Current,
-            };
-
-            // Captured, not read off the sender: a MenuItem's Click gives back the item, and
-            // recovering the key from its header would break the moment one was renamed.
-            var key = choice.Key;
-            item.Click += (_, _) => ThemeService.Apply(key);
-
-            menu.Items.Add(item);
-        }
-
-        menu.Items.Add(new Separator());
-        var edit = new MenuItem { Header = EveConsole.Localization.SettingsText.EditThemesButton };
-        edit.Click += (_, _) => ThemeEditorWindow.Open(this);
-        menu.Items.Add(edit);
-
-        menu.ShowAt(anchor);
+        if (sender is Control anchor) ShellMenus.Theme(PlacementMode.BottomEdgeAlignedRight, this).ShowAt(anchor);
     }
 
     private void OnSchedulerClick(object? sender, RoutedEventArgs e)
@@ -751,43 +763,113 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             await OpenSettingsAsync(vm);
     }
 
-    private async Task OpenSettingsAsync(MainWindowViewModel vm, string? initialTab = null)
+    /// <param name="nonModalOn">
+    /// Opens it without blocking the main window, centered on this monitor. From a panel, whose
+    /// Settings item has to work with the main window minimized or on another monitor, so the
+    /// window isn't owned by the main window either. The gear stays a dialog.
+    /// </param>
+    private async Task OpenSettingsAsync(MainWindowViewModel vm, string? initialTab = null, PixelRect? nonModalOn = null)
     {
-        // If the Market VM loaded before the SDE finished importing (first run), its
-        // region dropdowns are unresolved — reload now that the SDE data is available.
-        if (vm.MarketVm.RegionOptions.Count == 0)
-            await vm.MarketVm.ReloadAsync();
+        // ⚠️ One at a time: with panels, Settings can be asked for while it's already open or on its way.
+        if (_settingsWindow is { } alreadyOpen)
+        {
+            if (initialTab is not null) alreadyOpen.SelectTab(initialTab);
+            alreadyOpen.Activate();
+            return;
+        }
+        if (_settingsOpening) return;
 
-        await vm.CharacterVm.RefreshTokenStateAsync();
-        await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
-        vm.CorpTop10SettingsVm.Load();
-        var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
-        // The Worklist tool's own industry view model, not a second one: the Industry tab edits
-        // the character list that tool plans against, and two instances over one table would not
-        // see each other's edits.
-        var settingsVm = new SettingsViewModel(vm.WorklistVm.IndustryVm,
-                                               vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
-                                               vm.AgentVm.Service, vm.PriceHistorySettingsVm,
-                                               vm.AlertSettingsVm, vm.PollingSettingsVm,
-                                               vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
-                                               vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm,
-                                               vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
-                                               // Over the shared preferences, which are already in memory.
-                                               new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
-                                               vm.TtsService, vm.SpeechInputService, vm.HotkeyService);
-        var settingsWin = new SettingsWindow { DataContext = settingsVm };
-        settingsWin.WireDatabase(dbVm, this);
-        if (initialTab is not null) settingsWin.SelectTab(initialTab);
-        await settingsWin.ShowDialog(this);
+        SettingsWindow settingsWin;
+        _settingsOpening = true;
+        try
+        {
+            // If the Market VM loaded before the SDE finished importing (first run), its
+            // region dropdowns are unresolved — reload now that the SDE data is available.
+            if (vm.MarketVm.RegionOptions.Count == 0)
+                await vm.MarketVm.ReloadAsync();
+
+            await vm.CharacterVm.RefreshTokenStateAsync();
+            await vm.PollingSettingsVm.LoadAsync(vm.CharacterVm.Characters);
+            vm.CorpTop10SettingsVm.Load();
+            // Read off the UI thread: the intel settings are shared, and another PC may have changed them.
+            await vm.IntelSettingsVm.LoadAsync();
+            var dbVm = new DatabaseSettingsViewModel(vm.AppPrefs, vm.DbBackup);
+            // The Worklist tool's own industry view model, not a second one: the Industry tab edits
+            // the character list that tool plans against, and two instances over one table would not
+            // see each other's edits.
+            var settingsVm = new SettingsViewModel(vm.WorklistVm.IndustryVm,
+                                                   vm.CharacterVm, vm.SdeVm, vm.UpdateVm, vm.MarketVm, vm.TimerVm,
+                                                   vm.AgentVm.Service, vm.PriceHistorySettingsVm,
+                                                   vm.AlertSettingsVm, vm.PollingSettingsVm,
+                                                   vm.CorpTop10SettingsVm, dbVm, vm.SlackSettingsVm, vm.DiscordSettingsVm,
+                                                   vm.OnlineServicesSettingsVm,
+                                                   vm.GameLogSettingsVm, vm.ChatLogSettingsVm, vm.ZkbSettingsVm, vm.IntelSettingsVm,
+                                                   vm.MapStatsSettingsVm, vm.OtherSettingsVm, vm.DataRetentionVm,
+                                                   // Over the shared preferences, which are already in memory.
+                                                   new PiSettingsViewModel(vm.Pi.Tax, vm.Pi.Settings),
+                                                   vm.JabberVm, vm.MumbleVm,
+                                                   vm.TtsService, vm.SpeechInputService, vm.HotkeyService, vm.IrcVm,
+                                                   vm.ConnectorSettingsVm);
+            // Not awaited: it asks the web, and the window should not wait for that to open.
+            _ = vm.OnlineServicesSettingsVm.RefreshAsync();
+            _ = vm.ConnectorSettingsVm.LoadAsync();
+            settingsWin = new SettingsWindow { DataContext = settingsVm };
+            settingsWin.WireDatabase(dbVm, this);
+            if (initialTab is not null) settingsWin.SelectTab(initialTab);
+            _settingsWindow = settingsWin;
+        }
+        finally
+        {
+            _settingsOpening = false;
+        }
+
+        // ⚠️ Messaging someone from the Jabber or Mumble tab shows the conversation in this window, which a dialog would leave it behind.
+        void ToConversation() => Avalonia.Threading.Dispatcher.UIThread.Post(settingsWin.Close);
+        vm.MessagesVm.ShowRequested += ToConversation;
+        try
+        {
+            if (nonModalOn is { } monitor) await ShowCenteredOnAsync(settingsWin, monitor);
+            else await settingsWin.ShowDialog(this);
+        }
+        finally
+        {
+            vm.MessagesVm.ShowRequested -= ToConversation;
+            _settingsWindow = null;
+        }
+
         // The tabs save as they are changed; what was still waiting on a typing pause is saved as
         // the window closes. Awaited before anything here reads what was changed.
         await settingsWin.PendingSaves;
         // Slack token / channel or a Discord webhook may have changed — re-evaluate the post
         // buttons' visibility.
-        vm.CorpActivityVm.RefreshSlackState();
-        vm.SalePostingVm.RefreshSlackState();
-        vm.CorpActivityVm.RefreshDiscordState();
-        vm.SalePostingVm.RefreshDiscordState();
+        foreach (var corp in vm.AllOf(vm.CorpActivityVm))
+        {
+            corp.RefreshSlackState();
+            corp.RefreshDiscordState();
+        }
+        foreach (var posting in vm.AllOf(vm.SalePostingVm))
+        {
+            posting.RefreshSlackState();
+            posting.RefreshDiscordState();
+        }
+    }
+
+    private SettingsWindow? _settingsWindow;
+    private bool _settingsOpening;
+
+    /// <summary>Shows a window of its own, finishing when it closes, as a dialog's task would.</summary>
+    private static Task ShowCenteredOnAsync(Window window, PixelRect monitor)
+    {
+        var closed = new TaskCompletionSource();
+        window.Closed += (_, _) => closed.TrySetResult();
+        var scale = window.Screens.ScreenFromPoint(monitor.Center)?.Scaling ?? 1;
+        window.WindowStartupLocation = WindowStartupLocation.Manual;
+        window.Position = new PixelPoint(
+            monitor.X + Math.Max((monitor.Width - (int)(window.Width * scale)) / 2, 0),
+            monitor.Y + Math.Max((monitor.Height - (int)(window.Height * scale)) / 2, 0));
+        window.Show();
+        window.Activate();
+        return closed.Task;
     }
 
     private void OnResolveNamesClick(object? sender, RoutedEventArgs e)
@@ -839,7 +921,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
 
     /// <summary>Hands the URL to the OS default browser. Guarded because a user-supplied
     /// EVE-time URL can be anything, and a malformed one must not take the app down.</summary>
-    private static void OpenInBrowser(string url)
+    internal static void OpenInBrowser(string url)
     {
         if (string.IsNullOrWhiteSpace(url)) return;
         try
@@ -899,30 +981,35 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     private Visual? _tabDragSource;
     private PixelPoint _tabDragStart;
 
-    /// <summary>Every window of tabs, the main one first, with its tabs' view.</summary>
+    /// <summary>Every window of tabs, the main one first, with its tabs' view; then the Tool Containers.</summary>
     private IEnumerable<(Window Window, WorkspaceView View)> TabWindows()
     {
         yield return (this, MainTabs);
         foreach (var w in _hosts.Values) yield return (w, w.View);
+        foreach (var c in _containerViews) yield return c;
     }
 
     /// <summary>
     /// The window of tabs under a point on the screen: the one the tab came from if it is there,
-    /// otherwise another — the one worked in last first, as the likeliest to be on top.
+    /// otherwise another — the one worked in last first, as the likeliest to be on top. A Tool
+    /// Container is only its own part of the panel window it's in.
     /// </summary>
     private (Window Window, WorkspaceView View)? WindowAt(PixelPoint screen, Window from)
     {
-        bool Holds(Window w)
+        bool Holds((Window Window, WorkspaceView View) x)
         {
+            var w = x.Window;
             if (!w.IsVisible || w.WindowState == WindowState.Minimized) return false;
-            var tl = ScreenOf(w, default);
-            var br = ScreenOf(w, new Point(w.Bounds.Width, w.Bounds.Height));
+            Visual area = x.View.Workspace?.IsContainer == true ? x.View : w;
+            if (!area.IsEffectivelyVisible) return false;
+            var tl = ScreenOf(area, default);
+            var br = ScreenOf(area, new Point(area.Bounds.Width, area.Bounds.Height));
             return screen.X >= tl.X && screen.Y >= tl.Y && screen.X < br.X && screen.Y < br.Y;
         }
         var all = TabWindows().ToList();
-        return all.Where(x => x.Window == from && Holds(x.Window))
-                  .Concat(all.Where(x => x.Window != from && x.Window.IsActive && Holds(x.Window)))
-                  .Concat(all.Where(x => x.Window != from && Holds(x.Window)))
+        return all.Where(x => x.Window == from && Holds(x))
+                  .Concat(all.Where(x => x.Window != from && x.Window.IsActive && Holds(x)))
+                  .Concat(all.Where(x => x.Window != from && Holds(x)))
                   .Select(x => ((Window, WorkspaceView)?)x).FirstOrDefault();
     }
 
@@ -971,14 +1058,14 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (WindowAt(screen, sourceWindow) is { } over)
             {
                 var at = ClientOf(over.View, screen);
-                if (over.View.DropTarget(at, tab) is { } target)
+                if (over.View.DropTarget(at, tab, from) is { } target)
                 {
                     vm.MoveTab(tab, target.Pane, target.Index);
                     if (over.Window != sourceWindow) over.Window.Activate();
                 }
-                else if (over.View.Workspace == from && MainWindowViewModel.CanLeaveMain(tab)
+                else if (over.View.Workspace == from && TabWorkspace.CanDetach(tab, from)
                          && over.View.DetachArea(tab) is { } area && area.Contains(at)
-                         && !(!from.IsMain && from.OpenTabs.Count() == 1))
+                         && !(from.IsFloating && from.OpenTabs.Count() == 1))
                 {
                     EndTabDrag(vm);
                     DetachAt(vm, tab, screen, from);
@@ -987,9 +1074,9 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             }
             // Let go out of every window: a window of its own, there — or, for the last tab of a
             // window of its own, that window, moved there.
-            else if (!from.IsMain && from.OpenTabs.Count() == 1)
+            else if (from.IsFloating && from.OpenTabs.Count() == 1)
                 sourceWindow.Position = new PixelPoint(screen.X - 200, screen.Y - 15);
-            else if (MainWindowViewModel.CanLeaveMain(tab))
+            else if (TabWorkspace.CanDetach(tab, from))
             {
                 EndTabDrag(vm);
                 DetachAt(vm, tab, screen, from);
@@ -1017,10 +1104,10 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
             if (over is { } o && o.View == view)
             {
                 var at = ClientOf(view, screen);
-                var target = view.DropTarget(at, tab);
+                var target = view.DropTarget(at, tab, from);
                 view.ShowDropTarget(target);
-                view.ShowDetachHint(target is null && view.Workspace == from && MainWindowViewModel.CanLeaveMain(tab)
-                                    && !(!from.IsMain && from.OpenTabs.Count() == 1)
+                view.ShowDetachHint(target is null && view.Workspace == from && TabWorkspace.CanDetach(tab, from)
+                                    && !(from.IsFloating && from.OpenTabs.Count() == 1)
                                     && view.DetachArea(tab) is { } area && area.Contains(at) ? area : null);
             }
             else view.ClearMarks();
@@ -1045,7 +1132,7 @@ public partial class MainWindow : ReactiveWindow<MainWindowViewModel>
     /// <summary>The tool a tab shows, by the name the Tool Reference uses — "Universe Map", not
     /// the tab's "Universe" — or the tab's own title for one that is not a tool.</summary>
     private static string? OnScreenName(ToolTab? tab) =>
-        tab is null ? null : EveConsole.Agent.AppKnowledge.Tool(tab.Id)?.Name ?? tab.Title;
+        tab is null ? null : EveConsole.Agent.AppKnowledge.Tool(tab.ToolId)?.Name ?? tab.Title;
 
     private string BuildAgentContext(MainWindowViewModel vm)
     {

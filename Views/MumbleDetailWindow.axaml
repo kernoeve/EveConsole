@@ -1,0 +1,91 @@
+<!-- What needs more room than a menu line: about a server and its bans, a channel's words, a person's volume and comment.
+     Follows what is selected in the tree. -->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:loc="using:EveConsole.Localization"
+        xmlns:vm="clr-namespace:EveConsole.ViewModels"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:services="clr-namespace:EveConsole.Services.Mumble"
+        x:Class="EveConsole.Views.MumbleDetailWindow"
+        x:DataType="vm:MumbleViewModel"
+        Title="{Binding Title}"
+        Width="580" Height="460" MinWidth="360" MinHeight="240"
+        WindowStartupLocation="CenterOwner"
+        Background="{DynamicResource SurfaceBaseBrush}">
+
+  <Window.Styles>
+    <Style Selector="TextBlock.label"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="11" /><Setter Property="Margin" Value="0 8 0 3" /></Style>
+    <Style Selector="TextBlock.note"><Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" /><Setter Property="FontSize" Value="10" /><Setter Property="TextWrapping" Value="Wrap" /><Setter Property="Margin" Value="0 3 0 0" /></Style>
+    <Style Selector="TextBox"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="Button"><Setter Property="FontSize" Value="12" /></Style>
+    <Style Selector="ToggleButton"><Setter Property="FontSize" Value="12" /></Style>
+  </Window.Styles>
+
+  <Grid RowDefinitions="*,Auto">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+      <Panel Margin="20 14 20 10">
+        <!-- A server -->
+        <StackPanel IsVisible="{Binding ShowServer}" Spacing="6">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding Subtitle}" FontSize="11" Foreground="{DynamicResource TextFaintBrush}" />
+          <TextBlock Text="{Binding ServerState}" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+          <TextBlock Classes="note" Text="{Binding ServerDetail}" IsVisible="{Binding ServerDetail, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Classes="note" Text="{Binding ServerAbout}" IsVisible="{Binding ServerAbout, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+          <TextBlock Text="{Binding ServerWelcome}" IsVisible="{Binding HasServerWelcome}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+          <ToggleButton Content="{x:Static loc:MumbleText.BanList}" IsChecked="{Binding ShowBans, Mode=OneWay}" Command="{Binding ToggleBansCommand}" IsVisible="{Binding CanSeeBans}" HorizontalAlignment="Left" />
+          <TextBlock Classes="note" Text="{x:Static loc:MumbleText.NoBans}" IsVisible="{Binding HasNoBans}" />
+          <ItemsControl ItemsSource="{Binding Bans}" IsVisible="{Binding ShowBans}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate x:DataType="services:MumbleBan">
+                <Grid ColumnDefinitions="*,Auto" Margin="0 3">
+                  <StackPanel>
+                    <TextBlock Text="{Binding Name}" FontSize="12" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding Converter={x:Static views:MumbleBanText.Convert}}" FontSize="10" TextWrapping="Wrap" Foreground="{DynamicResource TextFaintBrush}" />
+                  </StackPanel>
+                  <Button Grid.Column="1" Content="{x:Static loc:MumbleText.Unban}" Click="OnUnban" Margin="12 0 0 0" VerticalAlignment="Center" />
+                </Grid>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- A channel: its words, and to change them if the server allows it -->
+        <StackPanel IsVisible="{Binding ShowChannel}" Spacing="6">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Text="{Binding Subtitle}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextFaintBrush}" />
+          <StackPanel IsVisible="{Binding CanRemoveChannel}" Spacing="4" Margin="0 8 0 0">
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelName}" />
+            <TextBox Text="{Binding EditChannelName}" />
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelDescription}" />
+            <TextBox Text="{Binding EditChannelDescription}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+            <Button Content="{x:Static loc:MumbleText.Save}" Command="{Binding SaveChannelCommand}" HorizontalAlignment="Left" />
+          </StackPanel>
+        </StackPanel>
+
+        <!-- A person -->
+        <StackPanel IsVisible="{Binding ShowUser}" Spacing="6">
+          <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}" />
+          <TextBlock Classes="note" Text="{Binding PersonStatus}" IsVisible="{Binding HasPersonStatus}" />
+          <TextBlock Classes="note" Text="{Binding PersonInfo}" IsVisible="{Binding HasPersonInfo}" />
+          <TextBlock Text="{Binding PersonComment}" IsVisible="{Binding HasPersonComment}" TextWrapping="Wrap" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+          <StackPanel IsVisible="{Binding !SelectedIsMe}" Spacing="4">
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.UserVolume}" />
+            <StackPanel Orientation="Horizontal" Spacing="10">
+              <Slider Minimum="0" Maximum="300" Value="{Binding UserVolume}" Width="260" />
+              <TextBlock Text="{Binding UserVolumeText}" VerticalAlignment="Center" FontSize="11" Foreground="{DynamicResource TextMutedBrush}" />
+            </StackPanel>
+          </StackPanel>
+          <!-- What this client says about itself -->
+          <StackPanel IsVisible="{Binding SelectedIsMe}" Spacing="4">
+            <TextBlock Classes="label" Text="{x:Static loc:MumbleText.LabelComment}" />
+            <TextBox Text="{Binding MyComment}" AcceptsReturn="True" TextWrapping="Wrap" MinHeight="60" />
+            <Button Content="{x:Static loc:MumbleText.SaveComment}" Command="{Binding SaveCommentCommand}" HorizontalAlignment="Left" />
+            <views:OwnPictureChooser DataContext="{Binding Picture}" />
+          </StackPanel>
+        </StackPanel>
+      </Panel>
+    </ScrollViewer>
+
+    <TextBlock Grid.Row="1" IsVisible="{Binding HasStatus}" Text="{Binding StatusText}" TextWrapping="Wrap" FontSize="11" Margin="20 4 20 10" Foreground="{DynamicResource BadBrush}" />
+  </Grid>
+</Window>

@@ -2364,6 +2364,10 @@
     <value>Capped by the {0:0.#}-day job length.</value>
     <comment>Added to a Worklist job's detail: why the job is no longer. {0} is the maximum job length in days, set on the Other tab.</comment>
   </data>
+  <data name="JobSizedToJobsShort" xml:space="preserve">
+    <value>Sized to what jobs are short of. The rest only fills the level, so it waits its turn.</value>
+    <comment>Added to a Worklist job's detail: this job makes only what the jobs consuming the item are short of, and the item's stock level comes after.</comment>
+  </data>
   <data name="JobSizedFullyResearched" xml:space="preserve">
     <value>Sized against a fully researched print (TE{0}) — none is owned.</value>
     <comment>Added to a Worklist job's detail when no blueprint is owned. {0} is the time efficiency assumed. TE is EVE's time efficiency.</comment>
@@ -3320,6 +3324,10 @@
     <value>{0} (for copying)</value>
     <comment>A product named with its originals at the copy lab, where a summary lists it to buy another. {0} = item name.</comment>
   </data>
+  <data name="PrintNameBuilding" xml:space="preserve">
+    <value>{0} (for manufacturing)</value>
+    <comment>A product named with its originals at a factory, where a summary lists it to buy another, so it is clear the other original at the copy lab is not the one counted. {0} = item name.</comment>
+  </data>
   <data name="ColPrintUse" xml:space="preserve">
     <value>Use</value>
     <comment>Column header on the BPO tab: what these originals are for.</comment>
@@ -3559,5 +3567,305 @@
   <data name="PrintUsing" xml:space="preserve">
     <value>{0}.</value>
     <comment>Worklist copy job detail: the original to copy from, when it is not yet at the copy lab. {0} describes the blueprint (e.g. BPO ME10/TE20).</comment>
+  </data>
+  <data name="SourceTransfers" xml:space="preserve">
+    <value>Transfers</value>
+  </data>
+  <data name="KindTransfer" xml:space="preserve">
+    <value>Transfer</value>
+  </data>
+  <data name="KindTipTransfer" xml:space="preserve">
+    <value>Hand items to another character or corporation, in the station they&apos;re in</value>
+  </data>
+  <data name="TransferOneLine" xml:space="preserve">
+    <value>{1} × {0:N0}</value>
+    <comment>A transfer of one item: {1} is the item's name, {0} how many. The item first, as the buy rows have it.</comment>
+  </data>
+  <data name="TransferTypesOne" xml:space="preserve">
+    <value>{0:N0} item type</value>
+  </data>
+  <data name="TransferTypesOther" xml:space="preserve">
+    <value>{0:N0} item types</value>
+  </data>
+  <data name="TransferTitle" xml:space="preserve">
+    <value>{0} to {1} at {2}</value>
+  </data>
+  <data name="TransferToCorpInCorp" xml:space="preserve">
+    <value>{0}: move these from your own hangar into {1}&apos;s hangar at {2}.</value>
+  </data>
+  <data name="TransferToCorpContract" xml:space="preserve">
+    <value>{0} isn&apos;t in {1}: give these to {1} with an item exchange contract at {2}.</value>
+  </data>
+  <data name="TransferCorpToCorp" xml:space="preserve">
+    <value>{0}, for {1}: give these to {2} with an item exchange contract at {3}.</value>
+  </data>
+  <data name="TransferFromCorpSelf" xml:space="preserve">
+    <value>{0}: take these from {1}&apos;s hangar into your own at {2}, as your character level keeps them.</value>
+  </data>
+  <data name="TransferFromCorpContract" xml:space="preserve">
+    <value>{0}: take these from {1}&apos;s hangar and give them to {2} with an item exchange contract at {3}. {2} isn&apos;t in {1}, so only their own hangar counts for their jobs.</value>
+  </data>
+  <data name="TabCharacterLevels" xml:space="preserve">
+    <value>Character Levels</value>
+  </data>
+  <data name="DefaultCorpTitle" xml:space="preserve">
+    <value>Default corporation</value>
+  </data>
+  <data name="DefaultCorpNote" xml:space="preserve">
+    <value>The corporation that should hold the Worklist&apos;s items (those of orders and inventory levels), so every character in it can build with them: a character can use only its own hangar and its corporation&apos;s. An item a character holds, in its hangar or a docked ship&apos;s cargo hold, gets a Transfer task to this corporation at any station where it has a hangar, except what a character level below keeps with that character. Fitted modules, blueprints and assembled ships are never moved.</value>
+  </data>
+  <data name="DefaultCorpNone" xml:space="preserve">
+    <value>None</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorps" xml:space="preserve">
+    <value>Your other corporations give theirs too</value>
+  </data>
+  <data name="DefaultCorpFromOtherCorpsTip" xml:space="preserve">
+    <value>Off: only characters&apos; hangars and holds are emptied into the default corporation. On: your other corporations&apos; Worklist items get Transfer tasks too, done by one of your characters in that corporation.</value>
+  </data>
+  <data name="CharacterLevelsNote" xml:space="preserve">
+    <value>Keep a group&apos;s levels with one character at a station, in that character&apos;s own hangar, for its jobs only. It&apos;s how a character outside the default corporation gets material to build with. Hauling brings the amount to the station, added to any station level there, and a Transfer task gives the character what it lacks from the default corporation&apos;s hangar.</value>
+  </data>
+  <data name="CharacterLevelPickCharacter" xml:space="preserve">
+    <value>Pick a character.</value>
+  </data>
+  <data name="CharacterLevelInDefaultCorp" xml:space="preserve">
+    <value>In the default corporation already</value>
+  </data>
+  <data name="CharacterLevelColOn" xml:space="preserve">
+    <value>On</value>
+  </data>
+  <data name="CharacterLevelsNone" xml:space="preserve">
+    <value>No character levels yet.</value>
+  </data>
+  <data name="CharacterLevelsCountOne" xml:space="preserve">
+    <value>{0:N0} character level</value>
+  </data>
+  <data name="CharacterLevelsCountOther" xml:space="preserve">
+    <value>{0:N0} character levels</value>
+  </data>
+  <data name="CharacterRestockBandTip" xml:space="preserve">
+    <value>A character is left alone until it falls this far under its level, then is given enough to fill it all the way back up. Zero gives on any shortfall at all.</value>
+  </data>
+  <data name="CharacterSurplusBandTip" xml:space="preserve">
+    <value>What a character holds over its level stays with it until it is this far over, then the excess goes back to the default corporation. Zero sweeps any excess at all.</value>
+  </data>
+  <data name="TransferSomeInHold" xml:space="preserve">
+    <value>Some are in a ship&apos;s cargo hold.</value>
+  </data>
+  <data name="ReasonOnStoreOffers" xml:space="preserve">
+    <value>Of that, {0:N0} is on store offers, counted as coming.</value>
+  </data>
+  <data name="CopyShortRuns" xml:space="preserve">
+    <value>Short {0:N0} copy run(s).</value>
+  </data>
+  <data name="CopyAlsoForStock" xml:space="preserve">
+    <value>Plus {0:N0} copy run(s) for its inventory level or orders.</value>
+  </data>
+  <data name="PrintRunsForOrders" xml:space="preserve">
+    <value>{0:N0} for pending orders</value>
+  </data>
+  <data name="OrderNothingMakesIt" xml:space="preserve">
+    <value>Nothing manufactures it; {0:N0} on hand</value>
+  </data>
+  <data name="IndustrySetupTitle" xml:space="preserve">
+    <value>Industry planning is not set up</value>
+  </data>
+  <data name="IndustrySetupDetail" xml:space="preserve">
+    <value>{0:N0} Build rule(s) and {1:N0} pending order(s) are waiting.</value>
+  </data>
+  <data name="IndustrySetupNoPark" xml:space="preserve">
+    <value>No Indy Park is picked for the Worklist and none is starred in Indy Parks.</value>
+  </data>
+  <data name="IndustrySetupNoCharacters" xml:space="preserve">
+    <value>No character is enabled to run industry jobs.</value>
+  </data>
+  <data name="SourceStructures" xml:space="preserve">
+    <value>Corp structures</value>
+    <comment>Worklist Sources tab: the source that raises tasks from Corp Structures (fuel, moon bay, fit, ammo).</comment>
+  </data>
+  <data name="KindStructure" xml:space="preserve">
+    <value>Structure</value>
+    <comment>Worklist group heading: tasks for a corporation structure.</comment>
+  </data>
+  <data name="KindTipStructure" xml:space="preserve">
+    <value>A corporation structure: fuel, moon bay, fit or ammo</value>
+    <comment>Worklist: tooltip on the structure task glyph.</comment>
+  </data>
+  <data name="StructureFuelTitle" xml:space="preserve">
+    <value>Fuel {0} — {1} left</value>
+    <comment>Worklist task title. {0} is the structure&apos;s name, {1} the fuel left, such as &quot;3d 4h&quot;.</comment>
+  </data>
+  <data name="StructureFuelOutTitle" xml:space="preserve">
+    <value>Fuel {0} — out of fuel</value>
+    <comment>Worklist task title. {0} is the structure&apos;s name.</comment>
+  </data>
+  <data name="StructureFuelDetail" xml:space="preserve">
+    <value>{0} of {1}. Runs out {2}; filled to {3} days.</value>
+    <comment>Worklist fuel task detail. {0} the structure type, {1} the corporation, {2} when it runs out (or StructureFuelNow), {3} the fill-to days.</comment>
+  </data>
+  <data name="StructureFuelNow" xml:space="preserve">
+    <value>now</value>
+    <comment>Worklist fuel task detail: in place of the date when the structure is already out of fuel.</comment>
+  </data>
+  <data name="StructureFuelBlocks" xml:space="preserve">
+    <value>Bring {0:N0} fuel blocks ({1} an hour).</value>
+    <comment>Worklist fuel task detail, when the structure&apos;s fuel bay is not read: how many blocks, of any kind. {1} the blocks an hour.</comment>
+  </data>
+  <data name="StructureFuelNoBurn" xml:space="preserve">
+    <value>How fast it burns is not known: set a fit for the {0} on Corp Structures → Config to have the blocks counted.</value>
+    <comment>Worklist fuel task detail. {0} is the structure type.</comment>
+  </data>
+  <data name="StructureFuelTypeFit" xml:space="preserve">
+    <value>The burn is from the fit set for its type: the corporation&apos;s assets are not read.</value>
+    <comment>Worklist fuel task detail.</comment>
+  </data>
+  <data name="StructurePickupTitle" xml:space="preserve">
+    <value>Empty the moon bay of {0} — {1}% full</value>
+    <comment>Worklist task title (Reagent pickup). {0} is the Metenox&apos;s name, {1} how full its moon material bay is.</comment>
+  </data>
+  <data name="StructurePickupDetail" xml:space="preserve">
+    <value>{0} of {1}: {2} m³ worth {3} ISK.</value>
+    <comment>Worklist pickup task detail. {0} the structure type, {1} the corporation, {2} the m³ in the bay, {3} its value such as &quot;125.8M&quot;.</comment>
+  </data>
+  <data name="StructureFitTitle" xml:space="preserve">
+    <value>Fix the fit of {0}</value>
+    <comment>Worklist task title. {0} is the structure&apos;s name.</comment>
+  </data>
+  <data name="StructureFitMissing" xml:space="preserve">
+    <value>Missing: {0}.</value>
+    <comment>Worklist fit task detail. {0} is a list of modules.</comment>
+  </data>
+  <data name="StructureFitWrong" xml:space="preserve">
+    <value>{0} fitted where {1} should be.</value>
+    <comment>Worklist fit task detail. {0} what is fitted instead, {1} the fit&apos;s modules it took the place of.</comment>
+  </data>
+  <data name="StructureFitAgainst" xml:space="preserve">
+    <value>Checked against {0} ({1}), the fit set for the {2} of {3}.</value>
+    <comment>Worklist fit task detail. {0} the fit&apos;s name, {1} where it is kept, {2} the structure type, {3} the corporation.</comment>
+  </data>
+  <data name="StructureAmmoTitle" xml:space="preserve">
+    <value>Add ammo and fighters to {0}</value>
+    <comment>Worklist task title (Add drones/ammo). {0} is the structure&apos;s name.</comment>
+  </data>
+  <data name="StructureAmmoDetail" xml:space="preserve">
+    <value>Low: {0}. Against {1}, the fit set for the {2} of {3}.</value>
+    <comment>Worklist ammo task detail. {0} the list of low items (StructureAmmoHaveWant), {1} the fit&apos;s name, {2} the structure type, {3} the corporation.</comment>
+  </data>
+  <data name="StructureAmmoHaveWant" xml:space="preserve">
+    <value>{0} {1:N0} of {2:N0}</value>
+    <comment>Worklist ammo task detail, one item: its name, how many the structure holds, how many the fit carries.</comment>
+  </data>
+  <data name="StructureListStaleTitle" xml:space="preserve">
+    <value>{0}: structure list not read since {1}</value>
+    <comment>Worklist task title. {0} the corporation, {1} when the list was last read.</comment>
+  </data>
+  <data name="StructureTowerListStaleTitle" xml:space="preserve">
+    <value>{0}: tower list not read since {1}</value>
+    <comment>Worklist task title. {0} the corporation, {1} when the list was last read.</comment>
+  </data>
+  <data name="StructureListNeverRead" xml:space="preserve">
+    <value>—</value>
+    <comment>Worklist: in place of the date in StructureListStaleTitle when the list was never read.</comment>
+  </data>
+  <data name="StructureListDeniedDetail" xml:space="preserve">
+    <value>The character that reads this corporation has lost the corporation role ESI needs (Station Manager for structures, Starbase Equipment Config for towers), so the list is no longer read and fuel cannot be tracked. Give the role back, or have a character with it read the corporation.</value>
+    <comment>Worklist detail of the stale-list task. The role names are the game&apos;s own and stay in English.</comment>
+  </data>
+  <data name="StructureListNotReadDetail" xml:space="preserve">
+    <value>ESI has not answered for the list lately, so fuel cannot be tracked until it is read again.</value>
+    <comment>Worklist detail of the stale-list task, when no role is missing.</comment>
+  </data>
+  <data name="TabStructures" xml:space="preserve">
+    <value>Structures</value>
+    <comment>Worklist Config tab: tasks from Corp Structures.</comment>
+  </data>
+  <data name="StructuresNote" xml:space="preserve">
+    <value>Tasks from Corp Structures. Fueling needs only the structure list, so it works for any corporation; the other three read what is in a structure, so they are raised only where the corporation&apos;s assets are read.</value>
+    <comment>Worklist Config → Structures: note at the top.</comment>
+  </data>
+  <data name="StructureCorpsLabel" xml:space="preserve">
+    <value>Corporations</value>
+    <comment>Worklist Config → Structures: heading over the corporation list.</comment>
+  </data>
+  <data name="StructureAllCorps" xml:space="preserve">
+    <value>All corporations</value>
+    <comment>Worklist Config → Structures: tick box for every corporation.</comment>
+  </data>
+  <data name="TipStructureAllCorps" xml:space="preserve">
+    <value>Every corporation, including any added later. Clear it to choose.</value>
+    <comment>Worklist Config → Structures: tooltip on All corporations.</comment>
+  </data>
+  <data name="StructureTasksLabel" xml:space="preserve">
+    <value>Tasks</value>
+    <comment>Worklist Config → Structures: heading over the task kinds.</comment>
+  </data>
+  <data name="StructureTaskFuel" xml:space="preserve">
+    <value>Structure fueling</value>
+    <comment>Worklist Config → Structures: task kind.</comment>
+  </data>
+  <data name="StructureTaskFuelTip" xml:space="preserve">
+    <value>Raised when a structure&apos;s fuel runs out within the minimum; it brings the fuel up to the fill level. The burn comes from the modules fitted, or without assets, from the fit set for the structure&apos;s type on Corp Structures → Config.</value>
+    <comment>Worklist Config → Structures: note under Structure fueling.</comment>
+  </data>
+  <data name="StructureMinFuel" xml:space="preserve">
+    <value>Min fuel</value>
+    <comment>Worklist Config → Structures: label before a number of days.</comment>
+  </data>
+  <data name="TipStructureMinFuel" xml:space="preserve">
+    <value>A structure with less fuel left than this gets a task.</value>
+    <comment>Worklist Config → Structures: tooltip on Min fuel.</comment>
+  </data>
+  <data name="StructureFillTo" xml:space="preserve">
+    <value>Fill to</value>
+    <comment>Worklist Config → Structures: label before a number of days.</comment>
+  </data>
+  <data name="TipStructureFillTo" xml:space="preserve">
+    <value>How many days of fuel the task brings the structure up to.</value>
+    <comment>Worklist Config → Structures: tooltip on Fill to.</comment>
+  </data>
+  <data name="StructureTaskPickup" xml:space="preserve">
+    <value>Reagent pickup</value>
+    <comment>Worklist Config → Structures: task kind — collecting what a Metenox has drilled.</comment>
+  </data>
+  <data name="StructureTaskPickupTip" xml:space="preserve">
+    <value>Raised when a Metenox moon bay holds as much as set here. Needs the corporation&apos;s assets.</value>
+    <comment>Worklist Config → Structures: note under Reagent pickup.</comment>
+  </data>
+  <data name="StructurePickupWhen" xml:space="preserve">
+    <value>Pick up at</value>
+    <comment>Worklist Config → Structures: label before the measure and amount.</comment>
+  </data>
+  <data name="StructurePickupByPercent" xml:space="preserve">
+    <value>% full</value>
+    <comment>Worklist Config → Structures: pickup measured by how full the bay is.</comment>
+  </data>
+  <data name="StructurePickupByVolume" xml:space="preserve">
+    <value>Volume</value>
+    <comment>Worklist Config → Structures: pickup measured by m³.</comment>
+  </data>
+  <data name="StructurePickupByValue" xml:space="preserve">
+    <value>Market value</value>
+    <comment>Worklist Config → Structures: pickup measured by ISK.</comment>
+  </data>
+  <data name="TipStructurePickupAt" xml:space="preserve">
+    <value>How much the bay must hold, in the unit chosen.</value>
+    <comment>Worklist Config → Structures: tooltip on the pickup amount.</comment>
+  </data>
+  <data name="StructureTaskAmmo" xml:space="preserve">
+    <value>Add drones/ammo</value>
+    <comment>Worklist Config → Structures: task kind.</comment>
+  </data>
+  <data name="StructureTaskAmmoTip" xml:space="preserve">
+    <value>Raised when ammo or fighters fall below the share of the type&apos;s fit set in Settings → Alerts. Needs the corporation&apos;s assets.</value>
+    <comment>Worklist Config → Structures: note under Add drones/ammo.</comment>
+  </data>
+  <data name="StructureTaskFit" xml:space="preserve">
+    <value>Fix fit</value>
+    <comment>Worklist Config → Structures: task kind.</comment>
+  </data>
+  <data name="StructureTaskFitTip" xml:space="preserve">
+    <value>Raised when a structure lacks a module of the fit set for its type, or has another in its place. Needs the corporation&apos;s assets.</value>
+    <comment>Worklist Config → Structures: note under Fix fit.</comment>
   </data>
 </root>

@@ -1,0 +1,178 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="AddRooms" xml:space="preserve">
+    <value>Ajouter des salons</value>
+  </data>
+  <data name="AddingTo" xml:space="preserve">
+    <value>Ajouter des salons sur {0}</value>
+  </data>
+  <data name="Welcome" xml:space="preserve">
+    <value>Les salons et la discussion des serveurs s'affichent ici. Configurez d'abord un serveur dans l'onglet Jabber ou Mumble des paramètres.</value>
+  </data>
+  <data name="PickSomething" xml:space="preserve">
+    <value>Choisissez un salon ou un serveur à gauche.</value>
+  </data>
+  <data name="UnreadTip" xml:space="preserve">
+    <value>Nouveaux messages : {0}</value>
+  </data>
+  <data name="MentionsTip" xml:space="preserve">
+    <value>Mentions de votre nom non vues : {0}</value>
+  </data>
+  <data name="MumbleNote" xml:space="preserve">
+    <value>Tout ce qui a été dit depuis la connexion, dans le canal où vous étiez. Cela dure jusqu'à la fermeture de l'application, car un serveur Mumble n'en garde rien.</value>
+  </data>
+  <data name="RoomFilterHint" xml:space="preserve">
+    <value>Filtrer par nom ou description</value>
+  </data>
+  <data name="ReadingRooms" xml:space="preserve">
+    <value>Interrogation des salons...</value>
+  </data>
+  <data name="RoomPeople" xml:space="preserve">
+    <value>{0} dans le salon</value>
+  </data>
+  <data name="RoomTopic" xml:space="preserve">
+    <value>Sujet : {0}</value>
+  </data>
+  <data name="FlagPassword" xml:space="preserve">
+    <value>Mot de passe requis</value>
+  </data>
+  <data name="FlagMembersOnly" xml:space="preserve">
+    <value>Membres uniquement</value>
+  </data>
+  <data name="FlagModerated" xml:space="preserve">
+    <value>Modéré</value>
+  </data>
+  <data name="FlagTemporary" xml:space="preserve">
+    <value>Temporaire</value>
+  </data>
+  <data name="AlreadyJoined" xml:space="preserve">
+    <value>Rejoint</value>
+  </data>
+  <data name="LabelRoomToJoin" xml:space="preserve">
+    <value>Salon (choisissez ci-dessus ou saisissez un nom)</value>
+  </data>
+  <data name="JoinAgain" xml:space="preserve">
+    <value>Rejoindre à nouveau</value>
+  </data>
+  <data name="LabelRoomType" xml:space="preserve">
+    <value>Type</value>
+  </data>
+  <data name="RoomTypeGeneral" xml:space="preserve">
+    <value>Général</value>
+  </data>
+  <data name="RoomTypeIntel" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
+  <data name="RoomTypeTip" xml:space="preserve">
+    <value>Général sert à discuter. Un salon de renseignements est aussi analysé pour y trouver des rapports, comme un canal de renseignements dans les journaux de discussion, et ceux-ci alimentent la carte et les alarmes de renseignements. Un rapport déjà reçu d'une autre source n'est pas compté deux fois.</value>
+  </data>
+  <data name="DoneAdding" xml:space="preserve">
+    <value>Terminé</value>
+  </data>
+  <data name="LabelRoomSort" xml:space="preserve">
+    <value>Trier par</value>
+  </data>
+  <data name="RoomSortName" xml:space="preserve">
+    <value>Nom</value>
+  </data>
+  <data name="RoomSortPeople" xml:space="preserve">
+    <value>Personnes dans le salon</value>
+  </data>
+  <data name="MenuDirectMessage" xml:space="preserve">
+    <value>Message direct</value>
+  </data>
+  <data name="MenuGiveVoice" xml:space="preserve">
+    <value>Donner la parole</value>
+  </data>
+  <data name="MenuTakeVoice" xml:space="preserve">
+    <value>Retirer la parole</value>
+  </data>
+  <data name="MenuMakeModerator" xml:space="preserve">
+    <value>Nommer modérateur</value>
+  </data>
+  <data name="MenuRemoveModerator" xml:space="preserve">
+    <value>Retirer modérateur</value>
+  </data>
+  <data name="MenuMakeMember" xml:space="preserve">
+    <value>Nommer membre</value>
+  </data>
+  <data name="MenuRemoveMember" xml:space="preserve">
+    <value>Retirer l'adhésion</value>
+  </data>
+  <data name="MenuMakeAdmin" xml:space="preserve">
+    <value>Nommer admin</value>
+  </data>
+  <data name="MenuRemoveAdmin" xml:space="preserve">
+    <value>Retirer admin</value>
+  </data>
+  <data name="MenuKick" xml:space="preserve">
+    <value>Expulser…</value>
+  </data>
+  <data name="MenuBan" xml:space="preserve">
+    <value>Bannir…</value>
+  </data>
+  <data name="KickTitle" xml:space="preserve">
+    <value>Expulser {0}</value>
+  </data>
+  <data name="BanTitle" xml:space="preserve">
+    <value>Bannir {0}</value>
+  </data>
+  <data name="LabelReason" xml:space="preserve">
+    <value>Raison (facultative), qui lui est montrée</value>
+  </data>
+  <data name="ConfirmBan" xml:space="preserve">
+    <value>Bannir {0} ({1}) de {2} ? Cette personne ne pourra pas revenir tant que le bannissement n'est pas levé.</value>
+  </data>
+  <data name="MenuChangeTopic" xml:space="preserve">
+    <value>Changer le sujet…</value>
+  </data>
+  <data name="TopicTitle" xml:space="preserve">
+    <value>Sujet de {0}</value>
+  </data>
+  <data name="LabelTopic" xml:space="preserve">
+    <value>Le nouveau sujet, visible par tout le salon</value>
+  </data>
+  <data name="MenuInvite" xml:space="preserve">
+    <value>Inviter quelqu'un…</value>
+  </data>
+  <data name="InviteTitle" xml:space="preserve">
+    <value>Inviter quelqu'un dans {0}</value>
+  </data>
+  <data name="LabelInvitee" xml:space="preserve">
+    <value>Son adresse</value>
+  </data>
+  <data name="MenuLiftBan" xml:space="preserve">
+    <value>Lever un bannissement…</value>
+  </data>
+  <data name="LiftBanTitle" xml:space="preserve">
+    <value>Lever un bannissement dans {0}</value>
+  </data>
+  <data name="LabelBanned" xml:space="preserve">
+    <value>Qui laisser revenir</value>
+  </data>
+  <data name="NoBans" xml:space="preserve">
+    <value>Personne n'est banni de {0}.</value>
+  </data>
+  <data name="PickBanned" xml:space="preserve">
+    <value>Choisissez quelqu'un dans la liste.</value>
+  </data>
+  <data name="ShowPicture" xml:space="preserve">
+    <value>Afficher l’image</value>
+  </data>
+  <data name="ShowPictureTip" xml:space="preserve">
+    <value>Le charge depuis {0}. Ce site verra votre adresse IP.</value>
+  </data>
+  <data name="PictureLoading" xml:space="preserve">
+    <value>Chargement de l’image…</value>
+  </data>
+  <data name="PictureFailed" xml:space="preserve">
+    <value>L’image n’a pas pu être chargée. Le lien ci-dessous l’ouvre quand même.</value>
+  </data>
+  <data name="OpenPictureTip" xml:space="preserve">
+    <value>Ouvrir en taille réelle dans le navigateur</value>
+  </data>
+</root>

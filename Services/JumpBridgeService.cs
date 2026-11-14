@@ -67,7 +67,8 @@ public sealed record BridgeImportResult(int Added, int AlreadyThere, IReadOnlyLi
 /// <para><b>From ESI.</b> A corporation's structures (with a token that can read them) include
 /// its Ansiblexes, but nothing in ESI says where one leads. The name does: the game shows gates
 /// by name, so they are named "Source » Destination - label" by near-universal convention, and
-/// that is read here — as SMT and RIFT read it. The source is taken from where the structure
+/// that is read here, because it is the only place the destination is written down anywhere
+/// the app can reach. The source is taken from where the structure
 /// actually is, not from the name. A gate whose name does not say is listed as unread rather
 /// than guessed at.</para>
 ///

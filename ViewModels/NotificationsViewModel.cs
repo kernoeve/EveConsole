@@ -162,8 +162,11 @@ public class NotificationDetailVm
 // Server-side paged view over EsiNotifications: filter (character / type / sender type / date
 // range), sort and page all run in the DB, so they apply to the whole table. The selected row's
 // raw YAML "text" is formatted for the detail pane below the grid.
-public class NotificationsViewModel : ReactiveObject
+public class NotificationsViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly AppErrorLogger                  _errorLogger;
     private readonly ContractNameResolver            _names;
@@ -408,7 +411,7 @@ public class NotificationsViewModel : ReactiveObject
 
     private async Task InitAsync()
     {
-        OwnerList.Changed += () => _ = LoadCharacterOptionsAsync();
+        _life.OnOwnersChanged(() => _ = LoadCharacterOptionsAsync());
         await LoadCharacterOptionsAsync();
         try
         {

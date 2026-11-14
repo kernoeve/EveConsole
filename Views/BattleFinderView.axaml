@@ -1,0 +1,83 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:loc="using:EveConsole.Localization"
+             xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             x:Class="EveConsole.Views.BattleFinderView"
+             x:DataType="vm:BattleFinderViewModel"
+             Background="{DynamicResource SurfaceBaseBrush}">
+
+  <UserControl.Styles>
+    <Style Selector="DataGridCell TextBlock"><Setter Property="FontSize" Value="11" /></Style>
+    <Style Selector="DataGridColumnHeader"><Setter Property="FontSize" Value="10" /></Style>
+    <Style Selector="TextBlock.flabel">
+      <Setter Property="FontSize" Value="11" />
+      <Setter Property="Foreground" Value="{DynamicResource TextFaintBrush}" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="TextBlock.bad">
+      <Setter Property="Foreground" Value="{DynamicResource BadBrush}" />
+    </Style>
+    <Style Selector="TextBlock.dim">
+      <Setter Property="Foreground" Value="{DynamicResource TextDimBrush}" />
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="Auto,Auto,Auto,*" Margin="12 10">
+
+    <WrapPanel Orientation="Horizontal" ItemSpacing="10" LineSpacing="6">
+      <Button Content="{x:Static loc:BattleText.Last24Hours}" Command="{Binding Last24Command}" Padding="10 4" FontSize="12" />
+      <Button Content="{x:Static loc:BattleText.Last3Days}" Command="{Binding Last3DaysCommand}" Padding="10 4" FontSize="12" />
+      <Button Content="{x:Static loc:BattleText.Last7Days}" Command="{Binding Last7DaysCommand}" Padding="10 4" FontSize="12" />
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.FromLabel}" />
+        <TextBox Text="{Binding FromText}" Width="130" FontSize="12" Watermark="{x:Static loc:BattleText.TimeHint}" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.ToLabel}" />
+        <TextBox Text="{Binding ToText}" Width="130" FontSize="12" Watermark="{x:Static loc:BattleText.UpToNowHint}" />
+      </StackPanel>
+      <StackPanel Orientation="Horizontal" Spacing="6">
+        <TextBlock Classes="flabel" Text="{x:Static loc:BattleText.MinPilotsLabel}" />
+        <TextBox Text="{Binding MinPilotsText}" Width="64" FontSize="12" />
+      </StackPanel>
+      <CheckBox IsChecked="{Binding OnlyOurs}" FontSize="12" VerticalAlignment="Center"
+                Content="{x:Static loc:BattleText.OnlyOurs}" />
+      <Button Content="{x:Static loc:BattleText.Find}" Command="{Binding FindCommand}" Padding="14 4" FontSize="12" />
+    </WrapPanel>
+
+    <TextBlock Grid.Row="1" Text="{Binding StatusText}" FontSize="12" TextWrapping="Wrap" Margin="0 8 0 0"
+               Classes.bad="{Binding IsError}" Classes.dim="{Binding !IsError}" />
+    <TextBlock Grid.Row="2" Text="{Binding CoverageNote}" IsVisible="{Binding HasCoverageNote}"
+               FontSize="11" Foreground="{DynamicResource WarnBrush}" TextWrapping="Wrap" Margin="0 3 0 0" />
+
+    <DataGrid Grid.Row="3" ItemsSource="{Binding Fights}" IsVisible="{Binding HasResults}" AutoGenerateColumns="False"
+              IsReadOnly="True" RowHeight="26" CanUserReorderColumns="False" SelectionMode="Single" Margin="0 8 0 0"
+              DoubleTapped="OnFightDoubleTapped" Background="{DynamicResource SurfaceBaseBrush}">
+      <DataGrid.Columns>
+        <DataGridTemplateColumn Width="66" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Started}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:BattleFightVm">
+              <Button Content="{x:Static loc:BattleText.OpenFight}" Command="{Binding OpenCommand}" Padding="8 1" FontSize="11"
+                      HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTemplateColumn Width="16" CanUserSort="False" CanUserResize="False" ClipboardContentBinding="{Binding Started}">
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate x:DataType="vm:BattleFightVm">
+              <Ellipse Width="7" Height="7" Fill="{DynamicResource AccentBrush}" IsVisible="{Binding IsOurs}"
+                       HorizontalAlignment="Center" VerticalAlignment="Center" ToolTip.Tip="{x:Static loc:BattleText.TipOurFight}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColStarted}" Binding="{Binding Started}" SortMemberPath="StartRaw" Width="120" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColDuration}" Binding="{Binding Duration}" SortMemberPath="DurationRaw" Width="84" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColSystems}" Binding="{Binding Systems}" Width="220" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColKills}" Binding="{Binding Kills, StringFormat={}{0:N0}}" SortMemberPath="Kills" Width="64" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColPilots}" Binding="{Binding Pilots, StringFormat={}{0:N0}}" SortMemberPath="Pilots" Width="64" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColIskLost}" Binding="{Binding IskText}" SortMemberPath="IskLost" Width="82" CellStyleClasses="num" />
+        <DataGridTextColumn Header="{x:Static loc:BattleText.ColLargestSides}" Binding="{Binding Who}" Width="*" MinWidth="200" />
+      </DataGrid.Columns>
+    </DataGrid>
+  </Grid>
+</UserControl>

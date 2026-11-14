@@ -142,6 +142,12 @@
   <data name="NavEveMail" xml:space="preserve">
     <value>EVEメール</value>
   </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>通知</value>
   </data>
@@ -162,6 +168,9 @@
   </data>
   <data name="NavChatLog" xml:space="preserve">
     <value>チャットログ</value>
+  </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>クライアントレイアウト</value>
   </data>
   <data name="TabUniverse" xml:space="preserve">
     <value>宇宙</value>
@@ -686,5 +695,58 @@ PID：{2}
     <value>{0}
 {1}
 クリックで ESI の制限を表示します。</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>メッセージ</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>グループチャット</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>戦闘レポート</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>このデータベースのバージョンは{0}、このクライアントは{1}です。
+
+このクライアントはバックグラウンド処理を行わない設定になっており、スキーマを変更できるのは処理を行っているクライアントだけなので、データベースを{1}に上げられません。
+
+処理を行える{1}のクライアントを起動するか、この設定をオフにしてください：{2} から "neverRunBackgroundWork" を削除します。</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>サードパーティーの表示</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>EVE Console を構成するソフトウェアのライセンス</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>インテル</value>
   </data>
 </root>

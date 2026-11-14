@@ -261,7 +261,7 @@ public sealed class SpeechInputService : IDisposable
         internal static extern IntPtr GetHostApiInfo(int hostApi);
     }
 
-    private static string HostApiName(int hostApi)
+    internal static string HostApiName(int hostApi)
     {
         try
         {
@@ -332,6 +332,7 @@ public sealed class SpeechInputService : IDisposable
         lock (_streamLock)
         {
             if (_stream is not null) return true;
+            if (_paRefreshing) return false;
             if (!EnsurePortAudioInit()) return false;
             try
             {
@@ -369,6 +370,40 @@ public sealed class SpeechInputService : IDisposable
                 return false;
             }
         }
+    }
+
+    // ── A device arriving or leaving ──────────────────────────────────────────
+    //
+    // PortAudio is restarted to read the device list again (PortAudioHost), which closes the microphone under us: it is
+    // closed first, kept closed until the restart is done, and opened again on the new list, by name. An utterance in
+    // progress is lost; that is a headset being unplugged mid-sentence.
+
+    private volatile bool _paRefreshing;
+    private bool _refreshHooked;
+
+    private void HookRefresh()
+    {
+        if (_refreshHooked) return;
+        _refreshHooked = true;
+        PortAudioHost.Refreshing += () =>
+        {
+            _paRefreshing = true;
+            lock (_streamLock)
+            {
+                _state = Idle;
+                try { _stream?.Abort();   } catch { }
+                try { _stream?.Dispose(); } catch { }
+                _stream           = null;
+                _callbackDelegate = null;
+                while (_chunks.TryDequeue(out _)) { }
+            }
+        };
+        PortAudioHost.Refreshed += () =>
+        {
+            _usableDevices = null;
+            _paRefreshing  = false;
+            if (_provider != SpeechInputProvider.None) Task.Run(EnsureStreamOpen);
+        };
     }
 
     private void CloseStream()
@@ -560,17 +595,14 @@ public sealed class SpeechInputService : IDisposable
         lock (_paLock)
         {
             if (_paInitialized) return true;
-            try
+            if (!PortAudioHost.EnsureInitialized())
             {
-                PortAudio.Initialize();
-                _paInitialized = true;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Fail("PortAudio init", ex.Message);
+                Fail("PortAudio init", "PortAudio could not start.");
                 return false;
             }
+            HookRefresh();
+            _paInitialized = true;
+            return true;
         }
     }
 

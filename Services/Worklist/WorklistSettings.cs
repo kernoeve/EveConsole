@@ -171,6 +171,37 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetIncludeNonPersonalCorpsAsync(bool on) =>
         prefs.SetAsync(IncludeNonPersonalCorpsKey, on ? "1" : "0");
 
+    // ── Who holds the material ────────────────────────────────────────────────
+    //
+    // A character can build only with what is in its own hangars or in the hangars of the
+    // corporation it is in now. Keeping everything in one corporation is what lets every alt in it
+    // use everything; material left in a personal hangar or a ship's hold is out of reach of the
+    // rest, and an alt outside that corporation can reach none of it.
+
+    public const string DefaultCorpKey            = "worklist.transfers.default_corp_id";
+    public const string DefaultCorpFromCorpsKey   = "worklist.transfers.from_other_corps";
+
+    /// <summary>
+    /// The corporation that should hold the Worklist's items: the items of its orders and inventory
+    /// levels. One a character holds is given back to it by a Transfer task, at any station where
+    /// this corporation has a hangar, except what a character level keeps with that character.
+    /// 0 when none is set, and then nothing is transferred to a corporation.
+    /// </summary>
+    public long DefaultCorporationId => prefs.GetLong(DefaultCorpKey, 0) is var id && id > 0 ? id : 0;
+
+    public Task SetDefaultCorporationAsync(long corporationId) =>
+        prefs.SetAsync(DefaultCorpKey, Math.Max(0, corporationId).ToString(System.Globalization.CultureInfo.InvariantCulture));
+
+    /// <summary>
+    /// Whether another of the player's corporations gives its Worklist items to the default one
+    /// too, done by a member of that corporation. Off: only characters' own hangars and holds are
+    /// emptied into it, and another corporation keeps what it holds.
+    /// </summary>
+    public bool DefaultCorpFromOtherCorps => prefs.GetBool(DefaultCorpFromCorpsKey, false);
+
+    public Task SetDefaultCorpFromOtherCorpsAsync(bool on) =>
+        prefs.SetAsync(DefaultCorpFromCorpsKey, on ? "1" : "0");
+
     public async Task SetIndustryScopeAsync(string scope, long? id, string name)
     {
         await prefs.SetAsync(IndustryScopeKey, scope);
@@ -292,6 +323,18 @@ public class WorklistSettings(AppPreferencesService prefs)
 
     /// <summary>How far above its level a station must rise before the excess is swept away.</summary>
     public double SurplusBandPercent => Band(SurplusBandKey);
+
+    // The same two bands for character levels, kept apart: what a character keeps is handed over
+    // by a contract, not hauled, and a contract for a handful is no more worth making than a trip.
+    public const string CharacterRestockBandKey = "worklist.character_levels.restock_band_pct";
+    public const string CharacterSurplusBandKey = "worklist.character_levels.surplus_band_pct";
+
+    /// <summary>How far below its character level a character must fall before it is given more.</summary>
+    public double CharacterRestockBandPercent => Band(CharacterRestockBandKey);
+
+    /// <summary>How far above its character level a character must rise before the excess goes
+    /// back to the default corporation.</summary>
+    public double CharacterSurplusBandPercent => Band(CharacterSurplusBandKey);
 
     public Task SetBandAsync(string key, double percent) =>
         prefs.SetAsync(key, Math.Clamp(percent, 0, 100)
@@ -447,6 +490,74 @@ public class WorklistSettings(AppPreferencesService prefs)
     public Task SetLoopSharesAsync(IReadOnlyDictionary<string, long> shares) =>
         prefs.SetAsync(LoopSharesKey, string.Join(";", shares.OrderBy(kv => kv.Key, StringComparer.Ordinal)
                                                               .Select(kv => $"{kv.Key}={kv.Value}")));
+
+    // ── Structures ────────────────────────────────────────────────────────────
+    //
+    // Tasks from Corp Structures: fuel to bring, moon material to collect, a fit to put right and
+    // ammo or fighters to top up. Each kind has its own switch, as the standing buy conditions do —
+    // a corporation that fuels its structures through someone else still wants the fit tasks.
+
+    public const string StructureCorpsKey      = "worklist.structures.corps";
+    public const string StructureFuelDaysKey   = "worklist.structures.fuel.min_days";
+    public const string StructureFillDaysKey   = "worklist.structures.fuel.fill_days";
+    public const string StructurePickupByKey   = "worklist.structures.pickup.by";
+    public const string StructurePickupAtKey   = "worklist.structures.pickup.at";
+
+    /// <summary>Whether one kind of structure task is raised: fuel, pickup, ammo or fit. On by default.</summary>
+    public bool RaisesStructureTask(StructureTaskKind kind) =>
+        prefs.GetBool(StructureKindKey(kind), true);
+
+    public Task SetRaisesStructureTaskAsync(StructureTaskKind kind, bool on) =>
+        prefs.SetAsync(StructureKindKey(kind), on ? "1" : "0");
+
+    private static string StructureKindKey(StructureTaskKind kind) => kind switch
+    {
+        StructureTaskKind.Fuel   => "worklist.structures.fuel.enabled",
+        StructureTaskKind.Pickup => "worklist.structures.pickup.enabled",
+        StructureTaskKind.Ammo   => "worklist.structures.ammo.enabled",
+        _                        => "worklist.structures.fit.enabled",
+    };
+
+    /// <summary>
+    /// The corporations whose structures raise tasks; null for every one. Stored as "all" or as
+    /// ids — never as an empty list meaning all, so a list emptied by hand raises nothing.
+    /// </summary>
+    public IReadOnlySet<long>? StructureCorporations =>
+        prefs.Get(StructureCorpsKey) is not { Length: > 0 } raw || raw == "all"
+            ? null
+            : raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                 .Select(s => long.TryParse(s, out var id) ? id : 0).Where(id => id > 0).ToHashSet();
+
+    /// <summary>Null for every corporation.</summary>
+    public Task SetStructureCorporationsAsync(IEnumerable<long>? corporationIds) =>
+        prefs.SetAsync(StructureCorpsKey, corporationIds is null ? "all"
+            : string.Join(",", corporationIds.Where(id => id > 0).Distinct().OrderBy(id => id)));
+
+    /// <summary>A structure with less fuel than this many days left gets a fuel task. Seven by default.</summary>
+    public double StructureFuelMinDays => Number(StructureFuelDaysKey, 7);
+
+    /// <summary>What a fuel task brings the structure up to, in days. Thirty by default.</summary>
+    public double StructureFuelFillDays => Number(StructureFillDaysKey, 30);
+
+    /// <summary>What a moon material pickup is measured by. Percent full by default.</summary>
+    public StructurePickupMeasure StructurePickupBy =>
+        Enum.TryParse<StructurePickupMeasure>(prefs.Get(StructurePickupByKey), out var m) ? m : StructurePickupMeasure.PercentFull;
+
+    /// <summary>The amount, in <see cref="StructurePickupBy"/>'s unit, a bay must hold before it is
+    /// collected: ISK, m³ or percent. Fifty by default — half full.</summary>
+    public double StructurePickupAt => Number(StructurePickupAtKey, 50);
+
+    public Task SetStructureNumberAsync(string key, double value) =>
+        prefs.SetAsync(key, Math.Max(0, value).ToString("0.###", System.Globalization.CultureInfo.InvariantCulture));
+
+    public Task SetStructurePickupByAsync(StructurePickupMeasure by) =>
+        prefs.SetAsync(StructurePickupByKey, by.ToString());
+
+    private double Number(string key, double fallback) =>
+        prefs.Get(key) is { Length: > 0 } s
+        && double.TryParse(s, System.Globalization.NumberStyles.Float,
+                           System.Globalization.CultureInfo.InvariantCulture, out var v) && v >= 0
+            ? v : fallback;
 
     /// <summary>
     /// Seven days by default: a week is the span most industrialists already plan around, and it

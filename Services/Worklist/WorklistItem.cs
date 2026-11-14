@@ -36,7 +36,9 @@ public enum WorklistReadiness
 /// they are the same sort of errand — material you already own, in the wrong form rather than the
 /// wrong place.
 /// </summary>
-public enum WorklistKind { Buy, Haul, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi }
+/// <para>Transfer is beside Haul: the item is at the right station already, held by the wrong owner,
+/// a character or corporation that the one who needs it can't take it from.</para>
+public enum WorklistKind { Buy, Haul, Transfer, Refine, Decompress, Job, CorpProject, AssetSafety, SkillQueue, Pi, Structure }
 
 /// <summary>What stops a task now, which is what the summary at the top of the list divides by.</summary>
 public enum WorklistStop { None, NoSlot, NotDue, Materials, PrintsInUse, NoPrintHere, Other }
@@ -575,6 +577,14 @@ public sealed record WorklistItem
     public string? TypeImage { get; init; }
 
     /// <summary>
+    /// The type the row's picture shows when it is not <see cref="TypeId"/>, drawn as
+    /// <see cref="TypeImage"/>. An invention row is about the item that is short — a hull, say —
+    /// but the job makes that item's blueprint copy, and the copy is what it shows. Zero for the
+    /// row's own type.
+    /// </summary>
+    public int PictureTypeId { get; init; }
+
+    /// <summary>
     /// What the row's item is when it is a blueprint: a copy or an original, which decides its
     /// picture and its name's suffix (see <see cref="PrintLabel"/>). None for anything else, and
     /// for a reaction formula, always an original.
@@ -591,6 +601,7 @@ public static class WorklistIcons
     /// <summary>A station or structure type's picture: the render, not the generic station glyph.</summary>
     public static string Render(int typeId)          => $"https://images.evetech.net/types/{typeId}/render?size=32";
     public static string Portrait(long characterId)  => $"https://images.evetech.net/characters/{characterId}/portrait?size=32";
+    public static string CorporationLogo(long corporationId) => $"https://images.evetech.net/corporations/{corporationId}/logo?size=32";
 }
 
 /// <summary>

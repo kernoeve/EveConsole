@@ -25,6 +25,24 @@ public partial class CharacterView : UserControl
         DataContextChanged += OnDataContextChanged;
     }
 
+    /// <summary>
+    /// False for one section on a panel: no period, layout or Customize, and the section filling
+    /// the room. It shows what the Overview's own period says.
+    /// </summary>
+    public bool ShowsToolbar
+    {
+        get => Toolbar.IsVisible;
+        set
+        {
+            Toolbar.IsVisible = value;
+            LayoutHost.Margin = value ? new Thickness(8) : new Thickness(0);
+            _sectionMargin = value ? 6 : 0;
+            RebuildLayout();
+        }
+    }
+
+    private double _sectionMargin = 6;
+
     private void OnDataContextChanged(object? sender, EventArgs e)
     {
         _vmSub?.Dispose();
@@ -115,7 +133,7 @@ public partial class CharacterView : UserControl
             Grid.SetColumn(b, col);
             Grid.SetRowSpan(b, rowSpan);
             Grid.SetColumnSpan(b, colSpan);
-            b.Margin = new Thickness(6);
+            b.Margin = new Thickness(_sectionMargin);
             b.SizeChanged -= OnSectionSizeChanged;
             b.SizeChanged += OnSectionSizeChanged;
             LayoutHost.Children.Add(b);
@@ -195,13 +213,14 @@ public partial class CharacterView : UserControl
     private async void OnCustomizeClick(object? sender, RoutedEventArgs e)
     {
         if (_vm is null) return;
+        // Starts on the layout this Overview is showing; Apply saves every layout and shows the one being edited.
         var dlg = new OverviewCustomizeWindow
         {
-            DataContext = new OverviewCustomizeViewModel(_vm.Layout),
+            Session = new OverviewLayoutsEditVm(_vm.Layouts, _vm.LayoutKey, _vm.Layout),
         };
-        var result = await dlg.ShowDialog<OverviewLayout?>(GetWindow());
+        var result = await dlg.ShowDialog<EveConsole.Services.OverviewLayoutEdits?>(GetWindow());
         if (result is not null)
-            await _vm.ApplyLayoutAsync(result);
+            _vm.ApplyLayoutEdits(result);
     }
 
     /// <summary>

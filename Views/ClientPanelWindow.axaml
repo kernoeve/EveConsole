@@ -1,0 +1,20 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:views="clr-namespace:EveConsole.Views"
+        xmlns:services="clr-namespace:EveConsole.Services"
+        x:Class="EveConsole.Views.ClientPanelWindow"
+        services:UiScaleService.IsEnabled="False"
+        Title="EVE Console"
+        SystemDecorations="None"
+        ShowInTaskbar="False"
+        CanResize="False"
+        ShowActivated="False"
+        WindowStartupLocation="Manual">
+  <Panel>
+    <views:ClientPanelSurface x:Name="Surface" />
+    <!-- An empty panel says what it is, so a layout can be checked before it holds anything. -->
+    <StackPanel x:Name="Label" HorizontalAlignment="Center" VerticalAlignment="Center" />
+    <!-- What's inside, at exact positions worked out by the layout, parents before children. -->
+    <Canvas x:Name="Parts" />
+  </Panel>
+</Window>

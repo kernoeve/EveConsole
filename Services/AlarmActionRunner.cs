@@ -106,6 +106,12 @@ public sealed class AlarmActionRunner
         string?                      agentPrompt  = null,
         CancellationToken            ct           = default)
     {
+        // ⚠️ Every action the alarm defines runs for every match it fired on: none is kept for some news
+        // and not other. Different behaviour for different news is more alarms, each with its own range
+        // (user, 2026-11-13).
+        // The Sound action's share of its volume: the loudest match's, when the check says how near it is.
+        var loudness = matches.Count == 0 ? 1 : Math.Clamp(matches.Max(m => m.Loudness), 0, 1);
+
         // A staged firing is one situation; its summary is that, not the whole evaluation's.
         var signal = new AlarmSignal
         {
@@ -149,7 +155,9 @@ public sealed class AlarmActionRunner
 
                     case AlarmActionKind.Sound:
                         signal.SoundKey    = Str(cfg, "sound")  ?? AlarmSoundService.DefaultKey;
-                        signal.SoundVolume = Int(cfg, "volume") ?? 100;
+                        // Quieter for what is further out, when the check says how near it is: the
+                        // action's volume times the loudest match's share.
+                        signal.SoundVolume = (int)Math.Round((Int(cfg, "volume") ?? 100) * loudness);
                         // Only a staged firing can be acknowledged, so only one can loop.
                         signal.SoundLoop   = stage is not null && Bool(cfg, "loop");
                         somethingElse      = true;
@@ -191,7 +199,7 @@ public sealed class AlarmActionRunner
                         else if (announcement is not null && string.IsNullOrWhiteSpace(Str(cfg, "instruction")))
                             signal.SpeakText = announcement;
                         else
-                            signal.AgentText = ComposeAgentPrompt(alarm, evt, matches, cfg, announcement);
+                            signal.AgentText = ComposeAgentPrompt(alarm, evt.Summary, matches, cfg, announcement);
                         break;
                 }
             }
@@ -589,7 +597,7 @@ public sealed class AlarmActionRunner
     }
 
     private string ComposeAgentPrompt(
-        Alarm alarm, AlarmEvent evt, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, string? announcement = null)
+        Alarm alarm, string summary, IReadOnlyList<AlarmMatch> matches, JsonElement cfg, string? announcement = null)
     {
         var extra = Str(cfg, "instruction");
 
@@ -616,8 +624,8 @@ public sealed class AlarmActionRunner
              ALARM FIRED — this is the prompt, not a request to look something up.
 
              Alarm: {alarm.Name}
-             Summary: {evt.Summary}
-             Matches ({evt.MatchCount}):
+             Summary: {summary}
+             Matches ({matches.Count}):
              {detail}
              {(announcement is null
                  ? "Tell the capsuleer what happened, in one or two sentences, in your own words, using\n" +

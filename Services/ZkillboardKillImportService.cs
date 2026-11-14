@@ -218,6 +218,26 @@ public class ZkillboardKillImportService
         return isNew;
     }
 
+    /// <summary>
+    /// Stages several killmails, as <see cref="ImportAsync(AppDbContext, EsiKillMailFull, string, IReadOnlySet{long}, IReadOnlySet{long}, CancellationToken, KnownIds?)"/>
+    /// does one, and returns the ones whose detail row was newly added: what the caller hands on
+    /// (to where each pilot was last seen) once its save has gone through.
+    /// </summary>
+    public async Task<IReadOnlyList<EsiKillMailFull>> ImportAsync(
+        AppDbContext db,
+        IEnumerable<(EsiKillMailFull Kill, string Hash)> kills,
+        IReadOnlySet<long> trackedCharacterIds,
+        IReadOnlySet<long> trackedCorpIds,
+        CancellationToken ct = default,
+        KnownIds? known = null)
+    {
+        var added = new List<EsiKillMailFull>();
+        foreach (var (kill, hash) in kills)
+            if (await ImportAsync(db, kill, hash, trackedCharacterIds, trackedCorpIds, ct, known))
+                added.Add(kill);
+        return added;
+    }
+
     /// <summary>Which tracked characters/corps this killmail actually involves (victim
     /// or any attacker) — drives which EsiKillMailRefs rows get created so the existing
     /// per-corp Kills viewer picks these up, the same way an ESI-sourced kill would.</summary>

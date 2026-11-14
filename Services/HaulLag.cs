@@ -239,12 +239,7 @@ public static class HaulLag
     /// <summary>The ship's cargo hold, as the assets list flags it.</summary>
     private const string CargoFlag = "Cargo";
 
-    /// <summary>Each owner's last asset poll.</summary>
-    internal static async Task<Dictionary<long, DateTimeOffset>> AssetClocksAsync(AppDbContext db, CancellationToken ct) =>
-        (await db.EsiCallRecords.AsNoTracking()
-            .Where(r => r.Endpoint == "char.assets" || r.Endpoint == "corp.assets")
-            .Select(r => new { r.OwnerId, r.LastCalledAt })
-            .ToListAsync(ct))
-        .GroupBy(r => r.OwnerId)
-        .ToDictionary(g => g.Key, g => g.Max(r => r.LastCalledAt));
+    /// <summary>When each owner's asset list was current — see AssetClock.</summary>
+    internal static Task<Dictionary<long, DateTimeOffset>> AssetClocksAsync(AppDbContext db, CancellationToken ct) =>
+        AssetClock.TimesAsync(db, "assets", ct);
 }

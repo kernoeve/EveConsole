@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="WindowTitle" xml:space="preserve">
+    <value>メッセージ</value>
+    <comment>The window, and the main menu.</comment>
+  </data>
+  <data name="AllConversations" xml:space="preserve">
+    <value>すべての会話</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SearchHint" xml:space="preserve">
+    <value>名前またはサーバーで検索</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NoConversations" xml:space="preserve">
+    <value>保存された会話はまだありません。「新しい会話」を押すか、ルームや Mumble サーバーにいる人を右クリックしてください。</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NothingOpen" xml:space="preserve">
+    <value>会話を選ぶか、「新しい会話」を押してオンラインの人にメッセージを送ってください。</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="ToggleList" xml:space="preserve">
+    <value>会話</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CloseTab" xml:space="preserve">
+    <value>このタブを閉じます。会話は保存されたままです。</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SoundOption" xml:space="preserve">
+    <value>新しいダイレクトメッセージで音を鳴らす</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="SendMessage" xml:space="preserve">
+    <value>メッセージを送信</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="CannotSendNotConnected" xml:space="preserve">
+    <value>{0} に接続していないため、今は送信できません。</value>
+    <comment>{0} = a server's name.</comment>
+  </data>
+  <data name="CannotSendOffline" xml:space="preserve">
+    <value>{0} はオフラインです。メッセージは接続中の相手にのみ配信できます。</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="CannotSendLeftRoom" xml:space="preserve">
+    <value>{0} はルームを退出したため、この非公開の会話は続けられません。</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="NoteOfflineHeld" xml:space="preserve">
+    <value>{0} はオフラインです。サーバーは相手の次回接続までメッセージを保持するはずです。</value>
+    <comment>{0} = a person's name.</comment>
+  </data>
+  <data name="PresenceOnline" xml:space="preserve">
+    <value>オンライン</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceAway" xml:space="preserve">
+    <value>離席中</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="PresenceOffline" xml:space="preserve">
+    <value>オフライン</value>
+    <comment>Messages window.</comment>
+  </data>
+  <data name="NewConversation" xml:space="preserve">
+    <value>新しい会話</value>
+  </data>
+  <data name="FindHint" xml:space="preserve">
+    <value>オンラインの人の名前</value>
+  </data>
+  <data name="FindNobodyMatches" xml:space="preserve">
+    <value>一致するオンラインの人はいません。</value>
+  </data>
+  <data name="FindNobodyOnline" xml:space="preserve">
+    <value>接続中のサーバーに他のオンラインの人はいません。</value>
+  </data>
+  <data name="FindMore" xml:space="preserve">
+    <value>他 {0} 人。名前をさらに入力して絞り込んでください。</value>
+  </data>
+</root>

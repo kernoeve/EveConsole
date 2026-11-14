@@ -2002,4 +2002,220 @@
   <data name="DiscordPostFailed" xml:space="preserve">
     <value>「{0}」のDiscordへの投稿に失敗しました：{1}</value>
   </data>
+  <data name="ListingTrackNeed" xml:space="preserve">
+    <value>必要分のみ</value>
+  </data>
+  <data name="TipListingTrackNeed" xml:space="preserve">
+    <value>買取リスト：各アイテムについて、ワークリストがまだ必要とする分だけを受け付けます（必要数から、所持数・製造中の数・このストアですでに提示された数を差し引いた分）。不要になったアイテムはオファーを受け付けず、必要数を超えるオファーも受け付けません。</value>
+  </data>
+  <data name="ShowNeed" xml:space="preserve">
+    <value>あと何個必要かを表示</value>
+  </data>
+  <data name="TipShowNeed" xml:space="preserve">
+    <value>必要分のみを受け付ける買取リストで、各アイテムがあと何個必要か、どれだけ確保済みかを売り手に表示します。オフにしても上限は適用され、数値だけが非公開になります。</value>
+  </data>
+  <data name="WebSyncOverNeedOther" xml:space="preserve">
+    <value>{2}を{1:N0}個提示されましたが、まだ必要なのは{0:N0}個だけです。</value>
+  </data>
+  <data name="ColNeeded" xml:space="preserve">
+    <value>残り</value>
+  </data>
+  <data name="NeedBreakdown" xml:space="preserve">
+    <value>必要 {0:N0} ・ 所持 {1:N0} ・ 製造中 {2:N0} ・ オファー中 {3:N0} → 残り必要 {4:N0}</value>
+  </data>
+  <data name="ConfirmDeletePosting" xml:space="preserve">
+    <value>掲載「{0}」を、すべてのセクション・アイテム・場所ごと削除しますか？これを掲載しているストアには表示されなくなります。元に戻せません。</value>
+  </data>
+  <data name="ConfirmDeleteSectionOther" xml:space="preserve">
+    <value>セクション「{1}」と、その中の{0:N0}個のアイテムを削除しますか？元に戻せません。</value>
+  </data>
+  <data name="ConfirmDeleteItem" xml:space="preserve">
+    <value>{0}をこの掲載から削除しますか？</value>
+  </data>
+  <data name="ConfirmDeleteItemsOther" xml:space="preserve">
+    <value>選択した{0:N0}個のアイテムを掲載から削除しますか？</value>
+  </data>
+  <data name="ConfirmRemovePlace" xml:space="preserve">
+    <value>{0}にあるものの掲載をやめますか？</value>
+  </data>
+  <data name="MenuDeleteItemsOther" xml:space="preserve">
+    <value>{0:N0}個のアイテムを削除</value>
+  </data>
+  <data name="TabPeriods" xml:space="preserve">
+    <value>期間別</value>
+  </data>
+  <data name="ItemGroups" xml:space="preserve">
+    <value>アイテムグループ</value>
+  </data>
+  <data name="TipItemGroups" xml:space="preserve">
+    <value>これらのマーケットグループに属するアイテムの販売のみ（全タブ共通）。契約は最も価値の高いアイテムで分類されます。</value>
+  </data>
+  <data name="TipRemoveItemGroup" xml:space="preserve">
+    <value>このグループを外す</value>
+  </data>
+  <data name="AddItemGroup" xml:space="preserve">
+    <value>＋ グループ</value>
+  </data>
+  <data name="PickItemGroupTitle" xml:space="preserve">
+    <value>販売をマーケットグループで絞り込む</value>
+  </data>
+  <data name="PickItemGroupOk" xml:space="preserve">
+    <value>グループを追加</value>
+  </data>
+  <data name="PeriodRowsBy" xml:space="preserve">
+    <value>行</value>
+  </data>
+  <data name="SplitBy" xml:space="preserve">
+    <value>内訳</value>
+  </data>
+  <data name="ShareBy" xml:space="preserve">
+    <value>営利の割合の基準</value>
+  </data>
+  <data name="CountBy" xml:space="preserve">
+    <value>集計単位</value>
+  </data>
+  <data name="CopyAsText" xml:space="preserve">
+    <value>テキストでコピー</value>
+  </data>
+  <data name="TipCopyAsText" xml:space="preserve">
+    <value>両方の表をコードブロック内のプレーンテキストとしてコピーし、チャットに貼り付けられるようにします。</value>
+  </data>
+  <data name="ExportCsv" xml:space="preserve">
+    <value>CSVをエクスポート</value>
+  </data>
+  <data name="ExportSummaryTitle" xml:space="preserve">
+    <value>販売サマリーをエクスポート</value>
+  </data>
+  <data name="KpiForProfit" xml:space="preserve">
+    <value>営利</value>
+  </data>
+  <data name="KpiNotForProfit" xml:space="preserve">
+    <value>非営利</value>
+  </data>
+  <data name="KpiShare" xml:space="preserve">
+    <value>営利の割合</value>
+  </data>
+  <data name="KpiSoldFor" xml:space="preserve">
+    <value>販売額 {0}</value>
+  </data>
+  <data name="KpiForProfitSub" xml:space="preserve">
+    <value>利益 {0} · {1}</value>
+  </data>
+  <data name="KpiShareSub" xml:space="preserve">
+    <value>基準：{0}</value>
+  </data>
+  <data name="GroupAllSales" xml:space="preserve">
+    <value>すべての販売</value>
+  </data>
+  <data name="GroupForProfit" xml:space="preserve">
+    <value>営利</value>
+  </data>
+  <data name="GroupNotForProfit" xml:space="preserve">
+    <value>非営利</value>
+  </data>
+  <data name="ColPeriod" xml:space="preserve">
+    <value>期間</value>
+  </data>
+  <data name="ColSaleIsk" xml:space="preserve">
+    <value>販売ISK</value>
+  </data>
+  <data name="ColCost" xml:space="preserve">
+    <value>コスト</value>
+  </data>
+  <data name="ColFpShare" xml:space="preserve">
+    <value>営利の割合</value>
+  </data>
+  <data name="ColForProfit" xml:space="preserve">
+    <value>営利</value>
+  </data>
+  <data name="ColNotForProfit" xml:space="preserve">
+    <value>非営利</value>
+  </data>
+  <data name="Total" xml:space="preserve">
+    <value>合計</value>
+  </data>
+  <data name="UnitsSold" xml:space="preserve">
+    <value>販売数</value>
+  </data>
+  <data name="UnitsNote" xml:space="preserve">
+    <value>各セル：数量、続けて（営利·非営利）。アイテムグループ内のアイテムのみ数えます。</value>
+  </data>
+  <data name="PeriodsNote" xml:space="preserve">
+    <value>ここでは「非営利を表示」の設定に関係なく、非営利の販売も常に数えます。非営利マークが各販売をどちら側に入れるかを決めます。タグは単なるテキストです。見つかったタグごとに1行になり、タグが2つある販売は両方に表示されますが、期間と合計では1回だけ数えます。コストは上で選んだ利益基準で、各販売日の時点の値です。利益%はそのコストに対する利益です。</value>
+  </data>
+  <data name="SplitNone" xml:space="preserve">
+    <value>なし</value>
+  </data>
+  <data name="SplitTag" xml:space="preserve">
+    <value>タグ</value>
+  </data>
+  <data name="SplitMarketGroup" xml:space="preserve">
+    <value>マーケットグループ</value>
+  </data>
+  <data name="SplitItem" xml:space="preserve">
+    <value>アイテム</value>
+  </data>
+  <data name="SplitBuyer" xml:space="preserve">
+    <value>購入者</value>
+  </data>
+  <data name="SplitOwner" xml:space="preserve">
+    <value>所有者</value>
+  </data>
+  <data name="ShareOnCost" xml:space="preserve">
+    <value>コスト</value>
+  </data>
+  <data name="ShareOnSaleIsk" xml:space="preserve">
+    <value>販売ISK</value>
+  </data>
+  <data name="NoTag" xml:space="preserve">
+    <value>タグなし</value>
+  </data>
+  <data name="PeriodToDate" xml:space="preserve">
+    <value>本日まで</value>
+  </data>
+  <data name="CsvSplit" xml:space="preserve">
+    <value>内訳</value>
+  </data>
+  <data name="CsvForProfitIsk" xml:space="preserve">
+    <value>営利の販売ISK</value>
+  </data>
+  <data name="CsvForProfitCost" xml:space="preserve">
+    <value>営利のコスト</value>
+  </data>
+  <data name="CsvNotForProfitIsk" xml:space="preserve">
+    <value>非営利の販売ISK</value>
+  </data>
+  <data name="CsvNotForProfitCost" xml:space="preserve">
+    <value>非営利のコスト</value>
+  </data>
+  <data name="CsvNoCost" xml:space="preserve">
+    <value>コストなしの販売</value>
+  </data>
+  <data name="CsvCountBy" xml:space="preserve">
+    <value>集計単位</value>
+  </data>
+  <data name="StatusSummaryCopied" xml:space="preserve">
+    <value>サマリーをクリップボードにコピーしました。</value>
+  </data>
+  <data name="StatusSummaryExported" xml:space="preserve">
+    <value>サマリーを {0} にエクスポートしました。</value>
+  </data>
+  <data name="TextSummaryTitle" xml:space="preserve">
+    <value>販売サマリー · {0}～{1}</value>
+  </data>
+  <data name="TextSummarySettings" xml:space="preserve">
+    <value>行：{0} · 内訳：{1} · 営利の割合の基準：{2}</value>
+  </data>
+  <data name="TextUnitsTitle" xml:space="preserve">
+    <value>{0}別の販売数（営利·非営利）</value>
+  </data>
+  <data name="KpiUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="ShareOnUnits" xml:space="preserve">
+    <value>数量</value>
+  </data>
+  <data name="TipShareBy" xml:space="preserve">
+    <value>営利の割合を何に対して計算するか：コスト、販売ISK、または販売数。</value>
+  </data>
 </root>

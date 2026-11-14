@@ -1,3 +1,4 @@
+using System.Globalization;
 using EveConsole.Data;
 using Microsoft.EntityFrameworkCore;
 
@@ -78,6 +79,10 @@ public class DataRetentionService
         GameLog      = new RetentionRule(prefs, "retention.gamelog",      defaultDays: 365, minimumDays: 30);
         ChatMessages = new RetentionRule(prefs, "retention.chat",         defaultDays: 90,  minimumDays: 30);
 
+        // Reports, the pilots named in them and where each pilot was last seen. A week is the floor:
+        // the Pilots list looks back that far.
+        Intel        = new RetentionRule(prefs, "retention.intel",        defaultDays: 90,  minimumDays: 7);
+
         // Killmails in two halves, because they are not worth the same. Your own characters' and
         // corporations' kills and losses are history you look back on; everyone else's — the
         // zKillboard feed, fights you only watched — are the bulk of the space and the part worth
@@ -104,6 +109,13 @@ public class DataRetentionService
         // Enabled only when the capsuleer has never expressed a view. Untick it once and that
         // choice stands — this must not switch itself back on at every start.
         if (prefs.Get("retention.agenttelemetry.enabled") is null) AgentTelemetry.Enabled = true;
+
+        // Jabber, Mumble and IRC history, direct and group apart. ⚠️ On by default, as the one Jabber setting these
+        // replace was (30 days), so an upgrade keeps exactly what it kept: see CarryOverChatRule.
+        DirectMessages = new RetentionRule(prefs, DirectMessagesKey, defaultDays: DefaultChatDays, minimumDays: 1);
+        GroupChat      = new RetentionRule(prefs, GroupChatKey,      defaultDays: DefaultChatDays, minimumDays: 1);
+        CarryOverChatRule(prefs, DirectMessages, DirectMessagesKey);
+        CarryOverChatRule(prefs, GroupChat,      GroupChatKey);
     }
 
     public RetentionRule ErrorLog       { get; }
@@ -112,7 +124,83 @@ public class DataRetentionService
     public RetentionRule PriceHistory   { get; }
     public RetentionRule GameLog        { get; }
     public RetentionRule ChatMessages   { get; }
+    public RetentionRule Intel          { get; }
     public RetentionRule AgentTelemetry { get; }
+    public RetentionRule DirectMessages { get; }
+    public RetentionRule GroupChat      { get; }
+
+    // ── Direct messages and group chat (Jabber, Mumble, IRC) ──────────────────
+
+    private const string DirectMessagesKey = "retention.directmessages";
+    private const string GroupChatKey      = "retention.groupchat";
+    private const int    DefaultChatDays   = 30;
+
+    /// <summary>The setting these two replaced: Settings → Jabber's days of history, which every chat service used.</summary>
+    private const string OldChatDaysKey = "jabber.history_days";
+
+    /// <summary>
+    /// Starts each rule from what the old Jabber setting said, the first time: its days, and zero (keep everything)
+    /// as the rule off. With nothing said at all, on at 30 days, which is what the old setting did by default.
+    /// </summary>
+    private static void CarryOverChatRule(AppPreferencesService prefs, RetentionRule rule, string key)
+    {
+        if (prefs.Get($"{key}.enabled") is not null) return;
+        var days = int.TryParse(prefs.Get(OldChatDaysKey), out var d) ? d : DefaultChatDays;
+        rule.Days = days > 0 ? days : DefaultChatDays;
+        rule.Enabled = days > 0;
+    }
+
+    /// <summary>
+    /// How many days of chat are kept, read straight from the database: zero keeps everything. For whatever must not
+    /// fetch more than would be kept, such as a room's catch-up after a long absence. Read the same way the rules are,
+    /// carry-over included, so it agrees with them before the rules have ever been written.
+    /// </summary>
+    public static async Task<int> ChatKeepDaysAsync(AppDbContext db, bool group, CancellationToken ct = default)
+    {
+        var key = group ? GroupChatKey : DirectMessagesKey;
+        var wanted = new[] { $"{key}.enabled", $"{key}.days", OldChatDaysKey };
+        var saved = await db.AppPreferences.AsNoTracking().Where(p => wanted.Contains(p.Key)).ToDictionaryAsync(p => p.Key, p => p.Value, ct);
+
+        if (saved.TryGetValue($"{key}.enabled", out var on))
+        {
+            if (!(on == "1" || on.Equals("true", StringComparison.OrdinalIgnoreCase))) return 0;
+            return Math.Max(1, int.TryParse(saved.GetValueOrDefault($"{key}.days"), out var days) ? days : DefaultChatDays);
+        }
+        return int.TryParse(saved.GetValueOrDefault(OldChatDaysKey), out var old) ? Math.Max(0, old) : DefaultChatDays;
+    }
+
+    public Task<int> PurgeDirectMessagesAsync(int days, CancellationToken ct = default) =>
+        PurgeChatAsync(_dbFactory, group: false, Math.Max(DirectMessages.MinimumDays, days), ct);
+
+    public Task<int> PurgeGroupChatAsync(int days, CancellationToken ct = default) =>
+        PurgeChatAsync(_dbFactory, group: true, Math.Max(GroupChat.MinimumDays, days), ct);
+
+    /// <summary>
+    /// Removes saved Jabber, Mumble and IRC messages older than the window: direct ones, or those of rooms and
+    /// channels. Reactions to messages no longer kept go with them.
+    ///
+    /// <para>⚠️ Never an unread one, however old: age is no reason to lose what was not seen.</para>
+    ///
+    /// <para>Mumble keeps only direct messages: a channel's chat is never saved, so the group rule has nothing of it.
+    /// Every one of these tables dates its rows as UTC text, "yyyy-MM-ddTHH:mm:ssZ" or with milliseconds, which sorts
+    /// against the cutoff below to within the second.</para>
+    /// </summary>
+    public static async Task<int> PurgeChatAsync(IDbContextFactory<AppDbContext> dbFactory, bool group, int days, CancellationToken ct = default)
+    {
+        var cutoff = IsoCutoff(Math.Max(1, days));
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        db.Database.SetCommandTimeout(0);
+
+        var removed = await db.JabberMessages.Where(m => m.IsRoom == group && m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+        removed += await db.IrcMessages.Where(m => m.IsChannel == group && m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+        if (!group)
+            removed += await db.MumbleDirectMessages.Where(m => m.IsRead && string.Compare(m.SentAt, cutoff) < 0).ExecuteDeleteAsync(ct);
+
+        await Jabber.JabberService.DeleteOrphanReactionsAsync(db, ct);
+        await db.IrcReactions.Where(r => !db.IrcMessages.Any(m => m.ServerId == r.ServerId && m.Conversation == r.Conversation && m.MessageId == r.Target))
+                .ExecuteDeleteAsync(ct);
+        return removed;
+    }
 
     // ── Agent telemetry ───────────────────────────────────────────────────────
 
@@ -414,6 +502,37 @@ public class DataRetentionService
         return await db.Database.ExecuteSqlInterpolatedAsync(
             $"""DELETE FROM "ChatMessages" WHERE "OccurredAt" < {IsoCutoff(days)}""", ct);
     }
+
+    // ── Intel history ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Removes intel reports older than the cutoff with the pilots named in them, and every
+    /// last-seen row whose sighting is that old. Returns the rows removed, all three tables together.
+    ///
+    /// <para>The pilots first, by their report's time, so none is left pointing at a report that has
+    /// gone. Every time column here is ISO text, compared as text on both engines.</para>
+    ///
+    /// <para>Off by default, like every rule here. Even left off the last-seen table stays bounded:
+    /// it holds one row per pilot ever seen, not one per sighting.</para>
+    /// </summary>
+    public async Task<int> PurgeIntelAsync(int days, CancellationToken ct = default)
+    {
+        days = Math.Max(Intel.MinimumDays, days);
+        var cutoff = IsoCutoff(days);
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        db.Database.SetCommandTimeout(0);
+
+        var removed = await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM "IntelReportCharacters"
+            WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" WHERE "ReportedAt" < {cutoff})
+            """, ct);
+        removed += await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM "IntelReports" WHERE "ReportedAt" < {cutoff}""", ct);
+        removed += await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM "IntelLastSeen" WHERE "SeenAt" < {cutoff}""", ct);
+        return removed;
+    }
+
     // ── Scheduled sweep ───────────────────────────────────────────────────────
 
     /// <summary>How much data is allowed to accumulate before a rule runs again.</summary>
@@ -485,7 +604,10 @@ public class DataRetentionService
         await RunIfDue(PriceHistory,   PurgePriceHistoryAsync);
         await RunIfDue(GameLog,      PurgeGameLogAsync);
         await RunIfDue(ChatMessages, PurgeChatMessagesAsync);
+        await RunIfDue(Intel,        PurgeIntelAsync);
         await RunIfDue(AgentTelemetry, PurgeAgentTelemetryAsync);
+        await RunIfDue(DirectMessages, PurgeDirectMessagesAsync);
+        await RunIfDue(GroupChat,      PurgeGroupChatAsync);
 
         async Task RunIfDue(RetentionRule rule, Func<int, CancellationToken, Task<int>> purge)
         {
@@ -528,5 +650,5 @@ public class DataRetentionService
     /// compares greater than "2025-08-01T04:07:02Z", so the purge would silently delete nothing.
     /// </summary>
     private static string IsoCutoff(int days)
-        => DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+        => DateTimeOffset.UtcNow.AddDays(-days).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 }

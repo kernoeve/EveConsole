@@ -320,8 +320,11 @@ public record OrderStatusFilter(string Label, string? Value) { public override s
 
 // Order Tracker — user-entered outgoing orders (items promised to buyers), with build cost and
 // profit vs the agreed purchase price. Fully user-driven; nothing is pulled from ESI.
-public class OrderTrackerViewModel : ReactiveObject
+public class OrderTrackerViewModel : ReactiveObject, IDisposable
 {
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
+
     private readonly IDbContextFactory<AppDbContext> _dbFactory;
     private readonly EntityBrowserService            _entities;
     private readonly AppErrorLogger                  _errorLogger;
@@ -414,11 +417,14 @@ public class OrderTrackerViewModel : ReactiveObject
         //
         // A minute is the backstop; a fulfilment pass that changed anything reloads the grid at
         // once, below, and an order added or edited here reloads it itself.
-        Observable.Interval(TimeSpan.FromSeconds(60))
+        _life.Keep(Observable.Interval(TimeSpan.FromSeconds(60))
             .ObserveOnUi("OrderTracker.AutoRefresh")
-            .SubscribeAsyncSafe(_ => LoadAsync(), errorLogger, "OrderTracker.AutoRefresh");
+            .SubscribeAsyncSafe(_ => LoadAsync(), errorLogger, "OrderTracker.AutoRefresh"));
         if (fulfilment is not null)
-            fulfilment.PassChanged += () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync());
+        {
+            Action onPass = () => Avalonia.Threading.Dispatcher.UIThread.Post(() => _ = LoadAsync());
+            _life.Follow(() => fulfilment.PassChanged += onPass, () => fulfilment.PassChanged -= onPass);
+        }
 
         _ = LoadAsync();
     }

@@ -1,0 +1,549 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <resheader name="resmimetype"><value>text/microsoft-resx</value></resheader>
+  <resheader name="version"><value>2.0</value></resheader>
+  <resheader name="reader"><value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <resheader name="writer"><value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value></resheader>
+  <data name="TabMonitors" xml:space="preserve">
+    <value>显示器</value>
+  </data>
+  <data name="TabLayouts" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="LabelDesktop" xml:space="preserve">
+    <value>这台电脑</value>
+  </data>
+  <data name="TogglePlacement" xml:space="preserve">
+    <value>在这台电脑上摆放客户端并显示面板</value>
+  </data>
+  <data name="TipPlacement" xml:space="preserve">
+    <value>关闭时，你的游戏客户端不受影响。EVE Console 只会设置客户端的大小和位置，并在你点击其所在显示器上的面板或另一个客户端时将其置前。它从不向客户端发送输入，也不给予其焦点。</value>
+  </data>
+  <data name="Apply" xml:space="preserve">
+    <value>应用</value>
+  </data>
+  <data name="TipApply" xml:space="preserve">
+    <value>按此处的设置移动客户端和面板，仅限这台电脑。被手动移动过的客户端也会被移回原位。</value>
+  </data>
+  <data name="PendingNone" xml:space="preserve">
+    <value>全部已应用。</value>
+  </data>
+  <data name="PendingSome" xml:space="preserve">
+    <value>以下显示器有待应用的更改：{0}。按下“应用”之前不会移动任何东西。</value>
+  </data>
+  <data name="StatusApplied" xml:space="preserve">
+    <value>已应用于显示器：{0}。</value>
+  </data>
+  <data name="StatusLayoutInUse" xml:space="preserve">
+    <value>有显示器正在使用此布局，因此无法删除。</value>
+  </data>
+  <data name="StatusFailed" xml:space="preserve">
+    <value>操作失败：{0}</value>
+  </data>
+  <data name="MonitorLabel" xml:space="preserve">
+    <value>显示器 {0}：{1} × {2}</value>
+  </data>
+  <data name="MonitorPrimary" xml:space="preserve">
+    <value>{0}（主显示器）</value>
+  </data>
+  <data name="NoLayout" xml:space="preserve">
+    <value>无：不调整此显示器</value>
+  </data>
+  <data name="LabelLayout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="LabelPanelStart" xml:space="preserve">
+    <value>面板启动时机</value>
+  </data>
+  <data name="PanelStartWithConsole" xml:space="preserve">
+    <value>随 EVE Console 启动</value>
+  </data>
+  <data name="PanelStartWithEve" xml:space="preserve">
+    <value>EVE 在此显示器上启动时</value>
+  </data>
+  <data name="FullMonitor" xml:space="preserve">
+    <value>使用整个显示器，包括任务栏所在的区域</value>
+  </data>
+  <data name="LabelProfile" xml:space="preserve">
+    <value>方案</value>
+  </data>
+  <data name="LabelProfileName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="ProfileFirstName" xml:space="preserve">
+    <value>默认</value>
+  </data>
+  <data name="ProfileNewName" xml:space="preserve">
+    <value>新方案</value>
+  </data>
+  <data name="ProfileInUse" xml:space="preserve">
+    <value>使用中：{0}</value>
+  </data>
+  <data name="TipProfile" xml:space="preserve">
+    <value>此标签页显示和编辑的是哪一套布局和角色。按“应用”即可切换到该方案。</value>
+  </data>
+  <data name="StatusLastProfile" xml:space="preserve">
+    <value>每台电脑至少需要一个方案，因此无法删除此方案。</value>
+  </data>
+  <data name="ItemMumble" xml:space="preserve">
+    <value>Mumble</value>
+  </data>
+  <data name="ItemWorklist" xml:space="preserve">
+    <value>工作清单</value>
+  </data>
+  <data name="LabelMumbleServer" xml:space="preserve">
+    <value>服务器</value>
+  </data>
+  <data name="LabelMumbleMode" xml:space="preserve">
+    <value>显示方式</value>
+  </data>
+  <data name="MumbleModeLine" xml:space="preserve">
+    <value>单行，旁边列出正在讲话的人</value>
+  </data>
+  <data name="MumbleModeList" xml:space="preserve">
+    <value>频道列表，正在讲话的人在最上方</value>
+  </data>
+  <data name="MumbleChooseServer" xml:space="preserve">
+    <value>请在“客户端布局”中为此控件选择一个 Mumble 服务器。</value>
+  </data>
+  <data name="MumbleNoServer" xml:space="preserve">
+    <value>此 Mumble 服务器已不存在。</value>
+  </data>
+  <data name="MumbleServerState" xml:space="preserve">
+    <value>{0}：{1}</value>
+  </data>
+  <data name="WorklistNoClient" xml:space="preserve">
+    <value>此显示器上没有人登录。</value>
+  </data>
+  <data name="WorklistNotInApp" xml:space="preserve">
+    <value>{0} 不是 EVE Console 中的角色。</value>
+  </data>
+  <data name="WorklistNothing" xml:space="preserve">
+    <value>{0} 没有就绪的工作项。</value>
+  </data>
+  <data name="WorklistOpenTool" xml:space="preserve">
+    <value>打开工作清单</value>
+  </data>
+  <data name="WorklistLoading" xml:space="preserve">
+    <value>正在加载工作清单…</value>
+  </data>
+  <data name="WorklistNoClientShort" xml:space="preserve">
+    <value>无人登录</value>
+  </data>
+  <data name="LabelWorklistMode" xml:space="preserve">
+    <value>显示方式</value>
+  </data>
+  <data name="WorklistModeList" xml:space="preserve">
+    <value>就绪工作项列表</value>
+  </data>
+  <data name="WorklistModeLine" xml:space="preserve">
+    <value>一行计数，点击后展开列表</value>
+  </data>
+  <data name="ItemMenu" xml:space="preserve">
+    <value>菜单</value>
+  </data>
+  <data name="ItemToolContainer" xml:space="preserve">
+    <value>工具容器</value>
+  </data>
+  <data name="MenuTip" xml:space="preserve">
+    <value>工具。按住 Shift 单击可再打开一个副本。</value>
+  </data>
+  <data name="ContainerMenuTip" xml:space="preserve">
+    <value>在这些标签页中打开工具。按住 Shift 单击可再打开一个副本。</value>
+  </data>
+  <data name="LabelMenuTarget" xml:space="preserve">
+    <value>工具打开位置</value>
+  </data>
+  <data name="MenuTargetNewWindow" xml:space="preserve">
+    <value>新窗口</value>
+  </data>
+  <data name="MenuTargetLastUsed" xml:space="preserve">
+    <value>上次使用的窗口</value>
+  </data>
+  <data name="MenuTargetContainer" xml:space="preserve">
+    <value>{0} › {1}</value>
+  </data>
+  <data name="MenuTargetGone" xml:space="preserve">
+    <value>已不在任何布局中的工具容器</value>
+  </data>
+  <data name="LabelContainerName" xml:space="preserve">
+    <value>名称</value>
+  </data>
+  <data name="LabelContainerMode" xml:space="preserve">
+    <value>容纳</value>
+  </data>
+  <data name="ContainerModeSingle" xml:space="preserve">
+    <value>一个工具</value>
+  </data>
+  <data name="ContainerModeTabs" xml:space="preserve">
+    <value>标签页</value>
+  </data>
+  <data name="ContainerSplit" xml:space="preserve">
+    <value>可一分为二</value>
+  </data>
+  <data name="LabelContainerTools" xml:space="preserve">
+    <value>打开时包含</value>
+  </data>
+  <data name="ContainerToolCanClose" xml:space="preserve">
+    <value>可关闭</value>
+  </data>
+  <data name="ContainerToolRemove" xml:space="preserve">
+    <value>移除</value>
+  </data>
+  <data name="ContainerToolAdd" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="LabelToolSettings" xml:space="preserve">
+    <value>{0} 打开时使用</value>
+  </data>
+  <data name="LabelOverviewLayout" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="ToolNoSettings" xml:space="preserve">
+    <value>此工具没有可设置的内容。</value>
+  </data>
+  <data name="ContainerNote" xml:space="preserve">
+    <value>不能关闭的标签页会留在此容器中。在别处打开的工具，会在此容器显示时移到这里。此处的概览是独立的一份：主窗口中的概览保持原位。</value>
+  </data>
+  <data name="LabelWidth" xml:space="preserve">
+    <value>宽度（像素）</value>
+  </data>
+  <data name="LabelHeight" xml:space="preserve">
+    <value>高度（像素）</value>
+  </data>
+  <data name="LabelControl" xml:space="preserve">
+    <value>控件</value>
+  </data>
+  <data name="LabelColor" xml:space="preserve">
+    <value>颜色</value>
+  </data>
+  <data name="LabelStyle" xml:space="preserve">
+    <value>样式</value>
+  </data>
+  <data name="StyleFlat" xml:space="preserve">
+    <value>平面</value>
+  </data>
+  <data name="StyleRaised" xml:space="preserve">
+    <value>凸起</value>
+  </data>
+  <data name="StyleInset" xml:space="preserve">
+    <value>凹陷</value>
+  </data>
+  <data name="StyleRidge" xml:space="preserve">
+  <data name="OutlineTitle" xml:space="preserve"><value>结构</value></data>
+  <data name="StyleCard" xml:space="preserve"><value>卡片</value><comment>A panel's edge: a lighter rounded box, as the Overview's sections are.</comment></data>
+  <data name="OutlineCell" xml:space="preserve"><value>第 {0} 行，第 {1} 列</value></data>
+  <data name="GridColumns" xml:space="preserve"><value>列</value></data>
+  <data name="GridRows" xml:space="preserve"><value>行</value></data>
+  <data name="GridSizeNote" xml:space="preserve"><value>每个单元格都是一个面板并保持其位置。缩小网格会移除新边界之外的单元格及其内容；撤销可将其恢复。单击单元格之间的线可选中网格。</value></data>
+  <data name="ItemClient" xml:space="preserve"><value>客户端</value></data>
+  <data name="MenuDockGrid" xml:space="preserve"><value>停靠网格</value></data>
+  <data name="MenuRemoveClient" xml:space="preserve"><value>移除客户端</value></data>
+  <data name="MenuDockOnMonitor" xml:space="preserve"><value>在显示器上停靠面板</value></data>
+  <data name="Undo" xml:space="preserve"><value>撤销</value></data>
+  <data name="Redo" xml:space="preserve"><value>重做</value></data>
+  <data name="UndoTip" xml:space="preserve"><value>撤销对此布局的上一次更改 (Ctrl+Z)。</value></data>
+  <data name="RedoTip" xml:space="preserve"><value>重做刚刚撤销的更改 (Ctrl+Y)。</value></data>
+  <data name="LabelDockedTo" xml:space="preserve"><value>停靠位置</value></data>
+  <data name="LabelDockOrder" xml:space="preserve"><value>停靠顺序</value></data>
+  <data name="DockOrderNote" xml:space="preserve"><value>上下拖动一行可更改顺序；单击可选中。靠上的先停靠并占据整条边；靠下的放在剩余空间中。</value></data>
+  <data name="LabelPadding" xml:space="preserve"><value>内容内边距</value></data>
+  <data name="PaddingLeft" xml:space="preserve"><value>左</value></data>
+  <data name="PaddingTop" xml:space="preserve"><value>上</value></data>
+  <data name="PaddingRight" xml:space="preserve"><value>右</value></data>
+  <data name="PaddingBottom" xml:space="preserve"><value>下</value></data>
+  <data name="PaddingNote" xml:space="preserve"><value>100% 时的像素，在面板内侧，或在网格单元格四周及单元格之间留空。凸起、凹陷或脊线边框再留 4 像素，卡片留 5 像素，内容不会碰到圆角。</value></data>
+    <value>凸棱</value>
+  </data>
+  <data name="MenuDockControl" xml:space="preserve">
+    <value>停靠控件</value>
+  </data>
+  <data name="MenuDockInside" xml:space="preserve">
+    <value>在内部停靠面板</value>
+  </data>
+  <data name="MenuEdgeFull" xml:space="preserve">
+    <value>填满</value>
+  </data>
+  <data name="MenuRemoveControl" xml:space="preserve">
+    <value>移除控件</value>
+  </data>
+  <data name="MenuParent" xml:space="preserve">
+    <value>上级：{0}</value>
+  </data>
+  <data name="MenuSelect" xml:space="preserve">
+    <value>选择</value>
+  </data>
+  <data name="ParentMonitor" xml:space="preserve">
+    <value>显示器</value>
+  </data>
+  <data name="ParentGrid" xml:space="preserve">
+    <value>网格</value>
+  </data>
+  <data name="ParentCell" xml:space="preserve">
+    <value>单元格</value>
+  </data>
+  <data name="ItemSettings" xml:space="preserve">
+    <value>设置</value>
+  </data>
+  <data name="ItemServerStatus" xml:space="preserve">
+    <value>EVE 服务器状态</value>
+  </data>
+  <data name="ItemEveTime" xml:space="preserve">
+    <value>EVE 时间</value>
+  </data>
+  <data name="ItemLocalTime" xml:space="preserve">
+    <value>本地时间</value>
+  </data>
+  <data name="ItemLocalTimeShort" xml:space="preserve">
+    <value>本地</value>
+  </data>
+  <data name="ItemUsersOnline" xml:space="preserve">
+    <value>在线角色</value>
+  </data>
+  <data name="NoCells" xml:space="preserve">
+    <value>此布局没有客户端位置。</value>
+  </data>
+  <data name="AddCharacterHint" xml:space="preserve">
+    <value>角色名称</value>
+  </data>
+  <data name="Add" xml:space="preserve">
+    <value>添加</value>
+  </data>
+  <data name="TipRemoveCharacter" xml:space="preserve">
+    <value>从此分组中移除</value>
+  </data>
+  <data name="NoticesTitle" xml:space="preserve">
+    <value>摆放时发现的情况</value>
+  </data>
+  <data name="NoticeAClient" xml:space="preserve">
+    <value>某个客户端</value>
+  </data>
+  <data name="NoticeNotFixed" xml:space="preserve">
+    <value>{0} 不是“固定窗口”模式，因此未作调整。请在游戏设置中更改其窗口模式。</value>
+  </data>
+  <data name="NoticeInUse" xml:space="preserve">
+    <value>{0}：其位置已被另一个已登录的角色占用，因此保持原位。</value>
+  </data>
+  <data name="NoticeNoPosition" xml:space="preserve">
+    <value>{0} 已登录，但不在任何分组中，且其所在显示器上没有空闲的客户端位置。请将其添加到某个客户端位置。</value>
+  </data>
+  <data name="NoticeMovedByHand" xml:space="preserve">
+    <value>{0} 被手动移动过，因此在你按下“应用”之前不会再调整。</value>
+  </data>
+  <data name="NoticeDidNotHold" xml:space="preserve">
+    <value>{0} 没有停留在摆放的位置，因此在你按下“应用”之前不会再调整。</value>
+  </data>
+  <data name="OtherDesktops" xml:space="preserve">
+    <value>其他电脑</value>
+  </data>
+  <data name="OtherDesktopsNote" xml:space="preserve">
+    <value>重装 Windows 后，这台电脑看起来会像一台新电脑。接管它原来的条目，即可保留其显示器和分组。这会替换这台电脑当前的设置。</value>
+  </data>
+  <data name="TakeOver" xml:space="preserve">
+    <value>就是这台电脑</value>
+  </data>
+  <data name="TakeOverConfirm" xml:space="preserve">
+    <value>再次点击以替换这台电脑的设置</value>
+  </data>
+  <data name="LayoutsTitle" xml:space="preserve">
+    <value>布局</value>
+  </data>
+  <data name="NewLayout" xml:space="preserve">
+    <value>新建</value>
+  </data>
+  <data name="DuplicateLayout" xml:space="preserve">
+    <value>创建副本</value>
+  </data>
+  <data name="DeleteLayout" xml:space="preserve">
+    <value>删除</value>
+  </data>
+  <data name="NewLayoutName" xml:space="preserve">
+    <value>新布局</value>
+  </data>
+  <data name="CopyOfName" xml:space="preserve">
+    <value>{0} 副本</value>
+  </data>
+  <data name="LayoutHint" xml:space="preserve">
+    <value>右键单击显示器可在其上停靠面板；右键单击面板可在其中停靠面板、控件、客户端和网格，或转到包含它的项。拖动各部分之间的线可调整大小。</value>
+  </data>
+  <data name="LabelLayoutName" xml:space="preserve">
+    <value>布局名称</value>
+  </data>
+  <data name="LabelPreviewOn" xml:space="preserve">
+    <value>预览显示器</value>
+  </data>
+  <data name="LabelPanelName" xml:space="preserve">
+    <value>面板名称</value>
+  </data>
+  <data name="LabelPanelSize" xml:space="preserve">
+    <value>大小（像素）</value>
+  </data>
+  <data name="PanelDefaultName" xml:space="preserve">
+    <value>面板</value>
+  </data>
+  <data name="CanvasClient" xml:space="preserve">
+    <value>客户端 {0}</value>
+  </data>
+  <data name="CanvasSize" xml:space="preserve">
+    <value>{0} × {1}</value>
+  </data>
+  <data name="CanvasEmpty" xml:space="preserve">
+    <value>空</value>
+  </data>
+  <data name="MenuEdgeTop" xml:space="preserve">
+    <value>顶部</value>
+  </data>
+  <data name="MenuEdgeBottom" xml:space="preserve">
+    <value>底部</value>
+  </data>
+  <data name="MenuEdgeLeft" xml:space="preserve">
+    <value>左侧</value>
+  </data>
+  <data name="MenuEdgeRight" xml:space="preserve">
+    <value>右侧</value>
+  </data>
+  <data name="MenuRemoveGrid" xml:space="preserve">
+    <value>移除此网格</value>
+  </data>
+  <data name="MenuSendToBack" xml:space="preserve">
+    <value>置于底层</value>
+  </data>
+  <data name="MenuBringToFront" xml:space="preserve">
+    <value>置于顶层</value>
+  </data>
+  <data name="MenuRemovePanel" xml:space="preserve">
+    <value>移除面板</value>
+  </data>
+  <data name="WarnSmall" xml:space="preserve">
+    <value>{0}：客户端 {1} 只有 {2} × {3}，用于游戏偏小。</value>
+  </data>
+  <data name="WarnNoFit" xml:space="preserve">
+    <value>{0}：此处的面板放不下，有些内容没有空间。</value>
+  </data>
+  <data name="WarnBroken" xml:space="preserve">
+    <value>{0}：此布局有一部分无法按保存时的样子使用，可能来自较新的版本。</value>
+  </data>
+  <data name="ItemAgent" xml:space="preserve">
+    <value>AI 助手</value>
+  </data>
+  <data name="ItemDirectMessages" xml:space="preserve">
+    <value>私信</value>
+  </data>
+  <data name="ItemGroupChat" xml:space="preserve">
+    <value>群聊</value>
+  </data>
+  <data name="ItemAppVersion" xml:space="preserve">
+    <value>应用版本</value>
+  </data>
+  <data name="ItemSdeVersion" xml:space="preserve">
+    <value>SDE 版本</value>
+  </data>
+  <data name="ItemDatabase" xml:space="preserve">
+    <value>数据库</value>
+  </data>
+  <data name="ItemBackgroundOwner" xml:space="preserve">
+    <value>后台工作</value>
+  </data>
+  <data name="ItemEsiStatus" xml:space="preserve">
+    <value>ESI 状态</value>
+  </data>
+  <data name="ItemTheme" xml:space="preserve">
+    <value>主题</value>
+  </data>
+  <data name="ItemUiScale" xml:space="preserve">
+    <value>界面缩放</value>
+  </data>
+  <data name="ItemAlarms" xml:space="preserve">
+    <value>警报灯</value>
+  </data>
+  <data name="ItemScheduler" xml:space="preserve">
+    <value>计划任务</value>
+  </data>
+  <data name="ItemAlerts" xml:space="preserve">
+    <value>提醒</value>
+  </data>
+  <data name="ChatOpenMessages" xml:space="preserve">
+    <value>打开消息</value>
+  </data>
+  <data name="ChatOpenGroupChat" xml:space="preserve">
+    <value>打开群聊</value>
+  </data>
+  <data name="ChatNoNewMessages" xml:space="preserve">
+    <value>没有新私信。</value>
+  </data>
+  <data name="ChatNoNewGroup" xml:space="preserve">
+    <value>群聊中没有新消息。</value>
+  </data>
+  <data name="AgentOff" xml:space="preserve">
+    <value>AI 助手已关闭。请在设置中开启。</value>
+  </data>
+  <data name="ItemEveMail" xml:space="preserve">
+    <value>EVE 邮件</value>
+  </data>
+  <data name="ResetColorTheme" xml:space="preserve">
+    <value>使用主题颜色</value>
+  </data>
+  <data name="ItemGroupChatRoom" xml:space="preserve">
+    <value>群聊房间</value>
+  </data>
+  <data name="ItemDirectMessageChat" xml:space="preserve">
+    <value>私信会话</value>
+  </data>
+  <data name="LabelGroupChatRoom" xml:space="preserve">
+    <value>房间</value>
+  </data>
+  <data name="GroupChatChooseRoom" xml:space="preserve">
+    <value>请在客户端布局中为此控件选择房间，或在上方选择一个。</value>
+  </data>
+  <data name="GroupChatRoomGone" xml:space="preserve">
+    <value>为此控件设置的房间已不在群聊中。</value>
+  </data>
+  <data name="ExportLayout" xml:space="preserve">
+    <value>导出</value>
+  </data>
+  <data name="ImportLayout" xml:space="preserve">
+    <value>导入</value>
+  </data>
+  <data name="TipExportLayout" xml:space="preserve">
+    <value>将此布局保存为文件，以便保留或分享。</value>
+  </data>
+  <data name="TipImportLayout" xml:space="preserve">
+    <value>将文件中的布局添加为新布局。显示器不会改变。</value>
+  </data>
+  <data name="LayoutFileType" xml:space="preserve">
+    <value>EVE Console 布局</value>
+  </data>
+  <data name="StatusLayoutExported" xml:space="preserve">
+    <value>已导出“{0}”。</value>
+  </data>
+  <data name="StatusLayoutImported" xml:space="preserve">
+    <value>已导入“{0}”。如果来自其他数据库，请检查其 Mumble 控件。</value>
+  </data>
+  <data name="StatusNotLayoutFile" xml:space="preserve">
+    <value>该文件不是 EVE Console 布局。</value>
+  </data>
+  <data name="StatusLayoutFileNewer" xml:space="preserve">
+    <value>该布局由较新版本的 EVE Console 创建。请更新后再导入。</value>
+  </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>情报</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>显示方式</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>实时威胁列表</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>一行显示最近的威胁，点击展开列表</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>范围</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} 跳</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>从本显示器客户端中的角色出发，经星门和开放的 Thera 或 Turnur 虫洞寻找情报的跳数。不计跳桥。</value>
+  </data>
+</root>

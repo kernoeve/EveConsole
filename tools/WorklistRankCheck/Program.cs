@@ -165,6 +165,91 @@ List<int> Picks(Dictionary<int, Item> items, List<IReadOnlySet<int>> blocked, in
           FinalBottleneck.HoldsUp(8, 1.0 - 1e-12, new HashSet<int> { 7 }, new HashSet<int> { 7 }, _ => 1.0));
 }
 
+// ── Stock priority: jobs short first, then coverage within each group ─────────────
+{
+    // The live case: have, what jobs consume, shelf level.
+    var regulators = WorklistPriority.ForStockCoverage(2_876, 2_877, 500);   // 85%, one short
+    var ro         = WorklistPriority.ForStockCoverage(267, 431, 1_100);     // 17%, jobs short
+    var go         = WorklistPriority.ForStockCoverage(275, 350, 1_100);     // 19%, jobs short
+    var seals      = WorklistPriority.ForStockCoverage(14_443, 29_483, 15_000); // 32%, jobs short
+    var uc         = WorklistPriority.ForStockCoverage(386, 376, 1_100);     // 26%, jobs fed
+    var sr         = WorklistPriority.ForStockCoverage(376, 159, 1_100);     // 30%, jobs fed
+
+    Check("stock: the emptiest of the jobs-short group goes first", ro > go && go > seals && seals > regulators, $"{ro} {go} {seals} {regulators}");
+    Check("stock: one short for jobs still goes ahead of a buffer 26% covered", regulators > uc, $"{regulators} {uc}");
+    Check("stock: the emptiest buffer goes first", uc > sr, $"{uc} {sr}");
+    Check("stock: jobs exactly fed is buffer", WorklistPriority.ForStockCoverage(100, 100, 100) < 60);
+    Check("stock: jobs one short is not", WorklistPriority.ForStockCoverage(99, 100, 100) >= 60);
+    Check("stock: the lowest jobs-short beats the highest buffer",
+          WorklistPriority.ForStockCoverage(999_999, 1_000_000, 0) > WorklistPriority.ForStockCoverage(0, 0, 1_000_000));
+    Check("stock: stays under the band a sold job earns", WorklistPriority.ForStockCoverage(0, 1_000, 1_000) < WorklistPriority.ServesOther);
+    Check("stock: stays above housekeeping", WorklistPriority.ForStockCoverage(1_000, 0, 1_000) >= 40);
+    Check("stock: nothing asked is fully covered, not a crash", WorklistPriority.ForStockCoverage(0, 0, 0) == 40);
+
+    Check("cap: one short makes one, not the whole job", WorklistPriority.UnitsForNextJob(501, 2_876, 2_877, 500) == 1);
+    Check("cap: once jobs are fed, the rest goes as buffer", WorklistPriority.UnitsForNextJob(500, 2_877, 2_877, 500) == 500);
+    Check("cap: more short than is left asks for what is left", WorklistPriority.UnitsForNextJob(100, 0, 500, 500) == 100);
+    Check("cap: no level, nothing to hold back", WorklistPriority.UnitsForNextJob(300, 0, 100, 0) == 300);
+}
+
+// ── A free original outside the park goes where the work is ───────────────────────
+{
+    const long Staging = 1, Factory = 2, Lab = 3, Far = 4, Research = 5;
+    const int Bp = 100;
+    var park = new HashSet<long> { Factory, Lab, Research };
+    var inReach = new HashSet<long> { Staging, Factory, Lab, Research };
+
+    BlueprintStock Print(long at, long id = 1, bool original = true, bool busy = false) => new()
+    {
+        ItemId = id, TypeId = Bp, LocationId = at, IsOriginal = original, LockedInJob = busy,
+        OwnerId = 1, OwnerType = "corporation", Me = 0, Te = 0, Runs = -1,
+    };
+    Dictionary<int, WantedPrint> Build(long site = Factory) => new() { [Bp] = new WantedPrint(site, 79, 200, 5) };
+    Dictionary<int, WantedPrint> Copies() => new() { [Bp] = new WantedPrint(Lab, 60, 201, 3) };
+    Dictionary<int, WantedPrint> Nothing() => [];
+
+    var both = LogisticsGenerator.SpareOriginalMoves([Print(Staging)], park, Lab, inReach, Build(), Copies());
+    Check("spare: to the factory when both want it", both.Count == 1 && both[0].To == Factory && both[0].From == Staging && both[0].Priority == 79);
+    var copies = LogisticsGenerator.SpareOriginalMoves([Print(Staging)], park, Lab, inReach, Nothing(), Copies());
+    Check("spare: to the copy lab when only copies are short", copies.Count == 1 && copies[0].To == Lab);
+    Check("spare: no work for it, it stays", LogisticsGenerator.SpareOriginalMoves([Print(Staging)], park, Lab, inReach, Nothing(), Nothing()).Count == 0);
+    Check("spare: one already where the work is stays", LogisticsGenerator.SpareOriginalMoves([Print(Factory)], park, Lab, inReach, Build(Factory), Nothing()).Count == 0);
+    Check("spare: the copy lab keeps its original, whatever a factory wants", LogisticsGenerator.SpareOriginalMoves([Print(Lab)], park, Lab, inReach, Build(), Nothing()).Count == 0);
+    var research = LogisticsGenerator.SpareOriginalMoves([Print(Research)], park, Lab, inReach, Build(), Nothing());
+    Check("spare: a research lab is fair game with no job on it", research.Count == 1 && research[0].From == Research && research[0].To == Factory);
+    Check("spare: a research lab keeps one with a job on it", LogisticsGenerator.SpareOriginalMoves([Print(Research, busy: true)], park, Lab, inReach, Build(), Nothing()).Count == 0);
+    Check("spare: a park print is not sent to the copy lab, or nothing would ever come back", LogisticsGenerator.SpareOriginalMoves([Print(Research)], park, Lab, inReach, Nothing(), Copies()).Count == 0);
+    Check("spare: one in a job stays", LogisticsGenerator.SpareOriginalMoves([Print(Staging, busy: true)], park, Lab, inReach, Build(), Nothing()).Count == 0);
+    Check("spare: a copy stays", LogisticsGenerator.SpareOriginalMoves([Print(Staging, original: false)], park, Lab, inReach, Build(), Nothing()).Count == 0);
+    Check("spare: one out of reach stays", LogisticsGenerator.SpareOriginalMoves([Print(Far)], park, Lab, inReach, Build(), Nothing()).Count == 0);
+    Check("spare: no scope means anywhere", LogisticsGenerator.SpareOriginalMoves([Print(Far)], park, Lab, null, Build(), Nothing()).Count == 1);
+    Check("spare: each original is its own trip", LogisticsGenerator.SpareOriginalMoves([Print(Staging, 1), Print(Staging, 2)], park, Lab, inReach, Build(), Nothing()).Count == 2);
+}
+
+// ── What a science job's output will be ───────────────────────────────────────────
+{
+    Check("research: 8 TE runs from 0 is 16", ResearchOutcome.Levels(3, 10, 0, 8) == (10, 16));
+    Check("research: ME runs raise ME only", ResearchOutcome.Levels(4, 3, 8, 4) == (7, 8));
+    Check("research: TE stops at 20", ResearchOutcome.Levels(3, 10, 16, 8) == (10, 20));
+    Check("research: ME stops at 10", ResearchOutcome.Levels(4, 9, 0, 5) == (10, 0));
+    Check("research: a copy keeps its source's levels", ResearchOutcome.Levels(5, 10, 20, 3) == (10, 20));
+    Check("research: a build changes no print", ResearchOutcome.Levels(1, 10, 20, 3) is null);
+
+    Decryptor Dec(string name, double chance, int me, int te, int runs) => new(name.Length, name, chance, me, te, runs);
+    List<Decryptor> all = [Dec("OptAug", 0.9, 2, 0, 7), Dec("Sym", 1.0, 1, 8, 2), Dec("Parity", 1.5, 1, -2, 3), Dec("OptAtt", 1.9, 1, -2, 2)];
+
+    Check("decryptor: read back from the chance", InventionService.IdentifyDecryptor(0.2322, 0.258, all)?.Name == "OptAug");
+    Check("decryptor: a skill moved since, within reason", InventionService.IdentifyDecryptor(0.5100, 0.3486, all)?.Name == "Parity");
+    Check("decryptor: a chance that fits none is unknown, not a guess", InventionService.IdentifyDecryptor(0.30, 0.25, all) is null);
+    Check("decryptor: one times the base is none", InventionService.IdentifyDecryptor(0.25, 0.25, all)?.IsNone == true);
+    Check("decryptor: no chance is unknown", InventionService.IdentifyDecryptor(0, 0.25, all) is null);
+
+    Check("invented: an Optimized Augmentation hull is ME 4, TE 4, 8 runs",
+          InventionService.Outcome(1, all[0]) == new InventedPrint(4, 4, 8));
+    Check("invented: none is the base", InventionService.Outcome(10, Decryptor.None) == new InventedPrint(2, 4, 10));
+    Check("invented: never below one run", InventionService.Outcome(1, Dec("Bad", 1, 0, 0, -5)).Runs == 1);
+}
+
 Console.WriteLine($"Worklist rank check: {checks} check(s), {failures.Count} failure(s).");
 foreach (var f in failures) Console.WriteLine(f);
 return failures.Count == 0 ? 0 : 1;

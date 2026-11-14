@@ -71,10 +71,7 @@ public class PollingSettingsViewModel : ReactiveObject
     /// <summary>"Runs:" needs no explaining on Windows; on Linux it is the line that matters most.</summary>
     public string ServiceRunsLabel => ServiceIsSystemd ? "ExecStart:" : SettingsText.SvcRunsLabel;
 
-    public string TrayCheckboxText =>
-        OperatingSystem.IsWindows() ? SettingsText.SvcTrayCheckboxWindows
-        : OperatingSystem.IsMacOS() ? SettingsText.SvcTrayCheckboxMac
-        :                             SettingsText.SvcTrayCheckboxLinux;
+    public string TrayCheckboxText => OperatingSystem.IsMacOS() ? SettingsText.KeepInTrayMac : SettingsText.KeepInTray;
 
     private bool _serviceInstalled;
     public bool ServiceInstalled
@@ -197,52 +194,51 @@ public class PollingSettingsViewModel : ReactiveObject
             ? SettingsText.SvcUpdateReasonUnitCopy
       :       SettingsText.SvcUpdateReasonServiceCopy;
 
-    // ── The notification-area icon ────────────────────────────────────────────
+    // ── Never taking the background work over ───────────────────────────────────
 
-    private bool _trayAtLogon = TrayIconController.StartsAtLogon();
+    private bool _neverRunBackgroundWork = AppConfig.GetNeverRunBackgroundWork();
 
     /// <summary>
-    /// Whether a tray icon starts with this user's session.
-    ///
-    /// <para>⚠️ A separate process, not part of this window. The client doing the background work
-    /// may be a service, which cannot draw anything at all — and putting the icon in this
-    /// application would mean it disappeared exactly when somebody wanted it, which is while the
-    /// application is closed.</para>
+    /// This client never takes the background work over when the one doing it stops. Kept on this computer, and applied
+    /// at once: a client doing the work hands it on, and one waiting for it leaves the queue (see WorkerLease.StandsAside).
     /// </summary>
-    public bool TrayAtLogon
+    public bool NeverRunBackgroundWork
     {
-        get => _trayAtLogon;
+        get => _neverRunBackgroundWork;
         set
         {
-            if (_trayAtLogon == value) return;
-            this.RaiseAndSetIfChanged(ref _trayAtLogon, value);
-
-            try
-            {
-                TrayIconController.SetStartsAtLogon(value);
-
-                // Ticking a box should do something today, not next time they log in.
-                var (running, off) =
-                    OperatingSystem.IsWindows() ? (SettingsText.SvcTrayRunningWindows, SettingsText.SvcTrayOffWindows)
-                    : OperatingSystem.IsMacOS() ? (SettingsText.SvcTrayRunningMac,     SettingsText.SvcTrayOffMac)
-                    :                             (SettingsText.SvcTrayRunningLinux,   SettingsText.SvcTrayOffLinux);
-
-                TrayStatus = value
-                    ? TrayIconController.LaunchNow() is { } error
-                        ? string.Format(SettingsText.SvcTrayStartFailed, error)
-                        : running
-                    : string.Format(off, ShellText.TrayExit);
-            }
-            catch (Exception ex) { TrayStatus = string.Format(SettingsText.SvcTrayChangeFailed, ex.Message.Split('\n')[0]); }
+            if (_neverRunBackgroundWork == value) return;
+            this.RaiseAndSetIfChanged(ref _neverRunBackgroundWork, value);
+            AppConfig.SetNeverRunBackgroundWork(value);
+            (App.Services?.GetService(typeof(WorkerLease)) as WorkerLease)?.StandAsideChanged();
         }
     }
 
-    private string _trayStatus = "";
-    public string TrayStatus
+    /// <summary>Only a shared PostgreSQL database has other clients to leave the work to.</summary>
+    public bool CanStandAside => DbEngine.IsPostgres;
+
+    // ── The notification-area icon ────────────────────────────────────────────
+
+    private bool _keepRunningInTray = AppConfig.GetKeepRunningInTray();
+
+    /// <summary>
+    /// Whether closing the main window leaves the app running in the notification area. The icon
+    /// itself is always there while the app runs (see <see cref="TrayIconController"/>).
+    /// </summary>
+    public bool KeepRunningInTray
     {
-        get => _trayStatus;
-        private set => this.RaiseAndSetIfChanged(ref _trayStatus, value);
+        get => _keepRunningInTray;
+        set
+        {
+            if (_keepRunningInTray == value) return;
+            this.RaiseAndSetIfChanged(ref _keepRunningInTray, value);
+            AppConfig.SetKeepRunningInTray(value);
+        }
     }
+
+    /// <summary>What closing the main window then does, and how to get it back.</summary>
+    public string KeepRunningInTrayNote =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, SettingsText.KeepInTrayNote, ShellText.TrayOpenApp, ShellText.TrayExit);
 
     private bool _startsWithWindows;
     /// <summary>

@@ -130,6 +130,9 @@
   <data name="NavMercenaryDens" xml:space="preserve">
     <value>Repaires de mercenaires</value>
   </data>
+  <data name="NavClientLayouts" xml:space="preserve">
+    <value>Dispositions des clients</value>
+  </data>
   <data name="NavKillmails" xml:space="preserve">
     <value>Rapports de victimes</value>
   </data>
@@ -141,6 +144,12 @@
   </data>
   <data name="NavEveMail" xml:space="preserve">
     <value>Messagerie d'EVE</value>
+  </data>
+  <data name="NavJabber" xml:space="preserve">
+    <value>Jabber</value>
+  </data>
+  <data name="NavMumble" xml:space="preserve">
+    <value>Mumble</value>
   </data>
   <data name="NavNotifications" xml:space="preserve">
     <value>Notifications</value>
@@ -692,5 +701,58 @@ La mettre à jour et démarrer ? Non ferme EVE Console et laisse la base de donn
     <value>{0}
 {1}
 Cliquez pour voir les limites ESI.</value>
+  </data>
+  <data name="NavMessages" xml:space="preserve">
+    <value>Messages</value>
+    <comment>Main menu.</comment>
+  </data>
+  <data name="NavGroupChat" xml:space="preserve">
+    <value>Discussion de groupe</value>
+  </data>
+  <data name="NavBattleReport" xml:space="preserve">
+    <value>Rapport de bataille</value>
+  </data>
+  <data name="ThemeEveAmarr" xml:space="preserve">
+    <value>EVE Amarr</value>
+  </data>
+  <data name="ThemeEveCaldari" xml:space="preserve">
+    <value>EVE Caldari</value>
+  </data>
+  <data name="ThemeEveCarbon" xml:space="preserve">
+    <value>EVE Carbon</value>
+  </data>
+  <data name="ThemeEveGallente" xml:space="preserve">
+    <value>EVE Gallente</value>
+  </data>
+  <data name="ThemeEveMinmatar" xml:space="preserve">
+    <value>EVE Minmatar</value>
+  </data>
+  <data name="ThemeEveOre" xml:space="preserve">
+    <value>EVE ORE</value>
+  </data>
+  <data name="ThemeEvePhoton" xml:space="preserve">
+    <value>EVE Photon</value>
+  </data>
+  <data name="ThemeEveSisters" xml:space="preserve">
+    <value>EVE Servant Sisters</value>
+  </data>
+  <data name="VersionMismatchStandingAside" xml:space="preserve">
+    <value>Cette base de données est en version {0}, et ce client en version {1}.
+
+Ce client est réglé pour ne jamais exécuter les processus en arrière-plan, et seul le client qui les exécute peut modifier le schéma : il ne peut donc pas mettre la base en version {1}.
+
+Démarrez un client {1} autorisé à les exécuter, ou désactivez ce réglage : retirez « neverRunBackgroundWork » de {2}.</value>
+  </data>
+  <data name="ThirdPartyNotices" xml:space="preserve">
+    <value>Mentions des tiers</value>
+  </data>
+  <data name="TipThirdPartyNotices" xml:space="preserve">
+    <value>Les licences des logiciels dont EVE Console est fait</value>
+  </data>
+  <data name="NavIrc" xml:space="preserve">
+    <value>IRC</value>
+  </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Renseignements</value>
   </data>
 </root>

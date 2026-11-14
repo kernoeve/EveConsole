@@ -1,4 +1,4 @@
-﻿using System.Collections.ObjectModel;
+using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -137,20 +137,48 @@ public sealed class CorpStructureRowVm : ReactiveObject
 {
     public CorpStructureInfo Info { get; }
 
-    public CorpStructureRowVm(CorpStructureInfo info, DateTimeOffset now)
+    /// <param name="read">How current the list this row came from is: see <see cref="CorpListRead"/>.</param>
+    public CorpStructureRowVm(CorpStructureInfo info, DateTimeOffset now, CorpListRead? read = null)
     {
         Info = info;
         _ = ItemIcons.LoadAsync(info.TypeId, b => Icon = b);
         var left = info.RunsOut is { } r ? r - now : (TimeSpan?)null;
+        StaleRead = read is { Stale: true } ? read : null;
 
-        FuelLeft     = !info.IsPowered && info.Kind == CorpStructureKind.Tower ? "—"
+        // ⚠️ A list no longer read: an expiry that has passed since says nothing about the
+        // structure now — refuelled or not, it cannot be told — so it is a dash, not "out of fuel".
+        var urgency = CorpStructuresViewModel.UrgencyOf(left, info);
+        FuelUnknown  = StaleRead is not null && urgency == FuelUrgency.Out;
+        if (FuelUnknown)
+            FuelTip = StaleRead!.ReadAt is { } readAt
+                ? string.Format(CorpText.CsFuelUnknownTip, PiFormat.When(readAt))
+                : CorpText.CsFuelUnknownNeverTip;
+
+        FuelLeft     = FuelUnknown ? "—"
+                     : !info.IsPowered && info.Kind == CorpStructureKind.Tower ? "—"
                      : left is { } l ? (l > TimeSpan.Zero ? PiFormat.Duration(l) : CorpText.CsOutOfFuel)
                      : info.Kind == CorpStructureKind.Upwell && !info.IsPowered
                          ? (info.NeedsFuel ? CorpText.CsLowPower : CorpText.CsNoServices)
                          : "—";
-        RunsOutText  = info.RunsOut is { } at ? PiFormat.When(at) : "";
+        RunsOutText  = FuelUnknown ? "—" : info.RunsOut is { } at ? PiFormat.When(at) : "";
         RunsOutSort  = info.RunsOut ?? DateTimeOffset.MaxValue;
-        Urgency      = CorpStructuresViewModel.UrgencyOf(left, info);
+        // Out of fuel first, then what cannot be told, then the least left; nothing to burn last.
+        FuelSort     = FuelUnknown ? -1e9
+                     : urgency == FuelUrgency.Out ? -2e9 + Math.Max(-1e9, left?.TotalHours ?? 0)
+                     : left is { } hoursLeft ? hoursLeft.TotalHours
+                     : double.MaxValue;
+        Urgency      = FuelUnknown ? FuelUrgency.None : urgency;
+
+        // When the state it is in ends: a reinforcement, anchoring or onlining timer, or the
+        // unanchoring — which for an Upwell structure runs alongside its state rather than as one.
+        var unanchoring = info.UnanchorsAt is not null && info.Kind == CorpStructureKind.Upwell;
+        DateTimeOffset? ends = info.Kind == CorpStructureKind.Tower
+            ? (info.State == "reinforced" ? info.ReinforcedUntil : null) ?? info.UnanchorsAt
+            : info.StateTimerEnd ?? info.UnanchorsAt;
+        StateEnds     = ends is { } e
+            ? (e > now ? string.Format(CorpText.CsWhenIn, PiFormat.When(e), PiFormat.Duration(e - now)) : PiFormat.When(e))
+            : "";
+        StateEndsSort = ends ?? DateTimeOffset.MaxValue;
         PerDay       = info.BlocksPerHour is { } h ? (h * 24).ToString("N0", CultureInfo.CurrentCulture) : "";
         PerDaySort   = info.BlocksPerHour ?? -1;
         IskPerDay    = info.FuelIskPerDay is { } isk ? CorpStructuresViewModel.Isk(isk) : "";
@@ -167,7 +195,9 @@ public sealed class CorpStructureRowVm : ReactiveObject
                 CorpStructuresViewModel.FitCheckFields(fc).Select(f => $"{f.Label}: {f.Value}"));
         var online   = info.Services.Count(s => s.IsOnline);
         ServicesText = info.Services.Count > 0 ? $"{online} / {info.Services.Count}" : "";
-        StateText    = CorpStructuresViewModel.StateLabel(info.State);
+        StateText    = unanchoring
+            ? string.Format(CorpText.CsStateAndUnanchoring, CorpStructuresViewModel.StateLabel(info.State))
+            : CorpStructuresViewModel.StateLabel(info.State);
         (FitText, FitUrgency) = CorpStructuresViewModel.FitSummary(info.FitCheck);
         Location     = info.Security is { } sec
             ? $"{info.SystemName} {SecurityColors.Text(sec)}"
@@ -185,6 +215,28 @@ public sealed class CorpStructureRowVm : ReactiveObject
     public string FuelLeft     { get; }
     public string RunsOutText  { get; }
     public DateTimeOffset RunsOutSort { get; }
+    /// <summary>What the fuel columns sort on: out of fuel first, then what cannot be told, then
+    /// hours left; nothing to burn last.</summary>
+    public double FuelSort     { get; }
+    /// <summary>The list was not read lately and the expiry it held has passed: see the constructor.</summary>
+    public bool   FuelUnknown  { get; }
+    public string? FuelTip     { get; }
+    /// <summary>The list's last read, when it is no longer being read; null while it is current.</summary>
+    public CorpListRead? StaleRead { get; }
+    /// <summary>When the state the structure is in ends — "Jan 3, 2027 01:08 (in 2d 4h)" — or empty.</summary>
+    public string StateEnds    { get; }
+    public DateTimeOffset StateEndsSort { get; }
+
+    // The cells that open something: the structure (a tower or skyhook opens its system), its
+    // type, system and region.
+    public void OpenName()
+    {
+        if (Info.Kind == CorpStructureKind.Upwell) EntityNavigator.Instance.Structure(Info.Id);
+        else EntityNavigator.Instance.System(Info.SystemId);
+    }
+    public void OpenType()   => EntityNavigator.Instance.Item(Info.TypeId);
+    public void OpenSystem() => EntityNavigator.Instance.System(Info.SystemId);
+    public void OpenRegion() => EntityNavigator.Instance.Region(Info.RegionId);
     public string PerDay       { get; }
     public double PerDaySort   { get; }
     /// <summary>The fuel it burns a day, in ISK at the asset valuation's prices.</summary>
@@ -223,7 +275,7 @@ public sealed class CorpStructureRowVm : ReactiveObject
 /// Corp Structures: every Upwell structure and starbase the chosen corporation has anchored in
 /// space, with its state, services, fit, fuel, burn and when it runs dry.
 /// </summary>
-public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
+public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh, IDisposable
 {
     /// <summary>Set the first time this tool is opened; until then its refresh timer is a
     /// no-op. See IPeriodicRefresh.</summary>
@@ -434,7 +486,8 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         RefreshCommand.ThrownExceptions.Subscribe(_ => { });
 
         PickRemembered();
-        Corps.CollectionChanged += (_, _) => PickRemembered();
+        System.Collections.Specialized.NotifyCollectionChangedEventHandler onCorps = (_, _) => PickRemembered();
+        _life.Follow(() => Corps.CollectionChanged += onCorps, () => Corps.CollectionChanged -= onCorps);
 
         // Read once the tool has been opened, not at startup for a screen nobody has looked at.
         this.WhenAnyValue(x => x.SelectedCorp)
@@ -443,12 +496,15 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
 
         // The fuel left counts down between polls; a reload every five minutes keeps it honest
         // and picks up whatever the pollers have brought in.
-        Observable.Interval(TimeSpan.FromMinutes(5))
+        _life.Keep(Observable.Interval(TimeSpan.FromMinutes(5))
             .Where(_ => AutoRefreshEnabled)
             .ObserveOnUi("CorpStructures.AutoRefresh")
             .Where(_ => SelectedCorp is not null && !IsLoading)
-            .Subscribe(t => { _ = LoadAsync(); });
+            .Subscribe(t => { _ = LoadAsync(); }));
     }
+
+    private readonly ToolLife _life = new();
+    public void Dispose() => _life.Dispose();
 
     /// <summary>
     /// Selects the corporation chosen last time on this machine, else the first — when nothing is
@@ -494,15 +550,28 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         Status    = CorpText.CsLoading;
         try
         {
-            var infos = await Task.Run(() => CorpStructures.LoadAsync(_dbFactory, corp.Id));
+            var (infos, structuresRead, towersRead) = await Task.Run(async () => (
+                await CorpStructures.LoadAsync(_dbFactory, corp.Id),
+                await CorpStructures.ListReadAsync(_dbFactory, corp.Id, CorpStructures.StructuresEndpoint),
+                await CorpStructures.ListReadAsync(_dbFactory, corp.Id, CorpStructures.StarbasesEndpoint)));
             if (seq != _loadSeq) return;
 
             var now = DateTimeOffset.UtcNow;
             _all = [.. infos
-                .Select(i => new CorpStructureRowVm(i, now))
-                .OrderBy(r => r.Info.IsPowered ? 0 : r.Info.Kind == CorpStructureKind.Upwell ? 1 : 2)
-                .ThenBy(r => r.RunsOutSort)
+                .Select(i => new CorpStructureRowVm(i, now, i.Kind switch
+                {
+                    CorpStructureKind.Upwell => structuresRead,
+                    CorpStructureKind.Tower  => towersRead,
+                    _                        => null,
+                }))
+                .OrderBy(r => r.FuelSort)
                 .ThenBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)];
+
+            StaleNote = string.Join(" ", new[]
+                {
+                    StaleText(structuresRead, infos.Any(i => i.Kind == CorpStructureKind.Upwell), CorpText.CsStaleStructures),
+                    StaleText(towersRead,     infos.Any(i => i.Kind == CorpStructureKind.Tower),  CorpText.CsStaleTowers),
+                }.Where(s => s.Length > 0));
 
             var upwell = _all.Count(r => r.Info.Kind == CorpStructureKind.Upwell);
             var towers = _all.Count(r => r.IsTower);
@@ -534,6 +603,28 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             if (seq == _loadSeq) IsLoading = false;
         }
     }
+
+    /// <summary>
+    /// The banner over a list that is no longer being read: when it was, why it stopped, and that
+    /// what it shows is as it was then. Empty while the list is current, or has nothing in it.
+    /// </summary>
+    private static string StaleText(CorpListRead read, bool any, string format)
+    {
+        if (!any || !read.Stale) return "";
+        var when = read.ReadAt is { } at ? PiFormat.When(at) : CorpText.CsStaleNever;
+        return string.Format(format, when) + " "
+             + (read.Denied ? CorpText.CsStaleDenied : CorpText.CsStaleNotRead) + " "
+             + CorpText.CsStaleAsThen;
+    }
+
+    private string _staleNote = "";
+    /// <summary>Shown over the list while it is a snapshot: see <see cref="StaleText"/>.</summary>
+    public string StaleNote
+    {
+        get => _staleNote;
+        private set { this.RaiseAndSetIfChanged(ref _staleNote, value); this.RaisePropertyChanged(nameof(HasStaleNote)); }
+    }
+    public bool HasStaleNote => _staleNote.Length > 0;
 
     /// <summary>The Config tab: each Upwell structure type anchored, or with a fit set, and the
     /// saved fits for it to choose from.</summary>
@@ -661,7 +752,7 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
         StatusFields.Clear(); LocationFields.Clear(); FuelRows.Clear(); Services.Clear();
         FitGroups.Clear(); MoonFields.Clear(); MoonBay.Clear(); TowerFields.Clear(); FitCheckLines.Clear();
 
-        if (Selected is not { Info: var i })
+        if (Selected is not { Info: var i } row)
         {
             HasDetail = false;
             return;
@@ -693,10 +784,16 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             }, i.Place));
 
         // Status.
-        StatusFields.Add(new(CorpText.CsState, StateLabel(i.State)));
+        StatusFields.Add(new(CorpText.CsState, row.StateText));
+        if (row.StaleRead is { } stale)
+            StatusFields.Add(new(CorpText.CsListRead,
+                stale.ReadAt is { } readAt ? $"{PiFormat.When(readAt)} ({PiFormat.Relative(readAt, now)})" : CorpText.CsStaleNever,
+                FuelUrgency.Soon));
         var left = i.RunsOut is { } ro ? ro - now : (TimeSpan?)null;
         var urgency = UrgencyOf(left, i);
-        if (i.RunsOut is { } runsOut)
+        if (row.FuelUnknown)
+            StatusFields.Add(new(CorpText.CsFuelRunsOut, row.FuelTip ?? "—"));
+        else if (i.RunsOut is { } runsOut)
             StatusFields.Add(new(CorpText.CsFuelRunsOut,
                 left > TimeSpan.Zero
                     ? string.Format(CorpText.CsWhenIn, PiFormat.When(runsOut), PiFormat.Duration(left!.Value))
@@ -706,7 +803,8 @@ public class CorpStructuresViewModel : ReactiveObject, IPeriodicRefresh
             StatusFields.Add(new(CorpText.CsFuelRunsOut, CorpText.CsLowPowerLong, FuelUrgency.Out));
         if (i.BlocksPerHour is { } bph)
             StatusFields.Add(new(CorpText.CsBlocksPerDay,
-                string.Format(CorpText.CsPerDayPerHour, (bph * 24).ToString("N0"), bph.ToString("0.#"))));
+                string.Format(i.BurnFromTypeFit ? CorpText.CsPerDayPerHourTypeFit : CorpText.CsPerDayPerHour,
+                              (bph * 24).ToString("N0"), bph.ToString("0.#"))));
         if (i.FuelIskPerDay is { } isk)
             StatusFields.Add(new(CorpText.CsFuelIskPerDay,
                 string.Format(CorpText.CsFuelIskValue, Isk(isk))));
