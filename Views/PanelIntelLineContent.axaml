@@ -6,13 +6,13 @@
              x:Class="EveConsole.Views.PanelIntelLineContent"
              x:DataType="vm:PanelIntelVm">
   <UserControl.Styles>
+    <!-- No box behind the line: it sits on whatever is under the strip (user, 2026-11-13). -->
     <Style Selector="Border.chip">
-      <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
-      <Setter Property="BorderBrush" Value="{DynamicResource BorderDefaultBrush}" />
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderBrush" Value="Transparent" />
     </Style>
-    <!-- Fresh news within five jumps lights the line up. A look only: sound is the alarms' job. -->
+    <!-- Fresh news within five jumps outlines the line. A look only: sound is the alarms' job. -->
     <Style Selector="Border.chip.fresh">
-      <Setter Property="Background" Value="{DynamicResource BadSurfaceBrush}" />
       <Setter Property="BorderBrush" Value="{DynamicResource BadBrush}" />
     </Style>
     <Style Selector="Button.icon">
@@ -56,7 +56,7 @@
                 CornerRadius="3" Padding="0 0 4 0" HorizontalAlignment="Left" VerticalAlignment="Center">
           <Grid ColumnDefinitions="3,*" DataContext="{Binding Nearest}" x:DataType="vm:IntelSystemLineVm">
             <Border Width="3" Background="{Binding TierBrush}" Margin="0 1" />
-            <views:IntelSystemLine Grid.Column="1" Margin="4 0 0 0" />
+            <views:IntelSystemLine Grid.Column="1" Margin="4 0 0 0" Classes="oneline" />
           </Grid>
         </Border>
       </DockPanel>

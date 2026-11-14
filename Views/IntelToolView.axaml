@@ -293,6 +293,8 @@
       <Setter Property="Padding" Value="0 5 12 5" />
     </Style>
     <Style Selector="Border.feedLine.fresh"><Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" /></Style>
+    <!-- A kill's line opens its killmail when clicked away from its links. -->
+    <Style Selector="Border.feedLine.killmail"><Setter Property="Cursor" Value="Hand" /></Style>
 
     <Style Selector="Border.section">
       <Setter Property="Background" Value="{DynamicResource SurfacePanelBrush}" />
@@ -622,6 +624,7 @@
           <ItemsControl.DataTemplates>
             <DataTemplate DataType="vm:IntelFeedLineVm" x:DataType="vm:IntelFeedLineVm">
               <Border Classes="feedLine" Classes.fresh="{Binding Row.IsFresh}" ToolTip.Tip="{Binding Row.ToolTip}"
+                      Classes.killmail="{Binding Row.CanOpenKill}" Tapped="OnFeedLineTapped"
                       ContextRequested="OnFeedLineContext">
                 <Grid ColumnDefinitions="3,70,40,170,*,Auto" ColumnSpacing="10" Opacity="{Binding Row.Opacity}">
                   <Border Classes="stripe" Background="{Binding Row.TierBrush}" ToolTip.Tip="{Binding Row.StandingsTip}" />

@@ -31,7 +31,7 @@ namespace EveConsole.Tools.IntelCheck
             finally { CultureInfo.CurrentUICulture = culture; CultureInfo.CurrentCulture = format; }
         }
 
-        private static IntelView View(IntelSnapshot snapshot) =>
+        internal static IntelView View(IntelSnapshot snapshot) =>
             IntelLens.Project(snapshot, new IntelViewer
             {
                 Origins = [new IntelOrigin(Me, Home)], MaxJumps = 10, StandingsCharacterId = Me,
@@ -394,6 +394,11 @@ namespace EveConsole.Tools.IntelCheck
                 && kill.Pictures.First(p => p.Id == AllyC).PictureTip == "Qzx Ember Union · 2",
                 kill.Pictures.First(p => p.Id == AllyA).PictureTip);
             c.Check("feed who: then the attackers' hulls, most flown first", said.EndsWith("^Raider QX ×5,^Lancer QX ×2,^Bastion QX", StringComparison.Ordinal), said);
+            // A click on a kill's line, away from its links, opens its killmail; a report's line has none to open.
+            var reportLine = Line(r => r.Event.Kind == IntelEventKind.Report);
+            c.Check("feed who: a kill's line opens its killmail, a report's has none",
+                kill is { CanOpenKill: true, KillMailId: BrawlKill } && reportLine is { CanOpenKill: false, KillMailId: 0 },
+                $"kill {kill.KillMailId}, report {reportLine.KillMailId}");
             var brawl = view.Systems.Single(s => s.SystemId == Brawl);
             // A victim whose name no cache has: "Unknown pilot", the id only in the tooltip, never shown as a name.
             var killRow = view.Feed.First(r => r.Event.KillMailId == BrawlKill);

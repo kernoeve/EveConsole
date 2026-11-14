@@ -368,6 +368,11 @@ public sealed class IntelSystemLineVm : ReactiveObject
 
     public IBrush? TierBrush { get; }
     public string? StandingsTip { get; }
+
+    /// <summary>The system's tooltip: its region, then whose standings coloured it. The single line
+    /// shows no region under the name, so this is where it is read there.</summary>
+    public string? SystemTip => string.Join('\n', new[] { RegionText, StandingsTip }.Where(t => !string.IsNullOrEmpty(t))) is { Length: > 0 } tip ? tip : null;
+
     public bool IsClear { get; }
 
     public IntelWatchMark Watch { get; }

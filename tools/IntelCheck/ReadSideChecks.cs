@@ -179,6 +179,7 @@ namespace EveConsole.Tools.IntelCheck
 
         public static void CampChecks(Checks c)
         {
+            CampClearChecks(c);
             var g = Groups();
             var t0 = Ago(40);
             var kills = CampKills(t0);
@@ -306,6 +307,39 @@ namespace EveConsole.Tools.IntelCheck
             for (var i = 0; i < 300; i++) chain[1_000 + i] = i == 0 ? [1_001] : i == 299 ? [1_298] : [1_000 + i - 1, 1_000 + i + 1];
             var far = IntelDistanceService.Walk(1_000, chain, new Dictionary<int, List<(int, bool)>>());
             c.Check("distance: no range cap (299 jumps)", far.GetValueOrDefault(1_299).Jumps == 299);
+        }
+
+        /// <summary>
+        /// A clear reported in a system after a camp's last kill ends the camp then: the system's line is the clear,
+        /// with no camp, and the Camps tab has it ended. A kill on the gate after the clear brings it back.
+        /// </summary>
+        private static void CampClearChecks(Checks c)
+        {
+            List<IntelKill> kills =
+            [
+                Kill(41, Ago(12), P1, 10_000, [Attacker(P5), Attacker(P6)]),
+                Kill(42, Ago(10), P2, 10_000, [Attacker(P6)]),
+            ];
+            var clear = Report(S1, Ago(5), kind: IntelReportKind.Clear);
+            var camped = Build([], [], [], kills);
+            c.Check("camp and clear: with no clear the camp is active",
+                camped.Camps is [{ } k] && k.IsActive(Now), string.Join(",", camped.Camps.Select(x => x.ExpiresAt.ToString("HH:mm"))));
+
+            var cleared = Build([clear], [], [], kills);
+            var view = IntelLens.Project(cleared, Everyone with { MaxJumps = 10 }, Now, Hops());
+            var row = view.Systems.FirstOrDefault(r => r.SystemId == S1);
+            c.Check("camp and clear: a clear after the last kill ends the camp at the clear",
+                cleared.Camps is [{ } e] && !e.IsActive(Now) && e.ExpiresAt == Ago(5),
+                string.Join(",", cleared.Camps.Select(x => x.ExpiresAt.ToString("HH:mm"))));
+            c.Check("camp and clear: the system's line is the clear, with no camp on it",
+                row is { State: IntelSystemState.Clear, Camps.Count: 0 }, $"{row?.State} camps {row?.Camps.Count}");
+            var tab = IntelLens.ProjectCamps(cleared, Everyone, Now, Hops());
+            c.Check("camp and clear: the Camps tab keeps it, ended", tab.Any(t => t.Camp is not null && !t.Active),
+                string.Join(",", tab.Select(t => $"{t.Key} {t.Active}")));
+
+            var again = Build([clear], [], [], [.. kills, Kill(43, Ago(2), P3, 10_000, [Attacker(P6)])]);
+            c.Check("camp and clear: a kill on the gate after the clear makes the camp active again",
+                again.Camps is [{ } a] && a.IsActive(Now) && a.LastKill == Ago(2));
         }
 
         // ── The snapshot's rules ───────────────────────────────────────────────────────────────────────────

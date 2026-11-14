@@ -46,6 +46,7 @@ namespace EveConsole.Tools.IntelCheck
                     _setUp = true;
                 }
                 Grids(c);
+                KillLineClicks(c);
                 CampsAndWatch(c);
                 ChannelLabelChecks.SavedSelection(c);
                 PasteTabChecks.Run(c);
@@ -434,6 +435,65 @@ namespace EveConsole.Tools.IntelCheck
             tool.PilotHeaders.Count(h => h.IsSorted) == 1
             && tool.PilotHeaders.Single(h => h.IsSorted) is { } h && h.Column == column
             && h.IsDown == tool.PilotSortDescending && h.IsUp == !tool.PilotSortDescending;
+
+        /// <summary>
+        /// A kill's line, clicked away from its links, opens the killmail in the Killmail tool; its system link still
+        /// opens the system and nothing else; a report's line opens nothing on a click.
+        /// </summary>
+        private static void KillLineClicks(Checks c)
+        {
+            var snapshot = FeedSnapshot();
+            var feed = HostileChecks.View(snapshot).Feed;
+            var kill = new IntelEventRowVm(feed.First(r => r.Event.KillMailId == BrawlKill), snapshot, Now, false);
+            var report = new IntelEventRowVm(feed.First(r => r.Event.Kind == IntelEventKind.Report), snapshot, Now, false);
+            var nav = EntityNavigator.Instance;
+            var (keptKill, keptSystem) = (nav.OpenKillmail, nav.OpenSystem);
+            var killmails = new List<int>();
+            var systems = new List<int>();
+            nav.OpenKillmail = killmails.Add;
+            nav.OpenSystem = systems.Add;
+            var killLine = new IntelEventRow { DataContext = kill };
+            var reportLine = new IntelEventRow { DataContext = report };
+            var window = new Window { Width = 600, Height = 200, Content = new StackPanel { Children = { killLine, reportLine } } };
+            window.Show();
+            try
+            {
+                Dispatcher.UIThread.RunJobs();
+                window.UpdateLayout();
+                // Away from the links: the right-hand end of the first line, where the age sits.
+                ClickAt(window, killLine, new Point(killLine.Bounds.Width - 4, 10));
+                c.Check("kill line: a click away from its links opens the killmail", killmails.SequenceEqual([BrawlKill]) && systems.Count == 0,
+                        $"killmails [{string.Join(',', killmails)}], systems [{string.Join(',', systems)}]");
+                killmails.Clear();
+                var link = killLine.GetVisualDescendants().OfType<Button>().First();
+                Click(window, link);
+                Dispatcher.UIThread.RunJobs();
+                c.Check("kill line: a click on its system link opens the system, not the killmail",
+                        killmails.Count == 0 && systems.SequenceEqual([kill.SystemId]),
+                        $"killmails [{string.Join(',', killmails)}], systems [{string.Join(',', systems)}]");
+                systems.Clear();
+                ClickAt(window, reportLine, new Point(reportLine.Bounds.Width - 4, 10));
+                c.Check("kill line: a report's line opens nothing on a click", killmails.Count == 0 && systems.Count == 0,
+                        $"killmails [{string.Join(',', killmails)}], systems [{string.Join(',', systems)}]");
+            }
+            finally
+            {
+                window.Close();
+                (nav.OpenKillmail, nav.OpenSystem) = (keptKill, keptSystem);
+            }
+        }
+
+        /// <summary>A real click, through the window's input, at a point on a control.</summary>
+        private static void ClickAt(Window window, Control control, Point at)
+        {
+            Dispatcher.UIThread.RunJobs();
+            window.UpdateLayout();
+            var point = control.TranslatePoint(at, window) ?? default;
+            window.MouseMove(point);
+            window.MouseDown(point, MouseButton.Left);
+            window.MouseUp(point, MouseButton.Left);
+            Dispatcher.UIThread.RunJobs();
+        }
 
         /// <summary>A real click, through the window's input, in the middle of the header.</summary>
         private static void Click(Window window, Button button)

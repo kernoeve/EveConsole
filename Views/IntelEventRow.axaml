@@ -66,6 +66,10 @@
     <Style Selector="Border.row.fresh">
       <Setter Property="Background" Value="{DynamicResource WarnSurfaceBrush}" />
     </Style>
+    <!-- A kill's line opens its killmail when clicked away from its links. -->
+    <Style Selector="Border.row.killmail">
+      <Setter Property="Cursor" Value="Hand" />
+    </Style>
 
     <!-- A name that opens something: the cursor and the hover underline carry it, not the colour. -->
     <Style Selector="Button.link">
@@ -84,7 +88,7 @@
     </Style>
   </UserControl.Styles>
 
-  <Border Classes="row" Classes.fresh="{Binding IsFresh}"
+  <Border Classes="row" Classes.fresh="{Binding IsFresh}" Classes.killmail="{Binding CanOpenKill}" Tapped="OnRowTapped"
           BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1"
           Padding="0 5 8 5" Opacity="{Binding Opacity}" ToolTip.Tip="{Binding ToolTip}">
     <Grid ColumnDefinitions="3,26,*,Auto" RowDefinitions="Auto,Auto" ColumnSpacing="8" RowSpacing="3">

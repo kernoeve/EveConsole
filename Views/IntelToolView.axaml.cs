@@ -183,12 +183,22 @@ public partial class IntelToolView : UserControl
 
     // ── The Feed ─────────────────────────────────────────────────────────────
 
+    /// <summary>A kill's line, clicked anywhere but on one of its links, opens the killmail.</summary>
+    private void OnFeedLineTapped(object? sender, TappedEventArgs e)
+    {
+        if (IntelEventRow.OnLink(e.Source) || (sender as Control)?.DataContext is not IntelFeedLineVm { Row.CanOpenKill: true } line) return;
+        e.Handled = true;
+        line.Row.OpenKill();
+    }
+
     private void OnFeedLineContext(object? sender, ContextRequestedEventArgs e)
     {
         if ((sender as Control)?.DataContext is not IntelFeedLineVm line) return;
         e.Handled = true;
         var row = line.Row;
-        var items = new List<Control> { Item(IntelText.MenuOpenSystem, row.OpenSystem) };
+        var items = new List<Control>();
+        if (row.CanOpenKill) items.Add(Item(IntelText.MenuOpenKill, row.OpenKill));
+        items.Add(Item(IntelText.MenuOpenSystem, row.OpenSystem));
         if (row.CanShowOnMap) items.Add(Item(IntelText.MenuShowOnMap, row.ShowOnMap));
         items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
         new ContextMenu { ItemsSource = items }.Open(sender as Control ?? this);

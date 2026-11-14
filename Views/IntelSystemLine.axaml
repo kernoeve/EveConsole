@@ -34,6 +34,10 @@
   </UserControl.Resources>
 
   <UserControl.Styles>
+    <!-- The single line keeps to one line of text: the region goes to the system's tooltip. -->
+    <Style Selector="views|IntelSystemLine.oneline Panel.region"><Setter Property="IsVisible" Value="False" /></Style>
+    <Style Selector="views|IntelSystemLine.oneline Grid.row"><Setter Property="Height" Value="22" /></Style>
+
     <Style Selector="Border.badge">
       <Setter Property="Background" Value="{DynamicResource SurfacePanelAltBrush}" />
       <Setter Property="CornerRadius" Value="3" />
@@ -88,7 +92,7 @@
     <Style Selector="Path.flag.clear"><Setter Property="Stroke" Value="{DynamicResource GoodBrush}" /></Style>
   </UserControl.Styles>
 
-  <Grid ColumnDefinitions="Auto,*,Auto" Height="24" Background="Transparent">
+  <Grid Classes="row" ColumnDefinitions="Auto,*,Auto" Height="24" Background="Transparent">
     <Border Classes="badge" IsVisible="{Binding HasJumps}" ToolTip.Tip="{Binding JumpsTip}"
             Classes.here="{Binding IsHere}" Classes.near="{Binding IsNear}" Classes.mid="{Binding IsMid}"
             Classes.far="{Binding IsFar}" Classes.pending="{Binding IsPending}">
@@ -96,12 +100,14 @@
     </Border>
 
     <views:IntelFitPanel Grid.Column="1" Margin="6 0 6 0">
-      <!-- Where: the system, its region small under it. -->
-      <StackPanel VerticalAlignment="Center" Margin="0 0 8 0" ToolTip.Tip="{Binding StandingsTip}">
+      <!-- Where: the system, its region small under it (in the tooltip on the single line). -->
+      <StackPanel VerticalAlignment="Center" Margin="0 0 8 0" ToolTip.Tip="{Binding SystemTip}">
         <TextBlock Text="{Binding SystemName}" FontSize="11" FontWeight="{Binding NameWeight}" MaxWidth="96"
                    TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextBrightBrush}" />
-        <TextBlock Text="{Binding RegionText}" IsVisible="{Binding HasRegion}" FontSize="8.5" MaxWidth="96" Margin="0 -1 0 0"
-                   TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+        <Panel Classes="region">
+          <TextBlock Text="{Binding RegionText}" IsVisible="{Binding HasRegion}" FontSize="8.5" MaxWidth="96" Margin="0 -1 0 0"
+                     TextTrimming="CharacterEllipsis" Foreground="{DynamicResource TextMutedBrush}" />
+        </Panel>
       </StackPanel>
 
       <!-- How many. -->
