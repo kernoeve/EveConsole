@@ -66,7 +66,7 @@
     <!-- ── Toolbar ──────────────────────────────────────────────────── -->
     <Border Grid.Row="0" Background="{DynamicResource SurfacePanelBrush}" Padding="12 8"
             BorderThickness="0 0 0 1" BorderBrush="{DynamicResource BorderSubtleBrush}">
-      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+      <Grid ColumnDefinitions="Auto,Auto,Auto,*,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
         <TextBlock Grid.Column="0" Text="{x:Static loc:MapText.OverlayLabel}" Classes="flabel"
                    VerticalAlignment="Center" Margin="0 0 6 0" />
         <ComboBox Grid.Column="1" ItemsSource="{Binding OverlayModes}"
@@ -100,8 +100,27 @@
         <ToggleButton Grid.Column="8" IsChecked="{Binding ShowCampaigns}" Content="{x:Static loc:MapText.CampaignsToggle}"
                       ToolTip.Tip="{x:Static loc:MapText.TipCampaignsToggle}" IsVisible="{Binding CampaignsAvailable}"
                       Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <!-- ♦ pirates killing players: what was seen, never what is behind it. -->
+        <ToggleButton Grid.Column="9" IsChecked="{Binding ShowDiamonds}" Content="{x:Static loc:MapText.NpcDiamondsToggle}"
+                      ToolTip.Tip="{x:Static loc:MapText.TipNpcDiamondsToggle}"
+                      Padding="10 4" FontSize="11" Margin="12 0 0 0" />
+        <!-- NPC capitals: the button switches them all, its arrow chooses the classes. Each choice
+             is kept. -->
+        <ToggleSplitButton Grid.Column="10" IsChecked="{Binding ShowNpcCapitals}" Content="{x:Static loc:MapText.NpcCapitalsToggle}"
+                           ToolTip.Tip="{x:Static loc:MapText.TipNpcCapitalsToggle}"
+                           Padding="10 4" FontSize="11" Margin="12 0 0 0">
+          <ToggleSplitButton.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <StackPanel Spacing="4" Margin="2">
+                <CheckBox IsChecked="{Binding ShowNpcTitans}" Content="{x:Static loc:MapText.NpcTitans}" FontSize="11" />
+                <CheckBox IsChecked="{Binding ShowNpcSupers}" Content="{x:Static loc:MapText.NpcSupers}" FontSize="11" />
+                <CheckBox IsChecked="{Binding ShowNpcDreads}" Content="{x:Static loc:MapText.NpcDreads}" FontSize="11" />
+              </StackPanel>
+            </Flyout>
+          </ToggleSplitButton.Flyout>
+        </ToggleSplitButton>
         <!-- What the map draws from intel besides the marks, each switched on its own. -->
-        <DropDownButton Grid.Column="9" Content="{x:Static loc:MapText.IntelLayers}" ToolTip.Tip="{x:Static loc:MapText.TipIntelLayers}"
+        <DropDownButton Grid.Column="11" Content="{x:Static loc:MapText.IntelLayers}" ToolTip.Tip="{x:Static loc:MapText.TipIntelLayers}"
                         Padding="10 4" FontSize="11" Margin="12 0 0 0">
           <DropDownButton.Flyout>
             <Flyout Placement="BottomEdgeAlignedRight">
@@ -124,7 +143,7 @@
             </Flyout>
           </DropDownButton.Flyout>
         </DropDownButton>
-        <ToggleButton Grid.Column="10" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
+        <ToggleButton Grid.Column="12" IsChecked="{Binding ShowSidePanel}" Content="{x:Static loc:MapText.SidePanel}"
                       ToolTip.Tip="{x:Static loc:MapText.TipSidePanel}"
                       Padding="10 4" FontSize="11" Margin="12 0 0 0" />
       </Grid>
@@ -174,6 +193,7 @@
                       Holes="{Binding VisibleHoles}"
                       Storms="{Binding VisibleStorms}"
                       Campaigns="{Binding VisibleCampaigns}"
+                      NpcMarks="{Binding NpcMarks}"
                       HoleLinks="{Binding VisibleHoleLinks}"
                       CampedGates="{Binding VisibleCampedGates}"
                       IntelArrows="{Binding VisibleIntelArrows}"
@@ -354,6 +374,23 @@
                            HorizontalAlignment="Center" VerticalAlignment="Center" />
               </Border>
               <TextBlock Text="{x:Static loc:MapText.LiveMarkOfficers}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <!-- ♦ rat activity and NPC capitals: the next tags along, left of the officer's. -->
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding ShowDiamonds}">
+              <Border Background="#7DD3FC" CornerRadius="3" Height="13" Padding="3 0" VerticalAlignment="Center">
+                <TextBlock Text="◆" FontSize="9" FontWeight="Bold" Foreground="#082F49"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LiveMarkDiamonds}" FontSize="10.5" TextWrapping="Wrap"
+                         Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="7" IsVisible="{Binding ShowNpcCapitals}">
+              <Border Background="#FB923C" CornerRadius="3" Width="13" Height="13" VerticalAlignment="Center">
+                <TextBlock Text="{x:Static loc:MapText.NpcGlyphTitan}" FontSize="9" FontWeight="Bold" Foreground="#431407"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+              </Border>
+              <TextBlock Text="{x:Static loc:MapText.LiveMarkCapitals}" FontSize="10.5" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" MaxWidth="170" />
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="7">

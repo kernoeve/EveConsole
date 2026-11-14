@@ -35,6 +35,15 @@ public sealed class IrcChannelState(IrcChannel channel)
     public string Topic { get; set; } = "";
     public string TopicBy { get; set; } = "";
 
+    /// <summary>
+    /// The channel's settings as mode letters, sorted, with the value of each that has one (l: the most people). Not the
+    /// lists (bans and the like), nor ranks. ⚠️ A key (k) is held without its value: it is a password to join.
+    /// </summary>
+    public SortedDictionary<char, string> Modes { get; } = new();
+
+    /// <summary>The modes have been read from the server since joining (324), so what is held is all of them.</summary>
+    public bool ModesKnown { get; set; }
+
     /// <summary>Why the last join failed, or why this person was put out. Blank when nothing went wrong.</summary>
     public string Failure { get; set; } = "";
 
@@ -114,11 +123,51 @@ public sealed class IrcSession(IrcServer server)
     /// </summary>
     internal HashSet<string> Leaving { get; } = new(StringComparer.Ordinal);
 
-    /// <summary>A channel's ban list being read (367 lines until 368), by folded channel.</summary>
+    /// <summary>
+    /// A channel's list being read, by folded channel and the list's mode letter (<see cref="IrcService.ListKey"/>): bans
+    /// (367 lines until 368), ban exceptions (348, 349) and invite exceptions (346, 347).
+    /// </summary>
     internal Dictionary<string, (List<IrcBan> Bans, TaskCompletionSource<IReadOnlyList<IrcBan>> Done)> BansComing { get; } = new(StringComparer.Ordinal);
 
+    /// <summary>Answers to WHOIS being gathered, by folded nickname: what was said, who waits, and whether anything came yet.</summary>
+    internal Dictionary<string, (IrcWhois Info, TaskCompletionSource<IrcWhois?> Done, bool Heard)> WhoisComing { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>The server keeps people's pictures (draft/metadata-2), so one set here is seen by others.</summary>
+    public bool HasPictures { get; internal set; }
+
+    /// <summary>Where the server takes files (draft/FILEHOST), blank when it named none: see IrcService.SendFileAsync.</summary>
+    public string FileHost { get; internal set; } = "";
+
+    /// <summary>Whose pictures this connection has asked for or been told, by folded nickname: each asked once.</summary>
+    internal HashSet<string> PicturesAsked { get; } = new(StringComparer.Ordinal);
+
+    /// <summary>People to ask for a picture, a few at a time: see IrcService.AskPicturesSlowlyAsync.</summary>
+    internal Queue<string> PicturesToAsk { get; } = new();
+
+    /// <summary>The server lets messages be taken back (REDACT): see <see cref="IrcClient.HasRedact"/>.</summary>
+    public bool CanRedact { get; internal set; }
+
+    /// <summary>
+    /// Logged in to an account. ⚠️ What a server goes by to know a message was this person's: one may refuse taking back
+    /// a message from someone not logged in, unless they are the channel's operator.
+    /// </summary>
+    public bool LoggedIn { get; internal set; }
+
     /// <summary>The last thing the server refused, for the screen to say (not being an operator, no such nick).</summary>
-    public string LastRefusal { get; internal set; } = "";
+    public string LastRefusal { get; private set; } = "";
+
+    /// <summary>
+    /// Rises with every refusal, so the same words refused twice are shown twice. ⚠️ Shown by their words alone, a
+    /// second "not a channel operator" looked like nothing happened at all.
+    /// </summary>
+    public int RefusalCount { get; private set; }
+
+    internal void Refused(string why) { LastRefusal = why; RefusalCount++; }
+
+    /// <summary>A refusal as the worker last wrote it, for a client that is not the worker.</summary>
+    internal void ShowRefusal(string why, int count) { LastRefusal = why; RefusalCount = count; }
+
+    internal void ForgetRefusal() { LastRefusal = ""; RefusalCount = 0; }
 
     public T Locked<T>(Func<IrcSession, T> read) { lock (_gate) return read(this); }
     public void Locked(Action<IrcSession> act) { lock (_gate) act(this); }
@@ -167,7 +216,7 @@ public sealed record IrcDirectSummary(int ServerId, string Conversation, string 
 /// <para>What was said while nothing held the lease comes back where the server keeps history (CHATHISTORY); a server
 /// without history has no way to give it, as with any IRC client.</para>
 /// </remarks>
-public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null)
+public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory, AppErrorLogger errors, ClientSignals? signals = null, AvatarService? avatars = null)
 {
     private static readonly int[] BackoffSeconds = [5, 10, 20, 40, 60, 120, 300];
     private static readonly TimeSpan StableAfter = TimeSpan.FromMinutes(2);
@@ -193,6 +242,9 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
 
     public event Action<int, string>? ReactionsChanged;
 
+    /// <summary>Saved messages of a conversation changed in place (one was taken back): server, conversation.</summary>
+    public event Action<int, string>? MessagesChanged;
+
     /// <summary>A line from an intel channel was saved, for the intel reader.</summary>
     public event Action? IntelLinesSaved;
 
@@ -214,9 +266,33 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
+    private bool _picturesHooked;
+
+    /// <summary>Tells chat pictures where these servers keep files, once: on starting, or on connecting where nothing started this.</summary>
+    private void HookPictures()
+    {
+        if (_picturesHooked) return;
+        _picturesHooked = true;
+        ChatPictures.AddHosts(PictureHosts);
+    }
+
+    /// <summary>
+    /// Where the servers connected keep files (their draft/FILEHOST), so pictures there show in chat at once. A
+    /// certificate trusted for the IRC server goes for its file host too when both are on the same host.
+    /// </summary>
+    private IEnumerable<PictureHost> PictureHosts() =>
+        Sessions.Where(s => s.State == IrcState.Connected && Uri.TryCreate(s.FileHost, UriKind.Absolute, out _))
+                .Select(s =>
+                {
+                    var host = new Uri(s.FileHost);
+                    var sameHost = string.Equals(host.Host, s.Server.Host.Trim(), StringComparison.OrdinalIgnoreCase);
+                    return new PictureHost(host.Host, false, host.Port, sameHost ? s.Server.TrustedCertificate : "");
+                });
+
     /// <summary>Lists the saved servers. Connecting is the worker's (<see cref="BecomeWorkerAsync"/>).</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
+        HookPictures();
         await LoadServersAsync(ct);
         await StartShowingAsync(ct);
     }
@@ -238,7 +314,19 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     {
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         if (server.Id == 0) db.IrcServers.Add(server);
-        else db.IrcServers.Update(server);
+        else
+        {
+            // ⚠️ What the connection keeps (the server's encryption rule) and the picture have their own ways of being set:
+            // a settings screen holding an older copy must not write them back.
+            var id = server.Id;
+            if (await db.IrcServers.AsNoTracking().Where(s => s.Id == id)
+                        .Select(s => new { s.StsHost, s.StsPort, s.StsUntil, s.AvatarUrl }).FirstOrDefaultAsync(ct) is { } kept)
+            {
+                server.StsHost = kept.StsHost; server.StsPort = kept.StsPort; server.StsUntil = kept.StsUntil;
+                server.AvatarUrl = kept.AvatarUrl;
+            }
+            db.IrcServers.Update(server);
+        }
         await db.SaveChangesAsync(ct);
 
         if (password is not null)
@@ -289,6 +377,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     /// <summary>Asks for this server to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(IrcSession session)
     {
+        HookPictures();
         if (!ActsHere)
         {
             PostToWorker(session.Server.Id, "connect", new CommandArgs());
@@ -329,7 +418,8 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
             if (session.Client is { } c) await c.DisposeAsync();
             if (loop is not null) await loop.WaitAsync(TimeSpan.FromSeconds(5));
         }
-        catch (Exception e) when (e is OperationCanceledException or TimeoutException or ObjectDisposedException or IrcException) { }
+        // ⚠️ Anything: a connection closed mid-way through being made can fail in ways of its own, and a Disconnect must not.
+        catch (Exception) { }
 
         SetState(session, IrcState.Offline, IrcProblem.None, "");
     }
@@ -351,6 +441,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
     private async Task KeepConnectedAsync(IrcSession session, CancellationToken ct)
     {
         var attempt = 0;
+        int? upgradeTo = null;
         while (!ct.IsCancellationRequested)
         {
             var started = DateTimeOffset.UtcNow;
@@ -358,13 +449,18 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
 
             try
             {
-                await RunOnceAsync(session, ct);
+                await RunOnceAsync(session, upgradeTo, ct);
                 if (ct.IsCancellationRequested) break;
             }
             catch (IrcException e) when (!ct.IsCancellationRequested)
             {
                 switch (e.Failure)
                 {
+                    // The server asked to be reached encrypted (STS): at once, and encrypted from here on while this runs.
+                    // ⚠️ Never twice in a row: a server that asks again over the encrypted connection is not followed round.
+                    case IrcFailure.Upgrade when upgradeTo is null:
+                        upgradeTo = e.UpgradePort;
+                        continue;   // the finally below closes this connection first
                     case IrcFailure.Certificate:
                         session.CertificateFingerprint = e.CertificateFingerprint ?? "";
                         session.CertificateSubject = e.CertificateSubject ?? "";
@@ -412,7 +508,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         }
     }
 
-    private async Task RunOnceAsync(IrcSession session, CancellationToken ct)
+    private async Task RunOnceAsync(IrcSession session, int? upgradeTo, CancellationToken ct)
     {
         var server = session.Server;
         var kind = (IrcLoginKind)server.LoginKind;
@@ -426,8 +522,12 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
                     : "No password is saved.");
         }
 
+        // Encrypted where the server has asked to be (STS), on the port it named, whatever is set: just now, or kept from before.
+        var (port, tls) = (server.Port, server.Tls);
+        if (!tls && (upgradeTo ?? StsPortOf(server)) is { } encrypted) (port, tls) = (encrypted, true);
+
         var client = new IrcClient(new IrcLogin(
-            server.Host.Trim(), server.Port, server.Tls, server.Nickname.Trim(), server.Username, server.RealName,
+            server.Host.Trim(), port, tls, server.Nickname.Trim(), server.Username, server.RealName,
             kind, server.Account, password, server.TrustedCertificate));
         session.Client = client;
 
@@ -444,8 +544,13 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         session.IsEncrypted = client.IsEncrypted;
         session.HasHistory = client.HasChatHistory;
         session.HasTags = client.HasTags;
+        session.CanRedact = client.HasRedact;
+        session.LoggedIn = client.LoggedInAs.Length > 0;
+        session.HasPictures = client.HasMetadata;
+        session.FileHost = client.Support.FileHost;
+        await KeepStsAsync(session, client, server.Host.Trim(), port, ct);
         // What was left before this connection: a JOIN of the last one cannot be on its way any more.
-        session.Locked(s => s.Leaving.Clear());
+        session.Locked(s => { s.Leaving.Clear(); s.PicturesAsked.Clear(); s.PicturesToAsk.Clear(); });
         SetState(session, IrcState.Connected, IrcProblem.None, "");
 
         // One reader per connection keeps lines in order, and the database off the reading thread. ⚠️ Stopped with the
@@ -453,6 +558,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
         // joined, or list people, on a connection that has not joined them.
         using var workerStop = CancellationTokenSource.CreateLinkedTokenSource(ct);
         var worker = Task.Run(() => ProcessInboxAsync(session, client, inbox.Reader, workerStop.Token), workerStop.Token);
+        if (client.HasMetadata) _ = AskPicturesSlowlyAsync(session, client, workerStop.Token);
 
         // ⚠️ Reading starts now, alongside what follows logging in: joining many channels at the sending pace takes a
         // while, and a server whose PING goes unread meanwhile drops the connection.
@@ -518,6 +624,7 @@ public sealed partial class IrcService(IDbContextFactory<AppDbContext> dbFactory
                             .Select(m => m.PeerName).Distinct().Take(Math.Max(0, client.Support.Monitor)).ToListAsync(ct);
         session.Locked(s => { foreach (var p in peers.Where(p => p.Length > 0)) s.PeopleMap.TryAdd(s.Fold(p), new IrcPerson(p)); });
         await client.MonitorAsync(peers, ct);
+        await PicturesAfterLoginAsync(session, client, peers, ct);
 
         if (client.HasChatHistory)
         {

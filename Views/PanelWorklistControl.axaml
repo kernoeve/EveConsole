@@ -76,16 +76,19 @@
 
               <Panel Grid.Column="2" VerticalAlignment="Center" Margin="4 0 0 0">
                 <!-- A loop's stop, a line of text, or an item handled at a stop. -->
-                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsChildStop}">
-                  <TextBlock Text="{Binding ChildLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
-                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
-                  <TextBlock Text="{Binding ChildTotals}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center" />
+                <DockPanel IsVisible="{Binding IsChildStop}" LastChildFill="True">
                   <!-- Ticked off here as in the Worklist tool: a stop flown, a trip hauled or contracted.
-                       This is where the pilot flying the loop is looking. -->
-                  <Button Content="{Binding MarkHauledText}" Click="OnMarkHauled" IsVisible="{Binding CanMarkHauled}"
-                          FontSize="9" Padding="6 0" MinHeight="0" VerticalAlignment="Center"
+                       This is where the pilot flying the loop is looking. ⚠️ First, on the left: after a long
+                       stop's name it was pushed past the panel's edge, out of reach. -->
+                  <Button DockPanel.Dock="Left" Content="{Binding MarkHauledText}" Click="OnMarkHauled" IsVisible="{Binding CanMarkHauled}"
+                          FontSize="9" Padding="6 0" MinHeight="0" VerticalAlignment="Center" Margin="0 0 6 0"
                           ToolTip.Tip="{Binding MarkHauledTip}" />
-                </StackPanel>
+                  <TextBlock DockPanel.Dock="Right" Text="{Binding ChildTotals}" FontSize="9" Foreground="{DynamicResource TextMutedBrush}"
+                             VerticalAlignment="Center" Margin="6 0 0 0" />
+                  <!-- The name gives way, shortened, and whole in its tip. -->
+                  <TextBlock Text="{Binding ChildLabel}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextBrightBrush}"
+                             TextTrimming="CharacterEllipsis" VerticalAlignment="Center" ToolTip.Tip="{Binding ChildLabel}" />
+                </DockPanel>
                 <TextBlock Text="{Binding ChildLabel}" IsVisible="{Binding IsChildText}" FontSize="9"
                            Foreground="{DynamicResource TextMutedBrush}" VerticalAlignment="Center"
                            TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding ChildLabel}" />
@@ -106,12 +109,14 @@
                   <TextBlock Text="{Binding ChildOther}" FontSize="9" Foreground="{Binding ChildOtherColor}" VerticalAlignment="Center" />
                 </StackPanel>
 
-                <!-- Haul: where from, where to, and how much of it. -->
-                <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsHaul}">
+                <!-- Haul: where from, where to, and how much of it. The route gives way, shortened, so
+                     how much stays in sight. -->
+                <DockPanel IsVisible="{Binding IsHaul}" LastChildFill="True">
+                  <TextBlock DockPanel.Dock="Right" Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9"
+                             VerticalAlignment="Center" Margin="6 0 0 0" />
                   <TextBlock Text="{Binding RouteText}" Foreground="{DynamicResource TextBrightBrush}" FontSize="10"
                              TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding RouteText}" />
-                  <TextBlock Text="{Binding Title}" Foreground="{DynamicResource TextMutedBrush}" FontSize="9" VerticalAlignment="Center" />
-                </StackPanel>
+                </DockPanel>
 
                 <!-- Job, buy, reprocess or decompress: what, and where. -->
                 <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding IsJob}">

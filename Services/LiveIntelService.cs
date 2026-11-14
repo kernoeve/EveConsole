@@ -55,11 +55,17 @@ public sealed record OfficerSighting(string Name, int TypeId, int SystemId, Date
                                      string? VictimShip);
 
 /// <param name="Officers">Officer NPCs per system, seen on a killmail since the last downtime.</param>
+/// <param name="Diamonds">♦ pirate NPCs killing players per system: one run per faction, the
+/// latest kill within the last five days. See <see cref="LiveIntelService.DiamondGap"/>.</param>
+/// <param name="Capitals">NPC titans, supercarriers and dreadnoughts per system, seen on a killmail
+/// since the last downtime.</param>
 public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>                  Hostiles,
     IReadOnlyDictionary<int, IReadOnlyList<OwnPilot>>         Own,
     DateTimeOffset                                             At,
-    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null)
+    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null,
+    IReadOnlyDictionary<int, IReadOnlyList<DiamondActivity>>?    Diamonds = null,
+    IReadOnlyDictionary<int, IReadOnlyList<NpcCapitalSighting>>? Capitals = null)
 {
     /// <summary>Systems called clear, with nothing newer: the map's green check.</summary>
     public IReadOnlyDictionary<int, LiveClear> Clears { get; init; } = new Dictionary<int, LiveClear>();
@@ -89,7 +95,8 @@ public sealed record LiveMapSnapshot(
 /// viewer, so a pilot counts as friendly when any of the user's characters has them blue (or the
 /// character forced in Settings → Intel does): nobody else is known to be friendly.</para>
 /// </summary>
-public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextFactory<AppDbContext>? dbFactory = null)
+public sealed partial class LiveIntelService(IntelSnapshotService snapshots, IDbContextFactory<AppDbContext>? dbFactory = null,
+                                             AppErrorLogger? errors = null)
 {
     /// <summary>How old the shared snapshot may be before the map's own poll reads a new one: just
     /// under the map's five-second tick, so it never shows a picture a tick behind.</summary>
@@ -106,16 +113,29 @@ public sealed class LiveIntelService(IntelSnapshotService snapshots, IDbContextF
     public async Task<LiveMapSnapshot> ToMapAsync(IntelSnapshot snapshot, CancellationToken ct = default)
     {
         Func<string, string> hullName = n => n;
-        if (dbFactory is not null)
+        if (dbFactory is null) return ToMap(snapshot, DateTimeOffset.UtcNow, hullName);
+
+        var now = DateTimeOffset.UtcNow;
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var english = snapshot.Systems.Values.SelectMany(s => IntelDisplay.ParseShips(s.Unnamed?.Ships)).Select(s => s.Name).ToList();
+        if (english.Count > 0)
+            hullName = await IntelDisplay.HullNamesAsync(db, english, ct).ConfigureAwait(false);
+
+        // ♦ rat activity and NPC capitals come from killmails, not intel: read here beside the
+        // snapshot (reused for two minutes), not by the intel pass. ⚠️ A failed read costs only
+        // those marks: the intel on the map must keep moving without them.
+        var map = ToMap(snapshot, now, hullName);
+        try
         {
-            var english = snapshot.Systems.Values.SelectMany(s => IntelDisplay.ParseShips(s.Unnamed?.Ships)).Select(s => s.Name).ToList();
-            if (english.Count > 0)
-            {
-                await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
-                hullName = await IntelDisplay.HullNamesAsync(db, english, ct).ConfigureAwait(false);
-            }
+            var (diamonds, capitals) = await NpcActivityAsync(db, now, ct).ConfigureAwait(false);
+            return map with { Diamonds = diamonds, Capitals = capitals };
         }
-        return ToMap(snapshot, DateTimeOffset.UtcNow, hullName);
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            errors?.Log(nameof(LiveIntelService), "reading NPC activity", ex);
+            return map;
+        }
     }
 
     /// <summary>The map's form of a snapshot, seen with no viewer: every system with hostiles or

@@ -1138,8 +1138,122 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
                 Ago(o.LastKill, now), o.VictimShip ?? MapText.LiveShipUnknown, o.Kills),
             ShipTypeId: o.TypeId, ShipAt: 0)).ToList();
 
-    /// <summary>"12 min ago", or "3 h 5 min ago" past the hour.</summary>
+    /// <summary>
+    /// The NPC marks for one map: ♦ rat activity, and the NPC capitals of the classes
+    /// <paramref name="kinds"/> lets through. A system's own, and on each region which of its
+    /// systems have them. Built apart from the other live marks so the map's switches apply to the
+    /// counts and hovers, not only to whether a tag is drawn.
+    /// </summary>
+    internal static Dictionary<int, MapNpcMarks> BuildNpcMarks(LiveMapSnapshot live, MapGraph graph,
+        bool diamondsOn, IReadOnlySet<NpcCapitalKind> kinds)
+    {
+        var nodes   = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).ToDictionary(n => n.Id);
+        var regions = graph.Nodes.Where(n => n.IsRegion && graph.IsContinuous).ToDictionary(n => n.RegionId);
+        var result  = new Dictionary<int, MapNpcMarks>();
+        var now     = live.At;
+
+        var diamonds = diamondsOn && live.Diamonds is { } d ? d : new Dictionary<int, IReadOnlyList<DiamondActivity>>();
+        var capitals = (live.Capitals ?? new Dictionary<int, IReadOnlyList<NpcCapitalSighting>>())
+            .Select(kv => (kv.Key, List: (IReadOnlyList<NpcCapitalSighting>)kv.Value.Where(c => kinds.Contains(c.Kind)).ToList()))
+            .Where(x => x.List.Count > 0)
+            .ToDictionary(x => x.Key, x => x.List);
+
+        foreach (var id in diamonds.Keys.Union(capitals.Keys))
+        {
+            if (!nodes.TryGetValue(id, out var node)) continue;
+            diamonds.TryGetValue(id, out var runs);
+            capitals.TryGetValue(id, out var caps);
+
+            var dRows = runs is null ? null : DiamondRows(runs, now);
+            var cRows = caps is null ? null : CapitalRows(caps, now);
+            var kills = runs?.Sum(r => r.Kills) ?? 0;
+            result[id] = new MapNpcMarks(
+                kills,
+                runs is null ? null : string.Format(MapText.LiveDiamondTitle, node.Label, kills),
+                dRows is null ? null : string.Join("\n", dRows.Select(r => r.Text)), dRows,
+                caps is null ? null : CapitalGlyph(caps.Max(c => c.Kind)),
+                caps is null ? null : string.Format(MapText.LiveCapitalsTitle, caps.Count, node.Label),
+                cRows is null ? null : string.Join("\n", cRows.Select(r => r.Text)), cRows);
+        }
+
+        // Regions: which of their systems, so the zoomed-out map still says where.
+        foreach (var region in regions.Values)
+        {
+            bool Inside(int systemId) => nodes.TryGetValue(systemId, out var n) && n.RegionId == region.RegionId;
+            var dIn = diamonds.Where(kv => Inside(kv.Key)).OrderByDescending(kv => kv.Value.Max(r => r.Last)).ToList();
+            var cIn = capitals.Where(kv => Inside(kv.Key)).OrderByDescending(kv => kv.Value.Max(c => c.LastKill)).ToList();
+            if (dIn.Count == 0 && cIn.Count == 0) continue;
+
+            var kills = dIn.Sum(kv => kv.Value.Sum(r => r.Kills));
+            var hulls = cIn.Sum(kv => kv.Value.Count);
+            result[region.Id] = new MapNpcMarks(
+                kills,
+                dIn.Count == 0 ? null : string.Format(MapText.LiveDiamondTitle, region.Label, kills),
+                dIn.Count == 0 ? null : string.Join("\n", dIn.Take(MaxListed).SelectMany(kv => kv.Value.Select(r =>
+                    string.Format(MapText.LiveDiamondRegionLine, nodes[kv.Key].Label, r.Faction, r.Kills, Ago(r.Last, now))))),
+                null,
+                cIn.Count == 0 ? null : CapitalGlyph(cIn.Max(kv => kv.Value.Max(c => c.Kind))),
+                cIn.Count == 0 ? null : string.Format(MapText.LiveCapitalsTitle, hulls, region.Label),
+                cIn.Count == 0 ? null : string.Join("\n", cIn.Take(MaxListed).SelectMany(kv => kv.Value.Select(c =>
+                    string.Format(MapText.LiveCapitalRegionLine, nodes[kv.Key].Label, c.Name, Ago(c.LastKill, now))))),
+                null);
+        }
+        return result;
+    }
+
+    /// <summary>The capital tag's letter: the biggest class seen.</summary>
+    private static string CapitalGlyph(NpcCapitalKind kind) => kind switch
+    {
+        NpcCapitalKind.Titan        => MapText.NpcGlyphTitan,
+        NpcCapitalKind.Supercarrier => MapText.NpcGlyphSuper,
+        _                           => MapText.NpcGlyphDread,
+    };
+
+    /// <summary>
+    /// A hover's lines for one system's ♦ rat activity: per faction, how many players it has
+    /// killed, over how long and when it last did, with the hull it was seen in most in front; then
+    /// the hulls by name.
+    /// </summary>
+    private static List<MapMarkRow> DiamondRows(IReadOnlyList<DiamondActivity> runs, DateTimeOffset now)
+    {
+        var rows = new List<MapMarkRow>();
+        foreach (var r in runs)
+        {
+            var span   = r.Last - r.First;
+            var period = span.TotalHours < 24
+                ? string.Format(MapText.LivePeriodHours, Math.Max(1, (int)Math.Round(span.TotalHours)))
+                : string.Format(MapText.LivePeriodDays, span.TotalDays);
+            var text = r.Kills == 1 && !r.Earlier
+                ? string.Format(MapText.LiveDiamondLineOne, r.Faction, EveTime(r.Last), Ago(r.Last, now))
+                : string.Format(r.Earlier ? MapText.LiveDiamondLineEarlier : MapText.LiveDiamondLine,
+                    r.Faction, r.Kills, period, EveTime(r.First), EveTime(r.Last), Ago(r.Last, now));
+            rows.Add(new MapMarkRow(text,
+                ShipTypeId: r.Hulls.Count > 0 ? r.Hulls[0].TypeId : 0, ShipAt: r.Hulls.Count > 0 ? 0 : -1));
+            if (r.Hulls.Count > 0)
+                rows.Add(new MapMarkRow(string.Format(MapText.LiveDiamondHulls, string.Join(", ", r.Hulls.Take(8).Select(h => h.Name)))));
+        }
+        return rows;
+    }
+
+    /// <summary>A hover's lines for one system's NPC capitals: faction and hull, its kills here since
+    /// downtime and when it last killed, its picture in front.</summary>
+    private static List<MapMarkRow> CapitalRows(IReadOnlyList<NpcCapitalSighting> caps, DateTimeOffset now) =>
+        caps.Take(MaxListed).Select(c => new MapMarkRow(
+            string.Format(MapText.LiveCapitalLine, c.Faction, c.Name, EveTime(c.LastKill), Ago(c.LastKill, now), c.Kills),
+            ShipTypeId: c.TypeId, ShipAt: 0)).ToList();
+
+    private static string EveTime(DateTimeOffset at) =>
+        at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+    /// <summary>"12 min ago", "3 h 5 min ago" past the hour, or "2 d 4 h ago" past a day.</summary>
     internal static string Ago(DateTimeOffset at, DateTimeOffset now)
+    {
+        var hours = (int)Math.Max(0, (now - at).TotalHours);
+        if (hours >= 24) return string.Format(MapText.LiveDaysAgo, hours / 24, hours % 24);
+        return AgoShort(at, now);
+    }
+
+    private static string AgoShort(DateTimeOffset at, DateTimeOffset now)
     {
         var minutes = (int)Math.Max(0, (now - at).TotalMinutes);
         return minutes == 0  ? MapText.LiveJustNow
@@ -1288,6 +1402,12 @@ public sealed class UniverseTabViewModel : MapTabViewModel
                if (_holes is { } holes) ApplyHoles(holes, _storms, Map.HolesAvailable);
                ApplyCampaigns(_campaigns, Map.CampaignsAvailable);
            });
+
+        // Any NPC switch rebuilds the NPC marks at once, rather than at the next refresh.
+        map.WhenAnyValue(m => m.ShowDiamonds, m => m.ShowNpcCapitals, m => m.ShowNpcTitans,
+                         m => m.ShowNpcSupers, m => m.ShowNpcDreads)
+           .Skip(1)
+           .Subscribe(_ => ApplyNpcSwitches());
     }
 
     public UniverseViewModel Map { get; }
@@ -1332,8 +1452,16 @@ public sealed class UniverseTabViewModel : MapTabViewModel
         _live = live;
         if (Map.Graph is not { } graph) return;
         Map.Markers     = MapToolViewModel.BuildMarkers(live, graph);
+        Map.NpcMarks    = MapToolViewModel.BuildNpcMarks(live, graph, Map.ShowDiamonds, Map.NpcCapitalKinds);
         Map.CampedGates = MapToolViewModel.BuildCamps(live, graph);
         Map.IntelArrows = MapToolViewModel.BuildArrows(live, graph);
+    }
+
+    /// <summary>The NPC marks again with the map's switches as they are now. UI thread.</summary>
+    private void ApplyNpcSwitches()
+    {
+        if (_live is { } live && Map.Graph is { } graph)
+            Map.NpcMarks = MapToolViewModel.BuildNpcMarks(live, graph, Map.ShowDiamonds, Map.NpcCapitalKinds);
     }
 }
 

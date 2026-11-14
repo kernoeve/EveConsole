@@ -71,6 +71,15 @@ public sealed record MapCampMark(int SystemId, int ToSystemId, int Kills, Color 
 /// there to where they were said to be heading. The arrowhead is at <paramref name="ToId"/>.</summary>
 public sealed record MapIntelArrow(int FromId, int ToId, bool Dashed, Color Tint, double Freshness, string Title, string Detail);
 
+/// <summary>
+/// NPC marks on one node, each a tag in the lower-left row beside the officers' ★: ♦ rats killing
+/// players (◆, the number of kills), and NPC capitals since downtime (T, S or D for the biggest
+/// class seen). A null title leaves that tag off.
+/// </summary>
+public sealed record MapNpcMarks(
+    int DiamondKills, string? DiamondTitle, string? DiamondDetail, IReadOnlyList<MapMarkRow>? DiamondRows,
+    string? CapitalGlyph, string? CapitalTitle, string? CapitalDetail, IReadOnlyList<MapMarkRow>? CapitalRows);
+
 /// <summary>The jump range tab's answer: where it is from, and every system in range.</summary>
 public sealed record MapJumpRange(int OriginId, IReadOnlySet<int> Systems);
 
@@ -206,6 +215,16 @@ public class MapCanvas : Control
         set => SetValue(CampaignsProperty, value);
     }
 
+    /// <summary>♦ rat activity and NPC capitals per node id (systems, and regions zoomed out).</summary>
+    public static readonly StyledProperty<IReadOnlyDictionary<int, MapNpcMarks>?> NpcMarksProperty =
+        AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapNpcMarks>?>(nameof(NpcMarks));
+
+    public IReadOnlyDictionary<int, MapNpcMarks>? NpcMarks
+    {
+        get => GetValue(NpcMarksProperty);
+        set => SetValue(NpcMarksProperty, value);
+    }
+
     /// <summary>Metaliminal storms per node id (systems, and regions zoomed out).</summary>
     public static readonly StyledProperty<IReadOnlyDictionary<int, MapHoleMark>?> StormsProperty =
         AvaloniaProperty.Register<MapCanvas, IReadOnlyDictionary<int, MapHoleMark>?>(nameof(Storms));
@@ -328,7 +347,7 @@ public class MapCanvas : Control
     static MapCanvas()
     {
         AffectsRender<MapCanvas>(GraphProperty, OverlayProperty, SelectedIdProperty, BadgesProperty, MarkersProperty, BridgesProperty, RoutesProperty, AvoidedProperty, JumpRangeProperty, HolesProperty, HoleLinksProperty, StormsProperty, CampaignsProperty,
-                                CampedGatesProperty, IntelArrowsProperty, AlertZoneProperty);
+                                CampedGatesProperty, IntelArrowsProperty, AlertZoneProperty, NpcMarksProperty);
     }
 
     public MapCanvas()
@@ -877,6 +896,12 @@ public class MapCanvas : Control
                     ? box
                     : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes));
 
+            if (NpcMarks?.TryGetValue(n.Id, out var npc) == true)
+                _pendingNpc.Add((npc, useBoxes && _nodeRects.TryGetValue(n.Id, out var nbox)
+                    ? nbox
+                    : new Rect(p.X - NodeRadius, p.Y - NodeRadius, NodeRadius * 2, NodeRadius * 2), useBoxes,
+                    Markers?.TryGetValue(n.Id, out var withOfficers) == true ? withOfficers.Officers : 0));
+
             if (Campaigns?.TryGetValue(n.Id, out var campaign) == true)
                 _pendingCampaigns.Add((campaign, useBoxes && _nodeRects.TryGetValue(n.Id, out var cbox)
                     ? cbox
@@ -956,6 +981,8 @@ public class MapCanvas : Control
         _pendingStorms.Clear();
         foreach (var (campaign, anchor, isBox) in _pendingCampaigns) DrawCampaign(ctx, campaign, anchor, isBox);
         _pendingCampaigns.Clear();
+        foreach (var (npc, anchor, isBox, officers) in _pendingNpc) DrawNpc(ctx, npc, anchor, isBox, officers);
+        _pendingNpc.Clear();
 
         // A badge tooltip wins: the cursor is on the mark, so that is what the question is about.
         if (_badgeHover is { } badge)  DrawTooltipBox(ctx, badge.Title, badge.Detail, badge.Rows);
@@ -1398,8 +1425,7 @@ public class MapCanvas : Control
     /// </summary>
     private void DrawOfficers(DrawingContext ctx, MapMarkers m, Rect anchor, bool isBox)
     {
-        var glyph = m.Officers > 1 ? "★" + m.Officers.ToString(CultureInfo.CurrentCulture) : "★";
-        var text  = new FormattedText(glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, OfficerInk);
+        var text  = OfficerText(m.Officers);
         var w     = Math.Max(13, text.Width + 6);
         var x     = isBox ? anchor.Left - w / 2 : anchor.Left - w - 1;
         var y     = isBox ? anchor.Bottom - 6 : anchor.Bottom + 2;
@@ -1408,6 +1434,57 @@ public class MapCanvas : Control
         ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
         if (m.OfficerTitle is { } title)
             _badgeTips.Add((rect.Inflate(2), title, m.OfficerDetail ?? "", m.OfficerRows));
+    }
+
+    /// <summary>The officer tag's text: ★, and how many after it when more than one.</summary>
+    private static FormattedText OfficerText(int officers) =>
+        new(officers > 1 ? "★" + officers.ToString(CultureInfo.CurrentCulture) : "★",
+            CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, OfficerInk);
+
+    private readonly List<(MapNpcMarks Npc, Rect Anchor, bool IsBox, int Officers)> _pendingNpc = new();
+
+    private static readonly ImmutableSolidColorBrush DiamondBrush = new(Color.Parse("#7DD3FC"));
+    private static readonly IBrush DiamondInk = new ImmutableSolidColorBrush(Color.Parse("#082F49"));
+    private static readonly ImmutableSolidColorBrush CapitalBrush = new(Color.Parse("#FB923C"));
+    private static readonly IBrush CapitalInk = new ImmutableSolidColorBrush(Color.Parse("#431407"));
+
+    /// <summary>
+    /// The NPC tags, in a row going left from the node's lower-left corner — after the officer's
+    /// ★ when there is one, so the NPC marks read together. A sky-blue ◆ with the kills for ♦ rat
+    /// activity, then an orange T, S or D for the biggest NPC capital seen. Hover for each.
+    /// </summary>
+    private void DrawNpc(DrawingContext ctx, MapNpcMarks m, Rect anchor, bool isBox, int officers)
+    {
+        // Where the officer's tag starts, or the corner itself; each tag then goes left of the last.
+        double? right = null;
+        if (officers > 0)
+        {
+            var w = Math.Max(13, OfficerText(officers).Width + 6);
+            right = (isBox ? anchor.Left - w / 2 : anchor.Left - w - 1) - 2;
+        }
+        var y = isBox ? anchor.Bottom - 6 : anchor.Bottom + 2;
+
+        Rect Place(FormattedText text)
+        {
+            var w = Math.Max(13, text.Width + 6);
+            var x = right is { } r ? r - w : isBox ? anchor.Left - w / 2 : anchor.Left - w - 1;
+            right = x - 2;
+            return new Rect(x, y, w, 13);
+        }
+
+        void Tag(string glyph, IBrush fill, IBrush ink, string title, string? detail, IReadOnlyList<MapMarkRow>? rows)
+        {
+            var text = new FormattedText(glyph, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, BoldFace, 9.5, ink);
+            var rect = Place(text);
+            ctx.DrawRectangle(fill, MarkPen, new RoundedRect(rect, 3));
+            ctx.DrawText(text, new Point(rect.Center.X - text.Width / 2, rect.Center.Y - text.Height / 2));
+            _badgeTips.Add((rect.Inflate(2), title, detail ?? "", rows));
+        }
+
+        if (m.DiamondTitle is { } dTitle)
+            Tag("◆" + m.DiamondKills.ToString(CultureInfo.CurrentCulture), DiamondBrush, DiamondInk, dTitle, m.DiamondDetail, m.DiamondRows);
+        if (m.CapitalTitle is { } cTitle && m.CapitalGlyph is { } glyph)
+            Tag(glyph, CapitalBrush, CapitalInk, cTitle, m.CapitalDetail, m.CapitalRows);
     }
 
     private static readonly ImmutableSolidColorBrush StormBrush = new(Color.Parse("#F5B83D"));
@@ -1577,7 +1654,7 @@ public class MapCanvas : Control
 
     /// <summary>
     /// A camp's tag on a corner of the camped system, where the corner tags sit (storm upper left, wormhole
-    /// upper right, campaign lower right, officers lower left): the corner facing the stub that one of those
+    /// upper right, campaign lower right, officers and NPC marks lower left): the corner facing the stub that one of those
     /// does not already hold, the nearest corner when all are held. Never a dot's upper right, where its
     /// hostile mark sits.
     /// </summary>
@@ -1590,7 +1667,7 @@ public class MapCanvas : Control
             (false, true,  Storms?.ContainsKey(id) == true),
             (true,  true,  Holes?.ContainsKey(id) == true || !isBox),
             (true,  false, Campaigns?.ContainsKey(id) == true),
-            (false, false, Markers?.TryGetValue(id, out var m) == true && m.Officers > 0),
+            (false, false, (Markers?.TryGetValue(id, out var m) == true && m.Officers > 0) || NpcMarks?.ContainsKey(id) == true),
         ];
         var order = corners.OrderByDescending(c => (c.Right ? 1 : -1) * dir.X + (c.Top ? -1 : 1) * dir.Y).ToList();
         var (right, top, _) = order.FirstOrDefault(c => !c.Held, order[0]);

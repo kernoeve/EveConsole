@@ -49,6 +49,17 @@ public class IrcServer
 
     /// <summary>Connected when the background process starts, and kept connected.</summary>
     public bool   AutoConnect { get; set; }
+
+    /// <summary>
+    /// What the server asked for (STS): to be reached only encrypted, at this host and port, until then (UTC). Blank
+    /// when it has not. ⚠️ Written by the connection, never by the settings screen: see IrcService.SaveServerAsync.
+    /// </summary>
+    public string StsHost  { get; set; } = "";
+    public int    StsPort  { get; set; }
+    public string StsUntil { get; set; } = "";
+
+    /// <summary>A web link to this person's picture, set on the server ("avatar") each time it connects. Blank for none.</summary>
+    public string AvatarUrl { get; set; } = "";
 }
 
 /// <summary>
@@ -149,6 +160,12 @@ public class IrcStoredMessage
 
     /// <summary>The nickname a direct message conversation is shown under, as last written.</summary>
     public string PeerName     { get; set; } = "";
+
+    /// <summary>See <see cref="JabberDeleted"/>: taken back (REDACT) by who said it, or by an operator. Its words are gone.</summary>
+    public int    Deleted      { get; set; }
+
+    /// <summary>Why it was taken back, where the one who did it said.</summary>
+    public string DeletedReason { get; set; } = "";
 }
 
 /// <summary>What sort of line: said, said as an action (/me), or a notice. Stored as the number: never renumber.</summary>

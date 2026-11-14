@@ -2836,10 +2836,18 @@ public class App : Application
                         "AlertWords"         TEXT    NOT NULL DEFAULT '',
                         "AwayMessage"        TEXT    NOT NULL DEFAULT '',
                         "OnConnect"          TEXT    NOT NULL DEFAULT '',
-                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0
+                        "AutoConnect"        INTEGER NOT NULL DEFAULT 0,
+                        "StsHost"            TEXT    NOT NULL DEFAULT '',
+                        "StsPort"            INTEGER NOT NULL DEFAULT 0,
+                        "StsUntil"           TEXT    NOT NULL DEFAULT '',
+                        "AvatarUrl"          TEXT    NOT NULL DEFAULT ''
                     )
                     """);
                 try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "AutoConnect" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsHost" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsPort" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "StsUntil" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcServers" ADD COLUMN "AvatarUrl" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""
                     CREATE TABLE IF NOT EXISTS "IrcChannels" (
                         "Id"        INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
@@ -2869,9 +2877,13 @@ public class App : Application
                         "DedupeKey"    TEXT    NOT NULL DEFAULT '',
                         "MessageId"    TEXT    NOT NULL DEFAULT '',
                         "ReplyId"      TEXT    NOT NULL DEFAULT '',
-                        "PeerName"     TEXT    NOT NULL DEFAULT ''
+                        "PeerName"     TEXT    NOT NULL DEFAULT '',
+                        "Deleted"      INTEGER NOT NULL DEFAULT 0,
+                        "DeletedReason" TEXT   NOT NULL DEFAULT ''
                     )
                     """);
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "Deleted" INTEGER NOT NULL DEFAULT 0"""); } catch { /* already there */ }
+                try { db.Database.ExecuteSqlRaw("""ALTER TABLE "IrcMessages" ADD COLUMN "DeletedReason" TEXT NOT NULL DEFAULT ''"""); } catch { /* already there */ }
                 db.Database.ExecuteSqlRaw("""CREATE UNIQUE INDEX IF NOT EXISTS "IX_IrcMessages_Dedupe" ON "IrcMessages" ("ServerId", "DedupeKey")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Conversation" ON "IrcMessages" ("ServerId", "Conversation", "Id")""");
                 db.Database.ExecuteSqlRaw("""CREATE INDEX IF NOT EXISTS "IX_IrcMessages_Unread" ON "IrcMessages" ("IsRead", "IsAlert")""");
@@ -5471,7 +5483,8 @@ public class App : Application
         // The map's long-standing reader, now an adapter over the snapshot.
         services.AddSingleton(sp => new LiveIntelService(
             sp.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>(),
-            sp.GetRequiredService<IDbContextFactory<AppDbContext>>()));
+            sp.GetRequiredService<IDbContextFactory<AppDbContext>>(),
+            sp.GetRequiredService<AppErrorLogger>()));
 
         // zKillboard integration — optional supplement to the ESI-based kill pull (see
         // ZkillboardPollingService/ZkillboardFirehoseService for why the "Mine + Corp"

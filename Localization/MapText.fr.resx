@@ -2456,4 +2456,76 @@ Pas de système capitale, donc pas de zone</value>
   <data name="RouteIntelCamp" xml:space="preserve">
     <value>Camp de portail dans ce système</value>
   </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>Rats ♦</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>Marque les systèmes où des PNJ pirates ♦ ont tué des joueurs ces 5 derniers jours. La marque indique ce qui a été vu, pas ce qui se cache derrière : un Sotiyo, une forteresse ou un groupe itinérant.</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>Capitaux PNJ</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>Marque les systèmes où des titans, superporte-vaisseaux ou dreadnoughts PNJ ont tué des joueurs depuis la maintenance (11:00 EVE). La flèche choisit lesquels.</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>Titans</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>Superporte-vaisseaux</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>Dreadnoughts</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>Activité de rats ♦ dans {0} — joueurs tués : {1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0} : {1} joueurs tués en {2} — depuis {3} EVE, dernier {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0} : {1} joueurs tués en plus de {2} — depuis avant {3} EVE, dernier {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>Coques : {0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0} : {1}, {2} tués, dernier {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0} h</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#} jours</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>il y a {0} j {1} h</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>Capitaux PNJ dans {1} depuis la maintenance : {0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — dernier kill {2} EVE ({3}) · kills depuis la maintenance : {4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0} : {1}, {2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>Des PNJ pirates ♦ ont tué des joueurs ici ces 5 derniers jours ; le nombre est celui des kills depuis le début de la série (aucun creux de plus de 5 jours). Ce peut être un Sotiyo, une forteresse ou un groupe itinérant. Survolez pour la faction, les kills et la période.</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>Titans (T), superporte-vaisseaux (S) ou dreadnoughts (D) PNJ sur un killmail ici depuis la maintenance (11:00 EVE). Survolez pour la faction, la coque, les kills et le dernier de chacun.</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0} : 1 joueur tué, {1} EVE ({2})</value>
+  </data>
 </root>

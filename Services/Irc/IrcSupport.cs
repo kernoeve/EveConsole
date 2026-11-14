@@ -8,6 +8,9 @@ public sealed class IrcSupport
 {
     public string Network { get; private set; } = "";
 
+    /// <summary>The server's program and version from 004 (e.g. "ergo-2.19.1"): what its mode letters mean depends on it.</summary>
+    public string Software { get; set; } = "";
+
     /// <summary>"rfc1459" (the default), "ascii" or "rfc1459-strict".</summary>
     public string CaseMapping { get; private set; } = "rfc1459";
 
@@ -27,6 +30,12 @@ public sealed class IrcSupport
 
     /// <summary>The most names MONITOR watches, 0 when the server cannot.</summary>
     public int Monitor { get; private set; }
+
+    /// <summary>
+    /// Where the server takes files (draft/FILEHOST, or soju.im/FILEHOST as soju first named it): a web address, blank
+    /// when it named none. ⚠️ The plain FILEHOST name is not read: the protocol forbids it until the draft is final.
+    /// </summary>
+    public string FileHost { get; private set; } = "";
 
     public int NickLength { get; private set; } = 30;
     public int TopicLength { get; private set; } = 390;
@@ -60,9 +69,14 @@ public sealed class IrcSupport
                 case "NICKLEN": if (int.TryParse(value, out var n) && n > 0) NickLength = n; break;
                 case "TOPICLEN": if (int.TryParse(value, out var t) && t > 0) TopicLength = t; break;
                 case "UTF8ONLY": Utf8Only = true; break;
+                case "DRAFT/FILEHOST": FileHost = value.Trim(); _fileHostIsDraft = true; break;
+                case "SOJU.IM/FILEHOST": if (!_fileHostIsDraft) FileHost = value.Trim(); break;
             }
         }
     }
+
+    /// <summary>The draft name was given, and is the one kept whatever order the two came in.</summary>
+    private bool _fileHostIsDraft;
 
     private static IReadOnlyList<(char, char)>? ParsePrefix(string value)
     {

@@ -195,9 +195,33 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
     public static string PasswordReference(int accountId) => $"jabber-{accountId}";
 
+    private bool _picturesHooked;
+
+    /// <summary>Tells chat pictures where these servers keep files, once: on starting, or on connecting where nothing started this.</summary>
+    private void HookPictures()
+    {
+        if (_picturesHooked) return;
+        _picturesHooked = true;
+        ChatPictures.AddHosts(PictureHosts);
+    }
+
+    /// <summary>
+    /// Where the accounts' servers keep files, so pictures there show in chat at once: the server's domain and its
+    /// subdomains (upload.domain, as servers name their file service), and the host connected to where one is set.
+    /// </summary>
+    private IEnumerable<PictureHost> PictureHosts() =>
+        Sessions.SelectMany(s =>
+        {
+            var domain = s.Account.Address.Split('@') is [_, var d] ? d.Trim() : "";
+            var trusted = s.Account.TrustedCertificate;
+            return new[] { new PictureHost(domain, true, null, trusted), new PictureHost(s.Account.Host.Trim(), false, null, trusted) }
+                .Where(h => h.Host.Length > 0);
+        });
+
     /// <summary>Loads the accounts, and starts showing how they stand. Connecting is for whoever holds the lease: <see cref="BecomeWorkerAsync"/>.</summary>
     public async Task StartAsync(CancellationToken ct = default)
     {
+        HookPictures();
         await LoadAccountsAsync(ct);
         await StartShowingAsync(ct);
     }
@@ -296,6 +320,7 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
     /// <summary>Asks for this account to be connected, and to stay connected until told otherwise.</summary>
     public void Connect(JabberSession session)
     {
+        HookPictures();
         if (!ActsHere)
         {
             PostToWorker(session.Account.Id, "connect", new CommandArgs());
