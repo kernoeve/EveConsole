@@ -3928,6 +3928,207 @@ L'application va redémarrer.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purger les discussions de groupe de plus de</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connecteurs</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connecteurs</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Facultatif. Un connecteur est un programme distinct qui relie EVE Console aux services gérés par votre corporation ou alliance, comme le site où les membres enregistrent leurs personnages. Vous l'exécutez vous-même, généralement sur ce PC, ou votre corporation peut en héberger un pour ses membres. Sans connecteur, EVE Console fonctionne comme avant.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Sur une base de données partagée par plusieurs PC, le processus d'arrière-plan se met à jour depuis chaque connecteur toutes les demi-heures. Exécutez un connecteur là où tourne ce processus, ou là où chaque PC peut l'atteindre. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Adresse du connecteur</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>Par exemple : http://localhost:5054/</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Se connecter avec EVE</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Déconnecter</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Actualiser maintenant</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Non connecté.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Connecté en tant que {0}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Connecté.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Personnages liés : {0:N0} comptes, {1:N0} personnages, dernière mise à jour {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose rien que cette version d'EVE Console utilise.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Mis à jour.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Déjà à jour.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Saisissez l'adresse complète du connecteur, commençant par http:// ou https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Utilisez https:// pour un connecteur sur un autre appareil. Le simple http:// n'est autorisé que pour un connecteur sur ce PC.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Le connecteur à l'adresse {0} est injoignable.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} n'a pas répondu comme un connecteur.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Ce connecteur nécessite une version plus récente d'EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Le connecteur n'autorise pas ce personnage.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Le connecteur n'a pas pu confirmer votre connexion EVE. Réessayez.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Le connecteur n'a pas pu joindre le service qu'il lit. Une nouvelle tentative aura lieu.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Le connecteur n'accepte plus cette connexion. Reconnectez-vous.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Les personnages liés du connecteur n'ont pas été enregistrés : {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Le connecteur a répondu par une erreur ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Le connecteur n'a pas compris la requête d'EVE Console. L'un des deux doit peut-être être mis à jour.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Demande au connecteur de lancer une connexion…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>Sur la page qui s'est ouverte, vérifiez que le connecteur affiche le code {0}, confirmez-le et connectez-vous avec EVE. Ne confirmez jamais un code qu'EVE Console ne vous a pas affiché.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>La connexion a été refusée sur la page du connecteur.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>La connexion n'a pas été terminée à temps. Reconnectez-vous.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Le connecteur a indiqué une page de connexion qu'EVE Console n'ouvrira pas : {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>Trop de connexions ont été lancées sur le connecteur. Patientez quelques minutes, puis réessayez.</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>Vous pouvez ajouter plusieurs connecteurs, par exemple lorsque deux de vos corporations, ou une corporation et une alliance, gèrent chacune le leur. Chaque connecteur n'est utilisé que pour les corporations et alliances que vous choisissez pour lui, et seulement pour les fonctions que vous cochez. Il n'est jamais interrogé sur quiconque en dehors de celles-ci.</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Aperçu : les connecteurs sont une nouvelle interface, prise en charge de façon limitée pour l'instant.</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>Nouveau connecteur</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>Pour {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Utilise {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>Aucune fonction cochée.</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Inutilisé tant qu'aucune corporation ou alliance n'est choisie pour lui.</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Les personnages liés ne sont pas cochés pour ce connecteur ; aucun n'est donc lu depuis celui-ci.</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Connecté</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Non connecté</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Inutilisé</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Problème</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Utilisé pour</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Alliances</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>Aucune corporation ni alliance de vos personnages n'est encore connue. Ajoutez d'abord un personnage dans Jetons ESI.</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (aucun de vos personnages actuellement)</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Fonctions</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>Cette version d'EVE Console n'utilise que les personnages liés. Les autres choix sont enregistrés pour des fonctionnalités à venir.</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Personnages liés</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Groupes d'authentification</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>Données ESI des membres</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>Données ESI de la corporation</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Participation aux flottes</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose pas cela.</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{0} pour {1} est déjà défini sur le connecteur {2}. Décochez-le d'abord là-bas.</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>Ce connecteur a été supprimé entre-temps, peut-être depuis un autre PC.</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Connectez-vous pour voir ce que propose ce connecteur.</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Interrogation du connecteur…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Déconnexion…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>Ce connecteur ne propose actuellement aucune des fonctions cochées.</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Retirer le connecteur</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Retirer le connecteur {0} ? Sa clé est révoquée, et les corporations, alliances et fonctions choisies pour lui, ainsi que les personnages liés qu'il a fournis, sont oubliés. Cette action est irréversible.</value>
+  </data>
   <data name="ChatIntelAskedWorker" xml:space="preserve">
     <value>Le PC qui effectue le travail en arrière-plan a été invité à réanalyser l&apos;historique : seul ce PC analyse le renseignement. Sa progression apparaît dans Processus d'arrière-plan.</value>
   </data>

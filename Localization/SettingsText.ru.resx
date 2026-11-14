@@ -3934,6 +3934,207 @@ EVE Console сразу перезапустится, потому что баз�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Удалять групповой чат старше</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Коннекторы</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Коннекторы</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Необязательно. Коннектор — это отдельная программа, которая связывает EVE Console со службами вашей корпорации или альянса, например с сайтом, где участники регистрируют своих персонажей. Вы запускаете его сами, обычно на этом ПК, или ваша корпорация может развернуть его для своих участников. Без коннектора EVE Console работает как прежде.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Если базу данных используют несколько ПК, фоновый обработчик обновляет данные из каждого коннектора каждые полчаса. Запускайте коннектор там, где работает обработчик, или там, где до него может достучаться каждый ПК. Обычный http:// разрешён только для коннектора на этом ПК.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Адрес коннектора</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>Например: http://localhost:5054/</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Подключиться через EVE</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Отключить</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Обновить сейчас</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Не подключено.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Подключено как {0}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Подключено.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Связанные персонажи: аккаунтов {0:N0}, персонажей {1:N0}, обновлено {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Этот коннектор не предлагает ничего, что использует эта версия EVE Console.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Обновлено.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Уже актуально.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Введите полный адрес коннектора, начиная с http:// или https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Для коннектора на другом устройстве используйте https://. Обычный http:// разрешён только для коннектора на этом ПК.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Не удалось связаться с коннектором по адресу {0}.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} не ответил как коннектор.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Этому коннектору нужна более новая версия EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Коннектор не допускает этого персонажа.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Коннектор не смог подтвердить ваш вход в EVE. Попробуйте ещё раз.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Коннектор не смог связаться со службой, из которой читает данные. Попытка будет повторена.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Коннектор больше не принимает это подключение. Подключитесь снова.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Связанные персонажи коннектора не сохранены: {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Коннектор ответил ошибкой ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Коннектор не понял запрос EVE Console. Возможно, одно из них нужно обновить.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Запрос коннектору на начало входа…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>На открывшейся странице убедитесь, что коннектор показывает код {0}, подтвердите его там и войдите через EVE. Никогда не подтверждайте код, который вам не показал EVE Console.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>Вход отклонён на странице коннектора.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>Вход не был завершён вовремя. Подключитесь снова.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Коннектор указал страницу входа, которую EVE Console не откроет: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>В коннекторе начато слишком много входов. Подождите несколько минут и попробуйте снова.</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>Можно добавить несколько коннекторов, например если у двух ваших корпораций или у корпорации и альянса есть свой коннектор. Каждый коннектор используется только для выбранных вами корпораций и альянсов и только для отмеченных функций. О тех, кто за их пределами, его никогда не спрашивают.</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Предварительная версия: коннекторы — новый интерфейс, и пока их поддержка ограничена.</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>Новый коннектор</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>Для: {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Использует: {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>Функции не отмечены.</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Не используется, пока для него не выбрана корпорация или альянс.</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Связанные персонажи для этого коннектора не отмечены, поэтому из него ничего не читается.</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Подключён</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Не подключён</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Не используется</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Проблема</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Используется для</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Корпорации</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Альянсы</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>Корпорации и альянсы ваших персонажей пока неизвестны. Сначала добавьте персонажа в разделе «Токены ESI».</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (сейчас нет ваших персонажей)</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Функции</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>Эта версия EVE Console использует только связанных персонажей. Остальные варианты сохраняются для будущих функций.</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Связанные персонажи</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Группы авторизации</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>Данные ESI участников</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>Данные ESI корпорации</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Участие во флотах</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>Этот коннектор этого не предлагает.</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>«{0}» для {1} уже назначено коннектору {2}. Сначала снимите отметку там.</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>Этот коннектор тем временем удалили, возможно с другого ПК.</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Подключитесь, чтобы увидеть, что предлагает этот коннектор.</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Запрос к коннектору…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Отключение…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>Ни одну из отмеченных функций этот коннектор сейчас не предлагает.</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Удалить коннектор</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Удалить коннектор {0}? Его ключ будет отозван, а выбранные для него корпорации, альянсы и функции, а также полученные от него связанные персонажи будут забыты. Это нельзя отменить.</value>
+  </data>
   <data name="ChatIntelAskedWorker" xml:space="preserve">
     <value>ПК, выполняющий фоновую работу, получил запрос на повторный разбор истории: разведку разбирает только он. Ход работы виден в разделе «Фоновые процессы».</value>
   </data>

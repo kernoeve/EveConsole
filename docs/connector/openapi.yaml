@@ -1,0 +1,1380 @@
+openapi: 3.0.3
+info:
+  title: EVE Console connector interface
+  version: "1"
+  description: |
+    What EVE Console asks of a connector. See README.md beside this file for connecting, keys, who may
+    see what, errors, and the rules each answer must follow.
+servers:
+  - url: http://localhost:5054
+    description: A connector on the same PC (suggested default port)
+security:
+  - connectorKey: []
+paths:
+  /v1/info:
+    get:
+      summary: What this is, and which interface versions it speaks
+      security: []
+      responses:
+        "200":
+          description: A connector
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Info"
+  /v1/auth/start:
+    post:
+      summary: Start a sign-in on the connector's own page
+      description: |
+        The connector runs EVE's sign-in itself, with its own EVE application and callback. EVE Console shows
+        the user `code` and opens `loginUrl`; the page shows the same code and asks the user to confirm it
+        before going to EVE. See README.md.
+      security: []
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                client:
+                  type: string
+                  example: EVE Console
+      responses:
+        "200":
+          description: A sign-in, waiting for the user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginStarted"
+        "400": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/auth/poll:
+    post:
+      summary: How a sign-in is going; the key once it is done
+      description: |
+        `pending` until the sign-in ends; then the final answer, once, after which the sign-in is forgotten.
+        The secret travels in the body, never in the address.
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [loginId, pollSecret]
+              properties:
+                loginId: { type: string }
+                pollSecret: { type: string }
+      responses:
+        "200":
+          description: The sign-in's state
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LoginState"
+        "400": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+  /v1/auth/sign-out:
+    post:
+      summary: End the key this call was made with
+      responses:
+        "204":
+          description: Ended
+        "401": { $ref: "#/components/responses/Error" }
+  /v1/me:
+    get:
+      summary: Who the key is for, and what this connector offers them
+      responses:
+        "200":
+          description: The character, its capabilities, and what each covers
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/linked-characters:
+    get:
+      summary: The caller's own account, with its characters
+      description: |
+        Capability `linked-characters`. Only the caller's own account; anyone else's is read one at a time
+        with /v1/characters/{character_id}/account. EVE Console replaces what it had with this answer.
+      responses:
+        "200":
+          description: The links
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkedCharacters"
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/characters/{character_id}/account:
+    get:
+      summary: The account holding this character, with all its characters
+      description: |
+        Capability `linked-characters`. Exactly one entry in `accounts`. For someone else, recorded by the
+        connector; EVE Console keeps it apart from the caller's own links.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+      responses:
+        "200":
+          description: One account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/LinkedCharacters"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/groups:
+    get:
+      summary: The groups this connector shows
+      description: Capability `groups`.
+      responses:
+        "200":
+          description: The groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupList"
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/characters/{character_id}/groups:
+    get:
+      summary: The groups of the account holding this character
+      description: Capability `groups`.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+      responses:
+        "200":
+          description: The account's groups
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountGroups"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/groups/{group_id}/members:
+    get:
+      summary: The accounts in a group, each by its main character
+      description: Capability `groups`, subjects `others`.
+      parameters:
+        - $ref: "#/components/parameters/group_id"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: The members
+          headers:
+            X-Pages: { $ref: "#/components/headers/X-Pages" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/GroupMembers"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/characters/{character_id}/fleets:
+    get:
+      summary: The ended fleets one character was in that started in the given time
+      description: Capability `fleet-participation`. Recorded by the corporation or alliance, not ESI data.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200":
+          description: The fleets
+          headers:
+            X-Pages: { $ref: "#/components/headers/X-Pages" }
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CharacterFleets"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/corporations/{corporation_id}/fleet-participation:
+    get:
+      summary: Fleet participation totals per member of a corporation
+      description: |
+        Capability `fleet-participation`, for the corporations listed in its offer. Counts only ended fleets
+        that started between `from` and `to`.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/from"
+        - $ref: "#/components/parameters/to"
+      responses:
+        "200":
+          description: The totals
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CorporationParticipation"
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/assets:
+    get:
+      summary: "Assets"
+      description: |
+        Capability `character-data`, data `assets`.
+        ESI scope `esi-assets.read_assets.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/clones:
+    get:
+      summary: "Clones"
+      description: |
+        Capability `character-data`, data `clones`.
+        ESI scope `esi-clones.read_clones.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/contacts:
+    get:
+      summary: "Contacts"
+      description: |
+        Capability `character-data`, data `contacts`.
+        ESI scope `esi-characters.read_contacts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/contracts:
+    get:
+      summary: "Contracts"
+      description: |
+        Capability `character-data`, data `contracts`.
+        ESI scope `esi-contracts.read_character_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/contracts/{contract_id}/items:
+    get:
+      summary: "A contract's items"
+      description: |
+        Capability `character-data`, data `contracts/{contract_id}/items`.
+        ESI scope `esi-contracts.read_character_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/contract_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/contracts/{contract_id}/bids:
+    get:
+      summary: "A contract's bids"
+      description: |
+        Capability `character-data`, data `contracts/{contract_id}/bids`.
+        ESI scope `esi-contracts.read_character_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/contract_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/implants:
+    get:
+      summary: "Active implants"
+      description: |
+        Capability `character-data`, data `implants`.
+        ESI scope `esi-clones.read_implants.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/industry/jobs:
+    get:
+      summary: "Industry jobs"
+      description: |
+        Capability `character-data`, data `industry/jobs`.
+        ESI scope `esi-industry.read_character_jobs.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/include_completed"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/killmails/recent:
+    get:
+      summary: "Recent killmail ids and hashes"
+      description: |
+        Capability `character-data`, data `killmails/recent`.
+        ESI scope `esi-killmails.read_killmails.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/location:
+    get:
+      summary: "Location"
+      description: |
+        Capability `character-data`, data `location`.
+        ESI scope `esi-location.read_location.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/mail:
+    get:
+      summary: "Mail headers (bodies are not offered)"
+      description: |
+        Capability `character-data`, data `mail`.
+        ESI scope `esi-mail.read_mail.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/labels"
+        - $ref: "#/components/parameters/last_mail_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/online:
+    get:
+      summary: "Online status"
+      description: |
+        Capability `character-data`, data `online`.
+        ESI scope `esi-location.read_online.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/orders:
+    get:
+      summary: "Open market orders"
+      description: |
+        Capability `character-data`, data `orders`.
+        ESI scope `esi-markets.read_character_orders.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/orders/history:
+    get:
+      summary: "Market order history"
+      description: |
+        Capability `character-data`, data `orders/history`.
+        ESI scope `esi-markets.read_character_orders.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/roles:
+    get:
+      summary: "In-game corporation roles"
+      description: |
+        Capability `character-data`, data `roles`.
+        ESI scope `esi-characters.read_corporation_roles.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/ship:
+    get:
+      summary: "Current ship"
+      description: |
+        Capability `character-data`, data `ship`.
+        ESI scope `esi-location.read_ship_type.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/skillqueue:
+    get:
+      summary: "Skill queue"
+      description: |
+        Capability `character-data`, data `skillqueue`.
+        ESI scope `esi-skills.read_skillqueue.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/skills:
+    get:
+      summary: "Skills"
+      description: |
+        Capability `character-data`, data `skills`.
+        ESI scope `esi-skills.read_skills.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/standings:
+    get:
+      summary: "Standings"
+      description: |
+        Capability `character-data`, data `standings`.
+        ESI scope `esi-characters.read_standings.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/wallet:
+    get:
+      summary: "Wallet balance"
+      description: |
+        Capability `character-data`, data `wallet`.
+        ESI scope `esi-wallet.read_character_wallet.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/wallet/journal:
+    get:
+      summary: "Wallet journal"
+      description: |
+        Capability `character-data`, data `wallet/journal`.
+        ESI scope `esi-wallet.read_character_wallet.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/characters/{character_id}/wallet/transactions:
+    get:
+      summary: "Market transactions"
+      description: |
+        Capability `character-data`, data `wallet/transactions`.
+        ESI scope `esi-wallet.read_character_wallet.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/character_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/from_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/assets:
+    get:
+      summary: "Assets"
+      description: |
+        Capability `corporation-data`, data `assets`.
+        ESI scope `esi-assets.read_corporation_assets.v1`.
+        In-game role: Director.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/contracts:
+    get:
+      summary: "Contracts"
+      description: |
+        Capability `corporation-data`, data `contracts`.
+        ESI scope `esi-contracts.read_corporation_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/contracts/{contract_id}/items:
+    get:
+      summary: "A contract's items"
+      description: |
+        Capability `corporation-data`, data `contracts/{contract_id}/items`.
+        ESI scope `esi-contracts.read_corporation_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/contract_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/contracts/{contract_id}/bids:
+    get:
+      summary: "A contract's bids"
+      description: |
+        Capability `corporation-data`, data `contracts/{contract_id}/bids`.
+        ESI scope `esi-contracts.read_corporation_contracts.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/contract_id"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/divisions:
+    get:
+      summary: "Division names"
+      description: |
+        Capability `corporation-data`, data `divisions`.
+        ESI scope `esi-corporations.read_divisions.v1`.
+        In-game role: Director.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/industry/jobs:
+    get:
+      summary: "Industry jobs"
+      description: |
+        Capability `corporation-data`, data `industry/jobs`.
+        ESI scope `esi-industry.read_corporation_jobs.v1`.
+        In-game role: Factory Manager.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+        - $ref: "#/components/parameters/include_completed"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/members:
+    get:
+      summary: "Members"
+      description: |
+        Capability `corporation-data`, data `members`.
+        ESI scope `esi-corporations.read_corporation_membership.v1`.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/membertracking:
+    get:
+      summary: "Member tracking: logons, location, ship"
+      description: |
+        Capability `corporation-data`, data `membertracking`.
+        ESI scope `esi-corporations.track_members.v1`.
+        In-game role: Director.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/orders:
+    get:
+      summary: "Open market orders"
+      description: |
+        Capability `corporation-data`, data `orders`.
+        ESI scope `esi-markets.read_corporation_orders.v1`.
+        In-game role: Accountant or Trader.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/orders/history:
+    get:
+      summary: "Market order history"
+      description: |
+        Capability `corporation-data`, data `orders/history`.
+        ESI scope `esi-markets.read_corporation_orders.v1`.
+        In-game role: Accountant or Trader.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/roles:
+    get:
+      summary: "Members' roles"
+      description: |
+        Capability `corporation-data`, data `roles`.
+        ESI scope `esi-corporations.read_corporation_membership.v1`.
+        In-game role: Personnel Manager, or any grantable role.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/wallets:
+    get:
+      summary: "Wallet balances"
+      description: |
+        Capability `corporation-data`, data `wallets`.
+        ESI scope `esi-wallet.read_corporation_wallets.v1`.
+        In-game role: Accountant or Junior Accountant.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/wallets/{division}/journal:
+    get:
+      summary: "A division's wallet journal"
+      description: |
+        Capability `corporation-data`, data `wallets/{division}/journal`.
+        ESI scope `esi-wallet.read_corporation_wallets.v1`.
+        In-game role: Accountant or Junior Accountant.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/division"
+        - $ref: "#/components/parameters/page"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+  /v1/esi/corporations/{corporation_id}/wallets/{division}/transactions:
+    get:
+      summary: "A division's market transactions"
+      description: |
+        Capability `corporation-data`, data `wallets/{division}/transactions`.
+        ESI scope `esi-wallet.read_corporation_wallets.v1`.
+        In-game role: Accountant or Junior Accountant.
+        Answers ESI's own JSON body for the same path, unchanged.
+      parameters:
+        - $ref: "#/components/parameters/corporation_id"
+        - $ref: "#/components/parameters/compatibilityDate"
+        - $ref: "#/components/parameters/division"
+        - $ref: "#/components/parameters/from_id"
+      responses:
+        "200": { $ref: "#/components/responses/Esi" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "404": { $ref: "#/components/responses/Error" }
+        "409": { $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { $ref: "#/components/responses/Error" }
+        "503": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    connectorKey:
+      type: http
+      scheme: bearer
+      description: The key from a finished sign-in (/v1/auth/poll)
+  headers:
+    X-Pages:
+      description: The number of pages, on a paged answer
+      schema: { type: integer, minimum: 1 }
+    Expires:
+      description: ESI's, passed on. EVE Console does not ask again before it.
+      schema: { type: string }
+    Last-Modified:
+      description: ESI's, passed on
+      schema: { type: string }
+    Retry-After:
+      description: Seconds to wait before trying again
+      schema: { type: integer, minimum: 0 }
+  parameters:
+    character_id:
+      name: character_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    corporation_id:
+      name: corporation_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    group_id:
+      name: group_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    contract_id:
+      name: contract_id
+      in: path
+      required: true
+      schema: { type: integer, format: int64, minimum: 1 }
+    division:
+      name: division
+      in: path
+      required: true
+      schema: { type: integer, minimum: 1, maximum: 7 }
+    page:
+      name: page
+      in: query
+      required: false
+      schema: { type: integer, minimum: 1, default: 1 }
+    from:
+      name: from
+      in: query
+      required: true
+      schema: { type: string, format: date-time }
+    to:
+      name: to
+      in: query
+      required: true
+      schema: { type: string, format: date-time }
+    include_completed:
+      name: include_completed
+      in: query
+      required: false
+      description: Passed on to ESI
+      schema: { type: boolean }
+    from_id:
+      name: from_id
+      in: query
+      required: false
+      description: Passed on to ESI
+      schema: { type: integer, format: int64 }
+    labels:
+      name: labels
+      in: query
+      required: false
+      description: Passed on to ESI as ESI takes it (repeated `labels=`)
+      schema:
+        type: array
+        minItems: 1
+        maxItems: 25
+        uniqueItems: true
+        items: { type: integer, format: int64 }
+    last_mail_id:
+      name: last_mail_id
+      in: query
+      required: false
+      description: Passed on to ESI
+      schema: { type: integer, format: int64 }
+    compatibilityDate:
+      name: X-Compatibility-Date
+      in: header
+      required: false
+      description: |
+        ESI's compatibility date. The connector sends ESI its own copy of it and keys its cache on it; a date
+        it does not support, or anything else, is bad_request. Without it, the connector's own default date.
+      schema: { type: string, format: date, example: "2026-08-01" }
+  responses:
+    Error:
+      description: Refused
+      headers:
+        Retry-After: { $ref: "#/components/headers/Retry-After" }
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Error"
+    Esi:
+      description: ESI's own JSON body for the same path, unchanged
+      headers:
+        X-Pages: { $ref: "#/components/headers/X-Pages" }
+        Expires: { $ref: "#/components/headers/Expires" }
+        Last-Modified: { $ref: "#/components/headers/Last-Modified" }
+      content:
+        application/json:
+          schema:
+            description: As ESI documents it for the path and compatibility date
+  schemas:
+    Info:
+      type: object
+      required: [interface, versions]
+      properties:
+        interface:
+          type: string
+          enum: [eveconsole.connector]
+        versions:
+          type: array
+          items: { type: integer }
+          example: [1]
+        name:
+          type: string
+          description: Shown to the user, e.g. "Example Corp Connector"
+    Character:
+      type: object
+      required: [id]
+      properties:
+        id: { type: integer, format: int64 }
+        name: { type: string }
+    LoginStarted:
+      type: object
+      required: [loginId, pollSecret, loginUrl, code]
+      properties:
+        loginId: { type: string }
+        pollSecret:
+          type: string
+          description: At least 128 random bits. Only in request bodies, never in an address.
+        loginUrl:
+          type: string
+          description: The connector's page for this sign-in. https unless the connector is on the user's PC.
+        code:
+          type: string
+          example: K7P-4QX
+        interval:
+          type: number
+          default: 2
+          description: Seconds between polls
+        expiresIn:
+          type: number
+          default: 600
+          maximum: 900
+          description: Seconds before an unfinished sign-in expires
+    LoginState:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          enum: [pending, done, refused, declined, expired]
+        key:
+          type: string
+          description: With done. At least 256 random bits. Given once; the connector keeps only a hash.
+        character:
+          $ref: "#/components/schemas/Character"
+        error:
+          type: string
+          description: With refused, e.g. not_allowed or eve_token_invalid
+        message:
+          type: string
+    Me:
+      type: object
+      required: [character, capabilities]
+      properties:
+        character:
+          $ref: "#/components/schemas/Character"
+        capabilities:
+          type: array
+          items: { type: string, pattern: "^[a-z0-9-]+$" }
+          example: [linked-characters, groups, character-data, corporation-data, fleet-participation]
+        offers:
+          type: array
+          description: |
+            Without it, each listed character capability is read as offered for `own` only, with no ESI
+            calls, and no corporation data is offered.
+          items:
+            $ref: "#/components/schemas/Offer"
+    Offer:
+      type: object
+      required: [capability]
+      properties:
+        capability:
+          type: string
+          example: character-data
+        subjects:
+          type: string
+          enum: [own, others]
+          default: own
+          description: |
+            `own`: characters on the caller's own account. `others`: other characters, when the connector's
+            rules allow this caller; decided on each call.
+        corporations:
+          type: array
+          description: |
+            For corporation-data and the corporation fleet-participation call, the corporations this offer
+            covers. Missing means none.
+          items: { type: integer, format: int64, minimum: 1 }
+        data:
+          type: array
+          description: |
+            For character-data and corporation-data, the ESI paths answered, as listed in README.md. Missing
+            means none.
+          items: { type: string }
+          example: [assets, wallet, wallet/journal]
+    LinkedCharacters:
+      type: object
+      required: [format, version, source, generatedAt, accounts]
+      properties:
+        format:
+          type: string
+          enum: [eveconsole.linked-characters]
+        version:
+          type: integer
+          enum: [1]
+        source:
+          type: string
+          maxLength: 64
+        generatedAt:
+          type: string
+          format: date-time
+          description: When the connector read the links, not when it answered
+        accounts:
+          type: array
+          items:
+            type: object
+            required: [id]
+            properties:
+              id: { type: integer, format: int64, minimum: 1 }
+              name: { type: string }
+              characters:
+                type: array
+                items:
+                  type: object
+                  required: [id]
+                  properties:
+                    id: { type: integer, format: int64, minimum: 1 }
+                    name: { type: string }
+                    main: { type: boolean, default: false }
+                    corporationId: { type: integer, format: int32, minimum: 0 }
+                    allianceId: { type: integer, format: int32, minimum: 0, description: 0 or missing for none }
+                    tokenValid: { type: boolean }
+    Group:
+      type: object
+      required: [id, name]
+      properties:
+        id: { type: integer, format: int64, minimum: 1 }
+        name: { type: string, example: Capital pilots }
+    GroupList:
+      type: object
+      required: [generatedAt, groups]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/Group" }
+    AccountGroups:
+      type: object
+      required: [generatedAt, state, groups]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        accountId:
+          type: integer
+          format: int64
+          minimum: 1
+          description: |
+            Left out for someone else unless the caller may read that account under linked-characters
+        state:
+          type: string
+          enum: [active, deactivating, deactivated]
+        groups:
+          type: array
+          items: { $ref: "#/components/schemas/Group" }
+    GroupMembers:
+      type: object
+      required: [generatedAt, members]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        members:
+          type: array
+          items:
+            type: object
+            description: At least one of accountId and main; a member with neither is not listed
+            minProperties: 1
+            properties:
+              accountId:
+                type: integer
+                format: int64
+                minimum: 1
+                description: |
+                  Left out for someone else unless the caller may read that account under
+                  linked-characters
+              main:
+                $ref: "#/components/schemas/Character"
+    CharacterFleets:
+      type: object
+      required: [generatedAt, fleets]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        fleets:
+          type: array
+          items:
+            type: object
+            required: [fleet, intervals]
+            properties:
+              fleet:
+                type: object
+                required: [id, startedAt, endedAt]
+                properties:
+                  id: { type: integer, format: int64, minimum: 1 }
+                  name: { type: string }
+                  type: { type: string, example: Strategic }
+                  startedAt: { type: string, format: date-time }
+                  endedAt: { type: string, format: date-time }
+                  commanderId: { type: integer, format: int64 }
+              intervals:
+                type: array
+                items:
+                  type: object
+                  required: [from, to]
+                  properties:
+                    from: { type: string, format: date-time }
+                    to: { type: string, format: date-time }
+                    shipTypeId: { type: integer, format: int32 }
+                    solarSystemId: { type: integer, format: int32 }
+                    role:
+                      type: string
+                      enum: [fleet_commander, wing_commander, squad_commander, squad_member]
+    CorporationParticipation:
+      type: object
+      required: [generatedAt, from, to, members]
+      properties:
+        generatedAt: { type: string, format: date-time }
+        from: { type: string, format: date-time }
+        to: { type: string, format: date-time }
+        members:
+          type: array
+          items:
+            type: object
+            required: [characterId, fleets, seconds]
+            properties:
+              characterId: { type: integer, format: int64, minimum: 1 }
+              accountId:
+                type: integer
+                format: int64
+                minimum: 1
+                description: |
+                  Left out when unknown, or, for someone else, when the caller may not read that account
+                  under linked-characters
+              fleets: { type: integer, minimum: 0 }
+              seconds: { type: integer, format: int64, minimum: 0 }
+              lastFleetAt:
+                type: string
+                format: date-time
+                description: The start of the latest counted fleet
+    Error:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: string
+          enum: [bad_request, not_signed_in, not_allowed, not_offered, not_found, login_unknown, no_token,
+                 missing_scope, no_role, too_many_logins, rate_limited, esi_error, eve_unavailable,
+                 source_unavailable]
+        message:
+          type: string
+          description: English, shown only for a code EVE Console does not know

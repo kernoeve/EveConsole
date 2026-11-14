@@ -3928,6 +3928,207 @@ Die Anwendung wird neu gestartet.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Gruppenchat löschen, der älter ist als</value>
   </data>
+  <data name="TabConnector" xml:space="preserve">
+    <value>Connectors</value>
+  </data>
+  <data name="ConnectorTitle" xml:space="preserve">
+    <value>Connectors</value>
+  </data>
+  <data name="ConnectorNote" xml:space="preserve">
+    <value>Optional. Ein Connector ist ein eigenes Programm, das EVE Console mit Diensten deiner Corporation oder Allianz verbindet, etwa der Seite, auf der Mitglieder ihre Charaktere registrieren. Du betreibst ihn selbst, meist auf diesem PC, oder deine Corporation stellt einen für ihre Mitglieder bereit. Ohne Connector funktioniert EVE Console wie bisher.</value>
+  </data>
+  <data name="ConnectorSharedNote" xml:space="preserve">
+    <value>Bei einer Datenbank, die mehrere PCs teilen, aktualisiert der Hintergrund-Worker alle 30 Minuten aus jedem Connector. Betreibe einen Connector dort, wo der Worker läuft, oder dort, wo jeder PC ihn erreicht. Unverschlüsseltes http:// ist nur für einen Connector auf diesem PC erlaubt.</value>
+  </data>
+  <data name="ConnectorUrl" xml:space="preserve">
+    <value>Connector-Adresse</value>
+  </data>
+  <data name="ConnectorUrlWatermark" xml:space="preserve">
+    <value>Zum Beispiel: http://localhost:5054/</value>
+  </data>
+  <data name="ConnectorConnect" xml:space="preserve">
+    <value>Mit EVE verbinden</value>
+  </data>
+  <data name="ConnectorDisconnect" xml:space="preserve">
+    <value>Trennen</value>
+  </data>
+  <data name="ConnectorRefreshNow" xml:space="preserve">
+    <value>Jetzt aktualisieren</value>
+  </data>
+  <data name="ConnectorNotConnected" xml:space="preserve">
+    <value>Nicht verbunden.</value>
+  </data>
+  <data name="ConnectorConnectedAs" xml:space="preserve">
+    <value>Verbunden als {0}.</value>
+  </data>
+  <data name="ConnectorConnected" xml:space="preserve">
+    <value>Verbunden.</value>
+  </data>
+  <data name="ConnectorLinkedLine" xml:space="preserve">
+    <value>Verknüpfte Charaktere: {0:N0} Konten, {1:N0} Charaktere, zuletzt aktualisiert {2}.</value>
+  </data>
+  <data name="ConnectorNothingOffered" xml:space="preserve">
+    <value>Dieser Connector bietet nichts an, was diese Version von EVE Console nutzt.</value>
+  </data>
+  <data name="ConnectorRefreshed" xml:space="preserve">
+    <value>Aktualisiert.</value>
+  </data>
+  <data name="ConnectorUnchanged" xml:space="preserve">
+    <value>Bereits aktuell.</value>
+  </data>
+  <data name="ConnectorErrBadUrl" xml:space="preserve">
+    <value>Gib die vollständige Adresse des Connectors ein, beginnend mit http:// oder https://.</value>
+  </data>
+  <data name="ConnectorErrNeedsHttps" xml:space="preserve">
+    <value>Verwende https:// für einen Connector auf einem anderen Gerät. Unverschlüsseltes http:// ist nur für einen Connector auf diesem PC erlaubt.</value>
+  </data>
+  <data name="ConnectorErrUnreachable" xml:space="preserve">
+    <value>Der Connector unter {0} ist nicht erreichbar.</value>
+  </data>
+  <data name="ConnectorErrNotConnector" xml:space="preserve">
+    <value>{0} hat nicht als Connector geantwortet.</value>
+  </data>
+  <data name="ConnectorErrNewerVersion" xml:space="preserve">
+    <value>Dieser Connector benötigt eine neuere Version von EVE Console.</value>
+  </data>
+  <data name="ConnectorErrNotAllowed" xml:space="preserve">
+    <value>Der Connector lässt diesen Charakter nicht zu.</value>
+  </data>
+  <data name="ConnectorErrEveInvalid" xml:space="preserve">
+    <value>Der Connector konnte deine EVE-Anmeldung nicht bestätigen. Versuche es erneut.</value>
+  </data>
+  <data name="ConnectorErrSourceUnavailable" xml:space="preserve">
+    <value>Der Connector konnte den Dienst, aus dem er liest, nicht erreichen. Es wird erneut versucht.</value>
+  </data>
+  <data name="ConnectorErrSignedOut" xml:space="preserve">
+    <value>Der Connector akzeptiert diese Verbindung nicht mehr. Verbinde dich erneut.</value>
+  </data>
+  <data name="ConnectorErrRejected" xml:space="preserve">
+    <value>Die verknüpften Charaktere des Connectors wurden nicht gespeichert: {0}</value>
+  </data>
+  <data name="ConnectorErrStatus" xml:space="preserve">
+    <value>Der Connector hat mit einem Fehler geantwortet ({0}).</value>
+  </data>
+  <data name="ConnectorErrBadRequest" xml:space="preserve">
+    <value>Der Connector hat die Anfrage von EVE Console nicht verstanden. Eines von beiden muss vielleicht aktualisiert werden.</value>
+  </data>
+  <data name="ConnectorStarting" xml:space="preserve">
+    <value>Der Connector wird gebeten, eine Anmeldung zu starten…</value>
+  </data>
+  <data name="ConnectorConfirmCode" xml:space="preserve">
+    <value>Prüfe auf der geöffneten Seite, dass der Connector den Code {0} anzeigt, bestätige ihn dort und melde dich mit EVE an. Bestätige nie einen Code, den dir EVE Console nicht angezeigt hat.</value>
+  </data>
+  <data name="ConnectorErrLoginDeclined" xml:space="preserve">
+    <value>Die Anmeldung wurde auf der Seite des Connectors abgelehnt.</value>
+  </data>
+  <data name="ConnectorErrLoginExpired" xml:space="preserve">
+    <value>Die Anmeldung wurde nicht rechtzeitig abgeschlossen. Verbinde dich erneut.</value>
+  </data>
+  <data name="ConnectorErrBadLoginPage" xml:space="preserve">
+    <value>Der Connector hat eine Anmeldeseite angegeben, die EVE Console nicht öffnet: {0}</value>
+  </data>
+  <data name="ConnectorErrTooManyLogins" xml:space="preserve">
+    <value>Beim Connector wurden zu viele Anmeldungen gestartet. Warte ein paar Minuten und versuche es erneut.</value>
+  </data>
+  <data name="ConnectorSeveralNote" xml:space="preserve">
+    <value>Du kannst mehrere Connectors hinzufügen, etwa wenn zwei deiner Corporations oder eine Corporation und eine Allianz jeweils einen eigenen betreiben. Jeder Connector wird nur für die Corporations und Allianzen genutzt, die du für ihn auswählst, und nur für die Funktionen, die du ankreuzt. Zu niemandem außerhalb davon wird er befragt.</value>
+  </data>
+  <data name="ConnectorPreviewNote" xml:space="preserve">
+    <value>Vorschau: Connectors sind eine neue Schnittstelle, die vorerst nur eingeschränkt unterstützt wird.</value>
+  </data>
+  <data name="ConnectorNewEntry" xml:space="preserve">
+    <value>Neuer Connector</value>
+  </data>
+  <data name="ConnectorForLine" xml:space="preserve">
+    <value>Für {0}</value>
+  </data>
+  <data name="ConnectorFunctionsLine" xml:space="preserve">
+    <value>Nutzt {0}</value>
+  </data>
+  <data name="ConnectorNoFunctions" xml:space="preserve">
+    <value>Keine Funktionen angekreuzt.</value>
+  </data>
+  <data name="ConnectorNoScope" xml:space="preserve">
+    <value>Wird erst genutzt, wenn eine Corporation oder Allianz dafür ausgewählt ist.</value>
+  </data>
+  <data name="ConnectorLinkedNotChosen" xml:space="preserve">
+    <value>Verknüpfte Charaktere sind für diesen Connector nicht angekreuzt, daher werden keine von ihm gelesen.</value>
+  </data>
+  <data name="ConnectorStatusConnected" xml:space="preserve">
+    <value>Verbunden</value>
+  </data>
+  <data name="ConnectorStatusNotConnected" xml:space="preserve">
+    <value>Nicht verbunden</value>
+  </data>
+  <data name="ConnectorStatusNotUsed" xml:space="preserve">
+    <value>Nicht genutzt</value>
+  </data>
+  <data name="ConnectorStatusProblem" xml:space="preserve">
+    <value>Problem</value>
+  </data>
+  <data name="ConnectorScopesLabel" xml:space="preserve">
+    <value>Genutzt für</value>
+  </data>
+  <data name="ConnectorScopesCorporations" xml:space="preserve">
+    <value>Corporations</value>
+  </data>
+  <data name="ConnectorScopesAlliances" xml:space="preserve">
+    <value>Allianzen</value>
+  </data>
+  <data name="ConnectorScopesNone" xml:space="preserve">
+    <value>Noch ist keine Corporation oder Allianz deiner Charaktere bekannt. Füge zuerst unter ESI-Token einen Charakter hinzu.</value>
+  </data>
+  <data name="ConnectorScopeNoCharacter" xml:space="preserve">
+    <value>{0} (derzeit keiner deiner Charaktere)</value>
+  </data>
+  <data name="ConnectorFunctionsLabel" xml:space="preserve">
+    <value>Funktionen</value>
+  </data>
+  <data name="ConnectorFunctionsNote" xml:space="preserve">
+    <value>Diese Version von EVE Console nutzt nur verknüpfte Charaktere. Die anderen Auswahlen werden für künftige Funktionen gespeichert.</value>
+  </data>
+  <data name="ConnectorFnLinkedCharacters" xml:space="preserve">
+    <value>Verknüpfte Charaktere</value>
+  </data>
+  <data name="ConnectorFnGroups" xml:space="preserve">
+    <value>Auth-Gruppen</value>
+  </data>
+  <data name="ConnectorFnCharacterData" xml:space="preserve">
+    <value>ESI-Daten der Mitglieder</value>
+  </data>
+  <data name="ConnectorFnCorporationData" xml:space="preserve">
+    <value>ESI-Daten der Corporation</value>
+  </data>
+  <data name="ConnectorFnFleetParticipation" xml:space="preserve">
+    <value>Flottenteilnahme</value>
+  </data>
+  <data name="ConnectorFnNotOffered" xml:space="preserve">
+    <value>Dieser Connector bietet das nicht an.</value>
+  </data>
+  <data name="ConnectorConflict" xml:space="preserve">
+    <value>{0} für {1} ist bereits beim Connector {2} eingestellt. Nimm das Häkchen dort zuerst heraus.</value>
+  </data>
+  <data name="ConnectorRemovedMeanwhile" xml:space="preserve">
+    <value>Dieser Connector wurde inzwischen entfernt, vielleicht von einem anderen PC aus.</value>
+  </data>
+  <data name="ConnectorFnConnectFirst" xml:space="preserve">
+    <value>Verbinde dich, um zu sehen, was dieser Connector anbietet.</value>
+  </data>
+  <data name="ConnectorRefreshing" xml:space="preserve">
+    <value>Der Connector wird gefragt…</value>
+  </data>
+  <data name="ConnectorDisconnecting" xml:space="preserve">
+    <value>Wird getrennt…</value>
+  </data>
+  <data name="ConnectorTickedNotOffered" xml:space="preserve">
+    <value>Keine der angekreuzten Funktionen wird von diesem Connector derzeit angeboten.</value>
+  </data>
+  <data name="ConnectorRemoveTitle" xml:space="preserve">
+    <value>Connector entfernen</value>
+  </data>
+  <data name="ConnectorRemoveConfirm" xml:space="preserve">
+    <value>Den Connector {0} entfernen? Sein Schlüssel wird beendet, und die dafür gewählten Corporations, Allianzen und Funktionen sowie die verknüpften Charaktere, die er geliefert hat, werden vergessen. Das lässt sich nicht rückgängig machen.</value>
+  </data>
   <data name="ChatIntelAskedWorker" xml:space="preserve">
     <value>Der PC, der die Hintergrundarbeit erledigt, wurde gebeten, den Verlauf neu auszuwerten: Nur dieser PC wertet Aufklärung aus. Der Fortschritt erscheint unter Hintergrundprozesse.</value>
   </data>

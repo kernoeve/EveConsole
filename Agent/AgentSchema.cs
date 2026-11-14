@@ -105,6 +105,19 @@ public sealed class AgentSchema
     /// schema without standing up the application's container — a guard that needs the app running
     /// is a guard that does not run in CI.
     /// </summary>
+    /// <summary>
+    /// The shared preferences, never shown and refused by name (<see cref="Tools.Data.ReadOnlySql"/>): they hold
+    /// the keys for the online services. (Connector keys live in <see cref="ConnectorsTable"/> now.) What the
+    /// agent needs from them it reads in code.
+    /// </summary>
+    public const string PreferencesTable = "AppPreferences";
+
+    /// <summary>
+    /// The connectors the user set up, with each connector's key: never shown, and refused by name
+    /// (<see cref="Tools.Data.ReadOnlySql"/>). A key lets whoever reads it act as the owner at that connector.
+    /// </summary>
+    public const string ConnectorsTable = "Connectors";
+
     public static AgentSchema Build(AppDbContext db)
     {
         var tables = new Dictionary<string, List<Column>>(StringComparer.OrdinalIgnoreCase);
@@ -117,10 +130,15 @@ public sealed class AgentSchema
             // ⚠️ Private conversations, some of them other people's words, are not for sending to a model
             // provider because a question happened to reach for a table. The same for who the owner talks to,
             // and for the emote packs their groups pass around, which are pictures and nothing to ask about.
+            // Linked characters too: which characters are whose, for other people, given to this install
+            // by somewhere they registered them — not the owner's to hand to a provider.
             if (table.StartsWith("Jabber", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Irc", StringComparison.OrdinalIgnoreCase)
                 || table.StartsWith("Mumble", StringComparison.OrdinalIgnoreCase)
-                || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)) continue;
+                || table.StartsWith("Emote", StringComparison.OrdinalIgnoreCase)
+                || table.StartsWith("Linked", StringComparison.OrdinalIgnoreCase)
+                || table.Equals(PreferencesTable, StringComparison.OrdinalIgnoreCase)
+                || table.Equals(ConnectorsTable, StringComparison.OrdinalIgnoreCase)) continue;
 
             var storeObject = StoreObjectIdentifier.Table(table, entity.GetSchema());
             var columns = new List<Column>();
