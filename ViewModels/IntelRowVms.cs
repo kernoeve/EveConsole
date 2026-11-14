@@ -647,10 +647,13 @@ public sealed class IntelEventRowVm : ReactiveObject
         TailText = tail;
         DetailText = detail ?? "";
         FollowUpText = row.FollowUps.Count > 0 ? string.Format(culture, IntelText.FollowUps, row.FollowUps.Count) : "";
+        // Heard in more than one place: "×2", the places in its tooltip. Never more hostiles, only more places.
+        EchoText = e.EchoList.Count > 0 ? string.Format(culture, IntelText.EchoCount, e.EchoList.Count + 1) : "";
+        EchoTip = e.EchoList.Count > 0 ? string.Join("\n", EchoLines(e, culture).Prepend(IntelText.EchoTipTitle)) : null;
         ToolTip = TipOf(row, culture);
         Watch = row.Watch;
         WatchSet = snapshot.Watch;
-        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, e.Superseded, Watch,
+        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, EchoTip, e.Superseded, Watch,
                                 string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text + ":" + p.Watch + ":" + p.Badge?.Id
                                                                       + ":" + p.CountText + ":" + p.PictureTip)));
         Tick(now, snapshot.Settings.FreshSeconds);
@@ -747,6 +750,14 @@ public sealed class IntelEventRowVm : ReactiveObject
     public bool HasSecondLine => Pictures.Count > 0 || HasTail || HasDetail || HasMore;
     public string FollowUpText { get; }
     public bool HasFollowUps => FollowUpText.Length > 0;
+
+    /// <summary>"×2": heard in that many places in all, this one's own included; empty when heard only here.</summary>
+    public string EchoText { get; }
+    public bool HasEchoes => EchoText.Length > 0;
+
+    /// <summary>Where else it was heard: each channel, who said it there, and when.</summary>
+    public string? EchoTip { get; }
+
     public string ToolTip { get; }
 
     public bool CanOpenInTool => Actions.OpenInTool is not null;
@@ -882,7 +893,12 @@ public sealed class IntelEventRowVm : ReactiveObject
             .Select(h => IntelPictureVm.Ship(h.Type, h.Name ?? h.Type.ToString(CultureInfo.InvariantCulture), h.Count))];
     }
 
-    /// <summary>The whole line as said, who said it where, and the later lines of its thread.</summary>
+    /// <summary>Each other place a line was heard, indented: "channel · who, HH:mm:ss" (EVE time).</summary>
+    private static IEnumerable<string> EchoLines(IntelEvent e, CultureInfo culture) =>
+        e.EchoList.Select(x => "  " + (x.Reporter is { Length: > 0 } who ? string.Format(culture, IntelText.SourceChannelBy, x.Channel, who) : x.Channel)
+                                    + ", " + x.At.UtcDateTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture));
+
+    /// <summary>The whole line as said, who said it where, where else it was heard, and the later lines of its thread.</summary>
     private static string TipOf(IntelFeedRow row, CultureInfo culture)
     {
         var e = row.Event;
@@ -894,6 +910,11 @@ public sealed class IntelEventRowVm : ReactiveObject
             lines.Add(string.Format(culture, IntelText.PastedBy, paster));
         else if (e.Reporter is { Length: > 0 } who)
             lines.Add(string.Format(culture, IntelText.ReportedBy, who, e.Channel ?? ""));
+        if (e.EchoList.Count > 0)
+        {
+            lines.Add(IntelText.EchoTipTitle);
+            lines.AddRange(EchoLines(e, culture));
+        }
         if (row.FollowUps.Count > 0)
         {
             lines.Add(IntelText.LaterInThread);

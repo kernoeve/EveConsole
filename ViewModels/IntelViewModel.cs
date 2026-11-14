@@ -979,8 +979,9 @@ public sealed class IntelBoardRowVm : ReactiveObject
             moving.Add(string.Format(culture, IntelText.MovingHeading, snapshot.SystemName(heading)));
         MovingText = string.Join(", ", moving);
 
-        // Where it was heard: the channels, then the kills and the pastes.
-        var sources = events.Select(e => e.Event.SourceKey).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        // Where it was heard: the channels (a relay's too), then the kills and the pastes.
+        var sources = events.Select(e => e.Event.SourceKey).Concat(events.SelectMany(e => e.Event.EchoList.Select(x => x.Channel)))
+            .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var words = sources.Where(s => s is not IntelSnapshot.SourceKills and not IntelSnapshot.SourcePaste)
             .Order(StringComparer.CurrentCultureIgnoreCase).ToList();
         if (sources.Contains(IntelSnapshot.SourceKills) || row.Camps.Count > 0) words.Add(IntelText.SourceKillsShort);

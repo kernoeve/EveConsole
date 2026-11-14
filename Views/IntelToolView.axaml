@@ -643,6 +643,11 @@
                     </Button>
                     <TextBlock Classes="kind" Text="{Binding Row.KindText}" Classes.kill="{Binding Row.IsKillState}"
                                Classes.camp="{Binding Row.IsCampState}" Classes.clear="{Binding Row.IsClear}" />
+                    <!-- Heard in more than one place: "×2", the channels in its tooltip. A relay is no more hostiles. -->
+                    <Border IsVisible="{Binding Row.HasEchoes}" Background="{DynamicResource SurfacePanelAltBrush}" CornerRadius="3"
+                            Padding="4 0" VerticalAlignment="Center" ToolTip.Tip="{Binding Row.EchoTip}">
+                      <TextBlock Text="{Binding Row.EchoText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+                    </Border>
                   </StackPanel>
                   <!-- What, then who and what they fly: every line answers who. Narrow, names give way to their pictures
                        (each name stays in its picture's tooltip), then the long words trim. -->

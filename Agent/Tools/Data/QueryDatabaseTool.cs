@@ -137,9 +137,10 @@ public sealed class QueryDatabaseTool : IAgentTool
             Gate(system whose gate they are on), Ships(hulls with no pilot named, e.g. "3× Loki")
         IntelReportCharacters: IntelReportId, CharacterId, CharacterName, ShipTypeId, ShipName
             - Obsolete=1 means a later report supersedes this one.
-            - IntelReports also has Kind(0 sighting, 1 the system called clear: count only Kind=0),
-              Source(0 chat, 1 pasted Local, 2 pasted d-scan; pastes have ChatMessageId 0),
-              ParentReportId(a follow-up's first report), FromSystemId, HeadingSystemId.
+            - IntelReports also has Kind(0 sighting, 1 the system called clear, 2 a relayed copy of the
+              report ParentReportId names, heard in another channel: no information of its own; count
+              only Kind=0), Source(0 chat, 1 pasted Local, 2 pasted d-scan; pastes have ChatMessageId 0),
+              ParentReportId(a follow-up's first report; a copy's original), FromSystemId, HeadingSystemId.
         IntelLastSeen: CharacterId, Name, SeenAt(ISO text), SystemId, Source(0 report, 1 pasted
             Local, 2 kill attacker, 3 kill victim), ReportId, KillMailId, ShipTypeId, ShipName,
             NoVisual, CorporationId, AllianceId, PrevSystemId, PrevSeenAt, InSystemSince

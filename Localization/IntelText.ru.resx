@@ -1159,4 +1159,10 @@
   <data name="UnknownPilotTip" xml:space="preserve">
     <value>Неизвестный пилот (персонаж {0}): имя пока неизвестно</value>
   </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Также в каналах:</value>
+  </data>
 </root>

@@ -538,6 +538,9 @@ public sealed class IntelService(
 
             var pending = new List<(IntelReport Report, List<IntelReportCharacter> Pilots)>();
 
+            // Copies of a report made in this same batch: pointed at it once it is saved and has an id.
+            var copies = new List<(IntelReport Copy, IntelReport Original)>();
+
             // A clear obsoletes everything in its system older than itself, so only the newest
             // clear per system in this batch needs applying — an earlier one can only ever
             // retire a subset of what the later one does.
@@ -615,7 +618,15 @@ public sealed class IntelService(
                     continue;
 
                 // Pilots with their hulls, and the heading: a follow-up that adds only those is not a copy.
-                if (held.IsCopy(report, built.Pilots)) continue;
+                // ⚠️ A copy is stored, as a copy of its original and nothing more: no pilots, no count, no thread, no
+                // last seen, no clear. Dropped instead, the line had no report and the Feed showed it as chatter.
+                if (held.CopyOf(report, built.Pilots) is { } original)
+                {
+                    var copy = Copy(report, original);
+                    pending.Add((copy, []));
+                    if (original.Id == 0) copies.Add((copy, original));
+                    continue;
+                }
                 // Before it is held itself: a clear relaying one held already retires nothing of its own.
                 var relayedClear = held.RelaysClear(report);
                 held.Add(report, built.Pilots);
@@ -639,7 +650,7 @@ public sealed class IntelService(
                 if (report.ReporterCharacterId is { } rid) seenCharacters.Add(rid);
             }
 
-            written += await FlushAsync(db, pending, threads, ct);
+            written += await FlushAsync(db, pending, threads, copies, ct);
             await ApplyClearsAsync(db, clears, ct);
 
             // One affiliation pass for the whole batch rather than one per report.
@@ -731,7 +742,8 @@ public sealed class IntelService(
         try
         {
             using var db = dbFactory.CreateDbContext();
-            var total = await db.IntelReports.CountAsync(ct);
+            // Relayed copies are not reports of their own.
+            var total = await db.IntelReports.CountAsync(r => r.Kind != IntelReportKind.Copy, ct);
             if (total == 0) return DataText.IntelStatusNothing;
 
             var newest = await db.IntelReports.AsNoTracking()
@@ -773,6 +785,27 @@ public sealed class IntelService(
 
         return (report, Pilots(parsed.Pilots));
     }
+
+    /// <summary>
+    /// The row for a line that repeats <paramref name="original"/> from another channel: the line itself, its system, and
+    /// the link. Nothing it said is kept as information (no pilots, count, flags, gate, hulls or direction): all of it is
+    /// the original's, and a reader that forgot to leave copies out would count it twice. The link is set here when the
+    /// original is stored already, else once it is saved (<see cref="FlushAsync"/>).
+    /// </summary>
+    private static IntelReport Copy(IntelReport report, IntelReport original) => new()
+    {
+        ReportedAt          = report.ReportedAt,
+        ChannelName         = report.ChannelName,
+        ReporterName        = report.ReporterName,
+        ReporterCharacterId = report.ReporterCharacterId,
+        Message             = report.Message,
+        ChatMessageId       = report.ChatMessageId,
+        Source              = IntelReportSource.Chat,
+        Kind                = IntelReportKind.Copy,
+        SystemId            = original.SystemId,
+        SystemName          = original.SystemName,
+        ParentReportId      = original.Id > 0 ? original.Id : null,
+    };
 
     /// <summary>A report with only what the line itself gives: the message, when, where it was said, and by whom.</summary>
     private IntelReport Line(int chatMessageId, string reportedAt, string channel, string reporter, string message) => new()
@@ -838,7 +871,7 @@ public sealed class IntelService(
     /// </summary>
     private static async Task<int> FlushAsync(
         AppDbContext db, List<(IntelReport Report, List<IntelReportCharacter> Pilots)> pending,
-        IntelThreads threads, CancellationToken ct)
+        IntelThreads threads, List<(IntelReport Copy, IntelReport Original)> copies, CancellationToken ct)
     {
         if (pending.Count == 0) return 0;
 
@@ -850,8 +883,11 @@ public sealed class IntelService(
                 p.IntelReportId = report.Id;
 
         // Follow-ups of a report saved just now point at it by id; still tracked, so the save below
-        // writes them with the pilots.
+        // writes them with the pilots. Copies of one likewise.
         threads.LinkSaved();
+        foreach (var (copy, original) in copies)
+            copy.ParentReportId = original.Id;
+        copies.Clear();
 
         var all = pending.SelectMany(p => p.Pilots).ToList();
         if (all.Count > 0) db.IntelReportCharacters.AddRange(all);

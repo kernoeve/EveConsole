@@ -584,7 +584,10 @@ internal static class FollowUpChecks
         c.Check("pass: a follow-up adding a heading, from another channel within the copy window, is kept",
             R("r17") is { SystemId: S4, HeadingSystemId: S1, ChannelName: ChA } && Parent("r17") == ids["r16"]);
         c.Check("pass: and one adding a hull", R("r18") is { SystemId: S4, HeadingSystemId: S1 } && Parent("r18") == ids["r16"]);
-        c.Check("pass: a relayed copy of that follow-up is not", R("u19") is null);
+        c.Check("pass: a relayed copy of that follow-up is not: it is a copy of it, naming nobody",
+            R("u19") is { Kind: IntelReportKind.Copy, PlayerCount: 0 } && Parent("u19") == ids["r18"] && live.Pilots[ids["u19"]].Count == 0,
+            R("u19") is { } u19 ? $"kind {u19.Kind} parent {Parent("u19")}" : "no report");
+        c.Check("pass: and not chatter", !chatter.Contains(ids["u19"]));
         c.Check("pass: \"+2\" does not copy back a pilot called in another system since",
             R("r22") is { SystemId: S1, PlayerCount: 4 } && live.Pilots[ids["r22"]].SequenceEqual([Zeltrix]),
             $"{R("r22")?.PlayerCount} pilots {string.Join(",", live.Pilots.GetValueOrDefault(ids["r22"]) ?? [])}");

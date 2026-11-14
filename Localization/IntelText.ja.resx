@@ -988,4 +988,10 @@
   <data name="UnknownPilotTip" xml:space="preserve">
     <value>不明なパイロット（キャラクター {0}）：名前はまだわかりません</value>
   </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>他の場所でも:</value>
+  </data>
 </root>

@@ -1797,6 +1797,11 @@ public class IntelReport
     /// <para>⚠️ Anything that counts or places hostiles reads <c>Kind = 0</c> only. A clear names no
     /// pilots and carries no count, but it is a row in the same table, and a reader that forgets
     /// the filter shows a clear call as a sighting of nobody.</para>
+    ///
+    /// <para>⚠️ <see cref="IntelReportKind.Copy"/> is a line that only repeated a report already held, from another
+    /// channel (a relay): stored so the line is known for what it is, never chatter, and linked to that report by
+    /// <see cref="ParentReportId"/>. It names no pilots, counts nothing and says nothing of its own: it adds no
+    /// information anywhere, only that the report was heard in one more place.</para>
     /// </summary>
     public int Kind { get; set; }
 
@@ -1806,7 +1811,8 @@ public class IntelReport
     public int Source { get; set; }
 
     /// <summary>A follow-up's thread: always the FIRST report of the thread, never a follow-up,
-    /// so nesting is one level whatever the length of the chain. Null on a report that started one.</summary>
+    /// so nesting is one level whatever the length of the chain. Null on a report that started one.
+    /// On a <see cref="IntelReportKind.Copy"/>: the very report it repeats (which may itself be a follow-up).</summary>
     public int? ParentReportId { get; set; }
 
     /// <summary>The system they came from, when the line said so ("A -> B", "from A").</summary>
@@ -1822,6 +1828,9 @@ public static class IntelReportKind
 {
     public const int Sighting = 0;
     public const int Clear    = 1;
+
+    /// <summary>A relayed copy of the report its <see cref="IntelReport.ParentReportId"/> names: no information of its own.</summary>
+    public const int Copy     = 2;
 }
 
 /// <summary>Values of <see cref="IntelReport.Source"/>.</summary>

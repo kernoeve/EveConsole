@@ -101,6 +101,10 @@ try
     await FollowUpChecks.DatabaseAsync(c, "SQLite threads", lsOptions);
     await FollowUpChecks.PassAsync(c, profile);
 
+    // ── Relayed copies: never chatter, never news, linked to what they copy ──────────────────────────────────
+    CopyChecks.Rule(c);
+    await CopyChecks.SqliteAsync(c, profile);
+
     // ── The read side: standings, distances, camps, the snapshot and the lens ────────────────────────────────
     ReadSideChecks.StandingChecks(c);
     await ReadSideChecks.SdeGroupChecks(c, root, profile);
@@ -157,10 +161,18 @@ try
     // ── The Intel tool's grids, headless: the Pilots tab's standings filter, header sorts, virtualized lists ─────────
     ToolGridChecks.Run(c);
 
+    // ⚠️ The headless setup above put the UI dispatcher's synchronization context on this thread, and nothing pumps that
+    // dispatcher from here on: every await below would post its continuation there and wait forever (the PostgreSQL
+    // checks hung on their first connection). The grids pump it themselves; everything after runs without it.
+    SynchronizationContext.SetSynchronizationContext(null);
+
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
     if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
+    {
         await PgChecks.RunAsync(c, server);
+        await CopyChecks.PostgresAsync(c, server);
+    }
     else
         Console.WriteLine("No EVECONSOLE_PG set, so the PostgreSQL checks did not run.");
 }

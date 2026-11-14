@@ -298,7 +298,8 @@ public static class IntelLens
         foreach (var e in snapshot.Feed)
         {
             if (e.At < since) continue;
-            if (viewer.Sources is { } sources && !sources.Contains(e.SourceKey)) continue;
+            // Heard in a source shown, itself or by a relay.
+            if (viewer.Sources is { } sources && !e.HeardIn(sources)) continue;
             if (!viewer.IncludeKills && e.Kind is IntelEventKind.Kill or IntelEventKind.CampFormed) continue;
             if (!viewer.IncludeClear && e.Kind == IntelEventKind.Clear) continue;
             var expired = now >= e.ExpiresAt;
@@ -469,7 +470,7 @@ public static class IntelLens
                 var fact = sys.Facts.Where(f => f.Flag == Monitoring.IntelRules.IntelFlags.Camp).OrderByDescending(f => f.At).FirstOrDefault();
                 if (fact is null || now >= fact.At + Kept(fact.Lifetime)) continue;
                 if (sys.Clear is { } clear && clear.At > fact.At) continue;
-                if (viewer.Sources is { } sources && !snapshot.Feed.Any(e => e.ReportId == fact.ReportId && sources.Contains(e.SourceKey))) continue;
+                if (viewer.Sources is { } sources && !snapshot.Feed.Any(e => e.ReportId == fact.ReportId && e.HeardIn(sources))) continue;
                 var (jumps, via, origin, drop) = Distance(sys.SystemId);
                 if (drop) continue;
                 var active = fact.ExpiresAt > now;

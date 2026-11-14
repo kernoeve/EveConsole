@@ -1392,4 +1392,12 @@
     <value>Unknown pilot (character {0}): the name is not known yet</value>
     <comment>Tooltip on the portrait of a pilot whose name is not known yet. {0} is the character id (a number).</comment>
   </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+    <comment>On an intel line: the same report was heard in this many channels in all, its own included (relayed copies). Never more hostiles. {0} is the number; the channels are in its tooltip.</comment>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Also heard in:</value>
+    <comment>Tooltip on an intel line, heading the other channels the same report was relayed into, one per line.</comment>
+  </data>
 </root>

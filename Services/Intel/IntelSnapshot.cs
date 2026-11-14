@@ -99,10 +99,25 @@ public sealed record IntelEvent(
     int? FromSystemId = null, int? HeadingSystemId = null,
     int? KillMailId = null, long VictimId = 0, string? VictimName = null, int VictimShipTypeId = 0,
     string? VictimShip = null, long VictimCorporationId = 0, long VictimAllianceId = 0, int AttackerCount = 0,
-    IReadOnlyList<int>? TopHullTypeIds = null, IntelGateNear? NearGate = null, string? CampKey = null)
+    IReadOnlyList<int>? TopHullTypeIds = null, IntelGateNear? NearGate = null, string? CampKey = null,
+    IReadOnlyList<IntelEcho>? Echoes = null)
 {
     public DateTimeOffset ExpiresAt => At + Lifetime;
+
+    /// <summary>The other places this was heard: relayed copies of a report, or relays of a clear. Never information of
+    /// their own; a line shows them as "×N" with the channels in its tooltip.</summary>
+    public IReadOnlyList<IntelEcho> EchoList => Echoes ?? [];
+
+    /// <summary>Whether it was heard in one of <paramref name="sources"/>, itself or by a relay.</summary>
+    public bool HeardIn(IReadOnlySet<string> sources) =>
+        sources.Contains(SourceKey) || EchoList.Any(e => sources.Contains(e.Channel));
 }
+
+/// <summary>
+/// A line that repeated an intel line from another channel within the copy window: the same report relayed. Kept only
+/// to say where else it was heard.
+/// </summary>
+public sealed record IntelEcho(int ReportId, string Channel, string Reporter, long? ReporterId, DateTimeOffset At);
 
 /// <summary>
 /// A line in an intel channel that gave no intel: talk, a question, or a follow-up with nothing to
@@ -272,18 +287,49 @@ public static class IntelSnapshotBuilder
     /// the clear is read once, at its first time. Stamped with the relay's later time it would also wipe every sighting
     /// called between the two, and the Feed would show it twice.
     /// </summary>
-    private static void DropRelayedClears(List<(IntelReport R, DateTimeOffset At)> reports)
+    /// <returns>Each clear left out, by the id of the clear it relays: the Feed says where else the clear was heard.</returns>
+    private static List<(int KeptId, IntelReport Relay, DateTimeOffset At)> DropRelayedClears(List<(IntelReport R, DateTimeOffset At)> reports)
     {
-        var relayed = new HashSet<IntelReport>(ReferenceEqualityComparer.Instance);
+        var relayed = new List<(int KeptId, IntelReport Relay, DateTimeOffset At)>();
         foreach (var system in reports.Where(x => x.R.Kind == IntelReportKind.Clear).GroupBy(x => x.R.SystemId))
         {
             if (system.Count() < 2) continue;
             var kept = new List<(IntelReport R, DateTimeOffset At)>();
             foreach (var x in system.OrderBy(x => x.At).ThenBy(x => x.R.Id))
-                if (kept.Any(y => EveConsole.Monitoring.IntelDuplicates.RelaysClear(x.R, x.At, y.R, y.At))) relayed.Add(x.R);
+                if (kept.FirstOrDefault(y => EveConsole.Monitoring.IntelDuplicates.RelaysClear(x.R, x.At, y.R, y.At)) is { R: not null } first)
+                    relayed.Add((first.R.Id, x.R, x.At));
                 else kept.Add(x);
         }
-        if (relayed.Count > 0) reports.RemoveAll(x => relayed.Contains(x.R));
+        if (relayed.Count > 0)
+        {
+            var gone = relayed.Select(x => x.Relay).ToHashSet(ReferenceEqualityComparer.Instance);
+            reports.RemoveAll(x => gone.Contains(x.R));
+        }
+        return relayed;
+    }
+
+    /// <summary>
+    /// Where else each report was heard: its relayed copies (<see cref="IntelReportKind.Copy"/>, read only for this) and
+    /// the relays of a clear, by the id of the report they repeat. Never a channel the report itself was said in.
+    /// </summary>
+    private static Dictionary<int, IReadOnlyList<IntelEcho>> Echoes(
+        IEnumerable<(IntelReport R, DateTimeOffset At)> copies, IEnumerable<(int KeptId, IntelReport Relay, DateTimeOffset At)> relayedClears,
+        IReadOnlyDictionary<int, (IntelReport R, DateTimeOffset At)> reportById)
+    {
+        var all = copies.Where(x => x.R.ParentReportId is int).Select(x => (Of: x.R.ParentReportId!.Value, x.R, x.At))
+            .Concat(relayedClears.Select(x => (Of: x.KeptId, R: x.Relay, x.At)));
+        var echoes = new Dictionary<int, IReadOnlyList<IntelEcho>>();
+        foreach (var group in all.GroupBy(x => x.Of))
+        {
+            if (!reportById.TryGetValue(group.Key, out var original)) continue;
+            var list = group
+                .Where(x => !string.Equals(x.R.ChannelName, original.R.ChannelName, StringComparison.OrdinalIgnoreCase))
+                .OrderBy(x => x.At).ThenBy(x => x.R.Id)
+                .Select(x => new IntelEcho(x.R.Id, x.R.ChannelName, x.R.ReporterName, x.R.ReporterCharacterId, x.At))
+                .ToList();
+            if (list.Count > 0) echoes[group.Key] = list;
+        }
+        return echoes;
     }
 
     /// <param name="episodes">What keeps a run of counts or of a flag going past the window's edge; without
@@ -296,11 +342,15 @@ public static class IntelSnapshotBuilder
         var from = now - s.Window;
 
         // ── Reports, with their times read once ──────────────────────────────
+        // ⚠️ A relayed copy is never a report here: read apart, only to say where else its original was heard.
         var reports = new List<(IntelReport R, DateTimeOffset At)>();
+        var copies  = new List<(IntelReport R, DateTimeOffset At)>();
         foreach (var r in input.Reports)
-            if (TryParse(r.ReportedAt, out var at) && at >= from) reports.Add((r, at));
-        DropRelayedClears(reports);
+            if (TryParse(r.ReportedAt, out var at) && at >= from)
+                (r.Kind == IntelReportKind.Copy ? copies : reports).Add((r, at));
+        var relayedClears = DropRelayedClears(reports);
         var reportById = reports.ToDictionary(x => x.R.Id);
+        var echoes = Echoes(copies, relayedClears, reportById);
         var pilotsOf = input.ReportPilots.Where(p => reportById.ContainsKey(p.IntelReportId))
             .ToLookup(p => p.IntelReportId);
 
@@ -499,7 +549,8 @@ public static class IntelSnapshotBuilder
                 named, count, r.Flags, r.NoVisual, r.Obsolete,
                 ReportId: r.Id, ParentReportId: r.ParentReportId, Channel: r.ChannelName, Reporter: r.ReporterName,
                 ReporterId: r.ReporterCharacterId, Message: r.Message, Gate: r.Gate, Ships: r.Ships,
-                FromSystemId: r.FromSystemId, HeadingSystemId: r.HeadingSystemId));
+                FromSystemId: r.FromSystemId, HeadingSystemId: r.HeadingSystemId,
+                Echoes: echoes.GetValueOrDefault(r.Id)));
         }
 
         foreach (var k in kills)

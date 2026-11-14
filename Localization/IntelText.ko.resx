@@ -988,4 +988,10 @@
   <data name="UnknownPilotTip" xml:space="preserve">
     <value>알 수 없는 파일럿(캐릭터 {0}): 아직 이름을 알 수 없습니다</value>
   </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>다른 곳에서도:</value>
+  </data>
 </root>

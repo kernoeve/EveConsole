@@ -107,6 +107,11 @@
                    Classes.camp="{Binding IsCampState}" Classes.kill="{Binding IsKillState}" Classes.clear="{Binding IsClear}" />
         <TextBlock Text="{Binding FollowUpText}" IsVisible="{Binding HasFollowUps}" FontSize="10" VerticalAlignment="Center"
                    Foreground="{DynamicResource TextMutedBrush}" />
+        <!-- Heard in more than one place: "×2", the channels in its tooltip. Never more hostiles. -->
+        <Border IsVisible="{Binding HasEchoes}" Classes="badge" CornerRadius="3" Padding="4 0" VerticalAlignment="Center"
+                ToolTip.Tip="{Binding EchoTip}">
+          <TextBlock Text="{Binding EchoText}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource TextSecondaryBrush}" />
+        </Border>
       </StackPanel>
       <TextBlock Grid.Column="3" Text="{Binding AgeText}" FontSize="10" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextMutedBrush}" />

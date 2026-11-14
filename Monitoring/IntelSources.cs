@@ -84,6 +84,9 @@ public static class IntelRooms
 /// in front. A shorter line has to say something beyond the system: "QZ-X77" is not the same report as "Sampler QZ-X77".</para>
 ///
 /// <para>Within one channel nothing is a copy: two people calling the same pilot there is how a pilot stays on the map.</para>
+///
+/// <para>A copy is stored as <see cref="IntelReportKind.Copy"/>, pointing at the report it repeats (<see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/>
+/// says which): the line is no chatter, and it adds nothing but that the report was heard in one more place.</para>
 /// </summary>
 public sealed class IntelDuplicates
 {
@@ -91,7 +94,8 @@ public sealed class IntelDuplicates
     /// pilot still there later is still news.</summary>
     public static readonly TimeSpan Window = TimeSpan.FromMinutes(2);
 
-    private sealed record Held(string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething, bool IsClear = false);
+    private sealed record Held(IntelReport Report, string Channel, DateTimeOffset At, string Words, string Facts, bool SaysSomething,
+                               bool IsClear = false);
 
     /// <summary>
     /// Whether a clear repeats an earlier clear of the same system from another channel within <see cref="Window"/>:
@@ -126,34 +130,48 @@ public sealed class IntelDuplicates
 
     private void Add(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
-        if (Read(report, pilots) is not { } held) return;
+        // A copy is never held itself: a third channel's relay is a copy of the report, not of the copy, and a copy
+        // stored names no pilots, so its facts would not match anyway.
+        if (report.Kind == IntelReportKind.Copy || Read(report, pilots) is not { } held) return;
 
         if (!_bySystem.TryGetValue(report.SystemId, out var list)) _bySystem[report.SystemId] = list = [];
         list.Add(held);
     }
 
     /// <summary>Whether this report is already held from another channel.</summary>
-    public bool IsCopy(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
-        IsCopy(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+    public bool IsCopy(IntelReport report, IEnumerable<IntelReportCharacter> pilots) => CopyOf(report, pilots) is not null;
 
     /// <summary>Whether this report, whose pilots' hulls are not known, is already held from another channel.</summary>
-    public bool IsCopy(IntelReport report, IEnumerable<long> pilots) =>
-        IsCopy(report, pilots.Select(id => (id, (int?)null)));
+    public bool IsCopy(IntelReport report, IEnumerable<long> pilots) => CopyOf(report, pilots) is not null;
 
-    private bool IsCopy(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
+    /// <summary>The report held from another channel that this one repeats, the earliest when several do; null when none.</summary>
+    public IntelReport? CopyOf(IntelReport report, IEnumerable<IntelReportCharacter> pilots) =>
+        CopyOf(report, pilots.Select(p => (p.CharacterId, p.ShipTypeId)));
+
+    /// <summary><see cref="CopyOf(IntelReport, IEnumerable{IntelReportCharacter})"/> for a report whose pilots' hulls are not known.</summary>
+    public IntelReport? CopyOf(IntelReport report, IEnumerable<long> pilots) =>
+        CopyOf(report, pilots.Select(id => (id, (int?)null)));
+
+    private IntelReport? CopyOf(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         // ⚠️ A clear is never a copy. It names nobody and counts nothing, so a second one doubles nothing; and every
         // clear of a system has the same facts, so "<system> clr" called in a second channel was dropped here, left
         // with no report, and shown in the Feed as chatter. A relayed one is stored but retires nothing of its own
         // (RelaysClear), and the Board and Feed read it as the clear it relays.
-        if (report.Kind == IntelReportKind.Clear) return false;
+        if (report.Kind != IntelReportKind.Sighting) return null;
 
-        if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return false;
+        if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return null;
 
-        return list.Any(held =>
-            !string.Equals(held.Channel, candidate.Channel, StringComparison.OrdinalIgnoreCase)
-            && (held.At - candidate.At).Duration() <= Window
-            && (held.Facts == candidate.Facts || SameWords(held, candidate)));
+        // ⚠️ Only a sighting is ever the original: a sighting worded like a clear ("QZ-X77 clr" with a pilot named after
+        // it) is not a copy of the clear, whatever the words.
+        return list
+            .Where(held => !held.IsClear
+                           && !string.Equals(held.Channel, candidate.Channel, StringComparison.OrdinalIgnoreCase)
+                           && (held.At - candidate.At).Duration() <= Window
+                           && (held.Facts == candidate.Facts || SameWords(held, candidate)))
+            .OrderBy(held => held.At)
+            .Select(held => held.Report)
+            .FirstOrDefault();
     }
 
     private static bool SameWords(Held a, Held b)
@@ -180,7 +198,7 @@ public sealed class IntelDuplicates
         var facts = $"{(int)report.Kind}|{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
         var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
                  || report.HeadingSystemId is not null;
-        return new Held(report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear);
+        return new Held(report, report.ChannelName, at, Words(report.Message), facts, says, report.Kind == IntelReportKind.Clear);
     }
 
     /// <summary>Letters and digits only, in lower case and single spaces: a copy may lose its capitals and its spacing.</summary>

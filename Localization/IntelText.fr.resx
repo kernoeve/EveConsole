@@ -1045,4 +1045,10 @@
   <data name="UnknownPilotTip" xml:space="preserve">
     <value>Pilote inconnu (personnage {0}) : le nom n&apos;est pas encore connu</value>
   </data>
+  <data name="EchoCount" xml:space="preserve">
+    <value>×{0}</value>
+  </data>
+  <data name="EchoTipTitle" xml:space="preserve">
+    <value>Aussi entendu dans :</value>
+  </data>
 </root>

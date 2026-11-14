@@ -108,9 +108,11 @@ public sealed class IntelThreads
         var threads = new IntelThreads();
         if (since.Length == 0 || until.Length == 0) return threads;
 
-        // ⚠️ Compared as text on both engines: every intel time column is ISO text.
+        // ⚠️ Compared as text on both engines: every intel time column is ISO text. Never a relayed copy: it names
+        // nobody, and its ParentReportId is the report it repeats, not a thread's first report.
         var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0)
+            .Where(r => r.Kind != IntelReportKind.Copy
+                        && string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0)
             .ToListAsync(ct);
         if (reports.Count == 0) return threads;
 
