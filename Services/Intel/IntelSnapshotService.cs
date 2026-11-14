@@ -230,6 +230,17 @@ public sealed class IntelSnapshotService : IDisposable
         Request();
     }
 
+    /// <summary>
+    /// A Jabber login or IRC server was saved, or which rooms are marked Intel changed (here or on another PC): the
+    /// channels' labels are read again on the next pass rather than within the minute. <paramref name="pass"/> asks for
+    /// that pass now; a login saved only waits for the next one.
+    /// </summary>
+    public void LabelsChanged(bool pass)
+    {
+        _labelsAt = DateTimeOffset.MinValue;
+        if (pass) Request();
+    }
+
     /// <summary>Reads the settings again on the next pass: after Settings → Intel changed one here.</summary>
     public void SettingsChanged()
     {
@@ -359,7 +370,8 @@ public sealed class IntelSnapshotService : IDisposable
 
     /// <summary>
     /// How each channel is shown: the Jabber and IRC logins and their rooms, every minute like the settings, so a server
-    /// renamed on any PC reads right here within the minute. ⚠️ A failed read keeps the labels it had (the names are only
+    /// renamed on any PC reads right here within the minute, and at once after <see cref="LabelsChanged"/> (a login saved,
+    /// a room marked Intel). ⚠️ A failed read keeps the labels it had (the names are only
     /// shown): never the snapshot's business to fail over them.
     /// </summary>
     private async Task<IntelChannelLabels> LabelsAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)
@@ -368,19 +380,7 @@ public sealed class IntelSnapshotService : IDisposable
         _labelsAt = now;
         try
         {
-            var accounts = await db.JabberAccounts.AsNoTracking()
-                .Select(a => new JabberAccount { Id = a.Id, Name = a.Name, Address = a.Address, Host = a.Host })
-                .ToListAsync(ct).ConfigureAwait(false);
-            var rooms = await db.JabberRooms.AsNoTracking()
-                .Select(r => new JabberRoom { AccountId = r.AccountId, RoomJid = r.RoomJid, Name = r.Name, RoomType = r.RoomType, Left = r.Left })
-                .ToListAsync(ct).ConfigureAwait(false);
-            var servers = await db.IrcServers.AsNoTracking()
-                .Select(s => new IrcServer { Id = s.Id, Name = s.Name, Host = s.Host, Nickname = s.Nickname })
-                .ToListAsync(ct).ConfigureAwait(false);
-            var channels = await db.IrcChannels.AsNoTracking()
-                .Select(c => new IrcChannel { ServerId = c.ServerId, Name = c.Name, RoomType = c.RoomType, Left = c.Left })
-                .ToListAsync(ct).ConfigureAwait(false);
-            _labels = IntelChannelLabels.Build(accounts, rooms, servers, channels);
+            _labels = await IntelChannelLabels.ReadAsync(db, ct).ConfigureAwait(false);
         }
         catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
         catch (Exception ex)

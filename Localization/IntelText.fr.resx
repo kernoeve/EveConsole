@@ -1093,4 +1093,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>Les choix Enregistrer ne trient que les pilotes nommés : un d-scan ne nomme personne, donc chaque vaisseau compte.</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Enregistrer est désactivé : toutes les réputations d'Enregistrer sont désactivées. Activez-en pour enregistrer.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Noms pas encore vérifiés : {0}. ESI n'a pas répondu et ce sont peut-être des amis, donc rien n'est enregistré tant qu'ils ne le sont pas. Nouvel essai sous peu.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Enregistrer est désactivé : pilotes exclus qui sont peut-être hostiles : {0} ({1}). Un Local retire tous ceux signalés dans {2}, l'enregistrer les retirerait donc comme s'ils étaient partis. Activez leurs réputations pour l'enregistrer.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Pas encore vérifiés</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>En attente d'ESI</value>
+  </data>
 </root>

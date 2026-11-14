@@ -1311,13 +1311,17 @@ public sealed class IntelService(
     ///
     /// <para>⚠️ Its own lookups, never the pass's session cache: a paste is resolved on whichever PC it
     /// is made, on its own thread, while the worker's pass may be reading that cache.</para>
+    ///
+    /// <para>⚠️ A name ESI did not answer for (the call failed) is in neither list of the result: it is
+    /// not known to be nobody, and the paste must not count it as an unnamed pilot.</para>
     /// </summary>
-    public async Task<IReadOnlyDictionary<string, long>> ResolveCharactersAsync(
+    public async Task<IntelNameLookup> ResolveCharactersAsync(
         IReadOnlyCollection<string> names, CancellationToken ct = default)
     {
         var found = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        var misses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         var wanted = names.Select(n => n.Trim()).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
-        if (wanted.Count == 0) return found;
+        if (wanted.Count == 0) return new IntelNameLookup(found, misses);
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
         foreach (var chunk in wanted.Chunk(500))
@@ -1334,7 +1338,6 @@ public sealed class IntelService(
         // ⚠️ The age is checked in memory: a DateTimeOffset comparison does not translate on SQLite.
         var left = wanted.Where(n => !found.ContainsKey(n)).ToList();
         var recheck = DateTimeOffset.UtcNow - MissRecheck;
-        var misses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var chunk in left.Chunk(500))
             foreach (var m in await db.NameLookupMisses.AsNoTracking().Where(m => chunk.Contains(m.Name))
                          .Select(m => new { m.Name, m.CheckedAt }).ToListAsync(ct))
@@ -1348,18 +1351,21 @@ public sealed class IntelService(
                 var got = await esi.LookupEntityIdsAsync([.. slice], ct);
                 foreach (var (id, name, category) in got)
                     if (category == "character") found.TryAdd(name, id);
+                // ESI answered: what it did not name as a character is nobody, kept so even if writing it down fails.
+                var nobody = slice.Where(s => !found.ContainsKey(s)).ToList();
+                misses.UnionWith(nobody);
                 await CacheNamesAsync(db, got, ct);
-                await RecordMissesAsync(db, [.. slice.Where(s => !found.ContainsKey(s))], ct);
+                await RecordMissesAsync(db, nobody, ct);
             }
             catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
             catch (Exception ex)
             {
-                // The rest stay unresolved, counted as unnamed, rather than hammering a failing endpoint.
+                // The rest stay not looked up (in neither list), rather than hammering a failing endpoint.
                 errorLogger.Log(nameof(IntelService), nameof(ResolveCharactersAsync), ex);
                 break;
             }
         }
-        return found;
+        return new IntelNameLookup(found, misses);
     }
 
     /// <summary>The corporation and alliance of each pilot not yet held, from ESI, into the shared

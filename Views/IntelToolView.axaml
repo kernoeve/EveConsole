@@ -984,6 +984,8 @@
             <StackPanel Spacing="6">
               <TextBlock Text="{Binding PlacesText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource TextPrimaryBrush}"
                          IsVisible="{Binding IsLocal}" TextWrapping="Wrap" />
+              <TextBlock Text="{Binding BlockText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource WarnBrush}"
+                         IsVisible="{Binding HasBlock}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding ReplacesText}" FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsLocal}"
                          ToolTip.Tip="{x:Static loc:IntelText.TipReplaces}" />
               <TextBlock Text="{x:Static loc:IntelText.PasteClearNote}" FontSize="11" TextWrapping="Wrap" IsVisible="{Binding IsClearPaste}"

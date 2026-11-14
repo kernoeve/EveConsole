@@ -1093,4 +1093,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>Die Speichern-Auswahl gilt nur für benannte Piloten: Ein D-Scan nennt niemanden, daher zählt jedes Schiff darauf.</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Speichern ist aus: Alle Speichern-Chips sind aus. Schalte Ansehensstufen ein, um zu speichern.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Noch nicht nachgeschlagene Namen: {0}. ESI hat nicht geantwortet, und es könnten Freunde sein, daher wird nichts gespeichert, bis sie bekannt sind. Neuer Versuch in Kürze.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Speichern ist aus: ausgelassene Piloten, die feindlich sein könnten: {0} ({1}). Ein Local nimmt alle in {2} Gemeldeten heraus, Speichern würde sie also entfernen, als wären sie gegangen. Schalte ihre Ansehensstufen ein, um ihn zu speichern.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Noch nicht nachgeschlagen</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Wartet auf ESI</value>
+  </data>
 </root>

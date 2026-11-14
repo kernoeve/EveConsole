@@ -25,7 +25,10 @@ namespace EveConsole.ViewModels;
 /// <para>The "Save:" chips choose the standings tiers a Local saves (Red, Orange and Neutral by default,
 /// kept on this PC): a player copies all of Local, blues too, for speed. The preview still lists everyone,
 /// the tiers left out folded to a dimmed line each, and the headline counts only what is saved. A Local
-/// with nobody of the kept tiers on it saves as a clear of the system.</para>
+/// with nobody of the kept tiers on it saves as a clear of the system. Save is off, with the reason shown,
+/// while every chip is off, while the chips leave out someone of Red, Orange or Neutral (a Local is a
+/// replace, so they would be taken out of the system), and while a name is not looked up (ESI not
+/// answering; the preview then asks again every 15 seconds).</para>
 ///
 /// <para>Pasted by follows the system: the first online character's system and that same character by
 /// default, and the character in a system chosen from the list, until the user picks Pasted by here.</para>
@@ -33,6 +36,9 @@ namespace EveConsole.ViewModels;
 public sealed class IntelPasteVm : ReactiveObject
 {
     private static readonly TimeSpan PreviewDelay = TimeSpan.FromMilliseconds(300);
+
+    /// <summary>How soon a preview with names not looked up (ESI not answering) asks again.</summary>
+    private static readonly TimeSpan LookupRetry = TimeSpan.FromSeconds(15);
 
     /// <summary>The tiers a pasted Local saves, kept on this PC as a list of tier numbers.</summary>
     public const string KeySaveTiers = "intel.paste_tiers";
@@ -45,6 +51,7 @@ public sealed class IntelPasteVm : ReactiveObject
     private readonly UniverseMapService? _map;
     private readonly ObservableCollection<Character> _characters;
     private readonly DispatcherTimer _debounce;
+    private readonly DispatcherTimer _retry;
     private long _ticket;
     private bool _characterChosen;
     private IntelSnapshot _snapshot = IntelSnapshot.Empty;
@@ -59,6 +66,13 @@ public sealed class IntelPasteVm : ReactiveObject
         _characters = characters;
         _debounce = new DispatcherTimer(PreviewDelay, DispatcherPriority.Background, (_, _) => { _debounce!.Stop(); Preview(); });
         _debounce.Stop();
+        // A Local held back by names not looked up asks again by itself, off the UI thread like any preview.
+        _retry = new DispatcherTimer(LookupRetry, DispatcherPriority.Background, (_, _) =>
+        {
+            _retry!.Stop();
+            if (!_debounce.IsEnabled && !IsBusy && _preview is { Block: IntelPasteBlock.Lookup } p && IsCurrent(p)) Preview();
+        });
+        _retry.Stop();
         _keep = ReadKeep();
         _characters.CollectionChanged += OnCharactersChanged;
         SyncCharacters();
@@ -120,6 +134,7 @@ public sealed class IntelPasteVm : ReactiveObject
     private void ClearBox()
     {
         _debounce.Stop();
+        _retry.Stop();
         Interlocked.Increment(ref _ticket);
         _text = "";
         this.RaisePropertyChanged(nameof(Text));
@@ -150,9 +165,12 @@ public sealed class IntelPasteVm : ReactiveObject
         catch { saved = null; }
         if (saved is null) return [.. StandingTiers.Hostile];
         // "-" is every tier switched off: an empty value would read back as never chosen.
-        return [.. saved.Split(',', StringSplitOptions.RemoveEmptyEntries)
-                        .Select(t => int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? (StandingTier?)n : null)
+        if (saved.Trim() == "-") return [];
+        HashSet<StandingTier> read = [.. saved.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(t => int.TryParse(t.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? (StandingTier?)n : null)
                         .Where(t => t is { } v && FiveTiers.Contains(v)).Select(t => t!.Value)];
+        // ⚠️ A damaged value with no tier in it is the default, never every chip off.
+        return read.Count > 0 ? read : [.. StandingTiers.Hostile];
     }
 
     /// <summary>A chip clicked: kept on this PC, and the preview on screen says at once what Save now stores.
@@ -277,6 +295,7 @@ public sealed class IntelPasteVm : ReactiveObject
     {
         _characters.CollectionChanged -= OnCharactersChanged;
         _debounce.Stop();
+        _retry.Stop();
     }
 
     private void SyncCharacters()
@@ -403,6 +422,7 @@ public sealed class IntelPasteVm : ReactiveObject
     private void Stale()
     {
         CanSave = false;
+        _retry.Stop();
         _debounce.Stop();
         _debounce.Start();
     }
@@ -475,7 +495,7 @@ public sealed class IntelPasteVm : ReactiveObject
         if (preview is null)
         {
             CountsText = "";
-            PlacesText = ReplacesText = UnknownText = OwnText = LeftOutText = "";
+            PlacesText = ReplacesText = UnknownText = OwnText = LeftOutText = BlockText = "";
             IsClearPaste = false;
             Groups = [];
             DscanShipsText = DscanFlagsText = "";
@@ -486,10 +506,20 @@ public sealed class IntelPasteVm : ReactiveObject
             CountsText = Plural(nameof(IntelText.PasteNamesCountOther), preview.Names.Count, preview.Pilots.Count, preview.Unresolved.Count);
             var system = SystemNameOf(preview.SystemId, preview.SystemName);
             IsClearPaste = preview.IsClear && preview.SystemId > 0;
-            // Only what is saved: the pilots of the kept tiers. Nobody kept is a clear of the system.
+            // Why it is not saved, when it is not: then no headline, and nothing said of what it would replace.
+            BlockText = preview.Block switch
+            {
+                IntelPasteBlock.NoTiers => IntelText.PasteBlockedNoTiers,
+                IntelPasteBlock.Lookup  => string.Format(culture, IntelText.PasteBlockedLookup, preview.Unchecked.Count),
+                IntelPasteBlock.Partial => string.Format(culture, IntelText.PasteBlockedPartial, preview.HostileLeftOut,
+                    string.Join(", ", preview.LeftOutByTier.Where(t => StandingTiers.IsHostile(t.Tier)).Select(t => IntelWords.TierName(t.Tier))), system),
+                _ => "",
+            };
+            // Only what is saved: the pilots of the kept tiers and the unnamed, as Save counts them. Nobody kept is a clear.
             PlacesText = preview.SystemId <= 0 ? IntelText.PasteChooseSystem
+                       : preview.Block != IntelPasteBlock.None ? ""
                        : preview.IsClear ? string.Format(culture, IntelText.PasteSavesClear, system)
-                       : Plural(nameof(IntelText.PastePlacesOther), preview.Kept.Count, system);
+                       : Plural(nameof(IntelText.PastePlacesOther), preview.PlayerCount, system);
             ShowReplaces(preview.Replaces);
             UnknownText = preview.KeptUnresolved.Count > 0 ? Plural(nameof(IntelText.PasteUnknownNamesOther), preview.KeptUnresolved.Count) : "";
             OwnText = preview.Own > 0 ? string.Format(culture, IntelText.PasteOwnNotSaved, preview.Own) : "";
@@ -497,7 +527,8 @@ public sealed class IntelPasteVm : ReactiveObject
             if (preview.Own > 0) outTiers.Add(IntelText.PasteGroupYours);
             LeftOutText = preview.LeftOut > 0 ? string.Format(culture, IntelText.PasteLeftOut, preview.LeftOut, string.Join(", ", outTiers)) : "";
             // The kept tiers in full; each tier left out folded to one dimmed line with its count, the user's own last.
-            var groups = preview.Groups.Where(g => g.Kind != IntelPasteGroupKind.Own && preview.Keeps(g.Tier))
+            // Names not looked up always show, whatever the chips: they are what holds Save back.
+            var groups = preview.Groups.Where(g => g.Kind == IntelPasteGroupKind.Unchecked || (g.Kind != IntelPasteGroupKind.Own && preview.Keeps(g.Tier)))
                 .Select(g => new IntelPasteGroupVm(g)).ToList();
             groups.AddRange(preview.LeftOutByTier.Select(t => IntelPasteGroupVm.LeftOutLine(t.Tier, t.Count)));
             if (preview.Own > 0) groups.Add(IntelPasteGroupVm.LeftOutLine(StandingTier.Own, preview.Own));
@@ -510,7 +541,7 @@ public sealed class IntelPasteVm : ReactiveObject
             var d = preview.Dscan;
             CountsText = Plural(nameof(IntelText.PasteDscanCountOther), d.Ships, d.Unknown);
             PlacesText = preview.SystemId > 0 ? "" : IntelText.PasteChooseSystem;
-            ReplacesText = UnknownText = OwnText = LeftOutText = "";
+            ReplacesText = UnknownText = OwnText = LeftOutText = BlockText = "";
             IsClearPaste = false;
             Groups = [];
             DscanShipsText = Plural(nameof(IntelText.PasteDscanShipsOther), d.Ships);
@@ -524,7 +555,10 @@ public sealed class IntelPasteVm : ReactiveObject
         foreach (var g in Groups) _ = g.LoadPicturesAsync();
         // A preview that came back after the box changed again is shown, but Save waits for the next one.
         CanSave = preview is { CanSave: true } && IsCurrent(preview);
+        _retry.Stop();
+        if (preview is { Block: IntelPasteBlock.Lookup } && IsCurrent(preview) && _service is not null) _retry.Start();
         this.RaisePropertyChanged(nameof(HasPreview));
+        this.RaisePropertyChanged(nameof(HasBlock));
         this.RaisePropertyChanged(nameof(HasUnknown));
         this.RaisePropertyChanged(nameof(HasOwn));
         this.RaisePropertyChanged(nameof(HasLeftOut));
@@ -538,8 +572,10 @@ public sealed class IntelPasteVm : ReactiveObject
     private static string Plural(string otherKey, long n, params object?[] more) =>
         Plurals.Format(IntelText.ResourceManager, otherKey, n, more);
 
+    /// <summary>"Replaces N", only while Save would: a Local held back replaces nothing.</summary>
     private void ShowReplaces(int replaces) =>
-        ReplacesText = string.Format(CultureInfo.CurrentCulture, IntelText.PasteReplaces, replaces);
+        ReplacesText = _preview is { Block: not IntelPasteBlock.None } ? ""
+                     : string.Format(CultureInfo.CurrentCulture, IntelText.PasteReplaces, replaces);
 
     /// <summary>A system's name in the interface language, from the snapshot or the paste's English one.</summary>
     private string SystemNameOf(int systemId, string english) =>
@@ -560,6 +596,12 @@ public sealed class IntelPasteVm : ReactiveObject
     public string OwnText      { get => _own;      private set => this.RaiseAndSetIfChanged(ref _own, value); }
     public bool HasUnknown => UnknownText.Length > 0;
     public bool HasOwn => OwnText.Length > 0;
+
+    private string _block = "";
+    /// <summary>Why Save is off for this Local: every chip off, names not looked up yet, or someone who may be hostile
+    /// left out of what is a replace.</summary>
+    public string BlockText { get => _block; private set => this.RaiseAndSetIfChanged(ref _block, value); }
+    public bool HasBlock => BlockText.Length > 0;
 
     private string _leftOut = "";
     /// <summary>"89 left out (Blue, Light blue)": everyone on the Local that Save does not store.</summary>
@@ -669,10 +711,16 @@ public sealed class IntelPasteGroupVm
         {
             IntelPasteGroupKind.Own => IntelText.PasteGroupYours,
             IntelPasteGroupKind.Unresolved => IntelText.PasteGroupUnresolved,
+            IntelPasteGroupKind.Unchecked => IntelText.PasteGroupUnchecked,
             IntelPasteGroupKind.NoAlliance => IntelText.PasteGroupNoAlliance,
             _ => group.Name.Length > 0 ? group.Name : string.Format(culture, MapText.AllianceNumbered, group.AllianceId),
         };
-        TierName = group.Kind == IntelPasteGroupKind.Unresolved ? IntelText.PasteTierUnnamed : IntelWords.TierName(group.Tier);
+        TierName = group.Kind switch
+        {
+            IntelPasteGroupKind.Unresolved => IntelText.PasteTierUnnamed,
+            IntelPasteGroupKind.Unchecked => IntelText.PasteTierUnchecked,
+            _ => IntelWords.TierName(group.Tier),
+        };
         CountText = group.Count.ToString(culture);
         Corps = [.. group.Corps.Select(c => new IntelPasteCorpVm(c, group.Kind))];
     }
@@ -709,7 +757,7 @@ public sealed class IntelPasteCorpVm
 {
     public IntelPasteCorpVm(IntelPasteCorp corp, IntelPasteGroupKind kind)
     {
-        Name = kind == IntelPasteGroupKind.Unresolved ? ""
+        Name = kind is IntelPasteGroupKind.Unresolved or IntelPasteGroupKind.Unchecked ? ""
              : corp.Name.Length > 0 ? corp.Name
              : corp.CorporationId > 0 ? string.Format(CultureInfo.CurrentCulture, MapText.CorporationNumbered, corp.CorporationId)
              : "";

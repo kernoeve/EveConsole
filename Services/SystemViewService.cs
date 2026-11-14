@@ -576,6 +576,9 @@ public class SystemViewService(
 
         string OrgName(long id) => id > 0 ? orgNames.GetValueOrDefault(id, "") : "";
 
+        // Each channel named as the Intel tool names it: "EVE Chat - <channel>", "<server> - <room>".
+        var labels = await EveConsole.Services.Intel.IntelChannelLabels.ReadOrEmptyAsync(db, ct);
+
         var byReport = pilots.GroupBy(p => p.IntelReportId).ToDictionary(
             g => g.Key,
             g => (IReadOnlyList<IntelPilot>)g.Select(x =>
@@ -600,7 +603,7 @@ public class SystemViewService(
                 rid,
                 ra?.CorporationId ?? 0,
                 ra?.AllianceId ?? 0,
-                r.ChannelName,
+                labels.Label(r.ChannelName),
                 r.Message ?? "",
                 r.NoVisual,
                 r.Obsolete,

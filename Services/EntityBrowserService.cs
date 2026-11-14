@@ -1526,9 +1526,11 @@ public class EntityBrowserService(IDbContextFactory<AppDbContext> dbFactory, Esi
             AppDb.Param("@lim", MaxDetailRows)).ToListAsync(ct);
 
         // The system and the hull in the interface language, where the parser recognised them;
-        // otherwise the words the reporter typed.
+        // otherwise the words the reporter typed. The channel as the Intel tool names it.
+        var labels = rows.Count == 0 ? EveConsole.Services.Intel.IntelChannelLabels.Empty
+            : await EveConsole.Services.Intel.IntelChannelLabels.ReadOrEmptyAsync(db, ct);
         return [.. rows.Select(r => new IntelSightingRow(
-            r.When, SdeNames.SolarSystem(r.SystemId, r.System), r.Channel,
+            r.When, SdeNames.SolarSystem(r.SystemId, r.System), labels.Label(r.Channel),
             SdeNames.Type(r.ShipTypeId, r.Ship), r.Reporter))];
     }
 

@@ -1036,4 +1036,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>保存选项只筛选有名字的飞行员：定向扫描没有名字，所以其中每艘舰船都计入。</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>无法保存：保存的声望全部关闭。请打开声望后再保存。</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>尚未查到的名字：{0}。ESI 没有响应，他们可能是友方，因此查到之前不保存任何内容。稍后重试。</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>无法保存：被排除的飞行员中可能有敌对者：{0}（{1}）。本地会移除 {2} 中已报告的所有人，保存会让他们像已离开一样被移除。请打开他们的声望后再保存。</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>尚未查到</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>等待 ESI</value>
+  </data>
 </root>

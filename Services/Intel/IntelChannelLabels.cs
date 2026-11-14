@@ -2,6 +2,7 @@ using System.Globalization;
 using EveConsole.Localization;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services.Intel;
 
@@ -73,6 +74,33 @@ public sealed class IntelChannelLabels : IComparer<string>
                 .Select(h => h.Server).Distinct(StringComparer.OrdinalIgnoreCase).Order(StringComparer.CurrentCultureIgnoreCase));
         }
         return new IntelChannelLabels(byChannel);
+    }
+
+    /// <summary>The labels as the database holds the logins and rooms now: every Jabber login and IRC server, and their rooms.</summary>
+    public static async Task<IntelChannelLabels> ReadAsync(EveConsole.Data.AppDbContext db, CancellationToken ct = default)
+    {
+        var accounts = await db.JabberAccounts.AsNoTracking()
+            .Select(a => new JabberAccount { Id = a.Id, Name = a.Name, Address = a.Address, Host = a.Host })
+            .ToListAsync(ct).ConfigureAwait(false);
+        var rooms = await db.JabberRooms.AsNoTracking()
+            .Select(r => new JabberRoom { AccountId = r.AccountId, RoomJid = r.RoomJid, Name = r.Name, RoomType = r.RoomType, Left = r.Left })
+            .ToListAsync(ct).ConfigureAwait(false);
+        var servers = await db.IrcServers.AsNoTracking()
+            .Select(s => new IrcServer { Id = s.Id, Name = s.Name, Host = s.Host, Nickname = s.Nickname })
+            .ToListAsync(ct).ConfigureAwait(false);
+        var channels = await db.IrcChannels.AsNoTracking()
+            .Select(c => new IrcChannel { ServerId = c.ServerId, Name = c.Name, RoomType = c.RoomType, Left = c.Left })
+            .ToListAsync(ct).ConfigureAwait(false);
+        return Build(accounts, rooms, servers, channels);
+    }
+
+    /// <summary>As <see cref="ReadAsync"/>, or <see cref="Empty"/> when the read fails: the names are only shown, and a view
+    /// of reports never fails over them.</summary>
+    public static async Task<IntelChannelLabels> ReadOrEmptyAsync(EveConsole.Data.AppDbContext db, CancellationToken ct = default)
+    {
+        try { return await ReadAsync(db, ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception) { return Empty; }
     }
 
     /// <summary>A Jabber login's server as the person calls it: its name, else the host it connects to, else its address's domain.</summary>

@@ -1036,4 +1036,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>保存の選択は名前のあるパイロットにのみ適用されます。Dスキャンには名前がないため、すべての艦船を数えます。</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>保存はオフです：保存のスタンディングがすべてオフです。保存するにはスタンディングをオンにしてください。</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>まだ照会できていない名前：{0}。ESI が応答せず、味方の可能性があるため、照会できるまで何も保存しません。まもなく再試行します。</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>保存はオフです：除外されたパイロットに敵の可能性がある者がいます：{0}（{1}）。ローカルは {2} で報告された全員を取り除くため、保存すると去ったものとして消えてしまいます。保存するには、そのスタンディングをオンにしてください。</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>未照会</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>ESI 待ち</value>
+  </data>
 </root>

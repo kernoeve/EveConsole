@@ -403,6 +403,14 @@ public class App : Application
             ircChannels.IntelLinesSaved += intel.LinesStored;
             ircChannels.IntelRoomsChanged += () => _ = intel.RefreshRoomChannelsAsync();
 
+            // The intel views name a room by its server: a room marked Intel, or a login saved (renamed), reads right at
+            // once rather than within the minute. A session change is how a saved login is heard, here or from another PC.
+            var intelLabels = Services.GetRequiredService<EveConsole.Services.Intel.IntelSnapshotService>();
+            jabberRooms.IntelRoomsChanged += () => intelLabels.LabelsChanged(pass: true);
+            ircChannels.IntelRoomsChanged += () => intelLabels.LabelsChanged(pass: true);
+            jabberRooms.SessionChanged += _ => intelLabels.LabelsChanged(pass: false);
+            ircChannels.SessionChanged += _ => intelLabels.LabelsChanged(pass: false);
+
             // An undock, likewise: the location poll is what knows, and it says so the moment
             // the character's pass is done, so the undock alarms are evaluated then — seconds
             // after the fact, not up to a poll interval later. The wake-up call needs no nudge:

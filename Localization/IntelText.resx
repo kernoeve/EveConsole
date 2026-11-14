@@ -1456,4 +1456,24 @@
     <value>The Save chips only sort named pilots: a d-scan names nobody, so every ship on it counts.</value>
     <comment>Intel tool Paste tab, a d-scan: the Save: standings chips do not apply to it.</comment>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Save is off: every Save chip is off. Switch on the standings to save.</value>
+    <comment>Intel tool Paste tab, a Local: Save is off because every standings chip under Save is switched off.</comment>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Names not looked up yet: {0}. ESI did not answer, and they may be friends, so nothing is saved until they are. Trying again shortly.</value>
+    <comment>Intel tool Paste tab, a Local: Save waits because some names could not be looked up (ESI did not answer). {0} is the number of names.</comment>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Save is off: pilots left out who may be hostile: {0} ({1}). A Local takes out everyone reported in {2}, so saving it would drop them as though they had left. Switch their standings on to save it.</value>
+    <comment>Intel tool Paste tab, a Local: Save is off because the standings chips leave out pilots who may be hostile. {0} is a number of pilots, {1} their standings tiers comma-separated (for example: Neutral), {2} the system.</comment>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Not looked up yet</value>
+    <comment>Intel tool Paste tab: names on a Local that could not be looked up yet (ESI did not answer).</comment>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Waiting for ESI</value>
+    <comment>Intel tool Paste tab: beside names not looked up yet: their standing waits for ESI to answer.</comment>
+  </data>
 </root>

@@ -139,6 +139,34 @@ namespace EveConsole.Tools.IntelCheck
                     $"'{paste.PlacesText}' / '{paste.LeftOutText}'");
                 paste.SaveBlue = false;
 
+                // ── Neutral off with neutrals on the Local: a replace would drop them, so Save is off and says why ──
+                paste.SaveNeutral = false;
+                c.Check("paste tab: Neutral off with two neutrals on the Local turns Save off, says why, and says nothing of placing or replacing",
+                    paste.HasBlock && paste.Shown is { Block: IntelPasteBlock.Partial, CanSave: false, IsClear: false } && !paste.CanSave
+                    && paste.BlockText.StartsWith("Save is off: pilots left out who may be hostile: 2 (Neutral)", StringComparison.Ordinal)
+                    && paste.PlacesText.Length == 0 && paste.ReplacesText.Length == 0 && !paste.IsClearPaste,
+                    $"'{paste.BlockText}' / '{paste.PlacesText}' / '{paste.ReplacesText}'");
+                paste.SaveNeutral = true;
+                c.Check("paste tab: Neutral back on lifts it", !paste.HasBlock && paste.PlacesText == "Places 2 pilots in QZ-X77", paste.BlockText);
+
+                // ── The headline counts what Save stores: the unnamed too ──
+                paste.Show(Mixed(SysB, "QZ-X77", Bravo));
+                c.Check("paste tab: the headline counts the unnamed pilot Save stores (5 pilots and 1 unnamed: places 6)",
+                    paste.PlacesText == "Places 6 pilots in QZ-X77" && paste.Shown?.PlayerCount == 6, paste.PlacesText);
+
+                // ── Names not looked up: shown first, Save off until they are ──
+                var waiting = Busy(SysB, "QZ-X77", Bravo);
+                paste.Show(waiting with
+                {
+                    Names = [.. waiting.Names, "Qzx Not Answered"], Unchecked = ["Qzx Not Answered"],
+                    Groups = IntelPasteService.Group(waiting.Pilots, [], _ => null, ["Qzx Not Answered"]),
+                });
+                c.Check("paste tab: a name not looked up turns Save off, says so, and is listed first",
+                    paste.HasBlock && paste.Shown is { Block: IntelPasteBlock.Lookup, CanSave: false }
+                    && paste.BlockText.StartsWith("Names not looked up yet: 1.", StringComparison.Ordinal)
+                    && paste.Groups.FirstOrDefault() is { Name: "Not looked up yet", TierName: "Waiting for ESI", IsLeftOut: false },
+                    $"'{paste.BlockText}' / first group {paste.Groups.FirstOrDefault()?.Name}");
+
                 // ── An all-blue Local: a clear ──
                 var blues = Busy(SysB, "QZ-X77", Bravo);
                 paste.Show(blues with { Pilots = [.. blues.Pilots.Where(p => p.Tier != StandingTier.Neutral)], Names = [.. blues.Names.Where(n => !n.StartsWith("Qzx Neutral", StringComparison.Ordinal))] });
@@ -176,6 +204,25 @@ namespace EveConsole.Tools.IntelCheck
                 again = new IntelViewModel(null, null, null, null, null, characters) { Clock = () => Now };
                 c.Check("paste tab: every chip off is kept as such, not read back as the default",
                     again.Paste.SaveTiers.Count == 0, UiState.Get(IntelPasteVm.KeySaveTiers) ?? "null");
+                paste.Show(Busy(SysB, "QZ-X77", Bravo));
+                c.Check("paste tab: every chip off turns Save off and says so: not a clear",
+                    paste.HasBlock && paste.Shown is { Block: IntelPasteBlock.NoTiers, CanSave: false, IsClear: false } && !paste.IsClearPaste,
+                    paste.BlockText);
+                again.Dispose();
+
+                // ── A damaged value is the default, never every chip off ──
+                var damaged = new List<string>();
+                foreach (var value in new[] { "9", "x", "0,9", " " })
+                {
+                    UiState.Set(IntelPasteVm.KeySaveTiers, value);
+                    again = new IntelViewModel(null, null, null, null, null, characters) { Clock = () => Now };
+                    if (!again.Paste.SaveTiers.SetEquals(StandingTiers.Hostile) && !(value == "0,9" && again.Paste.SaveTiers.SetEquals([StandingTier.Red])))
+                        damaged.Add($"'{value}' -> {string.Join(",", again.Paste.SaveTiers)}");
+                    again.Dispose();
+                    again = null;
+                }
+                c.Check("paste tab: a saved value with no tier in it reads back as the default (only '-' is every chip off)",
+                    damaged.Count == 0, string.Join("; ", damaged));
             }
             finally
             {

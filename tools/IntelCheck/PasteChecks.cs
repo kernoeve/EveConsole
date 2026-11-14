@@ -3,7 +3,9 @@
 // clears the system and places the pilots of the standings kept (Red, Orange and Neutral by default; our own
 // characters never), unresolved names counted as unnamed with Neutral; a Local with nobody kept is a clear; a d-scan
 // adds an unnamed count and never clears, whatever the standings; neither has a chat message, and two in a row both
-// store. Every name and id here is invented.
+// store. A Local is held back (never saved) while a name or a pilot's corporation could not be looked up, while the chips
+// leave out someone who may be hostile, and while every chip is off; an alt's corp-mate is blue. Every name and id here is
+// invented.
 using System.Globalization;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -18,6 +20,10 @@ namespace EveConsole.Tools.IntelCheck
         private const int Here = 31_200_001, There = 31_200_002, Third = 31_200_003, Busy = 31_200_004;
         private const long Me = 93_200_001, MyCorp = 98_200_001;
         private const long Foe = 92_200_001, Mate = 92_200_002, Earlier = 92_200_003, Stays = 92_200_004, FoeCorp = 98_200_009;
+
+        // Another of the user's characters, in a corporation of its own, and someone in that corporation; and two pilots
+        // whose corporation is not held (nobody has pulled it), for an affiliation lookup that fails.
+        private const long Alt = 93_200_002, AltCorp = 98_200_002, AltMate = 92_200_005, LostA = 92_200_201, LostB = 92_200_202;
 
         // A busy Local: 88 corp-mates (blue), the user's own character and two neutrals, 91 names in all.
         private const long NeutralA = 92_200_101, NeutralB = 92_200_102, FirstBlue = 92_201_001;
@@ -175,8 +181,10 @@ namespace EveConsole.Tools.IntelCheck
                     db.SdeGroups.Add(new SdeGroup { GroupId = id, CategoryId = cat, Name = name });
                 foreach (var t in Types.Values) db.SdeTypes.Add(new SdeType { TypeId = t.TypeId, GroupId = t.GroupId, Name = t.Name });
                 db.Characters.Add(new Character { Id = Me, Name = "Pilot Mine", CorporationId = (int)MyCorp });
+                db.Characters.Add(new Character { Id = Alt, Name = "Pilot Alt", CorporationId = (int)AltCorp });
                 db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = Foe, CorporationId = FoeCorp, PulledAt = now });
                 db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = Mate, CorporationId = MyCorp, PulledAt = now });
+                db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = AltMate, CorporationId = AltCorp, PulledAt = now });
 
                 // Reported earlier: one named pilot and two more in QZ-X77; one named pilot in XQ1-Z2.
                 var here = new IntelReport { ReportedAt = Iso(now.AddMinutes(-3)), ChannelName = "intelcheck", ReporterName = "Scout", SystemId = Here,
@@ -200,12 +208,19 @@ namespace EveConsole.Tools.IntelCheck
             var resolved = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
             {
                 ["Foe Pilot"] = Foe, ["Corp Mate"] = Mate, ["Pilot Mine"] = Me, ["Neutral Alpha"] = NeutralA, ["Neutral Bravo"] = NeutralB,
+                ["Alt Mate"] = AltMate, ["Lost One"] = LostA, ["Lost Two"] = LostB,
             };
             for (var i = 0; i < Blues; i++) resolved[BlueName(i)] = FirstBlue + i;
             var asked = 0;
-            var paste = new IntelPasteService(factory,
-                (names, _) => { asked++; return Task.FromResult<IReadOnlyDictionary<string, long>>(names.Where(resolved.ContainsKey).ToDictionary(n => n, n => resolved[n])); },
-                snapshots: snapshots);
+            // ESI answering: every name it does not know as a character is confirmed nobody.
+            var resolve = (IReadOnlyCollection<string> names, CancellationToken _) =>
+            {
+                asked++;
+                return Task.FromResult(new IntelNameLookup(
+                    names.Where(resolved.ContainsKey).ToDictionary(n => n, n => resolved[n], StringComparer.OrdinalIgnoreCase),
+                    names.Where(n => !resolved.ContainsKey(n)).ToHashSet(StringComparer.OrdinalIgnoreCase)));
+            };
+            var paste = new IntelPasteService(factory, resolve, snapshots: snapshots);
 
             var before = await snapshots.RefreshNowAsync();
             var local = await paste.PreviewAsync("Foe Pilot\nCorp Mate\nPilot Mine\nNobody Atall\n", Me, Here, before, now);
@@ -298,7 +313,76 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} paste: a Local with no system chosen cannot be saved", !noSystem.CanSave);
 
             await StandingsAsync(c, engine, options, paste, snapshots, now);
+            await HeldBackAsync(c, engine, options, factory, paste, resolve, snapshots, now);
             snapshots.Dispose();
+        }
+
+        // ── What a Local is never saved with: names not looked up, a hostile tier left out, every chip off ──────────────
+
+        private static async Task HeldBackAsync(Checks c, string engine, DbContextOptions<AppDbContext> options, Factory factory,
+            IntelPasteService paste, Func<IReadOnlyCollection<string>, CancellationToken, Task<IntelNameLookup>> resolve,
+            IntelSnapshotService snapshots, DateTimeOffset now)
+        {
+            var snapshot = await snapshots.RefreshNowAsync();
+            int reports;
+            await using (var db = new AppDbContext(options)) reports = await db.IntelReports.CountAsync();
+
+            // ESI down: the lookup throws. Nothing is known, so nothing is counted, and Save is off until it answers.
+            var failing = new IntelPasteService(factory, (_, _) => throw new HttpRequestException("ESI did not answer"), snapshots: snapshots);
+            var down = await failing.PreviewAsync("Corp Mate\nNeutral Alpha\n" + BlueName(3), Me, Here, snapshot, now);
+            c.Check($"{engine} paste held back: a lookup that throws leaves every name not looked up, counted nowhere, and Save off",
+                down is { Block: IntelPasteBlock.Lookup, CanSave: false, IsClear: false, PlayerCount: 0 }
+                && down.Unchecked.Count == 3 && down.Pilots.Count == 0 && down.Unresolved.Count == 0 && down.KeptUnresolved.Count == 0
+                && down.Groups.FirstOrDefault()?.Kind == IntelPasteGroupKind.Unchecked,
+                $"block {down.Block}, unchecked {down.Unchecked.Count}, unresolved {down.Unresolved.Count}, count {down.PlayerCount}");
+            var refused = false;
+            try { await failing.SaveAsync(down, now.AddSeconds(10)); }
+            catch (InvalidOperationException) { refused = true; }
+            await using (var db = new AppDbContext(options))
+                c.Check($"{engine} paste held back: saving it is refused and nothing is written", refused && await db.IntelReports.CountAsync() == reports);
+
+            // ESI answered the first batch and then failed: a name it answered as nobody counts as unnamed, one it never
+            // answered for does not.
+            var halfway = new IntelPasteService(factory, (names, _) => Task.FromResult(new IntelNameLookup(
+                new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase) { ["Corp Mate"] = Mate },
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Nobody Atall" })), snapshots: snapshots);
+            var half = await halfway.PreviewAsync("Corp Mate\nNobody Atall\n" + BlueName(4), Me, Here, snapshot, now);
+            c.Check($"{engine} paste held back: a name confirmed nobody is unnamed, a name never answered for is not looked up, and Save waits",
+                half is { Block: IntelPasteBlock.Lookup, CanSave: false } && half.Unresolved.SequenceEqual(["Nobody Atall"])
+                && half.Unchecked.SequenceEqual([BlueName(4)]) && half.Pilots.Single().CharacterId == Mate,
+                $"block {half.Block}, unresolved {string.Join(",", half.Unresolved)}, unchecked {string.Join(",", half.Unchecked)}");
+
+            // The names are known but their corporations are not, and fetching them fails: not neutrals, not looked up.
+            var noCorp = new IntelPasteService(factory, resolve, fetchAffiliations: (_, _) => throw new HttpRequestException("ESI did not answer"),
+                snapshots: snapshots);
+            var lost = await noCorp.PreviewAsync("Lost One\nLost Two\nCorp Mate", Me, Here, snapshot, now);
+            c.Check($"{engine} paste held back: pilots whose corporation could not be fetched are not saved as neutrals: not looked up, Save off",
+                lost is { Block: IntelPasteBlock.Lookup, CanSave: false } && lost.Unchecked.SequenceEqual(["Lost One", "Lost Two"])
+                && lost.Pilots.All(p => p.CharacterId == Mate) && lost.Kept.Count == 0,
+                $"block {lost.Block}, unchecked {string.Join(",", lost.Unchecked)}, pilots {string.Join(",", lost.Pilots.Select(p => p.Name + ":" + p.Tier))}");
+
+            // Neutral switched off with a neutral on the Local: a replace would take them out, so Save is off.
+            HashSet<StandingTier> redOrange = [StandingTier.Red, StandingTier.Orange];
+            var partial = await paste.PreviewAsync("Foe Pilot\nCorp Mate", Me, Here, snapshot, now, redOrange);
+            c.Check($"{engine} paste held back: Neutral off with a neutral on the Local is not saved, nor taken for a clear",
+                partial is { Block: IntelPasteBlock.Partial, CanSave: false, IsClear: false, HostileLeftOut: 1 },
+                $"block {partial.Block}, clear {partial.IsClear}, hostile left out {partial.HostileLeftOut}");
+            var nobodyOff = await paste.PreviewAsync("Nobody Atall\nCorp Mate", Me, Here, snapshot, now, redOrange);
+            c.Check($"{engine} paste held back: Neutral off with a name that is nobody on the Local is held back too",
+                nobodyOff is { Block: IntelPasteBlock.Partial, CanSave: false, IsClear: false });
+            var bluesOnly = await paste.PreviewAsync("Corp Mate\n" + BlueName(5), Me, Here, snapshot, now, redOrange);
+            c.Check($"{engine} paste held back: Neutral off with only blues on the Local leaves out only friends: still a clear",
+                bluesOnly is { Block: IntelPasteBlock.None, CanSave: true, IsClear: true });
+            var none = await paste.PreviewAsync("Foe Pilot\nCorp Mate", Me, Here, snapshot, now, new HashSet<StandingTier>());
+            c.Check($"{engine} paste held back: every chip off saves nothing, not even a clear",
+                none is { Block: IntelPasteBlock.NoTiers, CanSave: false, IsClear: false });
+
+            // An alt's corporation is blue to every character: someone in it, pasted by another character, is not saved.
+            var altLocal = await paste.PreviewAsync("Alt Mate\nFoe Pilot", Me, Here, snapshot, now);
+            c.Check($"{engine} paste held back: a corp-mate of another of our characters is blue on a Local pasted by this one, and not saved",
+                altLocal.Pilots.Single(p => p.CharacterId == AltMate).Tier == StandingTier.Blue && altLocal.Kept.Select(p => p.CharacterId).SequenceEqual([Foe])
+                && altLocal is { Block: IntelPasteBlock.None, PlayerCount: 1 },
+                string.Join(",", altLocal.Pilots.Select(p => $"{p.Name}:{p.Tier}")));
         }
 
         // ── The standings a Local saves (the Paste tab's "Save:" chips) ──────────────────────────────────────────

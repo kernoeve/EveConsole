@@ -1093,4 +1093,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>Las opciones de Guardar solo filtran pilotos con nombre: un d-scan no nombra a nadie, así que cuenta cada nave.</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Guardar está desactivado: todas las reputaciones de Guardar están desactivadas. Activa alguna para guardar.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Nombres aún sin consultar: {0}. ESI no respondió y podrían ser amigos, así que no se guarda nada hasta conocerlos. Se reintentará en breve.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Guardar está desactivado: pilotos excluidos que podrían ser hostiles: {0} ({1}). Un Local retira a todos los informados en {2}, así que guardarlo los quitaría como si se hubieran ido. Activa sus reputaciones para guardarlo.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Aún sin consultar</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Esperando a ESI</value>
+  </data>
 </root>

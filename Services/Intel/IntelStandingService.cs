@@ -13,7 +13,7 @@ public enum StandingTier
     Orange    = 1,   // −5 up to 0: bad
     Neutral   = 2,   // 0, or no standing at all
     LightBlue = 3,   // above 0 up to +5: good
-    Blue      = 4,   // above +5, and everyone in the viewer's corporation or alliance
+    Blue      = 4,   // above +5, and everyone in a corporation or alliance one of the user's characters is in
     Own       = 5,   // one of the user's own characters
 }
 
@@ -35,6 +35,10 @@ public static class StandingTiers
     /// <summary>The tiers shown by default: everyone not blue and not ours.</summary>
     public static readonly IReadOnlySet<StandingTier> Hostile =
         new HashSet<StandingTier> { StandingTier.Red, StandingTier.Orange, StandingTier.Neutral };
+
+    /// <summary>The five standings tiers, worst first; not the user's own.</summary>
+    public static readonly IReadOnlyList<StandingTier> Five =
+        [StandingTier.Red, StandingTier.Orange, StandingTier.Neutral, StandingTier.LightBlue, StandingTier.Blue];
 }
 
 /// <summary>
@@ -42,8 +46,9 @@ public static class StandingTiers
 /// is worked out from. Immutable and pure, so a projection can use it on any thread and a check can
 /// build one by hand.
 ///
-/// <para>The order is the game's: an own character is Own; anyone in the viewer's corporation or
-/// alliance is Blue; otherwise the viewer's personal contacts, then its corporation's, then its
+/// <para>An own character is Own; anyone in a corporation or alliance any of the user's characters
+/// is in is Blue, whichever character is viewing (the user's rule, 2026-11-13: an alt's corporation
+/// and alliance are friends of all of them); otherwise the viewer's personal contacts, then its corporation's, then its
 /// alliance's, and in each list a contact on the pilot, else on the pilot's corporation, else on the
 /// pilot's alliance. The first one found decides. Nothing found is Neutral. Faction standings are
 /// not used.</para>
@@ -55,6 +60,7 @@ public sealed class IntelStandings
 
     private readonly Dictionary<long, OwnCharacter> _own;
     private readonly HashSet<long> _ownCorps;
+    private readonly HashSet<long> _ownAlliances;
 
     /// <summary>Owner id (character, corporation or alliance) → contact id → standing.</summary>
     private readonly Dictionary<long, Dictionary<long, double>> _contacts;
@@ -65,6 +71,7 @@ public sealed class IntelStandings
     {
         _own = own.GroupBy(o => o.CharacterId).ToDictionary(g => g.Key, g => g.First());
         _ownCorps = [.. ownCorporations.Where(c => c > 0), .. _own.Values.Select(o => o.CorporationId).Where(c => c > 0)];
+        _ownAlliances = [.. _own.Values.Select(o => o.AllianceId).Where(a => a > 0)];
         _contacts = [];
         foreach (var (owner, contact, standing) in contacts)
         {
@@ -106,14 +113,15 @@ public sealed class IntelStandings
     /// scope it holds none, and a view says "personal contacts unknown".</summary>
     public bool HasPersonalContacts(long characterId) => _contacts.ContainsKey(characterId);
 
-    /// <summary>The pilot's tier as <paramref name="viewerId"/> sees it, in the game's order.</summary>
+    /// <summary>The pilot's tier as <paramref name="viewerId"/> sees it: the user's own corporations
+    /// and alliances first, then the viewer's contacts in the game's order.</summary>
     public StandingTier TierOf(long viewerId, long pilotId, long corporationId, long allianceId)
     {
         if (_own.ContainsKey(pilotId)) return StandingTier.Own;
+        // ⚠️ Any of the user's characters, not only the viewer: someone in an alt's corporation or
+        // alliance is blue to every character, whatever the viewer's own contacts say of them.
+        if (IsOwnGroup(corporationId, allianceId)) return StandingTier.Blue;
         if (!_own.TryGetValue(viewerId, out var viewer)) return StandingTier.Neutral;
-
-        if (corporationId > 0 && corporationId == viewer.CorporationId) return StandingTier.Blue;
-        if (allianceId > 0 && allianceId == viewer.AllianceId) return StandingTier.Blue;
 
         foreach (var owner in new[] { viewer.CharacterId, viewer.CorporationId, viewer.AllianceId })
         {
@@ -133,7 +141,7 @@ public sealed class IntelStandings
     public StandingTier UnionTier(long pilotId, long corporationId, long allianceId)
     {
         if (_own.ContainsKey(pilotId)) return StandingTier.Own;
-        if (corporationId > 0 && _ownCorps.Contains(corporationId)) return StandingTier.Blue;
+        if (IsOwnGroup(corporationId, allianceId)) return StandingTier.Blue;
 
         var best = StandingTier.Neutral;
         var any = false;
@@ -145,6 +153,10 @@ public sealed class IntelStandings
         }
         return best;
     }
+
+    /// <summary>In a corporation or alliance one of the user's characters is in.</summary>
+    public bool IsOwnGroup(long corporationId, long allianceId) =>
+        (corporationId > 0 && _ownCorps.Contains(corporationId)) || (allianceId > 0 && _ownAlliances.Contains(allianceId));
 
     /// <summary>The tier for a viewer, or the union rule when there is none; the forced character
     /// wins over both.</summary>

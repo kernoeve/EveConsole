@@ -1207,4 +1207,19 @@
   <data name="PasteDscanTiersNote" xml:space="preserve">
     <value>Выбор «Сохранять» касается только названных пилотов: в д-скане имён нет, поэтому учитывается каждый корабль.</value>
   </data>
+  <data name="PasteBlockedNoTiers" xml:space="preserve">
+    <value>Сохранение выключено: все отношения в «Сохранять» выключены. Включите отношения, чтобы сохранить.</value>
+  </data>
+  <data name="PasteBlockedLookup" xml:space="preserve">
+    <value>Имена, ещё не проверенные: {0}. ESI не ответил, а это могут быть друзья, поэтому ничего не сохраняется, пока они не будут проверены. Повтор вскоре.</value>
+  </data>
+  <data name="PasteBlockedPartial" xml:space="preserve">
+    <value>Сохранение выключено: исключены пилоты, которые могут быть враждебны: {0} ({1}). Local снимает всех, о ком сообщали в {2}, поэтому сохранение убрало бы их, будто они ушли. Включите их отношения, чтобы сохранить.</value>
+  </data>
+  <data name="PasteGroupUnchecked" xml:space="preserve">
+    <value>Ещё не проверены</value>
+  </data>
+  <data name="PasteTierUnchecked" xml:space="preserve">
+    <value>Ждём ESI</value>
+  </data>
 </root>

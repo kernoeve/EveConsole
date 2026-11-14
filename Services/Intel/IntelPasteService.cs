@@ -62,7 +62,34 @@ public sealed record IntelPasteGroup(
     public int Count => Corps.Sum(c => c.Pilots.Count);
 }
 
-public enum IntelPasteGroupKind { Alliance, NoAlliance, Own, Unresolved }
+/// <summary>What a group is besides an alliance. <see cref="Unchecked"/>: names not yet looked up in full (ESI did not
+/// answer for the name, or for the pilot's corporation), so nobody can say whether they are friends.</summary>
+public enum IntelPasteGroupKind { Alliance, NoAlliance, Own, Unresolved, Unchecked }
+
+/// <summary>
+/// Pasted names looked up: those that are characters, and those confirmed to be nobody (ESI said so now, or recently).
+/// ⚠️ A name in neither could not be looked up (ESI failed or did not answer): it is not known to be nobody, and may be
+/// a friend, so a Local holding one is never saved.
+/// </summary>
+public sealed record IntelNameLookup(IReadOnlyDictionary<string, long> Found, IReadOnlySet<string> Misses)
+{
+    public static readonly IntelNameLookup Empty = new(
+        new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase), new HashSet<string>(StringComparer.OrdinalIgnoreCase));
+}
+
+/// <summary>Why a pasted Local cannot be saved as it stands.</summary>
+public enum IntelPasteBlock
+{
+    /// <summary>Nothing stops it.</summary>
+    None,
+    /// <summary>Every "Save:" chip is off: nothing would be saved, and a clear would be wrong.</summary>
+    NoTiers,
+    /// <summary>Some names are not looked up in full yet: whether they are friends is not known.</summary>
+    Lookup,
+    /// <summary>The chips leave out pilots who may be hostile (Red, Orange or Neutral): a Local is a replace, and saving
+    /// it would take them out of the system as though they had left.</summary>
+    Partial,
+}
 
 /// <summary>
 /// What a paste would store, worked out without storing anything: shown under the box as it is typed,
@@ -83,8 +110,13 @@ public sealed record IntelPastePreview
     /// <summary>The names that are characters.</summary>
     public IReadOnlyList<IntelPastePilot> Pilots { get; init; } = [];
 
-    /// <summary>The names that are no character: counted as unnamed pilots.</summary>
+    /// <summary>The names confirmed to be no character: counted as unnamed pilots.</summary>
     public IReadOnlyList<string> Unresolved { get; init; } = [];
+
+    /// <summary>The names not looked up in full: ESI did not answer for the name, or for the pilot's corporation and
+    /// alliance. Neither a pilot nor an unnamed count: while there is one, a Local is not saved
+    /// (<see cref="IntelPasteBlock.Lookup"/>).</summary>
+    public IReadOnlyList<string> Unchecked { get; init; } = [];
 
     /// <summary>The pilots grouped by tier, alliance and corporation, worst first.</summary>
     public IReadOnlyList<IntelPasteGroup> Groups { get; init; } = [];
@@ -123,7 +155,7 @@ public sealed record IntelPastePreview
             var list = new List<(StandingTier, int)>();
             if (Kind != IntelPasteKind.Local) return list;
             var pilots = Pilots.DistinctBy(p => p.CharacterId).ToList();
-            foreach (var tier in new[] { StandingTier.Red, StandingTier.Orange, StandingTier.Neutral, StandingTier.LightBlue, StandingTier.Blue })
+            foreach (var tier in StandingTiers.Five)
             {
                 if (Keeps(tier)) continue;
                 var n = pilots.Count(p => p.Tier == tier) + (tier == StandingTier.Neutral ? Unresolved.Count : 0);
@@ -139,15 +171,32 @@ public sealed record IntelPastePreview
     /// <summary>The pilots the report counts: every kept name on a Local, every ship on a d-scan.</summary>
     public int PlayerCount => Kind == IntelPasteKind.Local ? Kept.Count + KeptUnresolved.Count : Dscan.Ships;
 
+    /// <summary>The pilots (and names that are nobody) left out who may be hostile: those of Red, Orange or Neutral
+    /// switched off.</summary>
+    public int HostileLeftOut => LeftOutByTier.Where(t => StandingTiers.IsHostile(t.Tier)).Sum(t => t.Count);
+
     /// <summary>
-    /// A pasted Local with nobody of the kept tiers on it: the system is clear of them, and is saved as a clear
-    /// (it takes out what was reported there, as any Local does), not as nothing.
+    /// Why a pasted Local cannot be saved, if it cannot. ⚠️ A Local is a replace: it takes out everyone reported in the
+    /// system. That is right only when what it leaves out is known to be friendly (Light blue, Blue, our own), so a
+    /// Local with a name not looked up yet, or with a hostile tier switched off and someone of it on the Local, or with
+    /// every chip off, is not saved at all.
     /// </summary>
-    public bool IsClear => Kind == IntelPasteKind.Local && Names.Count > 0 && PlayerCount == 0;
+    public IntelPasteBlock Block =>
+        Kind != IntelPasteKind.Local || Names.Count == 0 ? IntelPasteBlock.None
+        : !StandingTiers.Five.Any(Keeps) ? IntelPasteBlock.NoTiers
+        : Unchecked.Count > 0 ? IntelPasteBlock.Lookup
+        : HostileLeftOut > 0 ? IntelPasteBlock.Partial
+        : IntelPasteBlock.None;
+
+    /// <summary>
+    /// A pasted Local with nobody of the kept tiers on it, and nobody left out who may be hostile: the system is clear,
+    /// and is saved as a clear (it takes out what was reported there, as any Local does), not as nothing.
+    /// </summary>
+    public bool IsClear => Kind == IntelPasteKind.Local && Names.Count > 0 && Block == IntelPasteBlock.None && PlayerCount == 0;
 
     public bool CanSave => SystemId > 0 && Kind switch
     {
-        IntelPasteKind.Local => Names.Count > 0,
+        IntelPasteKind.Local => Names.Count > 0 && Block == IntelPasteBlock.None,
         IntelPasteKind.Dscan => Dscan.Ships > 0 || Dscan.Flags != 0,
         _ => false,
     };
@@ -176,7 +225,10 @@ public sealed record IntelRecentPaste(
 /// system, so taking out what was reported there is still right. A Local with nobody of the kept tiers
 /// on it says the system is clear of them, and is saved as a clear (a row of
 /// <see cref="IntelReportKind.Clear"/> from the paste), never as nothing, which would leave the old
-/// sightings standing.</para>
+/// sightings standing. The replace is right only while everyone left out is a friend: a Local is not
+/// saved at all while the chips leave out someone of Red, Orange or Neutral, while every chip is off, or
+/// while a name could not be looked up (ESI failing: a name not looked up may be a blue, and is never
+/// counted, stored or written into the report) (<see cref="IntelPastePreview.Block"/>).</para>
 ///
 /// <para><b>A pasted d-scan</b> is a count of ships, capsules included, with no names. It never clears the
 /// system: d-scan does not see everyone. Mobile warp disruptors on it say there are bubbles, and a
@@ -184,7 +236,7 @@ public sealed record IntelRecentPaste(
 /// </summary>
 public sealed class IntelPasteService(
     IDbContextFactory<AppDbContext> dbFactory,
-    Func<IReadOnlyCollection<string>, CancellationToken, Task<IReadOnlyDictionary<string, long>>> resolveCharacters,
+    Func<IReadOnlyCollection<string>, CancellationToken, Task<IntelNameLookup>> resolveCharacters,
     Func<IReadOnlyCollection<long>, CancellationToken, Task>? fetchAffiliations = null,
     Func<IReadOnlyCollection<long>, CancellationToken, Task>? resolveEntityNames = null,
     ClientSignals? signals = null,
@@ -295,11 +347,12 @@ public sealed class IntelPasteService(
     }
 
     /// <summary>
-    /// The pilots grouped as the preview lists them: the user's own last, names that are no character
-    /// after the rest; otherwise worst tier first, then the biggest alliance.
+    /// The pilots grouped as the preview lists them: names not looked up yet first, the user's own last,
+    /// names that are no character after the rest; otherwise worst tier first, then the biggest alliance.
     /// </summary>
     public static IReadOnlyList<IntelPasteGroup> Group(
-        IReadOnlyList<IntelPastePilot> pilots, IReadOnlyList<string> unresolved, Func<long, string?> nameOf)
+        IReadOnlyList<IntelPastePilot> pilots, IReadOnlyList<string> unresolved, Func<long, string?> nameOf,
+        IReadOnlyList<string>? notLookedUp = null)
     {
         var groups = new List<IntelPasteGroup>();
         foreach (var byAlliance in pilots.Where(p => p.Tier != StandingTier.Own).GroupBy(p => (p.Tier, p.AllianceId)))
@@ -311,6 +364,11 @@ public sealed class IntelPasteService(
                 Corps(byAlliance)));
         }
         groups = [.. groups.OrderBy(g => g.Tier).ThenByDescending(g => g.Count).ThenBy(g => g.Name, StringComparer.CurrentCultureIgnoreCase)];
+
+        // What stops Save goes first, where it is seen.
+        if (notLookedUp is { Count: > 0 })
+            groups.Insert(0, new IntelPasteGroup(StandingTier.Neutral, 0, IntelPasteGroupKind.Unchecked, "",
+                [new IntelPasteCorp(0, "", [.. notLookedUp.Select(n => new IntelPastePilot(n, 0, 0, 0, StandingTier.Neutral))])]));
 
         if (unresolved.Count > 0)
             groups.Add(new IntelPasteGroup(StandingTier.Neutral, 0, IntelPasteGroupKind.Unresolved, "",
@@ -362,24 +420,37 @@ public sealed class IntelPasteService(
         if (kind != IntelPasteKind.Local) return preview;
 
         var names = LocalNames(text);
-        var ids = await resolveCharacters(names, ct).ConfigureAwait(false);
+        IntelNameLookup lookup;
+        try { lookup = await resolveCharacters(names, ct).ConfigureAwait(false); }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            // Nothing looked up: every name stays not looked up, and the Local is not saved until it is.
+            errors?.Log(nameof(IntelPasteService), "pasted names", ex);
+            lookup = IntelNameLookup.Empty;
+        }
+        var ids = lookup.Found;
         var resolved = names.Where(ids.ContainsKey).Select(n => (Name: n, Id: ids[n])).ToList();
         var affiliations = await AffiliationsAsync(db, resolved.Select(r => r.Id).ToHashSet(), ct).ConfigureAwait(false);
 
+        // ⚠️ A pilot whose corporation is not known is not a neutral: TierOf would say Neutral for a blue whose
+        // affiliation lookup failed, and they would be stored as a hostile. Not looked up, like a name ESI did not answer for.
         var standings = snapshot.Standings;
-        var pilots = resolved.Select(r =>
+        var pilots = resolved.Where(r => affiliations.ContainsKey(r.Id)).Select(r =>
         {
-            var (corp, alliance) = affiliations.GetValueOrDefault(r.Id);
+            var (corp, alliance) = affiliations[r.Id];
             return new IntelPastePilot(r.Name, r.Id, corp, alliance, standings.TierFor(viewerCharacterId, r.Id, corp, alliance));
         }).ToList();
-        var unresolved = names.Where(n => !ids.ContainsKey(n)).ToList();
+        var noAffiliation = resolved.Where(r => !affiliations.ContainsKey(r.Id)).Select(r => r.Name).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var unresolved = names.Where(n => !ids.ContainsKey(n) && lookup.Misses.Contains(n)).ToList();
+        var notLookedUp = names.Where(n => noAffiliation.Contains(n) || (!ids.ContainsKey(n) && !lookup.Misses.Contains(n))).ToList();
 
         var entityNames = await EntityNamesAsync(db, pilots.SelectMany(p => new[] { p.CorporationId, p.AllianceId }).Where(i => i > 0).ToHashSet(), ct)
             .ConfigureAwait(false);
         return preview with
         {
-            Names = names, Pilots = pilots, Unresolved = unresolved,
-            Groups = Group(pilots, unresolved, id => entityNames.GetValueOrDefault(id)),
+            Names = names, Pilots = pilots, Unresolved = unresolved, Unchecked = notLookedUp,
+            Groups = Group(pilots, unresolved, id => entityNames.GetValueOrDefault(id), notLookedUp),
             Replaces = ReplacedIn(snapshot, systemId, now),
         };
     }
@@ -503,6 +574,9 @@ public sealed class IntelPasteService(
     /// </summary>
     public async Task<int> SaveAsync(IntelPastePreview preview, DateTimeOffset? at = null, CancellationToken ct = default)
     {
+        // ⚠️ CanSave holds every reason a Local is not saved (a name not looked up, a hostile tier left out, every
+        // chip off): past it, everything left out is a friend, so the replace below is right, and the text below
+        // holds only names kept or confirmed to be nobody.
         if (!preview.CanSave) throw new InvalidOperationException("Nothing to save.");
         var when = at ?? DateTimeOffset.UtcNow;
         var whenText = IntelLastSeenWriter.Format(when);

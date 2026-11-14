@@ -80,7 +80,19 @@ public sealed partial class IntelViewModel
     private void TickTabs(DateTimeOffset now)
     {
         foreach (var row in PilotRows) row.Tick(now);
-        foreach (var row in CampRows) row.Tick(now);
+        // A camp that ends between snapshots moves to where it now sorts at once, and the counts follow.
+        var ended = false;
+        foreach (var row in CampRows)
+        {
+            var was = row.IsActive;
+            row.Tick(now);
+            ended |= was != row.IsActive;
+        }
+        if (ended)
+        {
+            CampRows.SyncTo([.. SortCamps(CampRows.ToList(), _campSort, _campSortDescending)], r => r.Key, r => r.Signature);
+            ShowCampCounts(CampRows.ToList());
+        }
         if (_onScreen && IsPilotsTab && !_pilotsGiven && !PilotsBusy && now - _pilotsReadAt >= PilotsEvery) QueryPilots();
     }
 
@@ -378,14 +390,20 @@ public sealed partial class IntelViewModel
         foreach (var row in rows.Where(r => !held.TryGetValue(r.Key, out var old) || !ReferenceEquals(old, r)))
             _ = row.LoadPicturesAsync();
 
-        var active = rows.Count(r => r.IsActive);
-        CampsCountText = Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampsActiveOther), active) + " · "
-                       + Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampsEndedOther), rows.Count - active);
+        ShowCampCounts(rows);
         CampsNeedFeed = rows.Count == 0 && search.Length == 0 && !snapshot.FeedStatus.FullFeed;
         CampsEmptyText = rows.Count > 0 ? ""
                        : search.Length > 0 ? IntelText.ToolNothingMatches
                        : CampsNeedFeed ? IntelText.CampsEmptyNoFeed
                        : IntelText.CampsEmpty;
+    }
+
+    /// <summary>"2 active · 3 ended".</summary>
+    private void ShowCampCounts(IReadOnlyCollection<IntelCampRowVm> rows)
+    {
+        var active = rows.Count(r => r.IsActive);
+        CampsCountText = Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampsActiveOther), active) + " · "
+                       + Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampsEndedOther), rows.Count - active);
     }
 
     // ── Camps: the sort ──────────────────────────────────────────────────────

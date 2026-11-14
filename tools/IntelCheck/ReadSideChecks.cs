@@ -62,6 +62,11 @@ namespace EveConsole.Tools.IntelCheck
             c.Check("tiers: own characters are their own state, for any viewer",
                 s.TierOf(B, A, CorpA, AllyA) == StandingTier.Own && s.TierOf(A, A, CorpA, AllyA) == StandingTier.Own);
             c.Check("tiers: another viewer has its own standings (B knows nothing of P1)", s.TierOf(B, P1, FarCorp, 0) == StandingTier.Neutral);
+            c.Check("tiers: an alt's corporation is blue to every own character, whatever the viewer's contacts say",
+                s.TierOf(A, P6, CorpB, 0) == StandingTier.Blue && s.TierOf(B, P7, CorpA, 0) == StandingTier.Blue,
+                $"{s.TierOf(A, P6, CorpB, 0)} / {s.TierOf(B, P7, CorpA, 0)}");
+            c.Check("tiers: an alt's alliance is blue to every own character (B is in none, A's alliance is blue to B)",
+                s.TierOf(B, P7, FarCorp, AllyA) == StandingTier.Blue && s.UnionTier(P7, FarCorp, AllyA) == StandingTier.Blue);
             c.Check("tiers: with no viewer the friendliest any own character gives (A red, B neutral: neutral)",
                 s.UnionTier(P1, FarCorp, 0) == StandingTier.Neutral && s.TierFor(null, P4, FriendCorp, 0) == StandingTier.Blue);
             c.Check("tiers: with no viewer an own corporation is blue", s.UnionTier(P6, CorpB, 0) == StandingTier.Blue);
