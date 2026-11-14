@@ -36,7 +36,22 @@ if (args.Length >= 2 && args[0] == MapRender.Arg)
 if (args.Length >= 2 && args[0] == HostileShots.Arg)
     return HostileShots.Run(args[1]);
 
-var root = args.FirstOrDefault(a => !a.StartsWith('-')) is { } given && Directory.Exists(given) ? given : FindRepoRoot();
+// --only map,grids: just those groups, for working on one thing; the PR runs them all.
+string[] groups = ["signals", "schema", "watermark", "lastseen", "followup", "copies", "readside", "tabs", "logtail",
+                   "panel", "channels", "hostiles", "map", "alarms", "service", "paste", "grids", "pg"];
+var onlyAt = Array.IndexOf(args, "--only");
+HashSet<string>? only = onlyAt < 0 ? null
+    : onlyAt + 1 < args.Length ? [.. args[onlyAt + 1].Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)]
+    : [];
+if (only is not null && (only.Count == 0 || only.Any(g => !groups.Contains(g))))
+{
+    Console.Error.WriteLine($"--only takes a comma-separated list of: {string.Join(", ", groups)}");
+    return 2;
+}
+bool Run(string group) => only is null || only.Contains(group);
+
+var root = args.Where((a, i) => !a.StartsWith('-') && (onlyAt < 0 || i != onlyAt + 1)).FirstOrDefault() is { } given
+           && Directory.Exists(given) ? given : FindRepoRoot();
 if (root is null)
 {
     Console.Error.WriteLine("Could not locate EveConsole.csproj.");
@@ -56,113 +71,147 @@ SQLitePCL.Batteries_V2.Init();
 try
 {
     // ── The signals between PCs ──────────────────────────────────────────────────────────────────────────────
-    foreach (var kind in new[] { IntelSignals.Chat, IntelSignals.Changed, IntelSignals.Reparse })
-        c.Check($"signal {kind} reads back as itself", IntelSignals.KindOf(IntelSignals.Payload(kind)) == kind, IntelSignals.Payload(kind));
-    c.Check("an alarm firing is not an intel signal", IntelSignals.KindOf("""{"Kind":"alarm","AlarmId":1,"Summary":"intel.chat"}""") is null);
-    c.Check("an unknown intel kind is not one either", IntelSignals.KindOf("""{"Kind":"intel.other"}""") is null);
-    c.Check("junk is not a signal, and does not throw", IntelSignals.KindOf("""{"Kind":"intel.""") is null && IntelSignals.KindOf("") is null);
+    if (Run("signals"))
+    {
+        foreach (var kind in new[] { IntelSignals.Chat, IntelSignals.Changed, IntelSignals.Reparse })
+            c.Check($"signal {kind} reads back as itself", IntelSignals.KindOf(IntelSignals.Payload(kind)) == kind, IntelSignals.Payload(kind));
+        c.Check("an alarm firing is not an intel signal", IntelSignals.KindOf("""{"Kind":"alarm","AlarmId":1,"Summary":"intel.chat"}""") is null);
+        c.Check("an unknown intel kind is not one either", IntelSignals.KindOf("""{"Kind":"intel.other"}""") is null);
+        c.Check("junk is not a signal, and does not throw", IntelSignals.KindOf("""{"Kind":"intel.""") is null && IntelSignals.KindOf("") is null);
+    }
 
     // ── SQLite: the startup statements, on an existing database and a new one ────────────────────────────────
-    var statements = SqliteSchema.IntelStatements(root);
-    c.Check("the startup list has the intel statements this check expects",
-        statements.Any(s => s.Contains("CREATE TABLE IF NOT EXISTS \"IntelLastSeen\""))
-        && statements.Any(s => s.Contains("\"IX_IntelReports_ChatMessage\"") && s.Contains("WHERE \"ChatMessageId\" > 0"))
-        && statements.Count(s => s.StartsWith("DELETE FROM \"IntelReport", StringComparison.Ordinal)) == 2,
-        $"{statements.Count} statement(s) found");
+    if (Run("schema"))
+    {
+        var statements = SqliteSchema.IntelStatements(root);
+        c.Check("the startup list has the intel statements this check expects",
+            statements.Any(s => s.Contains("CREATE TABLE IF NOT EXISTS \"IntelLastSeen\""))
+            && statements.Any(s => s.Contains("\"IX_IntelReports_ChatMessage\"") && s.Contains("WHERE \"ChatMessageId\" > 0"))
+            && statements.Count(s => s.StartsWith("DELETE FROM \"IntelReport", StringComparison.Ordinal)) == 2,
+            $"{statements.Count} statement(s) found");
 
-    await SqliteSchema.UpgradeAsync(c, profile, statements);
-    await SqliteSchema.FreshAsync(c, profile, statements);
+        await SqliteSchema.UpgradeAsync(c, profile, statements);
+        await SqliteSchema.FreshAsync(c, profile, statements);
+    }
 
     // ── The watermark, on SQLite ────────────────────────────────────────────────────────────────────────────
-    var wmOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "prefs.db")}").Options;
-    await using (var db = new AppDbContext(wmOptions)) await db.Database.EnsureCreatedAsync();
-    await Watermark.CheckAsync(c, "SQLite", wmOptions);
+    if (Run("watermark"))
+    {
+        var wmOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "prefs.db")}").Options;
+        await using (var db = new AppDbContext(wmOptions)) await db.Database.EnsureCreatedAsync();
+        await Watermark.CheckAsync(c, "SQLite", wmOptions);
 
-    // ── A PC that is not the worker: it asks, and does nothing itself ───────────────────────────────────────
-    await NotTheWorker.CheckAsync(c, wmOptions);
+        // ── A PC that is not the worker: it asks, and does nothing itself ───────────────────────────────────────
+        await NotTheWorker.CheckAsync(c, wmOptions);
 
-    // ── A channel ticked on another PC: the worker parses it from the next pass ────────────────────────────
-    await ChannelsFromAnotherPc.CheckAsync(c, profile);
+        // ── A channel ticked on another PC: the worker parses it from the next pass ────────────────────────────
+        await ChannelsFromAnotherPc.CheckAsync(c, profile);
+    }
 
     // ── Where each pilot was last seen ──────────────────────────────────────────────────────────
     // On a database the model makes, and on the one the startup statements brought up from the build
     // before (the table as users have it).
     var lsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "lastseen.db")}").Options;
     await using (var db = new AppDbContext(lsOptions)) await db.Database.EnsureCreatedAsync();
-    await LastSeenChecks.WriterAsync(c, "SQLite", lsOptions);
-    await LastSeenChecks.FeedAsync(c, "SQLite", lsOptions);
-    await LastSeenChecks.WriterAsync(c, "SQLite upgraded",
-        new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "upgrade.db")}").Options);
-    await LastSeenChecks.PassAsync(c, profile);
+    if (Run("lastseen"))
+    {
+        // LASTSEEN
+        await LastSeenChecks.WriterAsync(c, "SQLite", lsOptions);
+        await LastSeenChecks.FeedAsync(c, "SQLite", lsOptions);
+        await LastSeenChecks.WriterAsync(c, "SQLite upgraded",
+            new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "upgrade.db")}").Options);
+        await LastSeenChecks.PassAsync(c, profile);
+    }
 
     // ── Direction, stored clears and follow-up lines ─────────────────────────────────────────────────────────
-    FollowUpChecks.Parser(c);
-    FollowUpChecks.Threads(c);
-    await FollowUpChecks.DatabaseAsync(c, "SQLite threads", lsOptions);
-    await FollowUpChecks.PassAsync(c, profile);
+    if (Run("followup"))
+    {
+        FollowUpChecks.Parser(c);
+        FollowUpChecks.Threads(c);
+        await FollowUpChecks.DatabaseAsync(c, "SQLite threads", lsOptions);
+        await FollowUpChecks.PassAsync(c, profile);
+    }
 
     // ── Relayed copies: never chatter, never news, linked to what they copy ──────────────────────────────────
-    CopyChecks.Rule(c);
-    await CopyChecks.SqliteAsync(c, profile);
+    if (Run("copies"))
+    {
+        CopyChecks.Rule(c);
+        await CopyChecks.SqliteAsync(c, profile);
+    }
 
     // ── The read side: standings, distances, camps, the snapshot and the lens ────────────────────────────────
-    ReadSideChecks.StandingChecks(c);
-    await ReadSideChecks.SdeGroupChecks(c, root, profile);
-    ReadSideChecks.CampChecks(c);
-    await ReadSideChecks.DistanceChecks(c);
-    ReadSideChecks.SnapshotChecks(c);
-    ReadSideChecks.LensChecks(c);
+    if (Run("readside"))
+    {
+        ReadSideChecks.StandingChecks(c);
+        await ReadSideChecks.SdeGroupChecks(c, root, profile);
+        ReadSideChecks.CampChecks(c);
+        await ReadSideChecks.DistanceChecks(c);
+        ReadSideChecks.SnapshotChecks(c);
+        ReadSideChecks.LensChecks(c);
+    }
 
     // ── The Pilots, Camps and Watch list tabs ─────────────────────────────────────────────────────────────────
-    ReadSideChecks.WatchSetChecks(c);
-    ReadSideChecks.WatchLensChecks(c);
-    ReadSideChecks.CampsTabChecks(c);
-    ReadSideChecks.LastSeenLineChecks(c);
+    if (Run("tabs"))
+    {
+        ReadSideChecks.WatchSetChecks(c);
+        ReadSideChecks.WatchLensChecks(c);
+        ReadSideChecks.CampsTabChecks(c);
+        ReadSideChecks.LastSeenLineChecks(c);
+    }
 
     // ── The chat log tail: a log the client still holds open is read at its real size ────────────────────────
-    LogTailChecks.Run(c, profile);
+    if (Run("logtail")) LogTailChecks.Run(c, profile);
 
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
-    PanelChecks.Rows(c);
+    if (Run("panel")) PanelChecks.Rows(c);
 
     // ── How channels are named: EVE Chat, or the server; the Sources choice's order ──────────────────────────
-    ChannelLabelChecks.Run(c);
+    if (Run("channels")) ChannelLabelChecks.Run(c);
 
     // ── Hostiles first: who and what in a system, one row per system, the Pilots tab's sort ─────────────────
-    HostileChecks.Run(c);
+    if (Run("hostiles")) HostileChecks.Run(c);
 
     // ── The Universe Map and the route planner ──────────────────────────────────────────────────────────────
-    MapChecks.Run(c, root);
+    if (Run("map")) MapChecks.Run(c, root);
 
     // ── The intel alarm on intel as it stands ───────────────────────────────────────────────────────────────
-    AlarmChecks.Run(c);
-    DbContextOptions<AppDbContext> Scratch(string name) =>
-        new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, name)}").Options;
-    await AlarmChecks.WatchedAsync(c, Scratch("alarmwatch.db"));
-    await AlarmChecks.EvaluateAsync(c, Scratch("alarmeval.db"));
-    await AlarmChecks.WakeServiceAsync(c, Scratch("alarmwake.db"));
-    await AlarmChecks.WhoAndWhereWatchedAsync(c, Scratch("alarmwho.db"));
-    await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
-    await AlarmChecks.RouteStoreAsync(c, "SQLite", Scratch("routes.db"));
-    await AlarmChecks.RouteWatchedAsync(c, Scratch("routewatch.db"));
+    if (Run("alarms"))
+    {
+        AlarmChecks.Run(c);
+        DbContextOptions<AppDbContext> Scratch(string name) =>
+            new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, name)}").Options;
+        await AlarmChecks.WatchedAsync(c, Scratch("alarmwatch.db"));
+        await AlarmChecks.EvaluateAsync(c, Scratch("alarmeval.db"));
+        await AlarmChecks.WakeServiceAsync(c, Scratch("alarmwake.db"));
+        await AlarmChecks.WhoAndWhereWatchedAsync(c, Scratch("alarmwho.db"));
+        await AlarmChecks.RePrimeAsync(c, "SQLite", Scratch("alarmprime.db"));
+        await AlarmChecks.RouteStoreAsync(c, "SQLite", Scratch("routes.db"));
+        await AlarmChecks.RouteWatchedAsync(c, Scratch("routewatch.db"));
+    }
 
-    var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
-    await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
-    await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
-    await ReadSideChecks.RetentionAsync(c, "SQLite", rsOptions);
-    await ReadSideChecks.WatchTableAsync(c, "SQLite", rsOptions);
-    await ReadSideChecks.PilotSearchAsync(c, "SQLite", rsOptions);
+    if (Run("service"))
+    {
+        var rsOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "readside.db")}").Options;
+        await using (var db = new AppDbContext(rsOptions)) await db.Database.EnsureCreatedAsync();
+        await ReadSideChecks.ServiceAsync(c, "SQLite", rsOptions);
+        await ReadSideChecks.RetentionAsync(c, "SQLite", rsOptions);
+        await ReadSideChecks.WatchTableAsync(c, "SQLite", rsOptions);
+        await ReadSideChecks.PilotSearchAsync(c, "SQLite", rsOptions);
+    }
 
     // ── Pasted Local and d-scan ──────────────────────────────────────────────────────────────────────────────
-    PasteChecks.Classification(c);
-    PasteChecks.Dscan(c);
-    PasteChecks.Preview(c);
-    var pasteOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "paste.db")}").Options;
-    await using (var db = new AppDbContext(pasteOptions)) await db.Database.EnsureCreatedAsync();
-    await PasteChecks.DatabaseAsync(c, "SQLite", pasteOptions);
+    if (Run("paste"))
+    {
+        PasteChecks.Classification(c);
+        PasteChecks.Dscan(c);
+        PasteChecks.Preview(c);
+        var pasteOptions = new DbContextOptionsBuilder<AppDbContext>().UseSqlite($"Data Source={Path.Combine(profile, "paste.db")}").Options;
+        await using (var db = new AppDbContext(pasteOptions)) await db.Database.EnsureCreatedAsync();
+        await PasteChecks.DatabaseAsync(c, "SQLite", pasteOptions);
+    }
 
     // ── The Intel tool's grids, headless: the Pilots tab's standings filter, header sorts, virtualized lists ─────────
-    ToolGridChecks.Run(c);
+    if (Run("grids")) ToolGridChecks.Run(c);
 
     // ⚠️ The headless setup above put the UI dispatcher's synchronization context on this thread, and nothing pumps that
     // dispatcher from here on: every await below would post its continuation there and wait forever (the PostgreSQL
@@ -171,7 +220,8 @@ try
 
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
-    if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
+    if (!Run("pg")) { }
+    else if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)
     {
         await PgChecks.RunAsync(c, server);
         await CopyChecks.PostgresAsync(c, server);
@@ -186,7 +236,7 @@ finally
     try { Directory.Delete(profile, true); } catch (IOException) { } catch (UnauthorizedAccessException) { }
 }
 
-Console.WriteLine($"Intel check: {c.Count} check(s), {c.Failures.Count} failure(s).");
+Console.WriteLine($"Intel check{(only is null ? "" : " (" + string.Join(", ", only) + " only)")}: {c.Count} check(s), {c.Failures.Count} failure(s).");
 foreach (var f in c.Failures) Console.WriteLine(f);
 return c.Failures.Count == 0 ? 0 : 1;
 
