@@ -801,12 +801,8 @@
     <comment>Intel tool Paste tab, a Local: it clears the system first; this many sightings there now go. {0} is a number.</comment>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>A Local paste is the whole roster: everyone reported in the system is taken out, then everyone on the list is placed. A partial paste clears just the same.</value>
+    <value>A Local paste is the whole roster: everyone reported in the system is taken out, then everyone on the list in the standings saved is placed. A partial paste clears just the same.</value>
     <comment>Tooltip on the Intel tool Paste tab&apos;s &quot;Replaces N&quot;.</comment>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>{0} of yours on it, never counted as a threat</value>
-    <comment>Intel tool Paste tab: the user&apos;s own characters in the Local. {0} is a number.</comment>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → bubbles</value>
@@ -1411,5 +1407,53 @@
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
     <comment>Intel: a chat server's name when two servers are called the same, so they stay apart. {0} is the name, {1} its host (or login when the host is shared too).</comment>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Save:</value>
+    <comment>Intel tool Paste tab: label before the standings chips that choose which tiers a pasted Local saves.</comment>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Which standings a pasted Local saves, as the character pasting sees them. Pilots of the tiers switched off are not logged at all, and your own characters never are. Kept on this PC.</value>
+    <comment>Intel tool Paste tab: tooltip of the Save: standings chips and of the left-out line.</comment>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Clear</value>
+    <comment>Intel tool Paste tab: small button by the paste box that empties it.</comment>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Empty the box and the preview. The system and Pasted by stay.</value>
+    <comment>Intel tool Paste tab: tooltip of the Clear button by the paste box.</comment>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} left out ({1})</value>
+    <comment>Intel tool Paste tab, a Local: names on it that are not saved. {0} is a number, {1} the standings tiers they are in, comma-separated (for example: Blue, Light blue).</comment>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Saves {0} as clear: nobody of the standings chosen is on it</value>
+    <comment>Intel tool Paste tab, a Local with nobody of the chosen standings on it: it is saved as a clear. {0} is the system.</comment>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>A Local lists everyone there, so saving it says the system is clear of the standings chosen and takes out what was reported there.</value>
+    <comment>Intel tool Paste tab: under the headline of a Local with nobody of the chosen standings on it.</comment>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Not saved</value>
+    <comment>Intel tool Paste tab: a standings tier switched off on the Save: chips, folded to one dimmed line with its count.</comment>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Never saved</value>
+    <comment>Intel tool Paste tab: the user's own characters in a Local, folded to one dimmed line with their count.</comment>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} of yours on it, never saved</value>
+    <comment>Intel tool Paste tab: the user's own characters in the Local, which are never saved. {0} is a number.</comment>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Saved: {0} is clear of the standings chosen.</value>
+    <comment>Intel tool Paste tab after saving a Local with nobody of the chosen standings on it. {0} is the system.</comment>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>The Save chips only sort named pilots: a d-scan names nobody, so every ship on it counts.</value>
+    <comment>Intel tool Paste tab, a d-scan: the Save: standings chips do not apply to it.</comment>
   </data>
 </root>

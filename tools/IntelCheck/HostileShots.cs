@@ -1,5 +1,6 @@
 // The panel beside a client (its list with one system opened, and its single line, wide and narrow), the Intel
-// tool's Board (a system opened), its Sources choice open, its Pilots tab and its Feed (a kill, reports and a camp, wide and narrow), drawn headless from the invented hostiles of HostileScene, to pictures a review can
+// tool's Board (a system opened), its Sources choice open, its Pilots tab, its Feed (a kill, reports and a camp, wide and narrow) and
+// its Paste tab with a mixed Local, drawn headless from the invented hostiles of HostileScene, to pictures a review can
 // look at without the app, a database or a game client. The pictures of pilots, corporations, alliances and hulls are
 // drawn here too (no network): shapes and colours made up from each id. Every name and id is invented.
 using System.Collections.ObjectModel;
@@ -123,6 +124,19 @@ namespace EveConsole.Tools.IntelCheck
                 failed += Capture(window, Path.Combine(outDir, "feed-who.png"), GiveFeed);
                 window.Width = 760;
                 failed += Capture(window, Path.Combine(outDir, "feed-who-narrow.png"), GiveFeed);
+
+                // ── The Paste tab: a mixed Local, blues and the user's own left out by the default Save chips ──
+                tool.Apply(snapshot);
+                tool.SelectedTab = IntelViewModel.TabPaste;
+                var mixed = PasteTabChecks.Mixed(HostileScene.Home, "QZ-X77", HostileScene.Me);
+                tool.Paste.Text = mixed.Text;
+                // No paste service here: the preview is given, once the one the box asked for (none) is out of the way.
+                tool.Paste.PreviewNowAsync().GetAwaiter().GetResult();
+                tool.Paste.Show(mixed);
+                window.Width = 1500;
+                window.Height = 900;
+                failed += Capture(window, Path.Combine(outDir, "paste-standings.png"),
+                                  () => Give(tool.Paste.Groups.SelectMany(g => g.Corps).SelectMany(x => x.Pilots)));
                 window.Close();
                 tool.Dispose();
                 return failed == 0 ? 0 : 1;

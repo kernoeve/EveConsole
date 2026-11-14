@@ -602,10 +602,7 @@
     <value>그곳에 보고된 {0}개를 대체</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>붙여넣은 로컬은 전체 명단입니다. 성계에 보고된 모두를 빼고 목록의 모두를 배치합니다. 일부만 붙여넣어도 똑같이 지웁니다.</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>내 캐릭터 {0}명 포함, 위협으로 세지 않음</value>
+    <value>붙여넣은 로컬은 전체 명단입니다. 성계에 보고된 모두를 빼고 목록 중 저장할 스탠딩의 모두를 배치합니다. 일부만 붙여넣어도 똑같이 지웁니다.</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → 버블</value>
@@ -1002,5 +999,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>저장:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>붙여넣은 로컬에서 저장할 스탠딩(붙여넣은 캐릭터 기준). 꺼진 단계의 파일럿은 전혀 기록하지 않으며, 내 캐릭터는 항상 기록하지 않습니다. 이 PC에 기억됩니다.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>비우기</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>상자와 미리보기를 비웁니다. 성계와 붙여넣은 캐릭터는 그대로입니다.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0}명 제외 ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>{0}을(를) 클리어로 저장: 선택한 스탠딩의 파일럿이 없음</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>로컬은 그곳의 모두를 나열합니다. 저장하면 선택한 스탠딩 기준으로 성계가 클리어이며, 그곳에 보고된 것은 제거됩니다.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>저장 안 함</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>항상 저장 안 함</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>내 캐릭터 {0}명 포함, 저장하지 않음</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>저장됨: {0}은(는) 선택한 스탠딩 기준 클리어입니다.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>저장 선택은 이름 있는 파일럿에만 적용됩니다. D-스캔에는 이름이 없으므로 모든 함선을 셉니다.</value>
   </data>
 </root>

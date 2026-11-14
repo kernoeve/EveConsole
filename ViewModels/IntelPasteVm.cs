@@ -21,10 +21,24 @@ namespace EveConsole.ViewModels;
 /// is on it, grouped by standing, alliance and corporation; for a Local, how many sightings it replaces,
 /// since a Local clears the system first and a partial paste would clear it just the same. Save, or
 /// Ctrl+Enter, stores it; the line shows in the Feed and on the Board at once.</para>
+///
+/// <para>The "Save:" chips choose the standings tiers a Local saves (Red, Orange and Neutral by default,
+/// kept on this PC): a player copies all of Local, blues too, for speed. The preview still lists everyone,
+/// the tiers left out folded to a dimmed line each, and the headline counts only what is saved. A Local
+/// with nobody of the kept tiers on it saves as a clear of the system.</para>
+///
+/// <para>Pasted by follows the system: the first online character's system and that same character by
+/// default, and the character in a system chosen from the list, until the user picks Pasted by here.</para>
 /// </summary>
 public sealed class IntelPasteVm : ReactiveObject
 {
     private static readonly TimeSpan PreviewDelay = TimeSpan.FromMilliseconds(300);
+
+    /// <summary>The tiers a pasted Local saves, kept on this PC as a list of tier numbers.</summary>
+    public const string KeySaveTiers = "intel.paste_tiers";
+
+    private static readonly StandingTier[] FiveTiers =
+        [StandingTier.Red, StandingTier.Orange, StandingTier.Neutral, StandingTier.LightBlue, StandingTier.Blue];
 
     private readonly IntelViewModel _tool;
     private readonly IntelPasteService? _service;
@@ -45,11 +59,13 @@ public sealed class IntelPasteVm : ReactiveObject
         _characters = characters;
         _debounce = new DispatcherTimer(PreviewDelay, DispatcherPriority.Background, (_, _) => { _debounce!.Stop(); Preview(); });
         _debounce.Stop();
+        _keep = ReadKeep();
         _characters.CollectionChanged += OnCharactersChanged;
         SyncCharacters();
 
         SaveCommand = ReactiveCommand.CreateFromTask(SaveAsync, this.WhenAnyValue(x => x.CanSave));
         SaveCommand.ThrownExceptions.Subscribe(ex => StatusText = string.Format(CommonText.ErrorWithMessage, ex.Message));
+        ClearCommand = ReactiveCommand.Create(Clear);
 
         this.WhenAnyValue(x => x.OtherSystemText).Skip(1).Throttle(TimeSpan.FromMilliseconds(180))
             .SelectMany(t => Observable.FromAsync(() => SuggestAsync(t))).Subscribe();
@@ -90,6 +106,68 @@ public sealed class IntelPasteVm : ReactiveObject
     /// <summary>"12 names · 11 resolved · 1 unknown".</summary>
     public string CountsText { get => _counts; private set => this.RaiseAndSetIfChanged(ref _counts, value); }
 
+    /// <summary>The Clear button by the box: empties the box and the preview; the system and Pasted by stay.</summary>
+    public ReactiveCommand<Unit, Unit> ClearCommand { get; }
+
+    /// <summary>Empties the box and the preview, at once rather than after the pause. The system and the
+    /// character chosen stay, and so does what the last Save said.</summary>
+    public void Clear()
+    {
+        ClearBox();
+        StatusText = "";
+    }
+
+    private void ClearBox()
+    {
+        _debounce.Stop();
+        Interlocked.Increment(ref _ticket);
+        _text = "";
+        this.RaisePropertyChanged(nameof(Text));
+        DetectedText = "";
+        IsUnknown = false;
+        IsBusy = false;
+        Show(null);
+    }
+
+    // ── The standings saved ──────────────────────────────────────────────────
+
+    private readonly HashSet<StandingTier> _keep;
+
+    /// <summary>The tiers a pasted Local saves now.</summary>
+    public IReadOnlySet<StandingTier> SaveTiers => _keep;
+
+    public bool SaveRed       { get => _keep.Contains(StandingTier.Red);       set => SetKeep(StandingTier.Red, value); }
+    public bool SaveOrange    { get => _keep.Contains(StandingTier.Orange);    set => SetKeep(StandingTier.Orange, value); }
+    public bool SaveNeutral   { get => _keep.Contains(StandingTier.Neutral);   set => SetKeep(StandingTier.Neutral, value); }
+    public bool SaveLightBlue { get => _keep.Contains(StandingTier.LightBlue); set => SetKeep(StandingTier.LightBlue, value); }
+    public bool SaveBlue      { get => _keep.Contains(StandingTier.Blue);      set => SetKeep(StandingTier.Blue, value); }
+
+    /// <summary>What this PC chose last, else Red, Orange and Neutral: everyone not blue.</summary>
+    private static HashSet<StandingTier> ReadKeep()
+    {
+        string? saved;
+        try { saved = UiState.Get(KeySaveTiers); }
+        catch { saved = null; }
+        if (saved is null) return [.. StandingTiers.Hostile];
+        // "-" is every tier switched off: an empty value would read back as never chosen.
+        return [.. saved.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                        .Select(t => int.TryParse(t, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? (StandingTier?)n : null)
+                        .Where(t => t is { } v && FiveTiers.Contains(v)).Select(t => t!.Value)];
+    }
+
+    /// <summary>A chip clicked: kept on this PC, and the preview on screen says at once what Save now stores.
+    /// Nothing is asked of the database again: the tiers are already known.</summary>
+    private void SetKeep(StandingTier tier, bool on, [System.Runtime.CompilerServices.CallerMemberName] string? name = null)
+    {
+        if (on == _keep.Contains(tier)) return;
+        if (on) _keep.Add(tier); else _keep.Remove(tier);
+        this.RaisePropertyChanged(name);
+        var value = _keep.Count == 0 ? "-" : string.Join(",", FiveTiers.Where(_keep.Contains).Select(t => ((int)t).ToString(CultureInfo.InvariantCulture)));
+        try { UiState.Set(KeySaveTiers, value); }
+        catch { /* A view's state is a nicety: a choice that cannot be kept is simply not kept. */ }
+        if (_preview is not null) Show(_preview);
+    }
+
     // ── The system ───────────────────────────────────────────────────────────
 
     /// <summary>Where each online character is, then any other system chosen.</summary>
@@ -104,8 +182,22 @@ public sealed class IntelPasteVm : ReactiveObject
             if (value is null || ReferenceEquals(value, _selectedSystem)) return;
             this.RaiseAndSetIfChanged(ref _selectedSystem, value);
             _systemId = value.Value;
+            FollowSystem();
             Stale();
         }
+    }
+
+    /// <summary>
+    /// The system chosen is where another of the user's characters is ("QZ-X77 (Pilot B here)"): Pasted by
+    /// moves to that character, since it is its Local, unless the user picked Pasted by here. A system with
+    /// nobody of ours in it moves nothing.
+    /// </summary>
+    private void FollowSystem()
+    {
+        if (_characterChosen) return;
+        var here = _snapshot.Own.Where(o => o.SystemId == _systemId).Select(o => o.CharacterId).ToList();
+        if (here.Count == 0 || (_selectedCharacter is { } held && here.Contains(held.Value))) return;
+        if (CharacterChoices.FirstOrDefault(c => c.Value == here[0]) is { } who) SelectedCharacter = who;
     }
 
     private int _systemId;
@@ -199,24 +291,39 @@ public sealed class IntelPasteVm : ReactiveObject
         SelectedCharacter = CharacterChoices.FirstOrDefault(c => c.Value == held) ?? Default();
     }
 
-    /// <summary>The "Distance from" character, else the first online, else the first there is.</summary>
+    /// <summary>
+    /// The character pasting when the user has not picked one: the "Distance from" character when online,
+    /// else the first online character in the system chosen, else the first online character (whose system
+    /// is then the default), else the first there is. ⚠️ Never a logged-off character while one is online:
+    /// it was the default before, alphabetically first, beside the system of another character.
+    /// </summary>
     private IntelChoice<long>? Default()
     {
         var from = _tool.FromCharacterId;
         var online = _snapshot.Own.Select(o => o.CharacterId).ToList();
-        return CharacterChoices.FirstOrDefault(c => from != 0 && c.Value == from)
-               ?? CharacterChoices.FirstOrDefault(c => online.Contains(c.Value))
+        IntelChoice<long>? Choice(long id) => CharacterChoices.FirstOrDefault(c => c.Value == id);
+        return (from != 0 && online.Contains(from) ? Choice(from) : null)
+               ?? _snapshot.Own.Where(o => o.SystemId == _systemId && _systemId > 0).Select(o => Choice(o.CharacterId)).FirstOrDefault(c => c is not null)
+               ?? _snapshot.Own.Select(o => Choice(o.CharacterId)).FirstOrDefault(c => c is not null)
+               ?? (from != 0 ? Choice(from) : null)
                ?? CharacterChoices.FirstOrDefault();
     }
+
+    private bool IsOnline(long characterId) => _snapshot.Own.Any(o => o.CharacterId == characterId);
 
     /// <summary>"Distance from" changed: the character pasting follows it, unless one was picked here.</summary>
     internal void FromChanged()
     {
         if (_characterChosen || Default() is not { } d) return;
-        SelectedCharacter = d;
         // Nothing pasted yet: the system follows too, to where that character is.
-        if (_snapshot.Own.FirstOrDefault(o => o.CharacterId == d.Value) is { } own && _preview is null && _text.Length == 0)
-            ChooseSystem(own.SystemId);
+        if (_preview is null && _text.Length == 0)
+        {
+            SelectedCharacter = d;
+            if (_snapshot.Own.FirstOrDefault(o => o.CharacterId == d.Value) is { } own) ChooseSystem(own.SystemId);
+        }
+        // A paste in the box stays the Local of the system chosen: it moves only when none of ours is there.
+        else if (_snapshot.Own.All(o => o.SystemId != _systemId))
+            SelectedCharacter = d;
     }
 
     /// <summary>The panel's paste: its character, and the system it is in.</summary>
@@ -250,9 +357,13 @@ public sealed class IntelPasteVm : ReactiveObject
             foreach (var c in wanted) SystemChoices.Add(c);
             _selectedSystem = null;
         }
+        var repicked = false;
         if (_selectedSystem is null || SystemChoices.All(c => !ReferenceEquals(c, _selectedSystem)))
         {
-            var mine = snapshot.Own.FirstOrDefault(o => o.CharacterId == _selectedCharacter?.Value)?.SystemId;
+            repicked = true;
+            // The system of the character pasting: the one picked, else the default (the first online).
+            var who = _characterChosen ? _selectedCharacter?.Value : Default()?.Value;
+            var mine = snapshot.Own.FirstOrDefault(o => o.CharacterId == who)?.SystemId;
             var pick = SystemChoices.FirstOrDefault(c => c.Value == _systemId)
                        ?? SystemChoices.FirstOrDefault(c => c.Value == mine)
                        ?? SystemChoices.FirstOrDefault();
@@ -265,7 +376,14 @@ public sealed class IntelPasteVm : ReactiveObject
                 if (moved) Stale();
             }
         }
-        if (!_characterChosen && _selectedCharacter is null) SelectedCharacter = Default();
+        // Not picked here: the character in the system chosen, and never a logged-off one while one is online.
+        if (!_characterChosen)
+        {
+            if (repicked) FollowSystem();
+            if ((_selectedCharacter is null || (!IsOnline(_selectedCharacter.Value) && snapshot.Own.Count > 0))
+                && Default() is { } d && !ReferenceEquals(d, _selectedCharacter))
+                SelectedCharacter = d;
+        }
 
         // A Local's "replaces N" follows what the snapshot now holds, without asking the database again.
         if (_preview is { Kind: IntelPasteKind.Local } p && p.SystemId == _systemId)
@@ -318,10 +436,11 @@ public sealed class IntelPasteVm : ReactiveObject
         var system = _systemId;
         var snapshot = _snapshot;
         var now = _tool.Clock();
+        var keep = _keep.ToHashSet();
         IsBusy = true;
         try
         {
-            var preview = await Task.Run(() => _service.PreviewAsync(text, viewer, system, snapshot, now));
+            var preview = await Task.Run(() => _service.PreviewAsync(text, viewer, system, snapshot, now, keep));
             if (Interlocked.Read(ref _ticket) == ticket) Show(preview);
         }
         catch (Exception ex)
@@ -341,10 +460,12 @@ public sealed class IntelPasteVm : ReactiveObject
     private bool _isBusy;
     public bool IsBusy { get => _isBusy; private set => this.RaiseAndSetIfChanged(ref _isBusy, value); }
 
-    /// <summary>Shows a preview given rather than worked out: for a check.</summary>
+    /// <summary>Shows a preview given rather than worked out: for a check. It is shown, and saved, with the
+    /// tiers the chips keep now.</summary>
     public void Show(IntelPastePreview? preview)
     {
         var culture = CultureInfo.CurrentCulture;
+        if (preview is not null && !preview.Keep.SetEquals(_keep)) preview = preview with { Keep = _keep.ToHashSet() };
         _preview = preview;
         var local = preview is { Kind: IntelPasteKind.Local };
         var dscan = preview is { Kind: IntelPasteKind.Dscan };
@@ -354,7 +475,8 @@ public sealed class IntelPasteVm : ReactiveObject
         if (preview is null)
         {
             CountsText = "";
-            PlacesText = ReplacesText = UnknownText = OwnText = "";
+            PlacesText = ReplacesText = UnknownText = OwnText = LeftOutText = "";
+            IsClearPaste = false;
             Groups = [];
             DscanShipsText = DscanFlagsText = "";
             DscanHulls = [];
@@ -362,13 +484,24 @@ public sealed class IntelPasteVm : ReactiveObject
         else if (local)
         {
             CountsText = Plural(nameof(IntelText.PasteNamesCountOther), preview.Names.Count, preview.Pilots.Count, preview.Unresolved.Count);
-            PlacesText = preview.SystemId > 0
-                ? Plural(nameof(IntelText.PastePlacesOther), preview.Pilots.Count, SystemNameOf(preview.SystemId, preview.SystemName))
-                : IntelText.PasteChooseSystem;
+            var system = SystemNameOf(preview.SystemId, preview.SystemName);
+            IsClearPaste = preview.IsClear && preview.SystemId > 0;
+            // Only what is saved: the pilots of the kept tiers. Nobody kept is a clear of the system.
+            PlacesText = preview.SystemId <= 0 ? IntelText.PasteChooseSystem
+                       : preview.IsClear ? string.Format(culture, IntelText.PasteSavesClear, system)
+                       : Plural(nameof(IntelText.PastePlacesOther), preview.Kept.Count, system);
             ShowReplaces(preview.Replaces);
-            UnknownText = preview.Unresolved.Count > 0 ? Plural(nameof(IntelText.PasteUnknownNamesOther), preview.Unresolved.Count) : "";
-            OwnText = preview.Own > 0 ? string.Format(culture, IntelText.PasteOwnNotCounted, preview.Own) : "";
-            Groups = [.. preview.Groups.Select(g => new IntelPasteGroupVm(g))];
+            UnknownText = preview.KeptUnresolved.Count > 0 ? Plural(nameof(IntelText.PasteUnknownNamesOther), preview.KeptUnresolved.Count) : "";
+            OwnText = preview.Own > 0 ? string.Format(culture, IntelText.PasteOwnNotSaved, preview.Own) : "";
+            var outTiers = preview.LeftOutByTier.Select(t => IntelWords.TierName(t.Tier)).ToList();
+            if (preview.Own > 0) outTiers.Add(IntelText.PasteGroupYours);
+            LeftOutText = preview.LeftOut > 0 ? string.Format(culture, IntelText.PasteLeftOut, preview.LeftOut, string.Join(", ", outTiers)) : "";
+            // The kept tiers in full; each tier left out folded to one dimmed line with its count, the user's own last.
+            var groups = preview.Groups.Where(g => g.Kind != IntelPasteGroupKind.Own && preview.Keeps(g.Tier))
+                .Select(g => new IntelPasteGroupVm(g)).ToList();
+            groups.AddRange(preview.LeftOutByTier.Select(t => IntelPasteGroupVm.LeftOutLine(t.Tier, t.Count)));
+            if (preview.Own > 0) groups.Add(IntelPasteGroupVm.LeftOutLine(StandingTier.Own, preview.Own));
+            Groups = groups;
             DscanShipsText = DscanFlagsText = "";
             DscanHulls = [];
         }
@@ -377,7 +510,8 @@ public sealed class IntelPasteVm : ReactiveObject
             var d = preview.Dscan;
             CountsText = Plural(nameof(IntelText.PasteDscanCountOther), d.Ships, d.Unknown);
             PlacesText = preview.SystemId > 0 ? "" : IntelText.PasteChooseSystem;
-            ReplacesText = UnknownText = OwnText = "";
+            ReplacesText = UnknownText = OwnText = LeftOutText = "";
+            IsClearPaste = false;
             Groups = [];
             DscanShipsText = Plural(nameof(IntelText.PasteDscanShipsOther), d.Ships);
             DscanHulls = [.. d.Hulls.Select(h => IntelPictureVm.Ship(h.TypeId, SdeNames.Type(h.TypeId, h.Name), h.Count))];
@@ -393,8 +527,12 @@ public sealed class IntelPasteVm : ReactiveObject
         this.RaisePropertyChanged(nameof(HasPreview));
         this.RaisePropertyChanged(nameof(HasUnknown));
         this.RaisePropertyChanged(nameof(HasOwn));
+        this.RaisePropertyChanged(nameof(HasLeftOut));
         this.RaisePropertyChanged(nameof(HasDscanFlags));
     }
+
+    /// <summary>The preview on screen, as Save would store it: for a check.</summary>
+    public IntelPastePreview? Shown => _preview;
 
     /// <summary>A counted phrase in the form the interface language needs for the number.</summary>
     private static string Plural(string otherKey, long n, params object?[] more) =>
@@ -422,6 +560,15 @@ public sealed class IntelPasteVm : ReactiveObject
     public string OwnText      { get => _own;      private set => this.RaiseAndSetIfChanged(ref _own, value); }
     public bool HasUnknown => UnknownText.Length > 0;
     public bool HasOwn => OwnText.Length > 0;
+
+    private string _leftOut = "";
+    /// <summary>"89 left out (Blue, Light blue)": everyone on the Local that Save does not store.</summary>
+    public string LeftOutText { get => _leftOut; private set => this.RaiseAndSetIfChanged(ref _leftOut, value); }
+    public bool HasLeftOut => LeftOutText.Length > 0;
+
+    private bool _isClearPaste;
+    /// <summary>A Local with nobody of the kept tiers on it: saved as a clear of the system.</summary>
+    public bool IsClearPaste { get => _isClearPaste; private set => this.RaiseAndSetIfChanged(ref _isClearPaste, value); }
 
     private IReadOnlyList<IntelPasteGroupVm> _groups = [];
     public IReadOnlyList<IntelPasteGroupVm> Groups { get => _groups; private set => this.RaiseAndSetIfChanged(ref _groups, value); }
@@ -466,17 +613,12 @@ public sealed class IntelPasteVm : ReactiveObject
         }
 
         await Task.Run(() => _service.SaveAsync(preview));
-        var culture = CultureInfo.CurrentCulture;
         var system = SystemNameOf(preview.SystemId, preview.SystemName);
-        StatusText = preview.Kind == IntelPasteKind.Local
-            ? Plural(nameof(IntelText.PasteSavedLocalOther), preview.Names.Count, system)
-            : Plural(nameof(IntelText.PasteSavedDscanOther), preview.Dscan.Ships, system);
-        _text = "";
-        this.RaisePropertyChanged(nameof(Text));
-        DetectedText = "";
-        IsUnknown = false;
-        Interlocked.Increment(ref _ticket);
-        Show(null);
+        var status = preview.IsClear ? string.Format(CultureInfo.CurrentCulture, IntelText.PasteSavedClear, system)
+                   : preview.Kind == IntelPasteKind.Local ? Plural(nameof(IntelText.PasteSavedLocalOther), preview.PlayerCount, system)
+                   : Plural(nameof(IntelText.PasteSavedDscanOther), preview.Dscan.Ships, system);
+        ClearBox();
+        StatusText = status;
         await LoadRecentAsync();
     }
 
@@ -535,11 +677,29 @@ public sealed class IntelPasteGroupVm
         Corps = [.. group.Corps.Select(c => new IntelPasteCorpVm(c, group.Kind))];
     }
 
+    private IntelPasteGroupVm(StandingTier tier, int count)
+    {
+        TierBrush = IntelTierColors.Of(tier);
+        Name = tier == StandingTier.Own ? IntelText.PasteGroupYours : IntelWords.TierName(tier);
+        TierName = tier == StandingTier.Own ? IntelText.PasteNeverSaved : IntelText.PasteNotSaved;
+        CountText = count.ToString(CultureInfo.CurrentCulture);
+        Corps = [];
+        IsLeftOut = true;
+    }
+
+    /// <summary>A tier the chips leave out (or the user's own characters), folded to one dimmed line: who it is
+    /// and how many, not saved.</summary>
+    public static IntelPasteGroupVm LeftOutLine(StandingTier tier, int count) => new(tier, count);
+
     public IBrush TierBrush { get; }
     public string Name { get; }
     public string TierName { get; }
     public string CountText { get; }
     public IReadOnlyList<IntelPasteCorpVm> Corps { get; }
+
+    /// <summary>Not saved: drawn dimmed, with no pilots under it.</summary>
+    public bool IsLeftOut { get; }
+    public double RowOpacity => IsLeftOut ? 0.5 : 1;
 
     public Task LoadPicturesAsync() => Task.WhenAll(Corps.SelectMany(c => c.Pilots).Select(p => p.LoadAsync()));
 }
@@ -575,9 +735,11 @@ public sealed class IntelRecentPasteVm : ReactiveObject
                    : SdeNames.SolarSystem(paste.SystemId, paste.SystemName.Length > 0 ? paste.SystemName : paste.SystemId.ToString(CultureInfo.InvariantCulture));
         KindText = paste.Source == IntelReportSource.LocalPaste ? IntelText.KindLocalPaste : IntelText.KindDscan;
         Reporter = paste.ReporterId > 0 ? IntelPictureVm.Pilot(paste.ReporterId, paste.ReporterName) : IntelPictureVm.Words(paste.ReporterName);
-        CountText = Plurals.Format(IntelText.ResourceManager,
-            paste.Source == IntelReportSource.LocalPaste ? nameof(IntelText.RecentPilotsOther) : nameof(IntelText.RecentShipsOther),
-            paste.PlayerCount);
+        // A Local with nobody of the kept standings on it was saved as a clear.
+        CountText = paste.IsClear ? IntelText.KindClear
+            : Plurals.Format(IntelText.ResourceManager,
+                paste.Source == IntelReportSource.LocalPaste ? nameof(IntelText.RecentPilotsOther) : nameof(IntelText.RecentShipsOther),
+                paste.PlayerCount);
         Tick(now);
     }
 

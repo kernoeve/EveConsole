@@ -47,6 +47,7 @@ namespace EveConsole.Tools.IntelCheck
                 }
                 Grids(c);
                 ChannelLabelChecks.SavedSelection(c);
+                PasteTabChecks.Run(c);
             }
             catch (Exception ex)
             {

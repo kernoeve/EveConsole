@@ -602,10 +602,7 @@
     <value>そこで報告されていた {0} 件を置き換え</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>貼り付けたローカルは全名簿です。星系で報告されていた全員を外し、一覧の全員を配置します。一部だけの貼り付けでも同じく消えます。</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>自分のキャラクター {0} 名（脅威には数えない）</value>
+    <value>貼り付けたローカルは全名簿です。星系で報告されていた全員を外し、一覧のうち保存するスタンディングの全員を配置します。一部だけの貼り付けでも同じく消えます。</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → バブル</value>
@@ -1002,5 +999,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0}（{1}）</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>保存:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>貼り付けたローカルで保存するスタンディング（貼り付けたキャラクターから見たもの）。オフにした段階のパイロットは一切記録せず、自分のキャラクターは常に記録しません。このPCに保存されます。</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>クリア</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>ボックスとプレビューを空にします。星系と貼り付けたキャラクターはそのままです。</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} 名は保存しません（{1}）</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>{0} をクリアとして保存：選んだスタンディングのパイロットはいません</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>ローカルはそこにいる全員を一覧にします。保存すると、選んだスタンディングについて星系はクリアとなり、そこで報告されていたものは取り除かれます。</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>保存しない</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>常に保存しない</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>自分のキャラクター {0} 名（保存しません）</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>保存しました：{0} は選んだスタンディングについてクリアです。</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>保存の選択は名前のあるパイロットにのみ適用されます。Dスキャンには名前がないため、すべての艦船を数えます。</value>
   </data>
 </root>

@@ -925,7 +925,45 @@
                         DropDownClosed="OnPastedByPicked" />
             </StackPanel>
           </WrapPanel>
-          <TextBlock Classes="label" Text="{x:Static loc:IntelText.PasteBoxLabel}" />
+          <!-- Which standings a pasted Local saves: the top bar's chips, in the same look. -->
+          <StackPanel Orientation="Horizontal" Spacing="6" ToolTip.Tip="{x:Static loc:IntelText.PasteSaveTip}">
+            <TextBlock Classes="label" Text="{x:Static loc:IntelText.PasteSaveLabel}" />
+            <ToggleButton Classes="chip" IsChecked="{Binding SaveRed}">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="8" Height="8" Fill="{x:Static vm:IntelViewModel.RedBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:IntelText.TierRed}" />
+              </StackPanel>
+            </ToggleButton>
+            <ToggleButton Classes="chip" IsChecked="{Binding SaveOrange}">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="8" Height="8" Fill="{x:Static vm:IntelViewModel.OrangeBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:IntelText.TierOrange}" />
+              </StackPanel>
+            </ToggleButton>
+            <ToggleButton Classes="chip" IsChecked="{Binding SaveNeutral}">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="8" Height="8" Fill="{x:Static vm:IntelViewModel.NeutralBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:IntelText.TierNeutral}" />
+              </StackPanel>
+            </ToggleButton>
+            <ToggleButton Classes="chip" IsChecked="{Binding SaveLightBlue}">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="8" Height="8" Fill="{x:Static vm:IntelViewModel.LightBlueBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:IntelText.TierLightBlue}" />
+              </StackPanel>
+            </ToggleButton>
+            <ToggleButton Classes="chip" IsChecked="{Binding SaveBlue}">
+              <StackPanel Orientation="Horizontal" Spacing="5">
+                <Ellipse Width="8" Height="8" Fill="{x:Static vm:IntelViewModel.BlueBrush}" VerticalAlignment="Center" />
+                <TextBlock Text="{x:Static loc:IntelText.TierBlue}" />
+              </StackPanel>
+            </ToggleButton>
+          </StackPanel>
+          <Grid ColumnDefinitions="*,Auto">
+            <TextBlock Classes="label" Text="{x:Static loc:IntelText.PasteBoxLabel}" VerticalAlignment="Bottom" />
+            <Button Grid.Column="1" Command="{Binding ClearCommand}" Content="{x:Static loc:IntelText.PasteClear}"
+                    ToolTip.Tip="{x:Static loc:IntelText.PasteClearTip}" FontSize="11" Padding="10 2" MinHeight="0" />
+          </Grid>
           <TextBox x:Name="PasteBox" Text="{Binding Text}" AcceptsReturn="True" AcceptsTab="True" TextWrapping="NoWrap"
                    MinHeight="300" MaxHeight="520" FontFamily="Consolas, Menlo, monospace" FontSize="12"
                    Watermark="{x:Static loc:IntelText.PasteBoxHint}"
@@ -946,6 +984,10 @@
                          IsVisible="{Binding IsLocal}" TextWrapping="Wrap" />
               <TextBlock Text="{Binding ReplacesText}" FontSize="11" Foreground="{DynamicResource WarnBrush}" IsVisible="{Binding IsLocal}"
                          ToolTip.Tip="{x:Static loc:IntelText.TipReplaces}" />
+              <TextBlock Text="{x:Static loc:IntelText.PasteClearNote}" FontSize="11" TextWrapping="Wrap" IsVisible="{Binding IsClearPaste}"
+                         Foreground="{DynamicResource TextSecondaryBrush}" />
+              <TextBlock Text="{Binding LeftOutText}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" IsVisible="{Binding HasLeftOut}"
+                         ToolTip.Tip="{x:Static loc:IntelText.PasteSaveTip}" />
               <TextBlock Text="{Binding UnknownText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding HasUnknown}" />
               <TextBlock Text="{Binding OwnText}" FontSize="11" Foreground="{DynamicResource TextSecondaryBrush}" IsVisible="{Binding HasOwn}" />
               <StackPanel IsVisible="{Binding IsDscan}" Spacing="6">
@@ -957,6 +999,7 @@
                 </ItemsControl>
                 <TextBlock Text="{Binding DscanFlagsText}" IsVisible="{Binding HasDscanFlags}" FontSize="11" Foreground="{DynamicResource WarnBrush}" />
                 <TextBlock Text="{x:Static loc:IntelText.PasteDscanNote}" FontSize="10" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
+                <TextBlock Text="{x:Static loc:IntelText.PasteDscanTiersNote}" FontSize="10" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
               </StackPanel>
               <TextBlock Text="{x:Static loc:IntelText.PasteNothingYet}" IsVisible="{Binding !HasPreview}" FontSize="11" TextWrapping="Wrap"
                          Foreground="{DynamicResource TextMutedBrush}" />
@@ -973,7 +1016,7 @@
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:IntelPasteGroupVm">
                 <Border BorderBrush="{DynamicResource BorderSubtleBrush}" BorderThickness="0 0 0 1" Padding="0 6">
-                  <StackPanel Spacing="4">
+                  <StackPanel Spacing="4" Opacity="{Binding RowOpacity}">
                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" ColumnSpacing="8">
                       <Border Width="4" Height="16" CornerRadius="1" Background="{Binding TierBrush}" VerticalAlignment="Center" />
                       <TextBlock Grid.Column="1" Text="{Binding Name}" FontSize="12" FontWeight="SemiBold"

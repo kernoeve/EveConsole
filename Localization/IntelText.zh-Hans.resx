@@ -602,10 +602,7 @@
     <value>替换该处已报告的 {0} 个</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>粘贴的本地是完整名单：先移除该星系所有已报告的人，再放入名单上的所有人。部分粘贴同样会清空。</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>其中 {0} 个是你的，不计为威胁</value>
+    <value>粘贴的本地是完整名单：先移除该星系所有已报告的人，再放入名单上所保存声望的所有人。部分粘贴同样会清空。</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → 泡泡</value>
@@ -1002,5 +999,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0}（{1}）</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>保存：</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>粘贴的本地保存哪些声望（以粘贴者的角度）。关闭的等级的飞行员完全不记录，你自己的角色从不记录。记在这台电脑上。</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>清空</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>清空输入框和预览。星系和粘贴者保持不变。</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} 人不保存（{1}）</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>将 {0} 保存为无人：没有所选声望的飞行员</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>本地列出那里的所有人：保存即表示该星系没有所选声望的人，并移除那里已报告的内容。</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>不保存</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>从不保存</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>其中 {0} 个是你的，从不保存</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>已保存：{0} 没有所选声望的人。</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>保存选项只筛选有名字的飞行员：定向扫描没有名字，所以其中每艘舰船都计入。</value>
   </data>
 </root>

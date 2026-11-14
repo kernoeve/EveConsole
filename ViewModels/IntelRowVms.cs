@@ -626,7 +626,8 @@ public sealed class IntelEventRowVm : ReactiveObject
         SourceText = e.Kind switch
         {
             IntelEventKind.Kill or IntelEventKind.CampFormed => IntelText.SourceKillboard,
-            IntelEventKind.LocalPaste or IntelEventKind.Dscan =>
+            // A pasted Local with nobody of the kept standings on it is a clear, from the paste.
+            _ when e.Kind is IntelEventKind.LocalPaste or IntelEventKind.Dscan || e.SourceKey == IntelSnapshot.SourcePaste =>
                 e.Reporter is { Length: > 0 } paster ? string.Format(culture, IntelText.SourcePasteBy, paster) : IntelText.SourcePaste,
             _ => e.Reporter is { Length: > 0 } reporter && e.Channel is { Length: > 0 } channel
                     ? string.Format(culture, IntelText.SourceChannelBy, snapshot.ChannelLabel(channel), reporter)
@@ -908,7 +909,8 @@ public sealed class IntelEventRowVm : ReactiveObject
         if (!string.IsNullOrWhiteSpace(e.Message)) lines.Add(e.Message!);
         if (e.Kind == IntelEventKind.Kill && e.VictimName is { Length: > 0 } victim)
             lines.Add(string.Format(culture, IntelText.KillVictim, victim, e.AttackerCount));
-        if (e.Kind is IntelEventKind.LocalPaste or IntelEventKind.Dscan && e.Reporter is { Length: > 0 } paster)
+        if ((e.Kind is IntelEventKind.LocalPaste or IntelEventKind.Dscan || e.SourceKey == IntelSnapshot.SourcePaste)
+            && e.Reporter is { Length: > 0 } paster)
             lines.Add(string.Format(culture, IntelText.PastedBy, paster));
         else if (e.Reporter is { Length: > 0 } who)
             lines.Add(string.Format(culture, IntelText.ReportedBy, who, snapshot.ChannelLabel(e.Channel)));

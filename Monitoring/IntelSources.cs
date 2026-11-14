@@ -115,8 +115,11 @@ public sealed class IntelDuplicates
         && list.Any(held => held.IsClear && Relays(report.ChannelName, at, held.Channel, held.At));
 
     /// <summary><see cref="RelaysClear"/> for two clears already read: the later one relays the earlier one.</summary>
+    /// <remarks>Only clears said in a channel: a pasted Local saved as a clear is the user's own look at Local, never a
+    /// relay of a channel's clear, nor relayed by one.</remarks>
     public static bool RelaysClear(IntelReport later, DateTimeOffset laterAt, IntelReport earlier, DateTimeOffset earlierAt) =>
         later.Kind == IntelReportKind.Clear && earlier.Kind == IntelReportKind.Clear && later.SystemId == earlier.SystemId
+        && later.Source == IntelReportSource.Chat && earlier.Source == IntelReportSource.Chat
         && Relays(later.ChannelName, laterAt, earlier.ChannelName, earlierAt);
 
     private static bool Relays(string laterChannel, DateTimeOffset laterAt, string earlierChannel, DateTimeOffset earlierAt) =>
@@ -136,8 +139,10 @@ public sealed class IntelDuplicates
     private void Add(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
         // A copy is never held itself: a third channel's relay is a copy of the report, not of the copy, and a copy
-        // stored names no pilots, so its facts would not match anyway.
-        if (report.Kind == IntelReportKind.Copy || Read(report, pilots) is not { } held) return;
+        // stored names no pilots, so its facts would not match anyway. A pasted Local saved as a clear is not held
+        // either: no channel's clear relays the user's own look at Local.
+        if (report.Kind == IntelReportKind.Copy || (report.Kind == IntelReportKind.Clear && report.Source != IntelReportSource.Chat)
+            || Read(report, pilots) is not { } held) return;
 
         if (!_bySystem.TryGetValue(report.SystemId, out var list)) _bySystem[report.SystemId] = list = [];
         list.Add(held);

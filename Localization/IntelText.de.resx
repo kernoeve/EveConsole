@@ -602,10 +602,7 @@
     <value>Ersetzt {0} dort gemeldete</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>Ein eingefügtes Local ist die ganze Liste: Alle im System Gemeldeten werden entfernt, dann alle auf der Liste gesetzt. Ein unvollständiges Einfügen leert genauso.</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>{0} eigene darauf, nie als Bedrohung gezählt</value>
+    <value>Ein eingefügtes Local ist die ganze Liste: Alle im System Gemeldeten werden entfernt, dann alle auf der Liste aus den gespeicherten Ansehensstufen gesetzt. Ein unvollständiges Einfügen leert genauso.</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → Bubbles</value>
@@ -1059,5 +1056,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Speichern:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Welche Ansehensstufen ein eingefügter Local speichert, so wie der einfügende Charakter sie sieht. Piloten der ausgeschalteten Stufen werden gar nicht erfasst, deine eigenen Charaktere nie. Wird auf diesem PC gemerkt.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Leeren</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Leert das Feld und die Vorschau. System und „Eingefügt von“ bleiben.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>{0} ausgelassen ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Speichert {0} als frei: niemand der gewählten Ansehensstufen ist darauf</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Ein Local listet jeden dort auf. Gespeichert sagt er, dass das System frei von den gewählten Ansehensstufen ist, und nimmt das dort Gemeldete heraus.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Nicht gespeichert</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Nie gespeichert</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} eigene darauf, nie gespeichert</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Gespeichert: {0} ist frei von den gewählten Ansehensstufen.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Die Speichern-Auswahl gilt nur für benannte Piloten: Ein D-Scan nennt niemanden, daher zählt jedes Schiff darauf.</value>
   </data>
 </root>

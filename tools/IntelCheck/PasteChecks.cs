@@ -1,8 +1,9 @@
 // Pasted Local and d-scan: what a paste is taken for, the names a Local holds, a d-scan's ships and deployables by
 // their SDE groups, how a Local's pilots are grouped, "replaces N", and the paste stored on a database: a Local
-// clears the system and places everyone, blues and our own raw, unresolved names counted as unnamed; a d-scan adds
-// an unnamed count and never clears; neither has a chat message, and two in a row both store. Every name and id
-// here is invented.
+// clears the system and places the pilots of the standings kept (Red, Orange and Neutral by default; our own
+// characters never), unresolved names counted as unnamed with Neutral; a Local with nobody kept is a clear; a d-scan
+// adds an unnamed count and never clears, whatever the standings; neither has a chat message, and two in a row both
+// store. Every name and id here is invented.
 using System.Globalization;
 using EveConsole.Data;
 using EveConsole.Models;
@@ -14,9 +15,17 @@ namespace EveConsole.Tools.IntelCheck
 {
     internal static class PasteChecks
     {
-        private const int Here = 31_200_001, There = 31_200_002;
+        private const int Here = 31_200_001, There = 31_200_002, Third = 31_200_003, Busy = 31_200_004;
         private const long Me = 93_200_001, MyCorp = 98_200_001;
         private const long Foe = 92_200_001, Mate = 92_200_002, Earlier = 92_200_003, Stays = 92_200_004, FoeCorp = 98_200_009;
+
+        // A busy Local: 88 corp-mates (blue), the user's own character and two neutrals, 91 names in all.
+        private const long NeutralA = 92_200_101, NeutralB = 92_200_102, FirstBlue = 92_201_001;
+        private const int Blues = 88;
+        private static string BlueName(int i) => "Blue Pilot " + i.ToString("000", CultureInfo.InvariantCulture);
+
+        private static readonly StandingTier[] AllFive =
+            [StandingTier.Red, StandingTier.Orange, StandingTier.Neutral, StandingTier.LightBlue, StandingTier.Blue];
 
         // Invented SDE groups and types: a hull, a capsule, a bubble, a cyno, a wreck.
         private const int ShipCat = 6, DeployCat = 22, CelestialCat = 2;
@@ -151,6 +160,12 @@ namespace EveConsole.Tools.IntelCheck
 
                 db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = Here, Name = "QZ-X77", RegionId = 1, ConstellationId = 1 });
                 db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = There, Name = "XQ1-Z2", RegionId = 1, ConstellationId = 1 });
+                db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = Third, Name = "ZZQ-71", RegionId = 1, ConstellationId = 1 });
+                db.SdeSolarSystems.Add(new SdeSolarSystem { SolarSystemId = Busy, Name = "K7-QZP", RegionId = 1, ConstellationId = 1 });
+                db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = NeutralA, CorporationId = FoeCorp, PulledAt = now });
+                db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = NeutralB, CorporationId = FoeCorp, PulledAt = now });
+                for (var i = 0; i < Blues; i++)
+                    db.CharacterAffiliations.Add(new CharacterAffiliation { CharacterId = FirstBlue + i, CorporationId = MyCorp, PulledAt = now });
                 db.SdeCategories.AddRange(new SdeCategory { CategoryId = ShipCat, Name = IntelSdeGroups.ShipCategoryName },
                                           new SdeCategory { CategoryId = DeployCat, Name = "Deployable" },
                                           new SdeCategory { CategoryId = CelestialCat, Name = "Celestial" });
@@ -184,8 +199,9 @@ namespace EveConsole.Tools.IntelCheck
             var snapshots = new IntelSnapshotService(factory, new IntelStandingService(factory), prefs: Prefs.Over(options));
             var resolved = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase)
             {
-                ["Foe Pilot"] = Foe, ["Corp Mate"] = Mate, ["Pilot Mine"] = Me,
+                ["Foe Pilot"] = Foe, ["Corp Mate"] = Mate, ["Pilot Mine"] = Me, ["Neutral Alpha"] = NeutralA, ["Neutral Bravo"] = NeutralB,
             };
+            for (var i = 0; i < Blues; i++) resolved[BlueName(i)] = FirstBlue + i;
             var asked = 0;
             var paste = new IntelPasteService(factory,
                 (names, _) => { asked++; return Task.FromResult<IReadOnlyDictionary<string, long>>(names.Where(resolved.ContainsKey).ToDictionary(n => n, n => resolved[n])); },
@@ -194,8 +210,13 @@ namespace EveConsole.Tools.IntelCheck
             var before = await snapshots.RefreshNowAsync();
             var local = await paste.PreviewAsync("Foe Pilot\nCorp Mate\nPilot Mine\nNobody Atall\n", Me, Here, before, now);
             c.Check($"{engine} paste: a Local previews its names, the characters among them and the rest",
-                local is { Kind: IntelPasteKind.Local, PlayerCount: 4 } && local.Pilots.Count == 3 && local.Unresolved.SequenceEqual(["Nobody Atall"]) && asked == 1,
+                local is { Kind: IntelPasteKind.Local } && local.Names.Count == 4 && local.Pilots.Count == 3 && local.Unresolved.SequenceEqual(["Nobody Atall"]) && asked == 1,
                 $"{local.Kind} {local.Pilots.Count} {string.Join(",", local.Unresolved)}");
+            c.Check($"{engine} paste: by default a Local saves Red, Orange and Neutral: the blue and our own are left out, the unknown name counts",
+                local.Keep.SetEquals(StandingTiers.Hostile) && local.Kept.Select(p => p.CharacterId).SequenceEqual([Foe])
+                && local.PlayerCount == 2 && local.LeftOut == 2 && local.Own == 1
+                && local.LeftOutByTier.SequenceEqual([(StandingTier.Blue, 1)]) && !local.IsClear,
+                $"kept {string.Join(",", local.Kept.Select(p => p.Name))}, count {local.PlayerCount}, left out {local.LeftOut}");
             c.Check($"{engine} paste: the preview says it replaces the three reported there", local.Replaces == 3, local.Replaces.ToString(CultureInfo.InvariantCulture));
             c.Check($"{engine} paste: our own character is Own, a corp-mate Blue, the rest Neutral, as the viewer sees them",
                 local.Pilots.Single(p => p.CharacterId == Me).Tier == StandingTier.Own
@@ -209,24 +230,28 @@ namespace EveConsole.Tools.IntelCheck
             await using (var db = new AppDbContext(options))
             {
                 var report = await db.IntelReports.AsNoTracking().SingleAsync(r => r.Id == localId);
-                c.Check($"{engine} paste: a Local is stored as a report of its own, with no chat message",
-                    report is { Source: IntelReportSource.LocalPaste, Kind: IntelReportKind.Sighting, ChatMessageId: 0, PlayerCount: 4, ChannelName: "",
+                c.Check($"{engine} paste: a Local is stored as a report of its own, with no chat message, counting only what it saves",
+                    report is { Source: IntelReportSource.LocalPaste, Kind: IntelReportKind.Sighting, ChatMessageId: 0, PlayerCount: 2, ChannelName: "",
                                 ReporterCharacterId: Me, ReporterName: "Pilot Mine", SystemName: "QZ-X77" },
                     $"{report.Source} {report.ChatMessageId} {report.PlayerCount} {report.ReporterName}");
+                c.Check($"{engine} paste: its text keeps only the names saved: nobody left out is logged",
+                    report.Message == "Foe Pilot\nNobody Atall", report.Message);
                 var stored = await db.IntelReportCharacters.AsNoTracking().Where(p => p.IntelReportId == localId).Select(p => p.CharacterId).ToListAsync();
-                c.Check($"{engine} paste: every character on it is stored, blues and our own too", stored.Order().SequenceEqual(new[] { Foe, Mate, Me }.Order()));
+                c.Check($"{engine} paste: only the kept tiers' characters are stored, not the blue nor our own", stored.SequenceEqual([Foe]),
+                    string.Join(",", stored));
                 c.Check($"{engine} paste: the earlier report of the system is taken out, the other system's stays",
                     await db.IntelReports.AsNoTracking().Where(r => r.SystemId == Here && r.Id != localId).AllAsync(r => r.Obsolete)
                     && await db.IntelReports.AsNoTracking().Where(r => r.SystemId == There).AllAsync(r => !r.Obsolete));
                 var seen = await db.IntelLastSeens.AsNoTracking().Where(s => s.CharacterId == Foe || s.CharacterId == Mate || s.CharacterId == Me).ToListAsync();
-                c.Check($"{engine} paste: each pilot is last seen there, from a pasted Local",
-                    seen.Count == 3 && seen.All(s => s.SystemId == Here && s.Source == IntelLastSeenSource.LocalPaste && s.ReportId == localId));
+                c.Check($"{engine} paste: the kept pilot is last seen there, from a pasted Local; the blue and our own are not logged",
+                    seen.Count == 1 && seen.All(s => s.CharacterId == Foe && s.SystemId == Here && s.Source == IntelLastSeenSource.LocalPaste && s.ReportId == localId),
+                    string.Join(",", seen.Select(s => s.CharacterId)));
             }
 
             var after = await snapshots.RefreshNowAsync();
             var sys = after.Systems.GetValueOrDefault(Here);
-            c.Check($"{engine} paste: the system now holds the pasted pilots and not the earlier one",
-                sys is not null && sys.PilotIds.Order().SequenceEqual(new[] { Foe, Mate, Me }.Order()) && !sys.PilotIds.Contains(Earlier),
+            c.Check($"{engine} paste: the system now holds the pasted hostile and not the earlier one",
+                sys is not null && sys.PilotIds.SequenceEqual([Foe]) && !sys.PilotIds.Contains(Earlier),
                 sys is null ? "no system" : string.Join(",", sys.PilotIds));
             c.Check($"{engine} paste: the unresolved name is counted as one unnamed pilot", sys?.Unnamed?.Count == 1, sys?.Unnamed?.Count.ToString(CultureInfo.InvariantCulture) ?? "none");
             var view = IntelLens.Project(after, new IntelViewer { StandingsCharacterId = Me }, now, _ => null);
@@ -271,7 +296,87 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} paste: something else cannot be saved", !unknown.CanSave);
             var noSystem = await paste.PreviewAsync("Foe Pilot", Me, 0, last, now);
             c.Check($"{engine} paste: a Local with no system chosen cannot be saved", !noSystem.CanSave);
+
+            await StandingsAsync(c, engine, options, paste, snapshots, now);
             snapshots.Dispose();
+        }
+
+        // ── The standings a Local saves (the Paste tab's "Save:" chips) ──────────────────────────────────────────
+
+        private static async Task StandingsAsync(Checks c, string engine, DbContextOptions<AppDbContext> options, IntelPasteService paste,
+                                                 IntelSnapshotService snapshots, DateTimeOffset now)
+        {
+            // All blue (and our own) in QZ-X77, where Foe was placed: nobody kept is a clear, which takes Foe out.
+            var blue = await paste.PreviewAsync("Corp Mate\n" + BlueName(1) + "\nPilot Mine\n" + BlueName(2), Me, Here, await snapshots.RefreshNowAsync(), now);
+            c.Check($"{engine} paste standings: an all-blue Local is a clear, and can be saved",
+                blue is { IsClear: true, PlayerCount: 0, CanSave: true } && blue.LeftOut == 4, $"clear {blue.IsClear} count {blue.PlayerCount} left out {blue.LeftOut}");
+            var clearId = await paste.SaveAsync(blue, now.AddSeconds(2));
+            await using (var db = new AppDbContext(options))
+            {
+                var report = await db.IntelReports.AsNoTracking().SingleAsync(r => r.Id == clearId);
+                c.Check($"{engine} paste standings: the all-blue Local is stored as a clear from the paste, naming nobody",
+                    report is { Kind: IntelReportKind.Clear, Source: IntelReportSource.LocalPaste, PlayerCount: 0, ChatMessageId: 0, Message: "" }
+                    && !await db.IntelReportCharacters.AnyAsync(p => p.IntelReportId == clearId)
+                    && await db.IntelReports.AsNoTracking().Where(r => r.SystemId == Here && r.Kind == IntelReportKind.Sighting).AllAsync(r => r.Obsolete),
+                    $"{report.Kind} {report.Source} {report.PlayerCount} '{report.Message}'");
+            }
+            var cleared = await snapshots.RefreshNowAsync();
+            var here = cleared.Systems.GetValueOrDefault(Here);
+            c.Check($"{engine} paste standings: QZ-X77 is clear now: Foe taken out, no unnamed count, a clear on the Board and in the Feed from the paste",
+                here is { Clear: not null, Unnamed: null } && here.PilotIds.Count == 0 && !cleared.Pilots.ContainsKey(Foe)
+                && cleared.Feed.Any(e => e.ReportId == clearId && e.Kind == IntelEventKind.Clear && e.SourceKey == IntelSnapshot.SourcePaste),
+                here is null ? "no system" : $"{string.Join(",", here.PilotIds)} clear {here.Clear is not null} +{here.Unnamed?.Count}");
+            var recent = await paste.RecentAsync();
+            c.Check($"{engine} paste standings: the recent list says the clear is one", recent.FirstOrDefault() is { IsClear: true } r0 && r0.ReportId == clearId);
+
+            // Every tier on: the blue is saved, our own character never is.
+            var every = await paste.PreviewAsync("Foe Pilot\nCorp Mate\nPilot Mine", Me, Third, cleared, now, AllFive.ToHashSet());
+            var everyId = await paste.SaveAsync(every, now.AddSeconds(3));
+            await using (var db = new AppDbContext(options))
+            {
+                var stored = await db.IntelReportCharacters.AsNoTracking().Where(p => p.IntelReportId == everyId).Select(p => p.CharacterId).ToListAsync();
+                c.Check($"{engine} paste standings: every tier on stores the blue too, and never our own character",
+                    stored.Order().SequenceEqual(new[] { Foe, Mate }.Order()) && !await db.IntelLastSeens.AnyAsync(s => s.CharacterId == Me)
+                    && every.PlayerCount == 2 && every.LeftOut == 1,
+                    $"{string.Join(",", stored)} count {every.PlayerCount}");
+            }
+
+            // A busy Local of 91 names, 88 blue, our own and two neutrals: by default it saves the two.
+            var names = new List<string>();
+            for (var i = 0; i < Blues; i++)
+            {
+                names.Add(BlueName(i));
+                if (i == 30) names.Add("Neutral Alpha");
+                if (i == 60) names.Add("Pilot Mine");
+                if (i == 70) names.Add("Neutral Bravo");
+            }
+            var busy = await paste.PreviewAsync(string.Join("\r\n", names), Me, Busy, await snapshots.RefreshNowAsync(), now);
+            c.Check($"{engine} paste standings: a Local of 91 names with two neutrals keeps the two, the rest left out by tier",
+                busy.Names.Count == 91 && busy.PlayerCount == 2 && busy.Kept.Select(p => p.CharacterId).Order().SequenceEqual(new[] { NeutralA, NeutralB })
+                && busy.LeftOut == 89 && busy.LeftOutByTier.SequenceEqual([(StandingTier.Blue, Blues)]) && busy.Own == 1 && !busy.IsClear,
+                $"{busy.Names.Count} names, saves {busy.PlayerCount}, left out {busy.LeftOut}");
+            var busyId = await paste.SaveAsync(busy, now.AddSeconds(4));
+            await using (var db = new AppDbContext(options))
+            {
+                var report = await db.IntelReports.AsNoTracking().SingleAsync(r => r.Id == busyId);
+                var stored = await db.IntelReportCharacters.AsNoTracking().Where(p => p.IntelReportId == busyId).Select(p => p.CharacterId).ToListAsync();
+                var blueSeen = await db.IntelLastSeens.CountAsync(s => s.CharacterId >= FirstBlue && s.CharacterId < FirstBlue + Blues);
+                c.Check($"{engine} paste standings: the 91-name Local saves 2: its report, its pilots and last seen, nobody blue",
+                    report is { Kind: IntelReportKind.Sighting, PlayerCount: 2 } && stored.Order().SequenceEqual(new[] { NeutralA, NeutralB })
+                    && blueSeen == 0 && report.Message == "Neutral Alpha\nNeutral Bravo"
+                    && await db.IntelLastSeens.CountAsync(s => s.SystemId == Busy) == 2,
+                    $"{report.Kind} {report.PlayerCount} pilots {string.Join(",", stored)} blue seen {blueSeen} '{report.Message}'");
+            }
+            var busyNow = (await snapshots.RefreshNowAsync()).Systems.GetValueOrDefault(Busy);
+            c.Check($"{engine} paste standings: K7-QZP holds the two and no unnamed count",
+                busyNow is not null && busyNow.PilotIds.Order().SequenceEqual(new[] { NeutralA, NeutralB }) && busyNow.Unnamed is null,
+                busyNow is null ? "none" : $"{string.Join(",", busyNow.PilotIds)} +{busyNow.Unnamed?.Count}");
+
+            // A d-scan names nobody: the chips change nothing of it.
+            var text = string.Join("\n", $"{HullA}\tOne\tHull Alpha\t10 km", $"{Pod}\tCapsule\tCapsule\t-");
+            var noBlues = await paste.PreviewAsync(text, Me, There, await snapshots.RefreshNowAsync(), now, new HashSet<StandingTier>());
+            c.Check($"{engine} paste standings: a d-scan counts every ship whatever the chips",
+                noBlues is { Kind: IntelPasteKind.Dscan, PlayerCount: 2, IsClear: false, LeftOut: 0 } && noBlues.CanSave);
         }
     }
 }

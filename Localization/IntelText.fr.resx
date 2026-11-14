@@ -602,10 +602,7 @@
     <value>Remplace {0} signalés là-bas</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>Un Local collé est la liste complète : tous ceux signalés dans le système sont retirés, puis tous ceux de la liste sont placés. Un collage partiel vide tout autant.</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>{0} des vôtres dessus, jamais comptés comme menace</value>
+    <value>Un Local collé est la liste complète : tous ceux signalés dans le système sont retirés, puis tous ceux de la liste dans les réputations enregistrées sont placés. Un collage partiel vide tout autant.</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → bulles</value>
@@ -1059,5 +1056,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Enregistrer :</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Quelles réputations un Local collé enregistre, telles que les voit le personnage qui colle. Les pilotes des niveaux désactivés ne sont pas enregistrés du tout, et vos propres personnages jamais. Retenu sur ce PC.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Vider</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Vide la zone et l'aperçu. Le système et « Collé par » restent.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>Non enregistrés : {0} ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Enregistre {0} comme dégagé : personne des réputations choisies n'y figure</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Un Local liste tout le monde présent : l'enregistrer dit que le système est dégagé des réputations choisies et retire ce qui y était signalé.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Non enregistré</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Jamais enregistrés</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} des vôtres dessus, jamais enregistrés</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Enregistré : {0} est dégagé des réputations choisies.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Les choix Enregistrer ne trient que les pilotes nommés : un d-scan ne nomme personne, donc chaque vaisseau compte.</value>
   </data>
 </root>

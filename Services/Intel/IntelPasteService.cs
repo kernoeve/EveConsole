@@ -94,11 +94,56 @@ public sealed record IntelPastePreview
 
     public DscanSummary Dscan { get; init; } = DscanSummary.Empty;
 
-    /// <summary>The user's own characters on a pasted Local. Stored like anyone, never shown as a threat.</summary>
-    public int Own => Pilots.Count(p => p.Tier == StandingTier.Own);
+    /// <summary>
+    /// The standings tiers a Local saves (the Paste tab's "Save:" chips): the pilots of any other tier, and the
+    /// user's own characters always, are not logged at all. A name that is no character goes with Neutral, the
+    /// tier of anyone nobody has a standing on. A d-scan names nobody, so it is not affected.
+    /// </summary>
+    public IReadOnlySet<StandingTier> Keep { get; init; } = StandingTiers.Hostile;
 
-    /// <summary>The pilots the report counts: every name on a Local, every ship on a d-scan.</summary>
-    public int PlayerCount => Kind == IntelPasteKind.Local ? Names.Count : Dscan.Ships;
+    /// <summary>Whether a pilot of this tier is saved: one of the kept tiers, and never the user's own.</summary>
+    public bool Keeps(StandingTier tier) => tier != StandingTier.Own && Keep.Contains(tier);
+
+    /// <summary>The characters a Local saves: those of the kept tiers, each once.</summary>
+    public IReadOnlyList<IntelPastePilot> Kept => [.. Pilots.Where(p => Keeps(p.Tier)).DistinctBy(p => p.CharacterId)];
+
+    /// <summary>The names that are no character a Local saves as unnamed pilots: all of them when Neutral is kept,
+    /// else none.</summary>
+    public IReadOnlyList<string> KeptUnresolved => Keeps(StandingTier.Neutral) ? Unresolved : [];
+
+    /// <summary>The user's own characters on a pasted Local: never saved, never a threat.</summary>
+    public int Own => Pilots.Where(p => p.Tier == StandingTier.Own).DistinctBy(p => p.CharacterId).Count();
+
+    /// <summary>The pilots of each tier switched off, worst first, with the names that are no character under
+    /// Neutral when it is off. The user's own characters are counted apart (<see cref="Own"/>).</summary>
+    public IReadOnlyList<(StandingTier Tier, int Count)> LeftOutByTier
+    {
+        get
+        {
+            var list = new List<(StandingTier, int)>();
+            if (Kind != IntelPasteKind.Local) return list;
+            var pilots = Pilots.DistinctBy(p => p.CharacterId).ToList();
+            foreach (var tier in new[] { StandingTier.Red, StandingTier.Orange, StandingTier.Neutral, StandingTier.LightBlue, StandingTier.Blue })
+            {
+                if (Keeps(tier)) continue;
+                var n = pilots.Count(p => p.Tier == tier) + (tier == StandingTier.Neutral ? Unresolved.Count : 0);
+                if (n > 0) list.Add((tier, n));
+            }
+            return list;
+        }
+    }
+
+    /// <summary>Everyone on a pasted Local that is not saved: the tiers switched off and the user's own.</summary>
+    public int LeftOut => LeftOutByTier.Sum(t => t.Count) + (Kind == IntelPasteKind.Local ? Own : 0);
+
+    /// <summary>The pilots the report counts: every kept name on a Local, every ship on a d-scan.</summary>
+    public int PlayerCount => Kind == IntelPasteKind.Local ? Kept.Count + KeptUnresolved.Count : Dscan.Ships;
+
+    /// <summary>
+    /// A pasted Local with nobody of the kept tiers on it: the system is clear of them, and is saved as a clear
+    /// (it takes out what was reported there, as any Local does), not as nothing.
+    /// </summary>
+    public bool IsClear => Kind == IntelPasteKind.Local && Names.Count > 0 && PlayerCount == 0;
 
     public bool CanSave => SystemId > 0 && Kind switch
     {
@@ -109,18 +154,29 @@ public sealed record IntelPastePreview
 }
 
 /// <summary>One paste as the recent list shows it.</summary>
+/// <param name="IsClear">A Local with nobody of the kept tiers on it, saved as a clear.</param>
 public sealed record IntelRecentPaste(
-    int ReportId, DateTimeOffset At, int SystemId, string SystemName, int Source, long ReporterId, string ReporterName, int PlayerCount);
+    int ReportId, DateTimeOffset At, int SystemId, string SystemName, int Source, long ReporterId, string ReporterName, int PlayerCount,
+    bool IsClear = false);
 
 /// <summary>
 /// A pasted Local member list or d-scan, turned into a sighting for a chosen system. Written by the PC
 /// where the paste was made, from what the user pasted into the box (our code never reads the clipboard).
 ///
 /// <para><b>A pasted Local</b> is a full roster: it takes everyone reported in the system out at its time
-/// and places every name on it there. Every name that is a character is stored, blues and the user's own
-/// characters too (the standings are the viewer's to apply, not the paste's). A name that is no character
-/// counts as an unnamed pilot. Because a partial paste would clear the system just the same, the preview
-/// says how many it replaces before anything is saved.</para>
+/// and places the pilots of the kept standings tiers there (the Paste tab's "Save:" chips; by default Red,
+/// Orange and Neutral). A player copies all of Local for speed, blues too, and mostly does not care about
+/// those: the tiers switched off, and the user's own characters always, are not logged at all (no report
+/// pilot, no last seen, no count, no alarm). Their standings are judged as every intel view judges them:
+/// the "Pasted by" character as the viewer, the forced standings character when one is set. A name that is
+/// no character counts as an unnamed pilot when Neutral is kept. Because a partial paste would clear the
+/// system just the same, the preview says how many it replaces before anything is saved.</para>
+///
+/// <para>⚠️ Still a replace with blues left out: what is saved is the full set of the kept tiers in the
+/// system, so taking out what was reported there is still right. A Local with nobody of the kept tiers
+/// on it says the system is clear of them, and is saved as a clear (a row of
+/// <see cref="IntelReportKind.Clear"/> from the paste), never as nothing, which would leave the old
+/// sightings standing.</para>
 ///
 /// <para><b>A pasted d-scan</b> is a count of ships, capsules included, with no names. It never clears the
 /// system: d-scan does not see everyone. Mobile warp disruptors on it say there are bubbles, and a
@@ -277,11 +333,12 @@ public sealed class IntelPasteService(
     /// <summary>
     /// What the paste would store, resolved without storing it: the names looked up (the name cache, then
     /// ESI), their corporations and alliances, their tiers as <paramref name="viewerCharacterId"/> sees
-    /// them, and how many sightings a Local would replace. Off the UI thread.
+    /// them, and how many sightings a Local would replace. Off the UI thread. <paramref name="keep"/> is the
+    /// tiers a Local saves (by default Red, Orange and Neutral); the preview still lists everyone.
     /// </summary>
     public async Task<IntelPastePreview> PreviewAsync(
         string text, long viewerCharacterId, int systemId, IntelSnapshot snapshot, DateTimeOffset now,
-        CancellationToken ct = default)
+        IReadOnlySet<StandingTier>? keep = null, CancellationToken ct = default)
     {
         var kind = Classify(text);
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
@@ -297,6 +354,7 @@ public sealed class IntelPasteService(
         {
             Kind = kind, Text = text, SystemId = systemId, SystemName = systemName,
             ViewerCharacterId = viewerCharacterId, ViewerName = viewerName,
+            Keep = keep ?? StandingTiers.Hostile,
         };
 
         if (kind == IntelPasteKind.Dscan)
@@ -438,9 +496,10 @@ public sealed class IntelPasteService(
 
     /// <summary>
     /// Stores the paste as a report of its own, in one transaction: no chat message behind it (id 0), the
-    /// viewing character as who reported it. A Local also stores every pilot on it, takes earlier reports
-    /// of the system out (as a clear does), and places each pilot there in last seen. Then every PC is
-    /// told. Returns the report's id.
+    /// viewing character as who reported it. A Local also stores the pilots of the kept tiers on it (and
+    /// only their names as its text: nobody left out is logged), takes earlier reports of the system out
+    /// (as a clear does), and places each kept pilot there in last seen. A Local with nobody kept on it is
+    /// stored as a clear of the system. Then every PC is told. Returns the report's id.
     /// </summary>
     public async Task<int> SaveAsync(IntelPastePreview preview, DateTimeOffset? at = null, CancellationToken ct = default)
     {
@@ -448,6 +507,15 @@ public sealed class IntelPasteService(
         var when = at ?? DateTimeOffset.UtcNow;
         var whenText = IntelLastSeenWriter.Format(when);
         var local = preview.Kind == IntelPasteKind.Local;
+        var clear = preview.IsClear;
+        var kept = local ? preview.Kept : [];
+        string message;
+        if (local)
+        {
+            var keptNames = kept.Select(p => p.Name).Concat(preview.KeptUnresolved).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            message = string.Join("\n", preview.Names.Where(keptNames.Contains));
+        }
+        else message = preview.Text;
 
         await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
         var strategy = db.Database.CreateExecutionStrategy();
@@ -462,8 +530,8 @@ public sealed class IntelPasteService(
                 ReporterCharacterId = preview.ViewerCharacterId > 0 ? preview.ViewerCharacterId : null,
                 SystemId = preview.SystemId, SystemName = preview.SystemName,
                 PlayerCount = preview.PlayerCount,
-                Message = Cap(preview.Text),
-                Kind = IntelReportKind.Sighting,
+                Message = Cap(message),
+                Kind = clear ? IntelReportKind.Clear : IntelReportKind.Sighting,
                 Source = local ? IntelReportSource.LocalPaste : IntelReportSource.DscanPaste,
                 ChatMessageId = 0,
                 Flags = local ? 0 : preview.Dscan.Flags,
@@ -474,23 +542,29 @@ public sealed class IntelPasteService(
 
             if (local)
             {
-                var pilots = preview.Pilots.GroupBy(p => p.CharacterId).Select(g => g.First())
+                var pilots = kept
                     .Select(p => new IntelReportCharacter { IntelReportId = report.Id, CharacterId = p.CharacterId, CharacterName = p.Name })
                     .ToList();
-                db.IntelReportCharacters.AddRange(pilots);
-                await db.SaveChangesAsync(ct).ConfigureAwait(false);
+                if (pilots.Count > 0)
+                {
+                    db.IntelReportCharacters.AddRange(pilots);
+                    await db.SaveChangesAsync(ct).ConfigureAwait(false);
+                }
 
-                // Everyone reported there before is out: the roster replaces them.
+                // Everyone reported there before is out: the roster of the kept tiers replaces them (a clear, nobody).
                 await db.IntelReports
                     .Where(r => r.SystemId == preview.SystemId && r.Kind == IntelReportKind.Sighting && !r.Obsolete
                              && r.Id != report.Id && string.Compare(r.ReportedAt, whenText) <= 0)
                     .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true).SetProperty(r => r.ObsoleteSetOn, when), ct)
                     .ConfigureAwait(false);
 
-                var rows = pilots.Select(p => IntelLastSeenFeed.ReportRow(
-                    report.Id, whenText, preview.SystemId, IntelReportSource.LocalPaste, false, p)).ToList();
-                rows = await IntelLastSeenFeed.WithPulledAffiliationsAsync(db, rows, ct).ConfigureAwait(false);
-                await IntelLastSeenWriter.UpsertAsync(db, rows, ct).ConfigureAwait(false);
+                if (pilots.Count > 0)
+                {
+                    var rows = pilots.Select(p => IntelLastSeenFeed.ReportRow(
+                        report.Id, whenText, preview.SystemId, IntelReportSource.LocalPaste, false, p)).ToList();
+                    rows = await IntelLastSeenFeed.WithPulledAffiliationsAsync(db, rows, ct).ConfigureAwait(false);
+                    await IntelLastSeenWriter.UpsertAsync(db, rows, ct).ConfigureAwait(false);
+                }
             }
 
             await tx.CommitAsync(ct).ConfigureAwait(false);
@@ -531,10 +605,11 @@ public sealed class IntelPasteService(
             .Where(r => r.Source == IntelReportSource.LocalPaste || r.Source == IntelReportSource.DscanPaste)
             .OrderByDescending(r => r.ReportedAt).ThenByDescending(r => r.Id)
             .Take(count)
-            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.SystemName, r.Source, r.ReporterCharacterId, r.ReporterName, r.PlayerCount })
+            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.SystemName, r.Source, r.ReporterCharacterId, r.ReporterName, r.PlayerCount, r.Kind })
             .ToListAsync(ct).ConfigureAwait(false);
         return [.. rows.Select(r => new IntelRecentPaste(
             r.Id, IntelSnapshotBuilder.TryParse(r.ReportedAt, out var t) ? t : DateTimeOffset.MinValue,
-            r.SystemId, r.SystemName, r.Source, r.ReporterCharacterId ?? 0, r.ReporterName, r.PlayerCount))];
+            r.SystemId, r.SystemName, r.Source, r.ReporterCharacterId ?? 0, r.ReporterName, r.PlayerCount,
+            r.Kind == IntelReportKind.Clear))];
     }
 }

@@ -602,10 +602,7 @@
     <value>Reemplaza {0} informados allí</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>Un Local pegado es la lista completa: se quita a todos los informados en el sistema y luego se sitúa a todos los de la lista. Un pegado parcial limpia igual.</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>{0} tuyos en ella, nunca contados como amenaza</value>
+    <value>Un Local pegado es la lista completa: se quita a todos los informados en el sistema y luego se sitúa a todos los de la lista con las reputaciones que se guardan. Un pegado parcial limpia igual.</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → burbujas</value>
@@ -1059,5 +1056,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Guardar:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Qué reputaciones guarda un Local pegado, tal como las ve el personaje que pega. Los pilotos de los niveles desactivados no se registran en absoluto, y tus propios personajes nunca. Se recuerda en este PC.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Vaciar</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Vacía el cuadro y la vista previa. El sistema y «Pegado por» se mantienen.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>Sin guardar: {0} ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Guarda {0} como despejado: no hay nadie de las reputaciones elegidas</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Un Local lista a todos los que hay allí: guardarlo indica que el sistema está despejado de las reputaciones elegidas y retira lo que se informó allí.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>No se guarda</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Nunca se guardan</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>{0} tuyos en ella, nunca se guardan</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Guardado: {0} está despejado de las reputaciones elegidas.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Las opciones de Guardar solo filtran pilotos con nombre: un d-scan no nombra a nadie, así que cuenta cada nave.</value>
   </data>
 </root>

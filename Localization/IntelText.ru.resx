@@ -602,10 +602,7 @@
     <value>Заменяет сообщённых там: {0}</value>
   </data>
   <data name="TipReplaces" xml:space="preserve">
-    <value>Вставка Local — полный список: все, о ком сообщали в системе, убираются, затем ставятся все из списка. Частичная вставка очищает точно так же.</value>
-  </data>
-  <data name="PasteOwnNotCounted" xml:space="preserve">
-    <value>Ваших в списке: {0}, угрозой не считаются</value>
+    <value>Вставка Local — полный список: все, о ком сообщали в системе, убираются, затем ставятся все из списка с сохраняемыми отношениями. Частичная вставка очищает точно так же.</value>
   </data>
   <data name="PasteDscanBubbles" xml:space="preserve">
     <value>Mobile Warp Disruptor ×{0} → бабл</value>
@@ -1173,5 +1170,41 @@
   </data>
   <data name="SourceServerHost" xml:space="preserve">
     <value>{0} ({1})</value>
+  </data>
+  <data name="PasteSaveLabel" xml:space="preserve">
+    <value>Сохранять:</value>
+  </data>
+  <data name="PasteSaveTip" xml:space="preserve">
+    <value>Какие отношения сохраняет вставленный Local, с точки зрения вставившего персонажа. Пилоты выключенных уровней не записываются вовсе, ваши собственные персонажи — никогда. Запоминается на этом ПК.</value>
+  </data>
+  <data name="PasteClear" xml:space="preserve">
+    <value>Очистить</value>
+  </data>
+  <data name="PasteClearTip" xml:space="preserve">
+    <value>Очищает поле и предпросмотр. Система и «Вставил» остаются.</value>
+  </data>
+  <data name="PasteLeftOut" xml:space="preserve">
+    <value>Не сохраняются: {0} ({1})</value>
+  </data>
+  <data name="PasteSavesClear" xml:space="preserve">
+    <value>Сохраняет {0} как чистую: никого из выбранных отношений нет</value>
+  </data>
+  <data name="PasteClearNote" xml:space="preserve">
+    <value>Local перечисляет всех, кто там есть: сохранение означает, что в системе нет никого из выбранных отношений, и снимает то, что о ней сообщали.</value>
+  </data>
+  <data name="PasteNotSaved" xml:space="preserve">
+    <value>Не сохраняется</value>
+  </data>
+  <data name="PasteNeverSaved" xml:space="preserve">
+    <value>Никогда не сохраняются</value>
+  </data>
+  <data name="PasteOwnNotSaved" xml:space="preserve">
+    <value>Ваших в списке: {0}, не сохраняются</value>
+  </data>
+  <data name="PasteSavedClear" xml:space="preserve">
+    <value>Сохранено: в {0} нет никого из выбранных отношений.</value>
+  </data>
+  <data name="PasteDscanTiersNote" xml:space="preserve">
+    <value>Выбор «Сохранять» касается только названных пилотов: в д-скане имён нет, поэтому учитывается каждый корабль.</value>
   </data>
 </root>
