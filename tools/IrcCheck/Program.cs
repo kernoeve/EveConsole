@@ -347,8 +347,11 @@ try
     var myLine = stored.First(m => m.Body == "hello all" && m.IsOutgoing);
     Check("this server lets messages be taken back", session.CanRedact);
     await irc.RedactAsync(session, "#fleet", myLine.MessageId);
-    Check("taking one's own back sends REDACT, and the echo marks it", fake.Got.Contains("REDACT #fleet " + myLine.MessageId)
-        && await Wait(() => Saved(myLine.MessageId).Result is { Deleted: JabberDeleted.BySender }));
+    // Sent is only written to the socket: the fake reads it on its own loop, so wait for it there too.
+    Check("taking one's own back sends REDACT, and the echo marks it",
+        await Wait(() => { lock (fake.Got) return fake.Got.Contains("REDACT #fleet " + myLine.MessageId); })
+        && await Wait(() => Saved(myLine.MessageId).Result is { Deleted: JabberDeleted.BySender }),
+        string.Join(" | ", ((Func<string[]>)(() => { lock (fake.Got) return fake.Got.Where(l => l.StartsWith("REDACT")).ToArray(); }))()));
     fake.Push("@batch=nosuch :Bob!b@h REDACT #fleet nosuchid");
     fake.Push(":Bob!b@h REDACT #fleet");
 
