@@ -485,6 +485,7 @@ public sealed class IntelEventRowVm : ReactiveObject
         Actions = actions ?? IntelRowActions.None;
         Key = e.Key;
         SystemId = e.SystemId;
+        KillMailId = e.Kind == IntelEventKind.Kill ? e.KillMailId ?? 0 : 0;
         SystemName = snapshot.SystemName(e.SystemId);
         _at = e.At;
         var camp = e.CampKey is { } key ? snapshot.Camps.FirstOrDefault(c => c.Key == key) : null;
@@ -817,6 +818,18 @@ public sealed class IntelEventRowVm : ReactiveObject
     }
 
     public void OpenInTool() => Actions.OpenInTool?.Invoke(SystemId);
+
+    /// <summary>A kill's line: its killmail, opened in the Killmail tool by a click on the line away from its links.</summary>
+    public int KillMailId { get; private init; }
+
+    public bool CanOpenKill => KillMailId > 0;
+
+    public void OpenKill()
+    {
+        if (!CanOpenKill) return;
+        EntityNavigator.Instance.Killmail(KillMailId);
+        Actions.AfterNavigate?.Invoke();
+    }
 
     public void OpenPicture(IntelPictureVm picture)
     {

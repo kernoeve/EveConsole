@@ -31,6 +31,18 @@ public partial class IntelEventRow : UserControl
         e.Handled = true;
     }
 
+    /// <summary>A kill's line, clicked anywhere but on one of its links, opens the killmail.</summary>
+    private void OnRowTapped(object? sender, TappedEventArgs e)
+    {
+        if (OnLink(e.Source) || DataContext is not IntelEventRowVm { CanOpenKill: true } row) return;
+        e.Handled = true;
+        row.OpenKill();
+    }
+
+    /// <summary>Whether a click landed on a link (a system, a pilot, a hull), which does its own thing.</summary>
+    internal static bool OnLink(object? source) =>
+        source is Avalonia.Visual v && Avalonia.VisualTree.VisualExtensions.FindAncestorOfType<Button>(v, includeSelf: true) is not null;
+
     private void OnContextRequested(object? sender, ContextRequestedEventArgs e)
     {
         if (DataContext is not IntelEventRowVm row) return;
@@ -39,6 +51,7 @@ public partial class IntelEventRow : UserControl
         (TopLevel.GetTopLevel(this) as ClientPanelWindow)?.TakeFocus();
 
         var items = new List<Control>();
+        if (row.CanOpenKill) items.Add(Item(IntelText.MenuOpenKill, row.OpenKill));
         if (row.CanShowOnMap) items.Add(Item(IntelText.MenuShowOnMap, row.ShowOnMap));
         items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
         if (row.CanOpenInTool) items.Add(Item(IntelText.MenuOpenInTool, row.OpenInTool));
