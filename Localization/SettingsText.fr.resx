@@ -3928,4 +3928,7 @@ L'application va redémarrer.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purger les discussions de groupe de plus de</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Le PC qui effectue le travail en arrière-plan a été invité à réanalyser l&apos;historique : seul ce PC analyse le renseignement. Sa progression apparaît dans Processus d'arrière-plan.</value>
+  </data>
 </root>

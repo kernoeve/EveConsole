@@ -929,7 +929,7 @@
     <value>감시 대상 주변에서 누군가 파일럿을 보고하면 발생합니다. 대상은 도킹 해제 중인 내 캐릭터, 위치와 관계없는 내 캐릭터, 또는 항성계 목록이며, 각각 점프 범위를 지정합니다. 설정 → 채팅 로그에서 이미 분석 중인 인텔 채널을 읽습니다.</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>공격자 중에 적 파일럿이 있는 킬도 포함됩니다. 킬은 공격자가 그 항성계에 있었음을 알려 줍니다.</value>
+    <value>공격자 중에 적 파일럿이 있는 킬은 항상 발생하며 킬로 안내됩니다(무엇이 무엇에게 격추되었는지). 1점프 이내라면 가장 먼저 안내됩니다. 그 공격자는 목격으로 다시 안내되지 않습니다.</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>함선 도킹 해제</value>
@@ -983,13 +983,13 @@
     <value>점프 수</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>각 캐릭터 또는 항성계에서 게이트 점프 몇 번 범위까지 감시할지 정합니다. 0이면 그 항성계만 감시합니다. 최대 15 — 그 이상은 더 이상 주변이라고 할 수 없습니다.</value>
+    <value>각 캐릭터 또는 항성계에서 스타게이트와 Thera·Turnur의 열린 웜홀을 거쳐 몇 점프 범위까지 감시할지 정합니다. 0이면 그 항성계만 감시합니다. 최대 15 — 그 이상은 더 이상 주변이라고 할 수 없습니다.</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>최소 플레이어 수</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>보고된 파일럿이 이 수 이상일 때만 발생합니다. 기본값 1.</value>
+    <value>항성계에 적이 이 수 이상 있을 때만 발생합니다. 기본값 1. 킬과 플래그만 있는 보고는 수와 관계없이 발생합니다.</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>미확인(NV) 보고 무시</value>
@@ -1992,5 +1992,152 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>오늘의 지수</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>변경: 이제 알람은 현재 상황의 정보를 따릅니다. 이후 다른 곳에서 목격되었거나 클리어로 보고된 파일럿에게는 더 이상 발생하지 않습니다. 각 파일럿은 한 항성계에 머무는 동안 한 번만, 이름 없는 인원 수는 1, 4, 9, 19를 넘을 때만 다시 안내됩니다. 또한 게이트 캠프, 버블, 사이노, 핫드롭, 로컬 급증, 전투 프로브만 알리는 보고에도 발생합니다(아래 '플래그만 있는 보고').</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>플래그만 있는 보고</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>인원을 세지 않았더라도 게이트 캠프, 버블, 사이노, 핫드롭, 로컬 급증, 전투 프로브를 알리는 보고에도 발생합니다. 각각 유효한 동안 한 번만 안내됩니다.</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>{0}에서 킬: {1}이(가) {2}에게 격추되었습니다.</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>{0}, {1}에서 킬: {2}이(가) {3}에게 격추되었습니다.</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>적</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>{0}: {1}.</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>{0}, {1}: {2}.</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>킬 발생</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>여러 킬 발생</value>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>새로운 정보만 깨웁니다(소리, 음성, 에이전트, 대화 상자). 최근 2분 안에 목격되었거나 범위 안에 들어온 것이 대상입니다(설정 → 인텔). 그보다 오래된 정보는 경보로만 기록됩니다. 인텔 알람은 차례를 지킵니다. 한 알람이 깨운 뒤에는 긴급하지 않은 한 다른 알람이 몇 초 기다리고, 두 알람이 잡은 같은 목격은 한 번만 말합니다.</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>감시할 곳</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>발생 조건</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>깨우는 조건</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>깨우는 범위</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>선택 사항. 이 점프 수 이내의 정보만 깨웁니다. 더 먼 것은 경보로만 기록됩니다. 킬과 긴급한 정보는 항상 깨웁니다. 체크하지 않으면 범위 전체에서 깨웁니다.</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>점프</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>멀수록 작게</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>1점프 이내에서는 최대 음량으로, 멀수록 작게 울립니다. 범위 끝에서는 40%입니다. 음성은 설정한 음량을 유지합니다.</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>적대로 보기</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>이름이 나온 파일럿 중 어떤 이를 셀지, 가장 가까운 내 캐릭터(또는 설정 → Intel에서 고정한 캐릭터)의 스탠딩으로 정합니다. 블루와 내 캐릭터는 세지 않고, 이름 없는 인원과 플래그만 있는 보고는 항상 셉니다.</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>중립 이하</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>마이너스만</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>빨강만</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>감시 목록 사용</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>'항상 알림'에 있는 대상은 범위, 적대 선택, 최소 인원과 상관없이 감시 목록 범위 안에서 울리고, 가장 먼저 읽히며 미뤄지지 않습니다. '무시'에 있는 대상은 울리지 않습니다.</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>감시 목록 범위</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>'항상 알림' 항목이 울리는 거리(점프 수)로, 범위보다 멀 때 쓰입니다. 최대 15.</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>접근하는 파일럿은 항상 깨움</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>'깨우는 범위'가 설정된 경우, 다가오는 파일럿(전보다 가까이에서 보였거나 내 캐릭터 쪽으로 향한다고 보고된)은 범위 안 어디서든 깨웁니다.</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>우선 성계</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>선택 사항. 캐릭터가 어디에 있든 항상 감시하는 성계입니다. 그곳에서 보인 것은 항상 깨우고, 다른 인텔 알람에 밀리지 않으며, 가장 먼저 읽힙니다.</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>우선 성계: {0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>감시 목록: {0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>접근 중: {0}(으)로 향하고 있습니다.</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>접근 중: {0}({1})(으)로 향하고 있습니다.</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>접근 중: 이전에는 {0}에 있었습니다.</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>멀어지고 있습니다({0} 방향).</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}(Thera 또는 Turnur 경유)</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>기본으로 켜짐: 킬로 알아낸, 캐릭터 근처나 앞쪽 경로의 게이트 캠프와, 앞쪽 경로 자체(경로 플래너가 게임에 보낸 마지막 경로에서 아직 비행할 항성계)도 대상입니다(아래 &apos;게이트 캠프&apos;와 &apos;앞쪽 경로 감시&apos;).</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>앞쪽 경로 감시</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>감시 중인 캐릭터를 위해 경로 플래너가 게임에 보낸 마지막 경로에서 아직 앞에 있는 항성계도 거리와 상관없이 감시합니다. 그곳에서 목격된 것은 울리며, 경로에서 몇 점프 앞인지로 안내됩니다. 아직 비행하지 않은 부분만 대상이며, 경로는 도착하거나 보낸 지 6시간이 지나면 버려집니다. 게임 안에서만 설정한 경로는 알 수 없습니다.</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>게이트 캠프</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>게이트에서의 킬로 알아낸 게이트 캠프가 감시 중인 캐릭터 근처나 앞쪽 경로에 있으면 울립니다. 캠프마다, 캐릭터마다, 경로마다 한 번 안내하므로, 알려진 캠프를 지나는 새 경로는 다시 안내합니다. 깨우는 범위(설정하지 않으면 5점프) 안의 앞쪽 경로에 있는 캠프는 긴급입니다.</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0}의 {1} 게이트에 게이트 캠프가 있습니다.</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0}, {2}의 {1} 게이트에 게이트 캠프가 있습니다.</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1} 동안 {0}건의 킬.</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0}분</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1}의 경로에서 {0}점프 앞</value>
   </data>
 </root>

@@ -42,6 +42,12 @@ public sealed record MumbleModeChoice(MumbleControlMode Mode, string Label);
 /// <summary>How a Worklist control can show.</summary>
 public sealed record WorklistModeChoice(WorklistControlMode Mode, string Label);
 
+/// <summary>How an Intel control can show.</summary>
+public sealed record IntelModeChoice(IntelControlMode Mode, string Label);
+
+/// <summary>How far an Intel control can look, in jumps.</summary>
+public sealed record IntelRangeChoice(int Jumps, string Label);
+
 /// <summary>Where a menu control can open tools: a window of its own, the last used, or a Tool Container.</summary>
 public sealed record MenuTargetChoice(string Value, string Label);
 
@@ -700,6 +706,46 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
             if (value == null || _selectedWorklistMode == value) return;
             this.RaiseAndSetIfChanged(ref _selectedWorklistMode, value);
             OptionsOfSelection(o => o.WorklistMode = value.Mode.ToString());
+        }
+    }
+
+    // ---- An Intel control's mode and range ----
+
+    private bool _isIntelControl;
+    public bool IsIntelControl { get => _isIntelControl; private set => this.RaiseAndSetIfChanged(ref _isIntelControl, value); }
+
+    public IReadOnlyList<IntelModeChoice> IntelModes { get; } =
+    [
+        new(IntelControlMode.List, ClientLayoutsText.IntelModeList),
+        new(IntelControlMode.SingleLine, ClientLayoutsText.IntelModeLine),
+    ];
+
+    private IntelModeChoice? _selectedIntelMode;
+    public IntelModeChoice? SelectedIntelMode
+    {
+        get => _selectedIntelMode;
+        set
+        {
+            if (value == null || _selectedIntelMode == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedIntelMode, value);
+            OptionsOfSelection(o => o.IntelMode = value.Mode.ToString());
+        }
+    }
+
+    public IReadOnlyList<IntelRangeChoice> IntelRangeChoices { get; } =
+        [.. PanelControls.IntelRanges.Select(j => new IntelRangeChoice(j,
+            string.Format(System.Globalization.CultureInfo.CurrentCulture, ClientLayoutsText.IntelRangeJumps, j)))];
+
+    private IntelRangeChoice? _selectedIntelRange;
+    public IntelRangeChoice? SelectedIntelRange
+    {
+        get => _selectedIntelRange;
+        set
+        {
+            if (value == null || _selectedIntelRange == value) return;
+            this.RaiseAndSetIfChanged(ref _selectedIntelRange, value);
+            // Ten is the default and is saved as nothing, so a layout that never chose stays as it was.
+            OptionsOfSelection(o => o.IntelMaxJumps = value.Jumps == PanelControls.DefaultIntelRange ? null : value.Jumps);
         }
     }
 
@@ -1671,6 +1717,14 @@ public sealed class ClientLayoutsViewModel : ReactiveObject, IPeriodicRefresh
         {
             _selectedWorklistMode = WorklistModes.First(m => m.Mode == PanelControls.WorklistModeOf(options));
             this.RaisePropertyChanged(nameof(SelectedWorklistMode));
+        }
+        IsIntelControl = PanelControls.Parse(control) == PanelControlKind.Intel;
+        if (IsIntelControl)
+        {
+            _selectedIntelMode = IntelModes.First(m => m.Mode == PanelControls.IntelModeOf(options));
+            this.RaisePropertyChanged(nameof(SelectedIntelMode));
+            _selectedIntelRange = IntelRangeChoices.First(r => r.Jumps == PanelControls.IntelRangeOf(options));
+            this.RaisePropertyChanged(nameof(SelectedIntelRange));
         }
         IsMenuControl = PanelControls.Parse(control) == PanelControlKind.Menu;
         if (IsMenuControl) ShowMenuTargets(options);

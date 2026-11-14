@@ -1,4 +1,5 @@
 using EveConsole.Data;
+using EveConsole.Models;
 using Microsoft.EntityFrameworkCore;
 using EveConsole.Localization;
 
@@ -532,8 +533,9 @@ public class SystemViewService(
     {
         using var db = dbFactory.CreateDbContext();
 
+        // Sightings only: a clear is a row in the same table and names nobody.
         var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => r.SystemId == systemId)
+            .Where(r => r.SystemId == systemId && r.Kind == IntelReportKind.Sighting)
             .OrderByDescending(r => r.ReportedAt)
             .Take(limit)
             .Select(r => new { r.Id, r.ReportedAt, r.PlayerCount, r.Note,
@@ -574,6 +576,9 @@ public class SystemViewService(
 
         string OrgName(long id) => id > 0 ? orgNames.GetValueOrDefault(id, "") : "";
 
+        // Each channel named as the Intel tool names it: "EVE Chat - <channel>", "<server> - <room>".
+        var labels = await EveConsole.Services.Intel.IntelChannelLabels.ReadOrEmptyAsync(db, ct);
+
         var byReport = pilots.GroupBy(p => p.IntelReportId).ToDictionary(
             g => g.Key,
             g => (IReadOnlyList<IntelPilot>)g.Select(x =>
@@ -598,7 +603,7 @@ public class SystemViewService(
                 rid,
                 ra?.CorporationId ?? 0,
                 ra?.AllianceId ?? 0,
-                r.ChannelName,
+                labels.Label(r.ChannelName),
                 r.Message ?? "",
                 r.NoVisual,
                 r.Obsolete,

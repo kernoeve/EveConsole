@@ -587,6 +587,101 @@ public class UniverseViewModel : ReactiveObject
 
     /// <summary>What the canvas draws: the bridges, or none while they are switched off.</summary>
     public IReadOnlyList<MapBridgeLine>? VisibleBridges => _showBridges ? _bridges : null;
+
+    // ── Intel layers ─────────────────────────────────────────────────────────
+    //
+    // The marks themselves (tier colours, fade, the clear and no-visual states) are always drawn;
+    // these are what the map draws besides them, each with its own switch, kept per PC.
+
+    private IReadOnlyList<MapCampMark>? _campedGates;
+    /// <summary>Active gate camps, pushed in by the map tool.</summary>
+    public IReadOnlyList<MapCampMark>? CampedGates
+    {
+        get => _campedGates;
+        set { this.RaiseAndSetIfChanged(ref _campedGates, value); this.RaisePropertyChanged(nameof(VisibleCampedGates)); }
+    }
+
+    private bool _showGateCamps = UiState.GetBool(UiState.UniverseGateCamps, true);
+    /// <summary>Camped gates drawn on their lines. On by default.</summary>
+    public bool ShowGateCamps
+    {
+        get => _showGateCamps;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showGateCamps, value);
+            UiState.SetBool(UiState.UniverseGateCamps, value);
+            this.RaisePropertyChanged(nameof(VisibleCampedGates));
+        }
+    }
+
+    public IReadOnlyList<MapCampMark>? VisibleCampedGates => _showGateCamps ? _campedGates : null;
+
+    private IReadOnlyList<MapIntelArrow>? _intelArrows;
+    /// <summary>Every reported direction, moves and headings, pushed in by the map tool.</summary>
+    public IReadOnlyList<MapIntelArrow>? IntelArrows
+    {
+        get => _intelArrows;
+        set { this.RaiseAndSetIfChanged(ref _intelArrows, value); this.RaisePropertyChanged(nameof(VisibleIntelArrows)); }
+    }
+
+    private bool _showIntelMoves = UiState.GetBool(UiState.UniverseIntelMoves, true);
+    /// <summary>Solid arrows from where a reported pilot came from. On by default.</summary>
+    public bool ShowIntelMoves
+    {
+        get => _showIntelMoves;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showIntelMoves, value);
+            UiState.SetBool(UiState.UniverseIntelMoves, value);
+            this.RaisePropertyChanged(nameof(VisibleIntelArrows));
+        }
+    }
+
+    private bool _showIntelHeadings = UiState.GetBool(UiState.UniverseIntelHeadings, true);
+    /// <summary>Dashed arrows to where a reported pilot was said to be heading. On by default.</summary>
+    public bool ShowIntelHeadings
+    {
+        get => _showIntelHeadings;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showIntelHeadings, value);
+            UiState.SetBool(UiState.UniverseIntelHeadings, value);
+            this.RaisePropertyChanged(nameof(VisibleIntelArrows));
+        }
+    }
+
+    /// <summary>The arrows the canvas draws: moves, headings, both or neither, as switched.</summary>
+    public IReadOnlyList<MapIntelArrow>? VisibleIntelArrows =>
+        _intelArrows is null || (!_showIntelMoves && !_showIntelHeadings) ? null
+        : _showIntelMoves && _showIntelHeadings ? _intelArrows
+        : [.. _intelArrows.Where(a => a.Dashed ? _showIntelHeadings : _showIntelMoves)];
+
+    private IReadOnlyCollection<int>? _alertZone;
+    /// <summary>The systems the intel alarms watch, pushed in by the map tool while any map shows them.</summary>
+    public IReadOnlyCollection<int>? AlertZone
+    {
+        get => _alertZone;
+        set { this.RaiseAndSetIfChanged(ref _alertZone, value); this.RaisePropertyChanged(nameof(VisibleAlertZone)); }
+    }
+
+    private bool _showAlertZones = UiState.GetBool(UiState.UniverseAlertZones, false);
+    /// <summary>The intel alarms' watched systems outlined. Off by default.</summary>
+    public bool ShowAlertZones
+    {
+        get => _showAlertZones;
+        set
+        {
+            this.RaiseAndSetIfChanged(ref _showAlertZones, value);
+            UiState.SetBool(UiState.UniverseAlertZones, value);
+            this.RaisePropertyChanged(nameof(VisibleAlertZone));
+            if (value) AlertZonesWanted?.Invoke();
+        }
+    }
+
+    public IReadOnlyCollection<int>? VisibleAlertZone => _showAlertZones ? _alertZone : null;
+
+    /// <summary>Set by the map tool: asks for the alert zone to be read now, when the outline is switched on.</summary>
+    public Action? AlertZonesWanted { get; set; }
     /// <summary>Hostiles and own characters, per system and per region. Pushed in by the map
     /// tool, which reads them once for every open tab.</summary>
     private IReadOnlyDictionary<int, MapMarkers>? _markers;

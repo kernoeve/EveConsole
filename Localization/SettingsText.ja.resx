@@ -3925,4 +3925,7 @@ SQLiteデータベースは読み取るだけで変更されません。大き�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>次より古いグループチャットを削除</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>バックグラウンド処理を行っているPCに履歴の再解析を依頼しました。インテルを解析するのはそのPCだけです。進捗はバックグラウンド処理に表示されます。</value>
+  </data>
 </root>

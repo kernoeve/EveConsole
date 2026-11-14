@@ -26,6 +26,8 @@
     <InternalsVisibleTo Include="StoreNeedCheck" />
     <!-- The sales summary check builds periods from constructed sales and asks what is a sale. -->
     <InternalsVisibleTo Include="SalesSummaryCheck" />
+    <!-- The intel check builds the Universe Map's marks from a snapshot it makes up, and draws them. -->
+    <InternalsVisibleTo Include="IntelCheck" />
   </ItemGroup>
 
   <!--

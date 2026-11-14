@@ -14,8 +14,8 @@ namespace EveConsole.Services.ClientLayouts;
 ///
 /// <para>⚠️ A mark is not "while this window is active": the taskbar hides on every monitor whose
 /// top window is marked. And going from a marked window to an unmarked one of the same process on
-/// the same monitor, it doesn't come back (a known Windows bug: Chromium and Firefox both work
-/// around it). So the marks come off a monitor while one of our own ordinary windows is in front
+/// the same monitor, it doesn't come back (a known Windows bug: the shell only looks again when
+/// the foreground moves to another process). So the marks come off a monitor while one of our own ordinary windows is in front
 /// of its layout, by <c>ClientPanelHost.Reconcile</c>, rather than being set once and left.</para>
 ///
 /// <para>Call this on the UI thread: the taskbar's COM object belongs to the thread that made it.</para>
@@ -42,8 +42,8 @@ public static class TaskbarHint
         }
 
         // ⚠️ An unmark alone isn't always "not full screen": it hands the window back to the shell's
-        // own guess, and a panel holding a client in a hole can be as big as the monitor. Firefox
-        // found builds of Windows 10 and 11 where the guess stuck; NonRudeHWND says no outright.
+        // own guess, and a panel holding a client in a hole can be as big as the monitor. On some
+        // builds of Windows 10 and 11 that guess sticks; NonRudeHWND says no outright.
         // Set before the mark call, which is what makes the shell look again.
         var window = new IntPtr(handle);
         if (ownWindow)

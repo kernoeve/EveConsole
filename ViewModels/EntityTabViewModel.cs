@@ -370,6 +370,20 @@ public class EntityTabViewModel : ReactiveObject
     private string _intelStatus = "";
     public string IntelStatus { get => _intelStatus; private set => this.RaiseAndSetIfChanged(ref _intelStatus, value); }
 
+    private string _lastSeenText = "";
+    /// <summary>"Last seen in X, 3 h ago · Sabre · Reported": where intel last placed the pilot, from any
+    /// source. Empty when it never did.</summary>
+    public string LastSeenText
+    {
+        get => _lastSeenText;
+        private set { this.RaiseAndSetIfChanged(ref _lastSeenText, value); this.RaisePropertyChanged(nameof(HasLastSeen)); }
+    }
+    public bool HasLastSeen => LastSeenText.Length > 0;
+    private int _lastSeenSystemId;
+
+    /// <summary>The system intel last placed the pilot in, opened from the "Last seen" line.</summary>
+    public void OpenLastSeenSystem() => EntityNavigator.Instance.System(_lastSeenSystemId);
+
     // ── Contracts, Market, Corp Taxes, and the history summary ────────────────
     //
     // What the app's own data says the pilot or corporation did: public contracts from the region
@@ -1035,6 +1049,19 @@ public class EntityTabViewModel : ReactiveObject
     {
         try
         {
+            await Dispatcher.UIThread.InvokeAsync(() => { LastSeenText = ""; _lastSeenSystemId = 0; });
+            var seen = await _service.LastSeenAsync(id, ct);
+            if (seen is { } s && !ct.IsCancellationRequested)
+            {
+                var line = LastSeenLine(s.Row, s.System, DateTimeOffset.UtcNow);
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    if (ct.IsCancellationRequested) return;
+                    LastSeenText = line;
+                    _lastSeenSystemId = s.Row.SystemId;
+                });
+            }
+
             var rows = await _service.IntelAsync(id, ct);
             await Dispatcher.UIThread.InvokeAsync(() =>
             {
@@ -1048,5 +1075,25 @@ public class EntityTabViewModel : ReactiveObject
         }
         catch (OperationCanceledException) { }
         catch (Exception ex) { IntelStatus = string.Format(CommonText.ErrorWithMessage, ex.Message); }
+    }
+
+    /// <summary>"Last seen in X, 3 h ago · Sabre · Reported", from the pilot's last-seen row.</summary>
+    public static string LastSeenLine(EveConsole.Models.IntelLastSeen row, string system, DateTimeOffset now)
+    {
+        var at = EveConsole.Services.Intel.IntelSnapshotBuilder.TryParse(row.SeenAt, out var t) ? t : now;
+        var parts = new List<string>
+        {
+            string.Format(System.Globalization.CultureInfo.CurrentCulture, IntelText.PilotLastSeen, system, IntelWords.LongAge(at, now)),
+        };
+        if (row.ShipTypeId is > 0 and int type) parts.Add(SdeNames.Type(type, row.ShipName ?? ""));
+        else if (row.ShipName is { Length: > 0 } ship) parts.Add(ship);
+        parts.Add(row.Source switch
+        {
+            EveConsole.Models.IntelLastSeenSource.LocalPaste   => IntelText.PilotSourceLocal,
+            EveConsole.Models.IntelLastSeenSource.KillAttacker => IntelText.PilotSourceAttacker,
+            EveConsole.Models.IntelLastSeenSource.KillVictim   => IntelText.PilotSourceVictim,
+            _                                                  => IntelText.PilotSourceReport,
+        });
+        return string.Join(" · ", parts.Where(p => p.Length > 0));
     }
 }

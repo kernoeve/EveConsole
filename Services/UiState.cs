@@ -32,6 +32,12 @@ public static class UiState
     public const string UniverseWormholes    = "universe.wormholes";
     public const string UniverseStorms       = "universe.storms";
     public const string UniverseCampaigns    = "universe.campaigns";
+    /// <summary>The Universe Map's intel layers: camped gates, move and heading arrows (on), the
+    /// intel alarms' alert zones (off).</summary>
+    public const string UniverseGateCamps     = "universe.gate_camps";
+    public const string UniverseIntelMoves    = "universe.intel_moves";
+    public const string UniverseIntelHeadings = "universe.intel_headings";
+    public const string UniverseAlertZones    = "universe.alert_zones";
     public const string UniverseDiamonds     = "universe.npc_diamonds";
     public const string UniverseNpcCapitals  = "universe.npc_capitals";
     public const string UniverseNpcTitans    = "universe.npc_capitals.titans";

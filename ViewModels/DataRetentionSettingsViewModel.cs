@@ -177,6 +177,10 @@ public class DataRetentionSettingsViewModel : ReactiveObject
             retention.ChatMessages, d => retention.PurgeChatMessagesAsync(d),
             SettingsText.RetentionRemovedChat);
 
+        Intel = new RetentionSectionVm(
+            retention.Intel, d => retention.PurgeIntelAsync(d),
+            IntelText.RetentionRemoved);
+
         AgentTelemetry = new RetentionSectionVm(
             retention.AgentTelemetry, d => retention.PurgeAgentTelemetryAsync(d),
             SettingsText.RetentionRemovedAgent);
@@ -196,6 +200,7 @@ public class DataRetentionSettingsViewModel : ReactiveObject
     public RetentionSectionVm PriceHistory   { get; }
     public RetentionSectionVm GameLog        { get; }
     public RetentionSectionVm ChatMessages   { get; }
+    public RetentionSectionVm Intel          { get; }
     public RetentionSectionVm AgentTelemetry { get; }
     public RetentionSectionVm DirectMessages { get; }
     public RetentionSectionVm GroupChat      { get; }

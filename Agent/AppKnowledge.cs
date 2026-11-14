@@ -307,6 +307,10 @@ public static class AppKnowledge
         Windows only. Shares monitors between game clients and panels, placing clients as they log
         in. Profiles set each monitor's layout and who goes where. It only sizes, places and raises
         clients.
+        An Intel control on a panel shows live intel near the character in that monitor's client:
+        jumps (gates and Thera/Turnur), standings colour, age; threats only, within 3–20 jumps (10 by
+        default), as a list or one line that drops the list down when clicked. Its paste icon opens
+        the Intel tool's Paste tab with that character and its system chosen.
 
         ### Mercenary Dens
         Your characters' dens (read hourly): planet, skyhook owner, state, infomorphs an hour,
@@ -354,9 +358,40 @@ public static class AppKnowledge
         ### Universe Map
         Tabs of maps and system pages, two side by side if dragged apart. Overlays colour systems
         by security, kills, jumps, industry indices, sovereignty, stations, planetary output and
-        intel. Live marks show hostiles placed in the last 5 minutes by intel or killmails, and
-        the user's online characters. A system page has tabs for its celestials, kills, industry
-        indices, graphs and intel.
+        intel. Live marks show hostiles placed by intel or killmails, coloured by the worst
+        standings tier there and fading as the news ages; a hollow dashed mark is no visual, a
+        green check a system called clear, and a blue square the user's online characters. The
+        toolbar's Intel drop-down switches gate camps (a thick stub on the camped gate's line),
+        movement arrows (solid, from where a pilot came from), heading arrows (dashed, to where
+        they were said to be going) and alert zones (a dashed outline round the systems the
+        enabled intel alarms watch; off by default). The route planner's Hostiles column reads the
+        same intel, coloured by the route character's standings. A system page has tabs for its
+        celestials, kills, industry indices, graphs and intel.
+
+        ### Intel
+        Live intel from the intel chat channels, Jabber and IRC rooms marked Intel, the kill feed
+        and pastes, measured in jumps (gates and Thera/Turnur) from the nearest online character or
+        one chosen, and coloured by that character's standings. Top bar: Distance from, Within N
+        jumps (15 by default), My jump bridges, standings chips (Red, Orange, Neutral on), Sources
+        and a search. A yellow bar says when the full zKillboard feed is off (Settings > Kill
+        Mails); dismissing it hides it on every PC until the feed is switched on and off again.
+        Tabs: Board (one row per system: state, hostiles, hulls, flags, moving, age, nearest
+        character, sources; a row opens to its reports, follow-ups and kills), Feed (every line
+        newest first, 15/30/60 minutes, expired and superseded lines faded, Show kills, Unlinked
+        chatter), Pilots (where each pilot was last seen, from reports, pastes and kills, over 1 h
+        to 60 days, 24 h by default, at most 500, searched by name, or by corporation or alliance
+        from three letters; jumps, hull, how they were seen, corporation and alliance), Camps (gate
+        camps from kills on a gate and from reports: active for 30 minutes after the last kill,
+        then shown faded as ended until an hour after it; kills, attackers and their hulls,
+        smartbombs and dictors; double-click opens the kills in Battle Report), Paste (the Local
+        member list or a d-scan pasted into a box for a chosen system; a Local clears the system
+        and places everyone on it, saying first how many it replaces; a d-scan adds an unnamed count
+        of ships, with bubbles and cynos from what is on scan; Save or Ctrl+Enter) and Watch list
+        (pilots, corporations, alliances, hulls and ship groups set to Always alert, shown in bold
+        everywhere, or Ignore, shown dimmed and never the panel's nearest threat; shared by every PC
+        on the database; a pilot's own entry decides first, then the corporation's, alliance's,
+        hull's and group's). Right-click a pilot anywhere in intel for Always alert or Ignore. The
+        app never reads the clipboard itself. A pilot's page shows where intel last saw them.
 
         ### Route Planner
         A Universe Map tab. Plans a route from system to system through gates, the jump bridges
@@ -462,6 +497,7 @@ public static class AppKnowledge
         ("inv_levels",          "Inventory Levels",       "Inventory Levels"),
         ("structure_browser",   "Structure Browser",      "Structure Browser"),
         ("universe",            "Universe Map",           "Universe Map"),
+        ("intel",               "Intel",                  "Intel"),
         ("route_planner",       "Route Planner",          "Route Planner"),
         ("jump_planner",        "Jump Planner",           "Jump Planner"),
         ("industry",            "Industry Jobs",          "Industry Jobs"),

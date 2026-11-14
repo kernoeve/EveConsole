@@ -307,9 +307,12 @@ public class ChatLogSettingsViewModel : ReactiveObject
         IsBusy = true;
         try
         {
+            // On the worker it runs here; anywhere else the worker is asked, and its progress shows
+            // in Background Processes (only the worker parses intel).
             var progress = new Progress<string>(s => IntelStatus = s);
-            var n = await _intel.BackfillAsync(progress);
-            IntelStatus = string.Format(SettingsText.ChatIntelParsed, n);
+            IntelStatus = await _intel.ReparseAsync(progress) is { } n
+                ? string.Format(SettingsText.ChatIntelParsed, n)
+                : SettingsText.ChatIntelAskedWorker;
         }
         catch (Exception ex)
         {

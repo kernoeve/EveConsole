@@ -154,8 +154,8 @@ public sealed class ClientPanelHost
     ///
     /// <para>⚠️ Why ours only. Marked for good, they kept the taskbar hidden under the main window:
     /// Windows doesn't bring it back going from a marked window to an unmarked one of the same
-    /// process on the same monitor (a known Windows bug; Chromium and Firefox both work around it),
-    /// and our panels are marked and share our process. Another program's window in front of a
+    /// process on the same monitor (a known Windows bug: the shell only looks again when the
+    /// foreground moves to another process), and our panels are marked and share our process. Another program's window in front of a
     /// layout, Windows already handles: it shows the taskbar for that by itself.</para>
     /// </summary>
     private void Reconcile()

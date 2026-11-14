@@ -752,4 +752,7 @@ Starte einen Client {1}, der sie ausführen darf, oder schalte dies ab: Entferne
   <data name="NavIrc" xml:space="preserve">
     <value>IRC</value>
   </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Intel</value>
+  </data>
 </root>

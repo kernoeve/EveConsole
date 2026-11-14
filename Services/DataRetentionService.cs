@@ -79,6 +79,10 @@ public class DataRetentionService
         GameLog      = new RetentionRule(prefs, "retention.gamelog",      defaultDays: 365, minimumDays: 30);
         ChatMessages = new RetentionRule(prefs, "retention.chat",         defaultDays: 90,  minimumDays: 30);
 
+        // Reports, the pilots named in them and where each pilot was last seen. A week is the floor:
+        // the Pilots list looks back that far.
+        Intel        = new RetentionRule(prefs, "retention.intel",        defaultDays: 90,  minimumDays: 7);
+
         // Killmails in two halves, because they are not worth the same. Your own characters' and
         // corporations' kills and losses are history you look back on; everyone else's — the
         // zKillboard feed, fights you only watched — are the bulk of the space and the part worth
@@ -120,6 +124,7 @@ public class DataRetentionService
     public RetentionRule PriceHistory   { get; }
     public RetentionRule GameLog        { get; }
     public RetentionRule ChatMessages   { get; }
+    public RetentionRule Intel          { get; }
     public RetentionRule AgentTelemetry { get; }
     public RetentionRule DirectMessages { get; }
     public RetentionRule GroupChat      { get; }
@@ -497,6 +502,37 @@ public class DataRetentionService
         return await db.Database.ExecuteSqlInterpolatedAsync(
             $"""DELETE FROM "ChatMessages" WHERE "OccurredAt" < {IsoCutoff(days)}""", ct);
     }
+
+    // ── Intel history ─────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Removes intel reports older than the cutoff with the pilots named in them, and every
+    /// last-seen row whose sighting is that old. Returns the rows removed, all three tables together.
+    ///
+    /// <para>The pilots first, by their report's time, so none is left pointing at a report that has
+    /// gone. Every time column here is ISO text, compared as text on both engines.</para>
+    ///
+    /// <para>Off by default, like every rule here. Even left off the last-seen table stays bounded:
+    /// it holds one row per pilot ever seen, not one per sighting.</para>
+    /// </summary>
+    public async Task<int> PurgeIntelAsync(int days, CancellationToken ct = default)
+    {
+        days = Math.Max(Intel.MinimumDays, days);
+        var cutoff = IsoCutoff(days);
+        await using var db = await _dbFactory.CreateDbContextAsync(ct);
+        db.Database.SetCommandTimeout(0);
+
+        var removed = await db.Database.ExecuteSqlInterpolatedAsync($"""
+            DELETE FROM "IntelReportCharacters"
+            WHERE "IntelReportId" IN (SELECT "Id" FROM "IntelReports" WHERE "ReportedAt" < {cutoff})
+            """, ct);
+        removed += await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM "IntelReports" WHERE "ReportedAt" < {cutoff}""", ct);
+        removed += await db.Database.ExecuteSqlInterpolatedAsync(
+            $"""DELETE FROM "IntelLastSeen" WHERE "SeenAt" < {cutoff}""", ct);
+        return removed;
+    }
+
     // ── Scheduled sweep ───────────────────────────────────────────────────────
 
     /// <summary>How much data is allowed to accumulate before a rule runs again.</summary>
@@ -568,6 +604,7 @@ public class DataRetentionService
         await RunIfDue(PriceHistory,   PurgePriceHistoryAsync);
         await RunIfDue(GameLog,      PurgeGameLogAsync);
         await RunIfDue(ChatMessages, PurgeChatMessagesAsync);
+        await RunIfDue(Intel,        PurgeIntelAsync);
         await RunIfDue(AgentTelemetry, PurgeAgentTelemetryAsync);
         await RunIfDue(DirectMessages, PurgeDirectMessagesAsync);
         await RunIfDue(GroupChat,      PurgeGroupChatAsync);

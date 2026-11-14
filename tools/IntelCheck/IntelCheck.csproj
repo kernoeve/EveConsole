@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Intel's rules, proven without the app: the schema both engines are brought to, the shared watermark,
+       ChatMessages writers that commit in id order, and the cross-PC signals. A scratch SQLite file always;
+       a scratch PostgreSQL database of its own, made and dropped on the server named by EVECONSOLE_PG, when
+       that is set. Excluded from the app by its tools/** removal. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <RootNamespace>EveConsole.Tools.IntelCheck</RootNamespace>
+    <AssemblyName>IntelCheck</AssemblyName>
+    <NoWarn>$(NoWarn);CA1416</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\EveConsole.csproj" />
+  </ItemGroup>
+
+</Project>

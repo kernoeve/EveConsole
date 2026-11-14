@@ -8,8 +8,9 @@ namespace EveConsole.Services.ClientLayouts;
 ///
 /// <para>⚠️ Ours only. A window of another program in front of the layout is something Windows
 /// already gets right: the taskbar comes back for it by itself. What it gets wrong is a window of
-/// the same process as a marked one, on the same monitor (a known Windows bug; Chromium and
-/// Firefox both work around it), and our panels are marked and share our process.</para>
+/// the same process as a marked one, on the same monitor (a known Windows bug: the shell only
+/// looks again when the foreground moves to another process), and our panels are marked and
+/// share our process.</para>
 ///
 /// <para>⚠️ Read only, and nothing that waits on a window's owner: EnumWindows, visibility,
 /// position and style are answered by Windows itself, so a busy client can't hold this up. Nothing

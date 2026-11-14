@@ -746,4 +746,7 @@ PID：{2}
   <data name="NavIrc" xml:space="preserve">
     <value>IRC</value>
   </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>インテル</value>
+  </data>
 </root>

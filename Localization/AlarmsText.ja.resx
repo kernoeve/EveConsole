@@ -929,7 +929,7 @@
     <value>監視対象の周辺でパイロットが報告されたときに発動します。対象は、出港中の自分のキャラクター、居場所を問わない自分のキャラクター、またはシステムの一覧で、それぞれにジャンプ範囲を指定します。「設定 → チャットログ」ですでに解析しているインテルチャンネルを読み取ります。</value>
   </data>
   <data name="CheckIntelKillsNote" xml:space="preserve">
-    <value>攻撃側に敵パイロットがいるキルも対象です。キルは、その攻撃者がそのシステムにいたことを示します。</value>
+    <value>攻撃側に敵パイロットがいるキルは常に発動し、キルとして読み上げられます（何が何に撃墜されたか）。1ジャンプ以内なら最初に読み上げられます。その攻撃者が目撃として再び読み上げられることはありません。</value>
   </data>
   <data name="CheckShipUndock" xml:space="preserve">
     <value>艦船の出港</value>
@@ -983,13 +983,13 @@
     <value>ジャンプ数</value>
   </data>
   <data name="IntelJumpsNote" xml:space="preserve">
-    <value>各キャラクターまたはシステムから、スターゲートで何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
+    <value>各キャラクターまたはシステムから、スターゲートとThera・Turnurの開いているワームホールを通って何ジャンプ先まで監視するかです。0はそのシステムのみです。上限は15です — それ以上は周辺とは言えなくなるためです。</value>
   </data>
   <data name="IntelMinPlayersLabel" xml:space="preserve">
     <value>最少人数</value>
   </data>
   <data name="IntelMinPlayersNote" xml:space="preserve">
-    <value>報告されたパイロットがこの人数以上の場合にのみ発動します。既定値は1です。</value>
+    <value>システム内の敵がこの人数以上の場合にのみ発動します。既定値は1です。キルとフラグのみの報告は人数に関係なく発動します。</value>
   </data>
   <data name="IntelIgnoreNvLabel" xml:space="preserve">
     <value>目視なしを無視</value>
@@ -1992,5 +1992,152 @@
   </data>
   <data name="IndexTableImageTitle" xml:space="preserve">
     <value>本日の指数</value>
+  </data>
+  <data name="CheckIntelChangedNote" xml:space="preserve">
+    <value>変更：アラームは現在のインテルの状況に従うようになりました。その後別の場所で目撃されたパイロットや、クリアと報告されたシステムでは発動しません。各パイロットはシステムに留まっている間は一度だけ、名前のない人数は1・4・9・19を超えたときにのみ再び読み上げられます。また、ゲートキャンプ、バブル、サイノ、ホットドロップ、ローカル急増、戦闘プローブだけを伝える報告でも発動します（下の「フラグのみの報告」）。</value>
+  </data>
+  <data name="IntelFlagReportsLabel" xml:space="preserve">
+    <value>フラグのみの報告</value>
+  </data>
+  <data name="IntelFlagReportsNote" xml:space="preserve">
+    <value>誰も数えていなくても、ゲートキャンプ、バブル、サイノ、ホットドロップ、ローカル急増、戦闘プローブを伝える報告で発動します。それぞれ有効な間に一度だけ読み上げられます。</value>
+  </data>
+  <data name="IntelSaidKill" xml:space="preserve">
+    <value>{0}でキル：{1}が{2}に撃墜されました。</value>
+  </data>
+  <data name="IntelSaidKillAt" xml:space="preserve">
+    <value>{0}でキル（{1}）：{2}が{3}に撃墜されました。</value>
+  </data>
+  <data name="IntelSaidKillHostiles" xml:space="preserve">
+    <value>敵</value>
+  </data>
+  <data name="IntelSaidFlags" xml:space="preserve">
+    <value>{0}：{1}。</value>
+  </data>
+  <data name="IntelSaidFlagsAt" xml:space="preserve">
+    <value>{0}（{1}）：{2}。</value>
+  </data>
+  <data name="IntelKillReported" xml:space="preserve">
+    <value>キル発生</value>
+  </data>
+  <data name="IntelKillsReported" xml:space="preserve">
+    <value>複数のキル発生</value>
+  </data>
+  <data name="CheckIntelWakeNote" xml:space="preserve">
+    <value>起こすのは新しい情報だけです（音、読み上げ、エージェント、ダイアログ）。直近2分以内に目撃された、または範囲に入ったものが対象です（設定 → インテル）。それより古い情報はアラートとして記録されるだけです。インテルアラームは順番に鳴ります。1つが起こした後、緊急でない限り他のアラームは数秒待ち、2つのアラームが捉えた同じ目撃は1回だけ読み上げます。</value>
+  </data>
+  <data name="IntelSectionWhere" xml:space="preserve">
+    <value>監視する場所</value>
+  </data>
+  <data name="IntelSectionWhat" xml:space="preserve">
+    <value>発動する内容</value>
+  </data>
+  <data name="IntelSectionWaking" xml:space="preserve">
+    <value>起こす条件</value>
+  </data>
+  <data name="IntelWakeJumpsLabel" xml:space="preserve">
+    <value>起こす範囲</value>
+  </data>
+  <data name="IntelWakeJumpsNote" xml:space="preserve">
+    <value>任意。このジャンプ数以内の情報だけが起こします。それより遠いものはアラートとして記録されるだけです。キルと緊急の情報は常に起こします。チェックしない場合は範囲全体で起こします。</value>
+  </data>
+  <data name="IntelWakeJumpsSuffix" xml:space="preserve">
+    <value>ジャンプ</value>
+  </data>
+  <data name="IntelQuieterFarLabel" xml:space="preserve">
+    <value>遠いほど小さく</value>
+  </data>
+  <data name="IntelQuieterFarNote" xml:space="preserve">
+    <value>1ジャンプ以内は最大音量で、遠いほど小さく鳴ります。範囲の端では40%です。読み上げは設定した音量のままです。</value>
+  </data>
+  <data name="IntelHostileFromLabel" xml:space="preserve">
+    <value>敵対と見なす</value>
+  </data>
+  <data name="IntelHostileFromNote" xml:space="preserve">
+    <value>名前の出たパイロットのうちどれを数えるか。最も近いあなたのキャラクター（または「設定 → Intel」で固定したキャラクター）のスタンディングで判断します。ブルーと自分のキャラクターは数えず、名前のない人数とフラグだけの報告は常に数えます。</value>
+  </data>
+  <data name="OptionNeutralOrWorse" xml:space="preserve">
+    <value>中立以下</value>
+  </data>
+  <data name="OptionNegativeOnly" xml:space="preserve">
+    <value>マイナスのみ</value>
+  </data>
+  <data name="OptionRedOnly" xml:space="preserve">
+    <value>赤のみ</value>
+  </data>
+  <data name="IntelWatchListLabel" xml:space="preserve">
+    <value>ウォッチリストを使う</value>
+  </data>
+  <data name="IntelWatchListNote" xml:space="preserve">
+    <value>「常に警告」にあるものは、範囲・敵対の選択・最小人数に関係なくウォッチリストの範囲内で発動し、最初に読み上げられ、待たされることはありません。「無視」にあるものは発動しません。</value>
+  </data>
+  <data name="IntelWatchReachLabel" xml:space="preserve">
+    <value>ウォッチリストの範囲</value>
+  </data>
+  <data name="IntelWatchReachNote" xml:space="preserve">
+    <value>「常に警告」の項目が発動する距離（ジャンプ数）。範囲より遠い場合に使われます。最大 15。</value>
+  </data>
+  <data name="IntelApproachWakesLabel" xml:space="preserve">
+    <value>接近するパイロットは常に起こす</value>
+  </data>
+  <data name="IntelApproachWakesNote" xml:space="preserve">
+    <value>「起こす範囲」を設定しているとき、近づいてくるパイロット（前より近くで見られた、またはあなたのキャラクターに向かっていると報告された）は範囲内のどこでもあなたを起こします。</value>
+  </data>
+  <data name="IntelPrioritySystemsLabel" xml:space="preserve">
+    <value>優先システム</value>
+  </data>
+  <data name="IntelPrioritySystemsNote" xml:space="preserve">
+    <value>任意。キャラクターがどこにいても常に監視するシステム。そこで見られたものは常にあなたを起こし、他のインテルアラームに待たされず、最初に読み上げられます。</value>
+  </data>
+  <data name="IntelSaidPriority" xml:space="preserve">
+    <value>優先システム：{0}</value>
+  </data>
+  <data name="IntelSaidWatchList" xml:space="preserve">
+    <value>ウォッチリスト：{0}</value>
+  </data>
+  <data name="IntelSaidApproachingTo" xml:space="preserve">
+    <value>接近中：{0} へ向かっています。</value>
+  </data>
+  <data name="IntelSaidApproachingToAt" xml:space="preserve">
+    <value>接近中：{0}（{1}）へ向かっています。</value>
+  </data>
+  <data name="IntelSaidApproachingWas" xml:space="preserve">
+    <value>接近中：以前は {0} にいました。</value>
+  </data>
+  <data name="IntelSaidHeadingAway" xml:space="preserve">
+    <value>遠ざかっています（{0} へ）。</value>
+  </data>
+  <data name="IntelSaidViaWormhole" xml:space="preserve">
+    <value>{0}（Thera か Turnur 経由）</value>
+  </data>
+  <data name="CheckIntelRouteNote" xml:space="preserve">
+    <value>既定でオン：キルから割り出した、キャラクターの近くまたは前方ルート上のゲートキャンプと、前方のルートそのもの（ルートプランナーがゲームへ送った最新のルートでまだ飛ぶシステム）も対象です（下の「ゲートキャンプ」と「前方のルートを監視」）。</value>
+  </data>
+  <data name="IntelRouteLabel" xml:space="preserve">
+    <value>前方のルートを監視</value>
+  </data>
+  <data name="IntelRouteNote" xml:space="preserve">
+    <value>監視中のキャラクターにルートプランナーがゲームへ送った最新のルートで、まだ先にあるシステムも距離に関係なく監視します。そこで目撃されたものは発動し、ルート上何ジャンプ先かとして読み上げられます。まだ飛んでいない部分だけが対象で、ルートは到着時または送信から6時間後に破棄されます。ゲーム内だけで設定したルートは知ることができません。</value>
+  </data>
+  <data name="IntelCampsLabel" xml:space="preserve">
+    <value>ゲートキャンプ</value>
+  </data>
+  <data name="IntelCampsNote" xml:space="preserve">
+    <value>ゲートでのキルから割り出したゲートキャンプが、監視中のキャラクターの近くまたは前方のルート上にあると発動します。キャンプごと・キャラクターごと・ルートごとに一度読み上げるため、既知のキャンプを通る新しいルートでは再び読み上げます。起こす範囲（未設定なら5ジャンプ）内の前方ルート上のキャンプは緊急です。</value>
+  </data>
+  <data name="IntelSaidCamp" xml:space="preserve">
+    <value>{0}の{1}ゲートでゲートキャンプ。</value>
+  </data>
+  <data name="IntelSaidCampAt" xml:space="preserve">
+    <value>{0}の{1}ゲートでゲートキャンプ。{2}です。</value>
+  </data>
+  <data name="IntelSaidCampKillsOther" xml:space="preserve">
+    <value>{1}で{0}件のキル。</value>
+  </data>
+  <data name="IntelSaidMinutesOther" xml:space="preserve">
+    <value>{0}分</value>
+  </data>
+  <data name="IntelSaidOnRouteOther" xml:space="preserve">
+    <value>{1}のルート上{0}ジャンプ先</value>
   </data>
 </root>

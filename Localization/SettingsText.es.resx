@@ -3928,4 +3928,7 @@ La aplicación se reiniciará.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purgar chat de grupo anterior a</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Se ha pedido al PC que hace el trabajo en segundo plano que vuelva a analizar el historial: solo ese PC analiza la inteligencia. Su progreso aparece en Procesos en segundo plano.</value>
+  </data>
 </root>

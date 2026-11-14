@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>이 레이아웃은 더 새로운 EVE Console에서 만들어졌습니다. 가져오려면 업데이트하세요.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>정보</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>표시 방식</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>실시간 위협 목록</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>가장 가까운 위협을 한 줄로, 클릭하면 목록이 펼쳐짐</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>범위</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0}점프</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>이 모니터 클라이언트의 캐릭터로부터 스타게이트와 열린 Thera·Turnur 구멍을 거쳐 정보를 찾는 점프 수. 점프 브리지는 세지 않습니다.</value>
+  </data>
 </root>

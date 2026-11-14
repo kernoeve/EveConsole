@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>Ese diseño se creó con una versión más reciente de EVE Console. Actualiza para importarlo.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Inteligencia</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Se muestra como</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>La lista en vivo de amenazas</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>Una línea con la amenaza más cercana; al hacer clic se despliega la lista</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Alcance</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} saltos</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>Hasta dónde busca inteligencia el control, en saltos por portales estelares y agujeros abiertos de Thera o Turnur, desde el personaje del cliente de este monitor. Los puentes de salto no cuentan.</value>
+  </data>
 </root>

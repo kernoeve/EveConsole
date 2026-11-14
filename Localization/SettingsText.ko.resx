@@ -3925,4 +3925,7 @@ SQLite 데이터베이스는 읽기만 하고 변경하지 않습니다. 데이�
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>다음보다 오래된 그룹 채팅 삭제</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>백그라운드 작업을 맡은 PC에 기록 재분석을 요청했습니다. 정보 분석은 그 PC만 합니다. 진행 상황은 백그라운드 프로세스에 표시됩니다.</value>
+  </data>
 </root>

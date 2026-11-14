@@ -178,6 +178,16 @@ jobs:
       - name: IRC check
         run: dotnet run --project tools/IrcCheck/IrcCheck.csproj -c Release
 
+      # ⚠️ Does intel still survive more than one PC, and the next start? A paste deleted by the next start because
+      # it has no chat message behind it, a watermark one PC moves backwards, or a PC that is not the worker parsing
+      # or evaluating alarms anyway: each looks like a working feature on one machine. This runs the startup's own
+      # statements on a database the previous build left and on a new one, on a scratch SQLite file. It also proves
+      # the one upsert of where each pilot was last seen: an older sighting never moves a pilot back, a tie in one
+      # second goes kill > pasted Local > chat report, a pilot named twice in a batch, the stay and the affiliation
+      # rules, the kills the importers hand on and the one-time seed. The Linux job runs it again against PostgreSQL.
+      - name: Intel check
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
+
   # ⚠️ Does the Linux target still compile?
   #
   # The job above answers that for Windows only — it is a windows-latest runner with no
@@ -298,6 +308,15 @@ jobs:
         env:
           EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
         run: dotnet run --project tools/PgSqlCheck/PgSqlCheck.csproj -c Release -- --collisions .
+
+      # ⚠️ And intel on PostgreSQL, where several PCs write at once. Two writer processes insert chat lines while a
+      # reader takes them by watermark as the parser does: a line committed out of id order is skipped for good, and
+      # nothing on one machine shows it. The last-seen upsert runs here too: PostgreSQL refuses a statement that
+      # touches one pilot twice. The check makes a database of its own on this server and drops it after.
+      - name: Intel check on PostgreSQL
+        env:
+          EVECONSOLE_PG: Host=localhost;Port=5432;Database=eveconsole;Username=eveconsole;Password=ci-only
+        run: dotnet run --project tools/IntelCheck/IntelCheck.csproj -c Release
 
   # ── macOS ──────────────────────────────────────────────────────────────────────────
   #

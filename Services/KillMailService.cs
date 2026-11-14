@@ -9,6 +9,7 @@ namespace EveConsole.Services;
 public class KillMailService(
     IServiceScopeFactory scopeFactory,
     EsiClient            esi,
+    Intel.IntelLastSeenFeed lastSeen,
     AppErrorLogger       errorLogger)
 {
     private const int FetchBatchSize = 200;
@@ -150,6 +151,9 @@ public class KillMailService(
                         });
 
                 await db.SaveChangesAsync(ct);
+
+                // Our own kills and the Mine + Corp poll's, as they come in: always a sighting.
+                await lastSeen.KillsStoredAsync(db, [full], live: true, ct);
             }
             catch (OperationCanceledException) { break; }
             catch (Exception ex)

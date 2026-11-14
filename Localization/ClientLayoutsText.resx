@@ -219,4 +219,32 @@
   <data name="TipNewLayout" xml:space="preserve">
     <value>Start a new layout blank or from a template. A layout exported to the templates folder becomes a template.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>A client-layout control showing live intel near the character in that monitor&apos;s client.</comment>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Shows as</value>
+    <comment>Client Layouts editor: label over the choice of how an Intel control shows.</comment>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>The live list of threats</value>
+    <comment>Client Layouts editor: an Intel control shown as its full list.</comment>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>One line with the nearest threat, the list dropping down when clicked</value>
+    <comment>Client Layouts editor: an Intel control shown as a single line that opens the list in a popup when clicked.</comment>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Looks out to</value>
+    <comment>Client Layouts editor: label over how many jumps an Intel control looks out to.</comment>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} jumps</value>
+    <comment>Client Layouts editor: one choice of an Intel control&apos;s range. {0} is a number of jumps (3, 5, 10, 15 or 20).</comment>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>How far the control looks for intel, in jumps through stargates and open Thera or Turnur holes, from the character in this monitor&apos;s client. Jump bridges are not counted.</value>
+    <comment>Client Layouts editor: tooltip on an Intel control&apos;s range.</comment>
+  </data>
 </root>

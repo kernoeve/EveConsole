@@ -97,6 +97,12 @@ public sealed class ControlOptions
     /// <summary>A <see cref="WorklistControlMode"/> by name, or null for the list.</summary>
     public string? WorklistMode { get; set; }
 
+    /// <summary>An <see cref="IntelControlMode"/> by name, or null for the list.</summary>
+    public string? IntelMode { get; set; }
+
+    /// <summary>How far an Intel control looks, in jumps; null for ten (<see cref="PanelControls.IntelRangeOf"/>).</summary>
+    public int? IntelMaxJumps { get; set; }
+
     /// <summary>
     /// Where the menu opens tools: <see cref="ToolTargets.NewWindow"/>, <see cref="ToolTargets.LastUsed"/>,
     /// or a Tool Container's id. Null is the last used window.

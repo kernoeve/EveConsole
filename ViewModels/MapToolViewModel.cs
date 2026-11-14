@@ -7,6 +7,7 @@ using EveConsole.Controls;
 using EveConsole.Data;
 using EveConsole.Localization;
 using EveConsole.Services;
+using EveConsole.Services.Intel;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 
@@ -60,7 +61,8 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
         JumpPlannerViewModel?     jumpPlanner = null,
         IDbContextFactory<AppDbContext>? db = null,
         EveScoutService?          eveScout = null,
-        SovCampaignService?       campaigns = null)
+        SovCampaignService?       campaigns = null,
+        IntelZoneService?         zones = null)
     {
         _eveScout      = eveScout;
         _campaigns     = campaigns;
@@ -76,6 +78,7 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
         _prefs         = prefs;
         _newSystemPage = newSystemPage;
         _live          = live;
+        _zones         = zones;
 
         LeftPane    = new MapPaneViewModel(this, false);
         RightPane   = new MapPaneViewModel(this, true);
@@ -382,8 +385,7 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
     public void Dispose()
     {
         _life.Dispose();
-        _liveCts?.Cancel();
-        _liveCts = null;
+        SetOnScreen(false);
         foreach (var tab in AllTabs.ToList()) tab.OnClosed();
     }
 
@@ -572,9 +574,17 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
 
     private LiveMapSnapshot? _snapshot;
 
-    /// <summary>Who is where, as last read — for the route planner's hostiles column.</summary>
+    /// <summary>Who is where, as last read — for the system pages.</summary>
     public LiveMapSnapshot? Snapshot => _snapshot;
     private CancellationTokenSource? _liveCts;
+
+    /// <summary>The shared intel snapshot the map subscribes to: the route planner's hostiles column
+    /// reads it too. Null without intel (a check building the tool by hand).</summary>
+    public IntelSnapshotService? IntelSnapshots => _live?.Snapshots;
+
+    private IDisposable? _intelSubscription;
+    private IntelSnapshot? _pendingIntel;
+    private int _buildingIntel;
 
     /// <summary>Starts reading who is where while the tool is on screen, and stops when it is
     /// not — nothing is read for a map nobody is looking at.</summary>
@@ -584,13 +594,105 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
         {
             if (_liveCts is not null || _live is null) return;
             _liveCts = new CancellationTokenSource();
+            // ⚠️ Subscribed, not polled: the snapshot refreshes every few seconds while anyone
+            // subscribes, and at once when intel is written on any PC, and hands each new one here.
+            _live.Snapshots.Changed += OnIntelChanged;
+            _intelSubscription = _live.Snapshots.Subscribe();
+            if (_live.Snapshots.Current.Version > 0) OnIntelChanged(_live.Snapshots.Current);
             _ = LiveLoopAsync(_liveCts.Token);
         }
         else
         {
+            if (_live is not null) _live.Snapshots.Changed -= OnIntelChanged;
+            _intelSubscription?.Dispose();
+            _intelSubscription = null;
             _liveCts?.Cancel();
             _liveCts = null;
         }
+    }
+
+    /// <summary>
+    /// A new intel snapshot, on whatever thread it was read on: made into the map's form off the UI
+    /// thread (it names hulls from the database), then drawn on every map. One at a time; a snapshot
+    /// arriving while one is being made waits, and only the newest waiting one is made.
+    /// </summary>
+    private void OnIntelChanged(IntelSnapshot snapshot)
+    {
+        Volatile.Write(ref _pendingIntel, snapshot);
+        if (Interlocked.Exchange(ref _buildingIntel, 1) == 0) _ = Task.Run(ApplyIntelAsync);
+    }
+
+    private async Task ApplyIntelAsync()
+    {
+        try
+        {
+            while (Interlocked.Exchange(ref _pendingIntel, null) is { } snapshot && _live is not null && _liveCts is { } cts)
+            {
+                try
+                {
+                    var map = await _live.ToMapAsync(snapshot, cts.Token);
+                    var ownMoved = OwnSignature(snapshot) != _ownSignature;
+                    _ownSignature = OwnSignature(snapshot);
+                    await Dispatcher.UIThread.InvokeAsync(() =>
+                    {
+                        _snapshot = map;
+                        foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyLive(map);
+                        foreach (var tab in AllTabs.OfType<RouteTabViewModel>()) tab.ApplyIntel(snapshot);
+                    });
+                    // Where the user's characters are is where the alert zone is drawn round.
+                    if (ownMoved) _zoneDirty = true;
+                }
+                catch (OperationCanceledException) { return; }
+                catch (Exception ex)
+                {
+                    if (ex.Message != _lastLiveError)
+                    {
+                        _lastLiveError = ex.Message;
+                        _errors?.Log(nameof(MapToolViewModel), "live map", ex);
+                    }
+                }
+            }
+        }
+        finally
+        {
+            Volatile.Write(ref _buildingIntel, 0);
+            // One that arrived between the last look and letting go is made now.
+            if (Volatile.Read(ref _pendingIntel) is not null && Interlocked.Exchange(ref _buildingIntel, 1) == 0)
+                _ = Task.Run(ApplyIntelAsync);
+        }
+    }
+
+    private string _ownSignature = "";
+
+    private static string OwnSignature(IntelSnapshot snapshot) =>
+        string.Join(",", snapshot.Own.OrderBy(o => o.CharacterId).Select(o => $"{o.CharacterId}:{o.SystemId}"));
+
+    // ── The intel alarms' reach ──────────────────────────────────────────────
+
+    private readonly IntelZoneService? _zones;
+    private DateTimeOffset _zoneDue = DateTimeOffset.MinValue;   // the loop's own; others set _zoneDirty
+    private volatile bool _zoneDirty = true;
+
+    /// <summary>How often the alert zone is read again when nothing moved: alarms are edited rarely.</summary>
+    public static readonly TimeSpan ZoneEvery = TimeSpan.FromSeconds(30);
+
+    /// <summary>A map switched its alert zone outline on: read it on the next tick.</summary>
+    internal void ZoneWanted() => _zoneDirty = true;
+
+    /// <summary>Reads the intel alarms' watched systems and hands them to every map showing the outline;
+    /// nothing is read while none does.</summary>
+    private async Task RefreshZoneAsync(CancellationToken ct)
+    {
+        if (_zones is null || (!_zoneDirty && DateTimeOffset.UtcNow < _zoneDue)) return;
+        var wanted = await Dispatcher.UIThread.InvokeAsync(() => AllTabs.OfType<UniverseTabViewModel>().Any(t => t.Map.ShowAlertZones));
+        if (!wanted) return;
+        _zoneDue   = DateTimeOffset.UtcNow + ZoneEvery;
+        _zoneDirty = false;
+        var zone = await Task.Run(() => _zones.ZoneAsync(ct), ct);
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.Map.AlertZone = zone;
+        });
     }
 
     // ── Jump bridges ─────────────────────────────────────────────────────────
@@ -654,12 +756,9 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
         {
             try
             {
-                var snapshot = await Task.Run(() => _live!.GetSnapshotAsync(ct), ct);
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    _snapshot = snapshot;
-                    foreach (var tab in AllTabs.OfType<UniverseTabViewModel>()) tab.ApplyLive(snapshot);
-                });
+                // Who is where arrives by subscription (OnIntelChanged); this loop keeps the slower
+                // things: the alert zone, the system pages, and the overlays.
+                await RefreshZoneAsync(ct);
 
                 if (DateTimeOffset.UtcNow >= pagesDue)
                 {
@@ -879,32 +978,39 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
 
         var now      = live.At;
         var officers = live.Officers ?? new Dictionary<int, IReadOnlyList<OfficerSighting>>();
-        foreach (var id in live.Hostiles.Keys.Union(live.Own.Keys).Union(officers.Keys))
+        foreach (var id in live.Hostiles.Keys.Union(live.Own.Keys).Union(officers.Keys).Union(live.Clears.Keys))
         {
             if (!nodes.TryGetValue(id, out var node)) continue;
 
             live.Hostiles.TryGetValue(id, out var h);
             live.Own.TryGetValue(id, out var o);
             officers.TryGetValue(id, out var f);
+            live.Clears.TryGetValue(id, out var clear);
 
             var hostileRows = h is null ? null : HostileRows(h, now);
             var ownRows     = o is null ? null : OwnRows(o);
             var officerRows = f is null ? null : OfficerRows(f, now);
+            var (title, detail) = h is not null
+                ? (h.Count > 0 ? string.Format(MapText.LiveHostilesTitle, h.Count, node.Label) : string.Format(MapText.LiveFactsTitle, node.Label),
+                   hostileRows is null ? null : string.Join("\n", hostileRows.Select(r => r.Text)))
+                : clear is not null
+                ? (string.Format(MapText.LiveClearTitle, node.Label), string.Format(MapText.LiveClearDetail, Ago(clear.At, now)))
+                : ((string?)null, (string?)null);
             result[id] = new MapMarkers(
-                h?.Count ?? 0,
-                h is null ? null
-                    : h.Count > 0 ? string.Format(MapText.LiveHostilesTitle, h.Count, node.Label)
-                    : string.Format(MapText.LiveFactsTitle, node.Label),
-                hostileRows is null ? null : string.Join("\n", hostileRows.Select(r => r.Text)),
+                h?.Count ?? 0, title, detail,
                 o?.Count ?? 0,
                 o is null ? null : string.Format(MapText.LiveOwnTitle, o.Count, node.Label),
                 ownRows is null ? null : string.Join("\n", ownRows.Select(r => r.Text)),
                 hostileRows, ownRows,
-                Reported: h is { Facts: not null },
+                Reported: h is { Facts: not null } || h is { Count: 0 },
                 Officers:      f?.Count ?? 0,
                 OfficerTitle:  f is null ? null : string.Format(MapText.LiveOfficersTitle, f.Count, node.Label),
                 OfficerDetail: officerRows is null ? null : string.Join("\n", officerRows.Select(r => r.Text)),
-                OfficerRows:   officerRows);
+                OfficerRows:   officerRows,
+                State:     h is not null ? StateOf(h) : clear is not null ? MapMarkState.Clear : MapMarkState.Hostile,
+                // "!" with nobody counted keeps the theme's danger colour: there is nobody to take a tier from.
+                Tint:      h is null || h.Count == 0 ? null : IntelTierColors.Colour(h.Tier),
+                Freshness: h?.Freshness ?? clear?.Freshness ?? 1.0);
         }
 
         // Regions: the sum, and which systems it is in.
@@ -922,6 +1028,7 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
             if (hostile.Count == 0 && own.Count == 0 && spawns.Count == 0) continue;
 
             var hCount = hostile.Sum(h => h.Count);
+            var counted = hostile.Where(h => h.Count > 0).ToList();
             var oCount = own.Sum(kv => kv.Value.Count);
             var fCount = spawns.Sum(kv => kv.Value.Count);
             result[region.Id] = new MapMarkers(
@@ -937,10 +1044,85 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
                 OfficerTitle:  fCount == 0 ? null : string.Format(MapText.LiveOfficersTitle, fCount, region.Label),
                 OfficerDetail: fCount == 0 ? null : string.Join("\n", spawns.Take(MaxListed)
                     .SelectMany(kv => kv.Value.Select(o => string.Format(MapText.LiveOfficerRegionLine,
-                        nodes[kv.Key].Label, o.Name, Ago(o.LastKill, now))))));
+                        nodes[kv.Key].Label, o.Name, Ago(o.LastKill, now))))),
+                // The region's mark: the worst tier in it, as fresh as its freshest news, hollow only when
+                // every count in it is no visual.
+                State:     counted.Count > 0 && counted.All(h => h.State == IntelSystemState.NoVisual) ? MapMarkState.NoVisual : MapMarkState.Hostile,
+                Tint:      counted.Count == 0 ? null : IntelTierColors.Colour(counted.Min(h => h.Tier)),
+                Freshness: counted.Count == 0 ? 1.0 : counted.Max(h => h.Freshness));
         }
 
         return result;
+    }
+
+    private static MapMarkState StateOf(SystemHostiles h) => h.State switch
+    {
+        IntelSystemState.NoVisual  => MapMarkState.NoVisual,
+        IntelSystemState.FlagsOnly => MapMarkState.FlagsOnly,
+        IntelSystemState.Clear     => MapMarkState.Clear,
+        _                          => h.Count > 0 ? MapMarkState.Hostile : MapMarkState.FlagsOnly,
+    };
+
+    /// <summary>
+    /// The camped gates for one map: each active camp on the line of its gate, in the worst tier among its
+    /// campers, fading as it ages, with a hover saying where, how many kills, when the last, and what the
+    /// campers brought.
+    /// </summary>
+    internal static List<MapCampMark> BuildCamps(LiveMapSnapshot live, MapGraph graph)
+    {
+        var nodes = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        var marks = new List<MapCampMark>();
+        foreach (var c in live.Camps)
+        {
+            if (!nodes.TryGetValue(c.SystemId, out var node)) continue;
+            var gate = nodes.TryGetValue(c.GateSystemId, out var far) ? far.Label
+                     : live.Intel?.SystemName(c.GateSystemId) ?? c.GateSystemId.ToString(CultureInfo.InvariantCulture);
+            var lines = new List<string>
+            {
+                string.Format(MapText.CampKillsLine, c.Camp.KillMailIds.Count, Ago(c.Camp.LastKill, live.At), c.Camp.Attackers.Count),
+                string.Format(MapText.LiveTierLine, IntelWords.TierName(c.Tier)),
+            };
+            if (IntelWords.Flags(0, c.Camp) is { Length: > 0 } flags) lines.Add(flags);
+            marks.Add(new MapCampMark(c.SystemId, c.GateSystemId, c.Camp.KillMailIds.Count, IntelTierColors.Colour(c.Tier), c.Freshness,
+                                      string.Format(MapText.CampTitle, gate, node.Label), string.Join("\n", lines)));
+        }
+        return marks;
+    }
+
+    /// <summary>
+    /// The reported directions for one map: solid from where pilots came from to where they were seen,
+    /// dashed from there to where they were said to be heading; in the report's worst tier, fading with it.
+    /// Newest first, and capped only after keeping the arrows with both ends on this map: capped first, a
+    /// region's map lost its own arrows to newer reports elsewhere. A region's map keeps the newest
+    /// <see cref="IntelMapView.MaxArrows"/>; the whole-universe map keeps more, and its canvas draws the
+    /// newest <see cref="IntelMapView.MaxArrows"/> of those on screen.
+    /// </summary>
+    internal static List<MapIntelArrow> BuildArrows(LiveMapSnapshot live, MapGraph graph)
+    {
+        var nodes = graph.Nodes.Where(n => !n.IsRegion || !graph.IsContinuous).GroupBy(n => n.Id).ToDictionary(g => g.Key, g => g.First());
+        string Name(int id) => nodes.TryGetValue(id, out var n) ? n.Label
+                             : live.Intel?.SystemName(id) ?? id.ToString(CultureInfo.InvariantCulture);
+        var cap = graph.IsContinuous ? IntelMapView.MaxArrowsListed : IntelMapView.MaxArrows;
+        var arrows = new List<MapIntelArrow>();
+        foreach (var a in live.Arrows)
+        {
+            if (arrows.Count >= cap) break;
+            if (!nodes.ContainsKey(a.FromSystemId) || !nodes.ContainsKey(a.ToSystemId)) continue;
+            var e = a.Event;
+            var who = e.Pilots.Select(p => p.Name).Where(n => !string.IsNullOrWhiteSpace(n)).Take(5).ToList();
+            var lines = new List<string>
+            {
+                a.Heading ? string.Format(MapText.ArrowHeadingLine, Name(a.FromSystemId), Name(a.ToSystemId), Ago(a.At, live.At))
+                          : string.Format(MapText.ArrowMoveLine, Name(a.FromSystemId), Name(a.ToSystemId), Ago(a.At, live.At)),
+            };
+            if (who.Count > 0) lines.Add(string.Join(", ", who));
+            if (e.Count > 0) lines.Add(string.Format(MapText.LiveUnidentified, e.Count));
+            if (!string.IsNullOrWhiteSpace(e.Message)) lines.Add(e.Message!);
+            arrows.Add(new MapIntelArrow(a.FromSystemId, a.ToSystemId, a.Heading, IntelTierColors.Colour(a.Tier), a.Freshness,
+                string.Format(a.Heading ? MapText.ArrowHeadingTitle : MapText.ArrowMoveTitle, Name(a.FromSystemId), Name(a.ToSystemId)),
+                string.Join("\n", lines)));
+        }
+        return arrows;
     }
 
     /// <summary>
@@ -1064,7 +1246,7 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
         at.UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     /// <summary>"12 min ago", "3 h 5 min ago" past the hour, or "2 d 4 h ago" past a day.</summary>
-    private static string Ago(DateTimeOffset at, DateTimeOffset now)
+    internal static string Ago(DateTimeOffset at, DateTimeOffset now)
     {
         var hours = (int)Math.Max(0, (now - at).TotalHours);
         if (hours >= 24) return string.Format(MapText.LiveDaysAgo, hours / 24, hours % 24);
@@ -1083,8 +1265,12 @@ public sealed class MapToolViewModel : ReactiveObject, IDisposable
     /// the map can put the portrait and the ship's icon in front of it.</summary>
     private static List<MapMarkRow> HostileRows(SystemHostiles h, DateTimeOffset now)
     {
-        // What was said about the system first — a spike or bubbles changes how to go in.
-        var said = h.Facts is { } facts ? new List<MapMarkRow> { new(facts) } : [];
+        // When, and how it was seen, first; then what was said about the system — a spike or bubbles
+        // changes how to go in.
+        var said = new List<MapMarkRow> { new(string.Format(MapText.LiveNewestLine, Ago(h.NewestAt, now))) };
+        if (h.State == EveConsole.Services.Intel.IntelSystemState.NoVisual) said.Add(new MapMarkRow(MapText.LiveNoVisualLine));
+        if (h.Count > 0) said.Add(new MapMarkRow(string.Format(MapText.LiveTierLine, IntelWords.TierName(h.Tier))));
+        if (h.Facts is { } facts) said.Add(new MapMarkRow(facts));
         var rows = said.Concat(h.Pilots.Take(MaxListed).Select(p =>
         {
             var ship    = p.Ship is { Length: > 0 } s ? s : MapText.LiveShipUnknown;
@@ -1204,6 +1390,8 @@ public sealed class UniverseTabViewModel : MapTabViewModel
     {
         Map = map;
         map.WhenAnyValue(m => m.Title).Subscribe(_ => this.RaisePropertyChanged(nameof(TabTitle)));
+        // The alert zone is read only while some map shows it: switched on, it is read at once.
+        map.AlertZonesWanted = tool.ZoneWanted;
 
         // A map that arrives after the marks were read (the graph loads a moment after the tab
         // opens) gets them as soon as it can place them.
@@ -1263,8 +1451,10 @@ public sealed class UniverseTabViewModel : MapTabViewModel
     {
         _live = live;
         if (Map.Graph is not { } graph) return;
-        Map.Markers  = MapToolViewModel.BuildMarkers(live, graph);
-        Map.NpcMarks = MapToolViewModel.BuildNpcMarks(live, graph, Map.ShowDiamonds, Map.NpcCapitalKinds);
+        Map.Markers     = MapToolViewModel.BuildMarkers(live, graph);
+        Map.NpcMarks    = MapToolViewModel.BuildNpcMarks(live, graph, Map.ShowDiamonds, Map.NpcCapitalKinds);
+        Map.CampedGates = MapToolViewModel.BuildCamps(live, graph);
+        Map.IntelArrows = MapToolViewModel.BuildArrows(live, graph);
     }
 
     /// <summary>The NPC marks again with the map's switches as they are now. UI thread.</summary>

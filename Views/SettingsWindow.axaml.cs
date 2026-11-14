@@ -172,6 +172,10 @@ public partial class SettingsWindow : Window
         => _ = Retention?.GameLog.PurgeNowAsync();
     private void OnPurgeChatClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.ChatMessages.PurgeNowAsync();
+    private void OnPurgeIntelClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = Retention?.Intel.PurgeNowAsync();
+    private void OnIntelShowWarningClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        => _ = (DataContext as SettingsViewModel)?.IntelVm.ShowFeedWarningAgainAsync();
     private void OnPurgeAgentTelemetryClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         => _ = Retention?.AgentTelemetry.PurgeNowAsync();
     private void OnPurgeDirectMessagesClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)

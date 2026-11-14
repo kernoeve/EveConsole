@@ -2,6 +2,7 @@ using EveConsole.Api;
 using EveConsole.Data;
 using EveConsole.Models;
 using EveConsole.Monitoring;
+using EveConsole.Services.Intel;
 using Microsoft.EntityFrameworkCore;
 using ReactiveUI;
 using EveConsole.Localization;
@@ -25,8 +26,94 @@ public sealed class IntelService(
     IDbContextFactory<AppDbContext> dbFactory,
     EsiClient                       esi,
     MonitoringSettings              settings,
-    AppErrorLogger                  errorLogger) : ReactiveObject
+    AppErrorLogger                  errorLogger,
+    ClientSignals                   signals,
+    WorkerLease                     lease) : ReactiveObject
 {
+    // ── Who parses ───────────────────────────────────────────────────────────
+    //
+    // ⚠️ The worker only. Every PC stores its own chat (the logs are files on that machine), and the
+    // worker parses everything stored, from every PC. See IntelSignals for why two parsers cannot share.
+
+    /// <summary>Whether this process parses: it holds the worker lease (always, on SQLite).</summary>
+    public bool IsWorker => lease.IsHolder;
+
+    /// <summary>
+    /// Raised on every PC when intel has been written anywhere (a pass, and later a paste or a kill
+    /// batch). On a background thread. What shows intel refreshes on it; the worker also runs its
+    /// intel alarms on it, so one pass is evaluated once, wherever it was written.
+    /// </summary>
+    public event Action? IntelChanged;
+
+    /// <summary>Set while a pass or a signal is waiting to go, so a burst of lines costs one.</summary>
+    private int _passQueued;
+
+    /// <summary>
+    /// New lines were stored in an intel channel, here: from a Jabber or IRC room, or the chat logs.
+    /// On the worker a pass runs; anywhere else the worker is told. Either way a burst becomes one,
+    /// 300 ms after its first line, and the pass waits its turn: one already running may have read
+    /// before these arrived.
+    /// </summary>
+    public void LinesStored()
+    {
+        if (Interlocked.Exchange(ref _passQueued, 1) == 1) return;
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromMilliseconds(300));
+            Interlocked.Exchange(ref _passQueued, 0);
+            try
+            {
+                if (IsWorker) await ProcessNewAsync(waitForTurn: true);
+                else await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Chat));
+            }
+            catch (Exception ex) { errorLogger.Log(nameof(IntelService), "after new intel lines", ex); }
+        });
+    }
+
+    /// <summary>
+    /// Handles the intel signals; false for anything else. Raised on a background thread, on every PC,
+    /// including the one that sent it.
+    /// </summary>
+    public bool TryApplySignal(string payload)
+    {
+        switch (IntelSignals.KindOf(payload))
+        {
+            case IntelSignals.Chat:
+                // Another PC stored lines. Only the worker acts; the others hear it and do nothing.
+                if (IsWorker) LinesStored();
+                return true;
+
+            case IntelSignals.Reparse:
+                if (IsWorker)
+                    _ = Task.Run(async () =>
+                    {
+                        try { await BackfillAsync(); }
+                        catch (Exception ex) { errorLogger.Log(nameof(IntelService), "re-parse asked by another PC", ex); }
+                    });
+                return true;
+
+            case IntelSignals.Changed:
+                try { IntelChanged?.Invoke(); }
+                catch (Exception ex) { errorLogger.Log(nameof(IntelService), "intel changed", ex); }
+                return true;
+
+            default:
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// The Settings button: re-parses here on the worker, and anywhere else asks the worker to. The
+    /// number of reports written, or null when the worker was asked (its progress then shows in
+    /// Background Processes, which relays the worker's intel line).
+    /// </summary>
+    public async Task<int?> ReparseAsync(IProgress<string>? progress = null, CancellationToken ct = default)
+    {
+        if (IsWorker) return await BackfillAsync(progress, ct);
+        await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Reparse), ct);
+        return null;
+    }
+
     // ── Observable state ─────────────────────────────────────────────────────
     // This runs off the chat importer's loop with no UI of its own, so without these it is
     // invisible: there is no way to tell a long backlog apart from a feature that is not
@@ -67,8 +154,9 @@ public sealed class IntelService(
 
     private IntelVocabulary? _vocabulary;
 
-    /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly.</summary>
-    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
+    /// <summary>Each channel's regions and system counts, re-read hourly: they change slowly. Kept with
+    /// the regions set by hand that they were built from, so a change to those rebuilds them.</summary>
+    private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (DateTimeOffset At, string Regions, IntelChannelHints Hints)> _hints = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>A name as ESI spells it, by the name as typed — a character's real capitalisation.</summary>
     private readonly Dictionary<string, string> _canonical = new(StringComparer.OrdinalIgnoreCase);
@@ -105,6 +193,9 @@ public sealed class IntelService(
     /// </summary>
     public async Task<int> ProcessNewAsync(CancellationToken ct = default, bool waitForTurn = false)
     {
+        // The worker parses; see IntelSignals. A PC that is not tells it instead (LinesStored).
+        if (!IsWorker) return 0;
+
         var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
@@ -148,11 +239,17 @@ public sealed class IntelService(
         }
     }
 
-    /// <summary>What is parsed: the chat channels ticked in Settings and the Jabber rooms marked Intel.</summary>
+    /// <summary>
+    /// What is parsed: the chat channels ticked in Settings and the Jabber and IRC rooms marked Intel,
+    /// both as the database holds them now. ⚠️ Never this process's copy: the channels can be ticked on
+    /// any PC, and this one may be a headless worker that never shows Settings at all
+    /// (see <see cref="MonitoringSettings.ReadIntelChannelsAsync"/>).
+    /// </summary>
     private async Task<IReadOnlyList<string>> ChannelsAsync(CancellationToken ct)
     {
+        var chat = await settings.ReadIntelChannelsAsync(ct);
         await RefreshRoomChannelsAsync(ct);
-        return [.. settings.ChatIntelChannels, .. RoomChannels];
+        return [.. chat, .. RoomChannels];
     }
 
     /// <summary>
@@ -276,6 +373,9 @@ public sealed class IntelService(
     public async Task<int> BackfillAsync(
         IProgress<string>? progress = null, CancellationToken ct = default)
     {
+        // The worker parses; anywhere else ReparseAsync asks it to.
+        if (!IsWorker) return 0;
+
         var channels = await ChannelsAsync(ct);
         if (channels.Count == 0) return 0;
 
@@ -305,8 +405,12 @@ public sealed class IntelService(
 
             // Channel-scoped as well as time-scoped: a report from a channel no longer configured
             // for intel would not be regenerated either, so it is not ours to delete.
+            //
+            // ⚠️ And never a paste (ChatMessageId 0): it came from no chat message, so nothing re-parsed
+            // would bring it back.
             var doomed = db.IntelReports
-                .Where(r => string.Compare(r.ReportedAt, oldest) >= 0 && channels.Contains(r.ChannelName));
+                .Where(r => r.ChatMessageId > 0
+                         && string.Compare(r.ReportedAt, oldest) >= 0 && channels.Contains(r.ChannelName));
 
             await db.IntelReportCharacters
                 .Where(c => doomed.Any(r => r.Id == c.IntelReportId))
@@ -314,7 +418,8 @@ public sealed class IntelService(
             await doomed.ExecuteDeleteAsync(ct);
         }
 
-        settings.IntelWatermark = 0;
+        // Awaited: the pass below reads the watermark from the database, not from this process.
+        await settings.ResetIntelWatermarkAsync();
         return await RunAsync(channels, once: false, progress, ct);
     }
 
@@ -323,10 +428,11 @@ public sealed class IntelService(
     private async Task<int> RunAsync(
         IReadOnlyList<string> channels, bool once, IProgress<string>? progress, CancellationToken ct)
     {
-        var written = 0;
-        var seen    = 0;
-        var total   = 0;
-        IsRunning   = true;
+        var written  = 0;   // rows, copies too: anything written means every PC refreshes
+        var reported = 0;   // reports, copies not: what the status line and the caller are told
+        var seen     = 0;
+        var total    = 0;
+        IsRunning    = true;
 
         try
         {
@@ -334,13 +440,24 @@ public sealed class IntelService(
         {
             using var db = dbFactory.CreateDbContext();
 
-            var after = settings.IntelWatermark;
+            // ⚠️ From the database every time, never this process's copy: the worker can move to
+            // another PC, and the copy is wherever the watermark stood when this one started.
+            var after = await settings.ReadIntelWatermarkAsync(ct);
             var batch = await db.ChatMessages.AsNoTracking()
                 .Where(m => channels.Contains(m.ChannelName) && !m.IsSystemMessage && m.Id > after)
                 .OrderBy(m => m.Id)
                 .Take(MessageBatch)
                 .Select(m => new { m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message })
                 .ToListAsync(ct);
+
+            // ⚠️ The channels again, after the batch. One ticked on another PC between the list being
+            // read and the batch being read can already have lines in the batch's span, and the
+            // watermark is about to move past them: read the batch again with it instead. A line
+            // stored before its channel was ticked is history, for a re-parse, as it always was.
+            var current = await ChannelsAsync(ct);
+            var added   = current.Except(channels, StringComparer.Ordinal).Any();
+            channels    = current;
+            if (added) continue;
 
             if (batch.Count == 0)
             {
@@ -359,9 +476,11 @@ public sealed class IntelService(
             var vocabulary = await VocabularyAsync(db, ct);
 
             // One lexicon per channel: a shortened system name is read in the channel's regions.
+            // The regions as the database holds them now, for the same reason as the channels.
+            var regions  = await settings.ReadIntelChannelRegionsAsync(ct);
             var lexicons = new Dictionary<string, IntelLexicon>(StringComparer.OrdinalIgnoreCase);
             foreach (var channel in batch.Select(m => m.ChannelName).Distinct(StringComparer.OrdinalIgnoreCase))
-                lexicons[channel] = new IntelLexicon(vocabulary, await HintsAsync(db, vocabulary, channel, ct), IsCharacter);
+                lexicons[channel] = new IntelLexicon(vocabulary, await HintsAsync(db, vocabulary, channel, regions, ct), IsCharacter);
 
             // One resolution pass for the whole batch, so a busy channel costs a handful of ESI
             // calls rather than one per line.
@@ -407,9 +526,12 @@ public sealed class IntelService(
             // was said, by whom, about where, and when. Doubles as the within-batch guard.
             var minAt = batch.Min(m => m.OccurredAt) ?? "";
             var maxAt = batch.Max(m => m.OccurredAt) ?? "";
+            //
+            // ⚠️ With the channel: the same person saying the same line in two channels in the same second is a relay,
+            // stored as a copy (below), not a line already parsed and dropped, which the Feed showed as chatter.
             var seenContent = (await db.Database.SqlQueryRaw<string>(
                     """
-                    SELECT "ReportedAt" || '|' || "ReporterName" || '|' || "SystemId" || '|' || "Message" AS "Value"
+                    SELECT "ReportedAt" || '|' || "ChannelName" || '|' || "ReporterName" || '|' || "SystemId" || '|' || "Message" AS "Value"
                     FROM "IntelReports" WHERE "ReportedAt" >= {0} AND "ReportedAt" <= {1}
                     """, minAt, maxAt)
                 .ToListAsync(ct))
@@ -420,58 +542,166 @@ public sealed class IntelService(
 
             var pending = new List<(IntelReport Report, List<IntelReportCharacter> Pilots)>();
 
+            // Copies of a report made in this same batch: pointed at it once it is saved and has an id.
+            var copies = new List<(IntelReport Copy, IntelReport Original)>();
+
             // A clear obsoletes everything in its system older than itself, so only the newest
             // clear per system in this batch needs applying — an earlier one can only ever
             // retire a subset of what the later one does.
             var clears = new Dictionary<int, string>();
 
+            // Follow-up lines ("+3", "nv", "heading XQ1-Z2"): what each could belong to is a report
+            // stored up to the longer of the two windows before the batch, or one the batch makes.
+            // Both windows as the database holds them now: they are shared settings.
+            var followWindow = await IntelThreads.WindowAsync(db, ct);
+            var namedLife    = await IntelLastSeenWriter.NamedLifetimeAsync(db, ct);
+            var reach        = followWindow > namedLife ? followWindow : namedLife;
+            var threads      = await IntelThreads.LoadAsync(db, IntelThreads.Shift(minAt, -reach) ?? "", maxAt, ct);
+
+            // When each pilot a follow-up could name or copy was on a kill. Asked first for every character the
+            // batch names, at once, and then only for pilots of earlier reports not asked about yet.
+            var killTimes  = new Dictionary<long, List<string>>();
+            var killsAsked = new HashSet<long>();
+            async Task<Dictionary<long, List<string>>> KillsOf(IEnumerable<long> pilots)
+            {
+                var ask = (killsAsked.Count == 0 ? pilots.Concat(Resolved(candidates)) : pilots)
+                    .Where(killsAsked.Add).ToList();
+                if (ask.Count > 0)
+                    foreach (var (id, times) in await KillTimesAsync(db, ask, minAt, maxAt, reach, ct))
+                        killTimes[id] = times;
+                return killTimes;
+            }
+
             foreach (var m in batch)
             {
-                var parsed = IntelRules.Parse(m.Message, lexicons[m.ChannelName]);
-                if (parsed is null) continue;
+                if (already.Contains(m.Id)) continue;
 
-                if (parsed.Kind == IntelRules.IntelKind.Clear)
+                var lexicon = lexicons[m.ChannelName];
+                var parsed  = IntelRules.Parse(m.Message, lexicon);
+
+                (IntelReport Report, List<IntelReportCharacter> Pilots) built;
+                IntelThreads.Entry? basis = null;
+                IntelReport? copyOf = null;
+
+                if (parsed is not null)
                 {
-                    if (vocabulary.Exact(parsed.SystemName) is { Id: var clearedId } &&
-                        (!clears.TryGetValue(clearedId, out var prev) ||
-                         string.CompareOrdinal(m.OccurredAt, prev) > 0))
-                        clears[clearedId] = m.OccurredAt;
-                    continue;
+                    if (vocabulary.Exact(parsed.SystemName) is not { Id: var systemId }) continue;
+                    built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, systemId, m.Message, parsed,
+                                        SystemIdOf(vocabulary, parsed.FromSystem), SystemIdOf(vocabulary, parsed.HeadingSystem));
+                }
+                else
+                {
+                    // No place of its own: a follow-up to a report already made, or nothing.
+                    if (IntelRules.ParseFollowUp(m.Message, lexicon) is not { } follow) continue;
+                    var named = Pilots(follow.Pilots);
+
+                    var parent = threads.BySameReporter(m.ChannelName, m.SenderName, m.OccurredAt, followWindow);
+                    if (parent is null && named.Count > 0)
+                    {
+                        var namedIds = named.Select(p => p.CharacterId).ToList();
+                        parent = threads.ByPilot(namedIds, m.OccurredAt, namedLife, await KillsOf(namedIds));
+                    }
+
+                    // ⚠️ A relay of a follow-up held from another channel: the same words, so a copy of it. Asked before
+                    // the thread found is taken, or a relay's "+2" would add two more to the thread the first "+2" already
+                    // did (its reporter's earlier relayed line stands for that thread, see BySameReporter). And with no
+                    // thread found the line was dropped, so the Feed showed a relayed "+2" or "nv" as chatter.
+                    // Only when the thread found is the one the held line is in: a "+2" of another thread is not a copy.
+                    var repeats = held.CopyOfLine(m.ChannelName, m.OccurredAt, m.Message, follow.Clear);
+                    if (repeats is not null && (parent is null || threads.SameThread(repeats, parent)))
+                    {
+                        var line = Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message);
+                        line.SystemId   = repeats.SystemId;
+                        line.SystemName = repeats.SystemName;
+                        line.Source     = IntelReportSource.Chat;
+                        if (repeats.Kind == IntelReportKind.Clear)
+                        {
+                            // A relayed clear: a clear of the same system, which retires nothing of its own (RelaysClear below).
+                            line.Kind     = IntelReportKind.Clear;
+                            line.NoVisual = follow.NoVisual;
+                            line.Note     = string.IsNullOrWhiteSpace(follow.Note) ? null : follow.Note;
+                        }
+                        else copyOf = repeats;
+                        built = (line, []);
+                    }
+                    else
+                    {
+                        // ⚠️ Unattached: not stored as intel. A report with no system would break everything
+                        // that reads intel by system; the line itself stays in the chat it came from.
+                        if (parent is null) continue;
+
+                        // The report's pilots who have been called elsewhere or been on a kill since are not copied.
+                        basis = threads.Newest(parent, m.OccurredAt);
+                        HashSet<long> gone = basis.Pilots.Count == 0 ? []
+                            : threads.Gone(basis, m.OccurredAt, await KillsOf(basis.Pilots.Select(p => p.CharacterId)));
+                        built = IntelThreads.Restate(basis, follow, named,
+                                                     Line(m.Id, m.OccurredAt, m.ChannelName, m.SenderName, m.Message),
+                                                     SystemIdOf(vocabulary, follow.HeadingSystem), gone);
+                    }
                 }
 
-                if (vocabulary.Exact(parsed.SystemName) is not { Id: var systemId }) continue;
-                if (already.Contains(m.Id)) continue;
+                var report = built.Report;
 
                 // Add returns false when this exact report is already stored, or has already
                 // been built earlier in this same batch.
-                if (!seenContent.Add($"{m.OccurredAt}|{m.SenderName}|{systemId}|{m.Message}"))
+                if (!seenContent.Add($"{m.OccurredAt}|{m.ChannelName}|{m.SenderName}|{report.SystemId}|{m.Message}"))
                     continue;
 
-                var built = BuildReport(m.Id, m.OccurredAt, m.ChannelName, m.SenderName,
-                                        systemId, m.Message, parsed);
-                if (built is null) continue;
+                // Pilots with their hulls, and the heading: a follow-up that adds only those is not a copy.
+                // ⚠️ A copy is stored, as a copy of its original and nothing more: no pilots, no count, no thread, no
+                // last seen, no clear. Dropped instead, the line had no report and the Feed showed it as chatter.
+                // Its reporter's next follow-up in its channel still finds the original's thread (AddCopy).
+                if ((copyOf ?? held.CopyOf(report, built.Pilots)) is { } original)
+                {
+                    var copy = Copy(report, original);
+                    pending.Add((copy, []));
+                    if (original.Id == 0) copies.Add((copy, original));
+                    threads.AddCopy(copy, original);
+                    continue;
+                }
+                // Before it is held itself: a clear relaying one held already retires nothing of its own.
+                var relayedClear = held.RelaysClear(report);
+                held.Add(report, built.Pilots);
 
-                var named = built.Value.Pilots.Select(p => p.CharacterId).ToList();
-                if (held.IsCopy(built.Value.Report, named)) continue;
-                held.Add(built.Value.Report, named);
+                pending.Add(built);
+                if (basis is null) threads.AddNew(report, built.Pilots);
+                else threads.AddFollowUp(basis, report, built.Pilots, DateTimeOffset.UtcNow);
 
-                pending.Add(built.Value);
-                seenCharacters.AddRange(built.Value.Pilots.Select(p => p.CharacterId));
-                if (built.Value.Report.ReporterCharacterId is { } rid) seenCharacters.Add(rid);
+                // A clear is a row now (Kind 1), standing for its own time; it still retires what
+                // was standing in its system before it. A relay of a clear already held does not: stamped later, it
+                // would retire the sightings called between the clear and its relay.
+                if (report.Kind == IntelReportKind.Clear)
+                {
+                    if (relayedClear) continue;
+                    if (!clears.TryGetValue(report.SystemId, out var prev) || string.CompareOrdinal(m.OccurredAt, prev) > 0)
+                        clears[report.SystemId] = m.OccurredAt;
+                    continue;
+                }
+
+                seenCharacters.AddRange(built.Pilots.Select(p => p.CharacterId));
+                if (report.ReporterCharacterId is { } rid) seenCharacters.Add(rid);
             }
 
-            written += await FlushAsync(db, pending, ct);
+            // Relayed copies are written but are no reports of their own: the status line counts reports, as the
+            // summary after the pass does.
+            reported += pending.Count(p => p.Report.Kind != IntelReportKind.Copy);
+            written  += await FlushAsync(db, pending, threads, copies, ct);
+            await RelinkCopiesAsync(db, held, minAt, maxAt, ct);
             await ApplyClearsAsync(db, clears, ct);
 
             // One affiliation pass for the whole batch rather than one per report.
             await EnsureAffiliationsAsync(db, seenCharacters, ct);
+
+            // After the affiliations, so a pilot first seen in this batch has the one just pulled.
+            await WriteLastSeenAsync(db, pending, ct);
 
             // Keeps the write-ahead log from running away over a long backfill. Left to grow it
             // reached 1.18 GB, at which point every read had to search it and the periodic
             // automatic checkpoint became a multi-second stall.
             await CheckpointAsync(db, ct);
 
-            settings.IntelWatermark = batch[^1].Id;
+            // Forward only, and awaited: the next batch reads it back from the database.
+            await settings.AdvanceIntelWatermarkAsync(batch[^1].Id, ct);
             seen += batch.Count;
 
             // One figure, published once, so the two rows in Background Processes cannot
@@ -482,8 +712,8 @@ public sealed class IntelService(
             var day  = batch[^1].OccurredAt.Length >= 10 ? batch[^1].OccurredAt[..10] : "";
             var left = Backlog;
             StatusText = left > 0
-                ? string.Format(DataText.IntelStatusParsingMore, day, written, left)
-                : string.Format(DataText.IntelStatusParsing, day, written);
+                ? string.Format(DataText.IntelStatusParsingMore, day, reported, left)
+                : string.Format(DataText.IntelStatusParsing, day, reported);
             progress?.Report(StatusText);
 
             if (once || batch.Count < MessageBatch) break;
@@ -499,9 +729,13 @@ public sealed class IntelService(
             using var db = dbFactory.CreateDbContext();
             await SupersedeAllAsync(db, ct);
             await CheckpointAsync(db, ct);
+
+            // Every PC refreshes what it shows, and the worker (this one) runs the intel alarms on
+            // hearing it: once per pass, wherever it was written. Nothing here calls the alarms itself.
+            await signals.PublishAsync(IntelSignals.Payload(IntelSignals.Changed), ct);
         }
 
-        return written;
+        return reported;
         }
         finally
         {
@@ -531,11 +765,38 @@ public sealed class IntelService(
         var pilots = (await (from c in db.IntelReportCharacters.AsNoTracking()
                              join r in db.IntelReports.AsNoTracking() on c.IntelReportId equals r.Id
                              where string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
-                             select new { c.IntelReportId, c.CharacterId }).ToListAsync(ct))
-            .ToLookup(c => c.IntelReportId, c => c.CharacterId);
+                             select new { c.IntelReportId, c.CharacterId, c.ShipTypeId }).ToListAsync(ct))
+            .ToLookup(c => c.IntelReportId, c => new IntelReportCharacter { CharacterId = c.CharacterId, ShipTypeId = c.ShipTypeId });
 
         foreach (var report in reports) held.Add(report, pilots[report.Id]);
         return held;
+    }
+
+    /// <summary>
+    /// Points stored copies around the batch whose link is lost at the report they repeat, once the batch's reports
+    /// are saved. Lost two ways: the original's chat log read again from the start (ChatLogImportService deletes its
+    /// report, and this pass makes it anew under another id), or a pass that stopped between FlushAsync's two saves
+    /// (the copy saved, its link not; the next pass skips the line as parsed). Either way the line was heard in one
+    /// place fewer than it was.
+    /// </summary>
+    private static async Task RelinkCopiesAsync(AppDbContext db, IntelDuplicates held, string minAt, string maxAt, CancellationToken ct)
+    {
+        if (IntelRooms.Parse(minAt) is not { } first || IntelRooms.Parse(maxAt) is not { } last) return;
+        var since = ChatLogRules.FormatTimestamp(first - IntelDuplicates.Window);
+        var until = ChatLogRules.FormatTimestamp(last + IntelDuplicates.Window);
+
+        var lost = await db.IntelReports.AsNoTracking()
+            .Where(r => r.Kind == IntelReportKind.Copy
+                        && string.Compare(r.ReportedAt, since) >= 0 && string.Compare(r.ReportedAt, until) <= 0
+                        && (r.ParentReportId == null || !db.IntelReports.Any(p => p.Id == r.ParentReportId)))
+            .ToListAsync(ct);
+
+        foreach (var copy in lost)
+        {
+            if (held.OriginalOfCopy(copy) is not { Id: > 0 } original) continue;
+            await db.IntelReports.Where(r => r.Id == copy.Id)
+                .ExecuteUpdateAsync(s => s.SetProperty(r => r.ParentReportId, (int?)original.Id), ct);
+        }
     }
 
     /// <summary>What the status line says when nothing is running.</summary>
@@ -544,7 +805,8 @@ public sealed class IntelService(
         try
         {
             using var db = dbFactory.CreateDbContext();
-            var total = await db.IntelReports.CountAsync(ct);
+            // Relayed copies are not reports of their own.
+            var total = await db.IntelReports.CountAsync(r => r.Kind != IntelReportKind.Copy, ct);
             if (total == 0) return DataText.IntelStatusNothing;
 
             var newest = await db.IntelReports.AsNoTracking()
@@ -567,35 +829,65 @@ public sealed class IntelService(
 
     /// <summary>Builds a report and its pilots in memory. No database access — the caller
     /// writes a whole batch at once.</summary>
-    private (IntelReport Report, List<IntelReportCharacter> Pilots)? BuildReport(
+    private (IntelReport Report, List<IntelReportCharacter> Pilots) BuildReport(
         int chatMessageId, string reportedAt, string channel, string reporter,
-        int systemId, string message, IntelRules.ParsedIntel parsed)
+        int systemId, string message, IntelRules.ParsedIntel parsed, int? fromSystemId, int? headingSystemId)
     {
-        var report = new IntelReport
-        {
-            ReportedAt    = reportedAt,
-            ChannelName   = channel,
-            ReporterName  = reporter,
-            SystemId      = systemId,
-            SystemName    = parsed.SystemName,
-            PlayerCount   = parsed.PlayerCount,
-            Note          = string.IsNullOrWhiteSpace(parsed.Note) ? null : parsed.Note,
-            Message       = message,
-            NoVisual      = parsed.NoVisual,
-            Obsolete      = false,
-            ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
-            ChatMessageId = chatMessageId,
-            Flags         = (int)parsed.Flags,
-            Gate          = parsed.Gate,
-            // The same hull named twice is two of it: "Loki  Loki  Sabre" is "2× Loki, Sabre".
-            Ships         = parsed.Ships.Count == 0 ? null
-                          : string.Join(", ", parsed.Ships.GroupBy(s => s.Name).Select(g => (Name: g.Key, Count: g.Sum(s => s.Count)))
-                                                    .Select(s => s.Count > 1 ? $"{s.Count}× {s.Name}" : s.Name)),
-        };
+        var report = Line(chatMessageId, reportedAt, channel, reporter, message);
+        report.Kind            = parsed.Kind == IntelRules.IntelKind.Clear ? IntelReportKind.Clear : IntelReportKind.Sighting;
+        report.SystemId        = systemId;
+        report.SystemName      = parsed.SystemName;
+        report.PlayerCount     = parsed.PlayerCount;
+        report.Note            = string.IsNullOrWhiteSpace(parsed.Note) ? null : parsed.Note;
+        report.NoVisual        = parsed.NoVisual;
+        report.Flags           = (int)parsed.Flags;
+        report.Gate            = parsed.Gate;
+        report.Ships           = IntelThreads.FormatShips(parsed.Ships.Select(s => (s.Name, s.Count)));
+        report.FromSystemId    = fromSystemId;
+        report.HeadingSystemId = headingSystemId;
 
+        return (report, Pilots(parsed.Pilots));
+    }
+
+    /// <summary>
+    /// The row for a line that repeats <paramref name="original"/> from another channel: the line itself, its system, and
+    /// the link. Nothing it said is kept as information (no pilots, count, flags, gate, hulls or direction): all of it is
+    /// the original's, and a reader that forgot to leave copies out would count it twice. The link is set here when the
+    /// original is stored already, else once it is saved (<see cref="FlushAsync"/>).
+    /// </summary>
+    private static IntelReport Copy(IntelReport report, IntelReport original) => new()
+    {
+        ReportedAt          = report.ReportedAt,
+        ChannelName         = report.ChannelName,
+        ReporterName        = report.ReporterName,
+        ReporterCharacterId = report.ReporterCharacterId,
+        Message             = report.Message,
+        ChatMessageId       = report.ChatMessageId,
+        Source              = IntelReportSource.Chat,
+        Kind                = IntelReportKind.Copy,
+        SystemId            = original.SystemId,
+        SystemName          = original.SystemName,
+        ParentReportId      = original.Id > 0 ? original.Id : null,
+    };
+
+    /// <summary>A report with only what the line itself gives: the message, when, where it was said, and by whom.</summary>
+    private IntelReport Line(int chatMessageId, string reportedAt, string channel, string reporter, string message) => new()
+    {
+        ReportedAt          = reportedAt,
+        ChannelName         = channel,
+        ReporterName        = reporter,
+        Message             = message,
+        Obsolete            = false,
+        ReporterCharacterId = _nameCache.TryGetValue(reporter, out var rid) ? rid : null,
+        ChatMessageId       = chatMessageId,
+    };
+
+    /// <summary>The pilots a line names who resolved to characters, each once.</summary>
+    private List<IntelReportCharacter> Pilots(IEnumerable<IntelRules.SightedPilot> named)
+    {
         var pilots = new List<IntelReportCharacter>();
         var ids    = new HashSet<long>();
-        foreach (var pilot in parsed.Pilots)
+        foreach (var pilot in named)
         {
             if (!_nameCache.TryGetValue(pilot.Name, out var id) || id is null) continue;
             if (!ids.Add(id.Value)) continue;                  // the same pilot named twice
@@ -607,9 +899,29 @@ public sealed class IntelService(
                 ShipName      = pilot.Ship,
             });
         }
-
-        return (report, pilots);
+        return pilots;
     }
+
+    /// <summary>
+    /// When each of <paramref name="ids"/> was on a kill, from <paramref name="reach"/> before the batch's first line
+    /// to its last: a pilot seen on a kill since their report is no longer at that report.
+    /// </summary>
+    private static async Task<Dictionary<long, List<string>>> KillTimesAsync(
+        AppDbContext db, List<long> ids, string minAt, string maxAt, TimeSpan reach, CancellationToken ct)
+    {
+        if (ids.Count == 0
+            || !LiveIntelService.TryParseReported(minAt, out var from)
+            || !LiveIntelService.TryParseReported(maxAt, out var to)) return [];
+        return await IntelThreads.KillTimesAsync(db, ids, from - reach, to, ct);
+    }
+
+    /// <summary>The characters among <paramref name="names"/> the name cache knows, by id.</summary>
+    private IEnumerable<long> Resolved(IEnumerable<string> names) =>
+        names.Select(n => _nameCache.GetValueOrDefault(n)).Where(id => id is not null).Select(id => id!.Value);
+
+    /// <summary>A system's id by the name the parser gave, or null.</summary>
+    private static int? SystemIdOf(IntelVocabulary vocabulary, string? name) =>
+        name is not null && vocabulary.Exact(name) is { Id: var id } ? id : null;
 
     /// <summary>
     /// Writes a batch: two saves rather than two per report.
@@ -622,7 +934,7 @@ public sealed class IntelService(
     /// </summary>
     private static async Task<int> FlushAsync(
         AppDbContext db, List<(IntelReport Report, List<IntelReportCharacter> Pilots)> pending,
-        CancellationToken ct)
+        IntelThreads threads, List<(IntelReport Copy, IntelReport Original)> copies, CancellationToken ct)
     {
         if (pending.Count == 0) return 0;
 
@@ -633,19 +945,56 @@ public sealed class IntelService(
             foreach (var p in pilots)
                 p.IntelReportId = report.Id;
 
+        // Follow-ups of a report saved just now point at it by id; still tracked, so the save below
+        // writes them with the pilots. Copies of one likewise.
+        threads.LinkSaved();
+        foreach (var (copy, original) in copies)
+            copy.ParentReportId = original.Id;
+        copies.Clear();
+
         var all = pending.SelectMany(p => p.Pilots).ToList();
-        if (all.Count > 0)
-        {
-            db.IntelReportCharacters.AddRange(all);
-            await db.SaveChangesAsync(ct);
-        }
+        if (all.Count > 0) db.IntelReportCharacters.AddRange(all);
+        await db.SaveChangesAsync(ct);
+
+        // What the batch's follow-ups restated from earlier batches is superseded by them.
+        await threads.SupersedeRestatedAsync(db, DateTimeOffset.UtcNow, ct);
 
         db.ChangeTracker.Clear();
         return pending.Count;
     }
 
+    /// <summary>
+    /// Where each pilot named in the batch was last seen, after the reports are saved (the rows carry
+    /// their ids). A re-parse writes the same sightings again under new report ids, which the writer
+    /// takes as the same sighting, so the rows end up pointing at the reports that exist.
+    ///
+    /// <para>⚠️ Logged, never thrown: the reports are already saved, and a pass that failed here would
+    /// leave the watermark behind lines it has in fact written.</para>
+    /// </summary>
+    private async Task WriteLastSeenAsync(
+        AppDbContext db, List<(IntelReport Report, List<IntelReportCharacter> Pilots)> pending, CancellationToken ct)
+    {
+        var rows = pending
+            .SelectMany(p => p.Pilots.Select(c => IntelLastSeenFeed.ReportRow(
+                p.Report.Id, p.Report.ReportedAt, p.Report.SystemId, p.Report.Source, p.Report.NoVisual, c)))
+            .ToList();
+        if (rows.Count == 0) return;
+
+        try
+        {
+            rows = await IntelLastSeenFeed.WithPulledAffiliationsAsync(db, rows, ct);
+            await IntelLastSeenWriter.UpsertAsync(db, rows, ct);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            errorLogger.Log(nameof(IntelService), "last seen", ex);
+        }
+    }
+
     /// <summary>Applies the newest clear per system, one statement each rather than one per
-    /// clear line.</summary>
+    /// clear line. Sightings only: the clears are rows too now, each standing for its own time,
+    /// and a newer one says nothing against an older one.</summary>
     private static async Task ApplyClearsAsync(
         AppDbContext db, Dictionary<int, string> clears, CancellationToken ct)
     {
@@ -654,7 +1003,7 @@ public sealed class IntelService(
         var now = DateTimeOffset.UtcNow;
         foreach (var (systemId, at) in clears)
             await db.IntelReports
-                .Where(r => r.SystemId == systemId && !r.Obsolete
+                .Where(r => r.SystemId == systemId && r.Kind == IntelReportKind.Sighting && !r.Obsolete
                          && string.Compare(r.ReportedAt, at) < 0)
                 .ExecuteUpdateAsync(s => s.SetProperty(r => r.Obsolete, true)
                                           .SetProperty(r => r.ObsoleteSetOn, now), ct);
@@ -670,16 +1019,29 @@ public sealed class IntelService(
     ///
     /// Ties on ReportedAt fall to the higher Id, since chat timestamps are only accurate to the
     /// second and a pilot really does get called in two systems within one.
+    ///
+    /// <para>⚠️ Only the last <see cref="SupersedeWindow"/>, on both sides. The statement joins every
+    /// pilot's reports to every other report of that pilot, and over the whole history that is a
+    /// self-join of a table that only grows, run after every pass that writes anything. A report a
+    /// day old is history whatever came after it, and the views never look that far back.</para>
     /// </summary>
-    private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct) =>
+    private static Task SupersedeAllAsync(AppDbContext db, CancellationToken ct)
+    {
+        var since = DateTimeOffset.UtcNow - SupersedeWindow;
+        var sinceText = since.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
         // ⚠️ The value, not a rendering of it. ObsoleteSetOn is a timestamptz on a server,
-        // and text does not implicitly convert into one.
-        db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow], ct);
+        // and text does not implicitly convert into one. The bound is text: ReportedAt is.
+        return db.Database.ExecuteSqlRawAsync(SupersedeSql, [DateTimeOffset.UtcNow, sinceText], ct);
+    }
+
+    /// <summary>How far back one report can still supersede another.</summary>
+    private static readonly TimeSpan SupersedeWindow = TimeSpan.FromHours(24);
 
     private const string SupersedeSql = """
         UPDATE "IntelReports"
         SET "Obsolete" = TRUE, "ObsoleteSetOn" = {0}
         WHERE "Obsolete" = FALSE
+          AND "ReportedAt" >= {1}
           AND EXISTS (
             SELECT 1
             FROM "IntelReportCharacters" c1
@@ -687,6 +1049,7 @@ public sealed class IntelService(
             JOIN "IntelReports" r2        ON r2."Id" = c2."IntelReportId"
             WHERE c1."IntelReportId" = "IntelReports"."Id"
               AND r2."Id" <> "IntelReports"."Id"
+              AND r2."ReportedAt" >= {1}
               AND (r2."ReportedAt" > "IntelReports"."ReportedAt"
                 OR (r2."ReportedAt" = "IntelReports"."ReportedAt"
                     AND r2."Id" > "IntelReports"."Id")))
@@ -832,15 +1195,21 @@ public sealed class IntelService(
     /// for it in Settings, or, when none are, the ones it has been seen to report on.
     /// </summary>
     private async Task<IntelChannelHints> HintsAsync(
-        AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
+        AppDbContext db, IntelVocabulary vocabulary, string channel,
+        IReadOnlyDictionary<string, IReadOnlyList<string>> setRegions, CancellationToken ct)
     {
-        if (_hints.TryGetValue(channel, out var cached) && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
+        // Kept an hour, unless the regions set for the channel have changed since: a change made on any
+        // PC applies from the next pass, not an hour later.
+        var named = setRegions.TryGetValue(channel, out var list) ? list : null;
+        var key   = named is null ? "" : string.Join('\n', named);
+        if (_hints.TryGetValue(channel, out var cached) && cached.Regions == key
+            && DateTimeOffset.UtcNow - cached.At < TimeSpan.FromHours(1))
             return cached.Hints;
 
         var (frequency, learned) = await LearnAsync(db, vocabulary, channel, ct);
 
         var regions = learned;
-        if (settings.IntelChannelRegions.TryGetValue(channel, out var named))
+        if (named is not null)
         {
             var wanted = named.Select(n => n.Trim().ToLowerInvariant()).ToHashSet();
             regions = (await db.SdeRegions.AsNoTracking().Select(r => new { r.RegionId, r.Name }).ToListAsync(ct))
@@ -848,7 +1217,7 @@ public sealed class IntelService(
         }
 
         var hints = new IntelChannelHints(regions, frequency);
-        _hints[channel] = (DateTimeOffset.UtcNow, hints);
+        _hints[channel] = (DateTimeOffset.UtcNow, key, hints);
         return hints;
     }
 
@@ -858,6 +1227,10 @@ public sealed class IntelService(
         AppDbContext db, IntelVocabulary vocabulary, string channel, CancellationToken ct)
     {
         var since = DateTimeOffset.UtcNow.AddDays(-365).UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ");
+
+        // Relayed copies count, on purpose: what is counted is the systems THIS channel names, one channel at a time,
+        // so nothing is counted twice. A relay room's lines are mostly copies, and they are what it talks about; left
+        // out, its hints would come from the few lines it carried first, and its shortened names be read worse.
         var frequency = await db.IntelReports.AsNoTracking()
             .Where(r => r.ChannelName == channel && string.Compare(r.ReportedAt, since) >= 0)
             .GroupBy(r => r.SystemId)
@@ -929,6 +1302,78 @@ public sealed class IntelService(
                 .Where(k => ids.Contains(k.VictimCharId)).Select(k => k.VictimCharId).Distinct().ToListAsync(ct))
             .ToHashSet();
         foreach (var id in ids) _onKillmail[id] = seen.Contains(id);
+    }
+
+    /// <summary>
+    /// Pasted names as characters, by name: the local name cache and the user's own characters first,
+    /// then ESI's /universe/ids in batches for the rest. What ESI finds goes into the shared name cache,
+    /// and what it says is no character is remembered as a miss, as in a pass.
+    ///
+    /// <para>⚠️ Its own lookups, never the pass's session cache: a paste is resolved on whichever PC it
+    /// is made, on its own thread, while the worker's pass may be reading that cache.</para>
+    ///
+    /// <para>⚠️ A name ESI did not answer for (the call failed) is in neither list of the result: it is
+    /// not known to be nobody, and the paste must not count it as an unnamed pilot.</para>
+    /// </summary>
+    public async Task<IntelNameLookup> ResolveCharactersAsync(
+        IReadOnlyCollection<string> names, CancellationToken ct = default)
+    {
+        var found = new Dictionary<string, long>(StringComparer.OrdinalIgnoreCase);
+        var misses = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var wanted = names.Select(n => n.Trim()).Where(n => n.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+        if (wanted.Count == 0) return new IntelNameLookup(found, misses);
+
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        foreach (var chunk in wanted.Chunk(500))
+        {
+            foreach (var c in await db.Characters.AsNoTracking().Where(c => chunk.Contains(c.Name))
+                         .Select(c => new { c.Name, c.Id }).ToListAsync(ct))
+                found.TryAdd(c.Name, c.Id);
+            foreach (var k in await db.UniverseNames.AsNoTracking().Where(n => n.Category == "character" && chunk.Contains(n.Name))
+                         .Select(n => new { n.Name, n.EntityId }).ToListAsync(ct))
+                found.TryAdd(k.Name, k.EntityId);
+        }
+
+        // Names already found to be nobody, recently: not asked about again.
+        // ⚠️ The age is checked in memory: a DateTimeOffset comparison does not translate on SQLite.
+        var left = wanted.Where(n => !found.ContainsKey(n)).ToList();
+        var recheck = DateTimeOffset.UtcNow - MissRecheck;
+        foreach (var chunk in left.Chunk(500))
+            foreach (var m in await db.NameLookupMisses.AsNoTracking().Where(m => chunk.Contains(m.Name))
+                         .Select(m => new { m.Name, m.CheckedAt }).ToListAsync(ct))
+                if (m.CheckedAt >= recheck) misses.Add(m.Name);
+        left = [.. left.Where(n => !misses.Contains(n))];
+
+        foreach (var slice in left.Chunk(LookupBatch))
+        {
+            try
+            {
+                var got = await esi.LookupEntityIdsAsync([.. slice], ct);
+                foreach (var (id, name, category) in got)
+                    if (category == "character") found.TryAdd(name, id);
+                // ESI answered: what it did not name as a character is nobody, kept so even if writing it down fails.
+                var nobody = slice.Where(s => !found.ContainsKey(s)).ToList();
+                misses.UnionWith(nobody);
+                await CacheNamesAsync(db, got, ct);
+                await RecordMissesAsync(db, nobody, ct);
+            }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+            catch (Exception ex)
+            {
+                // The rest stay not looked up (in neither list), rather than hammering a failing endpoint.
+                errorLogger.Log(nameof(IntelService), nameof(ResolveCharactersAsync), ex);
+                break;
+            }
+        }
+        return new IntelNameLookup(found, misses);
+    }
+
+    /// <summary>The corporation and alliance of each pilot not yet held, from ESI, into the shared
+    /// affiliation cache: for a paste, whose pilots no pass has seen.</summary>
+    public async Task FetchAffiliationsAsync(IReadOnlyCollection<long> characterIds, CancellationToken ct = default)
+    {
+        await using var db = await dbFactory.CreateDbContextAsync(ct);
+        await EnsureAffiliationsAsync(db, [.. characterIds], ct);
     }
 
     /// <summary>Fills <see cref="_nameCache"/> for every candidate not already known: the local

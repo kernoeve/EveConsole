@@ -948,4 +948,8 @@ Start a {1} client that may run them, or turn this off: remove "neverRunBackgrou
   <data name="NavIrc" xml:space="preserve">
     <value>IRC</value>
   </data>
+  <data name="NavIntel" xml:space="preserve">
+    <value>Intel</value>
+    <comment>Navigation item and tab title for the Intel tool: live intel by system, the feed, and pastes.</comment>
+  </data>
 </root>

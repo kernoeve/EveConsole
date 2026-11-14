@@ -5174,4 +5174,8 @@ The application will restart.</value>
   <data name="PurgeGroupChatOlderThan" xml:space="preserve">
     <value>Purge group chat older than</value>
   </data>
+  <data name="ChatIntelAskedWorker" xml:space="preserve">
+    <value>Asked the PC doing the background work to re-parse the history: only that PC parses intel. Its progress shows in Background Processes.</value>
+    <comment>Chat Logs tab, intel status after Re-parse on a PC that is not the background worker; the worker does the parsing and reports progress in the Background Processes window.</comment>
+  </data>
 </root>

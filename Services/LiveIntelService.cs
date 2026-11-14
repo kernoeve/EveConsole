@@ -1,7 +1,7 @@
 using System.Globalization;
 using EveConsole.Data;
 using EveConsole.Localization;
-using EveConsole.ViewModels;
+using EveConsole.Services.Intel;
 using Microsoft.EntityFrameworkCore;
 
 namespace EveConsole.Services;
@@ -21,11 +21,27 @@ public sealed record LivePilot(
 /// <param name="Facts">What the standing reports said besides who — "bubbles, gate camp · on the
 /// QZ-X77 gate" — in the interface language; null when nothing.</param>
 /// <param name="Ships">The newest report's hulls with nobody named in them, as read.</param>
+/// <param name="Freshness">1 when the newest news here is new, falling to 0 at the end of its
+/// lifetime: what the map fades a mark by.</param>
 public sealed record SystemHostiles(int SystemId, IReadOnlyList<LivePilot> Pilots, int Unidentified,
-                                    string? Facts = null, string? Ships = null)
+                                    string? Facts = null, string? Ships = null, double Freshness = 1.0)
 {
     public int Count => Pilots.Count + Unidentified;
+
+    /// <summary>The worst standings tier among the pilots and the camps' attackers; an unnamed count is
+    /// Neutral. What the map colours the mark by.</summary>
+    public StandingTier Tier { get; init; } = StandingTier.Neutral;
+
+    /// <summary>Seen, no visual only, or only something said (bubbles, a camp).</summary>
+    public IntelSystemState State { get; init; } = IntelSystemState.Hostile;
+
+    /// <summary>The newest news here, for "3 min ago".</summary>
+    public DateTimeOffset NewestAt { get; init; }
 }
+
+/// <summary>A system called clear, and nothing newer said of it.</summary>
+/// <param name="Freshness">1 when called, 0 when the clear lifetime is over: what the mark fades by.</param>
+public sealed record LiveClear(int SystemId, DateTimeOffset At, double Freshness);
 
 /// <summary>One of the user's own characters, online, and where it is.</summary>
 public sealed record OwnPilot(string Name, int SystemId, string? Hull, string? ShipName, bool Docked, string? Place,
@@ -49,218 +65,131 @@ public sealed record LiveMapSnapshot(
     DateTimeOffset                                             At,
     IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null,
     IReadOnlyDictionary<int, IReadOnlyList<DiamondActivity>>?    Diamonds = null,
-    IReadOnlyDictionary<int, IReadOnlyList<NpcCapitalSighting>>? Capitals = null);
+    IReadOnlyDictionary<int, IReadOnlyList<NpcCapitalSighting>>? Capitals = null)
+{
+    /// <summary>Systems called clear, with nothing newer: the map's green check.</summary>
+    public IReadOnlyDictionary<int, LiveClear> Clears { get; init; } = new Dictionary<int, LiveClear>();
+
+    /// <summary>Active gate camps, each drawn on the line of its gate.</summary>
+    public IReadOnlyList<IntelMapCamp> Camps { get; init; } = [];
+
+    /// <summary>Where reported pilots came from and were heading: the map's arrows, every live one in New Eden,
+    /// newest first. Each map caps them after keeping its own systems.</summary>
+    public IReadOnlyList<IntelMapArrow> Arrows { get; init; } = [];
+
+    /// <summary>The shared snapshot this was read from: the route planner's hostiles column reads it too.</summary>
+    public IntelSnapshot? Intel { get; init; }
+}
 
 /// <summary>
-/// Who is where right now: the last place each pilot was put by an intel report or a killmail,
-/// and where the user's own characters are.
+/// Who is where right now, in the form the Universe Map, the system pages and the route planner
+/// have always read: an adapter over the one shared intel read side,
+/// <see cref="IntelSnapshotService"/>, through <see cref="IntelLens"/>.
 ///
-/// <para><b>One placement per pilot, the newest.</b> A report places the pilots it names in its
-/// system; a killmail places every player attacker in the kill's system at the kill's time, with
-/// the ship on the mail. Whichever is newest is where the pilot is, so a gang reported in one
-/// system and then seen on a kill two jumps on moves with the kill. A killmail is the better
-/// sighting of the two — the exact pilot and hull, where a report may name neither.</para>
+/// <para>What the map shows is therefore what every intel view shows: each pilot where their last
+/// sighting put them (a report, a pasted Local, or a kill), for as long as that kind of sighting
+/// lasts (Settings → Intel), gone once the system is called clear or a pasted Local leaves them out;
+/// the unnamed count and the flags of the newest reports; and how fresh the news is.</para>
 ///
-/// <para><b>A loss takes the pilot off the map.</b> The victim of a newer killmail is down, and
-/// stays off until something places them again.</para>
-///
-/// <para><b>Only recent placements count</b> (<see cref="Window"/>). Anyone not reported or seen
-/// on a kill within it has gone stale and is not shown anywhere.</para>
-///
-/// <para><b>Hostile means not ours and not blue:</b> the user's own characters, their
-/// corporations and alliances, and anyone they or their corporations have set to positive
-/// standing are left out. Everyone else is shown — nobody else is known to be friendly.</para>
-///
-/// <para>⚠️ Computed on read, not stored. Intel is written by every client and killmails only by
-/// the one doing the background work, so a table of placements would need both writers to keep
-/// it right; reading the two sources together gives every client the same answer from the shared
-/// database.</para>
+/// <para><b>Hostile means not ours and not blue.</b> With no character chosen the map has no
+/// viewer, so a pilot counts as friendly when any of the user's characters has them blue (or the
+/// character forced in Settings → Intel does): nobody else is known to be friendly.</para>
 /// </summary>
-public sealed partial class LiveIntelService(
-    IDbContextFactory<AppDbContext> dbFactory,
-    CorpActivityService             names)
+public sealed partial class LiveIntelService(IntelSnapshotService snapshots, IDbContextFactory<AppDbContext>? dbFactory = null,
+                                             AppErrorLogger? errors = null)
 {
-    /// <summary>How recent a placement must be to count as "there now".</summary>
-    public static readonly TimeSpan Window = TimeSpan.FromMinutes(5);
+    /// <summary>How old the shared snapshot may be before the map's own poll reads a new one: just
+    /// under the map's five-second tick, so it never shows a picture a tick behind.</summary>
+    public static readonly TimeSpan MaxAge = TimeSpan.FromSeconds(4);
 
-    private sealed record Placement(
-        long CharacterId, DateTimeOffset At, int SystemId, bool Down, bool FromKillmail,
-        int? ShipTypeId, string? ShipName, string? Name, int ReportId, bool NoVisual,
-        long CorporationId, long AllianceId);
+    /// <summary>The shared snapshot itself, which the map subscribes to.</summary>
+    public IntelSnapshotService Snapshots => snapshots;
 
-    public async Task<LiveMapSnapshot> GetSnapshotAsync(CancellationToken ct = default)
+    public async Task<LiveMapSnapshot> GetSnapshotAsync(CancellationToken ct = default) =>
+        await ToMapAsync(await snapshots.FreshAsync(MaxAge, ct).ConfigureAwait(false), ct).ConfigureAwait(false);
+
+    /// <summary>The map's form of a snapshot, with the hulls a report counted named in the interface
+    /// language. Reads the type names, so off the UI thread.</summary>
+    public async Task<LiveMapSnapshot> ToMapAsync(IntelSnapshot snapshot, CancellationToken ct = default)
     {
-        var now    = DateTimeOffset.UtcNow;
-        var cutoff = now - Window;
+        Func<string, string> hullName = n => n;
+        if (dbFactory is null) return ToMap(snapshot, DateTimeOffset.UtcNow, hullName);
 
-        using var db = dbFactory.CreateDbContext();
+        var now = DateTimeOffset.UtcNow;
+        await using var db = await dbFactory.CreateDbContextAsync(ct).ConfigureAwait(false);
+        var english = snapshot.Systems.Values.SelectMany(s => IntelDisplay.ParseShips(s.Unnamed?.Ships)).Select(s => s.Name).ToList();
+        if (english.Count > 0)
+            hullName = await IntelDisplay.HullNamesAsync(db, english, ct).ConfigureAwait(false);
 
-        var placements = new List<Placement>();
-
-        // ── Intel reports ────────────────────────────────────────────────────
-        var cutoffText = cutoff.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
-        var reports = await db.IntelReports.AsNoTracking()
-            .Where(r => string.Compare(r.ReportedAt, cutoffText) >= 0)
-            .Select(r => new { r.Id, r.ReportedAt, r.SystemId, r.PlayerCount, r.NoVisual, r.Obsolete, r.Flags, r.Gate, r.Ships })
-            .ToListAsync(ct);
-
-        var reportIds = reports.Select(r => r.Id).ToList();
-        var pilots = reportIds.Count == 0 ? [] : await db.IntelReportCharacters.AsNoTracking()
-            .Where(c => reportIds.Contains(c.IntelReportId))
-            .Select(c => new { c.IntelReportId, c.CharacterId, c.CharacterName, c.ShipTypeId, c.ShipName })
-            .ToListAsync(ct);
-
-        var pilotIds = pilots.Select(p => p.CharacterId).Distinct().ToList();
-        var affiliations = pilotIds.Count == 0 ? [] : await db.CharacterAffiliations.AsNoTracking()
-            .Where(a => pilotIds.Contains(a.CharacterId))
-            .ToDictionaryAsync(a => a.CharacterId, a => (Corp: a.CorporationId, Alliance: a.AllianceId), ct);
-
-        var reportById = reports.ToDictionary(r => r.Id);
-        foreach (var p in pilots)
+        // ♦ rat activity and NPC capitals come from killmails, not intel: read here beside the
+        // snapshot (reused for two minutes), not by the intel pass. ⚠️ A failed read costs only
+        // those marks: the intel on the map must keep moving without them.
+        var map = ToMap(snapshot, now, hullName);
+        try
         {
-            var r = reportById[p.IntelReportId];
-            if (!TryParseReported(r.ReportedAt, out var at)) continue;
-            var aff = affiliations.GetValueOrDefault(p.CharacterId);
-            placements.Add(new Placement(p.CharacterId, at, r.SystemId, Down: false, FromKillmail: false,
-                p.ShipTypeId, p.ShipName, p.CharacterName, r.Id, r.NoVisual, aff.Corp, aff.Alliance));
+            var (diamonds, capitals) = await NpcActivityAsync(db, now, ct).ConfigureAwait(false);
+            return map with { Diamonds = diamonds, Capitals = capitals };
         }
-
-        // ── Killmails ────────────────────────────────────────────────────────
-        // ⚠️ Raw SQL for the time: SQLite cannot translate a DateTimeOffset comparison in LINQ.
-        var kills = await db.KillMailDetails
-            .FromSqlRaw("""SELECT * FROM "KillMailDetails" WHERE "KillMailTime" >= {0}""", cutoff)
-            .AsNoTracking()
-            .Select(k => new { k.KillMailId, k.KillMailTime, k.SolarSystemId, k.VictimCharId,
-                               k.VictimShipTypeId, k.VictimCorpId, k.VictimAllianceId })
-            .ToListAsync(ct);
-
-        var killIds = kills.Select(k => k.KillMailId).ToList();
-        var attackers = killIds.Count == 0 ? [] : await db.KillMailAttackers.AsNoTracking()
-            .Where(a => killIds.Contains(a.KillMailId) && a.CharacterId != null)
-            .Select(a => new { a.KillMailId, a.CharacterId, a.CorporationId, a.AllianceId, a.ShipTypeId })
-            .ToListAsync(ct);
-
-        var killById = kills.ToDictionary(k => k.KillMailId);
-        foreach (var a in attackers)
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
         {
-            var k = killById[a.KillMailId];
-            placements.Add(new Placement(a.CharacterId!.Value, k.KillMailTime, k.SolarSystemId, Down: false,
-                FromKillmail: true, a.ShipTypeId, null, null, 0, false,
-                a.CorporationId ?? 0, a.AllianceId ?? 0));
+            errors?.Log(nameof(LiveIntelService), "reading NPC activity", ex);
+            return map;
         }
-        foreach (var k in kills.Where(k => k.VictimCharId > 0))
-            placements.Add(new Placement(k.VictimCharId, k.KillMailTime, k.SolarSystemId, Down: true,
-                FromKillmail: true, k.VictimShipTypeId, null, null, 0, false,
-                k.VictimCorpId, k.VictimAllianceId ?? 0));
+    }
 
-        // ── Newest placement per pilot ───────────────────────────────────────
-        // At the same second a killmail beats a report: its time is the event itself, a report's
-        // is when somebody typed it.
-        var latest = placements
-            .GroupBy(p => p.CharacterId)
-            .Select(g => g.OrderByDescending(p => p.At).ThenByDescending(p => p.FromKillmail).First())
-            .ToList();
+    /// <summary>The map's form of a snapshot, seen with no viewer: every system with hostiles or
+    /// something said, the systems called clear, the active camps and the reports' arrows, every own
+    /// character, every officer.</summary>
+    public static LiveMapSnapshot ToMap(IntelSnapshot snapshot, DateTimeOffset now, Func<string, string>? hullName = null)
+    {
+        hullName ??= n => n;
+        var viewer = IntelMapView.Viewer();
+        var view   = IntelLens.Project(snapshot, viewer, now, _ => null);
 
-        // A report marked obsolete with none of its pilots seen anywhere since was cleared — a
-        // "clr" in that system — so the pilots it still holds are gone, not there.
-        var newestReportOfPilot = latest.Where(p => !p.FromKillmail).ToDictionary(p => p.CharacterId, p => p.ReportId);
-        bool Cleared(Placement p)
-        {
-            if (p.FromKillmail) return false;
-            var r = reportById[p.ReportId];
-            if (!r.Obsolete) return false;
-            // Obsolete, but a pilot of the same report has moved on — superseded, not cleared.
-            return pilots.Where(x => x.IntelReportId == p.ReportId)
-                         .All(x => newestReportOfPilot.TryGetValue(x.CharacterId, out var rid) && rid == p.ReportId);
-        }
-
-        var friendly = await FriendlyAsync(db, ct);
-        bool IsFriendly(Placement p) =>
-            friendly.Characters.Contains(p.CharacterId)
-            || (p.CorporationId > 0 && friendly.Corporations.Contains(p.CorporationId))
-            || (p.AllianceId    > 0 && friendly.Alliances.Contains(p.AllianceId));
-
-        var standing = latest.Where(p => !p.Down && !Cleared(p) && !IsFriendly(p)).ToList();
-
-        // ── Names ────────────────────────────────────────────────────────────
-        // ⚠️ From the local caches only. Asking ESI here put every refresh at the mercy of its
-        // latency — with ESI slow or down, the marks stopped moving for minutes. Names the
-        // caches lack are fetched in the background and are there on a later refresh; until
-        // then the pilot is shown by id.
-        var needNames = standing.Where(p => p.Name is null).Select(p => p.CharacterId).Distinct().ToList();
-        var resolved = new Dictionary<long, string>();
-        if (needNames.Count > 0)
-        {
-            foreach (var n in await db.UniverseNames.AsNoTracking()
-                         .Where(u => needNames.Contains(u.EntityId))
-                         .Select(u => new { u.EntityId, u.Name }).ToListAsync(ct))
-                resolved[n.EntityId] = n.Name;
-            foreach (var c in await db.Characters.AsNoTracking()
-                         .Where(c => needNames.Contains(c.Id))
-                         .Select(c => new { c.Id, c.Name }).ToListAsync(ct))
-                resolved[c.Id] = c.Name;
-            ResolveInBackground(needNames.Where(id => !resolved.ContainsKey(id)).ToList());
-        }
-
-        var shipIds = standing.Where(p => p.ShipTypeId is not null).Select(p => p.ShipTypeId!.Value).Distinct().ToList();
-        var shipNames = shipIds.Count == 0 ? [] : await db.SdeTypes.AsNoTracking()
-            .Where(t => shipIds.Contains(t.TypeId))
-            .ToDictionaryAsync(t => t.TypeId, t => t.Name, ct);
-
-        string? Ship(Placement p) => p.ShipTypeId is int t && shipNames.TryGetValue(t, out var en)
-            ? SdeNames.Type(t, en)
-            : p.ShipName;
-
-        // ── Per system ───────────────────────────────────────────────────────
         var hostiles = new Dictionary<int, SystemHostiles>();
-        foreach (var bySystem in standing.GroupBy(p => p.SystemId))
+        var clears   = new Dictionary<int, LiveClear>();
+        foreach (var row in view.Systems)
         {
-            var list = bySystem
-                .OrderByDescending(p => p.At)
-                .Select(p => new LivePilot(p.CharacterId,
-                    p.Name ?? resolved.GetValueOrDefault(p.CharacterId)
-                           ?? string.Format(MapText.LiveCharacterId, p.CharacterId.ToString(CultureInfo.InvariantCulture)),
-                    p.ShipTypeId, Ship(p), p.At, p.FromKillmail, p.NoVisual, p.CorporationId, p.AllianceId))
+            if (row.State == IntelSystemState.Clear)
+            {
+                clears[row.SystemId] = new LiveClear(row.SystemId, row.NewestAt, row.Freshness);
+                continue;
+            }
+            var pilots = row.Pilots
+                .OrderByDescending(p => p.Pilot.At)
+                .Select(p => new LivePilot(
+                    p.Pilot.CharacterId,
+                    p.Pilot.Name ?? string.Format(MapText.LiveCharacterId, p.Pilot.CharacterId.ToString(CultureInfo.InvariantCulture)),
+                    p.Pilot.ShipTypeId, p.Pilot.Ship, p.Pilot.At, p.Pilot.FromKill, p.Pilot.NoVisual,
+                    p.Pilot.CorporationId, p.Pilot.AllianceId))
                 .ToList();
-            hostiles[bySystem.Key] = new SystemHostiles(bySystem.Key, list, 0);
+            var flags = row.Facts.Aggregate(0, (f, x) => f | (int)x.Flag);
+            if (row.Camps.Count > 0) flags |= (int)Monitoring.IntelRules.IntelFlags.Camp;
+            hostiles[row.SystemId] = new SystemHostiles(
+                row.SystemId, pilots, row.Unnamed,
+                IntelDisplay.Facts(flags, row.Gate),
+                row.Unnamed > 0 ? IntelDisplay.Ships(row.Intel.Unnamed?.Ships, hullName) : null,
+                row.Freshness)
+            {
+                Tier = row.Tier, State = row.State, NewestAt = row.NewestAt,
+            };
         }
 
-        // Pilots a report counted without naming. Only the newest report still standing in each
-        // system: two reports of the same "+5" a minute apart are the same five, not ten. What
-        // the standing reports said besides — a spike, bubbles, the gate — is kept even where
-        // nobody was counted: "QZ-X77 bubbles" is worth a mark on its own.
-        var hullName = await IntelDisplay.HullNamesAsync(db,
-            reports.SelectMany(r => IntelDisplay.ParseShips(r.Ships)).Select(s => s.Name), ct);
-        foreach (var bySystem in reports.Where(r => !r.Obsolete).GroupBy(r => r.SystemId))
+        var own = snapshot.Own
+            .GroupBy(o => o.SystemId)
+            .ToDictionary(g => g.Key, g => (IReadOnlyList<OwnPilot>)[.. g
+                .OrderBy(o => o.Name, StringComparer.CurrentCultureIgnoreCase)
+                .Select(o => new OwnPilot(o.Name, o.SystemId, o.Hull, o.ShipName, o.Docked, o.Place,
+                                          o.CharacterId, o.ShipTypeId, o.CorporationId, o.AllianceId))]);
+
+        return new LiveMapSnapshot(hostiles, own, now, snapshot.Officers)
         {
-            var ordered = bySystem.OrderByDescending(r => r.ReportedAt, StringComparer.Ordinal).ThenByDescending(r => r.Id).ToList();
-            var newest  = ordered[0];
-            var named   = pilots.Count(p => p.IntelReportId == newest.Id);
-            var extra   = Math.Max(0, newest.PlayerCount - named);
-            var facts   = IntelDisplay.Facts(ordered.Aggregate(0, (f, r) => f | r.Flags),
-                                             ordered.Select(r => r.Gate).FirstOrDefault(g => !string.IsNullOrEmpty(g)));
-            var ships   = IntelDisplay.Ships(newest.Ships, hullName);
-            if (extra == 0 && facts is null) continue;
-
-            hostiles[bySystem.Key] = hostiles.TryGetValue(bySystem.Key, out var h)
-                ? h with { Unidentified = extra, Facts = facts, Ships = ships }
-                : new SystemHostiles(bySystem.Key, [], extra, facts, ships);
-        }
-
-        // ── Own characters ───────────────────────────────────────────────────
-        var own = new Dictionary<int, IReadOnlyList<OwnPilot>>();
-        foreach (var bySystem in (await MainWindowViewModel.ReadOnlineCharactersAsync(db, ct))
-                     .Where(c => c.Online && c.SolarSystemId is not null)
-                     .GroupBy(c => c.SolarSystemId!.Value))
-            own[bySystem.Key] = bySystem
-                .OrderBy(c => c.Name, StringComparer.CurrentCultureIgnoreCase)
-                .Select(c => new OwnPilot(c.Name, bySystem.Key,
-                    c.ShipTypeId is int t && c.Hull is { } hull ? SdeNames.Type(t, hull) : c.Hull,
-                    c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId, c.CorporationId, c.AllianceId))
-                .ToList();
-
-        var (diamonds, capitals) = await NpcActivityAsync(db, now, ct);
-        return new LiveMapSnapshot(hostiles, own, now, await OfficersAsync(db, now, ct), diamonds, capitals);
+            Clears = clears,
+            Camps  = IntelMapView.Camps(snapshot, view, viewer, now),
+            Arrows = IntelMapView.Arrows(view),
+            Intel  = snapshot,
+        };
     }
 
     // ── Officer spawns ───────────────────────────────────────────────────────
@@ -289,7 +218,9 @@ public sealed partial class LiveIntelService(
     /// <summary>The SDE's Entity category: NPCs.</summary>
     private const int EntityCategoryId = 11;
 
-    private static async Task<IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>> OfficersAsync(
+    /// <summary>Officers per system since the last downtime. Read by the intel snapshot on each
+    /// pass, and reused for a minute.</summary>
+    internal static async Task<IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>> OfficersAsync(
         AppDbContext db, DateTimeOffset now, CancellationToken ct)
     {
         await s_officerGate.WaitAsync(ct).ConfigureAwait(false);
@@ -309,8 +240,7 @@ public sealed partial class LiveIntelService(
                                        select t.TypeId).ToListAsync(ct).ConfigureAwait(false)).ToHashSet();
             var officerTypes = s_officerTypes.ToList();
 
-            // ⚠️ Raw SQL for the time, as for the live killmails above: SQLite cannot translate a
-            // DateTimeOffset comparison in LINQ.
+            // ⚠️ Raw SQL for the time: SQLite cannot translate a DateTimeOffset comparison in LINQ.
             var kills = await db.KillMailDetails
                 .FromSqlRaw("""SELECT * FROM "KillMailDetails" WHERE "KillMailTime" >= {0}""", downtime)
                 .AsNoTracking()
@@ -358,24 +288,6 @@ public sealed partial class LiveIntelService(
             return result;
         }
         finally { s_officerGate.Release(); }
-    }
-
-    private Task _resolving = Task.CompletedTask;
-
-    /// <summary>
-    /// Looks names up over ESI without holding up the snapshot. One lookup at a time: while one
-    /// is running, later refreshes do not start another — they will ask for whatever is still
-    /// missing once it is done. The resolver writes what it finds to the name cache, which the
-    /// next snapshot reads.
-    /// </summary>
-    private void ResolveInBackground(List<long> ids)
-    {
-        if (ids.Count == 0 || !_resolving.IsCompleted) return;
-        _resolving = Task.Run(async () =>
-        {
-            try { await names.ResolveNamesAsync(ids); }
-            catch { /* Names are a nicety here; the next refresh asks again. */ }
-        });
     }
 
     internal sealed record Friends(HashSet<long> Characters, HashSet<long> Corporations, HashSet<long> Alliances);

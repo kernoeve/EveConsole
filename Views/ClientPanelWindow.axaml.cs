@@ -213,6 +213,9 @@ public partial class ClientPanelWindow : Window
                     ? new PanelWorklistLine(worklist)
                     : new PanelWorklistControl { DataContext = worklist };
 
+            case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Intel:
+                return _around?.MainScreen is not { } intelMain ? null : BuildIntel(intelMain, part.Options, _around);
+
             case PlacedPartKind.Control when PanelControls.Parse(part.Control) == PanelControlKind.Menu:
                 return _around?.MainScreen is not { } menuMain ? null : new PanelMenuControl(menuMain, part.Options, _around.MonitorKey);
 
@@ -260,6 +263,60 @@ public partial class ClientPanelWindow : Window
             default:
                 return null;
         }
+    }
+
+    /// <summary>
+    /// An Intel control: live intel with jumps from the character in this monitor's client, as a
+    /// list or as one line that drops the list down. Its links open where any tool opens and bring
+    /// that window forward over the clients, putting the dropped list away. Its icons open the Intel
+    /// tool, and the tool's Paste tab with this panel's character and system chosen.
+    /// </summary>
+    private Control BuildIntel(MainWindowViewModel main, ControlOptions? options, PanelSurroundings around)
+    {
+        var vm = new PanelIntelVm(main.IntelSnapshots, main.IntelDistances, main.CharacterVm.Characters,
+                                  around.Focus, around.MonitorKey, options);
+        PanelIntelLine? line = null;
+        vm.Actions = new IntelRowActions
+        {
+            ShowOnMap = id =>
+            {
+                main.ShowTool("universe");
+                main.MapVm.ShowUniverseTab().Map.FocusSystems([id]);
+            },
+            AfterNavigate = () =>
+            {
+                line?.PutAway();
+                Avalonia.Threading.Dispatcher.UIThread.Post(main.BringForwardLastOpened, Avalonia.Threading.DispatcherPriority.Background);
+            },
+            OpenInTool = id =>
+            {
+                line?.PutAway();
+                main.ShowTool("intel");
+                main.IntelVm.ShowSystem(id);
+            },
+            Watch = main.IntelWatch,
+        };
+        vm.OpenTool = () =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+        };
+        // The panel never takes keyboard input: its paste icon opens the tool's Paste tab, with this
+        // panel's character and the system it is in already chosen, and the pasting happens there.
+        vm.OpenPaste = (characterId, systemId) =>
+        {
+            line?.PutAway();
+            main.ShowTool("intel");
+            main.IntelVm.ShowPaste(characterId, systemId);
+        };
+        vm.OpenChatLogSettings = () =>
+        {
+            line?.PutAway();
+            var screen = Screens.ScreenFromWindow(this) ?? Screens.Primary;
+            if (screen != null) main.OpenSettingsOnMonitor?.Invoke(screen.WorkingArea, SettingsText.TabChatLogs);
+        };
+        if (PanelControls.IntelModeOf(options) == IntelControlMode.SingleLine) return line = new PanelIntelLine(vm);
+        return new PanelIntelControl { DataContext = vm };
     }
 
     /// <summary>Name and size, on one line if the panel is too thin for two.</summary>

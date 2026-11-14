@@ -525,4 +525,25 @@
   <data name="StatusLayoutFileNewer" xml:space="preserve">
     <value>Cette disposition vient d&apos;une version plus récente d&apos;EVE Console. Mettez à jour pour l&apos;importer.</value>
   </data>
+  <data name="ItemIntel" xml:space="preserve">
+    <value>Renseignements</value>
+  </data>
+  <data name="LabelIntelMode" xml:space="preserve">
+    <value>Affichage</value>
+  </data>
+  <data name="IntelModeList" xml:space="preserve">
+    <value>La liste en direct des menaces</value>
+  </data>
+  <data name="IntelModeLine" xml:space="preserve">
+    <value>Une ligne avec la menace la plus proche ; un clic déroule la liste</value>
+  </data>
+  <data name="LabelIntelRange" xml:space="preserve">
+    <value>Portée</value>
+  </data>
+  <data name="IntelRangeJumps" xml:space="preserve">
+    <value>{0} sauts</value>
+  </data>
+  <data name="TipIntelRange" xml:space="preserve">
+    <value>Jusqu&apos;où l&apos;élément cherche des renseignements, en sauts par portails stellaires et trous ouverts de Thera ou Turnur, depuis le personnage du client de cet écran. Les ponts de saut ne comptent pas.</value>
+  </data>
 </root>

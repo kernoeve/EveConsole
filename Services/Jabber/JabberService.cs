@@ -1228,8 +1228,9 @@ public sealed partial class JabberService(IDbContextFactory<AppDbContext> dbFact
 
         try
         {
+            // ⚠️ Through ChatMessageWrites: the intel watermark reads by id, so ids must commit in order.
             db.ChatMessages.AddRange(lines);
-            await db.SaveChangesAsync(ct);
+            await ChatMessageWrites.SaveAsync(db, ct);
             IntelLinesSaved?.Invoke();
         }
         catch (Exception e) when (e is not OperationCanceledException)

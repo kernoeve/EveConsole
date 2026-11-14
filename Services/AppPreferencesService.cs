@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using EveConsole.Data;
 using EveConsole.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace EveConsole.Services;
@@ -39,7 +40,18 @@ public class AppPreferencesService(IServiceScopeFactory factory)
         => _cache.TryGetValue(key, out var v) ? v == "1" || v.Equals("true", StringComparison.OrdinalIgnoreCase)
                                               : defaultValue;
 
-    public async Task SetAsync(string key, string? value)
+    private readonly object _writeLock = new();
+    private Task _writes = Task.CompletedTask;
+
+    /// <summary>
+    /// Sets a preference: in the cache at once, in the database off the calling thread.
+    ///
+    /// <para>⚠️ The write runs on a pool thread, one after another in the order they were asked for. Called from
+    /// the UI thread (a click that saves a choice), the first save of a run built EF's save plan there and held
+    /// the UI for one to two seconds; and the database lookup often completes at once, so awaiting it did not
+    /// leave the UI thread either.</para>
+    /// </summary>
+    public Task SetAsync(string key, string? value)
     {
         if (value is null)
         {
@@ -50,24 +62,31 @@ public class AppPreferencesService(IServiceScopeFactory factory)
             _cache[key] = value;
         }
 
+        lock (_writeLock)
+            return _writes = _writes.ContinueWith(_ => WriteAsync(key, value), CancellationToken.None,
+                                                  TaskContinuationOptions.None, TaskScheduler.Default).Unwrap();
+    }
+
+    private async Task WriteAsync(string key, string? value)
+    {
         using var scope = factory.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
         if (value is null)
         {
-            var existing = await db.AppPreferences.FindAsync(key);
+            var existing = await db.AppPreferences.FindAsync(key).ConfigureAwait(false);
             if (existing is not null) db.AppPreferences.Remove(existing);
         }
         else
         {
-            var existing = await db.AppPreferences.FindAsync(key);
+            var existing = await db.AppPreferences.FindAsync(key).ConfigureAwait(false);
             if (existing is null)
                 db.AppPreferences.Add(new AppPreference { Key = key, Value = value });
             else
                 existing.Value = value;
         }
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public Task SetLongAsync(string key, long? value)
@@ -75,4 +94,53 @@ public class AppPreferencesService(IServiceScopeFactory factory)
 
     public Task SetBoolAsync(string key, bool value)
         => SetAsync(key, value ? "1" : "0");
+
+    /// <summary>
+    /// The value as the database holds it now, not as this process loaded it. The cache is refreshed
+    /// with what was read.
+    ///
+    /// <para>⚠️ For the few keys more than one PC writes, where a stale copy does harm: the intel
+    /// watermark above all. The cache is loaded once at startup; a PC that becomes the worker an hour
+    /// later would otherwise start from where the watermark stood when it opened, and parse the hour
+    /// between again.</para>
+    /// </summary>
+    public async Task<string?> ReadFreshAsync(string key, CancellationToken ct = default)
+    {
+        using var scope = factory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        var value = await db.AppPreferences.AsNoTracking()
+            .Where(p => p.Key == key).Select(p => p.Value).FirstOrDefaultAsync(ct);
+        if (value is null) _cache.TryRemove(key, out _);
+        else _cache[key] = value;
+        return value;
+    }
+
+    /// <summary>The long value as the database holds it now; see <see cref="ReadFreshAsync"/>.</summary>
+    public async Task<long> ReadFreshLongAsync(string key, long defaultValue = 0, CancellationToken ct = default)
+        => long.TryParse(await ReadFreshAsync(key, ct), out var n) ? n : defaultValue;
+
+    /// <summary>
+    /// Raises a numeric preference to <paramref name="value"/>, and never lowers it: a value already
+    /// higher in the database stays. One statement, so two PCs racing each other cannot move it back.
+    /// Returns the value the database holds afterwards.
+    ///
+    /// <para>⚠️ For a position that only ever moves forward (the intel watermark). A deliberate reset
+    /// to a lower value, as a re-parse does, is a plain <see cref="SetLongAsync"/>.</para>
+    /// </summary>
+    public async Task<long> SetLongIfGreaterAsync(string key, long value, CancellationToken ct = default)
+    {
+        using var scope = factory.CreateScope();
+        var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+        // The same statement on both engines (SQLite 3.24+ and PostgreSQL 9.5+). The value is TEXT, so
+        // the comparison is made on the numbers, not on their spelling: "999" < "1000" as text.
+        var text = value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        await db.Database.ExecuteSqlRawAsync("""
+            INSERT INTO "AppPreferences" ("Key", "Value") VALUES ({0}, {1})
+            ON CONFLICT ("Key") DO UPDATE SET "Value" = excluded."Value"
+            WHERE CAST("AppPreferences"."Value" AS BIGINT) < CAST(excluded."Value" AS BIGINT)
+            """, [key, text], ct);
+
+        return await ReadFreshLongAsync(key, value, ct);
+    }
 }

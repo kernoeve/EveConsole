@@ -129,7 +129,7 @@ public sealed class AlarmFieldVm : ReactiveObject
     public bool Applies
     {
         get => _applies;
-        set { this.RaiseAndSetIfChanged(ref _applies, value); this.RaisePropertyChanged(nameof(IsInForm)); }
+        set { this.RaiseAndSetIfChanged(ref _applies, value); this.RaisePropertyChanged(nameof(IsInForm)); this.RaisePropertyChanged(nameof(HasSectionHeading)); }
     }
 
     /// <summary>Shown among the check's fields: not a stage's, and in force.</summary>
@@ -160,6 +160,20 @@ public sealed class AlarmFieldVm : ReactiveObject
     private bool _isBeside;
     /// <summary>Shown in its partner's row, so not in a row of its own.</summary>
     public bool IsBeside { get => _isBeside; set => this.RaiseAndSetIfChanged(ref _isBeside, value); }
+
+    /// <summary>The group of fields this one is in, by the schema's <c>section</c>; null for none.</summary>
+    public string? Section { get; init; }
+
+    private string? _sectionHeading;
+    /// <summary>The heading shown above this field: set on the first field of each section, in the
+    /// check's words (<see cref="IAlarmCondition.ScreenSection"/>). Null for every other field.</summary>
+    public string? SectionHeading
+    {
+        get => _sectionHeading;
+        set { this.RaiseAndSetIfChanged(ref _sectionHeading, value); this.RaisePropertyChanged(nameof(HasSectionHeading)); }
+    }
+    /// <summary>Its heading shows: it has one, and the field itself is in the form.</summary>
+    public bool HasSectionHeading => !string.IsNullOrEmpty(_sectionHeading) && IsInForm;
 
     public AlarmFieldVm()
     {
@@ -1179,6 +1193,7 @@ public sealed class AlarmsViewModel : ReactiveObject, IDisposable
                 ShowIfField  = showIfValues is not null ? showIf.Name : null,
                 ShowIfValues = showIfValues,
                 BesideName   = spec.TryGetProperty("beside", out var bs) && bs.ValueKind == JsonValueKind.String ? bs.GetString() : null,
+                Section      = spec.TryGetProperty("section", out var sc) && sc.ValueKind == JsonValueKind.String ? sc.GetString() : null,
             };
             if (field.HasUnits) field.UnitsText = unitsDflt;
 
@@ -1231,6 +1246,15 @@ public sealed class AlarmsViewModel : ReactiveObject, IDisposable
                 host.Partner   = field;
                 field.IsBeside = true;
             }
+
+        // Headings: above the first row of each section, in the order the schema lists the fields.
+        string? section = null;
+        foreach (var field in Fields.Where(f => !f.IsBeside && !f.IsStage))
+        {
+            if (field.Section is { Length: > 0 } s && s != section)
+                field.SectionHeading = condition.ScreenSection(s) ?? Humanise(s);
+            section = field.Section;
+        }
 
         // A field shown only for some choices follows that choice as it changes — and as an
         // existing alarm's config sets it, since that goes through the same Text. A checkbox

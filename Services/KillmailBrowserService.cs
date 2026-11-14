@@ -63,7 +63,8 @@ public class KillmailBrowserService(
     CorpActivityService corpActivityService,
     EsiClient esi,
     ZkillboardApiClient zkb,
-    ZkillboardKillImportService zkbImport)
+    ZkillboardKillImportService zkbImport,
+    Intel.IntelLastSeenFeed lastSeen)
 {
     public const int PageSize = 500;
 
@@ -421,16 +422,17 @@ public class KillmailBrowserService(
             var known = await ZkillboardKillImportService.KnownIds.LoadForAsync(db, ids, ct);
             var (chars, corps) = await ZkillboardKillImportService.GetTrackedIdsAsync(db, ct);
 
-            var stored = 0;
-            foreach (var k in kills)
-                if (await zkbImport.ImportAsync(db, k.Kill, k.Hash, chars, corps, ct, known)) stored++;
+            var added = await zkbImport.ImportAsync(db, kills.Select(k => (k.Kill, k.Hash)), chars, corps, ct, known);
 
             try
             {
                 await db.SaveChangesAsync(ct);
-                return new ZkbEntityPage(kills.Count, stored, kills.Min(k => k.Kill.KillMailTime), Reached: true);
             }
-            catch (DbUpdateException) when (attempt < 2) { }
+            catch (DbUpdateException) when (attempt < 2) { continue; }
+
+            // History, like the daily dumps: only its last week feeds where pilots were last seen.
+            await lastSeen.KillsStoredAsync(db, added, live: false, ct);
+            return new ZkbEntityPage(kills.Count, added.Count, kills.Min(k => k.Kill.KillMailTime), Reached: true);
         }
     }
 

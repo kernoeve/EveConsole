@@ -233,6 +233,9 @@
         <DataTemplate DataType="vm:MercenaryDensViewModel">
           <views:MercenaryDensView />
         </DataTemplate>
+        <DataTemplate DataType="vm:IntelViewModel">
+          <views:IntelToolView />
+        </DataTemplate>
         <DataTemplate DataType="vm:ClientLayoutsViewModel">
           <views:ClientLayoutsView />
         </DataTemplate>

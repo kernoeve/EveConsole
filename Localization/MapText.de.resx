@@ -1582,7 +1582,7 @@ Besitzer: {3}</value>
     <value>Live-Markierungen</value>
   </data>
   <data name="LiveMarkHostiles" xml:space="preserve">
-    <value>Feinde, die in den letzten 5 Minuten hier gemeldet wurden – per Intel oder Abschussbericht. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird. „!“: Intel meldete hier etwas (Spike, Bubbles, Camp), zählte aber niemanden.</value>
+    <value>Feinde, die per Intel oder Abschussbericht hier verortet wurden, in der Farbe ihres Ansehens (rot, orange, neutral grau), verblassend mit dem Alter der Meldung. Zeigen Sie darauf, um zu sehen, wer es ist und was geflogen wird. „!“: Intel meldete hier etwas (Spike, Bubbles, Camp), zählte aber niemanden.</value>
   </data>
   <data name="LiveMarkOwn" xml:space="preserve">
     <value>Ihre Charaktere, die hier online sind. Zeigen Sie darauf, um Schiff und Andockstatus zu sehen.</value>
@@ -2368,6 +2368,93 @@ Kein Hauptstadtsystem, daher keine Zone</value>
   </data>
   <data name="LegendJumpRange" xml:space="preserve">
     <value>In Sprungreichweite des Systems im Tab Sprungreichweite (der dickere Ring)</value>
+  </data>
+  <data name="LegendNoVisual" xml:space="preserve">
+    <value>Keine Sicht: im Local, nie auf dem Grid gesehen. Dieselbe Markierung, hohl, mit gestricheltem Ring.</value>
+  </data>
+  <data name="LegendClear" xml:space="preserve">
+    <value>Als frei gemeldet, seitdem nichts Neues. Verblasst über die Lebensdauer der Freimeldung (Einstellungen → Intel).</value>
+  </data>
+  <data name="LegendGateCamp" xml:space="preserve">
+    <value>Ein aus Abschüssen erkanntes Gate-Camp: ein dicker Strich auf der Torlinie, vom gecampten System in Richtung des Torziels, mit der Zahl der Abschüsse.</value>
+  </data>
+  <data name="LegendMoveArrow" xml:space="preserve">
+    <value>Woher gemeldete Piloten kamen: ein durchgezogener Pfeil in das System, in dem sie gesehen wurden.</value>
+  </data>
+  <data name="LegendHeadingArrow" xml:space="preserve">
+    <value>Wohin gemeldete Piloten unterwegs sein sollen: ein gestrichelter Pfeil aus dem System, in dem sie gesehen wurden.</value>
+  </data>
+  <data name="LegendAlertZone" xml:space="preserve">
+    <value>Derzeit von einem Intel-Alarm überwacht: was einen auslösen würde.</value>
+  </data>
+  <data name="LiveClearTitle" xml:space="preserve">
+    <value>Als frei gemeldet: {0}</value>
+  </data>
+  <data name="LiveClearDetail" xml:space="preserve">
+    <value>Gemeldet {0}; seitdem nichts Neues.</value>
+  </data>
+  <data name="LiveNewestLine" xml:space="preserve">
+    <value>Neueste Meldung: {0}</value>
+  </data>
+  <data name="LiveNoVisualLine" xml:space="preserve">
+    <value>Keine Sicht: im Local, nicht auf dem Grid gesehen</value>
+  </data>
+  <data name="LiveTierLine" xml:space="preserve">
+    <value>Ansehen: {0}</value>
+  </data>
+  <data name="CampTitle" xml:space="preserve">
+    <value>Gate-Camp am Tor nach {0} in {1}</value>
+  </data>
+  <data name="CampKillsLine" xml:space="preserve">
+    <value>Abschüsse: {0} · zuletzt {1} · Angreifer: {2}</value>
+  </data>
+  <data name="ArrowMoveTitle" xml:space="preserve">
+    <value>{0} → {1}</value>
+  </data>
+  <data name="ArrowHeadingTitle" xml:space="preserve">
+    <value>{0} ⇢ {1}</value>
+  </data>
+  <data name="ArrowMoveLine" xml:space="preserve">
+    <value>Gesehen in {1}, kam aus {0} · {2}</value>
+  </data>
+  <data name="ArrowHeadingLine" xml:space="preserve">
+    <value>Gesehen in {0}, unterwegs nach {1} · {2}</value>
+  </data>
+  <data name="IntelLayers" xml:space="preserve">
+    <value>Intel</value>
+  </data>
+  <data name="TipIntelLayers" xml:space="preserve">
+    <value>Was die Karte außer den Markierungen aus Intel zeichnet</value>
+  </data>
+  <data name="IntelLayersNote" xml:space="preserve">
+    <value>Markierungen haben immer die Farbe ihres Ansehens, verblassen mit dem Alter und zeigen freie Systeme und solche ohne Sicht. Diese hier werden nur gezeichnet, wo Systeme angezeigt werden, nicht auf den Regionen.</value>
+  </data>
+  <data name="GateCampsToggle" xml:space="preserve">
+    <value>Gate-Camps</value>
+  </data>
+  <data name="TipGateCampsToggle" xml:space="preserve">
+    <value>Ein aus Abschüssen erkanntes Gate-Camp, als dicker Strich auf der Torlinie gezeichnet, verblassend mit dem Alter des Camps</value>
+  </data>
+  <data name="IntelMovesToggle" xml:space="preserve">
+    <value>Bewegungspfeile</value>
+  </data>
+  <data name="TipIntelMovesToggle" xml:space="preserve">
+    <value>Ein durchgezogener Pfeil von dort, woher ein gemeldeter Pilot kam, zum System, in dem er gesehen wurde</value>
+  </data>
+  <data name="IntelHeadingsToggle" xml:space="preserve">
+    <value>Richtungspfeile</value>
+  </data>
+  <data name="TipIntelHeadingsToggle" xml:space="preserve">
+    <value>Ein gestrichelter Pfeil vom System, in dem ein Pilot gesehen wurde, dorthin, wohin er unterwegs sein soll</value>
+  </data>
+  <data name="AlertZonesToggle" xml:space="preserve">
+    <value>Alarmzonen</value>
+  </data>
+  <data name="TipAlertZonesToggle" xml:space="preserve">
+    <value>Ein dünner gestrichelter Umriss um jedes System, das ein aktiver Intel-Alarm gerade überwacht</value>
+  </data>
+  <data name="RouteIntelCamp" xml:space="preserve">
+    <value>Gate-Camp in diesem System</value>
   </data>
   <data name="NpcDiamondsToggle" xml:space="preserve">
     <value>♦-Ratten</value>
