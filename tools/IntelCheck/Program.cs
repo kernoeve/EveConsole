@@ -125,6 +125,9 @@ try
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
     PanelChecks.Rows(c);
 
+    // ── How channels are named: EVE Chat, or the server; the Sources choice's order ──────────────────────────
+    ChannelLabelChecks.Run(c);
+
     // ── Hostiles first: who and what in a system, one row per system, the Pilots tab's sort ─────────────────
     HostileChecks.Run(c);
 

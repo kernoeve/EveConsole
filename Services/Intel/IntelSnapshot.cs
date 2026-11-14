@@ -165,6 +165,12 @@ public sealed record IntelSnapshot(
     /// channels the feed happens to hold.</summary>
     public IReadOnlyList<string> Channels { get; init; } = [];
 
+    /// <summary>How each channel is shown ("EVE Chat - …", "&lt;server&gt; - …"), read every minute with the settings.</summary>
+    public IntelChannelLabels ChannelLabels { get; init; } = IntelChannelLabels.Empty;
+
+    /// <summary>A channel as shown; see <see cref="IntelChannelLabels"/>. Blank stays blank.</summary>
+    public string ChannelLabel(string? channel) => ChannelLabels.Label(channel);
+
     /// <summary>The watch list as last read (every minute, and at once after a change on this PC):
     /// what the lens marks rows Always (bold) or Ignored (dimmed) by.</summary>
     public IntelWatchSet Watch { get; init; } = IntelWatchSet.Empty;
@@ -254,6 +260,7 @@ public sealed record IntelSnapshotInput
 
     public IReadOnlyList<IntelChatter> Chatter { get; init; } = [];
     public IReadOnlyList<string> Channels { get; init; } = [];
+    public IntelChannelLabels ChannelLabels { get; init; } = IntelChannelLabels.Empty;
 
     public IntelWatchSet Watch { get; init; } = IntelWatchSet.Empty;
     public IReadOnlyDictionary<int, int> TypeGroups { get; init; } = new Dictionary<int, int>();
@@ -598,6 +605,7 @@ public static class IntelSnapshotBuilder
             Regions = input.Regions,
             Chatter =[.. input.Chatter.Where(l => l.At >= from).OrderByDescending(l => l.At).ThenByDescending(l => l.ChatMessageId)],
             Channels = input.Channels,
+            ChannelLabels = input.ChannelLabels,
             Watch = input.Watch,
             TypeGroups = input.TypeGroups,
         };

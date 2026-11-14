@@ -508,23 +508,29 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
     /// <summary>The channels the snapshot knows, kept in step without losing what was switched off.</summary>
     private void SyncSources(IntelSnapshot snapshot)
     {
-        var channels = snapshot.Channels
-            .Concat(snapshot.Feed.Where(e => e.SourceKey is not IntelSnapshot.SourceKills and not IntelSnapshot.SourcePaste).Select(e => e.SourceKey))
-            .Concat(snapshot.Chatter.Select(c => c.Channel))
-            .Where(c => c.Length > 0)
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .Order(StringComparer.CurrentCultureIgnoreCase)
-            .ToList();
-        var wanted = channels.Select(c => (Key: c, Label: c))
-            .Append((Key: IntelSnapshot.SourceKills, Label: IntelText.SourceKills))
-            .Append((Key: IntelSnapshot.SourcePaste, Label: IntelText.SourcePastes))
-            .ToList();
-        if (Sources.Select(s => s.Key).SequenceEqual(wanted.Select(w => w.Key))) return;
+        var wanted = SourceList(snapshot);
+        if (Sources.Select(s => (s.Key, s.Label)).SequenceEqual(wanted)) return;
         Sources.Clear();
         foreach (var (key, label) in wanted)
             Sources.Add(new IntelSourceChoice(key, label, !_sourcesOff.Contains(key), SourceChanged));
         UpdateSourcesText();
     }
+
+    /// <summary>
+    /// What the Sources choice lists: every channel the snapshot knows, the game's chat channels first and then each
+    /// server's rooms (<see cref="IntelChannelLabels"/>), then the kills and the pastes. ⚠️ Each by the name its reports
+    /// are stored under (the key the saved choice holds), shown by its label: renaming a server keeps what was switched off.
+    /// </summary>
+    public static List<(string Key, string Label)> SourceList(IntelSnapshot snapshot) =>
+        [.. snapshot.Channels
+            .Concat(snapshot.Feed.Where(e => e.SourceKey is not IntelSnapshot.SourceKills and not IntelSnapshot.SourcePaste).Select(e => e.SourceKey))
+            .Concat(snapshot.Chatter.Select(c => c.Channel))
+            .Where(c => c.Length > 0)
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .Order(snapshot.ChannelLabels)
+            .Select(c => (Key: c, Label: snapshot.ChannelLabel(c)))
+            .Append((Key: IntelSnapshot.SourceKills, Label: IntelText.SourceKills))
+            .Append((Key: IntelSnapshot.SourcePaste, Label: IntelText.SourcePastes))];
 
     private string _searchText = "";
     /// <summary>A system, region or pilot to look for: rows not matching are left out.</summary>
@@ -823,7 +829,8 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             var heldChatter = FeedRows.OfType<IntelChatterLineVm>().DistinctBy(l => l.ChatMessageId).ToDictionary(l => l.ChatMessageId);
             foreach (var c in snapshot.Chatter.Where(c => c.At >= since && allowed.Contains(c.Channel)))
                 if (search.Length == 0 || Matches(c.Message) || Matches(c.Sender))
-                    lines.Add((c.At, heldChatter.GetValueOrDefault(c.ChatMessageId) ?? new IntelChatterLineVm(c, now)));
+                    lines.Add((c.At, heldChatter.GetValueOrDefault(c.ChatMessageId) is { } shown && shown.Channel == snapshot.ChannelLabel(c.Channel)
+                                         ? shown : new IntelChatterLineVm(c, snapshot.ChannelLabel(c.Channel), now)));
         }
         var ordered = lines.OrderByDescending(l => l.At).Take(FeedCap).ToList();
         var flat = new List<object>();
@@ -983,7 +990,7 @@ public sealed class IntelBoardRowVm : ReactiveObject
         var sources = events.Select(e => e.Event.SourceKey).Concat(events.SelectMany(e => e.Event.EchoList.Select(x => x.Channel)))
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var words = sources.Where(s => s is not IntelSnapshot.SourceKills and not IntelSnapshot.SourcePaste)
-            .Order(StringComparer.CurrentCultureIgnoreCase).ToList();
+            .Order(snapshot.ChannelLabels).Select(snapshot.ChannelLabel).ToList();
         if (sources.Contains(IntelSnapshot.SourceKills) || row.Camps.Count > 0) words.Add(IntelText.SourceKillsShort);
         if (sources.Contains(IntelSnapshot.SourcePaste)) words.Add(IntelText.SourcePasteShort);
         SourcesText = string.Join(", ", words);
@@ -1146,18 +1153,23 @@ public sealed class IntelChatterLineVm : ReactiveObject
 {
     private readonly DateTimeOffset _at;
 
-    public IntelChatterLineVm(IntelChatter line, DateTimeOffset now)
+    /// <param name="channel">The channel as shown (<see cref="IntelSnapshot.ChannelLabel"/>).</param>
+    public IntelChatterLineVm(IntelChatter line, string channel, DateTimeOffset now)
     {
         ChatMessageId = line.ChatMessageId;
         _at = line.At;
         Message = line.Message;
+        Channel = channel;
         TimeText = line.At.UtcDateTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
-        SourceText = string.Format(CultureInfo.CurrentCulture, IntelText.SourceChannelBy, line.Channel, line.Sender);
+        SourceText = string.Format(CultureInfo.CurrentCulture, IntelText.SourceChannelBy, channel, line.Sender);
         Tick(now);
     }
 
     /// <summary>The chat line's id: the same line from the next snapshot is the one on screen.</summary>
     public int ChatMessageId { get; }
+
+    /// <summary>The channel as shown: a line is made again when its server is renamed.</summary>
+    public string Channel { get; }
     public string Message { get; }
     public string TimeText { get; }
     public string SourceText { get; }

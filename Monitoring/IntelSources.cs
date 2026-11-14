@@ -16,9 +16,14 @@ public static class IntelRooms
     /// <summary>How many lines of one message are read: a relay can send several at once.</summary>
     private const int MostLines = 100;
 
+    /// <summary>What a Jabber room's and an IRC channel's stored channel names begin with. ⚠️ Stored, so never changed: what
+    /// is shown for them is IntelChannelLabels' business.</summary>
+    public const string JabberPrefix = "Jabber: ";
+    public const string IrcPrefix    = "IRC: ";
+
     /// <summary>The name its reports go under.</summary>
     public static string ChannelOf(JabberRoom room) =>
-        "Jabber: " + (room.Name.Length > 0 ? room.Name : room.RoomJid.Split('@')[0]);
+        JabberPrefix + (room.Name.Length > 0 ? room.Name : room.RoomJid.Split('@')[0]);
 
     /// <summary>
     /// A room message as chat lines, one per line of it. A line that is a chat log line relayed whole is read as what
@@ -28,7 +33,7 @@ public static class IntelRooms
         !message.IsRoom ? [] : ToChatLines(ChannelOf(room), $"jabber:{room.AccountId}:{room.RoomJid}", message.Id, message.Sender, message.SentAt, message.Body);
 
     /// <summary>The name an IRC channel's reports go under.</summary>
-    public static string ChannelOf(IrcChannel channel) => "IRC: " + channel.Name;
+    public static string ChannelOf(IrcChannel channel) => IrcPrefix + channel.Name;
 
     /// <summary>An IRC channel's message as chat lines, as a Jabber room's: a relayed chat log line is read as what it was.</summary>
     public static List<ChatMessage> ToChatLines(IrcChannel channel, IrcStoredMessage message) =>

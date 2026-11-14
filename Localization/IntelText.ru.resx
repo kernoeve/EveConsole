@@ -1165,4 +1165,13 @@
   <data name="EchoTipTitle" xml:space="preserve">
     <value>Также в каналах:</value>
   </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>Чат EVE - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

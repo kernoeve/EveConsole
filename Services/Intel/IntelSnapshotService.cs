@@ -65,6 +65,8 @@ public sealed class IntelSnapshotService : IDisposable
     // What one pass keeps for the next.
     private IntelSettingsValues? _settings;
     private DateTimeOffset _settingsAt = DateTimeOffset.MinValue;
+    private IntelChannelLabels _labels = IntelChannelLabels.Empty;
+    private DateTimeOffset _labelsAt = DateTimeOffset.MinValue;
     private readonly Dictionary<long, IntelLastSeen> _lastSeen = [];
     private DateTimeOffset _lastSeenReadAt = DateTimeOffset.MinValue;
     private DateTimeOffset _lastSeenFullAt = DateTimeOffset.MinValue;
@@ -232,6 +234,7 @@ public sealed class IntelSnapshotService : IDisposable
     public void SettingsChanged()
     {
         _settingsAt = DateTimeOffset.MinValue;
+        _labelsAt = DateTimeOffset.MinValue;
         Request();
     }
 
@@ -337,10 +340,11 @@ public sealed class IntelSnapshotService : IDisposable
         var channels = settings.IntelChannels.Concat(_intel?.RoomChannels ?? [])
             .Distinct(StringComparer.OrdinalIgnoreCase).ToList();
         var chatter = await ReadChatterAsync(db, channels, fromText, ct).ConfigureAwait(false);
+        var labels = await LabelsAsync(db, now, ct).ConfigureAwait(false);
 
         var input = new IntelSnapshotInput
         {
-            Now = now, Settings = settings, Chatter = chatter, Channels = channels,
+            Now = now, Settings = settings, Chatter = chatter, Channels = channels, ChannelLabels = labels,
             Reports = reports, ReportPilots = reportPilots,
             LastSeen = [.. _lastSeen.Values],
             Kills = [.. _kills.Values],
@@ -351,6 +355,39 @@ public sealed class IntelSnapshotService : IDisposable
             Watch = _watch, TypeGroups = typeGroups,
         };
         return IntelSnapshotBuilder.Build(input, _register, Interlocked.Increment(ref _version), _episodes);
+    }
+
+    /// <summary>
+    /// How each channel is shown: the Jabber and IRC logins and their rooms, every minute like the settings, so a server
+    /// renamed on any PC reads right here within the minute. ⚠️ A failed read keeps the labels it had (the names are only
+    /// shown): never the snapshot's business to fail over them.
+    /// </summary>
+    private async Task<IntelChannelLabels> LabelsAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)
+    {
+        if (now - _labelsAt < SettingsEvery) return _labels;
+        _labelsAt = now;
+        try
+        {
+            var accounts = await db.JabberAccounts.AsNoTracking()
+                .Select(a => new JabberAccount { Id = a.Id, Name = a.Name, Address = a.Address, Host = a.Host })
+                .ToListAsync(ct).ConfigureAwait(false);
+            var rooms = await db.JabberRooms.AsNoTracking()
+                .Select(r => new JabberRoom { AccountId = r.AccountId, RoomJid = r.RoomJid, Name = r.Name, RoomType = r.RoomType, Left = r.Left })
+                .ToListAsync(ct).ConfigureAwait(false);
+            var servers = await db.IrcServers.AsNoTracking()
+                .Select(s => new IrcServer { Id = s.Id, Name = s.Name, Host = s.Host, Nickname = s.Nickname })
+                .ToListAsync(ct).ConfigureAwait(false);
+            var channels = await db.IrcChannels.AsNoTracking()
+                .Select(c => new IrcChannel { ServerId = c.ServerId, Name = c.Name, RoomType = c.RoomType, Left = c.Left })
+                .ToListAsync(ct).ConfigureAwait(false);
+            _labels = IntelChannelLabels.Build(accounts, rooms, servers, channels);
+        }
+        catch (OperationCanceledException) when (ct.IsCancellationRequested) { throw; }
+        catch (Exception ex)
+        {
+            _errors?.Log(nameof(IntelSnapshotService), "reading the chat servers' names", ex);
+        }
+        return _labels;
     }
 
     private async Task<IntelSettingsValues> SettingsAsync(AppDbContext db, DateTimeOffset now, CancellationToken ct)

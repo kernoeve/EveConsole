@@ -1,5 +1,5 @@
 // The panel beside a client (its list with one system opened, and its single line, wide and narrow), the Intel
-// tool's Board (a system opened), its Pilots tab and its Feed (a kill, reports and a camp, wide and narrow), drawn headless from the invented hostiles of HostileScene, to pictures a review can
+// tool's Board (a system opened), its Sources choice open, its Pilots tab and its Feed (a kill, reports and a camp, wide and narrow), drawn headless from the invented hostiles of HostileScene, to pictures a review can
 // look at without the app, a database or a game client. The pictures of pilots, corporations, alliances and hulls are
 // drawn here too (no network): shapes and colours made up from each id. Every name and id is invented.
 using System.Collections.ObjectModel;
@@ -9,6 +9,7 @@ using Avalonia.Headless;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using Avalonia.Threading;
+using Avalonia.VisualTree;
 using EveConsole.Models;
 using EveConsole.Services;
 using EveConsole.Services.ClientLayouts;
@@ -89,6 +90,12 @@ namespace EveConsole.Tools.IntelCheck
                     }
                 });
 
+                // ── The Sources choice, open: the game's channels, then each server's rooms, then the kills and the pastes ──
+                tool.Apply(ChannelLabelChecks.WithRooms(snapshot));
+                Pump(() => tool.Sources.Any(s => s.Key == ChannelLabelChecks.Watch));
+                failed += SourcesShot(window, view, Path.Combine(outDir, "sources.png"));
+                tool.Apply(snapshot);
+
                 // ── The Pilots tab, sorted by its Alliance header ──
                 tool.UsePilots(new IntelPilotResults([.. HostileScene.Input().LastSeen], HostileScene.Names));
                 tool.SortPilotsBy(IntelViewModel.PilotColumn.Alliance);
@@ -164,6 +171,50 @@ namespace EveConsole.Tools.IntelCheck
             frame.Save(path);
             Console.WriteLine($"wrote {path}");
             return 0;
+        }
+
+        /// <summary>
+        /// The top bar with its Sources choice open. The choice opens in a popup, its own surface headless, so it is drawn
+        /// on the window's picture where it opens: under the button, left edges aligned.
+        /// </summary>
+        private static int SourcesShot(Window window, Control view, string path)
+        {
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            Dispatcher.UIThread.RunJobs();
+            if (view.GetVisualDescendants().OfType<DropDownButton>().FirstOrDefault() is not { Flyout: Flyout flyout } button)
+            {
+                Console.WriteLine("no Sources button on the top bar");
+                return 1;
+            }
+            flyout.ShowAt(button);
+            Pump(() => flyout.IsOpen);
+            Dispatcher.UIThread.RunJobs();
+            AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+            Dispatcher.UIThread.RunJobs();
+            try
+            {
+                using var frame = window.CaptureRenderedFrame();
+                var popup = flyout.Content is Control content ? TopLevel.GetTopLevel(content) : null;
+                using var popupFrame = popup is not null && !ReferenceEquals(popup, window) ? popup.CaptureRenderedFrame() : null;
+                if (frame is null) { Console.WriteLine($"no frame for {path}"); return 1; }
+
+                var at = button.TranslatePoint(new Point(0, button.Bounds.Height), window) ?? default;
+                var below = popupFrame is null ? 0 : at.Y + popupFrame.Size.Height + 16;
+                var height = (int)Math.Min(frame.Size.Height, Math.Max(below, at.Y + 300));
+                var width = (int)frame.Size.Width;
+                using var picture = new RenderTargetBitmap(new PixelSize(width, height));
+                using (var ctx = picture.CreateDrawingContext())
+                {
+                    ctx.DrawImage(frame, new Rect(0, 0, width, height), new Rect(0, 0, width, height));
+                    if (popupFrame is not null)
+                        ctx.DrawImage(popupFrame, new Rect(at.X, at.Y, popupFrame.Size.Width, popupFrame.Size.Height));
+                }
+                picture.Save(path);
+                Console.WriteLine($"wrote {path}" + (popupFrame is null ? " (the choice drew in the window itself)" : ""));
+                return 0;
+            }
+            finally { flyout.Hide(); }
         }
 
         /// <summary>Runs the UI thread's work until <paramref name="done"/>, or ten seconds.</summary>

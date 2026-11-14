@@ -1051,4 +1051,13 @@
   <data name="EchoTipTitle" xml:space="preserve">
     <value>Auch gemeldet in:</value>
   </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE-Chat - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+  </data>
 </root>

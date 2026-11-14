@@ -994,4 +994,13 @@
   <data name="EchoTipTitle" xml:space="preserve">
     <value>也出现在：</value>
   </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE 聊天 - {0}</value>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0}（{1}）</value>
+  </data>
 </root>

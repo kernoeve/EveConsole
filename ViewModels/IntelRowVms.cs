@@ -629,8 +629,8 @@ public sealed class IntelEventRowVm : ReactiveObject
             IntelEventKind.LocalPaste or IntelEventKind.Dscan =>
                 e.Reporter is { Length: > 0 } paster ? string.Format(culture, IntelText.SourcePasteBy, paster) : IntelText.SourcePaste,
             _ => e.Reporter is { Length: > 0 } reporter && e.Channel is { Length: > 0 } channel
-                    ? string.Format(culture, IntelText.SourceChannelBy, channel, reporter)
-                    : e.Channel ?? "",
+                    ? string.Format(culture, IntelText.SourceChannelBy, snapshot.ChannelLabel(channel), reporter)
+                    : snapshot.ChannelLabel(e.Channel),
         };
         ReporterId = e.Kind is IntelEventKind.Kill or IntelEventKind.CampFormed ? 0 : e.ReporterId ?? 0;
         // Where they came from or are heading: the solid and the dashed arrow on the map, in words.
@@ -649,11 +649,11 @@ public sealed class IntelEventRowVm : ReactiveObject
         FollowUpText = row.FollowUps.Count > 0 ? string.Format(culture, IntelText.FollowUps, row.FollowUps.Count) : "";
         // Heard in more than one place: "×2", the places in its tooltip. Never more hostiles, only more places.
         EchoText = e.EchoList.Count > 0 ? string.Format(culture, IntelText.EchoCount, e.EchoList.Count + 1) : "";
-        EchoTip = e.EchoList.Count > 0 ? string.Join("\n", EchoLines(e, culture).Prepend(IntelText.EchoTipTitle)) : null;
-        ToolTip = TipOf(row, culture);
+        EchoTip = e.EchoList.Count > 0 ? string.Join("\n", EchoLines(e, snapshot, culture).Prepend(IntelText.EchoTipTitle)) : null;
+        ToolTip = TipOf(row, snapshot, culture);
         Watch = row.Watch;
         WatchSet = snapshot.Watch;
-        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, EchoTip, e.Superseded, Watch,
+        Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, EchoTip, e.Superseded, Watch, SourceText,
                                 string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text + ":" + p.Watch + ":" + p.Badge?.Id
                                                                       + ":" + p.CountText + ":" + p.PictureTip)));
         Tick(now, snapshot.Settings.FreshSeconds);
@@ -894,12 +894,14 @@ public sealed class IntelEventRowVm : ReactiveObject
     }
 
     /// <summary>Each other place a line was heard, indented: "channel · who, HH:mm:ss" (EVE time).</summary>
-    private static IEnumerable<string> EchoLines(IntelEvent e, CultureInfo culture) =>
-        e.EchoList.Select(x => "  " + (x.Reporter is { Length: > 0 } who ? string.Format(culture, IntelText.SourceChannelBy, x.Channel, who) : x.Channel)
+    private static IEnumerable<string> EchoLines(IntelEvent e, IntelSnapshot snapshot, CultureInfo culture) =>
+        e.EchoList.Select(x => "  " + (x.Reporter is { Length: > 0 } who
+                                           ? string.Format(culture, IntelText.SourceChannelBy, snapshot.ChannelLabel(x.Channel), who)
+                                           : snapshot.ChannelLabel(x.Channel))
                                     + ", " + x.At.UtcDateTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture));
 
     /// <summary>The whole line as said, who said it where, where else it was heard, and the later lines of its thread.</summary>
-    private static string TipOf(IntelFeedRow row, CultureInfo culture)
+    private static string TipOf(IntelFeedRow row, IntelSnapshot snapshot, CultureInfo culture)
     {
         var e = row.Event;
         var lines = new List<string>();
@@ -909,11 +911,11 @@ public sealed class IntelEventRowVm : ReactiveObject
         if (e.Kind is IntelEventKind.LocalPaste or IntelEventKind.Dscan && e.Reporter is { Length: > 0 } paster)
             lines.Add(string.Format(culture, IntelText.PastedBy, paster));
         else if (e.Reporter is { Length: > 0 } who)
-            lines.Add(string.Format(culture, IntelText.ReportedBy, who, e.Channel ?? ""));
+            lines.Add(string.Format(culture, IntelText.ReportedBy, who, snapshot.ChannelLabel(e.Channel)));
         if (e.EchoList.Count > 0)
         {
             lines.Add(IntelText.EchoTipTitle);
-            lines.AddRange(EchoLines(e, culture));
+            lines.AddRange(EchoLines(e, snapshot, culture));
         }
         if (row.FollowUps.Count > 0)
         {

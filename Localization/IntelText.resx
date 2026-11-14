@@ -1400,4 +1400,16 @@
     <value>Also heard in:</value>
     <comment>Tooltip on an intel line, heading the other channels the same report was relayed into, one per line.</comment>
   </data>
+  <data name="SourceEveChat" xml:space="preserve">
+    <value>EVE Chat - {0}</value>
+    <comment>Intel: how a channel read from the game's chat logs is named (Sources choice, Feed and Board lines, tooltips). {0} is the channel's name. EVE is the game's name: keep it in capitals.</comment>
+  </data>
+  <data name="SourceServerChannel" xml:space="preserve">
+    <value>{0} - {1}</value>
+    <comment>Intel: how a Jabber room or IRC channel is named (Sources choice, Feed and Board lines, tooltips). {0} is the server's name as set in its settings, {1} the room or channel.</comment>
+  </data>
+  <data name="SourceServerHost" xml:space="preserve">
+    <value>{0} ({1})</value>
+    <comment>Intel: a chat server's name when two servers are called the same, so they stay apart. {0} is the name, {1} its host (or login when the host is shared too).</comment>
+  </data>
 </root>
