@@ -115,6 +115,9 @@ try
     ReadSideChecks.CampsTabChecks(c);
     ReadSideChecks.LastSeenLineChecks(c);
 
+    // ── The chat log tail: a log the client still holds open is read at its real size ────────────────────────
+    LogTailChecks.Run(c, profile);
+
     // ── The panel's rows ─────────────────────────────────────────────────────────────────────────────────────
     PanelChecks.Rows(c);
 
