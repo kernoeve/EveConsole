@@ -79,6 +79,17 @@ internal static class FollowUpChecks
         // What the parser did before stays as it was.
         var clr = IntelRules.Parse("QZ-X77 clr", lex);
         c.Check("parse: a system called clear is still a clear", clr is { Kind: IntelRules.IntelKind.Clear, SystemName: "QZ-X77" });
+
+        // Every way a clear is typed is a clear; a clear asked about is a question, not a report.
+        foreach (var said in new[] { "QZ-X77 clr", "QZ-X77  clr", "QZ-X77* clr", "QZ-X77 clr.", "QZ-X77 CLR", "QZ-X77 clear", "QZ-X77 cleared",
+                                     "QZ-X77 empty", "clr QZ-X77", "QZ-X77 is clr", "QZ-X77 all clear", "QZ-X77 still clr", "QZ-X77 clr o7" })
+        {
+            var p = IntelRules.Parse(said, lex);
+            c.Check($"parse: \"{said}\" is a clear of QZ-X77", p is { Kind: IntelRules.IntelKind.Clear, SystemName: "QZ-X77" },
+                p is null ? "null" : $"{p.Kind} {p.SystemName}");
+        }
+        foreach (var question in new[] { "QZ-X77 clr?", "QZ-X77 clear?", "QZ-X77 status?" })
+            c.Check($"parse: \"{question}\" is a question, not a clear", IntelRules.Parse(question, lex) is null);
         var nv = IntelRules.Parse("QZ-X77 Zeltrix Quorvane nv", lex);
         c.Check("parse: no visual is still a flag on the sighting", nv is { NoVisual: true, PlayerCount: 1, FromSystem: null, HeadingSystem: null });
         c.Check("parse: a question is still not a report", IntelRules.Parse("QZ-X77 Update?", lex) is null);
@@ -512,6 +523,16 @@ internal static class FollowUpChecks
             await db.SaveChangesAsync();
         }
         await Lines(("r24", ChA, "Scout Alpha", 1950, "Mirrel Okonda"));
+        // One system called clear in both channels within the copy window, word for word; another in other words. Every
+        // clear of a system has the same facts (nobody named, nothing counted): these were dropped as copies, and the
+        // lines, with no report, showed in the Feed as chatter.
+        await Lines(("r25", ChA, "Scout Alpha", 2100, "X2-QZ7 clr"),
+                    ("r26", ChB, "Scout Bravo", 2130, "X2-QZ7 clr"),
+                    ("r27", ChA, "Scout Alpha", 2200, "XQ1-Z2 clear"),
+                    ("r28", ChB, "Scout Bravo", 2290, "XQ1-Z2 clr"));
+        List<int> chatter;
+        await using (var db = new AppDbContext(options))
+            chatter = await IntelSnapshotService.ChatterQuery(db, [ChA, ChB], int.MaxValue, "0").Select(m => m.Id).ToListAsync();
 
         var live = await ReportsAsync(options);
         IntelReport? R(string key) => live.Reports.GetValueOrDefault(ids[key]);
@@ -555,6 +576,12 @@ internal static class FollowUpChecks
         c.Check("pass: a copied pilot on a kill since is not copied, though the batch never named them",
             R("r24") is { SystemId: S3 } && live.Pilots[ids["r24"]].SequenceEqual([Mirrel]),
             $"pilots {string.Join(",", live.Pilots.GetValueOrDefault(ids["r24"]) ?? [])}");
+        foreach (var (key, system) in new[] { ("r25", S4), ("r26", S4), ("r27", S2), ("r28", S2) })
+            c.Check($"pass: a clear called in both channels within the copy window is a clear row in each ({key})",
+                R(key) is { Kind: IntelReportKind.Clear, PlayerCount: 0 } r && r.SystemId == system,
+                R(key) is { } x ? $"kind {x.Kind} in {x.SystemId}" : "no report");
+        c.Check("pass: and none of them is chatter", new[] { "r25", "r26", "r27", "r28" }.All(k => !chatter.Contains(ids[k])),
+            string.Join(",", chatter));
 
         // The same history re-parsed, twice: the same reports each time, and the same as live.
         var first = await worker.BackfillAsync();

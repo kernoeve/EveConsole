@@ -266,6 +266,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             this.RaisePropertyChanged(nameof(IsWatchTab));
             this.RaisePropertyChanged(nameof(ShowsFilters));
             this.RaisePropertyChanged(nameof(ShowsAreaFilters));
+            this.RaisePropertyChanged(nameof(ShowsTierFilters));
             this.RaisePropertyChanged(nameof(ShowsSearch));
             this.RaisePropertyChanged(nameof(SearchHint));
             Save(() => UiState.SetLong(KeyTab, value));
@@ -283,9 +284,13 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
     /// <summary>The top bar: the Board, the Feed, Pilots and Camps; not Paste or the Watch list.</summary>
     public bool ShowsFilters => _selectedTab is TabBoard or TabFeed or TabPilots or TabCamps;
 
-    /// <summary>Within N jumps, the standings chips and the sources: what is near and live. Pilots is a
-    /// search of who was seen where, over days, and shows every pilot found.</summary>
+    /// <summary>Within N jumps and the sources: what is near and live. Pilots is a search of who was seen where,
+    /// over days, wherever and however.</summary>
     public bool ShowsAreaFilters => _selectedTab is TabBoard or TabFeed or TabCamps;
+
+    /// <summary>The standings chips: on every list of pilots, Pilots too (blues the user switched off are not listed
+    /// there either).</summary>
+    public bool ShowsTierFilters => _selectedTab is TabBoard or TabFeed or TabPilots or TabCamps;
 
     public bool ShowsSearch => _selectedTab is TabBoard or TabFeed or TabPilots or TabCamps;
 
@@ -342,6 +347,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             Save(() => UiState.SetLong(KeyFrom, value.Value));
             Paste.FromChanged();
             Project();
+            PilotsFilterChanged();
         }
     }
 
@@ -377,6 +383,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
         Save(() => UiState.SetLong(KeyFrom, _fromId));
         Paste.FromChanged();
         Project();
+        PilotsFilterChanged();
     }
 
     private async Task SuggestFromAsync(string text)
@@ -431,6 +438,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             this.RaiseAndSetIfChanged(ref _useBridges, value);
             Save(() => UiState.SetBool(KeyBridges, value));
             Project();
+            PilotsFilterChanged();
         }
     }
 
@@ -449,6 +457,7 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
         var tiers = Tiers;
         Save(() => UiState.Set(KeyTiers, string.Join(",", tiers.Select(t => ((int)t).ToString(CultureInfo.InvariantCulture)))));
         Project();
+        PilotsFilterChanged();
     }
 
     private HashSet<StandingTier> Tiers
@@ -779,7 +788,8 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
                 return fresh;
             })
             .ToList();
-        BoardRows.ResetTo(board);
+        // A snapshot that changed nothing on the Board raises nothing; a changed row is replaced alone.
+        BoardRows.SyncTo(board, r => r.SystemId, r => r.Signature);
         foreach (var row in board.Where(r => !held.TryGetValue(r.SystemId, out var old) || !ReferenceEquals(old, r)))
             _ = row.LoadPicturesAsync();
         BoardMoreText = rows.Count > BoardCap
@@ -810,9 +820,10 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
         {
             var since = now - TimeSpan.FromMinutes(_selectedWindow.Value);
             var allowed = Sources.Where(s => s.IsOn).Select(s => s.Key).ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var heldChatter = FeedRows.OfType<IntelChatterLineVm>().DistinctBy(l => l.ChatMessageId).ToDictionary(l => l.ChatMessageId);
             foreach (var c in snapshot.Chatter.Where(c => c.At >= since && allowed.Contains(c.Channel)))
                 if (search.Length == 0 || Matches(c.Message) || Matches(c.Sender))
-                    lines.Add((c.At, new IntelChatterLineVm(c, now)));
+                    lines.Add((c.At, heldChatter.GetValueOrDefault(c.ChatMessageId) ?? new IntelChatterLineVm(c, now)));
         }
         var ordered = lines.OrderByDescending(l => l.At).Take(FeedCap).ToList();
         var flat = new List<object>();
@@ -821,7 +832,8 @@ public sealed partial class IntelViewModel : ReactiveObject, IDisposable
             if (line is IntelFeedGroup g) { flat.Add(g.Parent); flat.AddRange(g.Children); }
             else flat.Add(line);
         }
-        FeedRows.ResetTo(flat);
+        // Lines reading the same are the very lines on screen: when every line is, nothing is raised at all.
+        FeedRows.SyncTo(flat, line => line, _ => "");
         foreach (var l in flat.OfType<IntelFeedLineVm>().Where(l => !heldLines.TryGetValue(l.Key, out var old) || !ReferenceEquals(old, l)))
             _ = l.Row.LoadPicturesAsync();
         FeedCountText = Plurals.Format(IntelText.ResourceManager, nameof(IntelText.FeedCountOther), flat.Count);
@@ -1135,6 +1147,7 @@ public sealed class IntelChatterLineVm : ReactiveObject
 
     public IntelChatterLineVm(IntelChatter line, DateTimeOffset now)
     {
+        ChatMessageId = line.ChatMessageId;
         _at = line.At;
         Message = line.Message;
         TimeText = line.At.UtcDateTime.ToString("HH:mm:ss", CultureInfo.InvariantCulture);
@@ -1142,6 +1155,8 @@ public sealed class IntelChatterLineVm : ReactiveObject
         Tick(now);
     }
 
+    /// <summary>The chat line's id: the same line from the next snapshot is the one on screen.</summary>
+    public int ChatMessageId { get; }
     public string Message { get; }
     public string TimeText { get; }
     public string SourceText { get; }

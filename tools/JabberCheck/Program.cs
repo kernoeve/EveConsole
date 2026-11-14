@@ -406,6 +406,17 @@ void Check(string name, bool ok, string detail = "")
         Check("copies: a bare system is not the fuller report", !CopyOf(Report("Chat", "2026-11-05T18:00:00Z", "QZ-X77", 0), [], Report("Jabber: Ops", "2026-11-05T18:00:20Z", "Sampler QZ-X77"), pilot));
         Check("copies: nor the other way", !CopyOf(chat, pilot, Report("Jabber: Ops", "2026-11-05T18:00:20Z", "QZ-X77", 0), []));
         Check("copies: a time that cannot be read is no match", !CopyOf(chat, pilot, Report("Jabber: Ops", "", "QZ-X77 Sampler"), pilot));
+
+        // A clear names nobody and counts nothing: every clear of a system has the same facts, so a clear called in a
+        // second channel was dropped as a copy, left with no report, and shown in the Feed as chatter.
+        IntelReport Clear(string channel, string at, string message) =>
+            new() { ChannelName = channel, ReportedAt = at, SystemId = 9001, Message = message, Kind = IntelReportKind.Clear };
+        Check("copies: a clear is never a copy, in other words", !CopyOf(Clear("Chat", "2026-11-05T18:00:00Z", "QZ-X77 clear"), [],
+                                                                  Clear("Jabber: Ops", "2026-11-05T18:00:30Z", "QZ-X77 clr"), []));
+        Check("copies: nor word for word", !CopyOf(Clear("Chat", "2026-11-05T18:00:00Z", "QZ-X77 clr"), [],
+                                                  Clear("Jabber: Ops", "2026-11-05T18:00:30Z", "QZ-X77 clr"), []));
+        Check("copies: nor is a sighting a copy of a clear", !CopyOf(Clear("Chat", "2026-11-05T18:00:00Z", "QZ-X77 clr"), [],
+                                                                    Report("Jabber: Ops", "2026-11-05T18:00:30Z", "QZ-X77", 0), []));
     }
 
     Check("lines: nothing said until asked", JabberViewModel.RoomArchiveLine(null, false).Length == 0 && JabberViewModel.AccountArchiveLine(null, 0, 0).Length == 0);

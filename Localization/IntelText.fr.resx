@@ -1027,4 +1027,16 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>Trier selon cette colonne ; cliquer à nouveau inverse l'ordre</value>
   </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} masqué par la réputation</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} masqués par la réputation</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Tous les pilotes trouvés sont masqués par le filtre de réputation : activez d&apos;autres niveaux de réputation ci-dessus pour les afficher.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>Sur la destruction, par alliance (ou corporation) :</value>
+  </data>
 </root>

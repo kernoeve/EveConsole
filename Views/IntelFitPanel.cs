@@ -18,15 +18,27 @@ public sealed class IntelFitPanel : Panel
     public static readonly AttachedProperty<int> DropProperty =
         AvaloniaProperty.RegisterAttached<IntelFitPanel, Control, int>("Drop");
 
-    public static int GetDrop(Control c) => c.GetValue(DropProperty);
+    /// <summary>The piece's drop order: its own <see cref="DropProperty"/>, else, for an item of a list laid out by this
+    /// panel, what its item says (<see cref="ViewModels.IIntelDroppable"/>).</summary>
+    public static int GetDrop(Control c) =>
+        c.GetValue(DropProperty) is var d && d != 0 ? d : (c.DataContext as ViewModels.IIntelDroppable)?.Drop ?? 0;
     public static void SetDrop(Control c, int value) => c.SetValue(DropProperty, value);
+
+    /// <summary>A piece that, when the line is still too wide once the pieces marked to go are gone, is measured again
+    /// in the width left: a list of tokens laid out by an IntelFitPanel of its own (which then leaves out its names),
+    /// or words that trim. The first marked shrinks first.</summary>
+    public static readonly AttachedProperty<bool> ShrinksProperty =
+        AvaloniaProperty.RegisterAttached<IntelFitPanel, Control, bool>("Shrinks");
+
+    public static bool GetShrinks(Control c) => c.GetValue(ShrinksProperty);
+    public static void SetShrinks(Control c, bool value) => c.SetValue(ShrinksProperty, value);
 
     private readonly HashSet<Control> _dropped = [];
 
     static IntelFitPanel()
     {
         ClipToBoundsProperty.OverrideDefaultValue<IntelFitPanel>(true);
-        AffectsParentMeasure<IntelFitPanel>(DropProperty);
+        AffectsParentMeasure<IntelFitPanel>(DropProperty, ShrinksProperty);
     }
 
     protected override Size MeasureOverride(Size availableSize)
@@ -48,6 +60,15 @@ public sealed class IntelFitPanel : Panel
                     _dropped.Add(child);
                     total -= child.DesiredSize.Width;
                 }
+                if (total <= availableSize.Width) break;
+            }
+
+        if (total > availableSize.Width)
+            foreach (var child in Children.Where(c => GetShrinks(c) && c.IsVisible && !_dropped.Contains(c)))
+            {
+                var others = total - child.DesiredSize.Width;
+                child.Measure(new Size(Math.Max(0, availableSize.Width - others), height));
+                total = others + child.DesiredSize.Width;
                 if (total <= availableSize.Width) break;
             }
 

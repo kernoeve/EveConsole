@@ -30,6 +30,38 @@
       </StackPanel>
     </DataTemplate>
 
+    <!-- A piece of a Feed line's who and what (IntelTokenVm): a pilot's portrait with their group's logo small on it, a
+         group's logo, a hull's icon (each 16 pixels, a placeholder while it loads, its name in the tooltip); the name
+         beside it, which a narrow line leaves out first; or a count. -->
+    <DataTemplate x:Key="Token" x:DataType="vm:IntelTokenVm">
+      <Panel Opacity="{Binding Source.TextOpacity}" Margin="0 0 5 0" ContextRequested="OnPictureContext">
+        <Button Classes="link" IsVisible="{Binding IsPicture}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.PictureTip}" Margin="2 0 0 0">
+          <Panel Width="16" Height="16" VerticalAlignment="Center">
+            <Border IsVisible="{Binding Source.IsPilot}" CornerRadius="8" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+              <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+            </Border>
+            <Border IsVisible="{Binding Source.IsSquare}" CornerRadius="2" ClipToBounds="True" Background="{DynamicResource SurfacePanelAltBrush}">
+              <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+            </Border>
+            <Border IsVisible="{Binding Source.HasBadge}" Width="9" Height="9" CornerRadius="2" ClipToBounds="True"
+                    HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -3 -2"
+                    BorderBrush="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" Background="{DynamicResource SurfacePanelAltBrush}">
+              <Image Source="{Binding Source.Badge.Picture}" Width="8" Height="8" />
+            </Border>
+          </Panel>
+        </Button>
+        <Panel IsVisible="{Binding IsName}">
+          <Button Classes="link" IsVisible="{Binding Source.IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.Tip}">
+            <TextBlock Text="{Binding Label}" FontSize="11" FontWeight="{Binding Source.TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
+          </Button>
+          <TextBlock Text="{Binding Label}" IsVisible="{Binding !Source.IsLink}" FontSize="11" VerticalAlignment="Center"
+                     Foreground="{DynamicResource TextSecondaryBrush}" />
+        </Panel>
+        <TextBlock IsVisible="{Binding IsCount}" Text="{Binding Source.CountText}" FontSize="11" FontWeight="SemiBold" VerticalAlignment="Center"
+                   Margin="-2 0 0 0" Foreground="{DynamicResource TextPrimaryBrush}" />
+      </Panel>
+    </DataTemplate>
+
     <!-- A who token's picture on the Board: a pilot's portrait, round, with a smaller alliance or corporation logo on
          it; or a group's logo, square. 24 pixels, with a placeholder while it loads. The name and "×n" follow it in the
          Who cell, where there is room. -->
@@ -332,7 +364,7 @@
         <CheckBox IsChecked="{Binding UseBridges}" FontSize="11" ToolTip.Tip="{x:Static loc:IntelText.TipBridges}">
           <TextBlock Text="{x:Static loc:IntelText.MyJumpBridges}" FontSize="11" />
         </CheckBox>
-        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsAreaFilters}">
+        <StackPanel Orientation="Horizontal" Spacing="6" IsVisible="{Binding ShowsTierFilters}">
           <TextBlock Classes="label" Text="{x:Static loc:IntelText.Standings}" />
           <ToggleButton Classes="chip" IsChecked="{Binding ShowRed}">
             <StackPanel Orientation="Horizontal" Spacing="5">
@@ -574,9 +606,19 @@
     </Grid>
 
     <!-- ══ Feed ══ -->
-    <ScrollViewer Grid.Row="5" IsVisible="{Binding IsFeedTab}" HorizontalScrollBarVisibility="Disabled">
-      <StackPanel Margin="16 4 16 8">
-        <ItemsControl ItemsSource="{Binding FeedRows}">
+    <!-- Virtualized as the Pilots list is: up to 500 lines, only those in sight laid out. -->
+    <Grid Grid.Row="5" IsVisible="{Binding IsFeedTab}">
+        <ItemsControl ItemsSource="{Binding FeedRows}" Padding="16 4 16 8">
+          <ItemsControl.Template>
+            <ControlTemplate>
+              <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+                <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" Margin="{TemplateBinding Padding}" />
+              </ScrollViewer>
+            </ControlTemplate>
+          </ItemsControl.Template>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
           <ItemsControl.DataTemplates>
             <DataTemplate DataType="vm:IntelFeedLineVm" x:DataType="vm:IntelFeedLineVm">
               <Border Classes="feedLine" Classes.fresh="{Binding Row.IsFresh}" ToolTip.Tip="{Binding Row.ToolTip}"
@@ -602,25 +644,30 @@
                     <TextBlock Classes="kind" Text="{Binding Row.KindText}" Classes.kill="{Binding Row.IsKillState}"
                                Classes.camp="{Binding Row.IsCampState}" Classes.clear="{Binding Row.IsClear}" />
                   </StackPanel>
-                  <WrapPanel Grid.Column="4" Orientation="Horizontal" ItemSpacing="8" VerticalAlignment="Center"
-                             Margin="{Binding IsFollowUp, Converter={x:Static views:IntelToolView.IndentOf}}">
-                    <TextBlock Text="{Binding Row.StateText}" FontSize="11" FontWeight="{Binding Row.StateWeight}" VerticalAlignment="Center" Foreground="{DynamicResource TextPrimaryBrush}" />
-                    <ItemsControl ItemsSource="{Binding Row.Pictures}" ItemTemplate="{StaticResource Picture}" VerticalAlignment="Center">
+                  <!-- What, then who and what they fly: every line answers who. Narrow, names give way to their pictures
+                       (each name stays in its picture's tooltip), then the long words trim. -->
+                  <views:IntelFitPanel Grid.Column="4" VerticalAlignment="Center"
+                                       Margin="{Binding IsFollowUp, Converter={x:Static views:IntelToolView.IndentOf}}">
+                    <TextBlock Text="{Binding Row.StateText}" FontSize="11" FontWeight="{Binding Row.StateWeight}" VerticalAlignment="Center"
+                               Margin="0 0 8 0" Foreground="{DynamicResource TextPrimaryBrush}" />
+                    <ItemsControl views:IntelFitPanel.Shrinks="True" ItemsSource="{Binding Row.Tokens}" ItemTemplate="{StaticResource Token}"
+                                  VerticalAlignment="Center">
                       <ItemsControl.ItemsPanel>
-                        <ItemsPanelTemplate><StackPanel Orientation="Horizontal" Spacing="8" /></ItemsPanelTemplate>
+                        <ItemsPanelTemplate><views:IntelFitPanel /></ItemsPanelTemplate>
                       </ItemsControl.ItemsPanel>
                     </ItemsControl>
                     <TextBlock Text="{Binding Row.MoreText}" IsVisible="{Binding Row.HasMore}" FontSize="11" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextMutedBrush}" />
-                    <TextBlock Text="{Binding Row.DetailText}" IsVisible="{Binding Row.HasDetail}" FontSize="11" VerticalAlignment="Center"
-                               Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" MaxWidth="420" />
+                               Margin="0 0 8 0" Foreground="{DynamicResource TextMutedBrush}" />
+                    <TextBlock views:IntelFitPanel.Shrinks="True" Text="{Binding Row.DetailText}" IsVisible="{Binding Row.HasDetail}" FontSize="11"
+                               VerticalAlignment="Center" Margin="0 0 8 0" Foreground="{DynamicResource TextSecondaryBrush}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="420" />
                     <TextBlock Text="{Binding Row.TailText}" IsVisible="{Binding Row.HasTail}" FontSize="11" VerticalAlignment="Center"
-                               Foreground="{DynamicResource WarnBrush}" />
-                    <TextBlock Text="{Binding Row.DirectionText}" IsVisible="{Binding Row.HasDirection}" FontSize="11" VerticalAlignment="Center"
-                               Foreground="{DynamicResource InfoBrush}" />
-                    <TextBlock Text="{Binding Row.StatusText}" IsVisible="{Binding Row.HasStatus}" FontSize="11" FontStyle="Italic"
+                               Margin="0 0 8 0" Foreground="{DynamicResource WarnBrush}" />
+                    <TextBlock views:IntelFitPanel.Drop="2" Text="{Binding Row.DirectionText}" IsVisible="{Binding Row.HasDirection}" FontSize="11"
+                               VerticalAlignment="Center" Margin="0 0 8 0" Foreground="{DynamicResource InfoBrush}" />
+                    <TextBlock views:IntelFitPanel.Drop="1" Text="{Binding Row.StatusText}" IsVisible="{Binding Row.HasStatus}" FontSize="11" FontStyle="Italic"
                                VerticalAlignment="Center" Foreground="{DynamicResource TextMutedBrush}" />
-                  </WrapPanel>
+                  </views:IntelFitPanel>
                   <StackPanel Grid.Column="5" Orientation="Horizontal" Spacing="5" VerticalAlignment="Center" MaxWidth="280">
                     <Border IsVisible="{Binding Row.HasReporter}" CornerRadius="8" ClipToBounds="True" Width="16" Height="16"
                             Background="{DynamicResource SurfacePanelAltBrush}">
@@ -649,9 +696,9 @@
             </DataTemplate>
           </ItemsControl.DataTemplates>
         </ItemsControl>
-        <TextBlock Text="{Binding FeedEmptyText}" FontSize="11" Margin="0 14" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
-      </StackPanel>
-    </ScrollViewer>
+        <TextBlock Text="{Binding FeedEmptyText}" FontSize="11" Margin="16 14" TextWrapping="Wrap" VerticalAlignment="Top"
+                   IsHitTestVisible="False" Foreground="{DynamicResource TextMutedBrush}" />
+    </Grid>
 
     <!-- ══ Pilots: where each pilot was last seen ══ -->
     <Grid Grid.Row="5" IsVisible="{Binding IsPilotsTab}" RowDefinitions="Auto,*">
@@ -666,9 +713,21 @@
         <ContentControl Grid.Column="7" Content="{Binding HeadCorporation}" ContentTemplate="{StaticResource SortHead}" />
         <ContentControl Grid.Column="8" Content="{Binding HeadAlliance}" ContentTemplate="{StaticResource SortHead}" />
       </Grid>
-      <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
-        <StackPanel Margin="16 0 16 8">
-          <ItemsControl ItemsSource="{Binding PilotRows}">
+      <!-- ⚠️ Virtualized: the list owns its scrolling and lays out only the rows in sight. Inside a StackPanel in a
+           ScrollViewer every one of 500 rows (about 60 visuals each) was built, and built again on every header
+           click and every snapshot. The ItemsPresenter must take the ItemsPanel by TemplateBinding: without it, it
+           falls back to a StackPanel and nothing virtualizes. -->
+      <ItemsControl Grid.Row="1" ItemsSource="{Binding PilotRows}" Padding="16 0 16 8">
+        <ItemsControl.Template>
+          <ControlTemplate>
+            <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+              <ItemsPresenter Name="PART_ItemsPresenter" ItemsPanel="{TemplateBinding ItemsPanel}" Margin="{TemplateBinding Padding}" />
+            </ScrollViewer>
+          </ControlTemplate>
+        </ItemsControl.Template>
+        <ItemsControl.ItemsPanel>
+          <ItemsPanelTemplate><VirtualizingStackPanel /></ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
             <ItemsControl.ItemTemplate>
               <DataTemplate x:DataType="vm:IntelPilotListRowVm">
                 <Border Classes="feedLine" Padding="0 4 0 4" ContextRequested="OnPilotRowContext" DoubleTapped="OnPilotRowDoubleTapped">
@@ -704,10 +763,9 @@
                 </Border>
               </DataTemplate>
             </ItemsControl.ItemTemplate>
-          </ItemsControl>
-          <TextBlock Text="{Binding PilotsEmptyText}" FontSize="11" Margin="0 14" TextWrapping="Wrap" Foreground="{DynamicResource TextMutedBrush}" />
-        </StackPanel>
-      </ScrollViewer>
+      </ItemsControl>
+      <TextBlock Grid.Row="1" Text="{Binding PilotsEmptyText}" FontSize="11" Margin="16 14" TextWrapping="Wrap" VerticalAlignment="Top"
+                 IsHitTestVisible="False" Foreground="{DynamicResource TextMutedBrush}" />
     </Grid>
 
     <!-- ══ Camps: gate camps from kills and reports, active and lately ended ══ -->

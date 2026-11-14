@@ -1027,4 +1027,16 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>Nach dieser Spalte sortieren; erneut klicken kehrt die Reihenfolge um</value>
   </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} durch Ansehen ausgeblendet</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} durch Ansehen ausgeblendet</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Jeder gefundene Pilot ist durch den Ansehensfilter ausgeblendet: Oben weitere Ansehensstufen einschalten, um sie aufzulisten.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>Am Abschuss beteiligt, nach Allianz (oder Corporation):</value>
+  </data>
 </root>

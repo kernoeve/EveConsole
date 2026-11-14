@@ -973,4 +973,13 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>この列で並べ替え（もう一度クリックで逆順）</value>
   </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} 人がスタンディングで非表示</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>見つかったパイロットはすべてスタンディングのフィルターで非表示です。上でスタンディングを追加でオンにすると表示されます。</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>キルの参加者（アライアンスまたはコーポレーション別）:</value>
+  </data>
 </root>

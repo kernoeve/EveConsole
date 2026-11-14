@@ -21,8 +21,14 @@ public partial class IntelEventRow : UserControl
 
     private void OnOpenPicture(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is IntelPictureVm picture && DataContext is IntelEventRowVm row)
-            row.OpenPicture(picture);
+        var picture = (sender as Control)?.DataContext switch
+        {
+            IntelPictureVm p => p,
+            IntelTokenVm t => t.Source,
+            _ => null,
+        };
+        if (picture is not null && DataContext is IntelEventRowVm row) row.OpenPicture(picture);
+        e.Handled = true;
     }
 
     private void OnContextRequested(object? sender, ContextRequestedEventArgs e)
@@ -37,7 +43,13 @@ public partial class IntelEventRow : UserControl
         items.Add(Item(IntelText.MenuCopySystem, () => _ = CopyAsync(row.SystemName)));
         if (row.CanOpenInTool) items.Add(Item(IntelText.MenuOpenInTool, row.OpenInTool));
         // On a pilot: "Always alert" and "Ignore" for them.
-        if (e.Source is Avalonia.StyledElement { DataContext: IntelPictureVm { IsPilot: true, Id: > 0 } pilot } && row.Actions.Watch is { } watch)
+        var picked = (e.Source as Avalonia.StyledElement)?.DataContext switch
+        {
+            IntelPictureVm p => p,
+            IntelTokenVm t => t.Source,
+            _ => null,
+        };
+        if (picked is { IsPilot: true, Id: > 0 } pilot && row.Actions.Watch is { } watch)
         {
             items.Add(new Separator());
             items.Add(Item(IntelText.MenuOpenPilot, () => row.OpenPicture(pilot)));

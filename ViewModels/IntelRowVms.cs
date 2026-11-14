@@ -237,12 +237,14 @@ public sealed class IntelPictureVm : ReactiveObject
 {
     public enum Kinds { Pilot, Ship, Words, Corporation, Alliance }
 
-    private IntelPictureVm(Kinds kind, long id, string text, string? tip)
+    private IntelPictureVm(Kinds kind, long id, string text, string? tip, string? name = null, string count = "")
     {
         Kind = kind;
         Id = id;
         Text = text;
         Tip = tip;
+        Name = name ?? text;
+        CountText = count;
     }
 
     public static IntelPictureVm Pilot(long characterId, string name) =>
@@ -269,10 +271,40 @@ public sealed class IntelPictureVm : ReactiveObject
     public FontWeight TextWeight => IsWatchAlways ? FontWeight.Bold : FontWeight.Normal;
     public double TextOpacity => IsWatchIgnored ? IntelEventRowVm.IgnoredOpacity : 1.0;
 
+    /// <summary>
+    /// A pilot with their alliance's logo (or their corporation's, with no alliance) small on their portrait: who
+    /// they fly for, at a glance. The group's name is in the portrait's tooltip, under the pilot's.
+    /// </summary>
+    public static IntelPictureVm Pilot(long characterId, string name, IntelWatchMark watch, IntelPictureVm? badge)
+    {
+        var p = Pilot(characterId, name, watch);
+        p.Badge = badge;
+        p.PictureTip = badge is null ? name : name + "\n" + badge.Text;
+        return p;
+    }
+
+    /// <summary>
+    /// A group by its logo and how many fly for it ("×5"): its name only in the tooltip, as a line shows several of
+    /// them side by side. <paramref name="tip"/> replaces the tooltip (the first group carries the whole breakout).
+    /// </summary>
+    public static IntelPictureVm Group(IntelWhoKind kind, long id, string name, int count, string? tip = null)
+    {
+        var times = "×" + count.ToString(CultureInfo.CurrentCulture);
+        var p = new IntelPictureVm(kind == IntelWhoKind.Alliance ? Kinds.Alliance : Kinds.Corporation, id, name,
+                                   kind == IntelWhoKind.Alliance ? IntelText.TipOpenAlliance : IntelText.TipOpenCorporation,
+                                   name, times)
+        {
+            IconOnly = true,
+        };
+        p.PictureTip = tip ?? name + " · " + count.ToString(CultureInfo.CurrentCulture);
+        return p;
+    }
+
     public static IntelPictureVm Ship(int typeId, string hull, int count = 1) =>
         new(Kinds.Ship, typeId,
             count > 1 ? string.Format(CultureInfo.CurrentCulture, IntelText.HullTimes, hull, count) : hull,
-            typeId > 0 ? IntelText.TipOpenHull : null);
+            typeId > 0 ? IntelText.TipOpenHull : null,
+            hull, count > 1 ? "×" + count.ToString(CultureInfo.CurrentCulture) : "");
 
     /// <summary>A hull said by its English name with no type id beside it (a report's "8× Muninn", a
     /// pasted d-scan's ships as stored): its type found by name, so it shows its icon and its name in
@@ -287,8 +319,30 @@ public sealed class IntelPictureVm : ReactiveObject
 
     public Kinds  Kind { get; }
     public long   Id   { get; }
+    /// <summary>What it says as one piece: "Hull C ×8", a pilot's or a group's name, or the words.</summary>
     public string Text { get; }
     public string? Tip { get; }
+
+    /// <summary>The name alone, beside the picture: a hull's without its count.</summary>
+    public string Name { get; }
+
+    /// <summary>"×8" after a hull flown by several, "×5" after a group's logo; empty otherwise.</summary>
+    public string CountText { get; }
+    public bool HasCount => CountText.Length > 0;
+
+    /// <summary>A group shown by its logo and count alone: its name is in the tooltip.</summary>
+    public bool IconOnly { get; private init; }
+
+    /// <summary>A pilot's alliance (or corporation) logo, small, on their portrait.</summary>
+    public IntelPictureVm? Badge { get; private set; }
+    public bool HasBadge => Badge is not null;
+
+    private string? _pictureTip;
+    /// <summary>The picture's tooltip: the name, a pilot's group under it, a group's count.</summary>
+    public string PictureTip { get => _pictureTip ?? Text; private set => _pictureTip = value; }
+
+    /// <summary>The picture and its badge, for whoever loads or gives pictures.</summary>
+    public IEnumerable<IntelPictureVm> WithBadge => Badge is null ? [this] : [this, Badge];
 
     public bool IsPilot => Kind == Kinds.Pilot;
     public bool IsShip  => Kind == Kinds.Ship;
@@ -319,6 +373,7 @@ public sealed class IntelPictureVm : ReactiveObject
 
     public async Task LoadAsync()
     {
+        if (Badge is { } badge) _ = badge.LoadAsync();
         if (PictureUrl is not { } url || Picture is not null) return;
         var bitmap = await EveImageCache.GetAsync(url).ConfigureAwait(false);
         if (bitmap is not null) Dispatcher.UIThread.Post(() => Picture = bitmap);
@@ -336,6 +391,61 @@ public sealed class IntelPictureVm : ReactiveObject
             case Kinds.Corporation: EntityNavigator.Instance.Entity(EntityKind.PlayerCorp, Id); break;
             case Kinds.Alliance:    EntityNavigator.Instance.Entity(EntityKind.Alliance, Id); break;
         }
+    }
+}
+
+/// <summary>A piece that a line of intel tokens (<see cref="EveConsole.Views.IntelFitPanel"/>) may leave out when narrow: 0 never,
+/// 1 first, then 2, and so on.</summary>
+public interface IIntelDroppable
+{
+    int Drop { get; }
+}
+
+/// <summary>
+/// One piece of an intel line as drawn: a picture (a portrait with its group's logo small on it, a logo, a hull's
+/// icon), the name beside it, or a count. A name is its own piece so that a narrow line leaves the names out and
+/// keeps the pictures and counts: hulls' names go first, then groups', then pilots'. Each name stays in its picture's
+/// tooltip. Words ("lost to", "+2") are never left out.
+/// </summary>
+public sealed class IntelTokenVm : IIntelDroppable
+{
+    public enum Parts { Picture, Name, Count }
+
+    private IntelTokenVm(IntelPictureVm source, Parts part, int drop)
+    {
+        Source = source;
+        Part = part;
+        Drop = drop;
+    }
+
+    public IntelPictureVm Source { get; }
+    public Parts Part { get; }
+    public int Drop { get; }
+
+    public bool IsPicture => Part == Parts.Picture;
+    public bool IsName    => Part == Parts.Name;
+    public bool IsCount   => Part == Parts.Count;
+
+    /// <summary>The name piece's words: the bare name beside a picture, or the whole words with none.</summary>
+    public string Label => Source.HasPictureSlot ? Source.Name : Source.Text;
+
+    /// <summary>The pieces a picture is drawn as, in order: picture, name, count.</summary>
+    public static IEnumerable<IntelTokenVm> Of(IntelPictureVm p)
+    {
+        if (!p.HasPictureSlot)
+        {
+            yield return new IntelTokenVm(p, Parts.Name, 0);
+            yield break;
+        }
+        yield return new IntelTokenVm(p, Parts.Picture, 0);
+        if (!p.IconOnly)
+            yield return new IntelTokenVm(p, Parts.Name, p.Kind switch
+            {
+                IntelPictureVm.Kinds.Ship => 1,
+                IntelPictureVm.Kinds.Corporation or IntelPictureVm.Kinds.Alliance => 2,
+                _ => 3,
+            });
+        if (p.HasCount) yield return new IntelTokenVm(p, Parts.Count, 0);
     }
 }
 
@@ -403,11 +513,18 @@ public sealed class IntelEventRowVm : ReactiveObject
 
             case IntelEventKind.Kill:
             {
+                // Who lost what to whom: the victim's portrait (their group's logo on it) and name, their hull, then
+                // the attackers by group with counts, then what the attackers flew. The victim is no hostile: never
+                // counted among them.
                 State = IntelRowState.Kill;
                 StateText = gateName is null ? IntelText.StateKill : IntelText.StateGateKill;
+                if (e.VictimId > 0)
+                    pictures.Add(IntelPictureVm.Pilot(e.VictimId, e.VictimName ?? e.VictimId.ToString(CultureInfo.InvariantCulture),
+                                                      IntelWatchMark.None, GroupBadge(e.VictimCorporationId, e.VictimAllianceId, snapshot)));
                 if (e.VictimShipTypeId > 0)
                     pictures.Add(IntelPictureVm.Ship(e.VictimShipTypeId, e.VictimShip ?? "?"));
                 pictures.Add(IntelPictureVm.Words(IntelText.KillLostTo));
+                AddGroups(pictures, row.Pilots, snapshot, IntelText.KillAttackersTip);
                 var hulls = Hulls(row.Pilots.Select(p => p.Pilot).ToList(), e.TopHullTypeIds);
                 pictures.AddRange(hulls.Take(MaxPictures - 1));
                 more = Math.Max(0, hulls.Count - (MaxPictures - 1));
@@ -419,6 +536,8 @@ public sealed class IntelEventRowVm : ReactiveObject
             {
                 State = IntelRowState.Camp;
                 StateText = string.Format(culture, IntelText.StateCamp, camp?.KillMailIds.Count ?? 0);
+                // Who is camping, by group with counts, then what they fly.
+                AddGroups(pictures, row.Pilots, snapshot, IntelText.WhoTipTitle);
                 var hulls = Hulls(row.Pilots.Select(p => p.Pilot).ToList(), e.TopHullTypeIds);
                 pictures.AddRange(hulls.Take(MaxPictures));
                 more = Math.Max(0, hulls.Count - MaxPictures);
@@ -441,14 +560,16 @@ public sealed class IntelEventRowVm : ReactiveObject
                     _                         => (IntelRowState.Hostile, string.Format(culture, IntelText.StateHostile, count)),
                 };
 
-                // Each named pilot with their portrait, then their hull with its icon, as far as there is room.
+                // Each named pilot with their portrait (their group's logo small on it) and name, then their hull with
+                // its icon, as far as there is room.
                 var shown = 0;
                 foreach (var named in row.Pilots.OrderBy(p => p.Tier))
                 {
                     var p = named.Pilot;
                     var needs = p.Ship is { Length: > 0 } ? 2 : 1;
                     if (pictures.Count + needs > MaxPictures) break;
-                    pictures.Add(IntelPictureVm.Pilot(p.CharacterId, p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture), named.Watch));
+                    pictures.Add(IntelPictureVm.Pilot(p.CharacterId, p.Name ?? p.CharacterId.ToString(CultureInfo.InvariantCulture), named.Watch,
+                                                      GroupBadge(p.CorporationId, p.AllianceId, snapshot)));
                     if (p.Ship is { Length: > 0 } ship)
                         pictures.Add(p.ShipTypeId is > 0 and int type ? IntelPictureVm.Ship(type, ship) : IntelPictureVm.SaidHull(snapshot, ship));
                     shown++;
@@ -507,6 +628,7 @@ public sealed class IntelEventRowVm : ReactiveObject
         DirectionText = string.Join(" · ", direction);
 
         Pictures = pictures;
+        Tokens = [.. pictures.SelectMany(IntelTokenVm.Of)];
         MoreText = more > 0 ? "+" + more.ToString(culture) : "";
         TailText = tail;
         DetailText = detail ?? "";
@@ -515,7 +637,8 @@ public sealed class IntelEventRowVm : ReactiveObject
         Watch = row.Watch;
         WatchSet = snapshot.Watch;
         Signature = string.Join("|", Key, JumpsText, row.Tier, StateText, TailText, DetailText, MoreText, FollowUpText, e.Superseded, Watch,
-                                string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text + ":" + p.Watch)));
+                                string.Join(",", pictures.Select(p => p.Kind + ":" + p.Id + ":" + p.Text + ":" + p.Watch + ":" + p.Badge?.Id
+                                                                      + ":" + p.CountText + ":" + p.PictureTip)));
         Tick(now, snapshot.Settings.FreshSeconds);
     }
 
@@ -594,7 +717,13 @@ public sealed class IntelEventRowVm : ReactiveObject
     public bool IsKillState     => State == IntelRowState.Kill;
     public bool IsFlagsState    => State == IntelRowState.Flags;
 
+    /// <summary>Who and what, in order: each a picture with its name, a group's logo with its count, or words.</summary>
     public IReadOnlyList<IntelPictureVm> Pictures { get; }
+
+    /// <summary><see cref="Pictures"/> as drawn: each picture, its name and its count as pieces of their own, so a narrow
+    /// line leaves names out and keeps the pictures.</summary>
+    public IReadOnlyList<IntelTokenVm> Tokens { get; }
+
     public string MoreText { get; }
     public bool HasMore => MoreText.Length > 0;
     public string TailText { get; }
@@ -681,6 +810,48 @@ public sealed class IntelEventRowVm : ReactiveObject
             && !char.IsLetterOrDigit(text[english.Length]))
             text = text[english.Length..].TrimStart(' ', ':', ',', '-', '·');
         return text.Length > 0 ? text : message;
+    }
+
+    /// <summary>The groups a line shows by logo and count before "+N".</summary>
+    public const int MaxGroups = 2;
+
+    /// <summary>A pilot's alliance logo, or their corporation's when they have none: small, on their portrait.</summary>
+    private static IntelPictureVm? GroupBadge(long corporationId, long allianceId, IntelSnapshot snapshot)
+    {
+        var culture = CultureInfo.CurrentCulture;
+        return allianceId > 0 ? IntelPictureVm.Alliance(allianceId, snapshot.EntityName(allianceId) ?? string.Format(culture, MapText.AllianceNumbered, allianceId))
+             : corporationId > 0 ? IntelPictureVm.Corporation(corporationId, snapshot.EntityName(corporationId) ?? string.Format(culture, MapText.CorporationNumbered, corporationId))
+             : null;
+    }
+
+    /// <summary>
+    /// Who, by group: the line's pilots by alliance (or corporation, with none), the largest first, each as its logo
+    /// and "×n", the first <see cref="MaxGroups"/>, then "+N" groups. The first carries the whole breakout in its
+    /// tooltip under <paramref name="title"/>, with the pilots whose group is not known yet. The same grouping as a
+    /// system's who (<see cref="IntelHostiles.Groups"/>).
+    /// </summary>
+    private static void AddGroups(List<IntelPictureVm> pictures, IReadOnlyList<IntelEventPilotRow> pilots, IntelSnapshot snapshot, string title)
+    {
+        var hostiles = pilots.Select(p => new IntelHostile(p.Pilot.CharacterId, p.Pilot.Name, p.Pilot.ShipTypeId, p.Pilot.Ship,
+                                                           p.Pilot.CorporationId, p.Pilot.AllianceId, DateTimeOffset.MinValue, p.Tier, p.Watch,
+                                                           false, false)).ToList();
+        var groups = IntelHostiles.Groups(hostiles, snapshot);
+        if (groups.Count == 0) return;
+        var culture = CultureInfo.CurrentCulture;
+        string NameOf(IntelWhoGroup g) => g.Name ?? string.Format(culture,
+            g.Kind == IntelWhoKind.Alliance ? MapText.AllianceNumbered : MapText.CorporationNumbered, g.Id);
+
+        var tip = new List<string> { title };
+        tip.AddRange(groups.Select(g => NameOf(g) + " · " + g.Count.ToString(culture)));
+        var unknown = hostiles.Count(p => p.AllianceId <= 0 && p.CorporationId <= 0);
+        if (unknown > 0) tip.Add(string.Format(culture, IntelText.WhoTipUnknown, unknown));
+        var breakout = string.Join("\n", tip);
+
+        var shown = groups.Take(MaxGroups).ToList();
+        for (var i = 0; i < shown.Count; i++)
+            pictures.Add(IntelPictureVm.Group(shown[i].Kind, shown[i].Id, NameOf(shown[i]), shown[i].Count, i == 0 ? breakout : null));
+        if (groups.Count > shown.Count)
+            pictures.Add(IntelPictureVm.Words("+" + (groups.Count - shown.Count).ToString(culture)));
     }
 
     /// <summary>Hulls with how many flew each, most first: from who was on the kill or the camp, by type.</summary>

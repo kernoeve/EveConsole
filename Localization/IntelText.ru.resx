@@ -1135,4 +1135,22 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>Сортировать по этому столбцу; повторный щелчок меняет порядок</value>
   </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} скрыт фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenFew" xml:space="preserve">
+    <value>{0} скрыты фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenMany" xml:space="preserve">
+    <value>{0} скрыто фильтром отношений</value>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} скрыто фильтром отношений</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Все найденные пилоты скрыты фильтром отношений: включите больше отношений выше, чтобы их показать.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>Участники убийства, по альянсам (или корпорациям):</value>
+  </data>
 </root>

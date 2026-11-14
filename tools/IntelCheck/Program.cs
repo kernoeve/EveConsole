@@ -151,6 +151,9 @@ try
     await using (var db = new AppDbContext(pasteOptions)) await db.Database.EnsureCreatedAsync();
     await PasteChecks.DatabaseAsync(c, "SQLite", pasteOptions);
 
+    // ── The Intel tool's grids, headless: the Pilots tab's standings filter, header sorts, virtualized lists ─────────
+    ToolGridChecks.Run(c);
+
     // ── PostgreSQL ───────────────────────────────────────────────────────────────────────────────────────────
     // ⚠️ From the environment, not an argument: a connection string carries a password.
     if (Environment.GetEnvironmentVariable("EVECONSOLE_PG") is { Length: > 0 } server)

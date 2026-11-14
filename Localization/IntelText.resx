@@ -1368,4 +1368,20 @@
     <value>Sort by this column; click again for the other way round</value>
     <comment>Tooltip on a sortable column header.</comment>
   </data>
+  <data name="PilotsHiddenOne" xml:space="preserve">
+    <value>{0} hidden by standings</value>
+    <comment>Intel tool Pilots tab, after the count: one pilot found and left out because their standings tier is switched off. {0} is the number.</comment>
+  </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} hidden by standings</value>
+    <comment>Intel tool Pilots tab, after the count: pilots found and left out because their standings tier is switched off. {0} is a number.</comment>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>Every pilot found is hidden by the standings filter: switch on more standings above to list them.</value>
+    <comment>Intel tool Pilots tab, when pilots were found but the standings chips leave every one of them out.</comment>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>On the kill, by alliance (or corporation):</value>
+    <comment>First line of the tooltip on a kill line&apos;s attackers, listed by group with how many of each.</comment>
+  </data>
 </root>

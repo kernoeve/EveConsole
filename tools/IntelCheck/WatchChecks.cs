@@ -406,6 +406,55 @@ namespace EveConsole.Tools.IntelCheck
             c.Check($"{engine} pilots: every search on {SearchRows:N0} rows within four passes over the table", timings.All(t => t.Item2 <= limit), said);
             Console.WriteLine($"{engine} pilots search: " + said);
 
+            // ── With the standings filter: the cap counts the pilots kept ──
+            // The newest the filter leaves out never push out older ones it keeps: the read pages on past them.
+            async Task<(IntelPilotResults R, long Ms)> Filtered(TimeSpan window, Func<IntelLastSeen, bool> keep)
+            {
+                await using var db = new AppDbContext(options);
+                var sw = Stopwatch.StartNew();
+                var r = await IntelPilotSearch.SearchAsync(db, "", Now - window, keep);
+                return (r, sw.ElapsedMilliseconds);
+            }
+            async Task<List<IntelLastSeen>> Window(TimeSpan window)
+            {
+                await using var db = new AppDbContext(options);
+                var since = IntelLastSeenWriter.Format(Now - window);
+                return [.. (await db.IntelLastSeens.AsNoTracking().Where(r => string.Compare(r.SeenAt, since) >= 0).ToListAsync())
+                    .OrderByDescending(r => r.SeenAt, StringComparer.Ordinal)];
+            }
+            static bool OneIn50(IntelLastSeen r) => r.CharacterId % 50 == 0;
+            foreach (var (label, window) in new[] { ("24 h", day), ("60 d", TimeSpan.FromDays(60)) })
+            {
+                var inWindow = await Window(window);
+                var expected = inWindow.Where(OneIn50).Take(IntelPilotSearch.MaxRows).ToList();
+                var kept = inWindow.Count(OneIn50);
+                var (got, ms) = await Filtered(window, OneIn50);
+                c.Check($"{engine} pilots filtered, {label}: the newest pilots the filter keeps, the cap counted after it",
+                    got.Rows.All(OneIn50) && got.Rows.Select(r => r.SeenAt).SequenceEqual(expected.Select(r => r.SeenAt))
+                    && got.Rows.Select(r => r.CharacterId).Distinct().Count() == got.Rows.Count,
+                    $"{got.Rows.Count} rows, {expected.Count} expected, {ms} ms");
+                c.Check($"{engine} pilots filtered, {label}: capped only when more were kept than the cap, and the hidden counted",
+                    kept > IntelPilotSearch.MaxRows
+                        ? got.Capped && got.Rows.Count == IntelPilotSearch.MaxRows
+                        : !got.Capped && got.Hidden == inWindow.Count - kept,
+                    $"capped {got.Capped}, hidden {got.Hidden} of {inWindow.Count} read, {kept} kept");
+                if (label == "60 d")
+                    c.Check($"{engine} pilots filtered: one in fifty kept, sixty days, within four passes over the table", ms <= limit,
+                        $"{ms} ms, limit {limit} ms");
+            }
+            // Ten old pilots behind 1,200 newer ones the filter leaves out: all ten, nothing capped.
+            static bool TenOld(IntelLastSeen r) => r.CharacterId is >= 95_000_600 and < 95_000_610;
+            var (ten, _) = await Filtered(day, TenOld);
+            var dayAll = await Window(day);
+            c.Check($"{engine} pilots filtered: ten kept behind every newer pilot left out are all listed, and the rest counted hidden",
+                ten.Rows.Count == 10 && ten.Rows.All(TenOld) && !ten.Capped && ten.Hidden == dayAll.Count - 10,
+                $"{ten.Rows.Count} rows, hidden {ten.Hidden} of {dayAll.Count}, capped {ten.Capped}");
+            static bool Nobody(IntelLastSeen r) => false;
+            var (none, noneMs) = await Filtered(TimeSpan.FromDays(60), Nobody);
+            c.Check($"{engine} pilots filtered: a filter that keeps nobody stops at its scan bound and says so",
+                none.Rows.Count == 0 && none.Capped && none.Hidden >= IntelPilotSearch.MaxScanned, $"hidden {none.Hidden}, {noneMs} ms");
+            Console.WriteLine($"{engine} pilots filtered: one in fifty over 60 d read in the check above; nobody kept: {noneMs} ms");
+
             await using (var db = new AppDbContext(options))
             {
                 await db.IntelLastSeens.ExecuteDeleteAsync();

@@ -1,5 +1,5 @@
-// The panel beside a client (its list with one system opened, and its single line, wide and narrow) and the Intel
-// tool's Board (a system opened), drawn headless from the invented hostiles of HostileScene, to pictures a review can
+// The panel beside a client (its list with one system opened, and its single line, wide and narrow), the Intel
+// tool's Board (a system opened), its Pilots tab and its Feed (a kill, reports and a camp, wide and narrow), drawn headless from the invented hostiles of HostileScene, to pictures a review can
 // look at without the app, a database or a game client. The pictures of pilots, corporations, alliances and hulls are
 // drawn here too (no network): shapes and colours made up from each id. Every name and id is invented.
 using System.Collections.ObjectModel;
@@ -93,11 +93,29 @@ namespace EveConsole.Tools.IntelCheck
                 tool.UsePilots(new IntelPilotResults([.. HostileScene.Input().LastSeen], HostileScene.Names));
                 tool.SortPilotsBy(IntelViewModel.PilotColumn.Alliance);
                 tool.SelectedTab = IntelViewModel.TabPilots;
+                Pump(() => tool.PilotsShown.IsCompleted && tool.PilotRows.Count > 0);
                 failed += Capture(window, Path.Combine(outDir, "pilots-sorted.png"), () =>
                 {
                     foreach (var r in tool.PilotRows)
                         Give(new[] { r.Pilot, r.Hull, r.Corporation, r.Alliance }.Where(p => p is not null).Select(p => p!));
                 });
+
+                // ── The Feed: a kill, reports and a camp, each saying who; wide, then narrow ──
+                tool.Apply(HostileScene.FeedSnapshot());
+                tool.SelectedTab = IntelViewModel.TabFeed;
+                Pump(() => tool.FeedRows.OfType<IntelFeedLineVm>().Any(l => l.Row.Kind == IntelEventKind.Kill && l.Row.SystemId == HostileScene.Brawl)
+                           && tool.FeedRows.OfType<IntelFeedLineVm>().All(l => !l.Row.IsPending));
+                void GiveFeed()
+                {
+                    foreach (var l in tool.FeedRows.OfType<IntelFeedLineVm>())
+                    {
+                        Give(l.Row.Pictures);
+                        if (l.Row.HasReporter) l.Row.ShowReporter(Picture(IntelPictureVm.Kinds.Pilot, l.Row.ReporterId));
+                    }
+                }
+                failed += Capture(window, Path.Combine(outDir, "feed-who.png"), GiveFeed);
+                window.Width = 760;
+                failed += Capture(window, Path.Combine(outDir, "feed-who-narrow.png"), GiveFeed);
                 window.Close();
                 tool.Dispose();
                 return failed == 0 ? 0 : 1;
@@ -166,7 +184,7 @@ namespace EveConsole.Tools.IntelCheck
 
         private static void Give(IEnumerable<IntelPictureVm> pictures)
         {
-            foreach (var p in pictures)
+            foreach (var p in pictures.SelectMany(x => x.WithBadge))
                 if (p.HasPictureSlot) p.Show(Picture(p.Kind, p.Id));
         }
 

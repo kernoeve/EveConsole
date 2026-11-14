@@ -121,6 +121,11 @@ public sealed class IntelDuplicates
 
     private bool IsCopy(IntelReport report, IEnumerable<(long Id, int? Hull)> pilots)
     {
+        // ⚠️ A clear is never a copy. It names nobody and counts nothing, so a second one doubles nothing; and every
+        // clear of a system has the same facts, so "<system> clr" called in a second channel was dropped here, left
+        // with no report, and shown in the Feed as chatter.
+        if (report.Kind == IntelReportKind.Clear) return false;
+
         if (Read(report, pilots) is not { } candidate || !_bySystem.TryGetValue(report.SystemId, out var list)) return false;
 
         return list.Any(held =>
@@ -149,7 +154,8 @@ public sealed class IntelDuplicates
 
         var named = string.Join(',', pilots.OrderBy(p => p.Id).ThenBy(p => p.Hull)
             .Select(p => p.Hull is { } hull ? $"{p.Id}:{hull}" : p.Id.ToString(CultureInfo.InvariantCulture)));
-        var facts = $"{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
+        // The kind is in it too, so a clear can never match a sighting.
+        var facts = $"{(int)report.Kind}|{named}|{report.PlayerCount}|{report.Flags}|{report.NoVisual}|{report.Gate}|{report.Ships}|{report.HeadingSystemId}";
         var says  = report.PlayerCount > 0 || report.Flags != 0 || report.NoVisual || !string.IsNullOrEmpty(report.Gate) || named.Length > 0
                  || report.HeadingSystemId is not null;
         return new Held(report.ChannelName, at, Words(report.Message), facts, says);

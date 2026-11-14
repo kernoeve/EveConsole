@@ -80,16 +80,24 @@ public partial class IntelToolView : UserControl
 
     // ── Pictures ─────────────────────────────────────────────────────────────
 
+    /// <summary>A picture, or one piece of a Feed line's who and what (its picture or its name).</summary>
+    private static IntelPictureVm? PictureOf(object? sender) => (sender as Control)?.DataContext switch
+    {
+        IntelPictureVm p => p,
+        IntelTokenVm t => t.Source,
+        _ => null,
+    };
+
     private void OnOpenPicture(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is IntelPictureVm picture) picture.Open();
+        PictureOf(sender)?.Open();
         e.Handled = true;
     }
 
     /// <summary>A pilot anywhere in the tool: open them, and "Always alert" / "Ignore".</summary>
     private void OnPictureContext(object? sender, ContextRequestedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is not IntelPictureVm { IsPilot: true, Id: > 0 } pilot || Vm is not { } vm) return;
+        if (PictureOf(sender) is not { IsPilot: true, Id: > 0 } pilot || Vm is not { } vm) return;
         e.Handled = true;
         var items = new List<Control> { Item(IntelText.MenuOpenPilot, pilot.Open) };
         if (vm.Watch is { } watch) items.AddRange(IntelWatchMenu.ForPilot(watch, vm.Snapshot.Watch, pilot.Id, pilot.Text));

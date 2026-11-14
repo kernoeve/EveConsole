@@ -222,8 +222,9 @@ namespace EveConsole.Tools.IntelCheck
             var camp = Row(r => r.Event.Kind == IntelEventKind.CampFormed);
             c.Check("panel: a camp counts its kills", camp.StateText == "gate camp · 3", camp.StateText);
             c.Check("panel: a camp is as new as its last kill", camp.AgeText == "1 min" && camp.NewestAt == Ago(1), camp.AgeText);
-            c.Check("panel: a camp's hulls, most flown first, each with its icon",
-                camp.Pictures.Count == 2 && camp.Pictures[0].Text == "Hull C ×2" && camp.Pictures[1].Text == "Hull A",
+            c.Check("panel: a camp's campers by their group's logo and count, then its hulls, most flown first, each with its icon",
+                camp.Pictures.Count == 3 && camp.Pictures[0] is { Kind: IntelPictureVm.Kinds.Corporation, Id: RedCorp, CountText: "×3", IconOnly: true }
+                && camp.Pictures[1].Text == "Hull C ×2" && camp.Pictures[2].Text == "Hull A",
                 string.Join(",", camp.Pictures.Select(p => p.Text)));
             c.Check("panel: a camp says which gate", camp.TailText == "near the QZ-X77 gate", camp.TailText);
 

@@ -16,20 +16,20 @@ namespace EveConsole.Tools.IntelCheck
         private static string Iso(DateTimeOffset t) => t.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture);
 
         public const int Home = 39_910_001, Gang = 39_910_002, Lone = 39_910_003, Camp = 39_910_004, Counted = 39_910_005,
-                         Flags = 39_910_006, Cleared = 39_910_007, GateTo = 39_910_008;
+                         Flags = 39_910_006, Cleared = 39_910_007, GateTo = 39_910_008, Brawl = 39_910_009;
         public const int Region = 10_910_001;
 
         public static readonly (int Id, string Name)[] Systems =
         [
             (Home, "QZ-X77"), (Gang, "XQ1-Z2"), (Lone, "ZZQ-71"), (Camp, "X2-QZ7"), (Counted, "K7-QZP"), (Flags, "Q2X-91"),
-            (Cleared, "ZXQ-4F"), (GateTo, "9Q-ZX2"),
+            (Cleared, "ZXQ-4F"), (GateTo, "9Q-ZX2"), (Brawl, "Q7-ZZX"),
         ];
 
-        /// <summary>Gates: Home–Gang–Lone–Camp–Counted–Flags in a line, Cleared beside Home, GateTo beside Camp.</summary>
+        /// <summary>Gates: Home–Gang–Lone–Camp–Counted–Flags in a line, Cleared and Brawl beside Home, GateTo beside Camp.</summary>
         public static readonly Dictionary<int, int[]> Gates = new()
         {
-            [Home] = [Gang, Cleared], [Gang] = [Home, Lone], [Lone] = [Gang, Camp], [Camp] = [Lone, Counted, GateTo],
-            [Counted] = [Camp, Flags], [Flags] = [Counted], [Cleared] = [Home], [GateTo] = [Camp],
+            [Home] = [Gang, Cleared, Brawl], [Gang] = [Home, Lone], [Lone] = [Gang, Camp], [Camp] = [Lone, Counted, GateTo],
+            [Counted] = [Camp, Flags], [Flags] = [Counted], [Cleared] = [Home], [GateTo] = [Camp], [Brawl] = [Home],
         };
 
         public static Dictionary<int, IntelHop> Hops()
@@ -170,5 +170,35 @@ namespace EveConsole.Tools.IntelCheck
         }
 
         public static IntelSnapshot Snapshot() => IntelSnapshotBuilder.Build(Input(), new IntelCampRegister(), 1);
+
+        // A brawl, for the Feed's who: a pilot of Qzx Thistle Pact lost a Lancer in Q7-ZZX to eight: five of Qzx Lantern
+        // Alliance, two of Qzx Ember Union, one of Qzx Quiet Traders (a corporation in no alliance).
+        public const long AllyC = 99_910_012, CorpE = 98_910_015, BrawlVictim = 94_910_030;
+        public const int BrawlKill = 8_910_009;
+        public static readonly long[] BrawlLantern = [94_910_031, 94_910_032, 94_910_033, 94_910_034, 94_910_035];
+        public static readonly long[] BrawlEmber = [94_910_036, 94_910_037];
+        public const long BrawlTrader = 94_910_038;
+
+        /// <summary>The scene with the brawl added: kept apart, so the rows the other checks count stay as they were.</summary>
+        public static IntelSnapshotInput FeedInput()
+        {
+            var input = Input();
+            var attackers = BrawlLantern.Select((id, i) => Attacker(id, CorpA1, AllyA, i < 3 ? Raider : Lancer))
+                .Concat(BrawlEmber.Select(id => Attacker(id, CorpE, AllyC, Raider)))
+                .Append(Attacker(BrawlTrader, CorpN, 0, Bastion))
+                .ToArray();
+            var seen = attackers.Select(a => Seen(a.CharacterId, Brawl, 0.5, a.ShipTypeId ?? Raider, a.CorporationId, a.AllianceId,
+                                                  IntelLastSeenSource.KillAttacker, kill: BrawlKill))
+                .Append(Seen(BrawlVictim, Brawl, 0.5, Lancer, CorpB, AllyB, IntelLastSeenSource.KillVictim, kill: BrawlKill));
+            var names = new Dictionary<long, string>(Names) { [AllyC] = "Qzx Ember Union", [CorpE] = "Qzx Ember Forge" };
+            return input with
+            {
+                LastSeen = [.. input.LastSeen, .. seen],
+                Kills = [.. input.Kills, new IntelKill(BrawlKill, Ago(0.5), Brawl, BrawlVictim, CorpB, AllyB, Lancer, null, 0, 0, 0, attackers)],
+                Names = names,
+            };
+        }
+
+        public static IntelSnapshot FeedSnapshot() => IntelSnapshotBuilder.Build(FeedInput(), new IntelCampRegister(), 2);
     }
 }

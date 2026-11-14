@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:EveConsole.ViewModels"
+             xmlns:views="clr-namespace:EveConsole.Views"
              xmlns:loc="using:EveConsole.Localization"
              x:Class="EveConsole.Views.IntelEventRow"
              x:DataType="vm:IntelEventRowVm">
@@ -110,45 +111,58 @@
       <TextBlock Grid.Column="3" Text="{Binding AgeText}" FontSize="10" VerticalAlignment="Center"
                  Foreground="{DynamicResource TextMutedBrush}" />
 
-      <!-- Who and what: a pilot's portrait left of their name, a hull's icon left of its name. -->
-      <StackPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Orientation="Horizontal" Spacing="4"
-                  ClipToBounds="True" IsVisible="{Binding HasSecondLine}">
-        <ItemsControl ItemsSource="{Binding Pictures}" VerticalAlignment="Center">
+      <!-- Who and what: a pilot's portrait (their group's logo small on it) left of their name, a group's logo with how
+           many, a hull's icon left of its name. Narrow, the names give way and the pictures and counts stay; each
+           name is in its picture's tooltip. -->
+      <views:IntelFitPanel Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" IsVisible="{Binding HasSecondLine}">
+        <ItemsControl views:IntelFitPanel.Shrinks="True" ItemsSource="{Binding Tokens}" VerticalAlignment="Center">
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <StackPanel Orientation="Horizontal" Spacing="6" />
+              <views:IntelFitPanel />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
-            <DataTemplate x:DataType="vm:IntelPictureVm">
-              <StackPanel Orientation="Horizontal" Spacing="4" Opacity="{Binding TextOpacity}">
-                <Panel IsVisible="{Binding HasPictureSlot}" Width="16" Height="16" VerticalAlignment="Center">
-                  <!-- A portrait round, a hull's icon square. -->
-                  <Border IsVisible="{Binding IsPilot}" CornerRadius="8" ClipToBounds="True"
-                          Background="{DynamicResource SurfacePanelAltBrush}">
-                    <Image Source="{Binding Picture}" Width="16" Height="16" />
-                  </Border>
-                  <Border IsVisible="{Binding IsSquare}" CornerRadius="2" ClipToBounds="True"
-                          Background="{DynamicResource SurfacePanelAltBrush}">
-                    <Image Source="{Binding Picture}" Width="16" Height="16" />
-                  </Border>
-                </Panel>
-                <Button Classes="link" IsVisible="{Binding IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Tip}">
-                  <TextBlock Text="{Binding Text}" FontSize="10" FontWeight="{Binding TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
+            <DataTemplate x:DataType="vm:IntelTokenVm">
+              <Panel Opacity="{Binding Source.TextOpacity}" Margin="0 0 4 0">
+                <Button Classes="link" IsVisible="{Binding IsPicture}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.PictureTip}"
+                        Margin="2 0 0 0">
+                  <Panel Width="16" Height="16" VerticalAlignment="Center">
+                    <!-- A portrait round, a logo or a hull's icon square; a placeholder holds the space while it loads. -->
+                    <Border IsVisible="{Binding Source.IsPilot}" CornerRadius="8" ClipToBounds="True"
+                            Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+                    </Border>
+                    <Border IsVisible="{Binding Source.IsSquare}" CornerRadius="2" ClipToBounds="True"
+                            Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Picture}" Width="16" Height="16" />
+                    </Border>
+                    <Border IsVisible="{Binding Source.HasBadge}" Width="9" Height="9" CornerRadius="2" ClipToBounds="True"
+                            HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0 0 -3 -2"
+                            BorderBrush="{DynamicResource SurfaceBaseBrush}" BorderThickness="1" Background="{DynamicResource SurfacePanelAltBrush}">
+                      <Image Source="{Binding Source.Badge.Picture}" Width="8" Height="8" />
+                    </Border>
+                  </Panel>
                 </Button>
-                <TextBlock Text="{Binding Text}" IsVisible="{Binding !IsLink}" FontSize="10" VerticalAlignment="Center"
-                           Foreground="{DynamicResource TextSecondaryBrush}" />
-              </StackPanel>
+                <Panel IsVisible="{Binding IsName}">
+                  <Button Classes="link" IsVisible="{Binding Source.IsLink}" Click="OnOpenPicture" ToolTip.Tip="{Binding Source.Tip}">
+                    <TextBlock Text="{Binding Label}" FontSize="10" FontWeight="{Binding Source.TextWeight}" Foreground="{DynamicResource TextPrimaryBrush}" />
+                  </Button>
+                  <TextBlock Text="{Binding Label}" IsVisible="{Binding !Source.IsLink}" FontSize="10" VerticalAlignment="Center"
+                             Foreground="{DynamicResource TextSecondaryBrush}" />
+                </Panel>
+                <TextBlock IsVisible="{Binding IsCount}" Text="{Binding Source.CountText}" FontSize="10" FontWeight="SemiBold" VerticalAlignment="Center"
+                           Margin="-2 0 0 0" Foreground="{DynamicResource TextPrimaryBrush}" />
+              </Panel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
-        <TextBlock Text="{Binding MoreText}" IsVisible="{Binding HasMore}" FontSize="10" VerticalAlignment="Center"
+        <TextBlock Text="{Binding MoreText}" IsVisible="{Binding HasMore}" FontSize="10" VerticalAlignment="Center" Margin="0 0 4 0"
                    Foreground="{DynamicResource TextMutedBrush}" />
-        <TextBlock Text="{Binding DetailText}" IsVisible="{Binding HasDetail}" FontSize="10" VerticalAlignment="Center"
-                   Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
+        <TextBlock views:IntelFitPanel.Shrinks="True" Text="{Binding DetailText}" IsVisible="{Binding HasDetail}" FontSize="10"
+                   VerticalAlignment="Center" Margin="0 0 4 0" Foreground="{DynamicResource TextSecondaryBrush}" TextTrimming="CharacterEllipsis" />
         <TextBlock Text="{Binding TailText}" IsVisible="{Binding HasTail}" FontSize="10" VerticalAlignment="Center"
                    Foreground="{DynamicResource WarnBrush}" />
-      </StackPanel>
+      </views:IntelFitPanel>
     </Grid>
   </Border>
 </UserControl>

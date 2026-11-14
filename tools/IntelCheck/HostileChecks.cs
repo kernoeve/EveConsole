@@ -25,6 +25,8 @@ namespace EveConsole.Tools.IntelCheck
                 Flying(c);
                 PanelRows(c);
                 PilotSort(c);
+                PilotsFilter(c);
+                FeedWho(c);
             }
             finally { CultureInfo.CurrentUICulture = culture; CultureInfo.CurrentCulture = format; }
         }
@@ -300,6 +302,128 @@ namespace EveConsole.Tools.IntelCheck
                 name1 == (IntelViewModel.PilotColumn.Name, false) && name2 == (IntelViewModel.PilotColumn.Name, true)
                 && seen1 == (IntelViewModel.PilotColumn.Seen, true) && jumps1 == (IntelViewModel.PilotColumn.Jumps, false),
                 $"{name1} {name2} {seen1} {jumps1}");
+            var jumps2 = IntelViewModel.NextPilotSort(jumps1.Column, jumps1.Descending, IntelViewModel.PilotColumn.Jumps);
+            var jumps3 = IntelViewModel.NextPilotSort(jumps2.Column, jumps2.Descending, IntelViewModel.PilotColumn.Jumps);
+            c.Check("pilots: Jumps clicked again is farthest first, and a third time nearest first again",
+                jumps2 == (IntelViewModel.PilotColumn.Jumps, true) && jumps3 == (IntelViewModel.PilotColumn.Jumps, false), $"{jumps2} {jumps3}");
+        }
+
+        /// <summary>
+        /// The Pilots tab's standings filter: the Board's rule. The tier the nearest origin's character gives (the forced
+        /// character first; every own character's friendliest when counting from a system or not reached yet); own
+        /// characters never shown; corporation and alliance mates blue.
+        /// </summary>
+        private static void PilotsFilter(Checks c)
+        {
+            const long OtherAlly = 94_910_090, CorpMate = 94_910_091, AllianceMate = 94_910_092, Neutral = 94_910_093,
+                       Friend = 94_910_094, Other = 93_910_002, OtherCorp = 98_910_090, MyOtherCorp = 98_910_091, FriendCorp = 98_910_092;
+            IntelLastSeen Row(long id, long corp, long alliance, int system = Gang) => new()
+            {
+                CharacterId = id, Name = PilotName(id), SystemId = system, SeenAt = "2026-11-13T17:59:00Z", WrittenAt = "2026-11-13T17:59:00Z",
+                CorporationId = corp, AllianceId = alliance == 0 ? null : alliance, Source = IntelLastSeenSource.Report,
+            };
+            var red = Row(OtherAlly, CorpA1, AllyA);
+            var corpMate = Row(CorpMate, MyCorp, MyAlliance);
+            var allianceMate = Row(AllianceMate, MyOtherCorp, MyAlliance);
+            var own = Row(Me, MyCorp, MyAlliance);
+            var neutral = Row(Neutral, CorpN, 0);
+            var hostile = new HashSet<StandingTier>([StandingTier.Red, StandingTier.Orange, StandingTier.Neutral]);
+            var fromMe = new IntelPilotFilter(Standings(), [(new IntelOrigin(Me, Home), Hops())], hostile);
+
+            c.Check("pilots filter: a red is shown, a neutral too, with the chips as they start",
+                fromMe.Keeps(red) && fromMe.Keeps(neutral) && fromMe.Place(red).Tier == StandingTier.Red);
+            c.Check("pilots filter: a corporation mate and an alliance mate are blue, and hidden with Blue off",
+                fromMe.Place(corpMate).Tier == StandingTier.Blue && fromMe.Place(allianceMate).Tier == StandingTier.Blue
+                && !fromMe.Keeps(corpMate) && !fromMe.Keeps(allianceMate),
+                $"{fromMe.Place(corpMate).Tier} {fromMe.Place(allianceMate).Tier}");
+            c.Check("pilots filter: an own character is never listed", fromMe.Place(own).Tier == StandingTier.Own && !fromMe.Keeps(own));
+            var blueOn = new IntelPilotFilter(Standings(), [(new IntelOrigin(Me, Home), Hops())], new HashSet<StandingTier>(hostile) { StandingTier.Blue });
+            c.Check("pilots filter: Blue switched on shows them, the own character still not", blueOn.Keeps(corpMate) && blueOn.Keeps(allianceMate) && !blueOn.Keeps(own));
+            c.Check("pilots filter: measured from the origin, from its character", fromMe.Place(red) is { Jumps: 1, Nearest: Me });
+
+            // From a system, nobody views: every own character's friendliest. Two characters: a corporation red to one, blue
+            // to the other, is blue; the character the setting forces decides.
+            IntelStandings Two(long forced = 0) => new(
+                [new IntelStandings.OwnCharacter(Me, "Pilot Qzx Home", MyCorp, MyAlliance), new IntelStandings.OwnCharacter(Other, "Pilot Qzx Other", OtherCorp, 0)],
+                [MyCorp, OtherCorp], [(MyCorp, FriendCorp, -10.0), (OtherCorp, FriendCorp, 10.0)], forced);
+            var friend = Row(Friend, FriendCorp, 0);
+            var fromSystem = new IntelPilotFilter(Two(), [(new IntelOrigin(0, Home), Hops())], hostile);
+            c.Check("pilots filter: from a system, the friendliest of the characters (blue to one): hidden with Blue off",
+                fromSystem.Place(friend) is { Nearest: null, Tier: StandingTier.Blue } && !fromSystem.Keeps(friend),
+                fromSystem.Place(friend).ToString());
+            var forced = new IntelPilotFilter(Two(Me), [(new IntelOrigin(0, Home), Hops())], hostile);
+            c.Check("pilots filter: the forced character wins (red to them): shown",
+                forced.Place(friend).Tier == StandingTier.Red && forced.Keeps(friend), forced.Place(friend).ToString());
+            var unreached = new IntelPilotFilter(Two(), [], hostile);
+            c.Check("pilots filter: a row no walk reaches yet is coloured by the rule with no viewer",
+                unreached.Place(Row(Friend, FriendCorp, 0)) is { Jumps: null, Nearest: null, Tier: StandingTier.Blue });
+        }
+
+        /// <summary>
+        /// Every Feed line answers who: a kill's victim by portrait and name with their group's logo on it, and its
+        /// attackers by group logo with counts, largest first, "+N", then their hulls; a report's pilots by portrait and
+        /// name with their group's logo; a camp's campers by group. Victims stay out of the hostile counts. Narrow, the
+        /// names go and the pictures and counts stay.
+        /// </summary>
+        private static void FeedWho(Checks c)
+        {
+            var snapshot = FeedSnapshot();
+            var view = View(snapshot);
+            IntelEventRowVm Line(Func<IntelFeedRow, bool> which) => new(view.Feed.First(which), snapshot, Now, false);
+            string Says(IntelEventRowVm r) => string.Join(",", r.Pictures.Select(p => p.Kind switch
+            {
+                IntelPictureVm.Kinds.Pilot => "@" + p.Text + (p.Badge is { } b ? "[" + b.Kind + ":" + b.Id + "]" : ""),
+                IntelPictureVm.Kinds.Alliance or IntelPictureVm.Kinds.Corporation => "#" + p.Kind + ":" + p.Id + p.CountText,
+                IntelPictureVm.Kinds.Ship => "^" + p.Text,
+                _ => p.Text,
+            }));
+
+            var kill = Line(r => r.Event.KillMailId == BrawlKill);
+            var said = Says(kill);
+            c.Check("feed who: a kill leads with its victim, their portrait with their alliance's logo on it, then their hull",
+                kill.Pictures.Count > 2 && kill.Pictures[0] is { IsPilot: true, Id: BrawlVictim, Text: "Pilot Qzx 30" } v
+                && v.Badge is { Kind: IntelPictureVm.Kinds.Alliance, Id: AllyB } && kill.Pictures[1] is { IsShip: true, Id: Lancer }
+                && v.PictureTip == "Pilot Qzx 30\nQzx Thistle Pact", said);
+            c.Check("feed who: lost to its attackers by group, largest first, each a logo with a count, then \"+1\" for the rest",
+                said.Contains("lost to,#Alliance:" + AllyA + "×5,#Alliance:" + AllyC + "×2,+1,", StringComparison.Ordinal), said);
+            c.Check("feed who: the groups' names are in the tooltips, the whole breakout on the first",
+                kill.Pictures.First(p => p.Id == AllyA) is { IconOnly: true } a && a.PictureTip.StartsWith(IntelText.KillAttackersTip, StringComparison.Ordinal)
+                && a.PictureTip.Contains("Qzx Lantern Alliance · 5") && a.PictureTip.Contains("Qzx Ember Union · 2") && a.PictureTip.Contains("Qzx Quiet Traders · 1")
+                && kill.Pictures.First(p => p.Id == AllyC).PictureTip == "Qzx Ember Union · 2",
+                kill.Pictures.First(p => p.Id == AllyA).PictureTip);
+            c.Check("feed who: then the attackers' hulls, most flown first", said.EndsWith("^Raider QX ×5,^Lancer QX ×2,^Bastion QX", StringComparison.Ordinal), said);
+            var brawl = view.Systems.Single(s => s.SystemId == Brawl);
+            c.Check("feed who: the victim stays out of the hostile counts", brawl.Pilots.Count == 8 && brawl.Pilots.All(p => p.Pilot.CharacterId != BrawlVictim)
+                && IntelHostiles.Of(brawl, snapshot, Now).Count == 8, brawl.Pilots.Count.ToString(CultureInfo.InvariantCulture));
+
+            // Drawn: each picture, its name and its count apart; narrow, hull names go first, then group names (none here:
+            // a group is its logo), then pilots'. Pictures, counts and words never.
+            var tokens = kill.Tokens;
+            c.Check("feed who: drawn as pieces: the victim's portrait, then their name, which may go",
+                tokens[0] is { IsPicture: true, Drop: 0 } && tokens[1] is { IsName: true, Drop: 3, Label: "Pilot Qzx 30" });
+            c.Check("feed who: a group is its logo and count, with no name piece",
+                tokens.Where(t => t.Source.Id == AllyA).Select(t => t.Part).SequenceEqual([IntelTokenVm.Parts.Picture, IntelTokenVm.Parts.Count]));
+            c.Check("feed who: a hull's name goes first, its icon and count stay",
+                tokens.Where(t => t.Source is { IsShip: true, Id: Raider }).Select(t => (t.Part, t.Drop))
+                    .SequenceEqual([(IntelTokenVm.Parts.Picture, 0), (IntelTokenVm.Parts.Name, 1), (IntelTokenVm.Parts.Count, 0)]));
+            c.Check("feed who: words never go", tokens.Where(t => t.Source.IsWords).All(t => t.Drop == 0));
+
+            // A report: each named pilot's portrait and name, their group's logo small on the portrait.
+            var report = Line(r => r.Event.Kind == IntelEventKind.Report && r.Event.SystemId == Gang && r.Pilots.Any(p => p.Pilot.CharacterId == B1));
+            var pilots = report.Pictures.Where(p => p.IsPilot).ToList();
+            c.Check("feed who: a report's pilots each with their alliance's logo, or their corporation's with none",
+                pilots.Count > 0 && pilots.All(p => p.Id == Unknown1 ? p.Badge is null
+                    : p.Badge is { } b && (p.Id == C1 ? b is { Kind: IntelPictureVm.Kinds.Corporation, Id: CorpC }
+                                                       : b.Kind == IntelPictureVm.Kinds.Alliance && b.Id == (p.Id == B1 ? AllyB : AllyA))),
+                Says(report));
+
+            // A camp: who is camping, by group, then what they fly.
+            var camp = Line(r => r.Event.Kind == IntelEventKind.CampFormed);
+            c.Check("feed who: a camp says who camps by group, then their hulls",
+                camp.Pictures.Count > 1 && camp.Pictures[0] is { Kind: IntelPictureVm.Kinds.Corporation, Id: CorpC, CountText: "×2", IconOnly: true }
+                && camp.Pictures.Skip(1).All(p => p.IsShip), Says(camp));
+            c.Check("feed who: a line reading the same has the same signature",
+                Line(r => r.Event.KillMailId == BrawlKill).Signature == kill.Signature);
         }
     }
 }

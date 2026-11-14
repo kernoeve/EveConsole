@@ -973,4 +973,13 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>이 열로 정렬 (다시 클릭하면 역순)</value>
   </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>스탠딩으로 {0}명 숨김</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>찾은 파일럿이 모두 스탠딩 필터로 숨겨져 있습니다. 위에서 스탠딩을 더 켜면 표시됩니다.</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>킬 참여자 (얼라이언스 또는 코퍼레이션별):</value>
+  </data>
 </root>

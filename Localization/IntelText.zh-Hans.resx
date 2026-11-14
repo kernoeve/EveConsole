@@ -973,4 +973,13 @@
   <data name="TipSortColumn" xml:space="preserve">
     <value>按此列排序；再次点击则反向</value>
   </data>
+  <data name="PilotsHiddenOther" xml:space="preserve">
+    <value>{0} 人因声望被隐藏</value>
+  </data>
+  <data name="PilotsAllHidden" xml:space="preserve">
+    <value>找到的所有飞行员都被声望筛选隐藏：在上方开启更多声望即可列出。</value>
+  </data>
+  <data name="KillAttackersTip" xml:space="preserve">
+    <value>参与击杀者（按联盟或军团）：</value>
+  </data>
 </root>
