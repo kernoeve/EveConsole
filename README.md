@@ -16,7 +16,7 @@ Runs natively on Windows, Linux and macOS, which is why I went with Avalonia in 
 
 By default everything sits in a local SQLite file and that is all you need.  If you would rather run it against PostgreSQL you can point it at a server instead, and then you can have several clients open at once -- different machines, same data.  In that setup exactly one of them does the background work and the rest just read.  You can also run it with no window at all (`--headless`), or install it as a Windows service or a systemd user unit, so the polling keeps going when nothing is open.  None of that is required; the default is still one client and one file.
 
-There are eight UI themes -- light, dark, and blue/pink/beige in both -- picked from Settings, applied immediately, and remembered per machine.  You can also make your own in the theme editor.  The interface also comes in eight languages: English, German, Spanish, French, Japanese, Korean, Russian and Simplified Chinese, with item, station and other game names in the same language the game client uses.
+There are sixteen UI themes -- light, dark, and blue/pink/beige in both, plus the game's own eight colour themes -- picked from Settings, applied immediately, and remembered per machine.  You can also make as many of your own as you like in the theme editor, starting blank or from a copy of any built-in one.  The interface also comes in eight languages: English, German, Spanish, French, Japanese, Korean, Russian and Simplified Chinese, with item, station and other game names in the same language the game client uses.
 
 Keep in mind this application is still very green.  You are free to play around with it, but do expect issues during use.  Do not give up your old tools for this quite yet.  Needs a bit of a hardening period.
 
@@ -137,31 +137,34 @@ Keep in mind this application is still very green.  You are free to play around 
 - Build costs price blueprint copies off actual contracts (per run and by ME), and take the cheaper of building or buying each component
 - Tranquility status sits in the header, and ESI polling pauses on its own while the server is down
 - Database tab reports the size of every table, and can shrink, move or rename the database
-- Data retention rules for the error log, killmails (your own characters' and corporations' kept on a separate window from everyone else's), price history, game logs and chat, swept in the background at least daily
+- Data retention rules for the error log, killmails (your own characters' and corporations' kept on a separate window from everyone else's), price history, game logs, chat logs, intel history, and Jabber, Mumble and IRC messages (direct and group apart, never the unread ones), swept in the background at least daily
 - Optional zKillboard supplement.  ESI only hands you a killmail if you were the victim or got the final blow, so fleet participation is otherwise invisible
-- Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL you can open as many clients as you like against the same data, on as many machines as you like
-- Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops
-- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  Optional notification-area icon (menu bar on macOS) shows which client is doing the work
+- Runs on SQLite by default, or PostgreSQL if you point it at a server.  On PostgreSQL as many people as you like can run a client against the same data, on as many machines as you like -- one desktop app per user on each machine, and starting it again brings the open one forward
+- Exactly one client does the background work at a time.  It takes the job on a lease, and if you close it another one picks it up within a tick -- nothing is polled twice and nothing stops.  A client can be told never to take it, and the Jabber and IRC connections and intel parsing run with it too
+- Can run with no window at all (`--headless`), or as a Windows service / systemd user unit, or in Docker beside its PostgreSQL server (`packaging/docker`), so the polling carries on when nothing is open.  A notification-area icon (menu bar on macOS) shows which client is doing the work, and the app can keep running there with the main window closed
 - Background Processes window shows every loop, its last and next run, and the live ESI call log -- from any client, not just the one doing the work
-- Eight UI themes: light, dark, and blue/pink/beige in both, or your own from the theme editor, with colour pickers and a live preview.  Applies immediately, remembered per machine rather than per database
+- Assets keep up between ESI's asset refreshes: finished jobs, deliveries, market orders and contracts are written in as they happen
+- Sixteen UI themes: light, dark, and blue/pink/beige in both, the game's eight colour themes (Amarr, Caldari, Carbon, Gallente, Minmatar, ORE, Photon, Servant Sisters), plus as many of your own as you like from the theme editor: start blank or copy any theme, set the colours with colour pickers or work them out from a background, text and accent, with a live preview.  Applies immediately, remembered per machine rather than per database
 - Eight interface languages, picked under Settings > Other.  Game names (items, stations and the like) come out of the SDE in the chosen language, and search boxes find both that name and the English one
 - UI scale from 50% to 200%, per machine
 - The main window splits into two sides with tabs dragged between them, and any tool can be dragged out into a window of its own
+- Optional Online Services sign-in with one EVE character, so scheduled posts to a Slack webhook can carry charts.  It only hosts those pictures
+- Connectors (preview) -- link EVE Console to services your corporation or alliance runs, such as which characters belong to one player, without it holding anyone else's EVE tokens.  The interface is open: see [docs/connector](docs/connector/README.md)
 
 ### Industry / Trade
 - Market Levels - Allows you to monitor a specific definable market for inventory of sell orders on a specific list of items
-- Inventory Levels - Allow you to monitor your current inventory amounts (plus in build, buy, etc.) of a definable list of items (similar to jEveAssets stockpiles)
+- Inventory Levels - Allow you to monitor your current inventory amounts (plus in build, buy, etc.) of a definable list of items, wherever they are kept
 - Trade Opportunities - Compares markets for opportunities between them.  Results can be narrowed by item name without recalculating
 - Net Worth - A Chart with lines to make you feel better/worse
 - Income & Expense and Wallet - Where your ISK came from and went, by category, and the wallets themselves - journal, market transactions and corp divisions
 - Planetary Industry - Every colony of your PI characters: when extractors end, when storage fills or inputs run out, what each colony imports and exports, what is sitting there waiting to be hauled, and profit per day.  Feeds Overview alerts, an alarm and worklist tasks
 - Production Calculator - Accurate calculation of production jobs for the player.  Includes build costs, materials needed, etc.  Reports what you are missing and turns it into a shopping list
 - Market Overview - What you have on the market, broken down by market group.  Sell and buy order units and ISK, alongside what has actually sold
-- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Twelve sources you can switch on and off independently - industry jobs, completed jobs, logistics, invention and copying, refining, material purchases, standing buy orders, inventory levels, corp projects, skill queues, asset safety and planetary industry
+- Worklist - One list of what to do next, rebuilt from live ESI data every refresh.  Fourteen sources you can switch on and off independently - industry jobs, completed jobs, logistics, invention and copying, refining, material purchases, standing buy orders, inventory levels, corp projects, skill queues, asset safety, planetary industry, transfers between your own characters and corps, and corp structures (fuel, Metenox moon bays, fits).  Items short for jobs get scarce materials before items only filling a buffer, and the Buy list copies straight into the game's multibuy
 - Order Tracker - Track items you have agreed to supply.  Pending orders are matched against stock, active industry jobs and the contracts that deliver them, so an order completes itself when the contract is accepted
 - Standing Buy Orders - Declare the buy orders you intend to keep standing at a station or structure, and see whether they are actually there, outbid, or nearly expired
 - Sale Posting - Build shareable sale postings from your stock, with build/market/contract pricing and a configurable sale price.  Renders to Plain, Slack, Discord, Markdown, HTML or BBCode
-- Sales Tracker - What has sold, for how much, and against what it cost you
+- Sales Tracker - What has sold, for how much, and against what it cost you, with a By period summary by day, week or month, ready to paste into a chat
 - LP Market Values - What your loyalty points are actually worth, offer by offer, priced against the market
 - Contracts - Browse your contracts and their items
 - Industry Jobs - Every running job, with a check on whether it is actually getting the rig bonus you planned for
@@ -169,7 +172,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Indy Parks - Define your parks, then compare them side by side: build, copy, invention and research costs, with each item's cost over time as system indices moved
 - System Index - Today's index for all six activities across a list of systems, with a chart per activity
 - Item Valuation - Paste a list (from the game client, in any language) and see what it is worth at any station: market, build and reprocessed values side by side, with stations compared
-- Stores - Run your own store.  Buyers order by EVE mail, or on a small web site of your own on Cloudflare that the app deploys and keeps current, and orders land in the Order Tracker
+- Stores - Run your own store.  Buyers order by EVE mail, or on a small web site of your own on Cloudflare that the app deploys and keeps current, and orders land in the Order Tracker.  Buy listings can take only what you still need and accept contracts at several places
 - Price Overrides - Pin a price when you disagree with the market
 
 ### Ships
@@ -179,7 +182,7 @@ Keep in mind this application is still very green.  You are free to play around 
 - Existing ships - Every assembled ship your characters and personal corps own, filtered by ship name, hull or system, with hull, fit and total value.  Opens one with its fit as a new fit, ready to Save As
 
 ### Universe / Navigation
-- Universe Map - One continuous map of New Eden, from the whole cluster down to a single system.  Overlays colour systems by security, kills, jumps, industry indices, sovereignty (owner, ADM, standings and zones), faction warfare, incursions, stations, planetary output and intel sightings.  Maps open in tabs, two side by side if you like, and show your own characters and live hostiles from intel and recent kills
+- Universe Map - One continuous map of New Eden, from the whole cluster down to a single system.  Overlays colour systems by security, kills, jumps, industry indices, sovereignty (owner, ADM, standings and zones), faction warfare, incursions, stations, planetary output and intel sightings.  Maps open in tabs, two side by side if you like, and show your own characters, live hostiles from intel and recent kills in their standing's colour, gate camps, where pirate NPCs have been killing players, and NPC capitals seen on kills
 - System pages - Celestials, kills, industry indices, agents, graphs, intel sightings, sov campaigns, jump bridges and Thera/Turnur connections for any system, and which of your characters are there
 - Route Planner - Routes through gates, jump bridges and Thera/Turnur (connections from EVE-Scout), with an avoid list.  Shows the route on the map and can set it as the in-game destination for a character who is online
 - Jump Planner - Capital route planning with draggable waypoints and midpoints, jump-through structures, and the fuel and distance for each leg.  A tab of the map, beside a Jump range tab that rings every system a jump drive reaches
@@ -188,7 +191,8 @@ Keep in mind this application is still very green.  You are free to play around 
 - Structure Browser - Player structures pulled from the public structure list rather than only the ones you happen to have visited.  Links to Indy Parks so a park can name a real facility
 
 ### Intel / Logs
-- Intel parsing - Reads your intel channel logs, works out who was seen where and in what (short system names, ship slang, counts like "3 camping", gate and flags), leaves your blues out, and puts the sightings on the map
+- Intel parsing - Reads your intel channel logs and Jabber or IRC intel rooms, works out who was seen where and in what (short system names, ship slang, counts like "3 camping", gate and flags), leaves your blues out, and puts the sightings on the map
+- Intel - The live picture in one tool, measured from your characters: a board of systems with hostiles, a feed, where each pilot was last seen, gate camps worked out from kills, pasted Local or d-scan, and a watch list.  Also a panel for Client Layouts, and the Intel report alarm
 - Game Log and Chat Log viewers - Search your local EVE logs, with past history importable in bulk
 - Session tracking - Which characters are online, where they are, and what they are flying
 
@@ -196,12 +200,13 @@ Keep in mind this application is still very green.  You are free to play around 
 - Activity monitor to track income from ratting, industry, etc., as well as mining activity, kills, and corp project activity
 - Corp Projects - View active and historical corp project details
 - Standing projects - Allows you to define projects you want to always maintain (i.e., destroy NPC projects in any system in region X with ADM below 4.0)
-- Top 10 Lists - Produces activity top 10 lists based on corp ESI data
+- Top 10 Lists - Produces activity top 10 lists based on corp ESI data, now with solo kills
 - Corp Structures - Your corporation's Upwell structures, starbases and skyhooks: state, services, fuel left and when it runs out, fuel ISK a day and Metenox pickup value.  Checks each structure against a saved fit, with alerts for fuel, attacks, a wrong fit and low ammo or fighters
+- Battle Report - Follow a fight live or look back at one, across several systems: sides, ISK lost, pilots, ships and a timeline, with saved battles and a fight finder.  Built from your own killmail database and kept to yourself
 - Mercenary Dens - Each character's dens: planet, skyhook owner, state, infomorphs an hour, development and anarchy, reinforcement and open tactical operations, with alerts for them
 
 ### Other
-- Client Layouts (Windows) - Share each monitor between game clients and panels: docked panels and controls, grids within grids, and which characters run where, saved as profiles you can switch between.  Controls include the clocks, server status, Mumble for one server, a Worklist that follows the client in use, a menu of the tools, and Tool Containers that hold tools as tabs, like a window of their own that stays put.  Keeps clients in place as they start and log in.  It only ever sets a client's size and position, and raises it when you click a panel or another client on its monitor
+- Client Layouts (Windows) - Share each monitor between game clients and panels: docked panels and controls, grids within grids, and which characters run where, saved as profiles you can switch between, with layouts exported, imported or started from a template.  Controls include the clocks, server status, Mumble for one server, Intel, chat, a Worklist that follows the client in use, a menu of the tools, and Tool Containers that hold tools as tabs, like a window of their own that stays put.  Keeps clients in place as they start and log in.  It only ever sets a client's size and position, and raises it when you click a panel or another client on its monitor
 - Character Viewer - Similar to the one in game in case you are abstaining from logging your character in for some reason
 - Item Browser - Full items browser, and description/attributes/etc. of every item in the game.  Also includes current market orders and price history for defined markets, and a Quickbar of items kept to hand.
 - Asset Viewer - Search across all personal and corp assets
@@ -209,12 +214,13 @@ Keep in mind this application is still very green.  You are free to play around 
 - Player Entities - Every pilot, corp and alliance the app has met in a killmail, contract or chat log.  Shows zKillboard's stats for each, and pages in their whole kill and loss history from zKillboard
 - NPC Entities - Agents, NPC corporations and factions out of the SDE.  Search an agent by name, or ask what is in a station
 - Alerts - On the overview of the main screen alerts will show for things the tool believes you should look at (definable)
-- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems, undocks, a ship left sitting in space (undocked too long), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
+- Alarms - Conditions you define, checked on a timer, that tell you when something has happened.  Says it once rather than every time it checks.  Checks include intel reported within so many jumps or light-years of your characters or systems (or on the route ahead, with kills, gate camps and the watch list; two alarms can split a range, 0 thru 2 and 3 thru 5), undocks, a ship left sitting in space (undocked too long), game log events (decloaked, warp scrambled, under attack -- from a client in any language), PI colonies, market and contract prices, store orders and plain timers
 - Eve Mail - Read and write eve mail... just because
+- Jabber, Mumble and IRC - Your corp and alliance chat and voice inside the app.  Jabber rooms and direct messages with replies, edits, reactions, emote packs and pictures; Mumble on several servers at once with keys per server, channel targets, whispers and a permissions editor; IRC with TLS by default and account login.  Messages and Group Chat bring them together, and a key can't be used twice anywhere in the app
 - Notifications - Your in-game notifications, without logging in
-- Slack - Optional.  Sends alerts to a direct message with yourself, and posts corp reports and sale postings to channels
+- Slack - Optional.  Sends alerts to a direct message with yourself, and posts corp reports and sale postings to channels, with pictures, lined-up tables and boxes for scheduled posts
 - Discord - Optional.  Posts the Corp Top 10, monthly summary, sale postings and scheduled tasks to your channels through webhooks -- no bot, and it never pings anyone
-- Scheduler - Posts messages and corp reports to Slack or Discord on a schedule you set
+- Scheduler - Posts messages and corp reports to Slack or Discord on a schedule you set, with a calendar of what runs when
 - ESI Explorer - Poke at the raw ESI data the app holds
 
 ### AI Agent ("Eden")
