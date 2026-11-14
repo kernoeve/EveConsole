@@ -1,7 +1,7 @@
 // The Intel tool's grids, headless, as a user clicks them: the Pilots tab hides the standings tiers switched off;
-// every header sorts its column, the second click turns it round, and a refresh keeps the direction; the long lists
-// (Pilots, Feed) are virtualized, so a click or a refresh lays out only the rows in sight. Pilots is the one intel grid
-// sorted by its headers: the Board sorts from its own choice, Camps and the Watch list do not sort.
+// on Pilots, Camps and the Watch list every header sorts its column, the second click turns it round, a refresh keeps
+// the direction and the rows that did not change, and the choice is kept on this PC; the long lists (Pilots, Feed) are
+// virtualized, so a click or a refresh lays out only the rows in sight. The Board sorts from its own choice.
 //
 // Every name and id here is invented (see HostileScene).
 using System.Collections.ObjectModel;
@@ -46,6 +46,7 @@ namespace EveConsole.Tools.IntelCheck
                     _setUp = true;
                 }
                 Grids(c);
+                CampsAndWatch(c);
                 ChannelLabelChecks.SavedSelection(c);
                 PasteTabChecks.Run(c);
             }
@@ -128,13 +129,13 @@ namespace EveConsole.Tools.IntelCheck
                     pilotList.ItemsPanelRoot?.GetType().Name ?? "no panel");
 
                 // Every header: first click, second click (turned round), and a refresh keeps the direction.
-                var heads = view.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("sortHead")).ToList();
+                var heads = Heads<IntelViewModel.PilotColumn>(view);
                 c.Check("tool grids: a header for each Pilots column", heads.Count == Enum.GetValues<IntelViewModel.PilotColumn>().Length, heads.Count.ToString());
                 var failures = new List<string>();
                 var version = 10L;
                 foreach (var column in Enum.GetValues<IntelViewModel.PilotColumn>())
                 {
-                    var head = heads.First(b => b.DataContext is IntelSortHeaderVm h && h.Column == column);
+                    var head = heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.PilotColumn> h && h.Column == column);
                     Click(window, head);
                     Settle(window, tool);
                     var first = tool.PilotSortDescending;
@@ -156,8 +157,8 @@ namespace EveConsole.Tools.IntelCheck
                 Console.WriteLine($"Tool grids: {heads.Count} Pilots headers clicked twice each, then refreshed; {tool.PilotRows.Count} pilots shown, {tool.PilotsCountText}");
 
                 // Jumps by name: nearest first, then farthest first.
-                var jumps = heads.First(b => b.DataContext is IntelSortHeaderVm { Column: IntelViewModel.PilotColumn.Jumps });
-                if (tool.PilotSort == IntelViewModel.PilotColumn.Jumps) Click(window, heads.First(b => b.DataContext is IntelSortHeaderVm { Column: IntelViewModel.PilotColumn.Name }));
+                var jumps = heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.PilotColumn> { Column: IntelViewModel.PilotColumn.Jumps });
+                if (tool.PilotSort == IntelViewModel.PilotColumn.Jumps) Click(window, heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.PilotColumn> { Column: IntelViewModel.PilotColumn.Name }));
                 Settle(window, tool);
                 Click(window, jumps);
                 Settle(window, tool);
@@ -187,6 +188,227 @@ namespace EveConsole.Tools.IntelCheck
                 tool.Dispose();
             }
         }
+
+        /// <summary>
+        /// The Camps tab and the Watch list, as a user clicks them (the user's rule, 2026-11-13: on any grid, clicking a
+        /// column a second time turns the sort round): every header sorts by its column, the second click turns it
+        /// round, a click keeps the very rows (only their order changes), a refresh keeps the column, the direction and
+        /// the rows that did not change, and the choice is kept on this PC for the next time the tool opens.
+        /// </summary>
+        private static void CampsAndWatch(Checks c)
+        {
+            var distances = new IntelDistanceService(Gates.ToDictionary(kv => kv.Key, kv => kv.Value), IntelDistanceService.Edges.None);
+            distances.JumpsFromAsync(Home, IntelGraphMode.Threat).GetAwaiter().GetResult();
+            var characters = new ObservableCollection<Character> { new() { Id = Me, Name = "Pilot Qzx Home" } };
+            var tool = new IntelViewModel(null, distances, null, null, null, characters) { Clock = () => Now };
+            var view = new IntelToolView { DataContext = tool };
+            var window = new Window { Width = 1500, Height = 760, Content = view };
+            window.Show();
+            var version = 100L;
+            try
+            {
+                // ── Camps ──
+                tool.Apply(IntelSnapshotBuilder.Build(CampsInput(), new IntelCampRegister(), ++version));
+                tool.SelectedTab = IntelViewModel.TabCamps;
+                Pump(() => tool.CampRows.Count >= 4);
+                Settle(window, tool);
+                var campCount = tool.CampRows.Count;
+                c.Check("tool grids: the Camps scene has a camp from kills and camps only reported, active and ended",
+                    campCount >= 4 && tool.CampRows.Any(r => r.KillCount is not null) && tool.CampRows.Any(r => r.KillCount is null),
+                    $"{campCount}: {string.Join(", ", tool.CampRows.Select(r => $"{r.SystemName} {r.JumpsText} {r.StateText} {r.KillsText}"))}");
+                c.Check("tool grids: Camps opens active first, then nearest (the tab's own order before headers sorted it)",
+                    tool.CampSort == IntelViewModel.CampColumn.Status && !tool.CampSortDescending && CampsSorted(tool)
+                    && CampArrow(tool, IntelViewModel.CampColumn.Status),
+                    $"{tool.CampSort} {(tool.CampSortDescending ? "desc" : "asc")}");
+
+                var heads = Heads<IntelViewModel.CampColumn>(view);
+                c.Check("tool grids: a header for each Camps column", heads.Count == Enum.GetValues<IntelViewModel.CampColumn>().Length, heads.Count.ToString());
+                var failures = new List<string>();
+                foreach (var column in Enum.GetValues<IntelViewModel.CampColumn>())
+                {
+                    var head = heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.CampColumn> h && h.Column == column);
+                    var before = tool.CampRows.ToHashSet();
+                    // Newest, most or nearest first, active first, else A to Z; the column already sorting turns round.
+                    var expected = IntelViewModel.NextCampSort(tool.CampSort, tool.CampSortDescending, column).Descending;
+                    Click(window, head);
+                    Settle(window, tool);
+                    var first = tool.CampSortDescending;
+                    var firstOk = CampsSorted(tool) && tool.CampSort == column && first == expected && CampArrow(tool, column)
+                                  && before.SetEquals(tool.CampRows);
+                    Click(window, head);
+                    Settle(window, tool);
+                    var second = tool.CampSortDescending;
+                    var secondOk = CampsSorted(tool) && tool.CampSort == column && second == !first && CampArrow(tool, column)
+                                   && before.SetEquals(tool.CampRows);
+
+                    // A refresh with one camp more: the same column, the same way round, and every camp that read the
+                    // same is the very row on screen (its pictures not fetched again). Then back.
+                    var held = tool.CampRows.ToDictionary(r => r.Key);
+                    tool.Apply(IntelSnapshotBuilder.Build(CampsInput(more: true), new IntelCampRegister(), ++version));
+                    Pump(() => tool.CampRows.Count == campCount + 1);
+                    Settle(window, tool);
+                    var keptOk = tool.CampRows.Count == campCount + 1
+                                 && held.Values.All(r => tool.CampRows.Any(n => ReferenceEquals(n, r)));
+                    var refreshedOk = keptOk && tool.CampSort == column && tool.CampSortDescending == second && CampsSorted(tool) && CampArrow(tool, column);
+                    tool.Apply(IntelSnapshotBuilder.Build(CampsInput(), new IntelCampRegister(), ++version));
+                    Pump(() => tool.CampRows.Count == campCount);
+                    Settle(window, tool);
+                    if (!firstOk || !secondOk || !refreshedOk)
+                        failures.Add($"{column}: first {(first ? "desc" : "asc")} {firstOk}, second {(second ? "desc" : "asc")} {secondOk}, "
+                                   + $"after a refresh {refreshedOk} (rows kept {keptOk})");
+                }
+                c.Check("tool grids: every Camps header sorts by its column, the second click turns it round, a refresh keeps it and the rows",
+                    failures.Count == 0, string.Join(" | ", failures));
+
+                // An identical refresh changes nothing on screen: the very same rows, in the same order.
+                var order = tool.CampRows.ToList();
+                tool.Apply(IntelSnapshotBuilder.Build(CampsInput(), new IntelCampRegister(), ++version));
+                Settle(window, tool, quietMs: 600);
+                c.Check("tool grids: a Camps refresh that changed nothing keeps every row, in order",
+                    order.SequenceEqual(tool.CampRows), $"{order.Count} → {tool.CampRows.Count}");
+
+                // Jumps by name: nearest first, then farthest first.
+                var jumps = heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.CampColumn> { Column: IntelViewModel.CampColumn.Jumps });
+                if (tool.CampSort == IntelViewModel.CampColumn.Jumps) Click(window, heads.First(b => b.DataContext is IntelSortHeaderVm<IntelViewModel.CampColumn> { Column: IntelViewModel.CampColumn.Camp }));
+                Settle(window, tool);
+                Click(window, jumps);
+                Settle(window, tool);
+                var near = tool.CampRows.Where(r => r.Jumps is not null).Select(r => r.Jumps!.Value).ToList();
+                Click(window, jumps);
+                Settle(window, tool);
+                var far = tool.CampRows.Where(r => r.Jumps is not null).Select(r => r.Jumps!.Value).ToList();
+                c.Check("tool grids: Camps Jumps clicked is nearest first; clicked again, farthest first",
+                    near.Count > 1 && near.SequenceEqual(near.Order()) && far.SequenceEqual(far.OrderDescending()) && far[0] > near[0],
+                    $"{string.Join(",", near)} / {string.Join(",", far)}");
+                Console.WriteLine($"Tool grids: {heads.Count} Camps headers clicked twice each, then refreshed; {tool.CampRows.Count} camps, {tool.CampsCountText}");
+
+                // ── The Watch list ──
+                tool.SelectedTab = IntelViewModel.TabWatch;
+                Settle(window, tool);
+                var entries = WatchEntries();
+                tool.WatchList.Show(entries);
+                Settle(window, tool);
+                c.Check("tool grids: the Watch list opens in its own order: by kind, then name",
+                    tool.WatchList.Sort == IntelWatchTabVm.WatchColumn.Kind && !tool.WatchList.SortDescending && WatchSorted(tool.WatchList)
+                    && WatchArrow(tool.WatchList, IntelWatchTabVm.WatchColumn.Kind),
+                    string.Join(", ", tool.WatchList.Entries.Select(e => e.Label)));
+
+                var watchHeads = Heads<IntelWatchTabVm.WatchColumn>(view);
+                c.Check("tool grids: a header for each Watch list column", watchHeads.Count == Enum.GetValues<IntelWatchTabVm.WatchColumn>().Length,
+                    watchHeads.Count.ToString());
+                failures.Clear();
+                foreach (var column in Enum.GetValues<IntelWatchTabVm.WatchColumn>())
+                {
+                    var head = watchHeads.First(b => b.DataContext is IntelSortHeaderVm<IntelWatchTabVm.WatchColumn> h && h.Column == column);
+                    var before = tool.WatchList.Entries.ToHashSet();
+                    var expected = IntelWatchTabVm.NextWatchSort(tool.WatchList.Sort, tool.WatchList.SortDescending, column).Descending;
+                    Click(window, head);
+                    Settle(window, tool);
+                    var first = tool.WatchList.SortDescending;
+                    var firstOk = WatchSorted(tool.WatchList) && tool.WatchList.Sort == column && first == expected
+                                  && WatchArrow(tool.WatchList, column) && before.SetEquals(tool.WatchList.Entries);
+                    Click(window, head);
+                    Settle(window, tool);
+                    var second = tool.WatchList.SortDescending;
+                    var secondOk = WatchSorted(tool.WatchList) && tool.WatchList.Sort == column && second == !first
+                                   && WatchArrow(tool.WatchList, column) && before.SetEquals(tool.WatchList.Entries);
+
+                    // Read again, the same entries: the same column and way round, the very rows, in the same order.
+                    var order2 = tool.WatchList.Entries.ToList();
+                    tool.WatchList.Show(WatchEntries());
+                    Settle(window, tool);
+                    var refreshedOk = tool.WatchList.Sort == column && tool.WatchList.SortDescending == second
+                                      && order2.SequenceEqual(tool.WatchList.Entries) && WatchArrow(tool.WatchList, column);
+                    if (!firstOk || !secondOk || !refreshedOk)
+                        failures.Add($"{column}: first {(first ? "desc" : "asc")} {firstOk}, second {(second ? "desc" : "asc")} {secondOk}, after a read {refreshedOk}");
+                }
+                c.Check("tool grids: every Watch list header sorts by its column, the second click turns it round, a read again keeps it and the rows",
+                    failures.Count == 0, string.Join(" | ", failures));
+
+                // One entry changed (its note): it alone is a new row; the rest are the very rows shown.
+                var heldEntries = tool.WatchList.Entries.ToDictionary(e => e.Id);
+                var changed = WatchEntries();
+                changed[0].Note = "qzx changed";
+                tool.WatchList.Show(changed);
+                Settle(window, tool);
+                var replaced = tool.WatchList.Entries.Where(e => !ReferenceEquals(heldEntries[e.Id], e)).Select(e => e.Id).ToList();
+                c.Check("tool grids: a Watch entry changed is replaced alone, the others kept (pictures not fetched again)",
+                    replaced.SequenceEqual([changed[0].Id]) && WatchSorted(tool.WatchList), string.Join(",", replaced));
+
+                // An entry added (the list laid out again): every entry already shown is still the very row.
+                heldEntries = tool.WatchList.Entries.ToDictionary(e => e.Id);
+                changed.Add(new() { Id = 7, Kind = IntelWatchKind.Pilot, EntityId = B1, Name = PilotName(B1), Mode = IntelWatchMode.Always,
+                                    Note = "qzx new", AddedBy = "QZX-PC", AddedAt = "2026-11-13T10:00:00Z" });
+                tool.WatchList.Show(changed);
+                Settle(window, tool);
+                c.Check("tool grids: a Watch entry added keeps every entry already shown, sorted the same way",
+                    tool.WatchList.Entries.Count == heldEntries.Count + 1 && WatchSorted(tool.WatchList)
+                    && heldEntries.Values.All(e => tool.WatchList.Entries.Any(n => ReferenceEquals(n, e))),
+                    $"{tool.WatchList.Entries.Count} entries, sorted {WatchSorted(tool.WatchList)} by {tool.WatchList.Sort}, new rows for "
+                    + string.Join(",", heldEntries.Values.Where(e => !tool.WatchList.Entries.Any(n => ReferenceEquals(n, e))).Select(e => e.Id)));
+                Console.WriteLine($"Tool grids: {watchHeads.Count} Watch list headers clicked twice each, then read again; {tool.WatchList.Entries.Count} entries");
+
+                // ── Kept on this PC ──
+                var (campSort, campDescending) = (tool.CampSort, tool.CampSortDescending);
+                var (watchSort, watchDescending) = (tool.WatchList.Sort, tool.WatchList.SortDescending);
+                var again = new IntelViewModel(null, distances, null, null, null, characters) { Clock = () => Now };
+                try
+                {
+                    c.Check("tool grids: the Camps and Watch list sorts are kept on this PC: the tool opened again sorts the same way",
+                        again.CampSort == campSort && again.CampSortDescending == campDescending
+                        && again.WatchList.Sort == watchSort && again.WatchList.SortDescending == watchDescending
+                        && again.CampHeaders.Single(h => h.IsSorted).Column == campSort
+                        && again.WatchList.Headers.Single(h => h.IsSorted).Column == watchSort,
+                        $"camps {campSort}/{campDescending} → {again.CampSort}/{again.CampSortDescending}; "
+                        + $"watch {watchSort}/{watchDescending} → {again.WatchList.Sort}/{again.WatchList.SortDescending}");
+                }
+                finally
+                {
+                    again.Dispose();
+                }
+            }
+            finally
+            {
+                window.Close();
+                tool.Dispose();
+            }
+        }
+
+        /// <summary>Invented entries: two pilots (one with no note), a corporation, an alliance, a hull and a group,
+        /// added on different days, both modes.</summary>
+        private static List<IntelWatchEntry> WatchEntries() =>
+        [
+            new() { Id = 1, Kind = IntelWatchKind.Pilot, EntityId = A1, Name = PilotName(A1), Mode = IntelWatchMode.Always, Note = "qzx scout", AddedBy = "QZX-PC", AddedAt = "2026-11-02T10:00:00Z" },
+            new() { Id = 2, Kind = IntelWatchKind.Pilot, EntityId = Loner, Name = PilotName(Loner), Mode = IntelWatchMode.Ignore, Note = null, AddedBy = "QZX-PC", AddedAt = "2026-11-09T10:00:00Z" },
+            new() { Id = 3, Kind = IntelWatchKind.Corporation, EntityId = CorpC, Name = Names[CorpC], Mode = IntelWatchMode.Always, Note = "campers", AddedBy = "QZX-LAPTOP", AddedAt = "2026-11-05T10:00:00Z" },
+            new() { Id = 4, Kind = IntelWatchKind.Alliance, EntityId = AllyA, Name = Names[AllyA], Mode = IntelWatchMode.Always, Note = "alpha", AddedBy = "QZX-PC", AddedAt = "2026-11-12T10:00:00Z" },
+            new() { Id = 5, Kind = IntelWatchKind.Hull, EntityId = Bastion, Name = TypeNames[Bastion], Mode = IntelWatchMode.Ignore, Note = "bait", AddedBy = "QZX-PC", AddedAt = "2026-11-01T10:00:00Z" },
+            new() { Id = 6, Kind = IntelWatchKind.Group, EntityId = 25_910, Name = "Qzx Interdictor Group", Mode = IntelWatchMode.Always, Note = "", AddedBy = "QZX-PC", AddedAt = "2026-11-07T10:00:00Z" },
+        ];
+
+        /// <summary>The sort headers of one grid's columns, as drawn.</summary>
+        private static List<Button> Heads<TColumn>(IntelToolView view) where TColumn : struct, Enum =>
+            [.. view.GetVisualDescendants().OfType<Button>().Where(b => b.Classes.Contains("sortHead") && b.DataContext is IntelSortHeaderVm<TColumn>)];
+
+        private static bool CampsSorted(IntelViewModel tool) =>
+            tool.CampRows.Count > 1
+            && IntelViewModel.SortCamps(tool.CampRows.ToList(), tool.CampSort, tool.CampSortDescending).Select(r => r.Key)
+                .SequenceEqual(tool.CampRows.Select(r => r.Key));
+
+        private static bool CampArrow(IntelViewModel tool, IntelViewModel.CampColumn column) =>
+            tool.CampHeaders.Count(h => h.IsSorted) == 1
+            && tool.CampHeaders.Single(h => h.IsSorted) is { } h && h.Column == column
+            && h.IsDown == tool.CampSortDescending && h.IsUp == !tool.CampSortDescending;
+
+        private static bool WatchSorted(IntelWatchTabVm watch) =>
+            watch.Entries.Count > 1
+            && IntelWatchTabVm.SortWatch(watch.Entries.ToList(), watch.Sort, watch.SortDescending).Select(e => e.Id)
+                .SequenceEqual(watch.Entries.Select(e => e.Id));
+
+        private static bool WatchArrow(IntelWatchTabVm watch, IntelWatchTabVm.WatchColumn column) =>
+            watch.Headers.Count(h => h.IsSorted) == 1
+            && watch.Headers.Single(h => h.IsSorted) is { } h && h.Column == column
+            && h.IsDown == watch.SortDescending && h.IsUp == !watch.SortDescending;
 
         private static string Iso(DateTimeOffset t) => t.UtcDateTime.ToString("yyyy-MM-ddTHH:mm:ssZ", System.Globalization.CultureInfo.InvariantCulture);
 
@@ -224,12 +446,13 @@ namespace EveConsole.Tools.IntelCheck
             window.MouseUp(centre, MouseButton.Left);
         }
 
-        /// <summary>Runs the UI thread's work until the projection and the Pilots tab's newest showing are done.</summary>
-        private static void Settle(Window window, IntelViewModel tool)
+        /// <summary>Runs the UI thread's work until the projection and the Pilots tab's newest showing are done, and
+        /// nothing more came for <paramref name="quietMs"/>.</summary>
+        private static void Settle(Window window, IntelViewModel tool, int quietMs = 150)
         {
             var until = DateTime.UtcNow.AddSeconds(10);
             var quiet = 0;
-            while (DateTime.UtcNow < until && quiet < 10)
+            while (DateTime.UtcNow < until && quiet < quietMs / 15)
             {
                 Dispatcher.UIThread.RunJobs();
                 quiet = tool.PilotsShown.IsCompleted ? quiet + 1 : 0;

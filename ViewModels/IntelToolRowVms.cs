@@ -149,17 +149,16 @@ public sealed class IntelPilotListRowVm : ReactiveObject
 }
 
 /// <summary>A column header that sorts its grid: clicked, by its column; clicked again, the other way round. The
-/// arrow shows which column sorts and which way.</summary>
-public sealed class IntelSortHeaderVm : ReactiveObject
+/// arrow shows which column sorts and which way. What the header template binds to; each grid's headers are an
+/// <see cref="IntelSortHeaderVm{TColumn}"/> of its own columns.</summary>
+public abstract class IntelSortHeaderVm : ReactiveObject
 {
-    public IntelSortHeaderVm(IntelViewModel.PilotColumn column, string text, Action<IntelViewModel.PilotColumn> sort)
+    protected IntelSortHeaderVm(string text, Action sort)
     {
-        Column = column;
         Text = text;
-        SortCommand = ReactiveCommand.Create(() => sort(column));
+        SortCommand = ReactiveCommand.Create(sort);
     }
 
-    public IntelViewModel.PilotColumn Column { get; }
     public string Text { get; }
     public ReactiveCommand<Unit, Unit> SortCommand { get; }
 
@@ -170,11 +169,50 @@ public sealed class IntelSortHeaderVm : ReactiveObject
     public bool IsDown { get => _isDown; private set => this.RaiseAndSetIfChanged(ref _isDown, value); }
     public bool IsSorted => IsUp || IsDown;
 
-    public void Show(IntelViewModel.PilotColumn sorted, bool descending)
+    protected void ShowArrow(bool sorted, bool descending)
     {
-        IsUp = sorted == Column && !descending;
-        IsDown = sorted == Column && descending;
+        IsUp = sorted && !descending;
+        IsDown = sorted && descending;
         this.RaisePropertyChanged(nameof(IsSorted));
+    }
+}
+
+/// <summary>A header of one grid's columns: the Pilots tab's, the Camps tab's, the Watch list's.</summary>
+public sealed class IntelSortHeaderVm<TColumn> : IntelSortHeaderVm where TColumn : struct, Enum
+{
+    public IntelSortHeaderVm(TColumn column, string text, Action<TColumn> sort) : base(text, () => sort(column)) => Column = column;
+
+    public TColumn Column { get; }
+
+    /// <summary>The arrow on this header when <paramref name="sorted"/> is its column, the way round given; none otherwise.</summary>
+    public void Show(TColumn sorted, bool descending) => ShowArrow(EqualityComparer<TColumn>.Default.Equals(sorted, Column), descending);
+
+    /// <summary>One header per column, in the enum's order, each with its arrow as the grid sorts now.</summary>
+    public static IReadOnlyList<IntelSortHeaderVm<TColumn>> For(Func<TColumn, string> name, Action<TColumn> sort, TColumn sorted, bool descending)
+    {
+        var heads = Enum.GetValues<TColumn>().Select(c => new IntelSortHeaderVm<TColumn>(c, name(c), sort)).ToList();
+        foreach (var h in heads) h.Show(sorted, descending);
+        return heads;
+    }
+}
+
+/// <summary>How a grid's sort is kept on this PC: "Column,asc" or "Column,desc" under a key of the view's own.</summary>
+public static class IntelGridSort
+{
+    /// <summary>The kept sort, or <paramref name="fallback"/> when none is kept, it cannot be read, or its column is gone.</summary>
+    public static (TColumn Column, bool Descending) Load<TColumn>(string key, (TColumn Column, bool Descending) fallback) where TColumn : struct, Enum
+    {
+        string? kept;
+        try { kept = UiState.Get(key); }
+        catch { return fallback; }
+        return kept?.Split(',') is [var column, var direction] && Enum.TryParse<TColumn>(column, out var c) && Enum.IsDefined(c)
+            ? (c, direction == "desc") : fallback;
+    }
+
+    public static void Save<TColumn>(string key, TColumn column, bool descending) where TColumn : struct, Enum
+    {
+        try { UiState.Set(key, column + "," + (descending ? "desc" : "asc")); }
+        catch { /* A view's state is a nicety: a setting that cannot be kept is simply not kept. */ }
     }
 }
 
@@ -198,6 +236,7 @@ public sealed class IntelCampRowVm : ReactiveObject
         GateText = camp is not null ? string.Format(culture, IntelText.CampGate, snapshot.SystemName(camp.GateSystemId))
                  : row.ReportedGate is { Length: > 0 } said ? string.Format(culture, IntelText.CampGate, said)
                  : "";
+        Jumps = row.Jumps;
         JumpsText = IntelWords.Jumps(row.Jumps, pending);
         Band = row.Jumps is null && pending ? IntelJumpBand.Unknown : IntelWords.Band(row.Jumps);
         var from = row.NearestOrigin is long o ? snapshot.Standings.Own(o)?.Name ?? snapshot.Own.FirstOrDefault(x => x.CharacterId == o)?.Name : null;
@@ -209,6 +248,8 @@ public sealed class IntelCampRowVm : ReactiveObject
         _lastAt = row.LastAt;
         _endsAt = row.EndsAt;
         LastKillId = camp?.KillMailIds.LastOrDefault() ?? 0;
+        KillCount = camp?.KillMailIds.Count;
+        AttackerCount = camp is null || camp.Attackers.Count == 0 ? null : camp.Attackers.Count;
         KillsText = camp is null ? "–" : Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampKillsOther), camp.KillMailIds.Count);
         AttackersText = camp is null || camp.Attackers.Count == 0 ? ""
             : Plurals.Format(IntelText.ResourceManager, nameof(IntelText.CampAttackersOther), camp.Attackers.Count);
@@ -248,6 +289,8 @@ public sealed class IntelCampRowVm : ReactiveObject
     public string GateText { get; }
     public bool HasGate => GateText.Length > 0;
 
+    /// <summary>For the sort: jumps from the nearest origin, null when not known.</summary>
+    public int? Jumps { get; }
     public string JumpsText { get; }
     public bool HasJumps => JumpsText.Length > 0;
     public string? JumpsTip { get; }
@@ -263,6 +306,13 @@ public sealed class IntelCampRowVm : ReactiveObject
 
     public IntelWatchMark Watch { get; }
     public FontWeight NameWeight => Watch == IntelWatchMark.Always ? FontWeight.ExtraBold : FontWeight.SemiBold;
+
+    /// <summary>For the sort: the last kill, or the last report of a camp only reported.</summary>
+    public DateTimeOffset LastAt => _lastAt;
+    /// <summary>For the sort: kills on it; null for a camp only reported.</summary>
+    public int? KillCount { get; }
+    /// <summary>For the sort: pilots on it; null when none are known.</summary>
+    public int? AttackerCount { get; }
 
     public string KillsText { get; }
     public int LastKillId { get; }
@@ -352,6 +402,8 @@ public sealed class IntelWatchEntryVm : ReactiveObject
             IntelWatchKind.Hull        => IntelPictureVm.Ship((int)e.EntityId, label),
             _                          => IntelPictureVm.Words(label),
         };
+        Label = label;
+        AddedAt = e.AddedAt;
         KindText = IntelWatchTabVm.KindName(e.Kind);
         _selectedMode = owner.ModeChoices.FirstOrDefault(m => m.Value == e.Mode) ?? owner.ModeChoices[0];
         AddedText = IntelSnapshotBuilder.TryParse(e.AddedAt, out var at)
@@ -366,10 +418,14 @@ public sealed class IntelWatchEntryVm : ReactiveObject
     public string Kind { get; }
     public long EntityId { get; }
     public IntelPictureVm Picture { get; }
+    /// <summary>The name as shown, in the interface language for a hull or group: what Name sorts by.</summary>
+    public string Label { get; }
     public string KindText { get; }
     public string Note { get; }
     public bool HasNote => Note.Length > 0;
     public string AddedText { get; }
+    /// <summary>ISO text, as stored: what Added sorts by.</summary>
+    public string AddedAt { get; }
 
     public IReadOnlyList<IntelChoice<int>> ModeChoices => _owner.ModeChoices;
 
@@ -412,6 +468,8 @@ public sealed class IntelWatchTabVm : ReactiveObject
         _selectedKind = KindChoices[0];
         _selectedMode = ModeChoices[0];
         AddCommand = ReactiveCommand.Create(Add, this.WhenAnyValue(x => x.SelectedCandidate).Select(c => c is not null && _list is not null));
+        (_sort, _sortDescending) = IntelGridSort.Load(KeySort, (WatchColumn.Kind, false));
+        Headers = IntelSortHeaderVm<WatchColumn>.For(ColumnName, SortBy, _sort, _sortDescending);
 
         this.WhenAnyValue(x => x.SearchText).Skip(1).Throttle(TimeSpan.FromMilliseconds(250))
             .SelectMany(t => Observable.FromAsync(() => SuggestAsync(t))).Subscribe();
@@ -498,21 +556,94 @@ public sealed class IntelWatchTabVm : ReactiveObject
     }
 
     /// <summary>The entries given rather than read: for a check with invented ones.</summary>
+    /// <remarks>An entry reading as one already shown is that one, picture and all: a reading that changed nothing
+    /// changes nothing on screen, and a changed entry is replaced alone (before, every read reset the list, and every
+    /// row was drawn again).</remarks>
     public void Show(IReadOnlyList<IntelWatchEntry> rows)
     {
-        var order = IntelWatchKind.All.ToList();
         var held = Entries.ToDictionary(e => e.Id);
-        var fresh = rows.OrderBy(r => order.IndexOf(r.Kind)).ThenBy(r => r.Name, StringComparer.CurrentCultureIgnoreCase)
+        var fresh = rows
             .Select(r =>
             {
                 var vm = new IntelWatchEntryVm(r, this);
                 return held.TryGetValue(r.Id, out var old) && old.Signature == vm.Signature ? old : vm;
             })
             .ToList();
-        Entries.ResetTo(fresh);
+        Entries.SyncTo([.. SortWatch(fresh, _sort, _sortDescending)], e => e.Id, e => e.Signature);
         foreach (var e in fresh.Where(e => !held.TryGetValue(e.Id, out var old) || !ReferenceEquals(old, e)))
             _ = e.Picture.LoadAsync();
         EmptyText = fresh.Count == 0 ? IntelText.WatchEmpty : "";
+    }
+
+    // ── The sort ─────────────────────────────────────────────────────────────
+
+    private const string KeySort = "intel.watch_sort";
+
+    /// <summary>A column of the Watch list, each sortable by clicking its header.</summary>
+    public enum WatchColumn { Kind, Name, Mode, Note, Added }
+
+    private WatchColumn _sort;
+    private bool _sortDescending;
+
+    public WatchColumn Sort => _sort;
+    public bool SortDescending => _sortDescending;
+
+    /// <summary>The headers, in <see cref="WatchColumn"/> order: each sorts by its column.</summary>
+    public IReadOnlyList<IntelSortHeaderVm<WatchColumn>> Headers { get; }
+
+    // Each header by name: a compiled binding reads a property, not an index into a read-only list.
+    public IntelSortHeaderVm HeadKind  => Headers[(int)WatchColumn.Kind];
+    public IntelSortHeaderVm HeadName  => Headers[(int)WatchColumn.Name];
+    public IntelSortHeaderVm HeadMode  => Headers[(int)WatchColumn.Mode];
+    public IntelSortHeaderVm HeadNote  => Headers[(int)WatchColumn.Note];
+    public IntelSortHeaderVm HeadAdded => Headers[(int)WatchColumn.Added];
+
+    private static string ColumnName(WatchColumn column) => column switch
+    {
+        WatchColumn.Kind => IntelText.ColKind,
+        WatchColumn.Name => IntelText.ColName,
+        WatchColumn.Mode => IntelText.ColMode,
+        WatchColumn.Note => IntelText.ColNote,
+        _                => IntelText.ColAdded,
+    };
+
+    /// <summary>A header clicked: its column, or the other way round when it already sorts by it. The entries shown
+    /// are put in the new order; nothing is read again or built again.</summary>
+    public void SortBy(WatchColumn column)
+    {
+        (_sort, _sortDescending) = NextWatchSort(_sort, _sortDescending, column);
+        IntelGridSort.Save(KeySort, _sort, _sortDescending);
+        foreach (var h in Headers) h.Show(_sort, _sortDescending);
+        Entries.SyncTo([.. SortWatch(Entries.ToList(), _sort, _sortDescending)], e => e.Id, e => e.Signature);
+    }
+
+    /// <summary>The sort after a header is clicked: the same column turns round; another starts newest first for
+    /// when they were added, and A to Z (the list's own kind order for Kind, Always alert before Ignore) for the rest.</summary>
+    public static (WatchColumn Column, bool Descending) NextWatchSort(WatchColumn current, bool descending, WatchColumn clicked) =>
+        clicked == current ? (current, !descending) : (clicked, clicked == WatchColumn.Added);
+
+    /// <summary>
+    /// The entries in a column's order. Kind is the list's own order of kinds (pilots, corporations, alliances, hulls,
+    /// groups); a blank note goes last either way round; entries alike in the column keep kind, then name order.
+    /// </summary>
+    public static IEnumerable<IntelWatchEntryVm> SortWatch(IEnumerable<IntelWatchEntryVm> entries, WatchColumn column, bool descending)
+    {
+        var text = StringComparer.CurrentCultureIgnoreCase;
+        var kinds = IntelWatchKind.All.ToList();
+        int KindOrder(IntelWatchEntryVm e) => kinds.IndexOf(e.Kind) is var i and >= 0 ? i : kinds.Count;
+        IOrderedEnumerable<IntelWatchEntryVm> By<TKey>(Func<IntelWatchEntryVm, TKey> key, IComparer<TKey>? comparer = null) =>
+            descending ? entries.OrderByDescending(key, comparer) : entries.OrderBy(key, comparer);
+        var sorted = column switch
+        {
+            WatchColumn.Kind  => By(KindOrder),
+            WatchColumn.Name  => By(e => e.Label, text),
+            WatchColumn.Mode  => By(e => e.SelectedMode.Value),
+            WatchColumn.Note  => descending
+                ? entries.OrderBy(e => e.HasNote ? 0 : 1).ThenByDescending(e => e.Note, text)
+                : entries.OrderBy(e => e.HasNote ? 0 : 1).ThenBy(e => e.Note, text),
+            _                 => By(e => e.AddedAt, StringComparer.Ordinal),
+        };
+        return sorted.ThenBy(KindOrder).ThenBy(e => e.Label, text).ThenBy(e => e.Id);
     }
 
     private void Add()

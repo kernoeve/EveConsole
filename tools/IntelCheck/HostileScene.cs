@@ -200,5 +200,19 @@ namespace EveConsole.Tools.IntelCheck
         }
 
         public static IntelSnapshot FeedSnapshot() => IntelSnapshotBuilder.Build(FeedInput(), new IntelCampRegister(), 2);
+
+        /// <summary>
+        /// The scene with camps only reported added, for the Camps tab's sort: ZZQ-71 (2 jumps) 5 minutes ago on the
+        /// 9Q-ZX2 gate, Q7-ZZX (1 jump) 12 minutes ago, Q2X-91 (5 jumps) 50 minutes ago; with <paramref name="more"/>,
+        /// ZXQ-4F (1 jump) a minute ago too, after its clear. Beside the camp X2-QZ7 worked out from kills.
+        /// </summary>
+        public static IntelSnapshotInput CampsInput(bool more = false)
+        {
+            var input = FeedInput();
+            const int camp = (int)IntelRules.IntelFlags.Camp;
+            var said = new List<IntelReport> { Report(Lone, 5, flags: camp, gate: "9Q-ZX2"), Report(Brawl, 12, flags: camp), Report(Flags, 50, flags: camp) };
+            if (more) said.Add(Report(Cleared, 1, flags: camp));
+            return input with { Reports = [.. input.Reports, .. said] };
+        }
     }
 }

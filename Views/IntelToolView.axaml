@@ -776,14 +776,15 @@
     <!-- ══ Camps: gate camps from kills and reports, active and lately ended ══ -->
     <Grid Grid.Row="5" IsVisible="{Binding IsCampsTab}" RowDefinitions="Auto,*">
       <Grid ColumnDefinitions="3,40,1.5*,76,72,60,1.7*,1.1*,1*" ColumnSpacing="10" Margin="16 6 16 6">
-        <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColJumps}" />
-        <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColCamp}" />
-        <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColStatus}" />
-        <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColKills}" />
-        <TextBlock Grid.Column="5" Classes="head" Text="{x:Static loc:IntelText.ColLastKill}" />
-        <TextBlock Grid.Column="6" Classes="head" Text="{x:Static loc:IntelText.ColAttackers}" />
-        <TextBlock Grid.Column="7" Classes="head" Text="{x:Static loc:IntelText.ColFlags}" />
-        <TextBlock Grid.Column="8" Classes="head" Text="{x:Static loc:IntelText.ColSources}" />
+        <!-- Every column sorts by its header; again, the other way round. -->
+        <ContentControl Grid.Column="1" Content="{Binding CampHeadJumps}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="2" Content="{Binding CampHeadCamp}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="3" Content="{Binding CampHeadStatus}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="4" Content="{Binding CampHeadKills}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="5" Content="{Binding CampHeadLastKill}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="6" Content="{Binding CampHeadAttackers}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="7" Content="{Binding CampHeadFlags}" ContentTemplate="{StaticResource SortHead}" />
+        <ContentControl Grid.Column="8" Content="{Binding CampHeadSources}" ContentTemplate="{StaticResource SortHead}" />
       </Grid>
       <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16 0 16 8">
@@ -864,11 +865,12 @@
         <TextBlock Text="{Binding StatusText}" IsVisible="{Binding HasStatus}" FontSize="11" TextWrapping="Wrap" Foreground="{DynamicResource BadBrush}" />
         <StackPanel>
           <Grid ColumnDefinitions="110,1.6*,150,1.4*,1.2*,28" ColumnSpacing="10" Margin="0 0 0 6">
-            <TextBlock Classes="head" Text="{x:Static loc:IntelText.ColKind}" />
-            <TextBlock Grid.Column="1" Classes="head" Text="{x:Static loc:IntelText.ColName}" />
-            <TextBlock Grid.Column="2" Classes="head" Text="{x:Static loc:IntelText.ColMode}" />
-            <TextBlock Grid.Column="3" Classes="head" Text="{x:Static loc:IntelText.ColNote}" />
-            <TextBlock Grid.Column="4" Classes="head" Text="{x:Static loc:IntelText.ColAdded}" />
+            <!-- Every column sorts by its header; again, the other way round. -->
+            <ContentControl Content="{Binding HeadKind}" ContentTemplate="{StaticResource SortHead}" />
+            <ContentControl Grid.Column="1" Content="{Binding HeadName}" ContentTemplate="{StaticResource SortHead}" />
+            <ContentControl Grid.Column="2" Content="{Binding HeadMode}" ContentTemplate="{StaticResource SortHead}" />
+            <ContentControl Grid.Column="3" Content="{Binding HeadNote}" ContentTemplate="{StaticResource SortHead}" />
+            <ContentControl Grid.Column="4" Content="{Binding HeadAdded}" ContentTemplate="{StaticResource SortHead}" />
           </Grid>
           <ItemsControl ItemsSource="{Binding Entries}">
             <ItemsControl.ItemTemplate>

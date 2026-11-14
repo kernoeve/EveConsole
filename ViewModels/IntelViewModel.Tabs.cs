@@ -20,10 +20,14 @@ namespace EveConsole.ViewModels;
 ///
 /// <para>Camps are the snapshot's, through the lens: active within the camp lifetime of the last kill, then
 /// faded as ended until an hour after it.</para>
+///
+/// <para>Every grid here sorts by its column headers (the user's rule, 2026-11-13: clicking a column a second time
+/// turns the sort round): Pilots, Camps and the Watch list alike. Each keeps its column and direction on this PC
+/// and across refreshes; a click only puts the rows shown in a new order, nothing is read or built again.</para>
 /// </summary>
 public sealed partial class IntelViewModel
 {
-    private const string KeyPilotsWindow = "intel.pilots_window", KeyPilotsSort = "intel.pilots_sort";
+    private const string KeyPilotsWindow = "intel.pilots_window", KeyPilotsSort = "intel.pilots_sort", KeyCampsSort = "intel.camps_sort";
 
     /// <summary>How often the Pilots tab reads again while it is on screen.</summary>
     private static readonly TimeSpan PilotsEvery = TimeSpan.FromSeconds(30);
@@ -41,8 +45,9 @@ public sealed partial class IntelViewModel
         var sort = Read(() => UiState.Get(KeyPilotsSort), null)?.Split(',');
         if (sort is [var column, var direction] && Enum.TryParse<PilotColumn>(column, out var kept) && Enum.IsDefined(kept))
             (_pilotSort, _pilotSortDescending) = (kept, direction == "desc");
-        PilotHeaders = [.. Enum.GetValues<PilotColumn>().Select(c => new IntelSortHeaderVm(c, PilotColumnName(c), SortPilotsBy))];
-        foreach (var h in PilotHeaders) h.Show(_pilotSort, _pilotSortDescending);
+        PilotHeaders = IntelSortHeaderVm<PilotColumn>.For(PilotColumnName, SortPilotsBy, _pilotSort, _pilotSortDescending);
+        (_campSort, _campSortDescending) = IntelGridSort.Load(KeyCampsSort, (CampColumn.Status, false));
+        CampHeaders = IntelSortHeaderVm<CampColumn>.For(CampColumnName, SortCampsBy, _campSort, _campSortDescending);
         WatchList = new IntelWatchTabVm(_watchList, _dbFactory);
 
         // The search box, on the Pilots tab, searches the database: once typing pauses.
@@ -274,7 +279,7 @@ public sealed partial class IntelViewModel
     private bool _pilotSortDescending = true;
 
     /// <summary>The Pilots tab's headers, in <see cref="PilotColumn"/> order: each sorts by its column.</summary>
-    public IReadOnlyList<IntelSortHeaderVm> PilotHeaders { get; private set; } = [];
+    public IReadOnlyList<IntelSortHeaderVm<PilotColumn>> PilotHeaders { get; private set; } = [];
 
     // Each header by name: a compiled binding reads a property, not an index into a read-only list.
     public IntelSortHeaderVm HeadJumps       => PilotHeaders[(int)PilotColumn.Jumps];
@@ -367,8 +372,9 @@ public sealed partial class IntelViewModel
             .Where(r => search.Length == 0 || Matches(r.SystemName) || Matches(r.GateText) || Matches(_regions.GetValueOrDefault(r.SystemId)))
             .Select(r => held.TryGetValue(r.Key, out var old) && old.Signature == r.Signature ? old : r)
             .ToList();
-        // Unchanged rows raise nothing; a changed one is replaced alone.
-        CampRows.SyncTo(rows, r => r.Key, r => r.Signature);
+        // In the headers' order, the same way round as before the refresh. Unchanged rows raise nothing; a changed
+        // one is replaced alone.
+        CampRows.SyncTo([.. SortCamps(rows, _campSort, _campSortDescending)], r => r.Key, r => r.Signature);
         foreach (var row in rows.Where(r => !held.TryGetValue(r.Key, out var old) || !ReferenceEquals(old, r)))
             _ = row.LoadPicturesAsync();
 
@@ -380,6 +386,94 @@ public sealed partial class IntelViewModel
                        : search.Length > 0 ? IntelText.ToolNothingMatches
                        : CampsNeedFeed ? IntelText.CampsEmptyNoFeed
                        : IntelText.CampsEmpty;
+    }
+
+    // ── Camps: the sort ──────────────────────────────────────────────────────
+
+    /// <summary>A column of the Camps tab, each sortable by clicking its header.</summary>
+    public enum CampColumn { Jumps, Camp, Status, Kills, LastKill, Attackers, Flags, Sources }
+
+    private CampColumn _campSort = CampColumn.Status;
+    private bool _campSortDescending;
+
+    /// <summary>The Camps tab's headers, in <see cref="CampColumn"/> order: each sorts by its column.</summary>
+    public IReadOnlyList<IntelSortHeaderVm<CampColumn>> CampHeaders { get; private set; } = [];
+
+    // Each header by name: a compiled binding reads a property, not an index into a read-only list.
+    public IntelSortHeaderVm CampHeadJumps     => CampHeaders[(int)CampColumn.Jumps];
+    public IntelSortHeaderVm CampHeadCamp      => CampHeaders[(int)CampColumn.Camp];
+    public IntelSortHeaderVm CampHeadStatus    => CampHeaders[(int)CampColumn.Status];
+    public IntelSortHeaderVm CampHeadKills     => CampHeaders[(int)CampColumn.Kills];
+    public IntelSortHeaderVm CampHeadLastKill  => CampHeaders[(int)CampColumn.LastKill];
+    public IntelSortHeaderVm CampHeadAttackers => CampHeaders[(int)CampColumn.Attackers];
+    public IntelSortHeaderVm CampHeadFlags     => CampHeaders[(int)CampColumn.Flags];
+    public IntelSortHeaderVm CampHeadSources   => CampHeaders[(int)CampColumn.Sources];
+
+    public CampColumn CampSort => _campSort;
+    public bool CampSortDescending => _campSortDescending;
+
+    private static string CampColumnName(CampColumn column) => column switch
+    {
+        CampColumn.Jumps     => IntelText.ColJumps,
+        CampColumn.Camp      => IntelText.ColCamp,
+        CampColumn.Status    => IntelText.ColStatus,
+        CampColumn.Kills     => IntelText.ColKills,
+        CampColumn.LastKill  => IntelText.ColLastKill,
+        CampColumn.Attackers => IntelText.ColAttackers,
+        CampColumn.Flags     => IntelText.ColFlags,
+        _                    => IntelText.ColSources,
+    };
+
+    /// <summary>A header clicked: its column, or the other way round when it already sorts by it. The arrow turns at
+    /// once and the rows shown are put in the new order: the same rows, nothing read or built again.</summary>
+    public void SortCampsBy(CampColumn column)
+    {
+        (_campSort, _campSortDescending) = NextCampSort(_campSort, _campSortDescending, column);
+        var (sort, descending) = (_campSort, _campSortDescending);
+        IntelGridSort.Save(KeyCampsSort, sort, descending);
+        foreach (var h in CampHeaders) h.Show(sort, descending);
+        CampRows.SyncTo([.. SortCamps(CampRows.ToList(), sort, descending)], r => r.Key, r => r.Signature);
+    }
+
+    /// <summary>The sort after a header is clicked: the same column turns round; another starts newest first for the
+    /// last kill, most first for kills and attackers, nearest first for jumps, active first for the status, and A to Z
+    /// for the rest.</summary>
+    public static (CampColumn Column, bool Descending) NextCampSort(CampColumn current, bool descending, CampColumn clicked) =>
+        clicked == current ? (current, !descending)
+        : (clicked, clicked is CampColumn.LastKill or CampColumn.Kills or CampColumn.Attackers);
+
+    /// <summary>
+    /// The Camps tab's rows in a column's order. A blank (jumps not known, no kills for a camp only reported, no
+    /// attackers, no flags) goes last either way round; rows alike in the column keep the tab's own order: active
+    /// first, then nearest, then newest.
+    /// </summary>
+    public static IEnumerable<IntelCampRowVm> SortCamps(IEnumerable<IntelCampRowVm> rows, CampColumn column, bool descending)
+    {
+        var text = StringComparer.CurrentCultureIgnoreCase;
+        IOrderedEnumerable<IntelCampRowVm> ByText(Func<IntelCampRowVm, string> key)
+        {
+            var blankLast = rows.OrderBy(r => key(r).Length == 0 ? 1 : 0);
+            return descending ? blankLast.ThenByDescending(key, text) : blankLast.ThenBy(key, text);
+        }
+        IOrderedEnumerable<IntelCampRowVm> ByNumber(Func<IntelCampRowVm, int?> key)
+        {
+            var blankLast = rows.OrderBy(r => key(r) is null ? 1 : 0);
+            return descending ? blankLast.ThenByDescending(r => key(r) ?? 0) : blankLast.ThenBy(r => key(r) ?? 0);
+        }
+        var sorted = column switch
+        {
+            CampColumn.Jumps     => ByNumber(r => r.Jumps),
+            CampColumn.Camp      => ByText(r => r.SystemName),
+            // Ascending is active first.
+            CampColumn.Status    => descending ? rows.OrderBy(r => r.IsActive ? 1 : 0) : rows.OrderBy(r => r.IsActive ? 0 : 1),
+            CampColumn.Kills     => ByNumber(r => r.KillCount),
+            CampColumn.LastKill  => descending ? rows.OrderByDescending(r => r.LastAt) : rows.OrderBy(r => r.LastAt),
+            CampColumn.Attackers => ByNumber(r => r.AttackerCount),
+            CampColumn.Flags     => ByText(r => r.FlagsText),
+            _                    => ByText(r => r.SourceText),
+        };
+        return sorted.ThenBy(r => r.IsActive ? 0 : 1).ThenBy(r => r.Jumps is null ? 1 : 0).ThenBy(r => r.Jumps ?? 0)
+                     .ThenByDescending(r => r.LastAt).ThenBy(r => r.Key, StringComparer.Ordinal);
     }
 
     // ── Watch list ───────────────────────────────────────────────────────────
