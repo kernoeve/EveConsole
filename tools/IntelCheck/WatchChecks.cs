@@ -394,16 +394,29 @@ namespace EveConsole.Tools.IntelCheck
             for (var run = 0; run < 3; run++) pass = Math.Min(pass, await OnePass());
             var limit = 4 * pass + 25;
 
-            var timings = new List<(string, long)>();
+            // ⚠️ Each search against the reads its shape makes, a pass measured beside it each time. From three
+            // letters a search reads the window up to three times (the name's start, the name anywhere, the
+            // groups' pilots), so it costs about three passes on any machine: against a flat four passes it
+            // failed now and then on a CI runner (five passes there, where each read's round trip costs more).
+            // Three passes of room on top of the reads still catch a query per row, a lost cap or a sort of
+            // everything, each many passes over. The pass beside each search, alternated with it, takes a busy
+            // moment of the machine's to both alike.
+            var timings = new List<(string Label, long Ms, long Limit)>();
             foreach (var (text, window) in new[] { ("", day), ("pi", day), ("Pilot 0123", day), ("zqx", day), ("zqx", TimeSpan.FromDays(60)),
                                                   ("varn", TimeSpan.FromDays(60)), ("nobody here", TimeSpan.FromDays(60)) })
             {
-                var best = long.MaxValue;
-                for (var run = 0; run < 3; run++) best = Math.Min(best, (await Search(text, window)).Ms);
-                timings.Add(($"'{text}' {window.TotalDays:0}d", best));
+                var reads = text.Trim().Length >= IntelPilotSearch.ContainsFrom ? 3 : 1;
+                long best = long.MaxValue, beside = long.MaxValue;
+                for (var run = 0; run < 3; run++)
+                {
+                    beside = Math.Min(beside, await OnePass());
+                    best = Math.Min(best, (await Search(text, window)).Ms);
+                }
+                timings.Add(($"'{text}' {window.TotalDays:0}d", best, (reads + 3) * beside + 25));
             }
-            var said = $"one pass {pass} ms, limit {limit} ms; " + string.Join(", ", timings.Select(t => $"{t.Item1} {t.Item2} ms"));
-            c.Check($"{engine} pilots: every search on {SearchRows:N0} rows within four passes over the table", timings.All(t => t.Item2 <= limit), said);
+            var said = $"one pass {pass} ms; " + string.Join(", ", timings.Select(t => $"{t.Label} {t.Ms} ms (limit {t.Limit})"));
+            c.Check($"{engine} pilots: every search on {SearchRows:N0} rows within three passes over the table more than the reads it makes",
+                timings.All(t => t.Ms <= t.Limit), said);
             Console.WriteLine($"{engine} pilots search: " + said);
 
             // ── With the standings filter: the cap counts the pilots kept ──
