@@ -385,12 +385,21 @@ jobs:
 
       # Unsigned, as releases are until there is an Apple Developer ID. A channel per
       # architecture: both would otherwise be "osx", and each install updates from its own.
+      # ⚠️ The package carries the csproj's version, as the app inside does, marked as a CI build
+      # (0.9.19-ci.<run>): Finder and the installer show it, and the update check compares it. With a
+      # fixed 0.0.1 a test install was offered the last release as an "update" over itself; this way
+      # the last release is older, and the real release of this version newer.
       - name: Package (unsigned) for Apple Silicon and Intel
         run: |
+          version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' EveConsole.csproj | head -1)
+          [ -n "$version" ] || { echo "::error::no <Version> in EveConsole.csproj"; exit 1; }
+          pack="$version-ci.${{ github.run_number }}"
+          echo "Packaging $pack"
           for rid in osx-arm64 osx-x64; do
             dotnet publish EveConsole.csproj -c Release -r $rid --self-contained true -o publish-$rid
-            sed -e "s/@VERSION@/0.0.1-ci/" -e "s/@SHORT_VERSION@/0.0.1/" packaging/macos/Info.plist > Info-$rid.plist
-            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion 0.0.1-ci \
+            # CFBundleVersion is numbers only to macOS: the run goes on as a fourth part there.
+            sed -e "s/@VERSION@/$version.${{ github.run_number }}/" -e "s/@SHORT_VERSION@/$version/" packaging/macos/Info.plist > Info-$rid.plist
+            vpk pack --packId EveConsole --packTitle "EVE Console" --packVersion $pack \
                      --packDir publish-$rid --mainExe EveConsole --icon EveConsole.icns \
                      --plist Info-$rid.plist --channel $rid --outputDir releases-$rid
             ls -la releases-$rid
