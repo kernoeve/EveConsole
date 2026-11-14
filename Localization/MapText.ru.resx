@@ -2453,4 +2453,76 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpRange" xml:space="preserve">
     <value>В дальности прыжка от системы вкладки «Дальность прыжка» (толстое кольцо — сама система)</value>
   </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>♦ НПЦ</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>Отмечать системы, где пиратские ♦ НПЦ убивали игроков за последние 5 дней. Отметка говорит лишь о том, что видели, а не о том, что за этим стоит: Sotiyo, крепость или бродячая группа.</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>НПЦ-капиталы</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>Отмечать системы, где НПЦ-титаны, суперкэрриеры или дредноуты убивали игроков после даунтайма (11:00 EVE). Стрелка выбирает, какие.</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>Титаны</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>Суперкэрриеры</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>Дредноуты</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>Т</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>С</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>Д</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>Активность ♦ НПЦ в {0} — убито игроков: {1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0}: убито игроков: {1} за {2} — с {3} EVE, последнее {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0}: убито игроков: {1} более чем за {2} — ещё до {3} EVE, последнее {4} EVE ({5})</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>Корпуса: {0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0}: {1}, убито: {2}, последнее {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0} ч</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#} дн.</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>{0} д {1} ч назад</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>НПЦ-капиталы в {1} после даунтайма: {0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — последнее убийство {2} EVE ({3}) · убийств после даунтайма: {4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0}: {1}, {2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>Пиратские ♦ НПЦ убивали здесь игроков за последние 5 дней; число — убийства с начала серии (без перерыва дольше 5 дней). Это может быть Sotiyo, крепость или бродячая группа. Наведите, чтобы увидеть фракцию, убийства и период.</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>НПЦ-титаны (Т), суперкэрриеры (С) или дредноуты (Д) в киллмейлах здесь после даунтайма (11:00 EVE). Наведите, чтобы увидеть фракцию, корпус, убийства и последнее из них.</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0}: убит 1 игрок, {1} EVE ({2})</value>
+  </data>
 </root>

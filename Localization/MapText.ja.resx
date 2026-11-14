@@ -2327,4 +2327,76 @@ XQ1-Z2 &lt;-&gt; 9-97XQ
   <data name="LegendJumpRange" xml:space="preserve">
     <value>ジャンプ範囲タブのシステムからジャンプ範囲内（太い輪がそのシステム）</value>
   </data>
+  <data name="NpcDiamondsToggle" xml:space="preserve">
+    <value>♦ラット</value>
+  </data>
+  <data name="TipNpcDiamondsToggle" xml:space="preserve">
+    <value>過去5日間に♦海賊NPCがプレイヤーを撃破した星系に印を付けます。印は見えたものだけを示し、その裏にあるもの（ソティヨ、拠点、巡回グループ）は示しません。</value>
+  </data>
+  <data name="NpcCapitalsToggle" xml:space="preserve">
+    <value>NPC主力艦</value>
+  </data>
+  <data name="TipNpcCapitalsToggle" xml:space="preserve">
+    <value>ダウンタイム（EVE時間11:00）以降にNPCのタイタン、スーパーキャリア、ドレッドノートがプレイヤーを撃破した星系に印を付けます。矢印で種類を選びます。</value>
+  </data>
+  <data name="NpcTitans" xml:space="preserve">
+    <value>タイタン</value>
+  </data>
+  <data name="NpcSupers" xml:space="preserve">
+    <value>スーパーキャリア</value>
+  </data>
+  <data name="NpcDreads" xml:space="preserve">
+    <value>ドレッドノート</value>
+  </data>
+  <data name="NpcGlyphTitan" xml:space="preserve">
+    <value>T</value>
+  </data>
+  <data name="NpcGlyphSuper" xml:space="preserve">
+    <value>S</value>
+  </data>
+  <data name="NpcGlyphDread" xml:space="preserve">
+    <value>D</value>
+  </data>
+  <data name="LiveDiamondTitle" xml:space="preserve">
+    <value>{0}の♦ラット活動 — 撃破されたプレイヤー：{1}</value>
+  </data>
+  <data name="LiveDiamondLine" xml:space="preserve">
+    <value>{0}：{2}でプレイヤー{1}人撃破 — {3} EVEから、最新 {4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondLineEarlier" xml:space="preserve">
+    <value>{0}：{2}以上でプレイヤー{1}人撃破 — {3} EVEより前から、最新 {4} EVE（{5}）</value>
+  </data>
+  <data name="LiveDiamondHulls" xml:space="preserve">
+    <value>艦種：{0}</value>
+  </data>
+  <data name="LiveDiamondRegionLine" xml:space="preserve">
+    <value>{0}：{1}、{2}人撃破、最新 {3}</value>
+  </data>
+  <data name="LivePeriodHours" xml:space="preserve">
+    <value>{0}時間</value>
+  </data>
+  <data name="LivePeriodDays" xml:space="preserve">
+    <value>{0:0.#}日</value>
+  </data>
+  <data name="LiveDaysAgo" xml:space="preserve">
+    <value>{0}日{1}時間前</value>
+  </data>
+  <data name="LiveCapitalsTitle" xml:space="preserve">
+    <value>ダウンタイム以降の{1}のNPC主力艦：{0}</value>
+  </data>
+  <data name="LiveCapitalLine" xml:space="preserve">
+    <value>{0} {1} — 最終撃破 {2} EVE（{3}）· ダウンタイム以降の撃破数：{4}</value>
+  </data>
+  <data name="LiveCapitalRegionLine" xml:space="preserve">
+    <value>{0}：{1}、{2}</value>
+  </data>
+  <data name="LiveMarkDiamonds" xml:space="preserve">
+    <value>過去5日間にここで♦海賊NPCがプレイヤーを撃破しました。数字は一連の撃破が始まってからの撃破数です（5日を超える空白なし）。ソティヨ、拠点、巡回グループのいずれかの可能性があります。勢力・撃破数・期間はカーソルを合わせて確認。</value>
+  </data>
+  <data name="LiveMarkCapitals" xml:space="preserve">
+    <value>ダウンタイム（EVE時間11:00）以降、ここのキルメールに載ったNPCのタイタン（T）、スーパーキャリア（S）、ドレッドノート（D）。勢力・艦種・撃破数・最終撃破はカーソルを合わせて確認。</value>
+  </data>
+  <data name="LiveDiamondLineOne" xml:space="preserve">
+    <value>{0}：プレイヤー1人撃破、{1} EVE（{2}）</value>
+  </data>
 </root>

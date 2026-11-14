@@ -39,11 +39,17 @@ public sealed record OfficerSighting(string Name, int TypeId, int SystemId, Date
                                      string? VictimShip);
 
 /// <param name="Officers">Officer NPCs per system, seen on a killmail since the last downtime.</param>
+/// <param name="Diamonds">♦ pirate NPCs killing players per system: one run per faction, the
+/// latest kill within the last five days. See <see cref="LiveIntelService.DiamondGap"/>.</param>
+/// <param name="Capitals">NPC titans, supercarriers and dreadnoughts per system, seen on a killmail
+/// since the last downtime.</param>
 public sealed record LiveMapSnapshot(
     IReadOnlyDictionary<int, SystemHostiles>                  Hostiles,
     IReadOnlyDictionary<int, IReadOnlyList<OwnPilot>>         Own,
     DateTimeOffset                                             At,
-    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null);
+    IReadOnlyDictionary<int, IReadOnlyList<OfficerSighting>>? Officers = null,
+    IReadOnlyDictionary<int, IReadOnlyList<DiamondActivity>>?    Diamonds = null,
+    IReadOnlyDictionary<int, IReadOnlyList<NpcCapitalSighting>>? Capitals = null);
 
 /// <summary>
 /// Who is where right now: the last place each pilot was put by an intel report or a killmail,
@@ -70,7 +76,7 @@ public sealed record LiveMapSnapshot(
 /// it right; reading the two sources together gives every client the same answer from the shared
 /// database.</para>
 /// </summary>
-public sealed class LiveIntelService(
+public sealed partial class LiveIntelService(
     IDbContextFactory<AppDbContext> dbFactory,
     CorpActivityService             names)
 {
@@ -253,7 +259,8 @@ public sealed class LiveIntelService(
                     c.ShipName, c.Docked, c.Place, c.CharacterId, c.ShipTypeId, c.CorporationId, c.AllianceId))
                 .ToList();
 
-        return new LiveMapSnapshot(hostiles, own, now, await OfficersAsync(db, now, ct));
+        var (diamonds, capitals) = await NpcActivityAsync(db, now, ct);
+        return new LiveMapSnapshot(hostiles, own, now, await OfficersAsync(db, now, ct), diamonds, capitals);
     }
 
     // ── Officer spawns ───────────────────────────────────────────────────────
