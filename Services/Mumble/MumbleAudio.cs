@@ -632,9 +632,8 @@ public sealed class MumbleAudioDevices : IDisposable
         if (!EnsureInitialized()) return [];
 
         var found = new List<(int Index, string Name, int Rank)>();
-        for (var i = 0; i < PortAudio.DeviceCount; i++)
+        foreach (var (i, info) in PortAudioHost.DeviceInfos())
         {
-            var info = PortAudio.GetDeviceInfo(i);
             if ((input ? info.maxInputChannels : info.maxOutputChannels) <= 0) continue;
             var rank = Rank(info.hostApi);
             if (rank != int.MaxValue) found.Add((i, info.name, rank));
@@ -678,7 +677,7 @@ public sealed class MumbleAudioDevices : IDisposable
                 var device = Resolve(OutputDevice, false);
                 if (device < 0) { LastError = "No output device."; return false; }
 
-                var info = PortAudio.GetDeviceInfo(device);
+                if (!PortAudioHost.TryDeviceInfo(device, out var info)) { LastError = "The device list changed; trying again."; return false; }
                 var parameters = new StreamParameters
                 {
                     device = device, channelCount = 1, sampleFormat = SampleFormat.Int16,
@@ -778,7 +777,7 @@ public sealed class MumbleAudioDevices : IDisposable
                 var device = Resolve(InputDevice, true);
                 if (device < 0) { LastError = "No microphone."; return false; }
 
-                var info = PortAudio.GetDeviceInfo(device);
+                if (!PortAudioHost.TryDeviceInfo(device, out var info)) { LastError = "The device list changed; trying again."; return false; }
                 var parameters = new StreamParameters
                 {
                     device = device, channelCount = 1, sampleFormat = SampleFormat.Int16,

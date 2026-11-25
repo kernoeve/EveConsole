@@ -227,6 +227,8 @@ public class App : Application
 
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
+        PortAudioHost.Errors = errorLogger;
+        AssetActivity.UseForNudges(Services.GetRequiredService<AssetActivity>());
 
         // A line each time ESI's error budget makes the governor hold background work back further,
         // saying how much is left and which routes spent it — and one when it lets go.

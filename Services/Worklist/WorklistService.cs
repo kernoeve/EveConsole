@@ -960,7 +960,9 @@ public class WorklistService(
         await db.SaveChangesAsync(ct);
 
         // What was put down, into the assets now — out of one hangar, into the other.
-        AssetActivity.Nudge();
+        // ⚠️ Waited for: the Worklist is rebuilt the moment this returns, and built before the rows were written it
+        // undid the delivery a second time (the plan's rewind takes off an arrival that was not there yet).
+        await AssetActivity.NudgeAsync();
     }
 
     /// <summary>Hides an item until a chosen time. Pass null to un-snooze.</summary>

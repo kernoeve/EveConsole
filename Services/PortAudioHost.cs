@@ -22,6 +22,14 @@ namespace EveConsole.Services;
 public static class PortAudioHost
 {
     private static readonly object Gate = new();
+
+    /// <summary>One refresh at a time, from its Refreshing to its Refreshed.</summary>
+    /// <remarks>⚠️ Two overlapping refreshes crashed the app (2026-11-12 and 11-14, both as the PC was picked up in the
+    /// morning): the device watch and a dead Mumble stream each started one, the first one's Refreshed reopened
+    /// Mumble's sound after the second one's Refreshing had closed it, and the device list was read while the second
+    /// one had PortAudio stopped. Only taken by <see cref="Refresh"/>, and no caller of it holds a user's lock.</remarks>
+    private static readonly object RefreshGate = new();
+
     private static volatile bool _initialized;
     private static Timer? _watch;
     private static long _lastCount = -1;
@@ -32,6 +40,44 @@ public static class PortAudioHost
 
     /// <summary>The device list is new and its numbers have changed: look devices up again by name and reopen.</summary>
     public static event Action? Refreshed;
+
+    /// <summary>Where a handler's failure or the watch's own is written, set at start-up. The watch runs on a timer
+    /// thread, where anything not caught ends the process.</summary>
+    public static AppErrorLogger? Errors { get; set; }
+
+    /// <summary>Every device PortAudio lists now, read in one go under its lock so a refresh cannot stop PortAudio
+    /// halfway through. Empty when it is not running.</summary>
+    public static List<(int Index, DeviceInfo Info)> DeviceInfos()
+    {
+        var found = new List<(int Index, DeviceInfo Info)>();
+        lock (Gate)
+        {
+            if (!_initialized) return found;
+            var count = PortAudio.DeviceCount;
+            for (var i = 0; i < count; i++)
+                if (TryInfo(i, out var info)) found.Add((i, info));
+        }
+        return found;
+    }
+
+    /// <summary>One device's details, or false when PortAudio no longer lists it (stopped, or the list changed).</summary>
+    public static bool TryDeviceInfo(int device, out DeviceInfo info)
+    {
+        lock (Gate)
+        {
+            if (_initialized) return TryInfo(device, out info);
+            info = default;
+            return false;
+        }
+    }
+
+    /// <remarks>⚠️ PortAudioSharp turns PortAudio's "no such device" (a null pointer) into a NullReferenceException of
+    /// its own; there is no other way to ask.</remarks>
+    private static bool TryInfo(int device, out DeviceInfo info)
+    {
+        try { info = PortAudio.GetDeviceInfo(device); return true; }
+        catch (NullReferenceException) { info = default; return false; }
+    }
 
     /// <summary>Starts PortAudio if it is not running. False when it cannot start (no native library).</summary>
     public static bool EnsureInitialized()
@@ -58,38 +104,51 @@ public static class PortAudioHost
     {
         if (!_initialized) return;
 
-        // ⚠️ Before taking the gate: a handler takes its user's own lock, and a thread holding that lock may be waiting
-        // here to start PortAudio. Handlers also stop their users opening anything until Refreshed, which closes the
-        // window between this and the restart below.
-        Raise(Refreshing);
-        lock (Gate)
+        lock (RefreshGate)
         {
-            try
+            // ⚠️ Before taking the gate: a handler takes its user's own lock, and a thread holding that lock may be
+            // waiting here to start PortAudio. Handlers also stop their users opening anything until Refreshed, which
+            // closes the window between this and the restart below.
+            Raise(Refreshing, nameof(Refreshing));
+            lock (Gate)
             {
-                PortAudio.Terminate();
-                PortAudio.Initialize();
+                try
+                {
+                    PortAudio.Terminate();
+                    PortAudio.Initialize();
+                }
+                catch (Exception e) when (e is PortAudioException or InvalidOperationException) { _initialized = false; }
+                if (OperatingSystem.IsWindows()) Interlocked.Exchange(ref _lastCount, SystemDeviceCount());
             }
-            catch (Exception e) when (e is PortAudioException or InvalidOperationException) { _initialized = false; }
-            if (OperatingSystem.IsWindows()) Interlocked.Exchange(ref _lastCount, SystemDeviceCount());
+            Raise(Refreshed, nameof(Refreshed));
         }
-        Raise(Refreshed);
     }
 
     private static void Watch()
     {
-        var now = SystemDeviceCount();
-        if (now == Interlocked.Exchange(ref _lastCount, now)) return;
-        Refresh();
+        try
+        {
+            var now = SystemDeviceCount();
+            if (now == Interlocked.Exchange(ref _lastCount, now)) return;
+            Refresh();
+        }
+        catch (Exception e) { Report("device watch", e); }
     }
 
-    private static void Raise(Action? handlers)
+    private static void Raise(Action? handlers, string what)
     {
         if (handlers is null) return;
         foreach (var h in handlers.GetInvocationList().Cast<Action>())
         {
+            // Everything: one user's trouble is not another's, and this may be the watch's timer thread.
             try { h(); }
-            catch (Exception e) when (e is PortAudioException or InvalidOperationException or ObjectDisposedException) { /* one user's trouble is not another's */ }
+            catch (Exception e) { Report(what, e); }
         }
+    }
+
+    private static void Report(string context, Exception e)
+    {
+        try { Errors?.Log(nameof(PortAudioHost), context, e); } catch { /* the log is no reason to stop */ }
     }
 
     /// <summary>Playback and recording devices as Windows has them right now, read without PortAudio. Cheap.</summary>

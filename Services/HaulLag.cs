@@ -165,15 +165,7 @@ public static class HaulLag
             // What is in the hold now, by type. Without a poll of this pilot's ship, the ticks alone.
             Dictionary<int, long> hold;
             if (ships.GetValueOrDefault(p) is { } ship && clocks.TryGetValue(p, out var polled))
-            {
-                hold = cargo.Where(c => c.Ship == ship).GroupBy(c => c.TypeId)
-                            .ToDictionary(g => g.Key, g => g.Sum(c => c.Units));
-                foreach (var m in mine)
-                {
-                    if (m.PickedAt > polled && !m.FromHold) hold[m.TypeId] = hold.GetValueOrDefault(m.TypeId) + m.Units;
-                    if (m.DeliveredAt > polled)             hold[m.TypeId] = hold.GetValueOrDefault(m.TypeId) - m.Units;
-                }
-            }
+                hold = HoldNow(cargo.Where(c => c.Ship == ship), mine, polled);
             else
                 hold = open.GroupBy(m => m.TypeId).ToDictionary(g => g.Key, g => g.Sum(m => m.Units));
 
@@ -204,6 +196,43 @@ public static class HaulLag
         }
 
         return new Basis(rewind, hauled, aboard, loose, shelved);
+    }
+
+    /// <summary>
+    /// A pilot's hold by type: the ship's cargo in their asset poll, plus what has been picked up since, less what has
+    /// been put down since.
+    ///
+    /// <para><b>⚠️ A tick is stamped when it is clicked, not when the goods moved.</b> Put down in the game, polled,
+    /// and only then ticked, a delivery is already gone from the polled cargo — and taking it off again took the
+    /// next stop's share out of the hold with it. Measured 2026-11-14: a loop's cargo split between two structures;
+    /// after the drop-off at the first, the second's share was in no hold and on no shelf, and the plan sent the
+    /// pilot back to the source for it after every re-tick, for as long as that poll stood. So a delivery of goods
+    /// picked up before the poll is taken off only as far as the polled cargo could still have held it, once the
+    /// pick-ups not yet put down are counted in it; a drop out of the hold likewise, from what is left.</para>
+    /// </summary>
+    internal static Dictionary<int, long> HoldNow(
+        IEnumerable<(long Ship, int TypeId, long Units)> shipCargo, IReadOnlyCollection<HaulMark> marks, DateTimeOffset polled)
+    {
+        var polledCargo = shipCargo.GroupBy(c => c.TypeId).ToDictionary(g => g.Key, g => g.Sum(c => c.Units));
+        var hold = new Dictionary<int, long>();
+        foreach (var typeId in polledCargo.Keys.Concat(marks.Select(m => m.TypeId)).Distinct())
+        {
+            var mine = marks.Where(m => m.TypeId == typeId).ToList();
+            long Sum(Func<HaulMark, bool> which) => mine.Where(which).Sum(m => m.Units);
+
+            var inCargo    = polledCargo.GetValueOrDefault(typeId);
+            var stillOpen  = Sum(m => !m.FromHold && m.DeliveredAt is null && m.PickedAt <= polled);
+            var pickedNew  = Sum(m => !m.FromHold && m.PickedAt > polled);
+            var landedNew  = Sum(m => !m.FromHold && m.PickedAt > polled && m.DeliveredAt is not null);
+            var landedOld  = Sum(m => !m.FromHold && m.PickedAt <= polled && m.DeliveredAt > polled);
+            var droppedOut = Sum(m => m.FromHold && m.DeliveredAt > polled);
+
+            var spare = Math.Max(0, inCargo - stillOpen);
+            var old   = Math.Min(landedOld, spare);
+            var loose = Math.Min(droppedOut, spare - old);
+            hold[typeId] = inCargo + pickedNew - landedNew - old - loose;
+        }
+        return hold;
     }
 
     /// <summary>Each ship's cargo hold in the asset snapshot: what is in it, and one level into

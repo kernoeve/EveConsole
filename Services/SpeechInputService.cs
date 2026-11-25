@@ -163,9 +163,8 @@ public sealed class SpeechInputService : IDisposable
         if (_usableDevices is not null) return _usableDevices;
 
         var devices = new List<(int Index, string Name, int HostApi)>();
-        for (int i = 0; i < PortAudio.DeviceCount; i++)
+        foreach (var (i, info) in PortAudioHost.DeviceInfos())
         {
-            var info = PortAudio.GetDeviceInfo(i);
             if (info.maxInputChannels <= 0) continue;
             if (HostApiRank(info.hostApi) == Excluded) continue;
             if (!SupportsRecordingFormat(i, info)) continue;
@@ -339,7 +338,7 @@ public sealed class SpeechInputService : IDisposable
                 int device = ResolveDeviceIndex();
                 if (device < 0) return false;
 
-                var info = PortAudio.GetDeviceInfo(device);
+                if (!PortAudioHost.TryDeviceInfo(device, out var info)) return false;
                 var inputParams = new StreamParameters
                 {
                     device                    = device,
