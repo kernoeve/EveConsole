@@ -97,18 +97,24 @@ public sealed class AssetActivity(
     private const int ShipCategory = 6;
     private const int OfficeFolder = 27;
 
-    /// <summary>The app's one instance, for <see cref="Nudge"/>: the one whose
-    /// <see cref="UpgradeAsync"/> ran at start.</summary>
+    /// <summary>The app's one instance, for <see cref="Nudge"/>: set as the app makes it, on every PC.</summary>
+    /// <remarks>⚠️ It used to be set by <see cref="UpgradeAsync"/>, which only the PC holding the worker lease runs. On
+    /// every other PC a haul ticked off reached the assets only at the worker's next jobs or contracts poll, minutes
+    /// later, and every Worklist built in between undid the delivery twice (2026-11-14).</remarks>
     private static AssetActivity? s_instance;
 
     /// <summary>
     /// Something done in the app has changed the activity — a haul ticked off, courier cargo
     /// entered: written into the assets in the background, from wherever it was done.
     /// </summary>
-    public static void Nudge()
-    {
-        if (s_instance is { } me) _ = Task.Run(() => me.RefreshAsync());
-    }
+    public static void Nudge() => _ = NudgeAsync();
+
+    /// <summary>The instance <see cref="Nudge"/> wakes: the app's own, set once at start on every PC.</summary>
+    public static void UseForNudges(AssetActivity app) => s_instance = app;
+
+    /// <summary><see cref="Nudge"/>, for a caller that is about to read the assets again: done once the rows are
+    /// written. Never throws (see <see cref="RefreshAsync"/>).</summary>
+    public static Task NudgeAsync() => s_instance is { } me ? Task.Run(() => me.RefreshAsync()) : Task.CompletedTask;
 
     /// <summary>One process rewrites one owner at a time; PostgreSQL also takes a lock per owner,
     /// for the other PCs (see <see cref="RewriteAsync"/>).</summary>
@@ -316,7 +322,7 @@ public sealed class AssetActivity(
     /// </summary>
     public async Task UpgradeAsync(CancellationToken ct = default)
     {
-        s_instance = this;   // run once at start, by the app's own instance
+        s_instance ??= this;   // the app's own; set already where the window starts, but not on every start path
         try
         {
             await using var db = await dbFactory.CreateDbContextAsync(ct);
