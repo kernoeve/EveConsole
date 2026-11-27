@@ -228,6 +228,10 @@ public class App : Application
         // Wire up global exception handlers so truly unhandled failures are persisted
         var errorLogger = Services.GetRequiredService<AppErrorLogger>();
         PortAudioHost.Errors = errorLogger;
+        // ⚠️ Mumble's voice codec stays the managed one. Concentus switches to a system libopus when it finds one (a
+        // Mac with Homebrew's, say), whose encoder and decoder hold raw handles freed by their finalizers: one swapped
+        // on a reconnect could be freed mid-encode on the sending thread, an access violation no catch stops.
+        Concentus.OpusCodecFactory.AttemptToUseNativeLibrary = false;
         AssetActivity.UseForNudges(Services.GetRequiredService<AssetActivity>());
 
         // A line each time ESI's error budget makes the governor hold background work back further,

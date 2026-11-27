@@ -1521,7 +1521,18 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
 
     private void StartTalkerWatch()
     {
-        _talkerTimer ??= new Timer(_ =>
+        _talkerTimer ??= new Timer(_ => WatchTalkers(), null, 100, 100);
+    }
+
+    private int _watchingTalkers;
+
+    /// <remarks>⚠️ On a timer thread, where anything not caught ends the process, so everything is caught: this reaches
+    /// the sound devices (reopening or refreshing them) and every screen told who is talking. One tick at a time: a
+    /// refresh on a dead device takes seconds, and the next ticks skip rather than pile up behind it.</remarks>
+    private void WatchTalkers()
+    {
+        if (Interlocked.Exchange(ref _watchingTalkers, 1) == 1) return;
+        try
         {
             // Twice a second: a headset unplugged stops its stream without saying so.
             if (++_talkerTicks % 5 == 0) Devices?.KeepOutputAlive();
@@ -1530,8 +1541,19 @@ public sealed class MumbleService(IDbContextFactory<AppDbContext> dbFactory, App
             if (now == _lastTalkers) return;
             _lastTalkers = now;
             TalkersChanged?.Invoke();
-        }, null, 100, 100);
+        }
+        catch (Exception e)
+        {
+            // Once a minute at most: this runs ten times a second.
+            var tick = Environment.TickCount64;
+            if (tick - _lastWatchReport < 60_000) return;
+            _lastWatchReport = tick;
+            errors.Log(nameof(MumbleService), "talker watch", e);
+        }
+        finally { Volatile.Write(ref _watchingTalkers, 0); }
     }
+
+    private long _lastWatchReport = long.MinValue / 2;
 
     /// <summary>Whether someone is muted and deafened as things stand, or null if they are no longer there.</summary>
     public (bool Muted, bool Deaf)? StateOf(int serverId, uint session) =>

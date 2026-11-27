@@ -164,6 +164,16 @@ public sealed class GlobalHotkeyService : IDisposable
     public Action? OnPress   { get; set; }
     public Action? OnRelease { get; set; }
 
+    /// <summary>Runs a press or release handler, catching everything.</summary>
+    /// <remarks>⚠️ Called from the system's own hook callbacks (a Windows low-level hook, a macOS event handler), where
+    /// an exception that escapes ends the process. The handlers report their own failures; the key still has to be
+    /// passed on to the system.</remarks>
+    private static void Raise(Action? handler)
+    {
+        try { handler?.Invoke(); }
+        catch { /* the handler's own business; never the hook's */ }
+    }
+
     public bool IsInstalled => _winHookHandle != IntPtr.Zero || _x11Thread?.IsAlive == true || _macHotKey != IntPtr.Zero;
 
     public void Configure(int vk)
@@ -320,11 +330,11 @@ public sealed class GlobalHotkeyService : IDisposable
         {
             case KEventHotKeyPressed when !_keyDown:
                 _keyDown = true;
-                OnPress?.Invoke();
+                Raise(OnPress);
                 break;
             case KEventHotKeyReleased when _keyDown:
                 _keyDown = false;
-                OnRelease?.Invoke();
+                Raise(OnRelease);
                 break;
         }
         return 0;   // noErr: handled
@@ -472,12 +482,12 @@ public sealed class GlobalHotkeyService : IDisposable
             if (button.Down && !_keyDown)
             {
                 _keyDown = true;
-                OnPress?.Invoke();
+                Raise(OnPress);
             }
             else if (!button.Down)
             {
                 _keyDown = false;
-                OnRelease?.Invoke();
+                Raise(OnRelease);
             }
         }
         return CallNextHookEx(_winHookHandle, nCode, wParam, lParam);
@@ -493,12 +503,12 @@ public sealed class GlobalHotkeyService : IDisposable
                 if ((wParam == WM_KEYDOWN || wParam == WM_SYSKEYDOWN) && !_keyDown)
                 {
                     _keyDown = true;
-                    OnPress?.Invoke();
+                    Raise(OnPress);
                 }
                 else if (wParam == WM_KEYUP || wParam == WM_SYSKEYUP)
                 {
                     _keyDown = false;
-                    OnRelease?.Invoke();
+                    Raise(OnRelease);
                 }
             }
         }
@@ -643,12 +653,12 @@ public sealed class GlobalHotkeyService : IDisposable
                 if (evt.type == KeyPress && !_keyDown)
                 {
                     _keyDown = true;
-                    OnPress?.Invoke();
+                    Raise(OnPress);
                 }
                 else if (evt.type == KeyRelease)
                 {
                     _keyDown = false;
-                    OnRelease?.Invoke();
+                    Raise(OnRelease);
                 }
             }
             catch

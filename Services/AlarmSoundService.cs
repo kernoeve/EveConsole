@@ -224,10 +224,12 @@ public sealed class AlarmSoundService
         {
             using var media = new Media(_vlc, new Uri(path));
 
+            // ⚠️ Only the call that made a player frees it; a newer sound only stops the one before. Freeing it here
+            // raced that call's own unhooking as its sound ended: libvlc reading freed memory, which ends the process.
             MediaPlayer player;
             lock (_playerLock)
             {
-                _player?.Dispose();
+                try { _player?.Stop(); } catch { }
                 _player = player = new MediaPlayer(_vlc) { Volume = Math.Clamp(volume, 0, 100) };
             }
 
@@ -240,13 +242,20 @@ public sealed class AlarmSoundService
             // completed exactly like a successful play — the one event VLC raises to say it
             // could not do the job was being read as "done". Usually a missing plugin or no
             // reachable audio output.
+            //
+            // ⚠️ Raised on VLC's own thread, where an exception ends the process: a translation with a broken
+            // placeholder must not be able to throw here.
             void OnError(object? s, EventArgs e)
             {
-                LastError = string.Format(AlarmsText.SoundVlcFailed, Path.GetFileName(path));
+                try { LastError = string.Format(AlarmsText.SoundVlcFailed, Path.GetFileName(path)); }
+                catch (FormatException) { LastError = Path.GetFileName(path); }
                 tcs.TrySetResult(false);
             }
 
+            // ⚠️ Stopped too: a stop raises only that, never EndReached, so a sound stopped by the alarm's own Stop
+            // (or by the next sound) waited forever, and the repeating alarm that awaited it never played again.
             player.EndReached       += OnEnd;
+            player.Stopped          += OnEnd;
             player.EncounteredError += OnError;
 
             try
@@ -258,6 +267,7 @@ public sealed class AlarmSoundService
             finally
             {
                 player.EndReached       -= OnEnd;
+                player.Stopped          -= OnEnd;
                 player.EncounteredError -= OnError;
                 lock (_playerLock) { if (_player == player) _player = null; }
                 player.Dispose();

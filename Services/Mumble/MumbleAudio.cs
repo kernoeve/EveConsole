@@ -580,6 +580,10 @@ public sealed class MumbleAudioDevices : IDisposable
     // What the streams want and when they last called back, to find one that has died without saying so.
     private bool _wantInput;
     private bool _suspended;
+
+    /// <summary>Set by <see cref="Dispose"/>: a connection loop or the talker timer still finishing at shutdown may ask
+    /// for sound again, and nothing is opened after this.</summary>
+    private bool _disposed;
     private long _outputOpenedAt, _lastOutputCallback, _inputOpenedAt, _lastInputCallback;
 
     /// <summary>How long a stream may go without calling back before it counts as dead: it calls every 10 ms.</summary>
@@ -667,6 +671,7 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         lock (_gate)
         {
+            if (_disposed) return false;
             _wantOutput = true;
             if (_output is not null) return true;
             if (_suspended) return false;
@@ -685,8 +690,9 @@ public sealed class MumbleAudioDevices : IDisposable
                 };
 
                 _outputCallback = OnOutput;
-                var stream = new PaStream(null, parameters, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, StreamFlags.ClipOff, _outputCallback, null);
-                stream.Start();
+                PaStream? stream = PortAudioHost.Open(null, parameters, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, _outputCallback);
+                try { stream.Start(); }
+                catch { PortAudioHost.Close(ref stream, abort: true); throw; }
                 _output = stream;
                 _outputOpenedAt = Environment.TickCount64;
                 LastError = null;
@@ -712,7 +718,7 @@ public sealed class MumbleAudioDevices : IDisposable
         bool dead;
         lock (_gate)
         {
-            if (_suspended) return;
+            if (_suspended || _disposed) return;
             var now = Environment.TickCount64;
             dead = Dead(_output, _outputOpenedAt, _lastOutputCallback, now) || Dead(_input, _inputOpenedAt, _lastInputCallback, now);
             if (!dead && (!_wantOutput || _output is not null)) return;
@@ -743,12 +749,7 @@ public sealed class MumbleAudioDevices : IDisposable
     }
 
     /// <summary>Closes a stream that may be dead: aborted, not drained, since a dead device never drains.</summary>
-    private static void Abandon(ref PaStream? stream)
-    {
-        try { stream?.Abort(); } catch (Exception e) when (e is PortAudioException or InvalidOperationException) { /* dead already */ }
-        try { stream?.Dispose(); } catch (Exception e) when (e is PortAudioException or InvalidOperationException) { /* going anyway */ }
-        stream = null;
-    }
+    private static void Abandon(ref PaStream? stream) => PortAudioHost.Close(ref stream, abort: true);
 
     private bool _wantOutput;
 
@@ -767,6 +768,7 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         lock (_gate)
         {
+            if (_disposed) return false;
             _wantInput = true;
             if (_input is not null) return true;
             if (_suspended) return false;
@@ -785,9 +787,13 @@ public sealed class MumbleAudioDevices : IDisposable
                 };
 
                 _inputCallback = OnInput;
-                var stream = new PaStream(parameters, null, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, StreamFlags.ClipOff, _inputCallback, null);
-                InputOpening?.Invoke();
-                stream.Start();
+                PaStream? stream = PortAudioHost.Open(parameters, null, MumbleMixer.SampleRate, MumbleMixer.SamplesPer10Ms, _inputCallback);
+                try
+                {
+                    InputOpening?.Invoke();
+                    stream.Start();
+                }
+                catch { PortAudioHost.Close(ref stream, abort: true); throw; }
                 _input = stream;
                 _inputOpenedAt = Environment.TickCount64;
                 LastError = null;
@@ -811,37 +817,47 @@ public sealed class MumbleAudioDevices : IDisposable
         }
     }
 
-    private static void Close(ref PaStream? stream)
-    {
-        try { stream?.Stop(); stream?.Dispose(); }
-        catch (Exception e) when (e is PortAudioException or InvalidOperationException) { /* going anyway */ }
-        stream = null;
-    }
+    private static void Close(ref PaStream? stream) => PortAudioHost.Close(ref stream, abort: false);
 
+    /// <remarks>⚠️ Both callbacks run on PortAudio's native thread and catch everything: an exception that leaves one
+    /// ends the process (see <see cref="PortAudioHost.CallbackFailed"/>). This one decodes every speaker's voice, from
+    /// packets any peer sent, and a frame that fails plays as silence.</remarks>
     private StreamCallbackResult OnOutput(IntPtr input, IntPtr output, uint frames, ref StreamCallbackTimeInfo time, StreamCallbackFlags flags, IntPtr user)
     {
         Volatile.Write(ref _lastOutputCallback, Environment.TickCount64);
         unsafe
         {
-            _mixer.ReadMix(new Span<short>((void*)output, (int)frames));
+            var mix = new Span<short>((void*)output, (int)frames);
+            try { _mixer.ReadMix(mix); }
+            catch (Exception e)
+            {
+                mix.Clear();
+                PortAudioHost.CallbackFailed("Mumble output", e);
+            }
         }
         return StreamCallbackResult.Continue;
     }
 
+    /// <remarks>⚠️ Catches everything, as <see cref="OnOutput"/> does. What hears the microphone runs right here, down to
+    /// the screens told who is talking.</remarks>
     private StreamCallbackResult OnInput(IntPtr input, IntPtr output, uint frames, ref StreamCallbackTimeInfo time, StreamCallbackFlags flags, IntPtr user)
     {
         Volatile.Write(ref _lastInputCallback, Environment.TickCount64);
         if (input == IntPtr.Zero) return StreamCallbackResult.Continue;
 
-        var samples = new short[frames];
-        Marshal.Copy(input, samples, 0, (int)frames);
+        try
+        {
+            var samples = new short[frames];
+            Marshal.Copy(input, samples, 0, (int)frames);
 
-        var gain = MicrophoneGain;
-        if (Math.Abs(gain - 1.0) > 0.001)
-            for (var i = 0; i < samples.Length; i++)
-                samples[i] = (short)Math.Clamp(samples[i] * gain, short.MinValue, short.MaxValue);
+            var gain = MicrophoneGain;
+            if (Math.Abs(gain - 1.0) > 0.001)
+                for (var i = 0; i < samples.Length; i++)
+                    samples[i] = (short)Math.Clamp(samples[i] * gain, short.MinValue, short.MaxValue);
 
-        Captured?.Invoke(samples);
+            Captured?.Invoke(samples);
+        }
+        catch (Exception e) { PortAudioHost.CallbackFailed("Mumble microphone", e); }
         return StreamCallbackResult.Continue;
     }
 
@@ -849,6 +865,7 @@ public sealed class MumbleAudioDevices : IDisposable
     {
         PortAudioHost.Refreshing -= OnRefreshing;
         PortAudioHost.Refreshed -= OnRefreshed;
+        lock (_gate) _disposed = true;
         StopInput();
         StopOutput();
     }

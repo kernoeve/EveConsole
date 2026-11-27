@@ -79,6 +79,63 @@ public static class PortAudioHost
         catch (NullReferenceException) { info = default; return false; }
     }
 
+    /// <summary>Reads something from PortAudio under its lock, or gives <paramref name="whenStopped"/> when it is not
+    /// running.</summary>
+    /// <remarks>⚠️ For every call into PortAudio that is not a stream's own: a refresh's Pa_Terminate frees the host API
+    /// and device tables, and a pointer read from them outside the lock is read from freed memory — an access violation,
+    /// which no catch stops. The device names in the sound popup were read that way.</remarks>
+    public static T Read<T>(Func<T> read, T whenStopped)
+    {
+        lock (Gate) return _initialized ? read() : whenStopped;
+    }
+
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, long> s_lastCallbackReport = new();
+
+    /// <summary>A failure inside a stream's callback: reported at most once a minute per callback, off the audio
+    /// thread.</summary>
+    /// <remarks>⚠️ Each callback catches everything and comes here. PortAudio calls it from its own native thread, and
+    /// an exception that leaves it ends the process; one bad voice packet must cost a few milliseconds of sound, not the
+    /// app. The log itself is a database write, so it is never made on the audio thread.</remarks>
+    public static void CallbackFailed(string callback, Exception e)
+    {
+        var now = Environment.TickCount64;
+        var last = s_lastCallbackReport.GetOrAdd(callback, long.MinValue);
+        if (last != long.MinValue && now - last < 60_000) return;
+        if (!s_lastCallbackReport.TryUpdate(callback, now, last)) return;
+        ThreadPool.UnsafeQueueUserWorkItem(_ => Report($"{callback} callback", e), null);
+    }
+
+    /// <summary>Opens a stream that only its owner closes, through <see cref="Close"/>; never .NET's finalizer.</summary>
+    /// <remarks>⚠️ The finalizer crashed the app (2026-11-24, an access violation in Pa_CloseStream on the finalizer
+    /// thread). PortAudioSharp's stream closes itself from its finalizer whenever its Dispose did not finish: Dispose
+    /// throws when Pa_CloseStream fails, before it marks itself closed, and a stream whose Start failed was never
+    /// disposed at all. By the time the finalizer runs, PortAudio has usually been restarted for a device change and
+    /// freed every old stream, and Pa_CloseStream reads the freed one. A stream lost without a close now costs a little
+    /// native memory until the next restart, which frees it.</remarks>
+    public static PortAudioSharp.Stream Open(StreamParameters? input, StreamParameters? output, double sampleRate,
+                                             uint framesPerBuffer, PortAudioSharp.Stream.Callback callback)
+    {
+        var stream = new PortAudioSharp.Stream(input, output, sampleRate, framesPerBuffer, StreamFlags.ClipOff, callback, null);
+        GC.SuppressFinalize(stream);
+        return stream;
+    }
+
+    /// <summary>Stops a stream (aborts it, for one that may be dead: a dead device never drains) and closes it. Never
+    /// throws, and the stream is gone after, whatever PortAudio said.</summary>
+    public static void Close(ref PortAudioSharp.Stream? stream, bool abort)
+    {
+        var closing = stream;
+        stream = null;
+        if (closing is null) return;
+        // ⚠️ Each step on its own: a Stop that fails must not skip the close, as one try round both did.
+        // Everything is caught: a close is called from cleanup and refresh handlers, which must carry on.
+        try { if (abort) closing.Abort(); else closing.Stop(); }
+        catch (Exception) { /* dead already */ }
+        try { closing.Dispose(); }
+        catch (Exception) { /* going anyway */ }
+        GC.SuppressFinalize(closing);
+    }
+
     /// <summary>Starts PortAudio if it is not running. False when it cannot start (no native library).</summary>
     public static bool EnsureInitialized()
     {
