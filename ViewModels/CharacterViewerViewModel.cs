@@ -593,14 +593,16 @@ public class CharacterViewerViewModel : ReactiveObject, IDisposable
             .Select(t => new { t.TypeId, t.Name, t.GroupId })
             .ToDictionaryAsync(t => t.TypeId, t => (t.Name, t.GroupId), ct);
 
-        var skills = await _db.EsiSkills
-            .Where(s => s.CharacterId == character.Id)
-            .ToListAsync(ct);
-
         var queue = await _db.EsiSkillQueue
             .Where(q => q.CharacterId == character.Id)
             .OrderBy(q => q.QueuePosition)
             .ToListAsync(ct);
+
+        // A level the queue finished while the character was logged out is trained, though ESI
+        // reports the old level until they log in (SkillLevels) — the queue below drops it as done.
+        var skills = SkillLevels.Settle(
+            await _db.EsiSkills.Where(s => s.CharacterId == character.Id).ToListAsync(ct),
+            queue, DateTimeOffset.UtcNow);
 
         ct.ThrowIfCancellationRequested();
 

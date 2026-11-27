@@ -56,15 +56,11 @@ public sealed record PiSkills(long CharacterId, int InterplanetaryConsolidation,
                                                                   CancellationToken ct = default)
     {
         var ids  = characterIds.ToList();
-        var rows = await db.EsiSkills.AsNoTracking()
-            .Where(s => ids.Contains(s.CharacterId)
-                     && (s.SkillId == InterplanetaryConsolidationId || s.SkillId == CommandCenterUpgradesId))
-            .Select(s => new { s.CharacterId, s.SkillId, s.ActiveSkillLevel })
-            .ToListAsync(ct);
+        var levels = await SkillLevels.LoadAsync(db, ids, [InterplanetaryConsolidationId, CommandCenterUpgradesId], ct);
 
         return ids.ToDictionary(id => id, id => new PiSkills(
             id,
-            rows.FirstOrDefault(r => r.CharacterId == id && r.SkillId == InterplanetaryConsolidationId)?.ActiveSkillLevel ?? 0,
-            rows.FirstOrDefault(r => r.CharacterId == id && r.SkillId == CommandCenterUpgradesId)?.ActiveSkillLevel ?? 0));
+            levels[id].GetValueOrDefault(InterplanetaryConsolidationId),
+            levels[id].GetValueOrDefault(CommandCenterUpgradesId)));
     }
 }

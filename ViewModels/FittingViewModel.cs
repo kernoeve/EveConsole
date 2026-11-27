@@ -2199,8 +2199,7 @@ public class FitTabViewModel : ReactiveObject
         if (src.CharacterId is not { } id) return SkillSet.AllAt(_data!, src.AllLevel);
         if (_skillCache.TryGetValue(id, out var cached)) return cached;
         await using var db = await _dbFactory.CreateDbContextAsync();
-        var levels = await db.EsiSkills.AsNoTracking().Where(s => s.CharacterId == id)
-            .ToDictionaryAsync(s => s.SkillId, s => s.ActiveSkillLevel);
+        var levels = await SkillLevels.LoadAsync(db, id);
         return _skillCache[id] = new SkillSet(src.Name, levels);
     }
 

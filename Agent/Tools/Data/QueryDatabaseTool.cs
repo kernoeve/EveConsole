@@ -37,6 +37,8 @@ public sealed class QueryDatabaseTool : IAgentTool
         EsiWalletBalances: OwnerId, OwnerType('character'|'corporation'), Division(0=main), Balance
         EsiSkills: CharacterId, SkillId, TrainedSkillLevel, ActiveSkillLevel, SkillpointsInSkill
         EsiSkillQueue: CharacterId, QueuePosition, SkillId, FinishedLevel, TrainingStartSp, LevelEndSp, StartDate, FinishDate
+            (a queue entry whose FinishDate has passed is trained: ESI keeps it in the queue, and keeps
+            the old level in EsiSkills, until the character next logs in)
         EsiImplants: CharacterId, TypeId
         EsiJumpClones: JumpCloneId, CharacterId, LocationId, LocationType
         EsiJumpCloneImplants: JumpCloneId, TypeId

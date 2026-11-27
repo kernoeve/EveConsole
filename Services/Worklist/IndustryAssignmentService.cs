@@ -259,13 +259,9 @@ public class IndustryAssignmentService(
             .Where(c => charIds.Contains(c.Id))
             .ToDictionaryAsync(c => c.Id, c => (long)c.CorporationId, ct);
 
-        var skills = (await db.EsiSkills.AsNoTracking()
-                .Where(s => charIds.Contains(s.CharacterId))
-                .Select(s => new { s.CharacterId, s.SkillId, s.ActiveSkillLevel })
-                .ToListAsync(ct))
-            .GroupBy(s => s.CharacterId)
-            .ToDictionary(g => g.Key,
-                          g => g.ToDictionary(s => s.SkillId, s => s.ActiveSkillLevel));
+        // ⚠️ With levels finished while logged out: ESI goes on reporting the old level until the
+        // character logs in, and a slot skill finished that way was planned without its slot.
+        var skills = await SkillLevels.LoadAsync(db, charIds, null, ct);
 
         // Only skills some blueprint actually gates on count toward capability — total SP would
         // rank a combat pilot above a dedicated industrialist.

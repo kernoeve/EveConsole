@@ -73,8 +73,8 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
     // Slot capacity skills. Every character gets one free slot of each kind, and these add to it.
     private const int MassProduction         = 3387;
     private const int AdvancedMassProduction = 24625;
-    private const int MassReactions          = 45749;
-    private const int AdvancedMassReactions  = 45748;
+    private const int MassReactions          = 45748;
+    private const int AdvancedMassReactions  = 45749;
     private const int LaboratoryOperation    = 3406;
     private const int AdvancedLabOperation   = 24624;
 
@@ -259,12 +259,8 @@ public class CharacterSummaryService(IDbContextFactory<AppDbContext> dbFactory, 
         var wanted = new[] { MassProduction, AdvancedMassProduction, MassReactions,
                              AdvancedMassReactions, LaboratoryOperation, AdvancedLabOperation };
 
-        var skills = (await db.EsiSkills.AsNoTracking()
-                .Where(s => ids.Contains(s.CharacterId) && wanted.Contains(s.SkillId))
-                .Select(s => new { s.CharacterId, s.SkillId, s.ActiveSkillLevel })
-                .ToListAsync(ct))
-            .GroupBy(s => s.CharacterId)
-            .ToDictionary(g => g.Key, g => g.ToDictionary(s => s.SkillId, s => s.ActiveSkillLevel));
+        // With levels finished while logged out, which ESI is still to report (SkillLevels).
+        var skills = await SkillLevels.LoadAsync(db, ids, wanted, ct);
 
         // "delivered" is finished and collected; everything else still holds its slot, including
         // "ready" — the output is waiting to be picked up and the slot is not free until it is.

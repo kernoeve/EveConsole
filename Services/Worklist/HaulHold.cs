@@ -61,8 +61,7 @@ public static class HaulHold
             var fit = await EftFormat.FromEsiAsync(new EsiFittingData(0, "", "", hullTypeId, fitted), data, catalog, ct);
 
             var levels = characterId > 0
-                ? await db.EsiSkills.AsNoTracking().Where(s => s.CharacterId == characterId)
-                    .ToDictionaryAsync(s => s.SkillId, s => s.ActiveSkillLevel, ct)
+                ? await SkillLevels.LoadAsync(db, characterId, ct)
                 : [];
 
             var engine = await DogmaEngine.CreateAsync(data, fit, new SkillSet("", levels), ct: ct);

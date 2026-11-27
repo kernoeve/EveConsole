@@ -138,9 +138,9 @@ public sealed class JumpRangeTabViewModel : MapTabViewModel
                                            ShipTypeId = s == null ? null : s.ShipTypeId })
                              .ToListAsync();
             var ids    = rows.Select(r => r.Id).ToList();
-            var skills = await db.EsiSkills.AsNoTracking()
-                .Where(k => k.SkillId == JumpDriveCalibration && ids.Contains(k.CharacterId))
-                .ToDictionaryAsync(k => k.CharacterId, k => k.ActiveSkillLevel);
+            var skills = (await Services.SkillLevels.LoadAsync(db, ids, [JumpDriveCalibration]))
+                .Where(kv => kv.Value.ContainsKey(JumpDriveCalibration))
+                .ToDictionary(kv => kv.Key, kv => kv.Value[JumpDriveCalibration]);
             var sysIds = rows.Where(r => r.SystemId is not null).Select(r => r.SystemId!.Value).Distinct().ToList();
             var names  = await db.SdeSolarSystems.AsNoTracking().Where(s => sysIds.Contains(s.SolarSystemId))
                                  .ToDictionaryAsync(s => s.SolarSystemId, s => s.Name);

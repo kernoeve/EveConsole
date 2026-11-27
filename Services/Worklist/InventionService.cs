@@ -553,9 +553,7 @@ public class InventionService(IDbContextFactory<AppDbContext> dbFactory)
         if (!recipes.TryGetValue(inventedBlueprintTypeId, out var recipe)) return null;
 
         await using var db = await dbFactory.CreateDbContextAsync(ct);
-        var skills = await db.EsiSkills.AsNoTracking()
-            .Where(s => s.CharacterId == installerId)
-            .ToDictionaryAsync(s => s.SkillId, s => s.ActiveSkillLevel, ct);
+        var skills = await SkillLevels.LoadAsync(db, installerId, ct);
         if (skills.Count == 0) return null;
 
         var decryptor = IdentifyDecryptor(jobChance, Chance(recipe, Decryptor.None, skills), await DecryptorsAsync(ct));
