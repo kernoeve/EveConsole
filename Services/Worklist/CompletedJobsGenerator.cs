@@ -5,16 +5,21 @@ using Microsoft.EntityFrameworkCore;
 namespace EveConsole.Services.Worklist;
 
 /// <summary>
-/// Finished industry jobs waiting to be delivered: one task for all of them, at the top of the jobs.
+/// Finished industry jobs waiting to be delivered: a task per character who installed them, at the
+/// top of the jobs and on that character's own list.
 ///
 /// <para>A finished job still holds its slot, and its output is not in the hangar for anything
 /// downstream until somebody delivers it — so it comes before starting anything new, which may well
 /// be waiting on that very output or that very slot. The Overview's alert says how many; this says
 /// what.</para>
 ///
-/// <para>⚠️ One task, on no station and no pilot. Delivering is one sweep through the industry
-/// window, not an errand per place: a task per pilot and facility filled the top of the list with
-/// the same click.</para>
+/// <para>⚠️ One task per installer, not one for everybody. A personal job can be delivered only by
+/// the character who installed it, and a corporation job only by someone in that corporation, so a
+/// single task named nobody who could act on it — and the character panels, which show each
+/// character's own tasks, never showed it at all. ESI keeps the installer on corporation jobs too,
+/// so that is who each job is listed under. Delivering is still one sweep through the industry
+/// window: one task per character, not per facility. A corporation job a corp-mate delivers first
+/// simply drops out at the next jobs poll.</para>
 ///
 /// <para>⚠️ Finished is judged as the alert judges it: ESI marks a finished job "ready" only
 /// sometimes, and more often leaves it "active" past its end date, so both count. A job installed
@@ -64,67 +69,78 @@ public class CompletedJobsGenerator(IDbContextFactory<AppDbContext> dbFactory) :
             .Select(j =>
             {
                 var typeId = j.ProductTypeId ?? j.BlueprintTypeId;
-                return (j.FacilityId, j.InstallerId, TypeId: typeId, j.ActivityId,
+                return (j.JobId, j.FacilityId, j.InstallerId, TypeId: typeId, j.ActivityId,
                         Units: (long)j.Runs * perRun.GetValueOrDefault((j.BlueprintTypeId, typeId), 1));
             })
             .ToList();
 
         var places = await PlaceNamesAsync(db, ct);
+        string PlaceName(long id) => places.GetValueOrDefault(id, string.Format(WorklistText.LocationWithId, id));
 
-        // What comes out, by item and by the pilot and station it is waiting on: the task is on
-        // neither, so each line says. In pilot order, as that is the question: the jobs are all
-        // delivered from one window, so what matters is who has to log in. A copy job's copies and an invention's prints are copies,
-        // research hands the original back (see PrintLabel).
-        var lines = outputs
-            .GroupBy(o => (o.FacilityId, o.InstallerId, o.TypeId, o.ActivityId))
-            .Select(x => new WorklistLine(
-                x.Key.TypeId,
-                names.GetValueOrDefault(x.Key.TypeId, string.Format(WorklistText.TypeWithId, x.Key.TypeId)),
-                x.Sum(o => o.Units))
-                {
-                    Place = pilots[x.Key.InstallerId] + " · "
-                          + places.GetValueOrDefault(x.Key.FacilityId, string.Format(WorklistText.LocationWithId, x.Key.FacilityId)),
-                    Print = x.Key.ActivityId switch
+        // A task for each character with jobs to deliver, in name order.
+        return [.. outputs
+            .GroupBy(o => o.InstallerId)
+            .OrderBy(g => pilots[g.Key], StringComparer.CurrentCulture)
+            .Select(mine => TaskFor(mine.Key, pilots[mine.Key], [.. mine]))];
+
+        WorklistItem TaskFor(long pilotId, string pilotName,
+            List<(int JobId, long FacilityId, long InstallerId, int TypeId, int ActivityId, long Units)> mine)
+        {
+            // What comes out, by item and by the station it is waiting at. A copy job's copies and
+            // an invention's prints are copies, research hands the original back (see PrintLabel).
+            var lines = mine
+                .GroupBy(o => (o.FacilityId, o.TypeId, o.ActivityId))
+                .Select(x => new WorklistLine(
+                    x.Key.TypeId,
+                    names.GetValueOrDefault(x.Key.TypeId, string.Format(WorklistText.TypeWithId, x.Key.TypeId)),
+                    x.Sum(o => o.Units))
                     {
-                        5 or 8 => PrintKind.Copy,
-                        3 or 4 => PrintKind.Original,
-                        _      => PrintKind.None,
-                    },
-                })
-            .OrderBy(l => l.Place, StringComparer.CurrentCulture)
-            .ThenByDescending(l => l.Quantity)
-            .ToList();
+                        Place = PlaceName(x.Key.FacilityId),
+                        Print = x.Key.ActivityId switch
+                        {
+                            5 or 8 => PrintKind.Copy,
+                            3 or 4 => PrintKind.Original,
+                            _      => PrintKind.None,
+                        },
+                    })
+                .OrderBy(l => l.Place, StringComparer.CurrentCulture)
+                .ThenByDescending(l => l.Quantity)
+                .ToList();
 
-        // For the sentence, an item once, wherever it is waiting; largest first.
-        var totals = lines
-            .GroupBy(l => (l.TypeId, l.Print))
-            .Select(g => g.First() with { Quantity = g.Sum(l => l.Quantity) })
-            .OrderByDescending(l => l.Quantity)
-            .ToList();
-        var shown = totals.Take(4).Select(l => $"{ItemRef.Of(l.TypeId, l.TypeName, l.Print)} ×{l.Quantity:N0}");
-        // One item: the row is about it, for its picture and link. Several: about none of them.
-        var only  = totals.Count == 1 ? totals[0] : null;
+            // For the sentence, an item once, wherever it is waiting; largest first.
+            var totals = lines
+                .GroupBy(l => (l.TypeId, l.Print))
+                .Select(g => g.First() with { Quantity = g.Sum(l => l.Quantity) })
+                .OrderByDescending(l => l.Quantity)
+                .ToList();
+            var shown = totals.Take(4).Select(l => $"{ItemRef.Of(l.TypeId, l.TypeName, l.Print)} ×{l.Quantity:N0}");
+            // One item: the row is about it, for its picture and link. Several: about none of them.
+            var only  = totals.Count == 1 ? totals[0] : null;
+            // One station: the task is at it. Several: at none, and each line says where.
+            var sites = mine.Select(o => o.FacilityId).Distinct().ToList();
 
-        return
-        [
-            new WorklistItem
+            return new WorklistItem
             {
-                Key       = "completed_jobs",
-                Source    = Id,
-                Kind      = WorklistKind.Job,
-                Title     = Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.DeliverJobsTitleOther), jobs.Count),
-                Detail    = string.Format(WorklistText.DeliverJobsDetail,
-                                string.Join(CommonText.ListSeparator, shown)
-                                + (totals.Count > 4 ? " " + string.Format(WorklistText.DeliverJobsMore, totals.Count - 4) : "")),
-                Readiness = WorklistReadiness.Ready,
-                TypeId    = only?.TypeId ?? 0,
-                TypeName  = only?.TypeName ?? "",
-                Print     = only?.Print ?? PrintKind.None,
-                Lines     = lines,
-                Delivers  = [.. outputs.Select(o => new WorklistDelivered(o.FacilityId, o.TypeId, o.Units))],
-                Priority  = WorklistPriority.DeliverJobs,
-            },
-        ];
+                Key           = $"completed_jobs:{pilotId}",
+                Source        = Id,
+                Kind          = WorklistKind.Job,
+                Title         = Plurals.Format(WorklistText.ResourceManager, nameof(WorklistText.DeliverJobsTitleOther), mine.Count),
+                Detail        = string.Format(WorklistText.DeliverJobsDetail,
+                                    string.Join(CommonText.ListSeparator, shown)
+                                    + (totals.Count > 4 ? " " + string.Format(WorklistText.DeliverJobsMore, totals.Count - 4) : "")),
+                Readiness     = WorklistReadiness.Ready,
+                CharacterId   = pilotId,
+                CharacterName = pilotName,
+                LocationId    = sites.Count == 1 ? sites[0] : 0,
+                LocationName  = sites.Count == 1 ? PlaceName(sites[0]) : "",
+                TypeId        = only?.TypeId ?? 0,
+                TypeName      = only?.TypeName ?? "",
+                Print         = only?.Print ?? PrintKind.None,
+                Lines         = lines,
+                Delivers      = [.. mine.Select(o => new WorklistDelivered(o.FacilityId, o.TypeId, o.Units))],
+                Priority      = WorklistPriority.DeliverJobs,
+            };
+        }
     }
 
     /// <summary>Places as the screen names them.</summary>
