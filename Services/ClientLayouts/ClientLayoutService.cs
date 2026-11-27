@@ -126,6 +126,8 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
         var monitorsRead = DateTime.MinValue;
         string deviceId = "";
         var seenSaved = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        // The first look of this run, when the app has just started.
+        var starting = true;
 
         while (!ct.IsCancellationRequested)
         {
@@ -152,7 +154,17 @@ public sealed class ClientLayoutService(ClientLayoutStore store, AppErrorLogger 
                     var on = device.PlacementOn && DeviceIdentity.TryHoldPlacement();
                     if (!device.PlacementOn) DeviceIdentity.ReleasePlacement();
                     if (!on) engine = null;
-                    else engine ??= new ClientPlacementEngine();
+                    else if (engine == null)
+                    {
+                        engine = new ClientPlacementEngine();
+                        // ⚠️ Starting the app places the clients already running, as Apply does:
+                        // the layout is laid out — panels and all — and clients left where they
+                        // were read as the layout not being applied. Only at start, with placement
+                        // on and held by this copy at once: switching placement on later, or taking
+                        // it over from another copy that closed, still moves nobody who is flying.
+                        if (starting) apply = true;
+                    }
+                    starting = false;
                     applied = AppliedDesktop.Read(device.Applied);
                     replan = true;
                     if (device.PlacementOn && !on)

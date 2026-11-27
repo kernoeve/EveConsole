@@ -51,8 +51,9 @@ public sealed class PlacementStep
 ///
 /// <para>⚠️ It never fights a window. If a client ends up somewhere other than where it was sent,
 /// the user moved it or the game did, and it is left alone until a layout is applied again.
-/// Nothing here may ever move a client someone could be flying, except at the moment it logs in
-/// or when the user presses Apply.</para>
+/// Nothing here may ever move a client someone could be flying, except at the moment it logs in,
+/// when the user presses Apply, or when the app starts (ClientLayoutService applies the layout
+/// then, as Apply does).</para>
 /// </summary>
 public sealed class ClientPlacementEngine
 {

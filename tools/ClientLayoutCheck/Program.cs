@@ -566,7 +566,7 @@ LayoutArea TwoClients(out string first, out string second)
     Same(converted.Content, AreaContent.Panel, "and what filled it is in a panel filling it");
     Same(converted.Inside!.Id, oldRootId, "which keeps the id it had");
     Same(converted.Docked[0].Inside!.Id, bar.Id, "a control docked on the monitor is in a panel in its place, keeping its id");
-    Check(converted.Docked[0].Edge == DockEdge.Top && converted.Docked[0].Size == 40 && converted.Docked[0].Inside.Content == AreaContent.Control, "same edge, same size");
+    Check(converted.Docked[0].Edge == DockEdge.Top && converted.Docked[0].Size == 40 && converted.Docked[0].Inside!.Content == AreaContent.Control, "same edge, same size");
     Same(converted.Docked[1].Inside!.Content, AreaContent.Client, "a client docked there is a client in a panel");
     Same(converted.Docked[2].Name, "side", "a panel docked there stays as it was");
     Check(converted.Inside.Grid!.Cells.All(c => c.Content == AreaContent.Panel && c.Docked.Count == 0), "every cell is a panel");
@@ -606,7 +606,7 @@ LayoutArea TwoClients(out string first, out string second)
     Same(placed.Grids.Single().Rect, new LayoutRect(800, 0, 1760, 300), "the docked grid takes its edge of what's left");
     Same(placed.Panels.Single().Parts!.Count(p => p.Kind == PlacedPartKind.Panel), 2, "its cells are panels");
     Same(ClientLayoutEditing.ParentOf(host, grid.Cells[0].Id), gridId, "a cell's parent is its grid");
-    Same(ClientLayoutEditing.GridsAbove(host, grid.Cells[1].Inside.Id), 1, "a docked grid counts toward the cap");
+    Same(ClientLayoutEditing.GridsAbove(host, grid.Cells[1].Inside!.Id), 1, "a docked grid counts toward the cap");
     Check(ClientLayoutEditing.PlaceOf(host, grid.Cells[0].Id) == null, "a cell has no place to change");
     Check(ClientLayoutEditing.DockGrid(host, host, DockPlace.Full, 2, 2) == null, "full never replaces what fills an area");
 
@@ -1415,6 +1415,18 @@ ClientPlacementEngine Engine(out LayoutRect cell1, out LayoutRect cell2, out Lay
     var settled = new[] { w1, At(2, "EVE - Alpha", c2), At(3, "EVE - Bravo", far), At(4, "EVE - Echo", c1), w5 };
     e.Step(settled, now.AddSeconds(2));
     Same(e.Apply(settled, now.AddSeconds(3)).Moves.Count, 0, "nothing to do the second time");
+}
+{
+    // The app starting applies the layout: Apply as the very first look places clients that were
+    // already running, which a first plain look would only note.
+    var e = Engine(out var c1, out var c2, out _, ("Alpha", 2));
+    var w1 = At(1, "EVE - Alpha", opening);
+    var w2 = At(2, "EVE", new LayoutRect(100, 100, 900, 700));
+    var step = e.Apply([w1, w2], now);
+    Check(step.Moves.Contains(new ClientMove(1, c2)), "at start, a running character goes to its position");
+    Check(step.Moves.Contains(new ClientMove(2, c1)), "and a running client at login takes a free cell");
+    var plain = Engine(out _, out _, out _, ("Alpha", 2));
+    Same(plain.Step([w1, w2], now).Moves.Count, 0, "where a first plain look moves nobody");
 }
 {
     // Apply gives back a client that was moved by hand.
