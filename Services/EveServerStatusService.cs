@@ -154,8 +154,16 @@ public sealed class EveServerStatusService(
     {
         while (!ct.IsCancellationRequested)
         {
-            await CheckOnceAsync(ct);
-            await Task.Delay(TimeSpan.FromSeconds(IsOnline ? PollSeconds : OfflinePollSeconds), ct);
+            // ⚠️ Nothing a check does may end this loop. It is the only thing that lifts the
+            // offline pause, so a loop that dies while Tranquility is down leaves every ESI
+            // caller paused for good, with nothing in the log: on 27 November 2026 the worker
+            // stood down at downtime and was still standing down nine hours later.
+            try { await CheckOnceAsync(ct); }
+            catch (OperationCanceledException) when (ct.IsCancellationRequested) { return; }
+            catch (Exception ex) { errorLogger.Log(nameof(EveServerStatusService), nameof(RunAsync), ex); }
+
+            try { await Task.Delay(TimeSpan.FromSeconds(IsOnline ? PollSeconds : OfflinePollSeconds), ct); }
+            catch (OperationCanceledException) { return; }
         }
     }
 
@@ -189,6 +197,16 @@ public sealed class EveServerStatusService(
             }
             // Any other status (429, 4xx) says something about our request, not about
             // Tranquility — leave the current state alone.
+        }
+        catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+        {
+            // ⚠️ The request timed out: HttpClient reports its own timeout as a cancellation, and
+            // this used to let it through as though the app were shutting down — out of the loop
+            // that lifts the offline pause, which then never ran again. A status endpoint that
+            // does not answer is not an "online", so the state stands and the next check decides;
+            // it says nothing either way about the server, so it is not a strike against it.
+            errorLogger.Warn(nameof(EveServerStatusService), nameof(CheckOnceAsync),
+                "The server status check timed out; checking again shortly.");
         }
         catch (Exception ex) when (ex is not OperationCanceledException)
         {
