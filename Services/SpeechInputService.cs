@@ -224,8 +224,10 @@ public sealed class SpeechInputService : IDisposable
             hostApiSpecificStreamInfo = IntPtr.Zero,
         };
 
+        // ⚠️ Under PortAudio's lock, through PortAudioHost.Read: a refresh restarting PortAudio meanwhile frees the
+        // device table this reads. Not running counts as not supported; the list is read again after a refresh.
         var handle = GCHandle.Alloc(p, GCHandleType.Pinned);
-        try   { return NativePa.IsFormatSupported(handle.AddrOfPinnedObject(), IntPtr.Zero, SampleRate) == 0; }
+        try   { return PortAudioHost.Read(() => NativePa.IsFormatSupported(handle.AddrOfPinnedObject(), IntPtr.Zero, SampleRate) == 0, false); }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return true; }
         finally { handle.Free(); }
     }
@@ -260,13 +262,19 @@ public sealed class SpeechInputService : IDisposable
         internal static extern IntPtr GetHostApiInfo(int hostApi);
     }
 
+    /// <remarks>⚠️ Read under PortAudio's lock, through <see cref="PortAudioHost.Read"/>: the name is a pointer into
+    /// PortAudio's own table, which a refresh frees. Read outside it, opening the sound popup during a device change
+    /// read freed memory.</remarks>
     internal static string HostApiName(int hostApi)
     {
         try
         {
-            var p = NativePa.GetHostApiInfo(hostApi);
-            if (p == IntPtr.Zero) return "";
-            return Marshal.PtrToStringAnsi(Marshal.PtrToStructure<NativePa.HostApiInfo>(p).name) ?? "";
+            return PortAudioHost.Read(() =>
+            {
+                var p = NativePa.GetHostApiInfo(hostApi);
+                if (p == IntPtr.Zero) return "";
+                return Marshal.PtrToStringAnsi(Marshal.PtrToStructure<NativePa.HostApiInfo>(p).name) ?? "";
+            }, "");
         }
         catch (Exception ex) when (ex is DllNotFoundException or EntryPointNotFoundException) { return ""; }
     }
@@ -349,15 +357,9 @@ public sealed class SpeechInputService : IDisposable
                 };
 
                 _callbackDelegate = RecordCallback;
-                var stream = new PaStream(
-                    inParams:        inputParams,
-                    outParams:       null,
-                    sampleRate:      SampleRate,
-                    framesPerBuffer: FramesPerBuffer,
-                    streamFlags:     StreamFlags.ClipOff,
-                    callback:        _callbackDelegate,
-                    userData:        null);
-                stream.Start();
+                PaStream? stream = PortAudioHost.Open(inputParams, null, SampleRate, FramesPerBuffer, _callbackDelegate);
+                try { stream.Start(); }
+                catch { PortAudioHost.Close(ref stream, abort: true); throw; }
                 _stream = stream;
                 return true;
             }
@@ -390,9 +392,7 @@ public sealed class SpeechInputService : IDisposable
             lock (_streamLock)
             {
                 _state = Idle;
-                try { _stream?.Abort();   } catch { }
-                try { _stream?.Dispose(); } catch { }
-                _stream           = null;
+                PortAudioHost.Close(ref _stream, abort: true);
                 _callbackDelegate = null;
                 while (_chunks.TryDequeue(out _)) { }
             }
@@ -410,9 +410,7 @@ public sealed class SpeechInputService : IDisposable
         lock (_streamLock)
         {
             _state = Idle;
-            try { _stream?.Stop();    } catch { }
-            try { _stream?.Dispose(); } catch { }
-            _stream           = null;
+            PortAudioHost.Close(ref _stream, abort: false);
             _callbackDelegate = null;
             while (_chunks.TryDequeue(out _)) { }
         }
@@ -429,19 +427,25 @@ public sealed class SpeechInputService : IDisposable
         if (input == IntPtr.Zero)
             return StreamCallbackResult.Continue;
 
-        var buf = new short[(int)frameCount];
-        Marshal.Copy(input, buf, 0, (int)frameCount);
+        // ⚠️ Catches everything: PortAudio calls this from its own native thread, and an exception that leaves it ends
+        // the process (see PortAudioHost.CallbackFailed).
+        try
+        {
+            var buf = new short[(int)frameCount];
+            Marshal.Copy(input, buf, 0, (int)frameCount);
 
-        var bytes = new byte[buf.Length * 2];
-        Buffer.BlockCopy(buf, 0, bytes, 0, bytes.Length);
+            var bytes = new byte[buf.Length * 2];
+            Buffer.BlockCopy(buf, 0, bytes, 0, bytes.Length);
 
-        var now = Environment.TickCount64;
-        _chunks.Enqueue((now, bytes));
+            var now = Environment.TickCount64;
+            _chunks.Enqueue((now, bytes));
 
-        // Idle: keep the pre-roll and no more. Capturing or released: keep everything until the
-        // collection after the release has taken what it wants.
-        if (_state == Idle)
-            while (_chunks.TryPeek(out var oldest) && now - oldest.Tick > PreRollMs + 100 && _chunks.TryDequeue(out _)) { }
+            // Idle: keep the pre-roll and no more. Capturing or released: keep everything until the
+            // collection after the release has taken what it wants.
+            if (_state == Idle)
+                while (_chunks.TryPeek(out var oldest) && now - oldest.Tick > PreRollMs + 100 && _chunks.TryDequeue(out _)) { }
+        }
+        catch (Exception e) { PortAudioHost.CallbackFailed("Speech microphone", e); }
 
         return StreamCallbackResult.Continue;
     }

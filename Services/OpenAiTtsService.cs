@@ -99,7 +99,8 @@ public sealed class OpenAiTtsService : IDisposable
     {
         var old = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
         old.Cancel();
-        old.Dispose();
+        // Not disposed: an utterance just starting may still be reading its token, and a disposed one threw
+        // ObjectDisposedException there, which counted as the voice failing and handed over to the next.
         lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
@@ -269,10 +270,13 @@ public sealed class OpenAiTtsService : IDisposable
         {
             using var media = new Media(_vlc!, new Uri(temp));
 
+            // ⚠️ Only the call that made a player frees it; anyone else only stops it. Another call (or Dispose)
+            // freeing it used to race this one's own Stop and unhooking on the same player: a use of freed native
+            // memory in libvlc, which ends the process.
             MediaPlayer player;
             lock (_playerLock)
             {
-                _player?.Dispose();
+                try { _player?.Stop(); } catch { }
                 _player = player = new MediaPlayer(_vlc!);
                 player.Volume = _volume;
             }
@@ -283,6 +287,7 @@ public sealed class OpenAiTtsService : IDisposable
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
             void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
             player.EndReached       += OnEnd;
+            player.Stopped          += OnEnd;   // a stop raises only this: without it, a stopped play waited forever
             player.EncounteredError += OnError;
 
             try
@@ -298,6 +303,7 @@ public sealed class OpenAiTtsService : IDisposable
             finally
             {
                 player.EndReached       -= OnEnd;
+                player.Stopped          -= OnEnd;
                 player.EncounteredError -= OnError;
                 lock (_playerLock)
                 {
@@ -312,11 +318,8 @@ public sealed class OpenAiTtsService : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        Stop();
-        lock (_playerLock) { _player?.Dispose(); _player = null; }
-    }
+    /// <remarks>Stops only: a play still running frees its own player as it ends (see PlayAsync).</remarks>
+    public void Dispose() => Stop();
 
     private static string StripMarkdown(string text)
     {

@@ -68,17 +68,27 @@ public sealed class KokoroTtsService : IDisposable
     private static string BritishFemale(string name)  => string.Format(SettingsText.KokoroVoiceBritishFemale, name);
     private static string BritishMale(string name)    => string.Format(SettingsText.KokoroVoiceBritishMale, name);
 
-    private KokoroTTS? _tts;
+    /// <summary>The model, making sound only: it is played through the app's own LibVLC, as every other voice is.</summary>
+    /// <remarks>⚠️ Not KokoroSharp's KokoroTTS, which plays through its own NAudio player on a thread of its own and
+    /// ends the process when that player fails: with no sound device to open (HDMI audio while the monitor sleeps, a
+    /// headset switched off) its Init throws inside an <c>async void</c>, and so does a device pulled mid-sentence.
+    /// Night alarms are spoken exactly when the monitor is asleep. KokoroTTS also opens that player as it loads.</remarks>
+    private KokoroSharp.Utilities.KokoroWavSynthesizer? _tts;
     private string     _voiceId = "af_heart";
     private float      _volume  = 1f;
 
-    /// <summary>0.0–1.0, through KokoroSharp's own playback. Kept and applied on load as well,
-    /// so a volume set before the model has loaded is not lost.</summary>
+    private static LibVLCSharp.Shared.LibVLC? Vlc => VlcRuntime.Shared;
+    private LibVLCSharp.Shared.MediaPlayer? _player;
+    private readonly object _playerLock = new();
+
+    /// <summary>0.0–1.0. Applied to each utterance as it starts, and to the one playing now.</summary>
     public void SetVolume(float volume)
     {
         _volume = Math.Clamp(volume, 0f, 1f);
-        try { _tts?.SetVolume(_volume); } catch { /* the engine has gone */ }
+        lock (_playerLock) { try { if (_player is not null) _player.Volume = VlcVolume; } catch { /* finishing */ } }
     }
+
+    private int VlcVolume => (int)Math.Round(_volume * 100);
 
     public bool IsReady => _tts is not null;
 
@@ -98,20 +108,24 @@ public sealed class KokoroTtsService : IDisposable
     public Task LoadAsync()
     {
         if (_tts is not null) return Task.CompletedTask;
-        if (_load is { IsFaulted: true } or { IsCanceled: true }) _load = null;
-        return _load ??= Task.Run(async () =>
+        // Locked: two utterances arriving together each started a load, a second 320 MB model.
+        lock (_loadLock)
         {
-            if (KokoroVoiceManager.Voices.Count == 0)
+            if (_load is { IsFaulted: true } or { IsCanceled: true }) _load = null;
+            return _load ??= Task.Run(async () =>
             {
-                if (!Directory.Exists(VoicesDir))
-                    throw new DirectoryNotFoundException(string.Format(SettingsText.KokoroVoicesMissing, VoicesDir));
-                KokoroVoiceManager.LoadVoicesFromPath(VoicesDir);
-            }
-            var tts = KokoroTTS.LoadModel(await EnsureModelAsync());
-            try { tts.SetVolume(_volume); } catch { /* default volume, then */ }
-            _tts = tts;
-        });
+                if (KokoroVoiceManager.Voices.Count == 0)
+                {
+                    if (!Directory.Exists(VoicesDir))
+                        throw new DirectoryNotFoundException(string.Format(SettingsText.KokoroVoicesMissing, VoicesDir));
+                    KokoroVoiceManager.LoadVoicesFromPath(VoicesDir);
+                }
+                _tts = new KokoroSharp.Utilities.KokoroWavSynthesizer(await EnsureModelAsync(), null);
+            });
+        }
     }
+
+    private readonly object _loadLock = new();
 
     /// <summary>The model's path, fetching it first if this machine has never had it.</summary>
     private static async Task<string> EnsureModelAsync()
@@ -198,52 +212,95 @@ public sealed class KokoroTtsService : IDisposable
 
         if (string.IsNullOrWhiteSpace(stripped)) return;
 
-        var voice  = KokoroVoiceManager.GetVoice(string.IsNullOrEmpty(voiceId) ? _voiceId : voiceId);
-        var done   = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-        var handle = _tts.SpeakFast(stripped, voice);
+        var vlc = Vlc ?? throw new InvalidOperationException(SettingsText.PiperNoVlc);
+        var voice = KokoroVoiceManager.GetVoice(string.IsNullOrEmpty(voiceId) ? _voiceId : voiceId);
+        using var linked = CancellationTokenSource.CreateLinkedTokenSource(ct, _stop.Token);
 
-        handle.OnSpeechCompleted += _ => done.TrySetResult();
-        handle.OnSpeechCanceled  += _ => done.TrySetResult();
+        // ⚠️ A stop ends the wait at once, also while the sentence is still being made: the first moment of a
+        // sentence is exactly when an interruption lands. The sound being made then is thrown away when it is done.
+        // A ceiling as well, so a synthesis that never finishes cannot hold the speech queue for ever.
+        byte[] pcm;
+        try
+        {
+            var making = _tts.SynthesizeAsync(stripped, voice);
+            if (!making.Wait(TimeSpan.FromMinutes(2), linked.Token))
+                throw new TimeoutException(SettingsText.PiperPlaybackFailed);
+            pcm = making.Result;
+        }
+        catch (OperationCanceledException) { return; }
 
-        // ⚠️ The job can finish between being returned and these callbacks being attached — a very
-        // short utterance does — and then neither ever fires and this waits out the timeout for
-        // nothing.
-        if (handle.Job?.isDone == true) done.TrySetResult();
+        if (pcm.Length == 0 || linked.IsCancellationRequested) return;
 
-        // A ceiling, not an expectation: if a completion signal is ever missed, speech resumes
-        // late rather than stopping for the rest of the session.
-        //
-        // ⚠️ And a stop ends the wait at once. StopPlayback raises OnSpeechCanceled only for an
-        // utterance that has begun to PLAY; stopped while it is still being made — the first
-        // moment of a sentence, which is exactly when an interruption lands, the next sentence
-        // having just started — no event comes at all, and this waited out the whole two minutes
-        // with every sentence of the next answer queued behind it. Measured with the real engine:
-        // stopped 3 s in, it returned at once; stopped 0.2 s in, it returned after 119.9 s.
-        try   { done.Task.Wait((int)TimeSpan.FromMinutes(2).TotalMilliseconds, ct); }
-        catch (OperationCanceledException) { /* stopped — the playback was stopped with it */ }
+        var temp = Path.Combine(Path.GetTempPath(), $"kokoro_{Guid.NewGuid():N}.wav");
+        try
+        {
+            _tts.SaveAudioToFile(pcm, temp);
+            try { PlayAsync(vlc, temp, linked.Token).GetAwaiter().GetResult(); }
+            catch (OperationCanceledException) { /* stopped */ }
+        }
+        finally
+        {
+            try { File.Delete(temp); } catch { }
+        }
     }
 
+    /// <summary>Plays one file and returns when it has ended, been stopped or failed.</summary>
+    /// <remarks>⚠️ Only this call frees the player it made; anything else only stops it (see
+    /// OpenAiTtsService.PlayAsync): two threads freeing and using one libvlc player end the process.</remarks>
+    private async Task PlayAsync(LibVLCSharp.Shared.LibVLC vlc, string path, CancellationToken ct)
+    {
+        using var media = new LibVLCSharp.Shared.Media(vlc, new Uri(path));
+
+        LibVLCSharp.Shared.MediaPlayer player;
+        lock (_playerLock)
+        {
+            try { _player?.Stop(); } catch { }
+            _player = player = new LibVLCSharp.Shared.MediaPlayer(vlc) { Volume = VlcVolume };
+        }
+
+        var tcs = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var reg = ct.Register(() => tcs.TrySetCanceled(ct));
+
+        void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
+        void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
+        player.EndReached       += OnEnd;
+        player.Stopped          += OnEnd;   // a stop raises only this
+        player.EncounteredError += OnError;
+
+        try
+        {
+            player.Play(media);
+            await tcs.Task.ConfigureAwait(false);
+        }
+        catch (OperationCanceledException) { player.Stop(); throw; }
+        finally
+        {
+            player.EndReached       -= OnEnd;
+            player.Stopped          -= OnEnd;
+            player.EncounteredError -= OnError;
+            lock (_playerLock) { if (_player == player) _player = null; }
+            player.Dispose();
+        }
+    }
+
+    private CancellationTokenSource _stop = new();
+
     /// <summary>
-    /// Stops whatever is currently being spoken.
+    /// Stops whatever is currently being spoken, or being made to be spoken.
     ///
-    /// <para>⚠️ This was empty, with a comment saying KokoroSharp exposes no stop or cancel API.
-    /// It does — <c>StopPlayback</c> — so asking the agent to stop talking did nothing, and the
-    /// previous answer carried on over the next question.</para>
+    /// <para>⚠️ This was once empty, with a comment saying there was no way to stop, so asking the agent to stop
+    /// talking did nothing, and the previous answer carried on over the next question.</para>
     /// </summary>
     public void Stop()
     {
-        try   { _tts?.StopPlayback(); }
-        catch { /* nothing useful to do if the engine has already gone */ }
+        // Cancelled, not disposed: an utterance just starting may still be reading the token.
+        Interlocked.Exchange(ref _stop, new CancellationTokenSource()).Cancel();
+        lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
-    public void Dispose()
-    {
-        Stop();
-        _tts?.Dispose();
-        _tts  = null;
-        _load = null;
-
-    }
+    /// <remarks>Stops only, and leaves the model: a sentence still being made would be using it, and the model
+    /// lives as long as the app does.</remarks>
+    public void Dispose() => Stop();
 
     private static string StripMarkdown(string text)
     {

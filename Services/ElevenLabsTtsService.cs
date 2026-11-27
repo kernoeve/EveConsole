@@ -129,7 +129,8 @@ public sealed class ElevenLabsTtsService : IDisposable
     {
         var old = Interlocked.Exchange(ref _cts, new CancellationTokenSource());
         old.Cancel();
-        old.Dispose();
+        // Not disposed: an utterance just starting may still be reading its token, and a disposed one threw
+        // ObjectDisposedException there, which counted as the voice failing and handed over to the next.
         lock (_playerLock) { try { _player?.Stop(); } catch { } }
     }
 
@@ -240,10 +241,11 @@ public sealed class ElevenLabsTtsService : IDisposable
         {
             using var media = new Media(vlc, new Uri(temp));
 
+            // ⚠️ Only the call that made a player frees it; anyone else only stops it (see OpenAiTtsService.PlayAsync).
             MediaPlayer player;
             lock (_playerLock)
             {
-                _player?.Dispose();
+                try { _player?.Stop(); } catch { }
                 _player = player = new MediaPlayer(vlc);
                 player.Volume = _volume;
             }
@@ -254,6 +256,7 @@ public sealed class ElevenLabsTtsService : IDisposable
             void OnEnd(object? s, EventArgs e) => tcs.TrySetResult(true);
             void OnError(object? s, EventArgs e) => tcs.TrySetException(new InvalidOperationException(SettingsText.PiperPlaybackFailed));
             player.EndReached      += OnEnd;
+            player.Stopped         += OnEnd;   // a stop raises only this
             player.EncounteredError += OnError;
 
             try
@@ -265,6 +268,7 @@ public sealed class ElevenLabsTtsService : IDisposable
             finally
             {
                 player.EndReached      -= OnEnd;
+                player.Stopped         -= OnEnd;
                 player.EncounteredError -= OnError;
                 lock (_playerLock) { if (_player == player) _player = null; }
                 player.Dispose();
@@ -276,11 +280,8 @@ public sealed class ElevenLabsTtsService : IDisposable
         }
     }
 
-    public void Dispose()
-    {
-        Stop();
-        lock (_playerLock) { _player?.Dispose(); _player = null; }
-    }
+    /// <remarks>Stops only: a play still running frees its own player as it ends.</remarks>
+    public void Dispose() => Stop();
 
     private static string StripMarkdown(string text)
     {
